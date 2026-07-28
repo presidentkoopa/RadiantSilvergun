@@ -1,0 +1,250 @@
+// =====================================================================
+// VR_Chaingun MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_Chaingun
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf0.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF2.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF A 0 0
+}
+
+Model VR_Chaingun
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf1.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF3.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF B 0 0
+}
+
+Model VR_Chaingun2
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun2
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf0.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF2.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF A 0 0
+}
+
+Model VR_Chaingun2
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf1.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF3.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF B 0 0
+}
+
+Model VR_Chaingun3
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun3
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf0.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF2.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF A 0 0
+}
+
+Model VR_Chaingun3
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf1.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF3.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF B 0 0
+}
+
+Model VR_Chaingun4
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun4
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf0.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF2.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF A 0 0
+}
+
+Model VR_Chaingun4
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf1.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF3.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF B 0 0
+}
+
+Model VR_Chaingun5
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun5
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf0.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF2.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF A 0 0
+}
+
+Model VR_Chaingun5
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf1.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF3.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF B 0 0
+}
+
+Model VR_Chaingun6
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun6
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf0.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF2.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF A 0 0
+}
+
+Model VR_Chaingun6
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "CG_MF1.md3"
+	Skin 0 "mf1.png"
+	Model 1 "CG_MF2.md3"
+	Skin 1 "MF3.png"
+	Scale -4.0 4.0 4.0
+	Offset 0.0 -33.0 32.0
+	NOINTERPOLATION
+
+	FrameIndex CHGF B 0 0
+}
+

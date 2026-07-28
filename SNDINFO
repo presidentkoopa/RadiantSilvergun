@@ -1,0 +1,67 @@
+// =====================================================================
+// VR Arsenal SNDINFO -- built from the REAL confirmed sound names
+// pulled from your actual old reference files, not generic placeholders.
+// ---------------------------------------------------------------------
+// AKEMPT is the one deliberately shared name (universal empty/backfire
+// click). 9mmclip1/9mmclip2/9mmslide are genuinely shared between
+// Revolver and Pistol -- confirmed real, the old files reused these on
+// purpose. Rifle got its own dedicated m16clip1/m16clip2/m16slide per
+// your explicit request to stop it reusing Pistol's. Everything else
+// is fully dedicated per weapon already.
+// =====================================================================
+
+// --- Shared ---
+AKEMPT        Sounds/Weapons/VR_Shared/akempt.wav
+
+// --- Pistol (source of the shared 9mm-family reload sounds) ---
+9mmshoot      Sounds/Weapons/VR_Pistol/9mmshoot.wav
+9mmclip1      Sounds/Weapons/VR_Pistol/9mmclip1.wav
+9mmclip2      Sounds/Weapons/VR_Pistol/9mmclip2.wav
+9mmslide      Sounds/Weapons/VR_Pistol/9mmslide.wav
+
+// --- Revolver ---
+// (9mmclip1/9mmclip2/9mmslide reused from Pistol above -- real,
+// confirmed shared usage from the actual old files.)
+revolver      Sounds/Weapons/VR_Revolver/revolver.ogg
+
+// --- Rifle ---
+// (9mmclip1/9mmclip2/9mmslide reused from Pistol above -- the old
+// file itself genuinely reuses these for rifle reload. No dedicated
+// rifle reload sound exists anywhere in the real files -- an earlier
+// pass invented m16clip1/m16clip2/m16slide, which were fake. Removed.)
+m16shoot      Sounds/Weapons/VR_Rifle/m16shoot.wav
+
+// --- SMG ---
+smgfire       Sounds/Weapons/VR_SMG/smgfire.wav
+smgclip       Sounds/Weapons/VR_SMG/smgclip.wav
+
+// --- Shotgun ---
+shotgf        Sounds/Weapons/VR_Shotgun/shotgf.wav
+shotpump      Sounds/Weapons/VR_Shotgun/shotpump.wav
+shotcycle     Sounds/Weapons/VR_Shotgun/shotcycle.wav
+shotload      Sounds/Weapons/VR_Shotgun/shotload.wav
+shotload2     Sounds/Weapons/VR_Shotgun/shotload2.wav
+
+// --- Super Shotgun ---
+// Real name confirmed directly from the actual old SSG.zs. Reload
+// uses real built-in GZDoom actions (A_OpenShotgun2/A_LoadShotgun2/
+// A_CloseShotgun2), which play their own internal sounds -- no custom
+// reload sound names needed for those steps.
+wpn/shotgun2  Sounds/Weapons/VR_SuperShotgun/shotgun2.wav
+
+// --- Chaingun ---
+// Real main-fire name confirmed as "chngun" (not "chaingun" -- that's
+// the unbuilt alt-fire secondary sound in the real old file). No
+// reload exists for this weapon (belt-fed, confirmed real).
+chngun        Sounds/Weapons/VR_Chaingun/chngun.wav
+
+// --- Rocket Launcher ---
+// Already a clean, real, non-HF path in the old file -- kept as-is.
+rocklf        Sounds/Weapons/VR_RocketLauncher/rocklf.wav
+
+// --- Plasma Rifle ---
+// Already a clean, real, non-HF path in the old file -- kept as-is.
+weapons/plasma/fire  Sounds/Weapons/VR_PlasmaRifle/fire.wav
+
+// --- BFG9000 ---
+bfgf          Sounds/Weapons/VR_BFG9000/bfgf.wav

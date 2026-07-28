@@ -1,0 +1,346 @@
+// =====================================================================
+// VR_RocketLauncher MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF0.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF1.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF2.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF3.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF0.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF1.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF2.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF3.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF0.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF1.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF2.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF3.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF0.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF1.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF2.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF3.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF0.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF1.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF2.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF3.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+Model VR_RocketLauncher6
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher6
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF0.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher6
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF1.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher6
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF2.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher6
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "Hud_RL_MF3.PNG"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+

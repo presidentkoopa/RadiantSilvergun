@@ -1,0 +1,262 @@
+// =====================================================================
+// VR_Rifle MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_Rifle
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+Model VR_Rifle2
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+Model VR_Rifle3
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+Model VR_Rifle4
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+Model VR_Rifle5
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+Model VR_Rifle6
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+

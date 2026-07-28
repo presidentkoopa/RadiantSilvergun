@@ -1,0 +1,4 @@
+GameInfo
+{
+	PlayerClasses = "VR_VanillaPlus", "VR_Dual_Pistol", "VR_Dual_Revolver", "VR_Dual_Rifle", "VR_Dual_SMG", "VR_Dual_Shotgun", "VR_Dual_SSG", "VR_Dual_Chaingun"
+}

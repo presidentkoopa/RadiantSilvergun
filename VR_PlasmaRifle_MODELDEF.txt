@@ -1,0 +1,208 @@
+// =====================================================================
+// VR_PlasmaRifle MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_PlasmaRifle
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+Model VR_PlasmaRifle2
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle2
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle2
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+Model VR_PlasmaRifle3
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle3
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle3
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+Model VR_PlasmaRifle4
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle4
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle4
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+Model VR_PlasmaRifle5
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle5
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle5
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+Model VR_PlasmaRifle6
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle6
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle6
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.tga"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+

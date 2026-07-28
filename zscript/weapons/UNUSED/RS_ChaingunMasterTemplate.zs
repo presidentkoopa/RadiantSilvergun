@@ -1,0 +1,196 @@
+// RS_ChaingunMasterTemplate -- the Chaingun weapon type.
+// ---------------------------------------------------------------------
+// Real data: dmg anchor 5-9, belt-fed directly from VR_ChaingunAmmo
+// (custom reserve, no chamber/reload at all -- confirmed, the old file
+// has no Reload state for this weapon). Real fire: two shots per cycle,
+// CHGG A(2)/B(2). Real sound: chngun. Full-auto via A_ReFire, hard
+// cooldown gate (no release-required soft penalty -- full-auto's rate
+// IS its cadence).
+// =====================================================================
+class RS_ChaingunMasterTemplate : RS_Weapon abstract
+{
+	Default
+	{
+		Weapon.SelectionOrder 1892;
+		Weapon.AmmoUse 0;
+		Weapon.AmmoGive1 40;
+		Weapon.AmmoType1 "VR_ChaingunAmmo";
+	}
+
+	override void RollStats(EVR_Tier t)
+	{
+		Tier = t;
+		int idx = int(t >= VRT_Basic ? t : VRT_Basic);
+
+		switch (t)
+		{
+			case VRT_Basic:
+				DamagePerShot = RS_Roll.RollInt(5, 9);
+				Accuracy      = RS_Roll.RollDouble(50, 62);
+				Velocity      = RS_Roll.RollDouble(7500, 9500);
+				CritChance    = RS_Roll.RollDouble(0.01, 0.02);
+				Capacity      = 40; // reserve pool size reference, no true chamber
+				break;
+			case VRT_Common:
+				DamagePerShot = RS_Roll.RollInt(6, 11);
+				Accuracy      = RS_Roll.RollDouble(52, 64);
+				Velocity      = RS_Roll.RollDouble(7500, 9500);
+				CritChance    = RS_Roll.RollDouble(0.012, 0.025);
+				Capacity      = 40;
+				break;
+			case VRT_Uncommon:
+				DamagePerShot = RS_Roll.RollInt(7, 13);
+				Accuracy      = RS_Roll.RollDouble(54, 66);
+				Velocity      = RS_Roll.RollDouble(7500, 9500);
+				CritChance    = RS_Roll.RollDouble(0.014, 0.03);
+				Capacity      = 40;
+				break;
+			case VRT_Advanced:
+				DamagePerShot = RS_Roll.RollInt(9, 15);
+				Accuracy      = RS_Roll.RollDouble(56, 68);
+				Velocity      = RS_Roll.RollDouble(7500, 10000);
+				CritChance    = RS_Roll.RollDouble(0.016, 0.035);
+				Capacity      = 40;
+				break;
+			case VRT_Designer:
+				DamagePerShot = RS_Roll.RollInt(11, 17);
+				Accuracy      = RS_Roll.RollDouble(58, 70);
+				Velocity      = RS_Roll.RollDouble(7500, 10500);
+				CritChance    = RS_Roll.RollDouble(0.018, 0.04);
+				Capacity      = 60;
+				break;
+			case VRT_Prototype:
+				DamagePerShot = RS_Roll.RollInt(13, 19);
+				Accuracy      = RS_Roll.RollDouble(60, 72);
+				Velocity      = RS_Roll.RollDouble(7500, 11000);
+				CritChance    = RS_Roll.RollDouble(0.02, 0.045);
+				Capacity      = 60;
+				break;
+			case VRT_Trash:
+				if (RS_Roll.RollDouble(0, 1) < 0.05)
+				{
+					DamagePerShot = RS_Roll.RollInt(12, 17);
+					CritChance    = RS_Roll.RollDouble(0.04, 0.06);
+				}
+				else
+				{
+					DamagePerShot = RS_Roll.RollInt(3, 6);
+					CritChance    = RS_Roll.RollDouble(0.005, 0.015);
+				}
+				Accuracy = RS_Roll.RollDouble(40, 53);
+				Velocity = RS_Roll.RollDouble(7000, 9000);
+				Capacity = 40;
+				break;
+			case VRT_Cursed:
+				DamagePerShot = RS_Roll.RollInt(8, 13);
+				Accuracy      = RS_Roll.RollDouble(45, 60);
+				Velocity      = RS_Roll.RollDouble(7500, 10000);
+				CritChance    = RS_Roll.RollDouble(0.03, 0.05);
+				Capacity      = 40;
+				break;
+		}
+
+		if (t == VRT_Cursed)
+		{
+			LockedDamage     = true;
+			LockedCritChance = true;
+		}
+		else
+		{
+			LockedDamage = LockedAccuracy = LockedVelocity = LockedCritChance = LockedCapacity = false;
+		}
+
+		RateOfFire       = 17;  // real cadence, fixed -- ~2 tics/shot from the real animation
+		ReloadSpeed       = 1.0; // no reload exists for this weapon, field unused but present for consistency
+		PelletCount       = 1;
+		Choke             = 0;
+		GunBonaiSockets   = RS_Roll.SocketsForTier(t);
+
+		if (!bStatsRolled)
+			Condition = RS_Roll.RollDouble(1, 100);
+
+		bStatsRolled = true;
+	}
+
+	override void ApplyUpgradeCard(EVR_Tier newTier)
+	{
+		RollStats(newTier);
+	}
+
+	action void A_RS_FireChaingun()
+	{
+		double dmgMult, pelletMult, backfireChance;
+		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
+
+		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
+		{
+			A_RS_Backfire();
+			TakeInventory("VR_ChaingunAmmo", 1);
+			A_RS_MarkFired();
+			return;
+		}
+
+		double dmg = invoker.DamagePerShot * dmgMult;
+		if (FRandom(0, 1) < invoker.CritChance)
+			dmg *= 2.0;
+
+		int pellets = max(1, int(invoker.PelletCount * pelletMult));
+		double spread = (100.0 - invoker.Accuracy) * 0.05;
+
+		A_FireBullets(spread, spread, pellets, int(dmg), "bulletpuff", FBF_NORANDOM);
+		A_PlaySound("chngun", CHAN_WEAPON);
+		TakeInventory("VR_ChaingunAmmo", 1);
+		A_RS_MarkFired();
+	}
+
+	action void A_RS_Backfire()
+	{
+		A_PlaySound("AKEMPT", CHAN_WEAPON);
+		double dmg = invoker.DamagePerShot;
+		if (FRandom(0, 1) < invoker.CritChance)
+			dmg *= 2.0;
+		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+	}
+
+	States
+	{
+	Spawn:
+		CHGG A -1;
+		Stop;
+
+	Ready:
+		CHGG A 1 A_WeaponReady(WRF_ALLOWRELOAD);
+		Loop;
+
+	Deselect:
+		CHGG A 1 A_Lower;
+		Loop;
+
+	Select:
+		CHGG A 1 A_Raise;
+		Loop;
+
+	// Real exact frame sequence: two shots per cycle.
+	Fire:
+		TNT1 A 0 A_JumpIf(!invoker.AutoCooldownReady(), "Ready");
+		TNT1 A 0 A_JumpIf(CountInv("VR_ChaingunAmmo") > 0, "Shoot");
+		Goto OutOfAmmo;
+
+	Shoot:
+		CHGG A 2 A_GunFlash();
+		TNT1 A 0 A_RS_FireChaingun();
+		TNT1 A 0 A_JumpIf(CountInv("VR_ChaingunAmmo") <= 0, "Ready");
+		CHGG B 2 A_GunFlash();
+		TNT1 A 0 A_RS_FireChaingun();
+		TNT1 A 0 A_ReFire();
+		Goto Ready;
+
+	Flash:
+		CHGG A 2 Bright A_Light2();
+		Stop;
+
+	OutOfAmmo:
+		TNT1 A 0 A_PlaySound("AKEMPT", CHAN_AUTO);
+		Goto Ready;
+	}
+}

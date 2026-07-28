@@ -1,0 +1,7 @@
+version "4.14"
+
+#include "zscript/player/VR_playerclasses.zs"
+#include "zscript/weapons/RS_Roll.zs"
+#include "zscript/weapons/RS_Weapon.zs"
+#include "zscript/weapons/RS_Arsenal.zs"
+#include "zscript/weapons/RS_BallisticFired.zs"

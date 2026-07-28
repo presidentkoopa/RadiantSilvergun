@@ -1,0 +1,352 @@
+Radiant Silvergun (change this title before Treasure reforms and sues your dumb ass)
+
+--Design Goals
+
+The objective is to create a lightweight looter-shooter experience that complements Doom's fast-paced combat rather than replacing it.
+
+The system focuses on meaningful weapon progression, player choice, and customization without overwhelming the player with an excessive arsenal.
+
+Because the mod is designed for VR, the player manages a smaller collection of highly developed weapons rather than constantly cycling through dozens of guns. Weapons are designed to grow alongside the player while still allowing experimentation and replacement when new opportunities appear.
+
+The core gameplay loop remains Doom:
+
+Fight monsters → collect resources → improve weapons → face stronger challenges
+
+Weapon progression exists to enhance combat variety and player choice.
+
+--Class System
+
+At the beginning of a game, the player selects a weapon class.
+
+A class determines the player's starting equipment and defines the family of weapons available throughout progression.
+
+For example, selecting the Dual Revolvers class begins with:
+
+Two fists
+Two Basic revolvers
+
+As the player progresses, Elite enemies provide additional class weapons.
+
+Each class contains six class weapons.
+
+These weapons are divided between the player's two hands:
+
+Three mainhand weapons
+Three offhand weapons
+
+This provides variety while avoiding the need to manage a massive traditional arsenal in VR.
+
+Once the complete class arsenal has been acquired, progression shifts from collecting new weapons toward improving, specializing, and evolving existing weapons.
+
+--Dual-Hand Inventory
+
+The player maintains independent left-hand and right-hand weapon inventories.
+
+Each hand can independently equip and swap between its available class weapons.
+
+The goal is not to recreate a traditional Doom weapon wheel with dozens of weapons. Instead, the player develops a smaller collection of weapons with unique characteristics and specialized builds.
+
+(My thinking is that handling a whole Doom arsenal in each hand is unwieldy. A smaller number of player-specialized weapons is a better move.)
+
+--Monster Tier System
+
+Monsters exist on a tier system ranging from Tier 00 through Tier 14, with an additional EX Boss tier.
+
+Each monster tier has its own:
+
+Health values
+Aggression
+Movement speed
+Attack behavior
+Overall combat difficulty
+
+Monster tiers can be adjusted dynamically at runtime.
+
+The game can tier monsters up or down to maintain an appropriate challenge based on player weapon power.
+
+The goal is not to make the player permanently overpower enemies. Even highly developed weapons should eventually face monsters capable of challenging them.
+
+High monster tiers provide continued difficulty and give players reasons to continue improving and experimenting with their weapons.
+
+--Elite Monsters
+
+Most monsters remain faithful to Doom's original roster.
+
+Certain monsters are designated as Elite variants.
+
+Elite monsters serve as the primary source of class weapon progression.
+
+Normal monsters drop Bits only.
+
+Elite monsters drop:
+
+Bits
+Class weapons
+
+Elite monsters allow players to gradually complete their class arsenal without flooding the player with excessive weapon drops.
+
+Bits
+
+Traditional item drops are replaced by a unified resource system known as Bits.
+
+Bits are automatically collected and serve as the primary resource system.
+
+Current Bit types:
+
+Red Bits
+Health resource.
+
+Blue Bits
+Ammo resource.
+
+Green Bits
+Armor resource.
+
+Gold Bits
+Currency resource.
+
+Grey Bits
+Weapon repair and Condition resource.
+
+Mystery Bits
+Reserved for future mechanics.
+
+The Bit system keeps combat rewarding while avoiding excessive inventory clutter.
+
+--Gold & SetPieces
+
+Gold is used at the player's discretion to purchase specialized encounters called SetPieces.
+
+SetPieces are designed EX Boss encounters with:
+
+Unique encounter designs
+Increased difficulty
+High-end rewards
+
+SetPieces are optional challenges that allow players to spend resources for additional progression opportunities.
+
+--Weapon Acquisition
+
+At the beginning of the game, the player starts with:
+
+Two fists
+Two Basic class weapons
+
+Until the player has acquired all six class weapons, Elite monsters can only drop:
+
+Cursed 
+Trash 
+Basic 
+
+After the player has completed their class arsenal, Elite drops expand to the full weapon tier system:
+
+Cursed
+Trash
+Basic
+Common
+Uncommon
+Advanced
+Designer
+Prototype
+
+--Living Weapon System
+
+Class weapons are the player's primary weapons and develop through use.
+
+Weapons gain experience, improve statistics, and gain specialized properties through progression.
+
+The player is not simply replacing weapons with higher rarity versions. Each weapon represents a development path.
+
+However, progression is not linear. An Elite-dropped, lower-tier weapon may contain a rare characteristic or better foundation that makes rebuilding worthwhile.
+
+The player is constantly choosing between continuing an existing weapon path or developing a new one.
+
+--Weapon Tier System
+
+Weapons are defined by two major factors:
+
+Weapon Tier
+Weapon Statistics
+
+Weapon tier determines available progression, GunBonai access, and specialization potential.
+
+Weapon statistics determine the weapon's individual performance.
+
+A higher-tier weapon is not automatically superior. A weapon's true value depends on its combination of tier, statistics, and upgrades.
+
+Weapon Tiers
+Cursed
+
+Cursed weapons contain powerful potential but begin with restrictions.
+
+Many rolled statistics are locked when the weapon is created.
+
+A locked statistic cannot be improved until its curse is removed.
+
+Each curse must be individually unlocked.
+
+Trash
+
+Trash weapons normally roll poor statistics.
+
+However, they have a very small chance to generate exceptional rolls.
+
+These rare "Trash to Treasure" weapons can become valuable despite their low tier.
+
+Basic
+
+Basic weapons are the standard baseline weapons.
+
+Players begin with Basic class weapons.
+
+Basic weapons cannot gain GunBonai abilities but can still improve through normal stat upgrades.
+
+Common
+
+Common weapons gain access to their first GunBonai specialization.
+
+Common weapons contain:
+
+1 GunBonai Socket
+Uncommon
+
+Uncommon weapons contain:
+
+2 GunBonai Sockets
+Advanced
+
+Advanced weapons contain:
+
+3 GunBonai Sockets
+Designer
+
+Designer weapons contain:
+
+4 GunBonai Sockets
+Prototype
+
+Prototype weapons represent the highest weapon tier.
+
+Prototype weapons contain:
+
+5 GunBonai Sockets
+
+--GunBonsai Weapon Growth System
+
+GunBonsai is the weapon experience and leveling system.
+
+Weapons gain experience through use.
+
+When a weapon levels, the player chooses improvements that shape the weapon's development.
+
+All weapons can receive basic stat improvements, including:
+
+Damage increases
+Accuracy improvements
+Capacity improvements
+Other available stat upgrades
+
+Higher-tier weapons gain access to GunBonsai abilities.
+
+GunBonsai abilities provide unique weapon behaviors and specialized effects.
+
+GunBonsai options are restricted by:
+
+Weapon type
+Weapon tier
+Weapon progression
+
+A Revolver's GunBonsai options will differ from other weapon types.
+
+--GunBonsai Sockets
+
+GunBonsai Sockets represent the number of GunBonai abilities a weapon can support.
+
+Higher weapon tiers provide more available sockets.
+
+Cursed, Trash, and Basic weapons cannot gain GunBonai abilities.
+
+These weapons rely on their statistics and normal upgrades.
+
+--Weapon Statistics
+
+Each weapon tracks twelve primary statistics.
+
+Statistics are created through:
+
+Rolled values
+Derived values
+Assigned values
+Damage Per Shot
+
+The base damage dealt by each projectile or attack.
+
+Rate of Fire
+
+The weapon's optimal firing cadence.
+
+Shots fired within the intended firing window maintain normal accuracy.
+
+Time Between Shots
+
+The minimum interval between trigger pulls.
+
+In VR, players may pull the trigger faster than the weapon's intended firing cadence.
+
+Firing faster than the optimal rate introduces accuracy penalties.
+
+Damage Per Second
+
+A derived statistic based on damage output and firing behavior.
+
+Accuracy
+
+Determines projectile spread and weapon precision.
+
+Velocity
+
+Determines projectile travel speed.
+
+Critical Chance
+
+Determines the chance of critical damage.
+
+Magazine / Clip Capacity
+
+Determines ammunition capacity before reloading.
+
+GunBonai Sockets
+
+Determines the number of GunBonai abilities the weapon can support.
+
+Condition
+
+Represents weapon durability.
+
+At zero Condition, the weapon may be destroyed.
+
+Pellet Count
+
+Determines the number of projectiles produced per attack.
+
+Reserved Stat
+
+Previously used for Divinity.
+
+The original Divinity system has been removed.
+
+This stat slot is reserved for future mechanics.
+
+--Weapon Philosophy
+
+The weapon system is designed around a small, meaningful arsenal.
+
+Players should become attached to their weapons while still having reasons to experiment with new paths.
+
+The strongest weapon is not necessarily the rarest weapon, or even the highest tier.
+
+The strongest weapon is the weapon created through the player's choices, upgrades, and specialization.
+
+The strongest weapon is attained by a player building their weapon up to Prototype, and using that to 'Promote*' on a Basic for +1 Pellet (or +X pellet for shot- weapons). Even a 1 pellet pistol, 'maxxed out', won't compete with higher tier monsters. +1 pellet = 2x damage. late game, with (example) tier 10+ monsters, you'll want a three-times-cashed-in pistol of any tier which fires 4 or more pellets, right?
+
+*Promotion system ripped from Shining Force 2. Where, when you "promote", their raw stats which you have been levelling are dropped by an amount but your subsequent levels award higher values, and your cap for skills increases. This way, an unpromoted Protoype will not be effectinve against a tier 3 or 4 (for example - monster tiers need real numbers), but a several-time promoted weapon which is Uncommon-tier might obliterate tier 3 - 4.
