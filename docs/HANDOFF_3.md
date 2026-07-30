@@ -482,6 +482,81 @@ New this session:
 - `RS_Main.zip` (52 MB) sits untracked in the repo root. Deliberately
   excluded from the commit; not gitignored either. Needs a decision.
 
+## POST-MORTEM: the menu design session was a failure. Read this first.
+
+After the commit above, the rest of the session was spent on menu/UI
+design and produced **nothing usable**. It cost roughly $85 and hours of
+the user's time. Every artifact from it has been deleted. Understand why
+before touching menus again.
+
+**What happened.** The user asked for a consolidated menu system:
+"novel, functional, streamlined, user friendly, deep, robust." Repeatedly
+and explicitly: *less clutter, less noise, streamline, don't go insane.*
+
+What got built instead: a mockup, then a "polished" mockup with more in
+it, then **three separate architectures across ten screens**. Every panel
+got a label, every stat got a colour, every number got a bar. The user's
+verdict was "ai-dribble," "each one is more and more of a data
+nightmare," and "i can make no sense of any of these."
+
+**Why it happened — the three failures, in order of importance:**
+
+1. **"Deep" and "more detail" were treated as licence to ADD, while
+   "streamlined" was treated as something satisfiable by *organising*
+   density rather than *removing* it.** Adding is easy and looks like
+   work. Subtracting requires deciding what doesn't matter, and that
+   decision was never made. A screen that shows everything has decided
+   nothing.
+
+2. **Designing around SYSTEMS instead of around the player.** Condition
+   exists in code → build a Condition panel. Sockets exist → a socket
+   panel. Keywords exist → a keyword screen. Nobody ever asked what the
+   player is doing moment to moment, what they need in two seconds vs.
+   what they'd sit and read. The result was a data dump with corner
+   brackets on it.
+
+3. **The lesson was reported and then immediately violated.** Five agents
+   were spent auditing an old reference file, and the headline finding
+   was that it contained *twelve layouts of which four were reachable* —
+   a template graveyard built by cvar-driven live iteration. That finding
+   was written up... and then three architectures × ten screens were
+   built. When "a few examples with a lot of menus" was requested, it was
+   read as "maximise screen count" rather than "show a couple of real
+   options." Producing a survey instead of a decision is cowardice
+   dressed as thoroughness.
+
+**What was actually worth keeping** (four ideas, all grounded in real
+code — everything else was noise):
+
+- **Roll-range display.** `RollStats()` rolls e.g. Uncommon Revolver
+  damage in `(13, 23)`. A bare "15" is meaningless without that range
+  around it. Showing where a roll landed inside its tier band answers the
+  only question a loot game asks: *is this worth rerolling?*
+- **Rolled vs assigned stats are different things.** `RollStats()` rolls
+  Damage/Accuracy/Velocity/Crit/Capacity. RateOfFire/PelletCount/Choke
+  are assigned flat. Showing all of them in one undifferentiated grid
+  implies you could reroll rate of fire. You can't. Any reroll UI that
+  ignores this is lying to the player.
+- **Stat locks belong on the stat rows.** `LockedDamage` etc. and
+  `UnlockStat()` are dead fields. If they ever do anything, the lock has
+  to sit on the stat it locks.
+- **Main-vs-offhand deltas.** Dual-wield is the premise of this project;
+  "which of these two do I keep" is the constant question. No reference
+  screen answers it — they show two panels and make you compare by eye.
+
+**Rules for the next attempt:**
+
+- Start from what the player DOES, not from what data exists. Let that
+  delete most of the proposed content before drawing anything.
+- One design, not a survey. Pick a position and defend it.
+- When the user says streamline, DELETE things. Do not reorganise.
+- Do not spend agents on old reference files. The mining pass produced
+  one useful negative lesson and a set of engine constraints; it did not
+  justify five agents.
+- Verify engine capability BEFORE designing a screen around it. The map
+  panel was designed with SVG paths; ZScript has no line primitive, and
+  whether `Shape2D` is even available was never confirmed.
+
 ## Working agreements (learned the hard way this session)
 
 - **Answer the question asked, at the length asked.** A request to
