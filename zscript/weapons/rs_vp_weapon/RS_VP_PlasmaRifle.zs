@@ -110,7 +110,7 @@ class RS_VP_PlasmaRifle : RS_VP_Weapon
 		PLZG A 4;
 		TNT1 A 0 A_RS_VP_DropMag();
 		PLZG A 4;
-		PLZG A 4 A_RS_VP_MagLoad();
+		PLZG A 4 A_RS_ReloadAtomic();
 		Goto Ready;
 
 	Flash:

@@ -163,20 +163,6 @@ class VR_SuperShotgun : RS_Weapon
 	}
 
 	// Break-action reload: refills both chamber slots at once from VR_Shell.
-	action void A_RS_BreakLoad()
-	{
-		int needed = invoker.Capacity - CountInv(invoker.AmmoType2);
-		int available = CountInv("VR_Shell");
-		int toLoad = min(needed, available);
-		if (toLoad > 0)
-		{
-			int shellCost = max(1, toLoad - invoker.GetReloadBonusRounds());
-			shellCost = min(shellCost, available);
-			TakeInventory("VR_Shell", shellCost);
-			GiveInventory(invoker.AmmoType2, toLoad);
-		}
-	}
-
 	States
 	{
 	Spawn:
@@ -219,7 +205,7 @@ class VR_SuperShotgun : RS_Weapon
 		SHT2 I 2 A_OpenShotgun2();
 		SHT2 JKLMNOPQR 3;
 		SHT2 S 2 A_LoadShotgun2();
-		SHT2 TUV 3 A_RS_BreakLoad();
+		SHT2 TUV 3 A_RS_ReloadAtomic();
 		SHT2 X 2 A_CloseShotgun2();
 		SHT2 Y 2;
 		SHT2 Y 1;

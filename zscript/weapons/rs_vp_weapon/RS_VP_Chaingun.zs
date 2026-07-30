@@ -94,7 +94,7 @@ class RS_VP_Chaingun : RS_VP_Weapon
 		VLCN ABCD 3;
 		TNT1 A 0 A_RS_VP_DropMag();
 		VLCN ABCD 3;
-		VLCN A 3 A_RS_VP_MagLoad();
+		VLCN A 3 A_RS_ReloadAtomic();
 		Goto Ready;
 
 	Flash:

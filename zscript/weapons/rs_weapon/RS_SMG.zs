@@ -158,20 +158,6 @@ class VR_SMG : RS_Weapon
 		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
 	}
 
-	action void A_RS_MagLoad()
-	{
-		int needed = invoker.Capacity - CountInv(invoker.AmmoType2);
-		int available = CountInv("Clip");
-		int toLoad = min(needed, available);
-		if (toLoad > 0)
-		{
-			int clipCost = max(1, toLoad - invoker.GetReloadBonusRounds());
-			clipCost = min(clipCost, available);
-			TakeInventory("Clip", clipCost);
-			GiveInventory(invoker.AmmoType2, toLoad);
-		}
-	}
-
 	States
 	{
 	Spawn:
@@ -216,7 +202,7 @@ class VR_SMG : RS_Weapon
 		TNT1 A 0 A_JumpIf(CountInv("Clip") <= 0, "OutOfAmmo");
 		TNT1 A 0 A_PlaySound("smgclip", CHAN_AUTO);
 		SMGR A 2;
-		SMGR BCDEFGHIJKLMNOPQRST 1 A_RS_MagLoad();
+		SMGR BCDEFGHIJKLMNOPQRST 1 A_RS_ReloadAtomic();
 		Goto Ready;
 
 	Flash:

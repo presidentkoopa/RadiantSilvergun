@@ -96,7 +96,7 @@ class RS_VP_ARifle : RS_VP_Weapon
 		ASLR ABCD 2;
 		TNT1 A 0 A_RS_VP_DropMag();
 		ASLR GHIJ 2;
-		ASLR KLMN 2 A_RS_VP_MagLoad();
+		ASLR KLMN 2 A_RS_ReloadAtomic();
 		Goto Ready;
 
 	Flash:

@@ -108,7 +108,7 @@ class RS_VP_BFG9000 : RS_VP_Weapon
 		LBFG A 5;
 		TNT1 A 0 A_RS_VP_DropMag();
 		LBFG A 5;
-		LBFG A 5 A_RS_VP_MagLoad();
+		LBFG A 5 A_RS_ReloadAtomic();
 		Goto Ready;
 
 	Flash:

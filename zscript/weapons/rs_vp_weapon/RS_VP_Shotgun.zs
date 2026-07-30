@@ -92,7 +92,7 @@ class RS_VP_Shotgun : RS_VP_Weapon
 		TNT1 A 0 A_PlaySound("rs_vp_shotgun_load", CHAN_AUTO);
 		RGSW ABC 2;
 		RGSW DEF 2 A_PlaySound("rs_vp_shotgun_pump", CHAN_BODY);
-		RGSW ABC 2 A_RS_VP_MagLoad();
+		RGSW ABC 2 A_RS_ReloadAtomic();
 		Goto Ready;
 
 	Flash:

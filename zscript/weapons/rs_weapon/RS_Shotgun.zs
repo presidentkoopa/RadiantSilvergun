@@ -163,22 +163,6 @@ class VR_Shotgun : RS_Weapon
 	}
 
 	// Loads one shell per call -- caller loops this per reversed-frame pass.
-	action void A_RS_LoadOneShell()
-	{
-		if (CountInv(invoker.AmmoType2) < invoker.Capacity && CountInv("VR_Shell") > 0)
-		{
-			GiveInventory(invoker.AmmoType2, 1);
-			TakeInventory("VR_Shell", 1);
-			// ReloadSpeed bonus: a chance per shell to load a second one free.
-			if (invoker.GetReloadBonusRounds() > 0 && FRandom(0, 1) < 0.25
-				&& CountInv(invoker.AmmoType2) < invoker.Capacity && CountInv("VR_Shell") > 0)
-			{
-				GiveInventory(invoker.AmmoType2, 1);
-				TakeInventory("VR_Shell", 1);
-			}
-		}
-	}
-
 	States
 	{
 	Spawn:
@@ -234,7 +218,7 @@ class VR_Shotgun : RS_Weapon
 		SHTG T 1 A_StartSound("shotload2", CHAN_5, CHANF_OVERLAP);
 		SHTG SRQPON 1;
 		SHTG MLKJIHG 1;
-		SHTG F 1 A_RS_LoadOneShell();
+		SHTG F 1 A_RS_ReloadIncremental();
 		Goto ReloadFeed;
 
 	Flash:

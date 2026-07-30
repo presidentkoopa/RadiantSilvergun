@@ -1,7 +1,10 @@
 // =====================================================================
-// Hi-Fi Weapon Settings -- one intensity dial (rs_fx_hifitier: 0=Off,
-// 1=Standard, 2=Hi-Fi) covering smoke/casings/muzzle light density, plus
-// two independent feature toggles that aren't about intensity at all.
+// Radiant Silvergun Options -- see MENUDEF.txt for the menu structure
+// these surface in (Weapon Fidelity Options / Vanilla+ Weapon Behavior).
+//
+// rs_fx_hifitier is one intensity dial (0=Off, 1=Standard, 2=Hi-Fi)
+// covering smoke/casings/muzzle light density; the next three are
+// independent feature toggles that aren't about intensity at all.
 // =====================================================================
 server int rs_fx_hifitier = 2;
 server bool rs_fx_tracers = true;

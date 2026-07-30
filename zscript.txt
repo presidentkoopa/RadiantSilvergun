@@ -3,7 +3,7 @@ version "4.14"
 #include "zscript/player/VR_PlayerClasses.zs"
 
 //#include "zscript/systems/RS_OffhandSeat.zs" // disabled -- see plan history, offhand system needs rebuilding
-#include "zscript/systems/RS_MasterRoll.zs"
+#include "zscript/systems/RS_Roll.zs"
 
 // Ammo must precede the weapons -- their AmmoType2 strings resolve against these.
 #include "zscript/weapons/rs_weapon/RS_Ammo.zs"
@@ -13,13 +13,8 @@ version "4.14"
 #include "zscript/weapons/RS_VP_Weapon.zs"
 #include "zscript/weapons/RS_Weapon.zs"
 
-// Melee is per-weapon-set by decision, so each set's fist lives with its
-// own set: the main arsenal's here, Vanilla+'s Brass Knuckle in
-// rs_vp_weapon/. A shared cross-set melee set (RS_Dual_Fist, "Slappers
-// Only!") is a deferred idea, not a gap.
-#include "zscript/weapons/rs_weapon/RS_Fist.zs"
-
 // --- RS set (original Dual_Class weapons, basically our main focus for the 'game') ---
+#include "zscript/weapons/rs_weapon/RS_Fist.zs"
 #include "zscript/weapons/rs_weapon/RS_Revolver.zs"
 #include "zscript/weapons/rs_weapon/RS_Pistol.zs"
 #include "zscript/weapons/rs_weapon/RS_SMG.zs"

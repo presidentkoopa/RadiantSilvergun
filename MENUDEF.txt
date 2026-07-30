@@ -1,22 +1,54 @@
 // =====================================================================
-// Hi-Fi Weapon Settings submenu, injected into the standard Options menu.
+// Radiant Silvergun Options -- one top-level menu, branching by concern
+// rather than one flat submenu. Weapon Fidelity Options holds the FX
+// toggles (set-agnostic, apply to every weapon set); Vanilla+ Weapon
+// Behavior holds settings specific to that one set. Splitting it this
+// way means a Vanilla+-only setting doesn't have to sit next to unrelated
+// FX toggles just because both happened to exist at the same time --
+// each branch grows independently as more settings get added.
 // =====================================================================
 AddOptionMenu "OptionsMenu"
 {
 	StaticText " "
-	Submenu "Hi-Fi Weapon Settings", "RS_FXSettings"
+	Submenu "Radiant Silvergun Options", "RS_MainOptions"
 }
 
+OptionMenu "RS_MainOptions"
+{
+	Title "Radiant Silvergun Options"
+	StaticText " "
+
+	Submenu "Weapon Fidelity Options", "RS_FXSettings"
+	Submenu "Vanilla+ Weapon Behavior", "RS_VanillaPlusSettings"
+}
+
+// ---------------------------------------------------------------------
+// Weapon Fidelity Options -- set-agnostic FX toggles. Anything added
+// here should apply to every weapon set that calls into RS_HiFiFX, not
+// just one.
+// ---------------------------------------------------------------------
 OptionMenu "RS_FXSettings"
 {
-	Title "Hi-Fi Weapon Settings"
+	Title "Weapon Fidelity Options"
 	StaticText " "
 
 	Option "Hi-Fi Weapon Effects", "rs_fx_hifitier", "RS_HiFiTierOption"
 	Option "Bullet tracers", "rs_fx_tracers", "OnOff"
 	Option "Ricochet effects", "rs_fx_ricochet", "OnOff"
 	Option "HQ vanilla sound pack", "rs_fx_hqvanillasounds", "OnOff"
-	Option "Vanilla+ purist mode", "rs_vanillaplus_purist", "OnOff"
+}
+
+// ---------------------------------------------------------------------
+// Vanilla+ Weapon Behavior -- settings specific to the rs_vp_weapon set.
+// One entry today; the real home for whatever else that set grows
+// (its own reload behavior, once the universal reload system lands).
+// ---------------------------------------------------------------------
+OptionMenu "RS_VanillaPlusSettings"
+{
+	Title "Vanilla+ Weapon Behavior"
+	StaticText " "
+
+	Option "Purist mode (exact classic stats)", "rs_vanillaplus_purist", "OnOff"
 }
 
 OptionValue "RS_HiFiTierOption"

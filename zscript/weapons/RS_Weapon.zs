@@ -132,6 +132,66 @@ class RS_Weapon : Weapon abstract
 			invoker.bWaitingForRelease = false;
 	}
 
+	// -------------------------------------------------------------
+	// Universal reload plumbing.
+	//
+	// Every reloadable weapon in both sets reduces to one of two
+	// bookkeeping shapes -- magazine swap, speed-loader, and break-action
+	// are all "fill AmmoType2 to Capacity in one call," differing only in
+	// the animation wrapped around it; per-shell weapons need the
+	// incremental version instead, since their Reload: state is a loop
+	// with no single final-tally moment.
+	//
+	// Both read AmmoType1 generically rather than a hardcoded reserve
+	// class name. Before this, six main-arsenal weapons each carried
+	// their own copy of the atomic version with a different literal
+	// string ("Clip", "VR_Shell") baked in -- the same bug the Vanilla+
+	// set's own A_RS_VP_MagLoad had already fixed once, just not carried
+	// back to where it started. This is that fix, generalized to a
+	// single shared base for both sets.
+	// -------------------------------------------------------------
+
+	action void A_RS_ReloadAtomic()
+	{
+		Class<Ammo> reserve = invoker.AmmoType1;
+		if (!reserve)
+			return;
+
+		int needed = invoker.Capacity - CountInv(invoker.AmmoType2);
+		int available = CountInv(reserve);
+		int toLoad = min(needed, available);
+		if (toLoad <= 0)
+			return;
+
+		int cost = max(1, toLoad - invoker.GetReloadBonusRounds());
+		cost = min(cost, available);
+		TakeInventory(reserve, cost);
+		GiveInventory(invoker.AmmoType2, toLoad);
+	}
+
+	// Loads one round per call. ReloadSpeed still matters here -- since
+	// there's no single final tally to apply GetReloadBonusRounds
+	// against, a faster-rolling weapon instead gets a real chance at a
+	// free second shell on the same pass.
+	action void A_RS_ReloadIncremental(double bonusChance = 0.25)
+	{
+		Class<Ammo> reserve = invoker.AmmoType1;
+		if (!reserve)
+			return;
+		if (CountInv(invoker.AmmoType2) >= invoker.Capacity || CountInv(reserve) <= 0)
+			return;
+
+		GiveInventory(invoker.AmmoType2, 1);
+		TakeInventory(reserve, 1);
+
+		if (invoker.GetReloadBonusRounds() > 0 && FRandom(0, 1) < bonusChance
+			&& CountInv(invoker.AmmoType2) < invoker.Capacity && CountInv(reserve) > 0)
+		{
+			GiveInventory(invoker.AmmoType2, 1);
+			TakeInventory(reserve, 1);
+		}
+	}
+
 	// Shared by every bullet-firing weapon type instead of vanilla
 	// A_FireBullets, so all of them get real traveling rounds through one
 	// place rather than each weapon file managing its own projectile

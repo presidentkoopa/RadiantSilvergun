@@ -108,7 +108,7 @@ class RS_VP_SuperShotgun : RS_VP_Weapon
 		TNT1 A 0 A_PlaySound("rs_vp_ssg_load", CHAN_AUTO);
 		SH2R ABC 3;
 		TNT1 A 0 A_PlaySound("rs_vp_ssg_cls", CHAN_BODY);
-		PKS2 RS 3 A_RS_VP_MagLoad();
+		PKS2 RS 3 A_RS_ReloadAtomic();
 		Goto Ready;
 
 	Flash:

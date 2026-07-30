@@ -161,20 +161,6 @@ class VR_Pistol : RS_Weapon
 		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
 	}
 
-	action void A_RS_MagLoad()
-	{
-		int needed = invoker.Capacity - CountInv(invoker.AmmoType2);
-		int available = CountInv("Clip");
-		int toLoad = min(needed, available);
-		if (toLoad > 0)
-		{
-			int clipCost = max(1, toLoad - invoker.GetReloadBonusRounds());
-			clipCost = min(clipCost, available);
-			TakeInventory("Clip", clipCost);
-			GiveInventory(invoker.AmmoType2, toLoad);
-		}
-	}
-
 	States
 	{
 	Spawn:
@@ -216,7 +202,7 @@ class VR_Pistol : RS_Weapon
 		TNT1 A 0 A_PlaySound("9mmclip2", CHAN_AUTO);
 		PISG STUVW 1;
 		TNT1 A 0 A_PlaySound("9mmslide", CHAN_AUTO);
-		PISG XY 1 A_RS_MagLoad();
+		PISG XY 1 A_RS_ReloadAtomic();
 		Goto Ready;
 
 	Flash:

@@ -7,10 +7,17 @@
 // instead). If these ever join the main loot pool, nothing needs
 // rebuilding: flip the purist cvar and the rolls are already there.
 //
-// Deliberate consolidation vs the main arsenal: A_RS_MagLoad and
-// A_RS_Backfire are byte-identical in all ten main weapon files. Here
-// they live once, on the base. Same for the reserve-ammo name, which the
-// magazine reload needs and previously had to be hardcoded per weapon.
+// Deliberate consolidation vs the main arsenal: A_RS_Backfire is
+// byte-identical in all ten main weapon files. Here it lives once, on
+// the base.
+//
+// Magazine reload used to live here too (A_RS_VP_MagLoad), reading
+// AmmoType1 directly instead of a hardcoded reserve class name -- the
+// main arsenal had the same bookkeeping duplicated ten separate times
+// with a literal string baked into each copy. That fix has since moved
+// up one more level, to RS_Weapon.A_RS_ReloadAtomic(), so both sets
+// share the exact same reload plumbing rather than each set having its
+// own copy of an identical fix.
 // =====================================================================
 class RS_VP_Weapon : RS_Weapon abstract
 {
@@ -21,29 +28,6 @@ class RS_VP_Weapon : RS_Weapon abstract
 	{
 		let cv = CVar.GetCVar("rs_vanillaplus_purist", null);
 		return cv ? cv.GetBool() : true;
-	}
-
-	// Shared magazine reload -- pulls from AmmoType1 (the reserve /
-	// world-pickup ammo) into the weapon's own chambered AmmoType2, up to
-	// Capacity. Reading AmmoType1 directly is why no weapon here needs
-	// its own copy of this function, unlike the main arsenal where the
-	// reserve class name is hardcoded ten separate times.
-	action void A_RS_VP_MagLoad()
-	{
-		Class<Ammo> reserve = invoker.AmmoType1;
-		if (!reserve)
-			return;
-
-		int needed = invoker.Capacity - CountInv(invoker.AmmoType2);
-		int available = CountInv(reserve);
-		int toLoad = min(needed, available);
-		if (toLoad > 0)
-		{
-			int clipCost = max(1, toLoad - invoker.GetReloadBonusRounds());
-			clipCost = min(clipCost, available);
-			TakeInventory(reserve, clipCost);
-			GiveInventory(invoker.AmmoType2, toLoad);
-		}
 	}
 
 	// Spent-magazine drop, Hi-Fi tier only (RS_HiFiFX gates it). Called

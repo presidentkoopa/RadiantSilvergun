@@ -169,23 +169,6 @@ class VR_Revolver : RS_Weapon
 	}
 
 	// Speed loader: fills every empty chamber at once from reserve Clip.
-	action void A_RS_SpeedLoad()
-	{
-		int needed = invoker.Capacity - CountInv(invoker.AmmoType2);
-		int available = CountInv("Clip");
-		int toLoad = min(needed, available);
-		if (toLoad > 0)
-		{
-			// ReloadSpeed efficiency: a faster-rolling weapon costs less
-			// reserve Clip per chambered round, rather than exceeding
-			// Capacity (which is a hard chamber limit either way).
-			int clipCost = max(1, toLoad - invoker.GetReloadBonusRounds());
-			clipCost = min(clipCost, available);
-			TakeInventory("Clip", clipCost);
-			GiveInventory(invoker.AmmoType2, toLoad);
-		}
-	}
-
 	States
 	{
 	Spawn:
@@ -227,7 +210,7 @@ class VR_Revolver : RS_Weapon
 		REVO BCDEFGH 2;
 		TNT1 A 0 A_PlaySound("9mmslide", CHAN_AUTO);
 		REVO IJKL 1;
-		REVL A 1 A_RS_SpeedLoad();
+		REVL A 1 A_RS_ReloadAtomic();
 		Goto Ready;
 
 	Flash:

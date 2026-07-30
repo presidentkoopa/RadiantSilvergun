@@ -11,7 +11,7 @@
 //     dropped -- both are flat-screen effects; in VR your head and
 //     controller do that work.
 //   - Burst alt-fire dropped for now; alt-fires get their own pass.
-//   - Reload simplified to the shared A_RS_VP_MagLoad -- the source's
+//   - Reload simplified to the shared A_RS_ReloadAtomic -- the source's
 //     two-branch chamber-check depended on ACS scripts not ported here.
 // =====================================================================
 class RS_VP_Pistol : RS_VP_Weapon
@@ -109,7 +109,7 @@ class RS_VP_Pistol : RS_VP_Weapon
 		BRLD FG 2;
 		BRLD HIJKL 2;
 		BRLD M 2;
-		BRLD NOPQR 2 A_RS_VP_MagLoad();
+		BRLD NOPQR 2 A_RS_ReloadAtomic();
 		Goto Ready;
 
 	Flash:
