@@ -34,7 +34,7 @@ class RS_ExplosionParticle : Actor
 		// solely in unrelated mods (BrutalDoom), so they're not ours to
 		// pull from. Single-frame fade-out particle either way, so the
 		// effect is unchanged; this just binds to a frame that exists.
-		SPKO A 1 Bright A_FadeOut(0.02);
+		RSS1 A 1 Bright A_FadeOut(0.02);
 		Loop;
 	}
 }
@@ -48,8 +48,8 @@ class RS_ExplosionParticle2 : RS_ExplosionParticle
 	States
 	{
 	Spawn:
-		SPRK "S" 1 Bright;
-		SPRK "S" 1 Bright A_FadeOut(0.02);
+		RSS0 "S" 1 Bright;
+		RSS0 "S" 1 Bright A_FadeOut(0.02);
 		Wait;
 	}
 }
@@ -66,8 +66,8 @@ class RS_ExplosionParticleHeavy : RS_ExplosionParticle2
 	States
 	{
 	Spawn:
-		SPRK "S" 1 Bright;
-		SPRK "S" 1 Bright A_FadeOut(0.02);
+		RSS0 "S" 1 Bright;
+		RSS0 "S" 1 Bright A_FadeOut(0.02);
 		Wait;
 	Death:
 		Stop;

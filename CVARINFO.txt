@@ -15,17 +15,16 @@ server bool rs_fx_hqvanillasounds = false;
 // Default is conservative; raise it if the hardware can take it.
 server int rs_fx_maxmuzzlelights = 12;
 
-// Vanilla+ set (GNRCWPN import): on by default, these weapons behave as
+// Vanilla+ set (GNRCWPN import): off by default, these weapons behave as
 // exact, deterministic classic-Doom stats -- no RollStats randomization.
 // The rolling machinery itself is never removed, just bypassed while
-// this is true, so it can be flipped later without rebuilding anything.
-server bool rs_vanillaplus_purist = true;
+// this is false, so it can be flipped later without rebuilding anything.
+server bool rs_vanillaplus_rollstats = false;
 
 // Assault Rifle has no classic-Doom slot -- instead a world Chaingun has
-// this chance to silently become one before it's ever seen. Off by
-// default (new, unbalanced content).
-server bool rs_vanillaplus_arifle_enable = false;
-server float rs_vanillaplus_arifle_chance = 0.15;
+// this chance to silently become one before it's ever seen. 0 = disabled
+// (new, unbalanced content by default).
+server float rs_vanillaplus_arifle_chance = 0.0;
 
 // Dual_ classes start with no heavy ordnance by default (see
 // VR_PlayerClasses.zs history -- explicitly removed after complaints about
@@ -33,10 +32,13 @@ server float rs_vanillaplus_arifle_chance = 0.15;
 // weapon, mainhand only, same slots 5/6/7 as before.
 server bool rs_dualclass_allowbigguns = false;
 
-// Debug/Testing menu state -- per-player cycle position for "give next
-// weapon" buttons. Not meant to be touched directly; the menu drives them.
-user int rs_debug_vpindex = 0;
-user int rs_debug_dualindex = 0;
+// Tracks which of the 3 browse screens (Status/Weapon Selection/Player)
+// the "I" key showed last, so repeated presses cycle instead of always
+// landing on Status -- see RS_MenuActionHandler.CycleBrowseMenu(). One
+// button covers everything, which matters on a VR controller's tight
+// button budget.
+user int rs_ui_lastbrowsemenu = -1;
+
 
 // =====================================================================
 // GunBonsai (zscript/GunBonsai/) -- weapon leveling/upgrade system,

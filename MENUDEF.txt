@@ -18,13 +18,35 @@ OptionMenu "RS_MainOptions"
 	Title "Radiant Silvergun Options"
 	StaticText " "
 
+	Submenu "General Options", "RS_GeneralOptions"
+	Submenu "Weapon Selection", "RS_WeaponSelect"
+	Submenu "Player", "RS_PlayerDashboard"
 	Submenu "Weapon Fidelity Options", "RS_FXSettings"
 	Submenu "Vanilla+ Weapon Behavior", "RS_VanillaPlusSettings"
 	Submenu "Dual Class Behavior", "RS_DualClassSettings"
 	Submenu "$TFLV_OPT_TITLE", "GunBonsaiOptions"
 	Submenu "Kill Rewards", "RS_BitsSettings"
+}
+
+// ---------------------------------------------------------------------
+// General Options -- native cheat toggles plus map navigation. Cheats
+// are plain Command buttons (same as typing the console command) rather
+// than tracked On/Off state, since GZDoom doesn't expose god/noclip/
+// notarget as cvars to bind an Option to -- clicking again just re-runs
+// the same toggle command. Map navigation runs through RS_MenuActions.zs
+// (RS_MenuActionHandler) since it needs real logic, not just a ccmd.
+// ---------------------------------------------------------------------
+OptionMenu "RS_GeneralOptions"
+{
+	Title "General Options"
 	StaticText " "
-	Submenu "Debug / Testing", "RS_DebugMenu"
+
+	Command "God Mode", "god"
+	Command "No Clip", "noclip"
+	Command "No Target", "notarget"
+	StaticText " "
+	Command "Go To Next Map", "netevent rs_general_nextmap"
+	Command "Go To Random Map", "netevent rs_general_randommap"
 }
 
 // ---------------------------------------------------------------------
@@ -114,9 +136,10 @@ OptionMenu "RS_VanillaPlusSettings"
 	Title "Vanilla+ Weapon Behavior"
 	StaticText " "
 
-	Option "Purist mode (exact classic stats)", "rs_vanillaplus_purist", "OnOff"
-	Option "Assault Rifle: enable Chaingun-spawn substitution", "rs_vanillaplus_arifle_enable", "OnOff"
-	Slider "Assault Rifle substitution chance", "rs_vanillaplus_arifle_chance", 0.0, 1.0, 0.05, 2
+	Option "Roll Weapon Stats", "rs_vanillaplus_rollstats", "OnOff"
+	Slider "Rifle Replaces Chaingun Appearances", "rs_vanillaplus_arifle_chance", 0.0, 1.0, 0.05, 2
+	StaticText " "
+	Command "Give All Vanilla+ Weapons and Ammo", "netevent rs_vanillaplus_giveall"
 }
 
 // ---------------------------------------------------------------------
@@ -129,7 +152,13 @@ OptionMenu "RS_DualClassSettings"
 	Title "Dual Class Behavior"
 	StaticText " "
 
-	Option "Allow Big Guns (start with 1 of each heavy weapon)", "rs_dualclass_allowbigguns", "OnOff"
+	Option "Allow Big Guns (Plasma Rifle, Rocket Launcher, BFG can appear in-game)", "rs_dualclass_allowbigguns", "OnOff"
+	StaticText " "
+	Command "Give Big Guns (all 3, both hands)", "netevent rs_dualclass_givebigguns"
+	Command "Give Rocket Launcher", "netevent rs_dualclass_giverocket"
+	Command "Give Plasma Rifle", "netevent rs_dualclass_giveplasma"
+	Command "Give BFG 9000", "netevent rs_dualclass_givebfg"
+	Command "Give Chainsaw", "netevent rs_dualclass_givechainsaw"
 }
 
 OptionValue "RS_HiFiTierOption"
@@ -137,102 +166,6 @@ OptionValue "RS_HiFiTierOption"
 	0, "Off"
 	1, "Standard"
 	2, "Hi-Fi"
-}
-
-// =====================================================================
-// Debug / Testing -- six sections, one per system: General cheats,
-// Weapon Acquisition, Stat/Roll Testing, Reload Testing, Vanilla+
-// Behavior Testing, Hi-Fi FX Testing, plus a small Model Testing add-on.
-// Backend logic lives in zscript/systems/RS_DebugMenu.zs
-// (RS_DebugHandler); every "netevent" command below is dispatched there.
-// Meant to keep growing -- each section is self-contained.
-// =====================================================================
-OptionMenu "RS_DebugMenu"
-{
-	Title "Debug / Testing"
-	StaticText " "
-
-	StaticText "General"
-	Command "God Mode", "god"
-	Command "No Clip", "noclip"
-	Command "Kill All Monsters", "kill monsters"
-	Command "Full Heal", "give health"
-	StaticText " "
-
-	Submenu "Weapon Acquisition", "RS_DebugAcquisition"
-	Submenu "Stat / Roll Testing", "RS_DebugStats"
-	Submenu "Reload Testing", "RS_DebugReload"
-	Submenu "Vanilla+ Behavior Testing", "RS_DebugVPBehavior"
-	Submenu "Hi-Fi FX Testing", "RS_DebugFX"
-	Submenu "Model Testing", "RS_DebugModel"
-}
-
-OptionMenu "RS_DebugAcquisition"
-{
-	Title "Weapon Acquisition"
-	StaticText " "
-	StaticText "Vanilla+"
-	Command "Give All Weapons", "netevent rs_debug_vp_giveall"
-	Command "Give Next Weapon", "netevent rs_debug_vp_givenext"
-	Command "Refill Reserve Ammo", "netevent rs_debug_vp_refillammo"
-	StaticText " "
-	StaticText "Dual Class"
-	Command "Give Next Weapon Type", "netevent rs_debug_dual_givenext"
-	Command "Give Heavy Ordnance Now", "netevent rs_debug_dual_givebigguns"
-}
-
-OptionMenu "RS_DebugStats"
-{
-	Title "Stat / Roll Testing"
-	StaticText " "
-	Option "Reroll Target Tier", "rs_debug_reroll_tier", "RS_DebugTierOption"
-	Command "Reroll Held Weapons to Target Tier", "netevent rs_debug_reroll"
-	Command "Dump Held Weapon Stats to Console", "netevent rs_debug_dumpstats"
-}
-
-OptionValue "RS_DebugTierOption"
-{
-	0, "Cursed"
-	1, "Trash"
-	2, "Basic"
-	3, "Common"
-	4, "Uncommon"
-	5, "Advanced"
-	6, "Designer"
-	7, "Prototype"
-}
-
-OptionMenu "RS_DebugReload"
-{
-	Title "Reload Testing"
-	StaticText " "
-	Command "Empty Held Magazine(s)", "netevent rs_debug_reload_emptymag"
-	Command "Empty Held Reserve Ammo", "netevent rs_debug_reload_emptyreserve"
-}
-
-OptionMenu "RS_DebugVPBehavior"
-{
-	Title "Vanilla+ Behavior Testing"
-	StaticText " "
-	Command "Force Pickup-Morph Check (Pistol)", "netevent rs_debug_vp_forcemorph"
-	Command "Test Assault Rifle Substitution (10x Chaingun)", "netevent rs_debug_vp_testarifle"
-}
-
-OptionMenu "RS_DebugFX"
-{
-	Title "Hi-Fi FX Testing"
-	StaticText " "
-	Command "Spawn Casing", "netevent rs_debug_fx_casing"
-	Command "Spawn Mag Drop", "netevent rs_debug_fx_magdrop"
-	Command "Spawn Muzzle Light", "netevent rs_debug_fx_muzzlelight"
-	Command "Muzzle Light Cap Stress Test", "netevent rs_debug_fx_stresstest"
-}
-
-OptionMenu "RS_DebugModel"
-{
-	Title "Model Testing"
-	StaticText " "
-	Command "Toggle Held Weapon Mirroring", "netevent rs_debug_model_togglemirror"
 }
 
 // =====================================================================
@@ -384,15 +317,36 @@ OptionValue "GunBonsaiWhatKindOfGunSelector" {
   3, "$TFLV_OPT_LDMODE_3"
 }
 
+// RS-original comparison screen -- see zscript/systems/RS_WeaponSelect.zs.
+// Also reachable in-game via the "Weapon Selection" keybind (default O).
+OptionMenu "RS_WeaponSelect"
+{
+  class RS_Menu_WeaponSelect
+  Title "Weapon Selection"
+}
+
+// RS-original dashboard -- see zscript/systems/RS_PlayerDashboard.zs.
+// Top area reserved for later; bottom is a working player-attribute
+// toggle/tune screen against GunBonsai's real player upgrade bag.
+OptionMenu "RS_PlayerDashboard"
+{
+  class RS_Menu_PlayerDashboard
+  Title "Player"
+}
+
 OptionMenu "GunBonsaiPlayerLevelUpMenu"
 {
-  class TFLV_Menu_PlayerLevelUpMenu
+  // RS card presentation -- see zscript/systems/RS_LevelUpCards.zs. Was
+  // TFLV_Menu_PlayerLevelUpMenu.
+  class RS_Menu_PlayerLevelUpCards
   Title "$TFLV_MENU_PLAYER_LEVELUP_TITLE"
 }
 
 OptionMenu "GunBonsaiWeaponLevelUpMenu"
 {
-  class TFLV_Menu_WeaponLevelUpMenu
+  // RS card presentation -- see zscript/systems/RS_LevelUpCards.zs. Was
+  // TFLV_Menu_WeaponLevelUpMenu.
+  class RS_Menu_WeaponLevelUpCards
   Title "$TFLV_MENU_WEAPON_LEVELUP_TITLE"
 }
 
@@ -410,5 +364,7 @@ OptionMenu "GunBonsaiStatusDisplay"
 
 OptionMenu "GunBonsaiStatusDisplay"
 {
-  Class "TFLV_Menu_UnifiedStatusDisplay"
+  // RS card presentation -- see zscript/systems/RS_StatusCards.zs. Was
+  // TFLV_Menu_UnifiedStatusDisplay.
+  Class "RS_Menu_StatusCards"
 }

@@ -21,21 +21,25 @@
 // =====================================================================
 class RS_VP_Weapon : RS_Weapon abstract
 {
-	// Purist mode (default ON): Vanilla+ weapons use exact, deterministic
-	// classic-Doom stats instead of rolled ranges. Each weapon's own
-	// RollStats branches on this.
+	// Purist mode (default ON, i.e. "Roll Weapon Stats" default OFF):
+	// Vanilla+ weapons use exact, deterministic classic-Doom stats instead
+	// of rolled ranges unless the menu's roll-stats toggle is on. Each
+	// weapon's own RollStats branches on this.
 	bool Purist()
 	{
-		let cv = CVar.GetCVar("rs_vanillaplus_purist", null);
-		return cv ? cv.GetBool() : true;
+		let cv = CVar.GetCVar("rs_vanillaplus_rollstats", null);
+		return cv ? !cv.GetBool() : true;
 	}
 
-	// Each mainhand weapon that has a floor-pickup presence (i.e. carries
-	// `replaces <VanillaClass>`) overrides this to name its own "2"-suffixed
-	// off-hand sibling. Null here means "no off-hand morph for this
-	// weapon" -- the default for anything that doesn't override it (the
-	// Assault Rifle never spawns via replaces at all, so it never reaches
-	// this path either).
+	// Each mainhand weapon that can reach the floor overrides this to name
+	// its own "2"-suffixed off-hand sibling. Null means "no off-hand morph
+	// for this weapon".
+	//
+	// "Can reach the floor" is NOT the same as "carries `replaces`": the
+	// Assault Rifle has no replaces, but RS_VP_Chaingun.PostBeginPlay can
+	// substitute one into the world, so it needs the override too. The
+	// only weapon that legitimately declines it is the Fist, which is
+	// granted to both hands at spawn and never exists as a map pickup.
 	virtual Class<Weapon> GetOffhandClass()
 	{
 		return null;
@@ -75,6 +79,15 @@ class RS_VP_Weapon : RS_Weapon abstract
 		RS_HiFiFX.MagDrop(self, "RS_MagDrop");
 	}
 
+	// Casing ejection split out from the fire call, for weapons whose
+	// spent case leaves on a separate beat rather than with the shot --
+	// a pump shotgun throws its hull on the rack, not the bang. Weapons
+	// that eject on fire keep passing casingClass to A_RS_VP_Fire instead.
+	action void A_RS_VP_EjectCasing(String casingClass, double xoff = 4.0, double zoff = 0.0)
+	{
+		RS_HiFiFX.CasingEject(self, casingClass, xoff, zoff);
+	}
+
 	action void A_RS_VP_Backfire()
 	{
 		A_PlaySound("AKEMPT", CHAN_WEAPON);
@@ -87,7 +100,14 @@ class RS_VP_Weapon : RS_Weapon abstract
 	// Shared hitscan-replacement fire path. Every bullet-firing Vanilla+
 	// weapon routes through this: real traveling projectiles via the
 	// existing ProjectileClass system, never A_FireBullets.
-	action void A_RS_VP_Fire(String fireSound, bool heavyFire = false, String casingClass = "")
+	// spreadMult scales the computed cone for firing modes that are
+	// deliberately less precise than the weapon's baseline -- the source
+	// expressed this by giving each mode its own A_FireBullets spread pair
+	// (Pistol single 2.25/1.5 vs burst 3.5/2.75, i.e. ~1.5x). Since this
+	// project derives spread from the Accuracy stat instead of hardcoded
+	// degrees, the per-mode difference becomes a multiplier here rather
+	// than a second copy of the fire function.
+	action void A_RS_VP_Fire(String fireSound, bool heavyFire = false, String casingClass = "", double spreadMult = 1.0)
 	{
 		double dmgMult, pelletMult, backfireChance;
 		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
@@ -106,7 +126,7 @@ class RS_VP_Weapon : RS_Weapon abstract
 
 		int pellets = max(1, int(invoker.PelletCount * pelletMult));
 		int overshoot = invoker.GetCadenceOvershoot();
-		double spread = (100.0 - invoker.Accuracy) * (1.0 - invoker.Choke * 0.5) * 0.05 + (overshoot * 0.15);
+		double spread = ((100.0 - invoker.Accuracy) * (1.0 - invoker.Choke * 0.5) * 0.05 + (overshoot * 0.15)) * spreadMult;
 
 		A_RS_FireBallisticVolley(pellets, spread, int(dmg), invoker.CritChance, invoker.Velocity);
 		A_PlaySound(fireSound, CHAN_WEAPON);

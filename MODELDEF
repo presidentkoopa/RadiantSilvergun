@@ -370,6 +370,105 @@ Model VR_Chaingun6
 }
 
 
+// ==== VR_Chainsaw -- new, main-arsenal melee weapon ====
+// Source: 1.0b_Weapons_VanillaVRPlus_v1.2 pack's Chainsaw.md3/png, copied
+// to Models/Weapons/Hud/VR_Chainsaw/ (renamed lowercase to match this
+// project's convention). Frame indices (SAWG A/B/C/D -> model frames
+// 0/3/5/7) and Scale/Offset are the pack's own verified values, not
+// guessed -- its own modeldef fragment defined exactly these four.
+// Ready idle wobbles A<->B; Fire attack wobbles C<->D (see RS_Chainsaw.zs).
+
+Model VR_Chainsaw
+{
+	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Model 0 "chainsaw.md3"
+	Skin 0 "chainsaw.png"
+	Offset 0.0 14.0 0.0
+	Scale -1.5 1.5 1.5
+	NOINTERPOLATION
+
+	FrameIndex SAWG A 0 0
+	FrameIndex SAWG B 0 3
+	FrameIndex SAWG C 0 5
+	FrameIndex SAWG D 0 7
+}
+
+Model VR_Chainsaw2
+{
+	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Model 0 "chainsaw.md3"
+	Skin 0 "chainsaw.png"
+	Offset 0.0 14.0 0.0
+	Scale -1.5 1.5 1.5
+	NOINTERPOLATION
+
+	FrameIndex SAWG A 0 0
+	FrameIndex SAWG B 0 3
+	FrameIndex SAWG C 0 5
+	FrameIndex SAWG D 0 7
+}
+
+Model VR_Chainsaw3
+{
+	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Model 0 "chainsaw.md3"
+	Skin 0 "chainsaw.png"
+	Offset 0.0 14.0 0.0
+	Scale -1.5 1.5 1.5
+	NOINTERPOLATION
+
+	FrameIndex SAWG A 0 0
+	FrameIndex SAWG B 0 3
+	FrameIndex SAWG C 0 5
+	FrameIndex SAWG D 0 7
+}
+
+Model VR_Chainsaw4
+{
+	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Model 0 "chainsaw.md3"
+	Skin 0 "chainsaw.png"
+	Offset 0.0 14.0 0.0
+	Scale -1.5 1.5 1.5
+	NOINTERPOLATION
+
+	FrameIndex SAWG A 0 0
+	FrameIndex SAWG B 0 3
+	FrameIndex SAWG C 0 5
+	FrameIndex SAWG D 0 7
+}
+
+Model VR_Chainsaw5
+{
+	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Model 0 "chainsaw.md3"
+	Skin 0 "chainsaw.png"
+	Offset 0.0 14.0 0.0
+	Scale -1.5 1.5 1.5
+	NOINTERPOLATION
+
+	FrameIndex SAWG A 0 0
+	FrameIndex SAWG B 0 3
+	FrameIndex SAWG C 0 5
+	FrameIndex SAWG D 0 7
+}
+
+Model VR_Chainsaw6
+{
+	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Model 0 "chainsaw.md3"
+	Skin 0 "chainsaw.png"
+	Offset 0.0 14.0 0.0
+	Scale -1.5 1.5 1.5
+	NOINTERPOLATION
+
+	FrameIndex SAWG A 0 0
+	FrameIndex SAWG B 0 3
+	FrameIndex SAWG C 0 5
+	FrameIndex SAWG D 0 7
+}
+
+
 // ==== from VR_Pistol.modeldef ====
 // =====================================================================
 // VR_Pistol MODELDEF -- real model/skin/frame data, normalized path.

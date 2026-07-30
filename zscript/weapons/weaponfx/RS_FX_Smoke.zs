@@ -31,7 +31,7 @@ class RS_SmokeWisp : RS_DebrisGeneral
 	{
 	Spawn:
 		TNT1 A 0 A_SetScale(Scale.X * (Random(0, 1) ? 1 : -1), Scale.Y * (Random(0, 1) ? 1 : -1));
-		SMOK "ABCDEFGHIJKLMNOPQ" 1;
+		RSK0 "ABCDEFGHIJKLMNOPQ" 1;
 		Stop;
 	}
 }

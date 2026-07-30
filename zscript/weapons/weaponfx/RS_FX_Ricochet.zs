@@ -29,7 +29,7 @@ class RS_RicochetBullet : Actor
 	Spawn:
 		TNT1 "A" 0 A_CustomMissile("RS_SparkXNoModel", 2, 0, Random(0, 360), 2, Random(0, 360));
 		TNT1 A 0 A_PlaySound("rs_fx_ricochet");
-		PUFF A 2;
+		RSU0 A 2;
 		Stop;
 	}
 }
@@ -42,7 +42,7 @@ class RS_RicochetShell : RS_RicochetBullet
 		TNT1 A 0 A_CustomMissile("RS_ShotgunParticles", 2, 0, Random(0, 360), 2, Random(0, 360));
 		TNT1 A 0 A_CustomMissile("RS_ShotgunParticles2", 2, 0, Random(0, 360), 2, Random(0, 360));
 		TNT1 A 0 A_PlaySound("rs_fx_ricochet");
-		PUFF A 2;
+		RSU0 A 2;
 		Stop;
 	}
 }
@@ -63,9 +63,9 @@ class RS_ShotgunParticles : RS_ExplosionParticle2
 	{
 	Spawn:
 		TNT1 A 2;
-		SPKO A 1 Bright A_FadeOut(0.02);   // see RS_ExplosionParticle re: frame A
+		RSS1 A 1 Bright A_FadeOut(0.02);   // see RS_ExplosionParticle re: frame A
 		TNT1 A 0 A_ChangeFlag("NOGRAVITY", false);
-		SPKO A 1 Bright A_FadeOut(0.04);
+		RSS1 A 1 Bright A_FadeOut(0.04);
 		Wait;
 	Death:
 		Stop;

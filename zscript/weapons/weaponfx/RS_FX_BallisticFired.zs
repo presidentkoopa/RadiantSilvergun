@@ -69,7 +69,7 @@ class RS_BallisticFired : FastProjectile
 
 	Death:
 		TNT1 A 0 A_PlaySound("ballisticimpact", CHAN_AUTO);
-		PUFF A 4;
+		RSU0 A 4;
 		Stop;
 	}
 }

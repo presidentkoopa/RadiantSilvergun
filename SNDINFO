@@ -1,22 +1,23 @@
 // =====================================================================
 // RS_Main SNDINFO
 // ---------------------------------------------------------------------
-// Layout mirrors the zscript tree, so a path answers "which weapon set
-// owns this" on its own:
+// Layout follows the project asset directive (docs/DIRECTIVE_GNRC_REIMPORT.md
+// section 1): a path answers "does one weapon own this, or is it shared?"
 //
-//   sounds/rs_weapon/vr_<weapon>/  one self-contained folder per weapon
-//   sounds/rs_weapon/shared/       shared across the main arsenal only
-//   sounds/bullets/                casings / ricochet / tracer whizz
-//   sounds/impact/                 ballistic projectile impacts
-//   sounds/hq_vanilla/             the HQ vanilla alternate pack
-//   sounds/UNUSED/                 pre-reorg originals, referenced by
-//                                  nothing here -- kept, not deleted
+//   sounds/rs_weapon/vr_<weapon>/     main arsenal, one folder per weapon
+//   sounds/rs_vp_weapon/vp_<weapon>/  Vanilla+ set, one folder per weapon
+//   sounds/weapons/fx/<category>/     SHARED effects -- owned by no weapon
+//        casings/ ricochet/ tracers/ impact/ magdrops/ explosions/ foley/
+//   sounds/hq_vanilla/                the HQ vanilla alternate pack
+//   sounds/UNUSED/                    pre-reorg originals, referenced by
+//                                     nothing here -- kept, not deleted
 //
-// bullets/, impact/, and hq_vanilla/ sit at top level rather than under
-// rs_weapon/ because BOTH weapon sets consume them -- the Vanilla+ set
-// (rs_vp_weapon) has no sound files of its own at all and rides these
-// plus the shared 9mm/AKEMPT entries entirely. Nesting them under one
-// set's folder would imply an ownership that isn't real.
+// A per-weapon folder holds ONLY that weapon's own fire/reload/handling
+// audio. Anything both sets can consume -- casings, ricochets, impacts,
+// magazine drops, explosions, foley -- lives under weapons/fx/ instead,
+// mirroring the sprites/weapons/fx/ tree exactly. This is what lets the
+// affix system find and assemble effects by category rather than hunting
+// through whichever weapon folder an asset happened to land in first.
 //
 // Every entry below is verified against what each weapon's own .zs code
 // actually calls (A_PlaySound/A_StartSound), not against what a folder
@@ -31,7 +32,7 @@
 
 // --- Shared ---
 // Deliberately shared across all ten weapons (backfire + empty-click).
-AKEMPT        Sounds/rs_weapon/shared/AKEMPT
+AKEMPT        Sounds/weapons/fx/foley/AKEMPT
 
 // --- Pistol ---
 9mmshoot      Sounds/rs_weapon/vr_pistol/9mmshoot.wav
@@ -90,6 +91,16 @@ wpn/shotgun2  Sounds/rs_weapon/vr_supershotgun/shotgun2.wav
 // earlier plain copy. No reload exists for this weapon (belt-fed).
 chngun        Sounds/hq_vanilla/DSPISTOL
 
+// --- Chainsaw (main arsenal) ---
+// Distinct from the Vanilla+ set's rs_vp_saw_* -- this is the new
+// VR_Chainsaw's own dedicated set, staged under rs_weapon/vr_saw/
+// already (5 files, all present) but never registered until now.
+sawdraw       Sounds/rs_weapon/vr_saw/CSAWDRAW
+sawloop       Sounds/rs_weapon/vr_saw/CSAWLOOP
+sawredy       Sounds/rs_weapon/vr_saw/CSAWREDY
+sawstop       Sounds/rs_weapon/vr_saw/CSAWSTOP
+sawstrt       Sounds/rs_weapon/vr_saw/CSAWSTRT
+
 // --- Rocket Launcher ---
 // Defaults to the HQ vanilla pack's DSRLAUNC.
 rocklf        Sounds/hq_vanilla/DSRLAUNC
@@ -108,16 +119,16 @@ bfgf          Sounds/hq_vanilla/DSBFG
 // 10 real takes, previously unused. RS_BallisticFired's Death state
 // played no sound at all before this.
 $random ballisticimpact { impact0 impact1 impact2 impact3 impact4 impact5 impact6 impact7 impact8 impact9 }
-impact0  Sounds/impact/impact0.wav
-impact1  Sounds/impact/impact1.wav
-impact2  Sounds/impact/impact2.wav
-impact3  Sounds/impact/impact3.wav
-impact4  Sounds/impact/impact4.wav
-impact5  Sounds/impact/impact5.wav
-impact6  Sounds/impact/impact6.wav
-impact7  Sounds/impact/impact7.wav
-impact8  Sounds/impact/impact8.wav
-impact9  Sounds/impact/impact9.mp3
+impact0  Sounds/weapons/fx/impact/impact0.wav
+impact1  Sounds/weapons/fx/impact/impact1.wav
+impact2  Sounds/weapons/fx/impact/impact2.wav
+impact3  Sounds/weapons/fx/impact/impact3.wav
+impact4  Sounds/weapons/fx/impact/impact4.wav
+impact5  Sounds/weapons/fx/impact/impact5.wav
+impact6  Sounds/weapons/fx/impact/impact6.wav
+impact7  Sounds/weapons/fx/impact/impact7.wav
+impact8  Sounds/weapons/fx/impact/impact8.wav
+impact9  Sounds/weapons/fx/impact/impact9.mp3
 
 // --- Enhanced FX: bullets (casings, ricochet, tracer whiz) ---
 // Staged here with the assets already copied in; not yet called by any
@@ -125,33 +136,33 @@ impact9  Sounds/impact/impact9.mp3
 // (RS_EnhancedFX.zs) exists. Logical names kept distinct from every
 // per-weapon section above so nothing here can collide with them.
 $random rs_fx_casing_chaingun { rs_fx_chgncas1 rs_fx_chgncas2 rs_fx_chgncas3 }
-rs_fx_chgncas1  Sounds/bullets/CHGNCAS1
-rs_fx_chgncas2  Sounds/bullets/CHGNCAS2
-rs_fx_chgncas3  Sounds/bullets/CHGNCAS3
+rs_fx_chgncas1  Sounds/weapons/fx/casings/CHGNCAS1
+rs_fx_chgncas2  Sounds/weapons/fx/casings/CHGNCAS2
+rs_fx_chgncas3  Sounds/weapons/fx/casings/CHGNCAS3
 
 $random rs_fx_casing_pistol { rs_fx_dscasin1 rs_fx_dscasin2 rs_fx_dscasin3 }
-rs_fx_dscasin1  Sounds/bullets/DSCASIN1
-rs_fx_dscasin2  Sounds/bullets/DSCASIN2
-rs_fx_dscasin3  Sounds/bullets/DSCASIN3
+rs_fx_dscasin1  Sounds/weapons/fx/casings/DSCASIN1
+rs_fx_dscasin2  Sounds/weapons/fx/casings/DSCASIN2
+rs_fx_dscasin3  Sounds/weapons/fx/casings/DSCASIN3
 
 $random rs_fx_casing_shell { rs_fx_dsshell1 rs_fx_dsshell2 rs_fx_dsshell3 }
-rs_fx_dsshell1  Sounds/bullets/DSSHELL1
-rs_fx_dsshell2  Sounds/bullets/DSSHELL2
-rs_fx_dsshell3  Sounds/bullets/DSSHELL3
+rs_fx_dsshell1  Sounds/weapons/fx/casings/DSSHELL1
+rs_fx_dsshell2  Sounds/weapons/fx/casings/DSSHELL2
+rs_fx_dsshell3  Sounds/weapons/fx/casings/DSSHELL3
 
 $random rs_fx_ricochet { rs_fx_rico1 rs_fx_rico2 rs_fx_rico3 rs_fx_rico4 rs_fx_rico5 rs_fx_rico6 rs_fx_rico7 }
-rs_fx_rico1  Sounds/bullets/RICO1
-rs_fx_rico2  Sounds/bullets/RICO2
-rs_fx_rico3  Sounds/bullets/RICO3
-rs_fx_rico4  Sounds/bullets/RICO4
-rs_fx_rico5  Sounds/bullets/RICO5
-rs_fx_rico6  Sounds/bullets/RICO6
-rs_fx_rico7  Sounds/bullets/RICO7
+rs_fx_rico1  Sounds/weapons/fx/ricochet/RICO1
+rs_fx_rico2  Sounds/weapons/fx/ricochet/RICO2
+rs_fx_rico3  Sounds/weapons/fx/ricochet/RICO3
+rs_fx_rico4  Sounds/weapons/fx/ricochet/RICO4
+rs_fx_rico5  Sounds/weapons/fx/ricochet/RICO5
+rs_fx_rico6  Sounds/weapons/fx/ricochet/RICO6
+rs_fx_rico7  Sounds/weapons/fx/ricochet/RICO7
 
 $random rs_fx_tracerwhizz { rs_fx_tracer1 rs_fx_tracer2 rs_fx_tracer3 }
-rs_fx_tracer1  Sounds/bullets/Tracer1.ogg
-rs_fx_tracer2  Sounds/bullets/Tracer2.ogg
-rs_fx_tracer3  Sounds/bullets/Tracer3.ogg
+rs_fx_tracer1  Sounds/weapons/fx/tracers/Tracer1.ogg
+rs_fx_tracer2  Sounds/weapons/fx/tracers/Tracer2.ogg
+rs_fx_tracer3  Sounds/weapons/fx/tracers/Tracer3.ogg
 
 // =====================================================================
 // Vanilla+ set (rs_vp_weapon) -- its own real per-weapon sounds.
@@ -181,6 +192,8 @@ rs_vp_pistol_cout   Sounds/rs_vp_weapon/vp_pistol/PCOUT.ogg
 rs_vp_pistol_cin    Sounds/rs_vp_weapon/vp_pistol/PCIN.ogg
 rs_vp_pistol_slide  Sounds/rs_vp_weapon/vp_pistol/PSLID.ogg
 rs_vp_pistol_snap   Sounds/rs_vp_weapon/vp_pistol/PSNAP.ogg
+rs_vp_pistol_equip  Sounds/rs_vp_weapon/vp_pistol/PEQUP
+rs_vp_pistol_holster Sounds/rs_vp_weapon/vp_pistol/PHOLS
 $volume rs_vp_pistol_slide 0.85
 $volume rs_vp_pistol_cout 0.8
 $volume rs_vp_pistol_cin 0.8
@@ -195,6 +208,11 @@ rs_vp_arifle_cout   Sounds/rs_vp_weapon/vp_arifle/RCOUT.ogg
 rs_vp_arifle_cin    Sounds/rs_vp_weapon/vp_arifle/RCIN.ogg
 rs_vp_arifle_slap   Sounds/rs_vp_weapon/vp_arifle/RSLAP.ogg
 rs_vp_arifle_click  Sounds/rs_vp_weapon/vp_arifle/RCLCK.ogg
+rs_vp_arifle_equip  Sounds/rs_vp_weapon/vp_arifle/REQUP.ogg
+rs_vp_arifle_deselect Sounds/rs_vp_weapon/vp_arifle/RDSLCT.ogg
+rs_vp_arifle_foley  Sounds/rs_vp_weapon/vp_arifle/RFLEY1.ogg
+rs_vp_arifle_pickup Sounds/rs_vp_weapon/vp_arifle/RPKUP.ogg
+rs_vp_arifle_ready  Sounds/rs_vp_weapon/vp_arifle/RRDY.ogg
 $volume rs_vp_arifle_cout 0.9
 $volume rs_vp_arifle_cin 0.9
 $volume rs_vp_arifle_slap 0.7
@@ -212,14 +230,21 @@ rs_vp_sgs2          Sounds/rs_vp_weapon/vp_shotgun/SGS2.ogg
 rs_vp_sgs3          Sounds/rs_vp_weapon/vp_shotgun/SGS3.ogg
 rs_vp_shotgun_bck   Sounds/rs_vp_weapon/vp_shotgun/RCKBCK.ogg
 rs_vp_shotgun_fwd   Sounds/rs_vp_weapon/vp_shotgun/RCKFWD.ogg
+rs_vp_shotgun_select   Sounds/rs_vp_weapon/vp_shotgun/RSELCT.ogg
+rs_vp_shotgun_deselect Sounds/rs_vp_weapon/vp_shotgun/RDESLCT.ogg
 $volume rs_vp_shotgun_pump 0.75
 $volume rs_vp_shotgun_load 0.45
 $volume rs_vp_shotgun_bck 0.875
 $volume rs_vp_shotgun_fwd 0.875
 
 // --- Vanilla+ Double-Barrel Shotgun ---
-// Both barrels at once uses the source's "kapow" pair, not its single-
-// barrel takes -- this weapon always fires both.
+// Two real firing modes, two real sound sets: the "kapow" pair for the
+// both-barrels alt-fire, the quieter SINGLE pair for one barrel. The
+// single takes were imported but unused while this weapon could only
+// fire both at once.
+$random rs_vp_ssg_single { rs_vp_single1 rs_vp_single2 }
+rs_vp_single1       Sounds/rs_vp_weapon/vp_supershotgun/SINGLE1.ogg
+rs_vp_single2       Sounds/rs_vp_weapon/vp_supershotgun/SINGLE2.ogg
 $random rs_vp_ssg_fire { rs_vp_double1 rs_vp_double2 }
 rs_vp_double1       Sounds/rs_vp_weapon/vp_supershotgun/DOUBLE1.ogg
 rs_vp_double2       Sounds/rs_vp_weapon/vp_supershotgun/DOUBLE2.ogg
@@ -239,6 +264,8 @@ rs_vp_minigun_down   Sounds/rs_vp_weapon/vp_chaingun/MGDOWN.ogg
 rs_vp_minigun_start  Sounds/rs_vp_weapon/vp_chaingun/MGSTRT.ogg
 rs_vp_minigun_spin   Sounds/rs_vp_weapon/vp_chaingun/MGSPIN.ogg
 rs_vp_minigun_stop   Sounds/rs_vp_weapon/vp_chaingun/MGSTOP.ogg
+rs_vp_minigun_equip  Sounds/rs_vp_weapon/vp_chaingun/MGEQUP
+rs_vp_minigun_pickup Sounds/rs_vp_weapon/vp_chaingun/MGPKUP
 $volume rs_vp_minigun_chain 0.6
 
 // --- Vanilla+ Rocket Launcher ---
@@ -246,6 +273,9 @@ rs_vp_rocket_fire   Sounds/rs_vp_weapon/vp_rocketlauncher/RLFIRE.ogg
 rs_vp_rocket_cycle  Sounds/rs_vp_weapon/vp_rocketlauncher/RLCYCL.ogg
 rs_vp_rocket_cin    Sounds/rs_vp_weapon/vp_rocketlauncher/RLCIN.ogg
 rs_vp_rocket_cout   Sounds/rs_vp_weapon/vp_rocketlauncher/RLCOUT.ogg
+rs_vp_rocket_equip  Sounds/rs_vp_weapon/vp_rocketlauncher/RLSELCT.ogg
+rs_vp_rocket_deselect Sounds/rs_vp_weapon/vp_rocketlauncher/RLDSLCT.ogg
+rs_vp_rocket_pickup Sounds/rs_vp_weapon/vp_rocketlauncher/RLPKUP.ogg
 $random rs_vp_rocket_hit { rs_vp_rexp1 rs_vp_rexp2 }
 rs_vp_rexp1         Sounds/rs_vp_weapon/vp_rocketlauncher/REXP01.ogg
 rs_vp_rexp2         Sounds/rs_vp_weapon/vp_rocketlauncher/REXP02.ogg
@@ -258,7 +288,14 @@ rs_vp_plfire3       Sounds/rs_vp_weapon/vp_plasmarifle/PLFIRE3.ogg
 rs_vp_plasma_cout   Sounds/rs_vp_weapon/vp_plasmarifle/PLCOUT.ogg
 rs_vp_plasma_cin    Sounds/rs_vp_weapon/vp_plasmarifle/PLCIN.ogg
 rs_vp_plasma_chrg   Sounds/rs_vp_weapon/vp_plasmarifle/PLCHRG.ogg
+rs_vp_plasma_charge Sounds/rs_vp_weapon/vp_plasmarifle/PLCHRG.ogg
 rs_vp_plasma_beep   Sounds/rs_vp_weapon/vp_plasmarifle/PLBEEP.ogg
+// Rail beam alt-fire -- imported with the set, called by nothing until
+// the alt-fire was restored.
+rs_vp_plasma_altfire Sounds/rs_vp_weapon/vp_plasmarifle/PLALTF.ogg
+rs_vp_plasma_equip  Sounds/rs_vp_weapon/vp_plasmarifle/PLEQUP.ogg
+rs_vp_plasma_holster Sounds/rs_vp_weapon/vp_plasmarifle/PLHOLSTR.ogg
+rs_vp_plasma_pickup Sounds/rs_vp_weapon/vp_plasmarifle/PLPKUP.ogg
 
 // --- Vanilla+ BFG9000 ---
 rs_vp_bfg_fire      Sounds/rs_vp_weapon/vp_bfg9000/BFGFIRE.ogg
@@ -267,6 +304,9 @@ rs_vp_bfg_charge    Sounds/rs_vp_weapon/vp_bfg9000/BFGCHRG.ogg
 rs_vp_bfg_opn       Sounds/rs_vp_weapon/vp_bfg9000/BFGOPN.ogg
 rs_vp_bfg_cout      Sounds/rs_vp_weapon/vp_bfg9000/BFGCOUT.ogg
 rs_vp_bfg_cls       Sounds/rs_vp_weapon/vp_bfg9000/BFGCLS.ogg
+rs_vp_bfg_overcharge Sounds/rs_vp_weapon/vp_bfg9000/BFGOCHG.ogg
+rs_vp_bfg_up        Sounds/rs_vp_weapon/vp_bfg9000/BFGUP.ogg
+rs_vp_bfg_pickup    Sounds/rs_vp_weapon/vp_bfg9000/BFGPU.ogg
 $volume rs_vp_bfg_prefire 0.85
 
 // --- Vanilla+ Brass Knuckle ---
@@ -290,6 +330,9 @@ rs_vp_saw_loop      Sounds/rs_vp_weapon/vp_chainsaw/CSLOOP.ogg
 rs_vp_saw_stop      Sounds/rs_vp_weapon/vp_chainsaw/CSTOP.ogg
 rs_vp_saw_off       Sounds/rs_vp_weapon/vp_chainsaw/CSOFF.ogg
 rs_vp_saw_zip       Sounds/rs_vp_weapon/vp_chainsaw/CSZIP.ogg
+rs_vp_saw_equip     Sounds/rs_vp_weapon/vp_chainsaw/CSEQUP.ogg
+rs_vp_saw_get       Sounds/rs_vp_weapon/vp_chainsaw/CSGET
+rs_vp_saw_low       Sounds/rs_vp_weapon/vp_chainsaw/CSLOW
 $random rs_vp_saw_flesh { rs_vp_sawhit1 rs_vp_sawhit2 rs_vp_sawhit3 }
 rs_vp_sawhit1       Sounds/rs_vp_weapon/vp_chainsaw/CSHIT1.ogg
 rs_vp_sawhit2       Sounds/rs_vp_weapon/vp_chainsaw/CSHIT2.ogg
@@ -310,17 +353,17 @@ $volume rs_vp_saw_wall 0.6
 // identical. Lives outside the per-weapon sections because RS_HiFiFX.MagDrop
 // is called by both weapon sets.
 $random rs_fx_magdrop_small { rs_fx_magsm1 rs_fx_magsm2 rs_fx_magsm3 }
-rs_fx_magsm1        Sounds/rs_vp_weapon/vp_shared/DSBOUNC1.ogg
-rs_fx_magsm2        Sounds/rs_vp_weapon/vp_shared/DSBOUNC2.ogg
-rs_fx_magsm3        Sounds/rs_vp_weapon/vp_shared/DSBOUNC3.ogg
+rs_fx_magsm1        Sounds/weapons/fx/magdrops/DSBOUNC1.ogg
+rs_fx_magsm2        Sounds/weapons/fx/magdrops/DSBOUNC2.ogg
+rs_fx_magsm3        Sounds/weapons/fx/magdrops/DSBOUNC3.ogg
 $random rs_fx_magdrop_large { rs_fx_maglg1 rs_fx_maglg2 rs_fx_maglg3 }
-rs_fx_maglg1        Sounds/rs_vp_weapon/vp_shared/DSAOUNC1.ogg
-rs_fx_maglg2        Sounds/rs_vp_weapon/vp_shared/DSAOUNC2.ogg
-rs_fx_maglg3        Sounds/rs_vp_weapon/vp_shared/DSAOUNC3.ogg
+rs_fx_maglg1        Sounds/weapons/fx/magdrops/DSAOUNC1.ogg
+rs_fx_maglg2        Sounds/weapons/fx/magdrops/DSAOUNC2.ogg
+rs_fx_maglg3        Sounds/weapons/fx/magdrops/DSAOUNC3.ogg
 $random rs_fx_magdrop_bfg { rs_fx_magbfg1 rs_fx_magbfg2 rs_fx_magbfg3 }
-rs_fx_magbfg1       Sounds/rs_vp_weapon/vp_shared/BFGCLI01.ogg
-rs_fx_magbfg2       Sounds/rs_vp_weapon/vp_shared/BFGCLI02.ogg
-rs_fx_magbfg3       Sounds/rs_vp_weapon/vp_shared/BFGCLI03.ogg
+rs_fx_magbfg1       Sounds/weapons/fx/magdrops/BFGCLI01.ogg
+rs_fx_magbfg2       Sounds/weapons/fx/magdrops/BFGCLI02.ogg
+rs_fx_magbfg3       Sounds/weapons/fx/magdrops/BFGCLI03.ogg
 $volume rs_fx_magdrop_small 0.75
 $volume rs_fx_magdrop_large 0.65
 $volume rs_fx_magdrop_bfg 0.7
@@ -373,3 +416,55 @@ hq_dswpnup    Sounds/hq_vanilla/DSWPNUP
 // =====================================================================
 bonsai/gunlevelup Sounds/GunBonsai/win_loud
 $alias bonsai/smallboom imp/shotx
+
+// =====================================================================
+// Shared weapon FX -- sounds/weapons/fx/, owned by no single weapon.
+// Imported alongside the GNRC re-import; registered here so they are
+// addressable, wired into states per-weapon as each weapon is rebuilt.
+// =====================================================================
+
+// --- Foley / handling (source called this "weapons/foley") ---
+// Used throughout EVERY weapon's reload and select/deselect sequence in
+// the source. Five takes, randomized, exactly as the source had it.
+$random rs_fx_foley { rs_fx_foley1 rs_fx_foley2 rs_fx_foley3 rs_fx_foley4 rs_fx_foley5 }
+rs_fx_foley1   Sounds/weapons/fx/foley/FOLEY1.ogg
+rs_fx_foley2   Sounds/weapons/fx/foley/FOLEY2.ogg
+rs_fx_foley3   Sounds/weapons/fx/foley/FOLEY3.ogg
+rs_fx_foley4   Sounds/weapons/fx/foley/FOLEY4.ogg
+rs_fx_foley5   Sounds/weapons/fx/foley/FOLEY5.ogg
+$volume rs_fx_foley 0.7
+
+$random rs_fx_holster { rs_fx_holstr1 rs_fx_holstr2 rs_fx_holstr3 }
+rs_fx_holstr1  Sounds/weapons/fx/foley/HOLSTR
+rs_fx_holstr2  Sounds/weapons/fx/foley/HOLSTR2.ogg
+rs_fx_holstr3  Sounds/weapons/fx/foley/HOLSTR3.ogg
+rs_fx_weaponup Sounds/weapons/fx/foley/WEQUP
+rs_fx_weapdraw Sounds/weapons/fx/foley/WEAPDRAW
+
+// --- Explosions (shared: rockets, BFG, barrels, affix blasts) ---
+$random rs_fx_explode_near { rs_fx_baexp1 rs_fx_baexp2 rs_fx_baexp3 }
+rs_fx_baexp1   Sounds/weapons/fx/explosions/BA_EXP01.ogg
+rs_fx_baexp2   Sounds/weapons/fx/explosions/BA_EXP02
+rs_fx_baexp3   Sounds/weapons/fx/explosions/BA_EXP03
+$random rs_fx_explode_dist { rs_fx_dexp1 rs_fx_dexp2 rs_fx_dexp3 rs_fx_dexp4 rs_fx_dexp5 }
+rs_fx_dexp1    Sounds/weapons/fx/explosions/DISTEXP1
+rs_fx_dexp2    Sounds/weapons/fx/explosions/DISTEXP2
+rs_fx_dexp3    Sounds/weapons/fx/explosions/DISTEXP3
+rs_fx_dexp4    Sounds/weapons/fx/explosions/DISTEXP4
+rs_fx_dexp5    Sounds/weapons/fx/explosions/DISTEXP5
+$random rs_fx_plasma_explode { rs_fx_plexp1 rs_fx_plexp2 rs_fx_plexp3 }
+rs_fx_plexp1   Sounds/weapons/fx/explosions/PLEXP1
+rs_fx_plexp2   Sounds/weapons/fx/explosions/PLEXP2
+rs_fx_plexp3   Sounds/weapons/fx/explosions/PLEXP3
+$random rs_fx_bfg_explode { rs_fx_bfgx1 rs_fx_bfgx2 rs_fx_bfgx3 rs_fx_bfgx4 }
+rs_fx_bfgx1    Sounds/weapons/fx/explosions/BFGEXPL1
+rs_fx_bfgx2    Sounds/weapons/fx/explosions/BFGEXPL2
+rs_fx_bfgx3    Sounds/weapons/fx/explosions/BFGEXPL3
+rs_fx_bfgx4    Sounds/weapons/fx/explosions/BFGEXPL4
+rs_fx_rocket_explode Sounds/weapons/fx/explosions/RLANEXPL
+
+// --- Casings: rifle takes + extra shell takes (source had 3 and 7) ---
+$random rs_fx_casing_rifle { rs_fx_riflc1 rs_fx_riflc2 rs_fx_riflc3 }
+rs_fx_riflc1   Sounds/weapons/fx/casings/DSRIFLC1.ogg
+rs_fx_riflc2   Sounds/weapons/fx/casings/DSRIFLC2.ogg
+rs_fx_riflc3   Sounds/weapons/fx/casings/DSRIFLC3.ogg

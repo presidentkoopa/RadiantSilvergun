@@ -19,7 +19,7 @@ class RS_BFGTrail : RS_FlareGeneral
 	{
 	Spawn:
 		TNT1 A 0 A_Warp(AAPTR_MASTER);
-		LENG A 1 Bright;
+		RSF1 A 1 Bright;
 		Wait;
 	}
 }
@@ -35,7 +35,7 @@ class RS_BFGBallRayFlare : RS_FlareGeneral
 	States
 	{
 	Spawn:
-		LENG A 1 Bright A_FadeOut(0.01);
+		RSF1 A 1 Bright A_FadeOut(0.01);
 		Wait;
 	}
 }
@@ -51,7 +51,7 @@ class RS_BFGBallRay : RS_PlasmaRailBall
 	Spawn:
 		TNT1 A 0;
 		TNT1 A 0 A_SpawnItem("RS_BFGBallRayFlare");
-		PEXP "ABCDEFGHIJKLM" 1 Bright A_FadeOut(0.08);
+		RSP6 "ABCDEFGHIJKLM" 1 Bright A_FadeOut(0.08);
 		Stop;
 	}
 }
@@ -84,7 +84,7 @@ class RS_BFGGreenPlasmaShred : RS_BluePlasmaShred
 	States
 	{
 	Spawn:
-		PLSE "ABCDE" 1 Bright A_SpawnItem("RS_BFGGreenPlasmaShredTrail");
+		RSP3 "ABCDE" 1 Bright A_SpawnItem("RS_BFGGreenPlasmaShredTrail");
 		Stop;
 	}
 }
@@ -102,7 +102,7 @@ class RS_EnhancedBFGExtra : BFGExtra
 	{
 	Spawn:
 		TNT1 "A" 0 A_SpawnProjectile("RS_BFGGreenPlasmaPiece", 0, 0, Random(-360, 360), 2, Random(-80, 80));
-		PEXP "AABBCCDDEEFFGGHHIIJJKKLLMM" 1 Bright;
+		RSP6 "AABBCCDDEEFFGGHHIIJJKKLLMM" 1 Bright;
 		Stop;
 	}
 }

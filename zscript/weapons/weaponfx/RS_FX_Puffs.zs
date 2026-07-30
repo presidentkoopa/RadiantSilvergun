@@ -24,8 +24,8 @@ class RS_WallPart : RS_DebrisGeneral
 	States
 	{
 	Spawn:
-		BPRT "ACDEFGH" 2 A_JumpIf(vel.z == 0, "Null");
-		BPRT "ACDEFGH" 3 A_JumpIf(vel.z == 0, "Null");
+		RSU3 "ACDEFGH" 2 A_JumpIf(vel.z == 0, "Null");
+		RSU3 "ACDEFGH" 3 A_JumpIf(vel.z == 0, "Null");
 		Stop;
 	Death:
 		Stop;
@@ -54,7 +54,7 @@ class RS_EnhancedBulletPuff : Actor
 		TNT1 A 0 A_CustomMissile("RS_SparkXHeavy", 2, 0, Random(0, 360), 2, Random(0, 180));
 		TNT1 A 0 A_SpawnProjectile("RS_RicochetBullet", 0, 0, Random(0, 360), 2, Random(-40, 40));
 	Puff:
-		BPUF ABCD 1 Bright;
+		RSU1 ABCD 1 Bright;
 		Stop;
 	}
 }
@@ -74,7 +74,7 @@ class RS_ChainsawPuff : RS_EnhancedBulletPuff
 		TNT1 A 0 A_SpawnItemEx("RS_WallPart", 0, 0, 0, Random(6, 9), 0, Random(6, 15), Random(0, 360), 0, 64);
 		TNT1 A 0 A_PlaySound("rs_fx_sawwall");
 		TNT1 "A" 0 A_SpawnItemEx("RS_RicochetSpark", 0, 0, 0, Random(1, 2), 0, Random(5, 10), Random(0, 360), 0, 40);
-		CPUF ABCD 1 Bright;
+		RSU2 ABCD 1 Bright;
 		Stop;
 	}
 }

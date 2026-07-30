@@ -16,7 +16,7 @@ class RS_HitSpark : RS_ExplosionParticleHeavy
 	States
 	{
 	Spawn:
-		SPKO A 1 Bright A_FadeOut(0.07);   // see RS_ExplosionParticle re: frame A
+		RSS1 A 1 Bright A_FadeOut(0.07);   // see RS_ExplosionParticle re: frame A
 		Wait;
 	Death:
 		Stop;
@@ -42,8 +42,8 @@ class RS_SparkX : RS_ExplosionParticleHeavy
 	States
 	{
 	Spawn:
-		SPKO "A" 1 Bright;
-		SPKO "A" 1 Bright A_FadeOut(0.20);
+		RSS1 "A" 1 Bright;
+		RSS1 "A" 1 Bright A_FadeOut(0.20);
 		Wait;
 	Death:
 		Stop;
@@ -71,8 +71,8 @@ class RS_SparkXHeavy : RS_SparkX
 	States
 	{
 	Spawn:
-		SPRK "S" 1 Bright;
-		SPRK "S" 1 Bright A_FadeOut(0.02);
+		RSS0 "S" 1 Bright;
+		RSS0 "S" 1 Bright A_FadeOut(0.02);
 		Wait;
 	Death:
 		Stop;
@@ -96,7 +96,7 @@ class RS_RicochetSpark : RS_DebrisGeneral
 	States
 	{
 	Spawn:
-		SPRK A 1 Bright A_FadeOut(0.05);
+		RSS0 A 1 Bright A_FadeOut(0.05);
 		Loop;
 	}
 }

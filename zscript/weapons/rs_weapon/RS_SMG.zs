@@ -182,14 +182,16 @@ class VR_SMG : RS_Weapon
 		Goto Reload;
 
 	Shoot:
-		// Confirmed against the original working reference: the gun body
-		// never moves during fire -- it holds SMGG A. The earlier fix
-		// here (SMGS B/C) was a wrong guess, inventing a two-frame recoil
-		// motion that was never part of the design and used two unverified
-		// mesh frames. Recoil is sold entirely by the muzzle flash below.
-		SMGG A 1;
-		TNT1 A 0 A_GunFlash();
+		// Real frame sequence from the reference file: SMGF A->B->C is the
+		// gun body's actual recoil animation, matching MODELDEF's bound
+		// frames 4/5/6 (see "Model VR_SMG" / "Model VR_SMG2" etc., the
+		// PitchOffset-0.0 blocks). The old comment claiming the body never
+		// moves was checked against the wrong reference -- it does move,
+		// on the main sprite, not just the flash overlay below.
+		SMGF A 1 Bright A_GunFlash();
 		TNT1 A 0 A_RS_FireSMG();
+		SMGF B 1;
+		SMGF C 1;
 		TNT1 A 0 A_ReFire();
 		Goto Ready;
 

@@ -23,7 +23,7 @@ class RS_BlueFlarePlasma : RS_FlareGeneral
 		TNT1 A 0 A_Warp(AAPTR_MASTER);
 	Spawn1:
 		TNT1 A 0 A_JumpIfMasterCloser(1, "Spawn1");
-		LENB A 1 Bright A_FadeOut(0.1);
+		RSF0 A 1 Bright A_FadeOut(0.1);
 		Wait;
 	}
 }
@@ -40,7 +40,7 @@ class RS_BlueFlarePlasmaTrail : RS_FlareGeneral
 	States
 	{
 	Spawn:
-		LENB A 1 Bright A_FadeOut(0.15);
+		RSF0 A 1 Bright A_FadeOut(0.15);
 		TNT1 A 0 A_SetScale(Scale.X * 0.9, Scale.Y * 0.9);
 		Loop;
 	}
@@ -62,7 +62,7 @@ class RS_BluePlasmaPiece : RS_DebrisGeneral
 	{
 	Spawn:
 		TNT1 A 0;
-		PLBS A 1 Bright A_FadeOut(0.03);
+		RSP4 A 1 Bright A_FadeOut(0.03);
 		Loop;
 	}
 }
@@ -82,8 +82,8 @@ class RS_PlasmaRailBall : RS_DebrisGeneral
 	Spawn:
 		TNT1 A 0;
 		TNT1 A 0 A_SpawnItem("RS_PlasmaRailFlare");
-		PEXP "ABCDEF" 1 Bright A_FadeOut(0.0025);
-		PEXP "GHIJKLM" 2 Bright A_FadeOut(0.0025);
+		RSP6 "ABCDEF" 1 Bright A_FadeOut(0.0025);
+		RSP6 "GHIJKLM" 2 Bright A_FadeOut(0.0025);
 		Stop;
 	}
 }
@@ -101,7 +101,7 @@ class RS_BluePlasmaShred : RS_DebrisGeneral
 	States
 	{
 	Spawn:
-		PLSE "ABCDE" 1 Bright A_SpawnItem("RS_BluePlasmaShredTrail");
+		RSP3 "ABCDE" 1 Bright A_SpawnItem("RS_BluePlasmaShredTrail");
 		Stop;
 	}
 }
@@ -116,7 +116,7 @@ class RS_BluePlasmaShredTrail : RS_BluePlasmaShred
 	States
 	{
 	Spawn:
-		PLSE "ABCDE" 2 Bright;
+		RSP3 "ABCDE" 2 Bright;
 		Stop;
 	}
 }
@@ -144,7 +144,7 @@ class RS_PlasmaRailFlare : RS_BlueFlarePlasmaTrail
 		TNT1 A 0 A_JumpIfInventory("RS_PlasmaRailFlareCounter", 250, "Disappear", AAPTR_PLAYER1);
 		TNT1 A 1;
 		TNT1 A 0 A_TakeInventory("RS_PlasmaRailFlareCounter", 1, 0, AAPTR_PLAYER1);
-		LENB A 1 Bright A_FadeOut(0.0025);
+		RSF0 A 1 Bright A_FadeOut(0.0025);
 		Wait;
 	Disappear:
 		TNT1 A 1 A_TakeInventory("RS_PlasmaRailFlareCounter", 1, 0, AAPTR_PLAYER1);

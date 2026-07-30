@@ -1,12 +1,23 @@
 // RS_VP_RocketLauncher -- "Rocket Launcher", the Vanilla+ RL.
 // ---------------------------------------------------------------------
-// Real data: magazine 5, sprites LNCH/LAWN. The source has no dedicated
-// flash sprite (its Flash state is bare TNT1 + A_Light), so this keeps
-// that and just adds the shared dynamic muzzle light.
+// Real data: magazine 5, sprites LNCH/LNFI/LODE/LAWN. The source has no
+// dedicated flash sprite (its Flash state is bare TNT1 + A_Light), so
+// this keeps that and just adds the shared dynamic muzzle light.
 //
 // Fires the vanilla Rocket class, which RS_EnhancedFX transparently
 // replaces with RS_EnhancedRocket -- so the enhanced trail/debris comes
 // through here for free, no per-weapon wiring.
+//
+// No alt-fire: the source's grenade mode is explicitly out of scope --
+// see docs/DIRECTIVE_GNRC_REIMPORT.md section 2.
+//
+// Restored in this pass:
+//   - The LNFI bright fire frames (the launcher visibly flares and the
+//     tube cycles) and the real recoil/cycle timing, in place of two
+//     static LNCH frames.
+//   - The full LODE reload: tube open, spent pack ejected as a physical
+//     RS_MagDrop, fresh rockets in, tube cycled shut -- with the
+//     rs_vp_rocket_cin/cycle cues that were staged but never called.
 // =====================================================================
 class RS_VP_RocketLauncher : RS_VP_Weapon replaces RocketLauncher
 {
@@ -19,6 +30,9 @@ class RS_VP_RocketLauncher : RS_VP_Weapon replaces RocketLauncher
 		Weapon.AmmoGive1 5;
 		Weapon.AmmoType1 "RocketAmmo";
 		Weapon.AmmoType2 "RS_VP_RocketLoaded";
+		Weapon.UpSound "rs_vp_rocket_equip";
+		Inventory.PickupMessage "You got the Rocket Launcher!";
+		Inventory.PickupSound "rs_vp_rocket_pickup";
 		+WEAPON.NOHANDSWITCH;
 	}
 
@@ -87,6 +101,7 @@ class RS_VP_RocketLauncher : RS_VP_Weapon replaces RocketLauncher
 		Loop;
 
 	Deselect:
+		TNT1 A 0 A_PlaySound("rs_vp_rocket_deselect", CHAN_AUTO);
 		LNCH A 1 A_Lower;
 		Loop;
 
@@ -99,24 +114,48 @@ class RS_VP_RocketLauncher : RS_VP_Weapon replaces RocketLauncher
 		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) > 0, "Shoot");
 		Goto Reload;
 
-	// LNCH has only A and B frames in this sprite set -- A idle, B fired.
+	// LNFI is the bright firing sequence; LNCH A/B are the idle and
+	// recoiled tube. The launcher cycles a fresh rocket at the end, which
+	// is what rs_vp_rocket_cycle is for.
 	Shoot:
-		LNCH B 3;
 		TNT1 A 0 A_GunFlash();
 		TNT1 A 0 A_RS_VP_FireRocket();
-		LNCH B 4;
-		LNCH A 4;
-		LNCH A 1 A_WeaponReady(WRF_ALLOWRELOAD);
+		LNFI A 1 Bright;
+		LNFI A 1 Bright;
+		LNFI B 1 Bright;
+		LNFI C 1 Bright;
+		LNFI D 1 Bright;
+		LNCH B 1;
+		LNCH B 1;
+		LNCH A 1;
+		LNCH A 1;
+		TNT1 A 0 A_PlaySound("rs_vp_rocket_cycle", CHAN_BODY);
+		LNFI E 1;
+		LNFI F 1;
+		LNFI G 1;
+		LNCH AA 1;
+		TNT1 A 0 A_ReFire();
 		Goto Ready;
 
+	// --- Reload --------------------------------------------------------
+	// Break the tube open, drop the spent pack, feed fresh rockets, cycle
+	// it shut. The spent pack is a real physical drop, same as every
+	// other magazine in the set.
 	Reload:
 		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) >= invoker.Capacity, "Ready");
 		TNT1 A 0 A_JumpIf(CountInv("RocketAmmo") <= 0, "OutOfAmmo");
+		TNT1 A 0 A_ClearReFire();
+		TNT1 A 0 A_PlaySound("rs_fx_foley", CHAN_AUTO);
+		LODE ABCDE 2;
 		TNT1 A 0 A_PlaySound("rs_vp_rocket_cout", CHAN_AUTO);
-		LNCH A 4;
 		TNT1 A 0 A_RS_VP_DropMag();
-		LNCH A 4;
-		LNCH A 4 A_RS_ReloadAtomic();
+		TNT1 A 0 A_PlaySound("rs_fx_foley", CHAN_AUTO);
+		LODE FGHIJKLMN 2;
+		LODE OPQ 2 A_RS_ReloadAtomic();
+		TNT1 A 0 A_PlaySound("rs_vp_rocket_cin", CHAN_AUTO);
+		LODE RST 2;
+		TNT1 A 0 A_PlaySound("rs_vp_rocket_cycle", CHAN_BODY);
+		LNCH A 2;
 		Goto Ready;
 
 	Flash:

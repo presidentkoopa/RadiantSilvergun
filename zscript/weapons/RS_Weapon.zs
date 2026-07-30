@@ -151,13 +151,20 @@ class RS_Weapon : Weapon abstract
 	// single shared base for both sets.
 	// -------------------------------------------------------------
 
-	action void A_RS_ReloadAtomic()
+	// capacityOffset models the "chambered round" distinction the source
+	// set draws on several weapons: reloading a gun that still has a round
+	// in the chamber tops out one higher than reloading a completely empty
+	// one (Pistol 11 vs 10, Assault Rifle 31 vs 30). Pass -1 from the
+	// empty-gun reload branch, leave it 0 for the chambered branch. Lives
+	// here rather than in each weapon because more than one weapon in the
+	// set has exactly this two-branch reload.
+	action void A_RS_ReloadAtomic(int capacityOffset = 0)
 	{
 		Class<Ammo> reserve = invoker.AmmoType1;
 		if (!reserve)
 			return;
 
-		int needed = invoker.Capacity - CountInv(invoker.AmmoType2);
+		int needed = (invoker.Capacity + capacityOffset) - CountInv(invoker.AmmoType2);
 		int available = CountInv(reserve);
 		int toLoad = min(needed, available);
 		if (toLoad <= 0)
@@ -358,15 +365,29 @@ class RS_Weapon : Weapon abstract
 	}
 
 	// Seats this weapon into the off-hand the instant it actually enters
-	// the player's inventory -- covers both a Player.StartItem grant at
-	// spawn and a floor pickup later, since both go through this same
-	// hook. Main-hand placement isn't handled here; the engine's own
-	// default ReadyWeapon assignment already does that correctly.
+	// the player's inventory, unless the off-hand already holds a REAL
+	// weapon. VR_Fist2/RS_VP_Fist2 (the off-hand's melee fallback, see
+	// RS_Fist.zs) are explicitly exempt from "already holds something" --
+	// every class's Player.StartItem list grants the fist filler BEFORE
+	// the real starting weapon specifically so it gets bumped immediately,
+	// and that ordering must keep working. What changes is what happens
+	// AFTER that: once a real weapon is seated (by this, or by a
+	// deliberate choice from RS_WeaponSelect.zs), a later pickup of
+	// another offhand-flagged weapon no longer silently steals the slot
+	// -- it just joins inventory, selectable from that menu like any
+	// other owned weapon. Main-hand placement isn't handled here; the
+	// engine's own default ReadyWeapon assignment already does that
+	// correctly.
 	override void AttachToOwner(Actor newOwner)
 	{
 		Super.AttachToOwner(newOwner);
 		if (bOffhandWeapon && newOwner.player)
-			newOwner.player.OffhandWeapon = self;
+		{
+			let current = newOwner.player.OffhandWeapon;
+			bool slotIsFillerOrEmpty = !current || current is "VR_Fist2" || current is "RS_VP_Fist2";
+			if (slotIsFillerOrEmpty)
+				newOwner.player.OffhandWeapon = self;
+		}
 
 		// A found gun arrives with rounds already in it. Picking up a new
 		// weapon mid-firefight and having to reload before it can shoot is
