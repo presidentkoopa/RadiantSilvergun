@@ -1,0 +1,32 @@
+// #namespace TFLV::Upgrade;
+// #debug on
+
+class TFLV_Upgrade_Beam : TFLV_Upgrade_BaseUpgrade {
+  override double ModifyDamageDealt(Actor pawn, Actor shot, Actor target, double damage) {
+    if (shot && shot is "TFLV_Upgrade_Beam_Puff") return damage;
+
+    double multiplier = 1.0 - (0.5 ** level);
+    pawn.A_CustomRailgun(
+      ceil(damage * multiplier),
+      0, 0, 0, // horizontal offset and colours
+      RGF_SILENT|RGF_FULLBRIGHT,
+      0, 0, // spread
+      "TFLV_Upgrade_Beam_Puff");
+    return 0;
+  }
+
+  override bool IsSuitableForWeapon(TFLV_WeaponInfo info) {
+    return info.IsHitscan() && !info.weapon.bMELEEWEAPON;
+  }
+}
+
+// No recursion guard so that other weapon upgrades like dots, explosions, etc
+// trigger properly.
+class TFLV_Upgrade_Beam_Puff : BulletPuff {
+  double x,y,z;
+  Default { +ALWAYSPUFF; +PUFFONACTORS; }
+  override void PostBeginPlay() {
+    console.printf("zscript/GunBonsai/upgrades/Beam.zs: ".."BeamPuff spawned: [%d, %d, %d]", pos.x, pos.y, pos.z);
+    x = pos.x; y = pos.y; z = pos.z;
+  }
+}

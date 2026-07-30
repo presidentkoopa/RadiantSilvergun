@@ -8,7 +8,7 @@
 // replaces with RS_EnhancedRocket -- so the enhanced trail/debris comes
 // through here for free, no per-weapon wiring.
 // =====================================================================
-class RS_VP_RocketLauncher : RS_VP_Weapon
+class RS_VP_RocketLauncher : RS_VP_Weapon replaces RocketLauncher
 {
 	Default
 	{
@@ -68,6 +68,11 @@ class RS_VP_RocketLauncher : RS_VP_Weapon
 		RS_HiFiFX.MuzzleEffects(self, true);
 		TakeInventory(invoker.AmmoType2, 1);
 		A_RS_MarkFired();
+	}
+
+	override Class<Weapon> GetOffhandClass()
+	{
+		return "RS_VP_RocketLauncher2";
 	}
 
 	States

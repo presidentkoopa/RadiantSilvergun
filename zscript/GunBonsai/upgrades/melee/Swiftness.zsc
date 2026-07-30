@@ -1,0 +1,108 @@
+// #namespace TFLV::Upgrade;
+// #debug off;
+
+class TFLV_Upgrade_Swiftness : TFLV_Upgrade_BaseUpgrade {
+  override void OnKill(PlayerPawn player, Actor shot, Actor target) {
+    let aux = TFLV_Upgrade_Swiftness_Aux(player.Spawn("TFLV_Upgrade_Swiftness_Aux"));
+    aux.EffectTics = GetCap(level, 1);
+    aux.strength = level;
+    GiveItem(player, aux);
+  }
+
+  static uint GetCap(uint level, uint stacks=1) {
+    return 28 + 7*level + 5*(stacks-1);
+  }
+
+  void GiveItem(PlayerPawn player, Inventory item) {
+    item.ClearCounters();
+    if (!item.CallTryPickup(player)) item.Destroy();
+  }
+
+  override bool IsSuitableForWeapon(TFLV_WeaponInfo info) {
+    return info.IsMelee() || info.IsWimpy();
+  }
+
+  override void GetTooltipFields(Dictionary fields, uint level) {
+    fields.insert("duration", AsSeconds(GetCap(level, 1)));
+    fields.insert("combo-bonus", AsSeconds(5));
+  }
+}
+
+class TFLV_Upgrade_Swiftness_Aux : PowerupGiver {
+  Default {
+    +Inventory.AUTOACTIVATE;
+    // +Inventory.ADDITIVETIME;
+    +Inventory.NOSCREENBLINK;
+    +Inventory.ALWAYSPICKUP;
+    Powerup.Type "TFLV_Upgrade_Swiftness_Power";
+    // Powerup.Type "PowerTimeFreezer";
+    Powerup.Duration 999;
+    Inventory.Amount 1;
+    Inventory.MaxAmount 0;
+  }
+}
+
+// We have a complication here, in that PowerTimeFreezer is designed to gradually
+// return the world to normal speed in the last 128t (3.7s) of its effect.
+// that means that durations less than that won't actually stop time, just slow
+// it down.
+// We work around this by:
+// (a) adding 128t to the duration, so that time stops immediately
+// (b) once the time remaining drops below 128, setting it to 64, giving the
+//     player about 1.8s of slowdown before it wears off.
+// This gives us a ramp from full time stop to normal speed in about two seconds,
+// and also gives the player a "grace period" where if they make more kills while
+// it's in slowdown, they get the "kill made while swiftness active" bonus, which
+// is good for projectile weapons, especially in mods like HDest and Pandemonia
+// where even bullets and lasers are very fast projectiles.
+// TODO: I'd like to rework this so that it has longer duration but only slows down
+// time, rather than stopping it, with more stacks slowing time down more.
+class TFLV_Upgrade_Swiftness_Power : PowerTimeFreezer {
+  override void InitEffect() {
+    EffectTics = 128 + TFLV_Upgrade_Swiftness.GetCap(strength, amount);
+//    DEBUG("Initialized with cap=%d actual=%d", TFLV_Upgrade_Swiftness.GetCap(strength, amount), EffectTics);
+    super.InitEffect();
+    S_ResumeSound(false); // unpause music and SFX
+  }
+
+  override void Tick() {
+    if (owner && owner.player && owner.player.IsTotallyFrozen()) return;
+    super.Tick();
+  }
+
+  // If the player has multiple timestop effects, and another one expires, it
+  // will clear the player's timefreezer fields, causing the player as well to
+  // freeze.
+  // This function attempts to reinstate the timefreezer flag so that the player
+  // is not frozen by their own timestop.
+  // Code adapted from PowerTimeFreezer_InitEffect().
+  void FixPlayerFlags() {
+    if (!owner || !owner.player || !owner.player.timefreezer) return;
+    uint freezemask = 1 << owner.PlayerNumber();
+    owner.player.timefreezer |= freezemask;
+    for (int i = 0; i < MAXPLAYERS; i++) {
+      if (playeringame[i] && players[i].mo && players[i].mo.IsTeammate(Owner)) {
+        players[i].timefreezer |= freezemask;
+      }
+    }
+  }
+
+  override void DoEffect() {
+    FixPlayerFlags();
+    super.DoEffect();
+    if (EffectTics <= 128 && EffectTics > 64) EffectTics = 64;
+  }
+
+  override bool CanPickup(Actor other) { return true; }
+  override bool IsBlinking() { return false; }
+
+  override bool HandlePickup(Inventory item) {
+    if (item.GetClass() != GetClass()) return super.HandlePickup(item);
+    self.amount++;
+    let cap = TFLV_Upgrade_Swiftness.GetCap(strength, amount);
+    EffectTics = 128 + cap;
+//    DEBUG("Now %d stacks, reset tics to %d/%d tics", amount, cap, EffectTics);
+    item.bPICKUPGOOD = true;
+    return true;
+  }
+}

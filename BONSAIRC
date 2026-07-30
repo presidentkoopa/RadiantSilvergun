@@ -1,0 +1,213 @@
+# ifdef <classes> { ... }
+# Executes the given block only if at least one of the listed classes is defined.
+# Note that wildcards are not supported here -- you must use actual class names.
+#
+# register <upgrades> ;
+# Add the listed upgrades to the registry, making them available for play.
+# It's safe to add the same upgrade more than once.
+#
+# unregister <upgrades> ;
+# Remove the listed upgrades from the registry. Use this to disable upgrades that
+# aren't compatible with some mods. This always takes precedence over register if
+# the same upgrade appears in both places, no matter what order it appears in.
+#
+# merge <classes> ;
+# Consider all of the listed classes to the same weapon type. This is primarily
+# useful when one weapon is used as a replacement or upgrade for another one.
+#
+# disable <classes> : <upgrades> ;
+# Disable the listed upgrades on the given weapon classes only.
+#
+# type <classes> : <type> ;
+# Declare the listed weapons to be of the given type, overriding autodetection.
+# Type is one of: MELEE HITSCAN PROJECTILE IGNORE AUTO
+# IGNORE will force Bonsai to ignore that weapon entirely and not assign XP to it.
+# AUTO will force it to autodetect; this is the default, but can be specified
+# explicitly to override a prior non-AUTO type directive. If multiple type
+# directives apply to the same weapon, the last one loaded takes precedence.
+#
+# A <classes> list is just one or more class names separated by whitespace. It
+# can also be a class prefix by appending *, e.g. Endie* will match all weapon
+# classes starting with "Endie" (but not "Endie" on its own).
+# Class names are not case sensitive.
+#
+# An <upgrades> list is the same but for upgrade names. Wildcards are not
+# supported; exact class names must be used.
+
+# All builtin upgrades that don't require other mods to function are registered
+# here. Mod-specific stanzas below tweak things further.
+register
+  # player upgrades
+  TFLV_Upgrade_AmmoLeech
+  TFLV_Upgrade_ArmourLeech
+  TFLV_Upgrade_Bandoliers
+  TFLV_Upgrade_BlastShaping
+  TFLV_Upgrade_ECM
+  TFLV_Upgrade_HazardSuit
+  TFLV_Upgrade_Intuition
+  TFLV_Upgrade_Juggler
+  TFLV_Upgrade_LifeLeech
+  TFLV_Upgrade_PlayerDamage
+  TFLV_Upgrade_Thorns
+  TFLV_Upgrade_ToughAsNails
+  # generic weapon upgrades
+  TFLV_Upgrade_AggressiveDefence
+  TFLV_Upgrade_BouncyShots
+  TFLV_Upgrade_Cleave
+  TFLV_Upgrade_DarkHarvest
+  TFLV_Upgrade_DecoyFlares
+  TFLV_Upgrade_ExplosiveDeath
+  TFLV_Upgrade_ExplosiveShots
+  TFLV_Upgrade_FastShots
+  TFLV_Upgrade_FragmentationShots
+  TFLV_Upgrade_HomingShots
+  TFLV_Upgrade_PiercingShots
+  TFLV_Upgrade_RapidFire
+  TFLV_Upgrade_Shield
+  TFLV_Upgrade_Submunitions
+  TFLV_Upgrade_Sweep
+  TFLV_Upgrade_Swiftness
+  TFLV_Upgrade_WeaponDamage
+  # Fire upgrades
+  TFLV_Upgrade_IncendiaryShots
+  TFLV_Upgrade_BurningTerror
+  TFLV_Upgrade_Conflagration
+  TFLV_Upgrade_InfernalKiln
+  # Poison upgrades
+  TFLV_Upgrade_PoisonShots
+  TFLV_Upgrade_Weakness
+  TFLV_Upgrade_Putrefaction
+  TFLV_Upgrade_Hallucinogens
+  # Acid upgrades
+  TFLV_Upgrade_CorrosiveShots
+  TFLV_Upgrade_ConcentratedAcid
+  TFLV_Upgrade_AcidSpray
+  TFLV_Upgrade_Embrittlement
+  # Lightning upgrades
+  TFLV_Upgrade_ShockingInscription
+  TFLV_Upgrade_Revivification
+  TFLV_Upgrade_ChainLightning
+  TFLV_Upgrade_Thunderbolt
+  # elemental synthesis dual-element upgrades
+  TFLV_Upgrade_ElementalBeam
+  TFLV_Upgrade_ElementalBlast
+  TFLV_Upgrade_ElementalWave
+  ;
+
+# Load Indestructable upgrade only if the Indestructable mod is also present.
+ifdef TFIS_IndestructableEventHandler { register TFLV_Upgrade_Indestructable; }
+
+# Disable Juggler upgrade in Hellrider, since it doesn't work with HR weapon switching.
+ifdef EndieWeapon { unregister TFLV_Upgrade_Juggler; }
+
+# Heretic fixes.
+ifdef GoldWand {
+  type Staff: HITSCAN MELEE WIMPY;
+  type GoldWand: HITSCAN WIMPY;
+}
+
+# Hexen fixes.
+ifdef MWeapWand {
+  # Hexen melee weapons have unusually long reach and may not autodetect
+  # properly.
+  type FWeapFist FWeapAxe CWeapMace: MELEE;
+  # Lightning glitches out with homing, doesn't benefit from piercing, and fragmentation
+  # doesn't work on it at all.
+  type MWeapLightning: PROJECTILE SEEKER RIPPER;
+  disable MWeapLightning:
+    TFLV_Upgrade_HomingShots TFLV_Upgrade_PiercingShots TFLV_Upgrade_FragmentationShots;
+  # Bloodscourge has rippers but they're implemented specially rather than using
+  # the RIP flags.
+  type MWeapBloodscourge: PROJECTILE SEEKER RIPPER;
+  # Wraithverge shots don't bounce properly.
+  disable CWeapWraithverge: TFLV_Upgrade_BouncyShots;
+}
+
+# Strife fixes.
+ifdef StrifeWeapon {
+  type PunchDagger: MELEE;
+}
+
+# Ashes Afterglow: keep upgrades when customizing weapons, and fix melee flag on sawn-off.
+ifdef ItemAthena {
+  # Base weapons and their upgraded forms should be merged.
+  merge jackhammer*;
+  merge revolver*; merge glock*;
+  merge pumpaction*; merge sawedoff*;
+  merge ingram*;
+  merge napalmgun*;
+  merge junkermusket*; merge m16*;
+  # Sawed-off is incorrectly flagged as a melee weapon
+  type sawedoff*: HITSCAN;
+  # Example overrides that are disabled by default:
+  # Upgraded pump-action has a bayonet and should count as both hitscan and melee.
+  #type pumpaction2 pumpaction3: HITSCAN MELEE;
+  # Napalm gun, as a naturally fire-elemental weapon, can only get fire-elemental upgrades.
+  #disable napalmgun*:
+  #  TFLV_Upgrade_PoisonShots
+  #  TFLV_Upgrade_CorrosiveShots
+  #  TFLV_Upgrade_ShockingInscription;
+}
+
+# Hideous Destructor: ignore stuff that looks like a weapon but isn't.
+# There's lots of these so it should be expected, most of them are just HDWeapon
+# for the cool menu stuff I believe. This includes a couple addons also that
+# people commonly use. - [Ted the Dragon]
+ifdef HDWeapon {
+  type HDWoundFixer HDInjectorMaker HDBackpack MagManager PickupManager
+    AutoReloader WeaponStashSwitcher Tripwire HDBinoculars HDDeployableBarricade
+    HDTeleporter HDMagazineReloader LadderLauncher HDRearviewMirror
+    HDPersonalShieldGenerator HDRoomba HDSecretFinder Despicyto
+    HDSupplyBeacon HDUniversalReloader HDArmorPatchKit HDFieldAssemblyKit:
+    IGNORE;
+  # Also disable upgrades that don't work properly in it.
+  unregister TFLV_Upgrade_AmmoLeech TFLV_Upgrade_LifeLeech TFLV_Upgrade_ArmourLeech;
+}
+
+# Blade of Agony: ignore unarmed
+ifdef BoAPlayer { type NullWeapon: IGNORE; }
+
+# Pandemonia fixes.
+ifdef DustFist {
+  # Bandoliers upgrade conflicts with the ammo upgrades you get from picking up
+  # duplicate sidegrades.
+  unregister TFLV_Upgrade_Bandoliers;
+  # Railgun puffs have the +MISSILE flag, which confuses weapon type inference.
+  # type DustRailgun: HITSCAN;  # Believed to be fixed now
+}
+
+# Project Brutality
+ifdef PB_Shotgun {
+  # Incorrectly flagged as melee.
+  type PB_SSG: HITSCAN;
+  # Incorrectly flagged as wimpy.
+  type PB_Carbine Rifle: HITSCAN;
+  # Incompatible with fancy weapon switch animations.
+  unregister TFLV_Upgrade_Juggler;
+}
+
+# Trailblazer, Dehacked Defence, and DRLA
+ifdef Macheterang DehackedWeaponGiver DoomRLPlayer {
+  unregister TFLV_Upgrade_Bandoliers;
+}
+
+# Samsara Reincarnation
+ifdef IsSamsaraClass {
+  # Remove a couple of upgrades that have issues in Samsara.
+  # Player upgrades
+  unregister TFLV_Upgrade_AmmoLeech TFLV_Upgrade_ArmourLeech TFLV_Upgrade_LifeLeech
+    TFLV_Upgrade_Bandoliers TFLV_Upgrade_Juggler;
+  # Generic weapon upgrades
+  unregister TFLV_Upgrade_PiercingShots;
+
+  type Descent*: IGNORE;
+  type DescentWeapon: PROJECTILE; # Override the blanket ban on Descent*
+  type Duke3D_MightyStomp: IGNORE;
+}
+
+# Hedon
+ifdef Zan {
+  type Axe BearzerkAxe: MELEE;
+  # Hedon enemies don't have Raise states.
+  unregister TFLV_Upgrade_Revivification;
+}

@@ -8,7 +8,7 @@
 // contact (the one melee weapon where barrel-smoke-style FX genuinely
 // makes sense) but no CasingEject and no ProjectileClass.
 // =====================================================================
-class RS_VP_Chainsaw : RS_VP_Weapon
+class RS_VP_Chainsaw : RS_VP_Weapon replaces Chainsaw
 {
 	Default
 	{
@@ -64,6 +64,11 @@ class RS_VP_Chainsaw : RS_VP_Weapon
 		A_PlaySound("rs_vp_saw_flesh", CHAN_WEAPON);
 		RS_HiFiFX.MuzzleEffects(self, true);
 		A_RS_MarkFired();
+	}
+
+	override Class<Weapon> GetOffhandClass()
+	{
+		return "RS_VP_Chainsaw2";
 	}
 
 	States

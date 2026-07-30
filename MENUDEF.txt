@@ -20,6 +20,71 @@ OptionMenu "RS_MainOptions"
 
 	Submenu "Weapon Fidelity Options", "RS_FXSettings"
 	Submenu "Vanilla+ Weapon Behavior", "RS_VanillaPlusSettings"
+	Submenu "Dual Class Behavior", "RS_DualClassSettings"
+	Submenu "$TFLV_OPT_TITLE", "GunBonsaiOptions"
+	Submenu "Kill Rewards", "RS_BitsSettings"
+	StaticText " "
+	Submenu "Debug / Testing", "RS_DebugMenu"
+}
+
+// ---------------------------------------------------------------------
+// Kill Rewards (Bits) -- zscript/systems/RS_Bits.zs. Labels rewritten
+// from the source mod's own wording ("HP Ratio Mode", "Base Drop
+// Chance") to plain language.
+// ---------------------------------------------------------------------
+OptionMenu "RS_BitsSettings"
+{
+	Title "Kill Rewards"
+	StaticText " "
+
+	Option "Enable Kill Rewards", "rs_bits_enable", "OnOff"
+	StaticText " "
+
+	StaticText "General"
+	Option "Drop Mode", "rs_bits_mode", "RS_BitsDropMode"
+	Slider "Chance Per Bit (%)", "rs_bits_dropchance", 0, 100, 1, 0
+	Slider "Boss Multiplier", "rs_bits_boss_mult", 0, 25, 1, 0
+	StaticText " "
+
+	StaticText "Bit Lifetime (0 = never expires)"
+	Slider "Lifetime -- Ticks", "rs_bits_life_ticks", 0, 35, 1, 0
+	Slider "Lifetime -- Multiplier", "rs_bits_life_mult", 0, 300, 1, 0
+	StaticText " "
+
+	StaticText "Fixed Range Mode"
+	Slider "Min. Bits", "rs_bits_min", 1, 25, 1, 0
+	Slider "Max. Bits", "rs_bits_max", 1, 25, 1, 0
+	Option "Randomize Bit Count?", "rs_bits_randomize", "YesNo"
+	Slider "Chance To Drop At All (%)", "rs_bits_range_chance", 0, 100, 1, 0
+	StaticText " "
+
+	StaticText "Scale By Monster Health Mode"
+	Slider "Health Per Bit", "rs_bits_healthscale_ratio", 1, 1000, 10, 0
+	TextField "Health Per Bit (Fine Tune)", "rs_bits_healthscale_ratio"
+	StaticText " "
+
+	StaticText "Bit Type Weighting"
+	Slider "Health Bit Weight", "rs_bits_ratio_health", 0, 256, 1, 0
+	Slider "Armor Bit Weight", "rs_bits_ratio_armor", 0, 256, 1, 0
+	Slider "Ammo Bit Weight", "rs_bits_ratio_ammo", 0, 256, 1, 0
+	StaticText " "
+
+	StaticText "Ammo Bit Settings"
+	Option "Ammo Bit Source", "rs_bits_ammo_mode", "RS_BitsAmmoMode"
+	Option "Include Reserve Ammo?", "rs_bits_ammo_usetype1", "OnOff"
+	Option "Include Magazine Ammo?", "rs_bits_ammo_usetype2", "OnOff"
+}
+
+OptionValue "RS_BitsDropMode"
+{
+	0, "Fixed Range"
+	1, "Scale By Monster Health"
+}
+
+OptionValue "RS_BitsAmmoMode"
+{
+	0, "Current Weapon"
+	1, "All Owned Weapons"
 }
 
 // ---------------------------------------------------------------------
@@ -36,6 +101,7 @@ OptionMenu "RS_FXSettings"
 	Option "Bullet tracers", "rs_fx_tracers", "OnOff"
 	Option "Ricochet effects", "rs_fx_ricochet", "OnOff"
 	Option "HQ vanilla sound pack", "rs_fx_hqvanillasounds", "OnOff"
+	Slider "Max simultaneous muzzle lights", "rs_fx_maxmuzzlelights", 0, 256, 4, 0
 }
 
 // ---------------------------------------------------------------------
@@ -49,6 +115,21 @@ OptionMenu "RS_VanillaPlusSettings"
 	StaticText " "
 
 	Option "Purist mode (exact classic stats)", "rs_vanillaplus_purist", "OnOff"
+	Option "Assault Rifle: enable Chaingun-spawn substitution", "rs_vanillaplus_arifle_enable", "OnOff"
+	Slider "Assault Rifle substitution chance", "rs_vanillaplus_arifle_chance", 0.0, 1.0, 0.05, 2
+}
+
+// ---------------------------------------------------------------------
+// Dual Class Behavior -- settings specific to the 7 VR_Dual_* player
+// classes. Heavy ordnance was deliberately removed from their starting
+// loadout earlier; this is the opt-back-in.
+// ---------------------------------------------------------------------
+OptionMenu "RS_DualClassSettings"
+{
+	Title "Dual Class Behavior"
+	StaticText " "
+
+	Option "Allow Big Guns (start with 1 of each heavy weapon)", "rs_dualclass_allowbigguns", "OnOff"
 }
 
 OptionValue "RS_HiFiTierOption"
@@ -56,4 +137,278 @@ OptionValue "RS_HiFiTierOption"
 	0, "Off"
 	1, "Standard"
 	2, "Hi-Fi"
+}
+
+// =====================================================================
+// Debug / Testing -- six sections, one per system: General cheats,
+// Weapon Acquisition, Stat/Roll Testing, Reload Testing, Vanilla+
+// Behavior Testing, Hi-Fi FX Testing, plus a small Model Testing add-on.
+// Backend logic lives in zscript/systems/RS_DebugMenu.zs
+// (RS_DebugHandler); every "netevent" command below is dispatched there.
+// Meant to keep growing -- each section is self-contained.
+// =====================================================================
+OptionMenu "RS_DebugMenu"
+{
+	Title "Debug / Testing"
+	StaticText " "
+
+	StaticText "General"
+	Command "God Mode", "god"
+	Command "No Clip", "noclip"
+	Command "Kill All Monsters", "kill monsters"
+	Command "Full Heal", "give health"
+	StaticText " "
+
+	Submenu "Weapon Acquisition", "RS_DebugAcquisition"
+	Submenu "Stat / Roll Testing", "RS_DebugStats"
+	Submenu "Reload Testing", "RS_DebugReload"
+	Submenu "Vanilla+ Behavior Testing", "RS_DebugVPBehavior"
+	Submenu "Hi-Fi FX Testing", "RS_DebugFX"
+	Submenu "Model Testing", "RS_DebugModel"
+}
+
+OptionMenu "RS_DebugAcquisition"
+{
+	Title "Weapon Acquisition"
+	StaticText " "
+	StaticText "Vanilla+"
+	Command "Give All Weapons", "netevent rs_debug_vp_giveall"
+	Command "Give Next Weapon", "netevent rs_debug_vp_givenext"
+	Command "Refill Reserve Ammo", "netevent rs_debug_vp_refillammo"
+	StaticText " "
+	StaticText "Dual Class"
+	Command "Give Next Weapon Type", "netevent rs_debug_dual_givenext"
+	Command "Give Heavy Ordnance Now", "netevent rs_debug_dual_givebigguns"
+}
+
+OptionMenu "RS_DebugStats"
+{
+	Title "Stat / Roll Testing"
+	StaticText " "
+	Option "Reroll Target Tier", "rs_debug_reroll_tier", "RS_DebugTierOption"
+	Command "Reroll Held Weapons to Target Tier", "netevent rs_debug_reroll"
+	Command "Dump Held Weapon Stats to Console", "netevent rs_debug_dumpstats"
+}
+
+OptionValue "RS_DebugTierOption"
+{
+	0, "Cursed"
+	1, "Trash"
+	2, "Basic"
+	3, "Common"
+	4, "Uncommon"
+	5, "Advanced"
+	6, "Designer"
+	7, "Prototype"
+}
+
+OptionMenu "RS_DebugReload"
+{
+	Title "Reload Testing"
+	StaticText " "
+	Command "Empty Held Magazine(s)", "netevent rs_debug_reload_emptymag"
+	Command "Empty Held Reserve Ammo", "netevent rs_debug_reload_emptyreserve"
+}
+
+OptionMenu "RS_DebugVPBehavior"
+{
+	Title "Vanilla+ Behavior Testing"
+	StaticText " "
+	Command "Force Pickup-Morph Check (Pistol)", "netevent rs_debug_vp_forcemorph"
+	Command "Test Assault Rifle Substitution (10x Chaingun)", "netevent rs_debug_vp_testarifle"
+}
+
+OptionMenu "RS_DebugFX"
+{
+	Title "Hi-Fi FX Testing"
+	StaticText " "
+	Command "Spawn Casing", "netevent rs_debug_fx_casing"
+	Command "Spawn Mag Drop", "netevent rs_debug_fx_magdrop"
+	Command "Spawn Muzzle Light", "netevent rs_debug_fx_muzzlelight"
+	Command "Muzzle Light Cap Stress Test", "netevent rs_debug_fx_stresstest"
+}
+
+OptionMenu "RS_DebugModel"
+{
+	Title "Model Testing"
+	StaticText " "
+	Command "Toggle Held Weapon Mirroring", "netevent rs_debug_model_togglemirror"
+}
+
+// =====================================================================
+// GunBonsai (zscript/GunBonsai/) -- weapon leveling/upgrade system,
+// offhand-aware fork. Nested under Radiant Silvergun Options above
+// rather than getting its own top-level OptionsMenu entry, matching
+// this project's one-settings-surface convention. Untouched from
+// upstream otherwise.
+// =====================================================================
+OptionMenu "GunBonsaiOptions"
+{
+  class TFLV_TooltipOptionMenu
+  Title "$TFLV_OPT_TITLE"
+  DefaultSelection 4
+
+  TFLV_TooltipGeometry 0.0, 0.5, 0.25, 1.0, 0.5
+  TFLV_TooltipAppearance "", "", "tfttbg"
+
+  StaticText ""
+  StaticText "$TFLV_OPT_HEADER_UI", CYAN
+
+  Option "$TFLV_OPT_NAME_HUD_SKIN", "bonsai_hud_skin", "GunBonsaiHudSkin"
+  TFLV_Tooltip "$TFLV_OPT_TT_HUD_SKIN"
+  Slider "$TFLV_OPT_NAME_HUD_X", "bonsai_hud_x", 0.0, 1.0, 0.01, 2
+  Slider "$TFLV_OPT_NAME_HUD_Y", "bonsai_hud_y", 0.0, 1.0, 0.01, 2
+  TFLV_Tooltip "$TFLV_OPT_TT_HUD_XY"
+
+  Slider "$TFLV_OPT_NAME_HUD_SIZE", "bonsai_hud_size", 0.05, 0.3, 0.01, 2
+  TFLV_Tooltip "$TFLV_OPT_TT_HUD_SIZE"
+
+  Slider "$TFLV_OPT_NAME_HUD_ALPHA", "bonsai_hud_alpha", 0.0, 1.0, 0.05, 2
+  TFLV_Tooltip "$TFLV_OPT_TT_HUD_ALPHA"
+
+  Option "$TFLV_OPT_NAME_HUD_MIRROR", "bonsai_hud_mirror", "GunBonsaiHudMirrorMode"
+  TFLV_Tooltip "$TFLV_OPT_TT_HUD_MIRROR"
+
+  ColorPicker "$TFLV_OPT_NAME_HUD_RGB_FRAME", "bonsai_hud_rgb_frame"
+  TFLV_Tooltip "$TFLV_OPT_TT_HUD_RGB_FRAME"
+  ColorPicker "$TFLV_OPT_NAME_HUD_RGB_WEAPON", "bonsai_hud_rgb_weapon"
+  TFLV_Tooltip "$TFLV_OPT_TT_HUD_RGB_WEAPON"
+  ColorPicker "$TFLV_OPT_NAME_HUD_RGB_PLAYER", "bonsai_hud_rgb_player"
+  TFLV_Tooltip "$TFLV_OPT_TT_HUD_RGB_PLAYER"
+
+  Option "$TFLV_OPT_NAME_VFX_MODE", "bonsai_vfx_mode", "GunBonsaiVfxMode"
+  TFLV_Tooltip "$TFLV_OPT_TT_VFX_MODE"
+  Option "$TFLV_OPT_NAME_LEVELUP_FLASH", "bonsai_levelup_flash", "OnOff"
+  TFLV_Tooltip "$TFLV_OPT_TT_LEVELUP_FLASH"
+  ColorPicker "$TFLV_OPT_NAME_LEVELUP_FLASH_RGB", "bonsai_levelup_flash_rgb"
+  TFLV_Tooltip ""
+  Option "$TFLV_OPT_NAME_LEVELUP_SOUND_MODE", "bonsai_levelup_sound_mode", "GunBonsaiLevelUpSoundOption"
+  TFLV_Tooltip "$TFLV_OPT_TT_LEVELUP_SOUND_MODE"
+
+  StaticText ""
+  StaticText "$TFLV_OPT_HEADER_COMPATIBILITY", WHITE
+
+  Option "$TFLV_OPT_NAME_AUTOSAVE_AFTER_LEVEL", "bonsai_autosave_after_level", "OnOff"
+  TFLV_Tooltip "$TFLV_OPT_TT_AUTOSAVE_AFTER_LEVEL"
+  Option "$TFLV_OPT_NAME_UPGRADE_BINDING_MODE", "bonsai_upgrade_binding_mode", "GunBonsaiUpgradeBindingMode"
+  TFLV_Tooltip "$TFLV_OPT_TT_UPGRADE_BINDING_MODE"
+  Option "$TFLV_OPT_NAME_IGNORE_DEATH_EXITS", "bonsai_ignore_death_exits", "OnOff"
+  TFLV_Tooltip "$TFLV_OPT_TT_IGNORE_DEATH_EXITS"
+  Option "$TFLV_OPT_NAME_USE_BUILTIN_ACTORS", "bonsai_use_builtin_actors", "OnOff"
+  TFLV_Tooltip "$TFLV_OPT_TT_USE_BUILTIN_ACTORS"
+  Option "$TFLV_OPT_NAME_AMMOLESS_WEAPONS_ARE_WIMPY", "bonsai_ammoless_weapons_are_wimpy", "OnOff"
+  TFLV_Tooltip "$TFLV_OPT_TT_AMMOLESS_WEAPONS_ARE_WIMPY"
+
+  StaticText ""
+  StaticText "$TFLV_OPT_HEADER_XP_SOURCE", PURPLE
+
+  Slider "$TFLV_OPT_NAME_DAMAGE_TO_XP_FACTOR", "bonsai_damage_to_xp_factor", 0.0, 2.0, 0.05, 2
+  TFLV_Tooltip "$TFLV_OPT_TT_DAMAGE_TO_XP_FACTOR"
+  Slider "$TFLV_OPT_NAME_SCORE_TO_XP_FACTOR", "bonsai_score_to_xp_factor", 0.0, 2.0, 0.05, 2
+  TFLV_Tooltip "$TFLV_OPT_TT_SCORE_TO_XP_FACTOR"
+
+  StaticText ""
+  StaticText "$TFLV_OPT_HEADER_XP_BALANCE", GOLD
+
+  TextField "$TFLV_OPT_NAME_BASE_LEVEL_COST", "bonsai_base_level_cost" //, 100, 10000, 100, 0
+  TFLV_Tooltip "$TFLV_OPT_TT_BASE_LEVEL_COST"
+  ScaleSlider "$TFLV_OPT_NAME_UPGRADE_CHOICES_PER_GUN_LEVEL", "bonsai_upgrade_choices_per_gun_level", -1, 50, 1, "$TFLV_OPT_SLIDER_NOUPGRADES", "$TFLV_OPT_SLIDER_ALLUPGRADES"
+  ScaleSlider "$TFLV_OPT_NAME_UPGRADE_CHOICES_PER_PLAYER_LEVEL", "bonsai_upgrade_choices_per_player_level", -1, 50, 1, "$TFLV_OPT_SLIDER_NOUPGRADES", "$TFLV_OPT_SLIDER_ALLUPGRADES"
+  TFLV_Tooltip "$TFLV_OPT_TT_UPGRADE_CHOICES_PER_LEVEL"
+
+  Slider "$TFLV_OPT_NAME_GUN_LEVELS_PER_PLAYER_LEVEL", "bonsai_gun_levels_per_player_level", 1, 100, 1, 0
+  TFLV_Tooltip "$TFLV_OPT_TT_GUN_LEVELS_PER_PLAYER_LEVEL"
+
+  Slider "$TFLV_OPT_NAME_LEVEL_COST_MUL_FOR_MELEE", "bonsai_level_cost_mul_for_melee", 0.1, 5.0, 0.1, 1
+  Slider "$TFLV_OPT_NAME_LEVEL_COST_MUL_FOR_WIMPY", "bonsai_level_cost_mul_for_wimpy", 0.1, 5.0, 0.1, 1
+  TFLV_Tooltip "$TFLV_OPT_TT_LEVEL_COST_MUL"
+
+  StaticText ""
+  StaticText "$TFLV_OPT_HEADER_LEGENDOOM", GRAY
+
+  ScaleSlider "$TFLV_OPT_NAME_GUN_LEVELS_PER_LD_EFFECT", "bonsai_gun_levels_per_ld_effect", 0, 100, 1, "$TFLV_OPT_SLIDER_DISABLED"
+  TFLV_Tooltip "$TFLV_OPT_TT_GUN_LEVELS_PER_LD_EFFECT"
+
+  Option "$TFLV_OPT_NAME_WHICH_GUNS_CAN_LEARN", "bonsai_which_guns_can_learn", "GunBonsaiWhatKindOfGunSelector"
+  TFLV_Tooltip "$TFLV_OPT_TT_WHICH_GUNS_CAN_LEARN"
+  Option "$TFLV_OPT_NAME_WHICH_GUNS_CAN_REPLACE", "bonsai_which_guns_can_replace", "GunBonsaiWhatKindOfGunSelector"
+  TFLV_Tooltip "$TFLV_OPT_TT_WHICH_GUNS_CAN_REPLACE"
+
+  Slider "$TFLV_OPT_NAME_BASE_LD_EFFECT_SLOTS", "bonsai_base_ld_effect_slots", 0, 16, 1, 0
+  TFLV_Tooltip "$TFLV_OPT_TT_BASE_LD_EFFECT_SLOTS"
+  Slider "$TFLV_OPT_NAME_BONUS_LD_EFFECT_SLOTS", "bonsai_bonus_ld_effect_slots", 0, 16, 1, 0
+  TFLV_Tooltip "$TFLV_OPT_TT_BONUS_LD_EFFECT_SLOTS"
+
+  Option "$TFLV_OPT_NAME_IGNORE_GUN_RARITY", "bonsai_ignore_gun_rarity", "OnOff"
+  TFLV_Tooltip "$TFLV_OPT_TT_IGNORE_GUN_RARITY"
+}
+
+OptionValue "GunBonsaiHudMirrorMode" {
+  0, "$TFLV_OPT_MIRRORMODE_0"
+  1, "$TFLV_OPT_MIRRORMODE_1"
+  2, "$TFLV_OPT_MIRRORMODE_2"
+  3, "$TFLV_OPT_MIRRORMODE_3"
+}
+
+OptionValue "GunBonsaiHudSkin" {
+  0, "$TFLV_OPT_HUDSKIN_0"
+  1, "$TFLV_OPT_HUDSKIN_1"
+  2, "$TFLV_OPT_HUDSKIN_2"
+  3, "$TFLV_OPT_HUDSKIN_3"
+}
+
+OptionValue "GunBonsaiVfxMode" {
+  0, "$TFLV_OPT_VFX_MODE_0"
+  1, "$TFLV_OPT_VFX_MODE_1"
+  2, "$TFLV_OPT_VFX_MODE_2"
+}
+
+OptionValue "GunBonsaiLevelUpSoundOption" {
+  -1, "$TFLV_OPT_FANFARE_N"
+  0, "$TFLV_OPT_FANFARE_0"
+  1, "$TFLV_OPT_FANFARE_1"
+  2, "$TFLV_OPT_FANFARE_2"
+  3, "$TFLV_OPT_FANFARE_3"
+}
+
+OptionValue "GunBonsaiUpgradeBindingMode" {
+  0, "$TFLV_OPT_BINDMODE_0"
+  1, "$TFLV_OPT_BINDMODE_1"
+  2, "$TFLV_OPT_BINDMODE_2"
+}
+
+OptionValue "GunBonsaiWhatKindOfGunSelector" {
+  0, "$TFLV_OPT_LDMODE_0"
+  1, "$TFLV_OPT_LDMODE_1"
+  2, "$TFLV_OPT_LDMODE_2"
+  3, "$TFLV_OPT_LDMODE_3"
+}
+
+OptionMenu "GunBonsaiPlayerLevelUpMenu"
+{
+  class TFLV_Menu_PlayerLevelUpMenu
+  Title "$TFLV_MENU_PLAYER_LEVELUP_TITLE"
+}
+
+OptionMenu "GunBonsaiWeaponLevelUpMenu"
+{
+  class TFLV_Menu_WeaponLevelUpMenu
+  Title "$TFLV_MENU_WEAPON_LEVELUP_TITLE"
+}
+
+OptionMenu "GunBonsaiNewLDEffectMenu"
+{
+  class TFLV_Menu_NewLDEffectMenu
+  Title "$TFLV_MENU_LD_NEW_EFFECT_TITLE"
+}
+
+OptionMenu "GunBonsaiStatusDisplay"
+{
+  class TFLV_Menu_StatusDisplay
+  Title "$TFLV_MENU_STATUS_TITLE"
+}
+
+OptionMenu "GunBonsaiStatusDisplay"
+{
+  Class "TFLV_Menu_UnifiedStatusDisplay"
 }

@@ -338,6 +338,39 @@ same pass (`rs_fx_magdrop_small/large/bfg`) — it had none before.
    go on undirected filesystem searches for "maybe this is the source"
    when the user can just say where it is.
 
+## Weapon gating (Vanilla+ pickup, ARifle, Dual_ big guns)
+
+- **Vanilla+ now behaves like real vanilla Doom.** All 8 map-slot
+  `RS_VP_*` weapons (Pistol/Shotgun/SuperShotgun/Chaingun/RocketLauncher/
+  PlasmaRifle/BFG9000/Chainsaw) carry `replaces <Vanilla>`, so they appear
+  on any map instead of only existing via `StartItem`. `VR_VanillaPlus`
+  now starts with a mainhand-only pistol (both fists still granted — VR
+  needs the off-hand fallback regardless).
+- **Offhand-morph pickup**: `RS_VP_Weapon.TryPickup` — if you already hold
+  a weapon's mainhand and walk over another copy, you get the off-hand
+  identity instead of vanilla's "ammo only" behavior. Each mainhand weapon
+  names its own sibling via `override Class<Weapon> GetOffhandClass()`
+  (same virtual-override shape as `GetHeavyProjectile()`). Once both hands
+  are filled, ordinary vanilla ammo-only pickup applies.
+- **Assault Rifle** has no classic slot, so it can't `replaces` anything.
+  Instead `RS_VP_Chaingun.PostBeginPlay` rolls `rs_vanillaplus_arifle_chance`
+  (gated by `rs_vanillaplus_arifle_enable`, default off) to silently become
+  an `RS_VP_ARifle` before the player ever sees it. A parallel "zombieman
+  drop chance" idea is deliberately not built — depends on a Rifle
+  Zombieman monster that doesn't exist yet.
+- **"Allow Big Guns"** (`rs_dualclass_allowbigguns`, default off): each of
+  the 7 `VR_Dual_*` classes has a `PostBeginPlay` override granting one of
+  each heavy weapon (mainhand only) when on. Heavy ordnance StartItems
+  were removed from these classes earlier this session; this is the
+  optional opt-back-in, not a reversal.
+- **The slot-per-identity system needed no changes.** All 7 main-arsenal
+  specialization weapon types already split identities 1-6 across slots
+  2/3/4 identically (1,2→2; 3,4→3; 5,6→4), and `Dual_X` StartItems already
+  grant identity 1 (mainhand) + identity 4 (offhand). Verified directly
+  before writing anything — this already matches the intended design
+  where a committed weapon-type player accumulates up to 3 independently-
+  rolled copies across those slots.
+
 ## Known open issues (not yet resolved, not yet reported fixed)
 
 - **Infinite ammo on 3 main-arsenal heavy weapons.** Rocket Launcher,

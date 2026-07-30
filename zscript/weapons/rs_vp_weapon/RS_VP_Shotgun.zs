@@ -3,7 +3,7 @@
 // Real data: dmg 6, 7 pellets, magazine 8, sprites RIOT/RGSW/BOOF/RIOB.
 // Sounds are the HQ vanilla shotgun + shotgun-cock pair.
 // =====================================================================
-class RS_VP_Shotgun : RS_VP_Weapon
+class RS_VP_Shotgun : RS_VP_Weapon replaces Shotgun
 {
 	Default
 	{
@@ -50,6 +50,11 @@ class RS_VP_Shotgun : RS_VP_Weapon
 			Condition = 100.0;
 
 		bStatsRolled = true;
+	}
+
+	override Class<Weapon> GetOffhandClass()
+	{
+		return "RS_VP_Shotgun2";
 	}
 
 	States

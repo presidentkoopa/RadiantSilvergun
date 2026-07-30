@@ -197,19 +197,35 @@ class RS_Weapon : Weapon abstract
 	// place rather than each weapon file managing its own projectile
 	// spawn. ProjectileClass is read fresh every shot, so swapping it at
 	// runtime changes what flies out immediately, no re-equip needed.
+	//
+	// aimflags passes ALF_ISOFFHAND (this engine's dual-wield fork,
+	// DXR2 -- see QuestZDoom's Dual-Wield API changes) whenever the
+	// firing weapon is an offhand identity, so the engine spawns the
+	// shot from the tracked offhand controller's real position/angle
+	// instead of always defaulting to the mainhand transform. Universal
+	// fix, one call site -- every weapon in both sets already routes
+	// through this function, so nothing per-weapon needs to change.
 	action void A_RS_FireBallisticVolley(int pellets, double spread, int dmg, double critChance, double velocity)
 	{
 		Class<RS_BallisticFired> cls = invoker.ProjectileClass;
 		if (!cls)
 			cls = "RS_BallisticType1";
 
+		int aimflags = invoker.bOffhandWeapon ? ALF_ISOFFHAND : 0;
+
 		for (int p = 0; p < pellets; p++)
 		{
 			double a = angle + FRandom(-spread, spread);
 			double pi = pitch + FRandom(-spread, spread);
-			let proj = RS_BallisticFired(SpawnPlayerMissile(cls, a, pitch: pi));
+			let proj = RS_BallisticFired(SpawnPlayerMissile(cls, a, pitch: pi, aimflags: aimflags));
 			if (proj)
+			{
 				proj.SetupStats(dmg, velocity, critChance);
+				// master is otherwise unused on these projectiles; GunBonsai's
+				// offhand tracking reads it to attribute XP to the hand that
+				// actually fired, since target is always the player, not the gun.
+				proj.master = invoker;
+			}
 		}
 	}
 
@@ -223,8 +239,20 @@ class RS_Weapon : Weapon abstract
 	//
 	// spawnHeight is a real per-weapon value (the muzzle offset each
 	// weapon's own model needs), passed through rather than flattened to
-	// one number. FPF_NOAUTOAIM is unconditional -- autoaim is always
-	// wrong for VR, where the player is physically pointing the gun.
+	// one number.
+	//
+	// Fires via SpawnPlayerMissile rather than A_FireProjectile -- this
+	// engine's dual-wield fork (DXR2 -- see QuestZDoom's Dual-Wield API
+	// changes) never extended A_FireProjectile with an offhand flag, only
+	// SpawnPlayerMissile/SpawnSubMissile/LineAttack/RailAttack/
+	// AimLineAttack. SpawnPlayerMissile is what A_FireProjectile forwards
+	// to internally, so angle/pitch/z-offset semantics carry over
+	// directly: passing the actor's own angle/pitch (no offset) plus
+	// noautoaim reproduces the old FPF_NOAUTOAIM, straight-ahead-only
+	// behavior, while aimflags now lets an offhand-identity weapon spawn
+	// from its real tracked controller transform instead of always
+	// defaulting to mainhand's. Same universal, one-call-site fix as
+	// A_RS_FireBallisticVolley above.
 	//
 	// Ammo is deliberately NOT touched here: the two sets meter it
 	// differently (main arsenal draws AmmoType1 directly, Vanilla+ runs a
@@ -243,9 +271,11 @@ class RS_Weapon : Weapon abstract
 		if (FRandom(0, 1) < invoker.CritChance)
 			dmg *= 2.0;
 
-		let proj = A_FireProjectile(cls, 0, false, 0, spawnHeight, FPF_NOAUTOAIM, 0);
+		int aimflags = invoker.bOffhandWeapon ? ALF_ISOFFHAND : 0;
+		let proj = SpawnPlayerMissile(cls, angle, 0, 0, spawnHeight, noautoaim: true, aimflags: aimflags, pitch: pitch);
 		if (!proj)
 			return;
+		proj.master = invoker; // see A_RS_FireBallisticVolley for why
 
 		// Rocket/PlasmaBall/BFGBall inherit three different vanilla bases,
 		// so there's no shared ancestor to cast to and SetupStats has to be

@@ -10,7 +10,7 @@
 // get their own dedicated pass, and a rail attack is a different attack
 // type rather than a variant of this one.
 // =====================================================================
-class RS_VP_PlasmaRifle : RS_VP_Weapon
+class RS_VP_PlasmaRifle : RS_VP_Weapon replaces PlasmaRifle
 {
 	Default
 	{
@@ -70,6 +70,11 @@ class RS_VP_PlasmaRifle : RS_VP_Weapon
 		RS_HiFiFX.MuzzleEffects(self, true);
 		TakeInventory(invoker.AmmoType2, 1);
 		A_RS_MarkFired();
+	}
+
+	override Class<Weapon> GetOffhandClass()
+	{
+		return "RS_VP_PlasmaRifle2";
 	}
 
 	States

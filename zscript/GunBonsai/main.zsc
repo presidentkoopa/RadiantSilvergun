@@ -1,0 +1,28 @@
+#include "zscript/GunBonsai/libtooltipmenu/Tooltips.zsc"
+#include "zscript/GunBonsai/libtooltipmenu/TooltipOptionMenu.zsc"
+
+#include "zscript/GunBonsai/util.zsc"
+
+#include "zscript/GunBonsai/menu/main.zsc"
+#include "zscript/GunBonsai/upgrades/main.zsc"
+
+#include "zscript/GunBonsai/debug.zsc"
+#include "zscript/GunBonsai/hud.zsc"
+#include "zscript/GunBonsai/settings.zsc"
+#include "zscript/GunBonsai/RC.zsc"
+
+#include "zscript/GunBonsai/LegendoomEffectGiver.zsc"
+#include "zscript/GunBonsai/LegendoomUtil.zsc"
+#include "zscript/GunBonsai/LegendoomWeaponInfo.zsc"
+#include "zscript/GunBonsai/PerPlayerStats.zsc"
+#include "zscript/GunBonsai/PerPlayerStatsProxy.zsc"
+#include "zscript/GunBonsai/PlayerUpgradeGiver.zsc"
+#include "zscript/GunBonsai/Service.zsc"
+#include "zscript/GunBonsai/UpgradeGiver.zsc"
+#include "zscript/GunBonsai/WeaponUpgradeGiver.zsc"
+#include "zscript/GunBonsai/WeaponInfo.zsc"
+#include "zscript/GunBonsai/WeaponTypeInference.zsc"
+// GBOH: Offhand weapon HUD
+#include "zscript/GunBonsai/OffhandHUD.zsc"
+#include "zscript/GunBonsai/OffhandStatusDisplay.zsc"
+#include "zscript/GunBonsai/EventHandler.zsc"

@@ -1,0 +1,26 @@
+// #namespace TFLV::Upgrade;
+// #debug off;
+
+class TFLV_Upgrade_Intuition : TFLV_Upgrade_BaseUpgrade {
+  override void OnActivate(TFLV_PerPlayerStats stats, TFLV_WeaponInfo info) {
+    super.OnActivate(stats, info);
+    stats.owner.level.allmap = true;
+    if (self.level >= 2) {
+      stats.owner.GiveInventoryType("TFLV_Upgrade_Intuition_Power");
+    }
+  }
+
+  override void OnDeactivate(TFLV_PerPlayerStats stats, TFLV_WeaponInfo info) {
+    super.OnDeactivate(stats, info);
+    stats.owner.level.allmap = false;
+    stats.owner.TakeInventory("TFLV_Upgrade_Intuition_Power", 255);
+  }
+
+  override bool IsSuitableForPlayer(TFLV_PerPlayerStats stats) {
+    return stats.upgrades.Level("TFLV_Upgrade_Intuition") < 2;
+  }
+}
+
+class TFLV_Upgrade_Intuition_Power : PowerScanner {
+  Default { Powerup.Duration 0x7FFFFFFF; }
+}

@@ -6,7 +6,7 @@
 // replaces with RS_EnhancedBFGBall -- the enhanced BFG trail comes
 // through for free with no per-weapon wiring.
 // =====================================================================
-class RS_VP_BFG9000 : RS_VP_Weapon
+class RS_VP_BFG9000 : RS_VP_Weapon replaces BFG9000
 {
 	Default
 	{
@@ -67,6 +67,11 @@ class RS_VP_BFG9000 : RS_VP_Weapon
 		RS_HiFiFX.MuzzleEffects(self, true);
 		TakeInventory(invoker.AmmoType2, 40);
 		A_RS_MarkFired();
+	}
+
+	override Class<Weapon> GetOffhandClass()
+	{
+		return "RS_VP_BFG90002";
 	}
 
 	States

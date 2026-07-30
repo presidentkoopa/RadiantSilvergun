@@ -1,0 +1,83 @@
+// TFLV_OffhandHUD
+// Mirrors GunBonsai's corner HUD to the opposite corner for the offhand weapon.
+// Inherits from TFLV_HUD to reuse Text(), DrawProgressBar(), tex(), etc.
+
+class TFLV_OffhandHUD : TFLV_HUD {
+
+  void Draw(Weapon ohwep, int level, double xp, double maxxp) {
+    if (!ohwep) return;
+    CalibrateOffhand();
+    DrawOffhandHUD(ohwep, level, xp, maxxp);
+  }
+
+  void CalibrateOffhand() {
+    double gbx, gby, gbscale, gbalpha;
+    uint gbmirror;
+    [gbx, gby, gbscale, gbalpha, gbmirror] = TFLV_Settings.hud_params();
+    if (gbscale > 1) gbscale = gbscale / 1080;
+
+    self.scale       = gbscale;
+    self.alpha       = gbalpha;
+    self.fbh         = 512 / (gbscale / 0.15);
+    self.fbw         = self.fbh * screen.GetAspectRatio();
+    self.hudh        = self.fbh * gbscale;
+    self.hudw        = 3 * self.hudh;
+    self.screenscale = float(self.fbh) / HUD_HEIGHT;
+
+    // Opposite X from main HUD, same Y
+    double ourx = (gbx >= 0.5) ? 0.0 : 1.0;
+    double oury = gby;
+
+    self.hudx = realposition(self.fbw, self.hudw, ourx);
+    self.hudy = realposition(self.fbh, self.hudh, oury);
+
+    // Mirror horizontally so graphics face inward toward screen center
+    self.mirror = HUD_MIRROR_H;
+    // If main HUD is also mirrored V, match that
+    if (gbmirror & HUD_MIRROR_V) self.mirror |= HUD_MIRROR_V;
+  }
+
+  void DrawOffhandHUD(Weapon ohwep, int level, double xp, double maxxp) {
+    string frame_tex, weapon_tex, player_tex;
+    [frame_tex, weapon_tex, player_tex] = TFLV_Settings.hud_skin();
+    if (frame_tex == "") return;
+
+    uint frame_rgb, weapon_rgb, player_rgb;
+    [frame_rgb, weapon_rgb, player_rgb] = TFLV_Settings.hud_colours();
+
+    // Face calculation -- mirror H flips face from 2 to 8
+    uint face = 2;
+    if (mirror & HUD_MIRROR_V) face = 4;
+    if (mirror & HUD_MIRROR_H) face = 10 - face;
+
+    bool levelup = maxxp > 0 && xp >= maxxp;
+
+    // Frame
+    Screen.DrawTexture(tex(frame_tex..face), false, hudx, hudy,
+      DTA_VirtualWidth, fbw, DTA_VirtualHeight, fbh, DTA_KeepRatio, true,
+      DTA_Color, levelup ? GetShinyColour(0) : frame_rgb,
+      DTA_Alpha, alpha,
+      DTA_DestWidth, hudw, DTA_DestHeight, hudh);
+
+    // Weapon XP bar
+    if (maxxp > 0) {
+      DrawProgressBar(
+        tex(weapon_tex..face),
+        levelup ? GetShinyColour(34) : weapon_rgb,
+        xp / maxxp, HUD_WXP_X, HUD_WXP_W);
+    } else {
+      DrawProgressBar(tex(weapon_tex..face), 0xFF444444, 0.0, HUD_WXP_X, HUD_WXP_W);
+    }
+
+    // Weapon name -- same position as main HUD
+    Text(ohwep.GetTag(), weapon_rgb,
+      HUD_INFOTEXT_X,
+      HUD_INFOTEXT_Y - NewSmallFont.GetHeight() / scale / screenscale,
+      HUD_GRAV_SW);
+
+    // Level / XP line
+    Text(
+      string.format("Lv.%d (%d/%d)", level, int(xp), int(maxxp)),
+      weapon_rgb, HUD_INFOTEXT_X, HUD_INFOTEXT_Y, HUD_GRAV_SW);
+  }
+}

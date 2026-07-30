@@ -26,7 +26,7 @@ class RS_VP_PistolLoaded : Ammo
 		Inventory.MaxAmount 22;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 22;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 class RS_VP_PistolLoaded2 : Ammo
@@ -37,7 +37,7 @@ class RS_VP_PistolLoaded2 : Ammo
 		Inventory.MaxAmount 22;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 22;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 
@@ -50,7 +50,7 @@ class RS_VP_ARifleLoaded : Ammo
 		Inventory.MaxAmount 62;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 62;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 class RS_VP_ARifleLoaded2 : Ammo
@@ -61,7 +61,7 @@ class RS_VP_ARifleLoaded2 : Ammo
 		Inventory.MaxAmount 62;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 62;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 
@@ -74,7 +74,7 @@ class RS_VP_ShotgunLoaded : Ammo
 		Inventory.MaxAmount 16;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 16;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 class RS_VP_ShotgunLoaded2 : Ammo
@@ -85,7 +85,7 @@ class RS_VP_ShotgunLoaded2 : Ammo
 		Inventory.MaxAmount 16;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 16;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 
@@ -98,7 +98,7 @@ class RS_VP_SuperShotgunLoaded : Ammo
 		Inventory.MaxAmount 4;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 4;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 class RS_VP_SuperShotgunLoaded2 : Ammo
@@ -109,7 +109,7 @@ class RS_VP_SuperShotgunLoaded2 : Ammo
 		Inventory.MaxAmount 4;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 4;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 
@@ -122,7 +122,7 @@ class RS_VP_ChaingunLoaded : Ammo
 		Inventory.MaxAmount 300;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 300;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 class RS_VP_ChaingunLoaded2 : Ammo
@@ -133,7 +133,7 @@ class RS_VP_ChaingunLoaded2 : Ammo
 		Inventory.MaxAmount 300;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 300;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 
@@ -146,7 +146,7 @@ class RS_VP_RocketLoaded : Ammo
 		Inventory.MaxAmount 10;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 10;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 class RS_VP_RocketLoaded2 : Ammo
@@ -157,7 +157,7 @@ class RS_VP_RocketLoaded2 : Ammo
 		Inventory.MaxAmount 10;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 10;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 
@@ -170,7 +170,7 @@ class RS_VP_PlasmaLoaded : Ammo
 		Inventory.MaxAmount 120;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 120;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 class RS_VP_PlasmaLoaded2 : Ammo
@@ -181,7 +181,7 @@ class RS_VP_PlasmaLoaded2 : Ammo
 		Inventory.MaxAmount 120;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 120;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 
@@ -194,7 +194,7 @@ class RS_VP_BFGLoaded : Ammo
 		Inventory.MaxAmount 320;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 320;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }
 class RS_VP_BFGLoaded2 : Ammo
@@ -205,6 +205,6 @@ class RS_VP_BFGLoaded2 : Ammo
 		Inventory.MaxAmount 320;
 		Ammo.BackpackAmount 0;
 		Ammo.BackpackMaxAmount 320;
-		+IGNORESKILL
+		+INVENTORY.IGNORESKILL
 	}
 }

@@ -205,7 +205,11 @@ class VR_Revolver : RS_Weapon
 		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) >= invoker.Capacity, "Ready");
 		TNT1 A 0 A_JumpIf(CountInv("Clip") <= 0, "OutOfAmmo");
 		TNT1 A 0 A_PlaySound("9mmclip1", CHAN_AUTO);
-		REVO QRSTUVWXYZ 2;
+		// Confirmed against the original source: this was REVO, but REVO
+		// never had frame data past F -- REVL is fully bound A-Z and is
+		// what the original actually plays here. Wrong sprite prefix,
+		// not a missing-content problem.
+		REVL QRSTUVWXYZ 2;
 		REVO A 1 A_PlaySound("9mmclip2", CHAN_AUTO);
 		REVO BCDEFGH 2;
 		TNT1 A 0 A_PlaySound("9mmslide", CHAN_AUTO);

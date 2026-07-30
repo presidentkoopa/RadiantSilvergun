@@ -182,15 +182,12 @@ class VR_SMG : RS_Weapon
 		Goto Reload;
 
 	Shoot:
-		// Was SMGG BC, but no SMGGB0/SMGGC0 exists anywhere on disk or in
-		// any source pack -- a MODELDEF FrameIndex pointing at a sprite
-		// lump that doesn't exist is a hard load error, so this had to
-		// move. SMGSB0/SMGSC0 do exist and no other state uses them, so
-		// the two fire poses are rebound to those in MODELDEF (same model
-		// frames 1 and 2 as before). The sprite is only a key for the
-		// model frame here -- the 3D model is what actually renders -- so
-		// the fire animation is preserved exactly, not flattened.
-		SMGS BC 1;
+		// Confirmed against the original working reference: the gun body
+		// never moves during fire -- it holds SMGG A. The earlier fix
+		// here (SMGS B/C) was a wrong guess, inventing a two-frame recoil
+		// motion that was never part of the design and used two unverified
+		// mesh frames. Recoil is sold entirely by the muzzle flash below.
+		SMGG A 1;
 		TNT1 A 0 A_GunFlash();
 		TNT1 A 0 A_RS_FireSMG();
 		TNT1 A 0 A_ReFire();
@@ -207,7 +204,10 @@ class VR_SMG : RS_Weapon
 
 	Flash:
 		TNT1 A 0 A_RS_MuzzleFlash();
-		SMGF A 2 Bright A_Light2();
+		// Full 3-frame flash cycle (matches the reference and the existing
+		// MODELDEF bindings, frames 4/5/6) -- this is what actually sells
+		// the recoil punch, since the gun body itself holds still.
+		SMGF ABC 1 Bright A_Light2();
 		Stop;
 
 	OutOfAmmo:

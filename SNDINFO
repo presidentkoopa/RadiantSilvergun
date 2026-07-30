@@ -366,3 +366,10 @@ hq_dssgcock   Sounds/hq_vanilla/DSSGCOCK
 hq_dsshotgn   Sounds/hq_vanilla/DSSHOTGN
 hq_dsvilatk   Sounds/hq_vanilla/DSVILATK
 hq_dswpnup    Sounds/hq_vanilla/DSWPNUP
+
+// =====================================================================
+// GunBonsai (zscript/GunBonsai/) -- weapon leveling/upgrade system.
+// sounds/GunBonsai/, untouched from upstream.
+// =====================================================================
+bonsai/gunlevelup Sounds/GunBonsai/win_loud
+$alias bonsai/smallboom imp/shotx

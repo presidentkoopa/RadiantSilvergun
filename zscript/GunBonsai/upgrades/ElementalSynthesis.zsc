@@ -1,0 +1,198 @@
+// Elemental synthesis abilities, available only to players who have mastered two
+// elements on one weapon.
+//
+// ELEMENTAL BEAM: hitscan only. Elemental effects on target are copied to all
+// enemies in the beam.
+// ELEMENTAL BLAST: projectile only. Copies to all enemies near target.
+// ELEMENTAL WAVE: melee only. Copies to all enemies near you.
+// #namespace TFLV::Upgrade;
+
+class TFLV_Upgrade_ElementalSynthesis : TFLV_Upgrade_ElementalUpgrade {
+  Array<TFLV_Upgrade_UpgradeElement> elements; // Primary and secondary elements
+  override TFLV_Upgrade_UpgradePriority Priority() { return TFLV_Upgrade_PRI_NULL; }
+
+  override bool IsSuitableForWeapon(TFLV_WeaponInfo info) {
+    return GetElementCount(info.upgrades) >= 2
+      && GetElementInProgress(info.upgrades) == TFLV_Upgrade_ELEM_NULL
+      && info.upgrades.Level(GetClassName()) == 0;
+  }
+
+  override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage) {
+    if (elements.size() > 0) return;
+
+    let info = TFLV_PerPlayerStats.GetStatsFor(pawn).GetInfoForCurrentWeapon();
+    for (TFLV_Upgrade_UpgradeElement elem = TFLV_Upgrade_ELEM_NULL+1; elem < TFLV_Upgrade_ELEM_LAST; ++elem) {
+      let levels = CountElementLevels(info.upgrades, elem);
+      if (levels == 0) continue;
+//      DEBUG("ES init: %d", elem);
+      elements.push(elem);
+    }
+  }
+
+  Color GetColour(uint i) {
+    static const string colours[] = { "black", "orange", "purple", "green", "cyan" };
+    return colours[elements[i]];
+  }
+
+  void CopyElements(Actor src, Actor dst) {
+    static const string dots[] = { "", "TFLV_Upgrade_FireDot", "TFLV_Upgrade_AcidDot", "TFLV_Upgrade_PoisonDot", "TFLV_Upgrade_ShockDot" };
+//
+//    DEBUG("CopyElements: %s <- %s", dst.GetTag(), src.GetTag());
+    for (uint i = 0; i < elements.size(); ++i) {
+      let dotname = dots[elements[i]];
+//      DEBUG("Check for %s", dotname);
+      let srcdot = TFLV_Upgrade_Dot(src.FindInventory(dotname));
+      if (!srcdot) continue;
+//      DEBUG("  srcdot: %s", srcdot.GetTag());
+      let dstdot = TFLV_Upgrade_Dot.GiveStacks(srcdot.target, dst, dotname, 0);
+      dstdot.CopyFrom(srcdot);
+//      DEBUG("  afterwards dst stacks=%f", dstdot.amount);
+    }
+  }
+}
+
+class TFLV_Upgrade_ElementalBeam : TFLV_Upgrade_ElementalSynthesis {
+  Actor first_hit;
+
+  override bool CheckPriority(Actor inflictor) {
+    if (first_hit && inflictor is "TFLV_Upgrade_ElementalBeam_Puff") return true;
+    return super.CheckPriority(inflictor);
+  }
+
+  // TODO: spawn a separate actor that fires the beam and uses DoSpecialDamage
+  // to apply the effect.
+  override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage) {
+    super.OnDamageDealt(pawn, shot, target, damage);
+
+    if (shot) {
+//      DEBUG("OnDamageDealt: %s for %d damage with %s", target.GetTag(), damage, shot.GetTag());
+    } else {
+//      DEBUG("OnDamageDealt: %s for %d damage", target.GetTag(), damage);
+    }
+
+    if (shot && shot is "TFLV_Upgrade_ElementalBeam_Puff") {
+      // Copy elements from original victim
+      if (first_hit && target != first_hit) CopyElements(first_hit, target);
+      return;
+    }
+
+    let particles = TFLV_Settings.vfx_mode() == TFLV_VFX_FULL;
+    first_hit = target;
+    pawn.A_CustomRailgun(
+      1, 0,
+      particles ? GetColour(0) : -1, particles ? GetColour(1) : -1,
+      RGF_SILENT|RGF_FULLBRIGHT,
+      0, 0, // spread
+      "TFLV_Upgrade_ElementalBeam_Puff");
+    first_hit = null;
+  }
+
+  override bool IsSuitableForWeapon(TFLV_WeaponInfo info) {
+    return super.IsSuitableForWeapon(info)
+      && info.IsHitscan()
+      && !info.IsMelee();
+  }
+}
+
+class TFLV_Upgrade_ElementalBeam_Puff : BulletPuff {
+  property UpgradePriority: weaponspecial;
+  Default { TFLV_Upgrade_ElementalBeam_Puff.UpgradePriority TFLV_Upgrade_PRI_NULL; }
+
+  States {
+    Spawn:
+    Melee:
+      TNT1 A 1;
+      STOP;
+  }
+}
+
+class TFLV_Upgrade_ElementalBlast : TFLV_Upgrade_ElementalSynthesis {
+  override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage) {
+    super.OnDamageDealt(pawn, shot, target, damage);
+    let aoe = TFLV_Upgrade_ElementalSynthesis_AoE(target.Spawn(
+      "TFLV_Upgrade_ElementalSynthesis_Aoe",
+      (target.pos.x, target.pos.y, target.pos.z + target.height/2)));
+    aoe.InitFrom(self, target, target.radius*7);
+  }
+
+  override bool IsSuitableForWeapon(TFLV_WeaponInfo info) {
+    return super.IsSuitableForWeapon(info)
+      && info.IsProjectile();
+  }
+}
+
+class TFLV_Upgrade_ElementalWave : TFLV_Upgrade_ElementalSynthesis {
+  override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage) {
+    super.OnDamageDealt(pawn, shot, target, damage);
+    let aoe = TFLV_Upgrade_ElementalSynthesis_AoE(pawn.Spawn(
+      "TFLV_Upgrade_ElementalSynthesis_Aoe",
+      (pawn.pos.x, pawn.pos.y, pawn.pos.z + pawn.height/2)));
+    aoe.InitFrom(self, target, pawn.radius*10);
+  }
+
+  override bool IsSuitableForWeapon(TFLV_WeaponInfo info) {
+    return super.IsSuitableForWeapon(info)
+      && info.IsMelee();
+  }
+}
+
+class TFLV_Upgrade_ElementalSynthesis_AoE : Actor {
+  Actor src;
+  uint range;
+  TFLV_Upgrade_ElementalSynthesis parent;
+
+  property UpgradePriority: weaponspecial;
+  Default { TFLV_Upgrade_ElementalSynthesis_AoE.UpgradePriority TFLV_Upgrade_PRI_NULL; }
+
+  void InitFrom(TFLV_Upgrade_ElementalSynthesis parent, Actor src, uint radius) {
+    self.parent = parent;
+    self.src = src;
+    self.range = radius;
+    parent.CopyElements(src, self); // copy the dots into ourself just in case the source vanishes
+  }
+
+  override void PostBeginPlay() {
+    self.SetStateLabel("Spawn");
+  }
+
+  void Spread() {
+    Array<Actor> targets;
+    TFLV_Util.MonstersInRadius(self, range, targets);
+    for (uint i = 0; i < targets.size(); ++i) {
+      parent.CopyElements(self, targets[i]);
+    }
+  }
+
+  void DrawVFX() {
+    uint mode = TFLV_Settings.vfx_mode();
+    if (mode == TFLV_VFX_FULL) {
+      ParticleRing();
+    } else if (mode == TFLV_VFX_REDUCED) {
+      // TODO: cool sprite goes here
+    }
+  }
+
+  void ParticleRing() {
+    for (uint i = 0; i < 16; ++i) {
+      A_SpawnParticle(
+        parent.GetColour(0), SPF_FULLBRIGHT|SPF_RELVEL|SPF_RELACCEL,
+        35, 10, random[TFLV_Upgrade_RNG_RingAngle](0,360), // lifetime, size, angle
+        0, 0, 0, // position
+        range/35.0, 0, 0, // v
+        0, 0, 0); // a
+      A_SpawnParticle(
+        parent.GetColour(1), SPF_FULLBRIGHT|SPF_RELVEL|SPF_RELACCEL,
+        35, 10, random[TFLV_Upgrade_RNG_RingAngle](0,360), // lifetime, size, angle
+        0, 0, 0, // position
+        range/35.0, 0, 0, // v
+        0, 0, 0); // a
+    }
+  }
+
+  States {
+    Spawn:
+      TNT1 A 1 NoDelay DrawVFX();
+      TNT1 A 1 Spread();
+      STOP;
+  }
+}

@@ -30,6 +30,43 @@ class RS_VP_Weapon : RS_Weapon abstract
 		return cv ? cv.GetBool() : true;
 	}
 
+	// Each mainhand weapon that has a floor-pickup presence (i.e. carries
+	// `replaces <VanillaClass>`) overrides this to name its own "2"-suffixed
+	// off-hand sibling. Null here means "no off-hand morph for this
+	// weapon" -- the default for anything that doesn't override it (the
+	// Assault Rifle never spawns via replaces at all, so it never reaches
+	// this path either).
+	virtual Class<Weapon> GetOffhandClass()
+	{
+		return null;
+	}
+
+	// Makes Vanilla+ behave like real vanilla Doom pickups, with dual-wield
+	// layered on top: the first copy of a weapon gives you the mainhand
+	// (ordinary Weapon.TryPickup handles that below). Walking over a SECOND
+	// copy while you already hold the mainhand -- vanilla behavior would be
+	// "ammo only, you already have this weapon" -- instead morphs into the
+	// off-hand identity. Once both hands are filled, it's back to ordinary
+	// vanilla ammo-only behavior; nothing below ever fires a third time.
+	override bool TryPickup(in out Actor toucher)
+	{
+		let plr = toucher.player;
+		Class<Weapon> offhandCls = GetOffhandClass();
+		if (plr && offhandCls)
+		{
+			bool hasMain = !!plr.mo.FindInventory(GetClass());
+			bool hasOff  = !!plr.mo.FindInventory(offhandCls);
+			if (hasMain && !hasOff)
+			{
+				let offhandItem = Weapon(Spawn(offhandCls, Pos));
+				bool ok = offhandItem.TryPickup(toucher);
+				Destroy();
+				return ok;
+			}
+		}
+		return Super.TryPickup(toucher);
+	}
+
 	// Spent-magazine drop, Hi-Fi tier only (RS_HiFiFX gates it). Called
 	// from each weapon's Reload state so the old mag physically falls
 	// away as the new one goes in.

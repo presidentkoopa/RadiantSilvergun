@@ -1,0 +1,33 @@
+// TFLV_Menu_UnifiedStatusDisplay
+// Extends GB's status screen with an offhand weapon section appended below.
+
+class TFLV_Menu_UnifiedStatusDisplay : TFLV_Menu_StatusDisplay {
+  override void Init(Menu parent, OptionMenuDescriptor desc) {
+    // Run the full vanilla GB status display first
+    super.Init(parent, desc);
+
+    // Now append offhand section
+    let pps = TFLV_EventHandler.GetConsolePlayerStats();
+    if (!pps) return;
+
+    let pawn = players[consoleplayer].mo;
+    if (!pawn || !pawn.player.OffhandWeapon) return;
+
+    Weapon ohwep = pawn.player.OffhandWeapon;
+    let ohinfo = pps.GetInfoFor(ohwep);
+
+    PushText(" ", Font.CR_GOLD);
+    PushText("[ OFFHAND WEAPON ]", Font.CR_GOLD);
+    PushKeyValueText("$TFLV_MENU_TYPE",
+      string.format("%s (%s)", ohwep.GetTag(), ohwep.GetClassName()));
+
+    if (ohinfo) {
+      PushKeyValueText(
+        string.format(StringTable.Localize("$TFLV_MENU_LEVEL"), ohinfo.level),
+        string.format(StringTable.Localize("$TFLV_MENU_XP"), ohinfo.XP, ohinfo.maxXP));
+      ohinfo.upgrades.DumpInteractableToMenu(self, 2);
+    } else {
+      PushText("  (fire at an enemy to begin tracking)", Font.CR_DARKGRAY);
+    }
+  }
+}

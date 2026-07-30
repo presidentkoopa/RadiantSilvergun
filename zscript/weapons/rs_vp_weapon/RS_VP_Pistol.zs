@@ -14,7 +14,7 @@
 //   - Reload simplified to the shared A_RS_ReloadAtomic -- the source's
 //     two-branch chamber-check depended on ACS scripts not ported here.
 // =====================================================================
-class RS_VP_Pistol : RS_VP_Weapon
+class RS_VP_Pistol : RS_VP_Weapon replaces Pistol
 {
 	Default
 	{
@@ -64,6 +64,11 @@ class RS_VP_Pistol : RS_VP_Weapon
 			Condition = 100.0;
 
 		bStatsRolled = true;
+	}
+
+	override Class<Weapon> GetOffhandClass()
+	{
+		return "RS_VP_Pistol2";
 	}
 
 	States

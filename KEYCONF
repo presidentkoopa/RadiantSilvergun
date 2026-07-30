@@ -1,0 +1,20 @@
+addkeysection "Gun Bonsai" GunBonsai
+
+// bonsai-show-info (upstream's original keybind) is intentionally not
+// bound here -- gboh-unified-info is a strict superset (cycles offhand
+// level-up -> mainhand level-up -> player level-up -> falls through to
+// ShowInfo(), the exact thing bonsai-show-info triggers). Keeping both
+// bound to "I" left one silently shadowing the other in Customize
+// Controls; one clean keybind instead.
+alias bonsai-show-info "netevent bonsai-show-info"
+alias bonsai-dump "netevent bonsai-debug,info"
+
+addmenukey "Check Levels (Offhand/Mainhand/Player)" gboh-unified-info
+alias gboh-unified-info "netevent gboh-unified-info"
+defaultbind I gboh-unified-info
+
+addkeysection "Gun Bonsai/Legendoom Integration" GunBonsaiLegendoom
+
+addmenukey "Cycle Legendoom Weapon Effect" bonsai_cycle_ld_effect
+alias bonsai_cycle_ld_effect "netevent bonsai-cycle-ld-effect"
+defaultbind P bonsai_cycle_ld_effect

@@ -5,7 +5,7 @@
 // same as the source and same as the main arsenal's own SSG.
 // Break-action reload uses the HQ vanilla open/load/close trio.
 // =====================================================================
-class RS_VP_SuperShotgun : RS_VP_Weapon
+class RS_VP_SuperShotgun : RS_VP_Weapon replaces SuperShotgun
 {
 	Default
 	{
@@ -60,6 +60,11 @@ class RS_VP_SuperShotgun : RS_VP_Weapon
 	{
 		A_RS_VP_Fire("rs_vp_ssg_fire", false, "RS_CasingShell");
 		TakeInventory(invoker.AmmoType2, 1);
+	}
+
+	override Class<Weapon> GetOffhandClass()
+	{
+		return "RS_VP_SuperShotgun2";
 	}
 
 	States

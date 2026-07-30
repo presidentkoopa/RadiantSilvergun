@@ -8,7 +8,7 @@
 // The source draws reserve from its own custom "Nato" pickup class,
 // which isn't ported -- vanilla Clip instead, same reasoning as ARifle.
 // =====================================================================
-class RS_VP_Chaingun : RS_VP_Weapon
+class RS_VP_Chaingun : RS_VP_Weapon replaces Chaingun
 {
 	Default
 	{
@@ -54,6 +54,34 @@ class RS_VP_Chaingun : RS_VP_Weapon
 			Condition = 100.0;
 
 		bStatsRolled = true;
+	}
+
+	override Class<Weapon> GetOffhandClass()
+	{
+		return "RS_VP_Chaingun2";
+	}
+
+	// The Assault Rifle has no classic-Doom slot of its own, so it can't
+	// `replaces` anything. Instead, a world-placed Chaingun has a
+	// player-controlled chance to silently become an Assault Rifle before
+	// it's ever seen. Off by default -- new, unbalanced content.
+	// A parallel "zombieman drop chance" idea is deliberately not built
+	// here: it depends on a Rifle Zombieman monster that doesn't exist yet.
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+
+		let en = CVar.GetCVar("rs_vanillaplus_arifle_enable", null);
+		if (!en || !en.GetBool())
+			return;
+
+		let ch = CVar.GetCVar("rs_vanillaplus_arifle_chance", null);
+		double chance = ch ? ch.GetFloat() : 0.0;
+		if (chance > 0 && FRandom(0, 1) < chance)
+		{
+			Spawn("RS_VP_ARifle", Pos, ALLOW_REPLACE);
+			Destroy();
+		}
 	}
 
 	States

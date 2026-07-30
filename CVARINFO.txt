@@ -11,8 +11,112 @@ server bool rs_fx_tracers = true;
 server bool rs_fx_ricochet = true;
 server bool rs_fx_hqvanillasounds = false;
 
+// GPU-dependent ceiling on simultaneous muzzle lights (Hi-Fi tier only).
+// Default is conservative; raise it if the hardware can take it.
+server int rs_fx_maxmuzzlelights = 12;
+
 // Vanilla+ set (GNRCWPN import): on by default, these weapons behave as
 // exact, deterministic classic-Doom stats -- no RollStats randomization.
 // The rolling machinery itself is never removed, just bypassed while
 // this is true, so it can be flipped later without rebuilding anything.
 server bool rs_vanillaplus_purist = true;
+
+// Assault Rifle has no classic-Doom slot -- instead a world Chaingun has
+// this chance to silently become one before it's ever seen. Off by
+// default (new, unbalanced content).
+server bool rs_vanillaplus_arifle_enable = false;
+server float rs_vanillaplus_arifle_chance = 0.15;
+
+// Dual_ classes start with no heavy ordnance by default (see
+// VR_PlayerClasses.zs history -- explicitly removed after complaints about
+// starting with "endgame weapons"). This opts back in: one of each heavy
+// weapon, mainhand only, same slots 5/6/7 as before.
+server bool rs_dualclass_allowbigguns = false;
+
+// Debug/Testing menu state -- per-player cycle position for "give next
+// weapon" buttons. Not meant to be touched directly; the menu drives them.
+user int rs_debug_vpindex = 0;
+user int rs_debug_dualindex = 0;
+
+// =====================================================================
+// GunBonsai (zscript/GunBonsai/) -- weapon leveling/upgrade system,
+// offhand-aware fork. Cvars kept under upstream's own bonsai_ prefix
+// rather than renamed to rs_, so this stays a clean drop-in against
+// future upstream updates. See MENUDEF.txt's "GunBonsai Options" branch
+// for where these surface.
+// =====================================================================
+user float bonsai_hud_x = 0.01;
+user float bonsai_hud_y = 0.02;
+user float bonsai_hud_size = 0.15;
+user float bonsai_hud_alpha = 1.0;
+user color bonsai_hud_rgb_frame = "00 FF FF";
+user color bonsai_hud_rgb_weapon = "00 80 FF";
+user color bonsai_hud_rgb_player = "00 FF 80";
+user int bonsai_hud_mirror = 2;
+user int bonsai_hud_skin = 1;
+
+user bool bonsai_levelup_flash = true;
+user color bonsai_levelup_flash_rgb = "FF FF FF";
+user int bonsai_levelup_sound_mode = 1;
+user string bonsai_levelup_sound = "";
+user int bonsai_vfx_mode = 2;
+
+server int bonsai_upgrade_choices_per_gun_level = 4;
+server int bonsai_upgrade_choices_per_player_level = 4;
+server int bonsai_gun_levels_per_player_level = 7;
+
+server int bonsai_base_level_cost = 1200;
+
+server float bonsai_level_cost_mul_for_melee = 0.5;
+server float bonsai_level_cost_mul_for_wimpy = 0.5;
+server float bonsai_level_cost_mul_for_explosive = 1.5;
+server float bonsai_level_cost_mul_for_bfg = 1.5;
+
+server float bonsai_damage_to_xp_factor = 1.0;
+server float bonsai_score_to_xp_factor = 0.0;
+
+// 0 - per weapon object
+// 1 - per weapon object but transferable to a new weapon of the same type if you lose the old one
+// 2 - per weapon class
+server int bonsai_upgrade_binding_mode = 1;
+server bool bonsai_ignore_death_exits = true;
+
+server bool bonsai_use_builtin_actors = true;
+server bool bonsai_ammoless_weapons_are_wimpy = true;
+server bool bonsai_autosave_after_level = true;
+
+// Legendoom integration -- inert unless Legendoom is also loaded.
+server int bonsai_gun_levels_per_ld_effect = 3;
+server int bonsai_which_guns_can_learn = 3;
+server int bonsai_which_guns_can_replace = 2;
+server int bonsai_base_ld_effect_slots = 2;
+server int bonsai_bonus_ld_effect_slots = 1;
+server bool bonsai_ignore_gun_rarity = false;
+
+// =====================================================================
+// Kill Rewards (Bits) -- zscript/systems/RS_Bits.zs. Ported from
+// "SoM Universal(ish?) Kill Rewards". Health/Armor/Ammo pickups dropped
+// by monsters on death. See MENUDEF.txt's "Kill Rewards" branch.
+// =====================================================================
+server bool rs_bits_enable = true;
+server int rs_bits_mode = 0;					// 0: Fixed Range, 1: Scale by Monster Health
+server int rs_bits_dropchance = 100;			// per-bit chance after count is calculated
+server int rs_bits_boss_mult = 3;
+
+server int rs_bits_life_ticks = 0;				// bit lifetime = ticks * mult; either 0 = never expires
+server int rs_bits_life_mult = 0;
+
+server int rs_bits_min = 1;
+server int rs_bits_max = 3;
+server bool rs_bits_randomize = true;
+server int rs_bits_range_chance = 100;			// all-or-nothing chance the batch spawns at all
+
+server float rs_bits_healthscale_ratio = 10;	// monster SpawnHealth / this = bit count
+
+server int rs_bits_ratio_health = 1;
+server int rs_bits_ratio_armor = 1;
+server int rs_bits_ratio_ammo = 1;
+
+server int rs_bits_ammo_mode = 0;				// 0: Current Weapon, 1: All Owned Weapons
+server bool rs_bits_ammo_usetype1 = true;
+server bool rs_bits_ammo_usetype2 = false;

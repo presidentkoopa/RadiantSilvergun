@@ -1,0 +1,94 @@
+// Stuff for the elemental upgrade trees specifically. Mostly concerned with
+// upgrade eligibility checking. All elemental (acid/fire/shock/poison) upgrades
+// should inherit from ElementalUpgrade or DotModifier.
+// TODO: this is pretty gross. It should be generalized so that elemental upgrades
+// can answer questions about themselves.
+// #namespace TFLV::Upgrade;
+// #debug off
+
+enum TFLV_Upgrade_UpgradeElement {
+  TFLV_Upgrade_ELEM_NULL,
+  TFLV_Upgrade_ELEM_FIRE, TFLV_Upgrade_ELEM_ACID, TFLV_Upgrade_ELEM_POISON, TFLV_Upgrade_ELEM_LIGHTNING,
+  TFLV_Upgrade_ELEM_LAST
+}
+
+class TFLV_Upgrade_ElementalUpgrade : TFLV_Upgrade_BaseUpgrade {
+  override TFLV_Upgrade_UpgradePriority Priority() { return TFLV_Upgrade_PRI_ELEMENTAL; }
+  virtual TFLV_Upgrade_UpgradeElement Element() { return TFLV_Upgrade_ELEM_NULL; }
+
+  // Suitable for base-level elemental upgrades, checks if the weapon is capable
+  // of accepting that element.
+  override bool IsSuitableForWeapon(TFLV_WeaponInfo info) {
+    TFLV_Upgrade_UpgradeElement inprogress = GetElementInProgress(info.upgrades);
+//    DEBUG("%s: me=%d weapon=%d mylvl=%d elementcount=%d",
+//      self.GetClassName(), Element(), inprogress,
+//      info.upgrades.Level(GetClassName()),
+//      GetElementCount(info.upgrades));
+    return inprogress == Element()
+      || info.upgrades.Level(GetClassName()) > 0
+      || (inprogress == TFLV_Upgrade_ELEM_NULL && GetElementCount(info.upgrades) < 2);
+  }
+
+  bool HasIntermediatePrereq(TFLV_WeaponInfo info, string basic) {
+    return info.upgrades.Level(basic) >= 2
+      && info.upgrades.Level(basic) > info.upgrades.Level(self.GetClassName());
+  }
+
+  bool HasMasteryPrereq(TFLV_WeaponInfo info, string intermediate, string alternate) {
+    return info.upgrades.Level(intermediate) >= 2
+      && info.upgrades.Level(intermediate) > info.upgrades.Level(self.GetClassName())
+      && info.upgrades.Level(alternate) == 0;
+  }
+
+  static uint CountElementLevels(TFLV_Upgrade_UpgradeBag upgrades, TFLV_Upgrade_UpgradeElement elem) {
+    let n = 0;
+    for (uint i = 0; i < upgrades.upgrades.size(); ++i) {
+      let eu = TFLV_Upgrade_ElementalUpgrade(upgrades.upgrades[i]);
+      if (eu && eu.Element() == elem) n += eu.level;
+    }
+    return n;
+  }
+
+  static uint GetElementCount(TFLV_Upgrade_UpgradeBag upgrades) {
+    uint count = 0;
+    for (TFLV_Upgrade_UpgradeElement elem = TFLV_Upgrade_ELEM_NULL+1; elem < TFLV_Upgrade_ELEM_LAST; ++elem) {
+      if (CountElementLevels(upgrades, elem) > 0) ++count;
+    }
+    return count;
+  }
+
+  // A weapon should only ever have one element in progress, so we just return the
+  // first one we find.
+  static TFLV_Upgrade_UpgradeElement GetElementInProgress(TFLV_Upgrade_UpgradeBag upgrades) {
+    if (upgrades.Level("TFLV_Upgrade_IncendiaryShots") > 0
+        && (upgrades.Level("TFLV_Upgrade_Conflagration") + upgrades.Level("TFLV_Upgrade_InfernalKiln")) == 0)
+      return TFLV_Upgrade_ELEM_FIRE;
+    if (upgrades.Level("TFLV_Upgrade_PoisonShots") > 0
+        && (upgrades.Level("TFLV_Upgrade_Putrefaction") + upgrades.Level("TFLV_Upgrade_Hallucinogens")) == 0)
+      return TFLV_Upgrade_ELEM_POISON;
+    if (upgrades.Level("TFLV_Upgrade_CorrosiveShots") > 0
+        && (upgrades.Level("TFLV_Upgrade_Embrittlement") + upgrades.Level("TFLV_Upgrade_AcidSpray")) == 0)
+      return TFLV_Upgrade_ELEM_ACID;
+    if (upgrades.Level("TFLV_Upgrade_ShockingInscription") > 0
+        && (upgrades.Level("TFLV_Upgrade_ChainLightning") + upgrades.Level("TFLV_Upgrade_Revivification")) == 0)
+      return TFLV_Upgrade_ELEM_LIGHTNING;
+    return TFLV_Upgrade_ELEM_NULL;
+  }
+}
+
+// Convenience base class for elemental upgrades that just wiggle some fields
+// in a dot the target already has. Subclasses should implement DotType() and
+// ModifyDot() and leave the rest alone.
+class TFLV_Upgrade_DotModifier : TFLV_Upgrade_ElementalUpgrade {
+  virtual string DotType() { return ""; }
+
+  override void OnDamageDealt(Actor player, Actor shot, Actor target, int damage) {
+    let dot_item = TFLV_Upgrade_Dot(target.FindInventory(DotType()));
+    if (!dot_item) return;
+    ModifyDot(player, shot, target, damage, dot_item);
+  }
+
+  virtual void ModifyDot(Actor player, Actor shot, Actor target, int damage, TFLV_Upgrade_Dot dot_item) {
+    return;
+  }
+}
