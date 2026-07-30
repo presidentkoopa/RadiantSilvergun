@@ -16,9 +16,13 @@ class VR_VanillaPlus : DoomPlayer
 	Default
 	{
 		Player.DisplayName "Vanilla+";
-		Player.StartItem "Fist";
-		Player.StartItem "Pistol";
+		Player.StartItem "RS_VP_Fist";
+		Player.StartItem "RS_VP_Fist2";
+		Player.StartItem "RS_VP_Pistol";
+		Player.StartItem "RS_VP_Pistol2";
 		Player.StartItem "Clip", 50;
+		Player.StartItem "RS_VP_PistolLoaded", 11;
+		Player.StartItem "RS_VP_PistolLoaded2", 11;
 	}
 }
 
@@ -28,11 +32,12 @@ class VR_Dual_Pistol : DoomPlayer
 	{
 		Player.DisplayName "Dual Pistols";
 		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_Pistol";
 		Player.StartItem "VR_Pistol4";
-		Player.StartItem "VR_RocketLauncher";
-		Player.StartItem "VR_PlasmaRifle";
-		Player.StartItem "VR_BFG9000";
+		Player.StartItem "Clip", 72;
+		Player.StartItem "VR_PistolLoaded", 12;
+		Player.StartItem "VR_PistolLoaded4", 12;
 	}
 }
 
@@ -42,11 +47,12 @@ class VR_Dual_Revolver : DoomPlayer
 	{
 		Player.DisplayName "Dual Revolvers";
 		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_Revolver";
 		Player.StartItem "VR_Revolver4";
-		Player.StartItem "VR_RocketLauncher";
-		Player.StartItem "VR_PlasmaRifle";
-		Player.StartItem "VR_BFG9000";
+		Player.StartItem "Clip", 36;
+		Player.StartItem "VR_RevLoaded", 6;
+		Player.StartItem "VR_RevLoaded4", 6;
 	}
 }
 
@@ -56,11 +62,12 @@ class VR_Dual_Rifle : DoomPlayer
 	{
 		Player.DisplayName "Dual Rifles";
 		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_Rifle";
 		Player.StartItem "VR_Rifle4";
-		Player.StartItem "VR_RocketLauncher";
-		Player.StartItem "VR_PlasmaRifle";
-		Player.StartItem "VR_BFG9000";
+		Player.StartItem "Clip", 60;
+		Player.StartItem "VR_RifleLoaded", 20;
+		Player.StartItem "VR_RifleLoaded4", 20;
 	}
 }
 
@@ -70,11 +77,12 @@ class VR_Dual_SMG : DoomPlayer
 	{
 		Player.DisplayName "Dual SMGs";
 		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_SMG";
 		Player.StartItem "VR_SMG4";
-		Player.StartItem "VR_RocketLauncher";
-		Player.StartItem "VR_PlasmaRifle";
-		Player.StartItem "VR_BFG9000";
+		Player.StartItem "Clip", 90;
+		Player.StartItem "VR_SMGLoaded", 30;
+		Player.StartItem "VR_SMGLoaded4", 30;
 	}
 }
 
@@ -84,11 +92,12 @@ class VR_Dual_Shotgun : DoomPlayer
 	{
 		Player.DisplayName "Dual Shotguns";
 		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_Shotgun";
 		Player.StartItem "VR_Shotgun4";
-		Player.StartItem "VR_RocketLauncher";
-		Player.StartItem "VR_PlasmaRifle";
-		Player.StartItem "VR_BFG9000";
+		Player.StartItem "VR_Shell", 24;
+		Player.StartItem "VR_ShotLoaded", 8;
+		Player.StartItem "VR_ShotLoaded4", 8;
 	}
 }
 
@@ -98,11 +107,12 @@ class VR_Dual_SSG : DoomPlayer
 	{
 		Player.DisplayName "Dual Super Shotguns";
 		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_SuperShotgun";
 		Player.StartItem "VR_SuperShotgun4";
-		Player.StartItem "VR_RocketLauncher";
-		Player.StartItem "VR_PlasmaRifle";
-		Player.StartItem "VR_BFG9000";
+		Player.StartItem "VR_Shell", 12;
+		Player.StartItem "VR_SSGLoaded", 2;
+		Player.StartItem "VR_SSGLoaded4", 2;
 	}
 }
 
@@ -112,10 +122,9 @@ class VR_Dual_Chaingun : DoomPlayer
 	{
 		Player.DisplayName "Dual Chainguns";
 		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_Chaingun";
 		Player.StartItem "VR_Chaingun4";
-		Player.StartItem "VR_RocketLauncher";
-		Player.StartItem "VR_PlasmaRifle";
-		Player.StartItem "VR_BFG9000";
+		Player.StartItem "VR_ChaingunAmmo", 60;
 	}
 }

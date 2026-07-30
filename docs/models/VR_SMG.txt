@@ -1,0 +1,81 @@
+==============================================================================
+VR_SMG -- MD3 FRAME INVENTORY
+==============================================================================
+Sources : VR_SMG.modeldef
+          zscript/weapons/RS_SMG.zs
+
+MD3 internal frame names are empty or "(md3 frame)" (Blender exporter
+default), so every label below is derived by joining the MODELDEF
+FrameIndex bindings to the state that plays that sprite letter.
+Nothing here is guessed -- unmapped frames are marked UNBOUND.
+
+------------------------------------------------------------------------------
+MODELS
+------------------------------------------------------------------------------
+  SMG.md3                submodel 0   27 frames, 4 surface(s), 0 skins   sprite SMGR,SMGS
+      path: Models/Weapons/hud/VR_SMG
+      skin: SMG.png
+
+------------------------------------------------------------------------------
+SKIN BY IDENTITY (geometry is shared; only the texture differs)
+------------------------------------------------------------------------------
+  VR_SMG                 SMG.png | SMG.png
+  VR_SMG2                SMG.png | SMG.png
+  VR_SMG3                SMG.png | SMG.png
+  VR_SMG4                SMG.png | SMG.png
+  VR_SMG5                SMG.png | SMG.png
+  VR_SMG6                SMG.png | SMG.png
+
+------------------------------------------------------------------------------
+FRAME MAP -- SMG.md3 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  0      SMGS A      BOUND-BUT-UNPLAYED             no state plays SMGS A
+  7      SMGR A      Reload                         reload
+  8      SMGR B      Reload                         reload
+  9      SMGR C      Reload                         reload
+  10     SMGR D      Reload                         reload
+  11     SMGR E      Reload                         reload
+  12     SMGR F      Reload                         reload
+  13     SMGR G      Reload                         reload
+  14     SMGR H      Reload                         reload
+  15     SMGR I      Reload                         reload
+  16     SMGR J      Reload                         reload
+  17     SMGR K      Reload                         reload
+  18     SMGR L      Reload                         reload
+  19     SMGR M      Reload                         reload
+  20     SMGR N      Reload                         reload
+  21     SMGR O      Reload                         reload
+  22     SMGR P      Reload                         reload
+  23     SMGR Q      Reload                         reload
+  24     SMGR R      Reload                         reload
+  25     SMGR S      Reload                         reload
+  26     SMGR T      Reload                         reload
+
+  UNBOUND: 6 of 27 frames have no MODELDEF binding and are never
+           displayed -- 1-6
+
+------------------------------------------------------------------------------
+FRAME MAP -- SMG.md3 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  3      SMGG A      Ready, Deselect, Select        shared frame
+  4      SMGF A      Flash                          muzzle flash
+  5      SMGF B      BOUND-BUT-UNPLAYED             no state plays SMGF B
+  6      SMGF C      BOUND-BUT-UNPLAYED             no state plays SMGF C
+
+  UNBOUND: 23 of 27 frames have no MODELDEF binding and are never
+           displayed -- 0-2, 7-26
+
+------------------------------------------------------------------------------
+STATES AND THEIR SPRITES
+------------------------------------------------------------------------------
+  Spawn            SMP1         pickup sprite in world (not a HUD model)
+  Ready            SMGG         idle / weapon ready
+  Deselect         SMGG         lower (switching away)
+  Select           SMGG         raise (switching to this weapon)
+  Fire             (TNT1 only)  fire gate (logic only, no visible frame)
+  Shoot            SMGG         firing
+  Reload           SMGR         reload
+  Flash            SMGF         muzzle flash
+  OutOfAmmo        (TNT1 only)  empty click

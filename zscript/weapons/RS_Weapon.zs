@@ -43,6 +43,19 @@ class RS_Weapon : Weapon abstract
 
 	bool bStatsRolled;
 
+	Class<RS_BallisticFired> ProjectileClass; // swappable at runtime by future upgrade systems
+
+	// The heavy-ordnance equivalent of ProjectileClass, for weapons that
+	// fire a single explosive/energy round rather than a bullet volley.
+	// Two fields rather than one because the firing shapes genuinely
+	// differ (volley with pellet count + spread cone vs. one round with
+	// splash), and because Rocket/PlasmaBall/BFGBall each inherit real,
+	// different vanilla explosion behavior -- they can't share
+	// RS_BallisticFired as an ancestor without reimplementing all of it.
+	// Seeded from GetHeavyProjectile() at spawn; read fresh every shot, so
+	// writing it at runtime changes what launches immediately.
+	Class<Actor> HeavyProjectileClass;
+
 	// --- True semi-auto enforcement ---
 	// A shot marks this true; it only clears once the trigger is
 	// physically released. Fire cannot proceed again until it's false.
@@ -119,6 +132,93 @@ class RS_Weapon : Weapon abstract
 			invoker.bWaitingForRelease = false;
 	}
 
+	// Shared by every bullet-firing weapon type instead of vanilla
+	// A_FireBullets, so all of them get real traveling rounds through one
+	// place rather than each weapon file managing its own projectile
+	// spawn. ProjectileClass is read fresh every shot, so swapping it at
+	// runtime changes what flies out immediately, no re-equip needed.
+	action void A_RS_FireBallisticVolley(int pellets, double spread, int dmg, double critChance, double velocity)
+	{
+		Class<RS_BallisticFired> cls = invoker.ProjectileClass;
+		if (!cls)
+			cls = "RS_BallisticType1";
+
+		for (int p = 0; p < pellets; p++)
+		{
+			double a = angle + FRandom(-spread, spread);
+			double pi = pitch + FRandom(-spread, spread);
+			let proj = RS_BallisticFired(SpawnPlayerMissile(cls, a, pitch: pi));
+			if (proj)
+				proj.SetupStats(dmg, velocity, critChance);
+		}
+	}
+
+	// The heavy-ordnance counterpart to A_RS_FireBallisticVolley. Every
+	// heavy weapon in both sets routes through this instead of naming its
+	// projectile in a literal string, which is what makes the projectile
+	// data rather than code -- and is why the rolled DamagePerShot now
+	// reaches the projectile at all. Before this existed, all six heavy
+	// weapons fired a stock vanilla class carrying its own fixed damage,
+	// so tier, Condition, XP and purist mode had no effect on them.
+	//
+	// spawnHeight is a real per-weapon value (the muzzle offset each
+	// weapon's own model needs), passed through rather than flattened to
+	// one number. FPF_NOAUTOAIM is unconditional -- autoaim is always
+	// wrong for VR, where the player is physically pointing the gun.
+	//
+	// Ammo is deliberately NOT touched here: the two sets meter it
+	// differently (main arsenal draws AmmoType1 directly, Vanilla+ runs a
+	// magazine through AmmoType2), so it stays each weapon's business,
+	// exactly as it was before.
+	action void A_RS_FireHeavyProjectile(double spawnHeight = 0)
+	{
+		Class<Actor> cls = invoker.HeavyProjectileClass;
+		if (!cls)
+			return;
+
+		double dmgMult, pelletMult, backfireChance;
+		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
+
+		double dmg = invoker.DamagePerShot * dmgMult;
+		if (FRandom(0, 1) < invoker.CritChance)
+			dmg *= 2.0;
+
+		let proj = A_FireProjectile(cls, 0, false, 0, spawnHeight, FPF_NOAUTOAIM, 0);
+		if (!proj)
+			return;
+
+		// Rocket/PlasmaBall/BFGBall inherit three different vanilla bases,
+		// so there's no shared ancestor to cast to and SetupStats has to be
+		// reached per type. If a fourth heavy projectile type is ever added,
+		// it needs a branch here -- the honest cost of not reimplementing
+		// vanilla explosion behavior just to get a common parent.
+		if (proj is "RS_EnhancedRocket")
+			RS_EnhancedRocket(proj).SetupStats(int(dmg), invoker.CritChance);
+		else if (proj is "RS_EnhancedPlasmaBall")
+			RS_EnhancedPlasmaBall(proj).SetupStats(int(dmg), invoker.CritChance);
+		else if (proj is "RS_EnhancedBFGBall")
+			RS_EnhancedBFGBall(proj).SetupStats(int(dmg), invoker.CritChance);
+	}
+
+	// Called from each weapon's Flash: state. Only ever does anything at
+	// Hi-Fi tier -- RS_HiFiFX itself decides that, this call site never
+	// needs to know or check the tier.
+	action void A_RS_MuzzleFlash()
+	{
+		RS_HiFiFX.SpawnMuzzleLight(self);
+	}
+
+	// Each heavy weapon overrides this to declare what it launches. A
+	// virtual getter rather than a Default property because ZScript can't
+	// assign a plain member in a Default block, and property support for
+	// Class<> types is unreliable -- this is the version that definitely
+	// compiles while staying declarative and per-weapon. Bullet weapons
+	// leave it null and use ProjectileClass instead.
+	virtual Class<Actor> GetHeavyProjectile()
+	{
+		return null;
+	}
+
 	// Each weapon type overrides this to call its own RS_Roll function
 	// (e.g. RS_Roll.RollRevolverStats) and set its type-specific stats.
 	virtual void RollStats(EVR_Tier t)
@@ -167,10 +267,49 @@ class RS_Weapon : Weapon abstract
 		}
 	}
 
+	// Seats this weapon into the off-hand the instant it actually enters
+	// the player's inventory -- covers both a Player.StartItem grant at
+	// spawn and a floor pickup later, since both go through this same
+	// hook. Main-hand placement isn't handled here; the engine's own
+	// default ReadyWeapon assignment already does that correctly.
+	override void AttachToOwner(Actor newOwner)
+	{
+		Super.AttachToOwner(newOwner);
+		if (bOffhandWeapon && newOwner.player)
+			newOwner.player.OffhandWeapon = self;
+
+		// A found gun arrives with rounds already in it. Picking up a new
+		// weapon mid-firefight and having to reload before it can shoot is
+		// a death sentence, so the magazine comes filled.
+		//
+		// Capacity is set by RollStats, and AttachToOwner can fire before
+		// PostBeginPlay has run for a StartItem grant, so the roll is
+		// forced here if it hasn't happened yet -- same guard PostBeginPlay
+		// uses, safe to run either order.
+		if (!bStatsRolled)
+			RollStats(VRT_Basic);
+
+		// AmmoType2 is this project's magazine slot (AmmoType1 is reserve).
+		// Weapons with no magazine at all -- fists, chainsaw, and the heavy
+		// ordnance that draws straight from reserve -- leave it null and are
+		// skipped. Tops up to Capacity rather than adding to it, so an
+		// explicit Player.StartItem grant of chambered rounds isn't doubled.
+		if (AmmoType2 && Capacity > 0)
+		{
+			int loaded = newOwner.CountInv(AmmoType2);
+			if (loaded < Capacity)
+				newOwner.GiveInventory(AmmoType2, Capacity - loaded);
+		}
+	}
+
 	override void PostBeginPlay()
 	{
 		Super.PostBeginPlay();
 		if (!bStatsRolled)
 			RollStats(VRT_Basic);
+		if (!ProjectileClass)
+			ProjectileClass = CVar.GetCVar("rs_fx_tracers", null).GetBool() ? "RS_BallisticTracer" : "RS_BallisticType1";
+		if (!HeavyProjectileClass)
+			HeavyProjectileClass = GetHeavyProjectile();
 	}
 }

@@ -1,0 +1,326 @@
+// =====================================================================
+// VR_SMG MODELDEF -- real DualSMG model/frame data, used for ALL SIX
+// identity subclasses (mainhand and offhand alike) per instruction --
+// every SMG is VR-held one-per-hand, so the twin model applies
+// uniformly. Real pitch split preserved exactly: idle/reload at 45
+// degrees, fire/flash level at 0.
+// =====================================================================
+
+Model VR_SMG
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGS A 0 0
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGG B 0 1
+	FrameIndex SMGG C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+Model VR_SMG2
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGS A 0 0
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG2
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGG B 0 1
+	FrameIndex SMGG C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+Model VR_SMG3
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGS A 0 0
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG3
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGG B 0 1
+	FrameIndex SMGG C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+Model VR_SMG4
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGS A 0 0
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG4
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGG B 0 1
+	FrameIndex SMGG C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+Model VR_SMG5
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGS A 0 0
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG5
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGG B 0 1
+	FrameIndex SMGG C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+Model VR_SMG6
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGS A 0 0
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG6
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGG B 0 1
+	FrameIndex SMGG C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+

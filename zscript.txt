@@ -1,7 +1,58 @@
 version "4.14"
 
-#include "zscript/player/VR_playerclasses.zs"
-#include "zscript/weapons/RS_Roll.zs"
+#include "zscript/player/VR_PlayerClasses.zs"
+
+//#include "zscript/systems/RS_OffhandSeat.zs" // disabled -- see plan history, offhand system needs rebuilding
+#include "zscript/systems/RS_MasterRoll.zs"
+
+// Ammo must precede the weapons -- their AmmoType2 strings resolve against these.
+#include "zscript/weapons/rs_weapon/RS_Ammo.zs"
+#include "zscript/weapons/rs_vp_weapon/RS_VP_Ammo.zs"
+
+// Weapon tempaltes moved here for file organization
+#include "zscript/weapons/RS_VP_Weapon.zs"
 #include "zscript/weapons/RS_Weapon.zs"
-#include "zscript/weapons/RS_Arsenal.zs"
-#include "zscript/weapons/RS_BallisticFired.zs"
+
+// Melee is per-weapon-set by decision, so each set's fist lives with its
+// own set: the main arsenal's here, Vanilla+'s Brass Knuckle in
+// rs_vp_weapon/. A shared cross-set melee set (RS_Dual_Fist, "Slappers
+// Only!") is a deferred idea, not a gap.
+#include "zscript/weapons/rs_weapon/RS_Fist.zs"
+
+// --- RS set (original Dual_Class weapons, basically our main focus for the 'game') ---
+#include "zscript/weapons/rs_weapon/RS_Revolver.zs"
+#include "zscript/weapons/rs_weapon/RS_Pistol.zs"
+#include "zscript/weapons/rs_weapon/RS_SMG.zs"
+#include "zscript/weapons/rs_weapon/RS_Rifle.zs"
+#include "zscript/weapons/rs_weapon/RS_Shotgun.zs"
+#include "zscript/weapons/rs_weapon/RS_SuperShotgun.zs"
+#include "zscript/weapons/rs_weapon/RS_Chaingun.zs"
+#include "zscript/weapons/rs_weapon/RS_RocketLauncher.zs"
+#include "zscript/weapons/rs_weapon/RS_PlasmaRifle.zs"
+#include "zscript/weapons/rs_weapon/RS_BFG9000.zs"
+
+// --- Vanilla+ set (GNRCWPN import, first of many fun weapon sets rebuilt from 0 into RS_MAIN) ---
+// Ammo first, same ordering rule as the main arsenal: the weapons'
+// AmmoType2 strings resolve against these.
+// (RS_VP_Weapon.zs itself is included above alongside RS_Weapon.zs -- it
+// lives at zscript/weapons/RS_VP_Weapon.zs, not in this subfolder.)
+#include "zscript/weapons/rs_vp_weapon/RS_VP_Pistol.zs"
+#include "zscript/weapons/rs_vp_weapon/RS_VP_ARifle.zs"
+#include "zscript/weapons/rs_vp_weapon/RS_VP_Shotgun.zs"
+#include "zscript/weapons/rs_vp_weapon/RS_VP_SuperShotgun.zs"
+#include "zscript/weapons/rs_vp_weapon/RS_VP_Chaingun.zs"
+#include "zscript/weapons/rs_vp_weapon/RS_VP_RocketLauncher.zs"
+#include "zscript/weapons/rs_vp_weapon/RS_VP_PlasmaRifle.zs"
+#include "zscript/weapons/rs_vp_weapon/RS_VP_BFG9000.zs"
+#include "zscript/weapons/rs_vp_weapon/RS_VP_Fist.zs"
+#include "zscript/weapons/rs_vp_weapon/RS_VP_Chainsaw.zs"
+
+// --- WeaponFX meant to house all attack visual data
+// Projectiles first: bullets, then heavy ordnance. Both are pointed at by
+// swappable fields on RS_Weapon rather than named in any weapon file.
+#include "zscript/weapons/weaponfx/RS_BallisticFired.zs"
+#include "zscript/weapons/weaponfx/RS_HeavyProjectiles.zs"
+
+// --- Performance CVAR gated levels of weapon feedbacks
+#include "zscript/weapons/weaponfx/RS_EnhancedFX.zs"
+#include "zscript/weapons/weaponfx/RS_HiFiFX.zs"

@@ -1,0 +1,76 @@
+==============================================================================
+VR_RocketLauncher -- MD3 FRAME INVENTORY
+==============================================================================
+Sources : VR_RocketLauncher.modeldef
+          zscript/weapons/RS_RocketLauncher.zs
+
+MD3 internal frame names are empty or "(md3 frame)" (Blender exporter
+default), so every label below is derived by joining the MODELDEF
+FrameIndex bindings to the state that plays that sprite letter.
+Nothing here is guessed -- unmapped frames are marked UNBOUND.
+
+------------------------------------------------------------------------------
+MODELS
+------------------------------------------------------------------------------
+  RPG.md3                submodel 0   39 frames, 13 surface(s), 0 skins   sprite MISG
+      path: Models/Weapons/hud/VR_RocketLauncher
+      skin: RPG.png
+  RocketLauncher-MF.MD2  submodel 0  (not an .md3 / not parsed)          sprite MISF
+      path: Models/Weapons/hud/VR_RocketLauncher
+      skin: hud_RL_MF0.png
+
+------------------------------------------------------------------------------
+SKIN BY IDENTITY (geometry is shared; only the texture differs)
+------------------------------------------------------------------------------
+  VR_RocketLauncher      RPG.png | hud_RL_MF0.png | hud_RL_MF1.png | hud_RL_MF2.png | hud_RL_MF3.png
+  VR_RocketLauncher2     RPG.png | hud_RL_MF0.png | hud_RL_MF1.png | hud_RL_MF2.png | hud_RL_MF3.png
+  VR_RocketLauncher3     RPG.png | hud_RL_MF0.png | hud_RL_MF1.png | hud_RL_MF2.png | hud_RL_MF3.png
+  VR_RocketLauncher4     RPG.png | hud_RL_MF0.png | hud_RL_MF1.png | hud_RL_MF2.png | hud_RL_MF3.png
+  VR_RocketLauncher5     RPG.png | hud_RL_MF0.png | hud_RL_MF1.png | hud_RL_MF2.png | hud_RL_MF3.png
+  VR_RocketLauncher6     RPG.png | hud_RL_MF0.png | hud_RL_MF1.png | hud_RL_MF2.png | hud_RL_MF3.png
+
+------------------------------------------------------------------------------
+FRAME MAP -- RPG.md3 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  5      MISG A      Ready, Deselect, Select, Shoot shared frame
+  10     MISG B      Shoot                          firing
+
+  UNBOUND: 37 of 39 frames have no MODELDEF binding and are never
+           displayed -- 0-4, 6-9, 11-38
+
+------------------------------------------------------------------------------
+FRAME MAP -- RocketLauncher-MF.MD2 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  0      MISF A      Flash                          muzzle flash
+
+------------------------------------------------------------------------------
+FRAME MAP -- RocketLauncher-MF.MD2 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  0      MISF B      Flash                          muzzle flash
+
+------------------------------------------------------------------------------
+FRAME MAP -- RocketLauncher-MF.MD2 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  0      MISF C      Flash                          muzzle flash
+
+------------------------------------------------------------------------------
+FRAME MAP -- RocketLauncher-MF.MD2 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  0      MISF D      Flash                          muzzle flash
+
+------------------------------------------------------------------------------
+STATES AND THEIR SPRITES
+------------------------------------------------------------------------------
+  Spawn            RLP1         pickup sprite in world (not a HUD model)
+  Ready            MISG         idle / weapon ready
+  Deselect         MISG         lower (switching away)
+  Select           MISG         raise (switching to this weapon)
+  Fire             (TNT1 only)  fire gate (logic only, no visible frame)
+  Shoot            MISG         firing
+  Flash            MISF         muzzle flash
+  OutOfAmmo        (TNT1 only)  empty click

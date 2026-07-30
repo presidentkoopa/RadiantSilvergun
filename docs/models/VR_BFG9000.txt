@@ -1,0 +1,73 @@
+==============================================================================
+VR_BFG9000 -- MD3 FRAME INVENTORY
+==============================================================================
+Sources : VR_BFG9000.modeldef
+          zscript/weapons/RS_BFG9000.zs
+
+MD3 internal frame names are empty or "(md3 frame)" (Blender exporter
+default), so every label below is derived by joining the MODELDEF
+FrameIndex bindings to the state that plays that sprite letter.
+Nothing here is guessed -- unmapped frames are marked UNBOUND.
+
+------------------------------------------------------------------------------
+MODELS
+------------------------------------------------------------------------------
+  BFG.md3                submodel 0   16 frames, 2 surface(s), 0 skins   sprite BFGG
+      path: Models/Weapons/hud/VR_BFG9000
+      skin: BFG.png
+  bfgexpo.md2            submodel 0  (not an .md3 / not parsed)          sprite BFGF
+      path: Models/Weapons/hud/VR_BFG9000
+      skin: energy_flash0.png
+
+------------------------------------------------------------------------------
+SKIN BY IDENTITY (geometry is shared; only the texture differs)
+------------------------------------------------------------------------------
+  VR_BFG9000             BFG.png | BFG2.png | energy_flash0.png | energy_flash1.png
+  VR_BFG90002            BFG.png | BFG2.png | energy_flash0.png | energy_flash1.png
+  VR_BFG90003            BFG.png | BFG2.png | energy_flash0.png | energy_flash1.png
+  VR_BFG90004            BFG.png | BFG2.png | energy_flash0.png | energy_flash1.png
+  VR_BFG90005            BFG.png | BFG2.png | energy_flash0.png | energy_flash1.png
+  VR_BFG90006            BFG.png | BFG2.png | energy_flash0.png | energy_flash1.png
+
+------------------------------------------------------------------------------
+FRAME MAP -- BFG.md3 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  6      BFGG A      Ready, Deselect, Select, Shoot shared frame
+
+  UNBOUND: 15 of 16 frames have no MODELDEF binding and are never
+           displayed -- 0-5, 7-15
+
+------------------------------------------------------------------------------
+FRAME MAP -- BFG.md3 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  7      BFGG B      Shoot                          firing
+  14     BFGG C      BOUND-BUT-UNPLAYED             no state plays BFGG C
+
+  UNBOUND: 14 of 16 frames have no MODELDEF binding and are never
+           displayed -- 0-6, 8-13, 15
+
+------------------------------------------------------------------------------
+FRAME MAP -- bfgexpo.md2 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  0      BFGF A      Flash                          muzzle flash
+
+------------------------------------------------------------------------------
+FRAME MAP -- bfgexpo.md2 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  0      BFGF B      Flash                          muzzle flash
+
+------------------------------------------------------------------------------
+STATES AND THEIR SPRITES
+------------------------------------------------------------------------------
+  Spawn            BFP1         pickup sprite in world (not a HUD model)
+  Ready            BFGG         idle / weapon ready
+  Deselect         BFGG         lower (switching away)
+  Select           BFGG         raise (switching to this weapon)
+  Fire             (TNT1 only)  fire gate (logic only, no visible frame)
+  Shoot            BFGG         firing
+  Flash            BFGF         muzzle flash
+  OutOfAmmo        (TNT1 only)  empty click

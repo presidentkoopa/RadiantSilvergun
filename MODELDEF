@@ -1,0 +1,2827 @@
+// ==== from VR_BFG9000.modeldef ====
+// =====================================================================
+// VR_BFG9000 MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_BFG9000
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG9000
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG9000
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG9000
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+Model VR_BFG90002
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG90002
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG90002
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG90002
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+Model VR_BFG90003
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG90003
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG90003
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG90003
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+Model VR_BFG90004
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG90004
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG90004
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG90004
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+Model VR_BFG90005
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG90005
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG90005
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG90005
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+Model VR_BFG90006
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG90006
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG90006
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG90006
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+
+// ==== from VR_Chaingun.modeldef ====
+// =====================================================================
+// VR_Chaingun MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_Chaingun
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun2
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun3
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun4
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun5
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+Model VR_Chaingun6
+{
+	Path "Models/Weapons/hud/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NOINTERPOLATION
+
+	FrameIndex CHGG A 0 4
+	FrameIndex CHGG B 0 10
+}
+
+
+// ==== from VR_Pistol.modeldef ====
+// =====================================================================
+// VR_Pistol MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_Pistol
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISG A 0 0   FrameIndex PISG A 1 0
+	FrameIndex PISG B 0 1   FrameIndex PISG B 1 1
+	FrameIndex PISG C 0 2   FrameIndex PISG C 1 2
+	FrameIndex PISG F 0 5   FrameIndex PISG F 1 5
+	FrameIndex PISG G 0 6   FrameIndex PISG G 1 6
+	FrameIndex PISG H 0 7   FrameIndex PISG H 1 7
+	FrameIndex PISG I 0 8   FrameIndex PISG I 1 8
+	FrameIndex PISG J 0 9   FrameIndex PISG J 1 9
+	FrameIndex PISG K 0 10   FrameIndex PISG K 1 10
+	FrameIndex PISG L 0 11   FrameIndex PISG L 1 11
+	FrameIndex PISG M 0 12   FrameIndex PISG M 1 12
+	FrameIndex PISG N 0 13   FrameIndex PISG N 1 13
+	FrameIndex PISG O 0 14   FrameIndex PISG O 1 14
+	FrameIndex PISG P 0 15   FrameIndex PISG P 1 15
+	FrameIndex PISG Q 0 16   FrameIndex PISG Q 1 16
+	FrameIndex PISG R 0 17   FrameIndex PISG R 1 17
+	FrameIndex PISG S 0 18   FrameIndex PISG S 1 18
+	FrameIndex PISG T 0 19   FrameIndex PISG T 1 19
+	FrameIndex PISG U 0 20   FrameIndex PISG U 1 20
+	FrameIndex PISG V 0 21   FrameIndex PISG V 1 21
+	FrameIndex PISG W 0 22   FrameIndex PISG W 1 22
+	FrameIndex PISG X 0 23   FrameIndex PISG X 1 23
+	FrameIndex PISG Y 0 24   FrameIndex PISG Y 1 24
+}
+
+Model VR_Pistol
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistF.md3"
+	Skin 0 "9mmFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISF A 0 0 FrameIndex PISF A 1 0
+	FrameIndex PISF B 0 1 FrameIndex PISF B 1 1
+	FrameIndex PISF C 0 2 FrameIndex PISF C 1 2
+	FrameIndex PISF D 0 3 FrameIndex PISF D 1 3
+}
+
+Model VR_Pistol2
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm2.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISG A 0 0   FrameIndex PISG A 1 0
+	FrameIndex PISG B 0 1   FrameIndex PISG B 1 1
+	FrameIndex PISG C 0 2   FrameIndex PISG C 1 2
+	FrameIndex PISG F 0 5   FrameIndex PISG F 1 5
+	FrameIndex PISG G 0 6   FrameIndex PISG G 1 6
+	FrameIndex PISG H 0 7   FrameIndex PISG H 1 7
+	FrameIndex PISG I 0 8   FrameIndex PISG I 1 8
+	FrameIndex PISG J 0 9   FrameIndex PISG J 1 9
+	FrameIndex PISG K 0 10   FrameIndex PISG K 1 10
+	FrameIndex PISG L 0 11   FrameIndex PISG L 1 11
+	FrameIndex PISG M 0 12   FrameIndex PISG M 1 12
+	FrameIndex PISG N 0 13   FrameIndex PISG N 1 13
+	FrameIndex PISG O 0 14   FrameIndex PISG O 1 14
+	FrameIndex PISG P 0 15   FrameIndex PISG P 1 15
+	FrameIndex PISG Q 0 16   FrameIndex PISG Q 1 16
+	FrameIndex PISG R 0 17   FrameIndex PISG R 1 17
+	FrameIndex PISG S 0 18   FrameIndex PISG S 1 18
+	FrameIndex PISG T 0 19   FrameIndex PISG T 1 19
+	FrameIndex PISG U 0 20   FrameIndex PISG U 1 20
+	FrameIndex PISG V 0 21   FrameIndex PISG V 1 21
+	FrameIndex PISG W 0 22   FrameIndex PISG W 1 22
+	FrameIndex PISG X 0 23   FrameIndex PISG X 1 23
+	FrameIndex PISG Y 0 24   FrameIndex PISG Y 1 24
+}
+
+Model VR_Pistol2
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistF.md3"
+	Skin 0 "9mmFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISF A 0 0 FrameIndex PISF A 1 0
+	FrameIndex PISF B 0 1 FrameIndex PISF B 1 1
+	FrameIndex PISF C 0 2 FrameIndex PISF C 1 2
+	FrameIndex PISF D 0 3 FrameIndex PISF D 1 3
+}
+
+Model VR_Pistol3
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm3.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISG A 0 0   FrameIndex PISG A 1 0
+	FrameIndex PISG B 0 1   FrameIndex PISG B 1 1
+	FrameIndex PISG C 0 2   FrameIndex PISG C 1 2
+	FrameIndex PISG F 0 5   FrameIndex PISG F 1 5
+	FrameIndex PISG G 0 6   FrameIndex PISG G 1 6
+	FrameIndex PISG H 0 7   FrameIndex PISG H 1 7
+	FrameIndex PISG I 0 8   FrameIndex PISG I 1 8
+	FrameIndex PISG J 0 9   FrameIndex PISG J 1 9
+	FrameIndex PISG K 0 10   FrameIndex PISG K 1 10
+	FrameIndex PISG L 0 11   FrameIndex PISG L 1 11
+	FrameIndex PISG M 0 12   FrameIndex PISG M 1 12
+	FrameIndex PISG N 0 13   FrameIndex PISG N 1 13
+	FrameIndex PISG O 0 14   FrameIndex PISG O 1 14
+	FrameIndex PISG P 0 15   FrameIndex PISG P 1 15
+	FrameIndex PISG Q 0 16   FrameIndex PISG Q 1 16
+	FrameIndex PISG R 0 17   FrameIndex PISG R 1 17
+	FrameIndex PISG S 0 18   FrameIndex PISG S 1 18
+	FrameIndex PISG T 0 19   FrameIndex PISG T 1 19
+	FrameIndex PISG U 0 20   FrameIndex PISG U 1 20
+	FrameIndex PISG V 0 21   FrameIndex PISG V 1 21
+	FrameIndex PISG W 0 22   FrameIndex PISG W 1 22
+	FrameIndex PISG X 0 23   FrameIndex PISG X 1 23
+	FrameIndex PISG Y 0 24   FrameIndex PISG Y 1 24
+}
+
+Model VR_Pistol3
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistF.md3"
+	Skin 0 "9mmFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISF A 0 0 FrameIndex PISF A 1 0
+	FrameIndex PISF B 0 1 FrameIndex PISF B 1 1
+	FrameIndex PISF C 0 2 FrameIndex PISF C 1 2
+	FrameIndex PISF D 0 3 FrameIndex PISF D 1 3
+}
+
+Model VR_Pistol4
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm4.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISG A 0 0   FrameIndex PISG A 1 0
+	FrameIndex PISG B 0 1   FrameIndex PISG B 1 1
+	FrameIndex PISG C 0 2   FrameIndex PISG C 1 2
+	FrameIndex PISG F 0 5   FrameIndex PISG F 1 5
+	FrameIndex PISG G 0 6   FrameIndex PISG G 1 6
+	FrameIndex PISG H 0 7   FrameIndex PISG H 1 7
+	FrameIndex PISG I 0 8   FrameIndex PISG I 1 8
+	FrameIndex PISG J 0 9   FrameIndex PISG J 1 9
+	FrameIndex PISG K 0 10   FrameIndex PISG K 1 10
+	FrameIndex PISG L 0 11   FrameIndex PISG L 1 11
+	FrameIndex PISG M 0 12   FrameIndex PISG M 1 12
+	FrameIndex PISG N 0 13   FrameIndex PISG N 1 13
+	FrameIndex PISG O 0 14   FrameIndex PISG O 1 14
+	FrameIndex PISG P 0 15   FrameIndex PISG P 1 15
+	FrameIndex PISG Q 0 16   FrameIndex PISG Q 1 16
+	FrameIndex PISG R 0 17   FrameIndex PISG R 1 17
+	FrameIndex PISG S 0 18   FrameIndex PISG S 1 18
+	FrameIndex PISG T 0 19   FrameIndex PISG T 1 19
+	FrameIndex PISG U 0 20   FrameIndex PISG U 1 20
+	FrameIndex PISG V 0 21   FrameIndex PISG V 1 21
+	FrameIndex PISG W 0 22   FrameIndex PISG W 1 22
+	FrameIndex PISG X 0 23   FrameIndex PISG X 1 23
+	FrameIndex PISG Y 0 24   FrameIndex PISG Y 1 24
+}
+
+Model VR_Pistol4
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistF.md3"
+	Skin 0 "9mmFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISF A 0 0 FrameIndex PISF A 1 0
+	FrameIndex PISF B 0 1 FrameIndex PISF B 1 1
+	FrameIndex PISF C 0 2 FrameIndex PISF C 1 2
+	FrameIndex PISF D 0 3 FrameIndex PISF D 1 3
+}
+
+Model VR_Pistol5
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm5.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISG A 0 0   FrameIndex PISG A 1 0
+	FrameIndex PISG B 0 1   FrameIndex PISG B 1 1
+	FrameIndex PISG C 0 2   FrameIndex PISG C 1 2
+	FrameIndex PISG F 0 5   FrameIndex PISG F 1 5
+	FrameIndex PISG G 0 6   FrameIndex PISG G 1 6
+	FrameIndex PISG H 0 7   FrameIndex PISG H 1 7
+	FrameIndex PISG I 0 8   FrameIndex PISG I 1 8
+	FrameIndex PISG J 0 9   FrameIndex PISG J 1 9
+	FrameIndex PISG K 0 10   FrameIndex PISG K 1 10
+	FrameIndex PISG L 0 11   FrameIndex PISG L 1 11
+	FrameIndex PISG M 0 12   FrameIndex PISG M 1 12
+	FrameIndex PISG N 0 13   FrameIndex PISG N 1 13
+	FrameIndex PISG O 0 14   FrameIndex PISG O 1 14
+	FrameIndex PISG P 0 15   FrameIndex PISG P 1 15
+	FrameIndex PISG Q 0 16   FrameIndex PISG Q 1 16
+	FrameIndex PISG R 0 17   FrameIndex PISG R 1 17
+	FrameIndex PISG S 0 18   FrameIndex PISG S 1 18
+	FrameIndex PISG T 0 19   FrameIndex PISG T 1 19
+	FrameIndex PISG U 0 20   FrameIndex PISG U 1 20
+	FrameIndex PISG V 0 21   FrameIndex PISG V 1 21
+	FrameIndex PISG W 0 22   FrameIndex PISG W 1 22
+	FrameIndex PISG X 0 23   FrameIndex PISG X 1 23
+	FrameIndex PISG Y 0 24   FrameIndex PISG Y 1 24
+}
+
+Model VR_Pistol5
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistF.md3"
+	Skin 0 "9mmFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISF A 0 0 FrameIndex PISF A 1 0
+	FrameIndex PISF B 0 1 FrameIndex PISF B 1 1
+	FrameIndex PISF C 0 2 FrameIndex PISF C 1 2
+	FrameIndex PISF D 0 3 FrameIndex PISF D 1 3
+}
+
+Model VR_Pistol6
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm6.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISG A 0 0   FrameIndex PISG A 1 0
+	FrameIndex PISG B 0 1   FrameIndex PISG B 1 1
+	FrameIndex PISG C 0 2   FrameIndex PISG C 1 2
+	FrameIndex PISG F 0 5   FrameIndex PISG F 1 5
+	FrameIndex PISG G 0 6   FrameIndex PISG G 1 6
+	FrameIndex PISG H 0 7   FrameIndex PISG H 1 7
+	FrameIndex PISG I 0 8   FrameIndex PISG I 1 8
+	FrameIndex PISG J 0 9   FrameIndex PISG J 1 9
+	FrameIndex PISG K 0 10   FrameIndex PISG K 1 10
+	FrameIndex PISG L 0 11   FrameIndex PISG L 1 11
+	FrameIndex PISG M 0 12   FrameIndex PISG M 1 12
+	FrameIndex PISG N 0 13   FrameIndex PISG N 1 13
+	FrameIndex PISG O 0 14   FrameIndex PISG O 1 14
+	FrameIndex PISG P 0 15   FrameIndex PISG P 1 15
+	FrameIndex PISG Q 0 16   FrameIndex PISG Q 1 16
+	FrameIndex PISG R 0 17   FrameIndex PISG R 1 17
+	FrameIndex PISG S 0 18   FrameIndex PISG S 1 18
+	FrameIndex PISG T 0 19   FrameIndex PISG T 1 19
+	FrameIndex PISG U 0 20   FrameIndex PISG U 1 20
+	FrameIndex PISG V 0 21   FrameIndex PISG V 1 21
+	FrameIndex PISG W 0 22   FrameIndex PISG W 1 22
+	FrameIndex PISG X 0 23   FrameIndex PISG X 1 23
+	FrameIndex PISG Y 0 24   FrameIndex PISG Y 1 24
+}
+
+Model VR_Pistol6
+{
+	Path "Models/Weapons/hud/VR_Pistol"
+	Model 0 "pistF.md3"
+	Skin 0 "9mmFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PISF A 0 0 FrameIndex PISF A 1 0
+	FrameIndex PISF B 0 1 FrameIndex PISF B 1 1
+	FrameIndex PISF C 0 2 FrameIndex PISF C 1 2
+	FrameIndex PISF D 0 3 FrameIndex PISF D 1 3
+}
+
+
+// ==== from VR_PlasmaRifle.modeldef ====
+// =====================================================================
+// VR_PlasmaRifle MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_PlasmaRifle
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+Model VR_PlasmaRifle2
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle2
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle2
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+Model VR_PlasmaRifle3
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle3
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle3
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+Model VR_PlasmaRifle4
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle4
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle4
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+Model VR_PlasmaRifle5
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle5
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle5
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+Model VR_PlasmaRifle6
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex PLSG A 0 4
+	FrameIndex PLSG B 0 12
+}
+
+Model VR_PlasmaRifle6
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF A 0 5
+}
+
+Model VR_PlasmaRifle6
+{
+	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle-FL.MD2"
+	Skin 0 "PlasmaRifle-FL1.png"
+	Scale -2.0 1.0 2.0
+	Offset 1.0 -50.0 27.0
+
+	FrameIndex PLSF B 0 7
+}
+
+
+// ==== from VR_Revolver.modeldef ====
+// =====================================================================
+// MODELDEF -- 3D model bindings for the six Dual Revolvers class weapons
+// ---------------------------------------------------------------------
+// MODELDEF entries are keyed to an exact actor class name and do NOT
+// inherit, unlike the ZScript classes. Since all six revolvers share
+// the same model/skin/frames, each class still needs its own duplicate
+// Model block below -- there's no way around that at the MODELDEF
+// level. If you already have a MODELDEF lump, merge these blocks into
+// it rather than loading this as a second MODELDEF file.
+// =====================================================================
+
+// --- VR_Revolver (Moonlight Magnum) ---
+
+Model VR_Revolver
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "rev.md3"
+	Skin 0 "WPN-REV.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVL A 0 0   FrameIndex REVL A 1 0
+	FrameIndex REVL B 0 1   FrameIndex REVL B 1 1
+	FrameIndex REVL C 0 2   FrameIndex REVL C 1 2
+	FrameIndex REVL D 0 3   FrameIndex REVL D 1 3
+	FrameIndex REVL E 0 4   FrameIndex REVL E 1 4
+	FrameIndex REVL F 0 5   FrameIndex REVL F 1 5
+	FrameIndex REVL G 0 6   FrameIndex REVL G 1 6
+	FrameIndex REVL H 0 7   FrameIndex REVL H 1 7
+	FrameIndex REVL I 0 8   FrameIndex REVL I 1 8
+	FrameIndex REVL J 0 9   FrameIndex REVL J 1 9
+	FrameIndex REVL K 0 10  FrameIndex REVL K 1 10
+	FrameIndex REVL L 0 11  FrameIndex REVL L 1 11
+	FrameIndex REVL M 0 12  FrameIndex REVL M 1 12
+	FrameIndex REVL N 0 13  FrameIndex REVL N 1 13
+	FrameIndex REVL O 0 14  FrameIndex REVL O 1 14
+	FrameIndex REVL P 0 15  FrameIndex REVL P 1 15
+	FrameIndex REVL Q 0 16  FrameIndex REVL Q 1 16
+	FrameIndex REVL R 0 17  FrameIndex REVL R 1 17
+	FrameIndex REVL S 0 18  FrameIndex REVL S 1 18
+	FrameIndex REVL T 0 19  FrameIndex REVL T 1 19
+	FrameIndex REVL U 0 20  FrameIndex REVL U 1 20
+	FrameIndex REVL V 0 21  FrameIndex REVL V 1 21
+	FrameIndex REVL W 0 22  FrameIndex REVL W 1 22
+	FrameIndex REVL X 0 23  FrameIndex REVL X 1 23
+	FrameIndex REVL Y 0 24  FrameIndex REVL Y 1 24
+	FrameIndex REVL Z 0 25  FrameIndex REVL Z 1 25
+	FrameIndex REVO A 0 26  FrameIndex REVO a 1 26
+	FrameIndex REVO B 0 27  FrameIndex REVO b 1 27
+	FrameIndex REVO C 0 28  FrameIndex REVO c 1 28
+	FrameIndex REVO D 0 29  FrameIndex REVO d 1 29
+	FrameIndex REVO E 0 30  FrameIndex REVO e 1 30
+	FrameIndex REVO F 0 31  FrameIndex REVO f 1 31
+	FrameIndex REVO g 0 32  FrameIndex REVO g 1 32
+	FrameIndex REVO h 0 33  FrameIndex REVO h 1 33
+	FrameIndex REVO i 0 34  FrameIndex REVO i 1 34
+	FrameIndex REVO j 0 35  FrameIndex REVO j 1 35
+	FrameIndex REVO k 0 36  FrameIndex REVO k 1 36
+	FrameIndex REVO l 0 37  FrameIndex REVO l 1 37
+	FrameIndex REVO m 0 38  FrameIndex REVO m 1 38
+	FrameIndex REVO n 0 39  FrameIndex REVO n 1 39
+	FrameIndex REVO o 0 40  FrameIndex REVO o 1 40
+}
+
+Model VR_Revolver
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "revf.md3"
+	Skin 0 "RedFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVF A 0 0 FrameIndex REVF A 1 0
+	FrameIndex REVF B 0 1 FrameIndex REVF B 1 1
+	FrameIndex REVF C 0 2 FrameIndex REVF C 1 2
+	FrameIndex REVF D 0 3 FrameIndex REVF D 1 3
+	FrameIndex REVF e 0 4 FrameIndex REVF e 1 4
+	FrameIndex REVF f 0 5 FrameIndex REVF f 1 5
+	FrameIndex REVF g 0 6 FrameIndex REVF g 1 6
+	FrameIndex REVF h 0 7 FrameIndex REVF h 1 7
+	FrameIndex REVF i 0 8 FrameIndex REVF i 1 8
+	FrameIndex REVF j 0 9 FrameIndex REVF j 1 9
+}
+
+// --- VR_Revolver2 (Sunset Cannon) ---
+
+Model VR_Revolver2
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "rev.md3"
+	Skin 0 "WPN-REV.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVL A 0 0   FrameIndex REVL A 1 0
+	FrameIndex REVL B 0 1   FrameIndex REVL B 1 1
+	FrameIndex REVL C 0 2   FrameIndex REVL C 1 2
+	FrameIndex REVL D 0 3   FrameIndex REVL D 1 3
+	FrameIndex REVL E 0 4   FrameIndex REVL E 1 4
+	FrameIndex REVL F 0 5   FrameIndex REVL F 1 5
+	FrameIndex REVL G 0 6   FrameIndex REVL G 1 6
+	FrameIndex REVL H 0 7   FrameIndex REVL H 1 7
+	FrameIndex REVL I 0 8   FrameIndex REVL I 1 8
+	FrameIndex REVL J 0 9   FrameIndex REVL J 1 9
+	FrameIndex REVL K 0 10  FrameIndex REVL K 1 10
+	FrameIndex REVL L 0 11  FrameIndex REVL L 1 11
+	FrameIndex REVL M 0 12  FrameIndex REVL M 1 12
+	FrameIndex REVL N 0 13  FrameIndex REVL N 1 13
+	FrameIndex REVL O 0 14  FrameIndex REVL O 1 14
+	FrameIndex REVL P 0 15  FrameIndex REVL P 1 15
+	FrameIndex REVL Q 0 16  FrameIndex REVL Q 1 16
+	FrameIndex REVL R 0 17  FrameIndex REVL R 1 17
+	FrameIndex REVL S 0 18  FrameIndex REVL S 1 18
+	FrameIndex REVL T 0 19  FrameIndex REVL T 1 19
+	FrameIndex REVL U 0 20  FrameIndex REVL U 1 20
+	FrameIndex REVL V 0 21  FrameIndex REVL V 1 21
+	FrameIndex REVL W 0 22  FrameIndex REVL W 1 22
+	FrameIndex REVL X 0 23  FrameIndex REVL X 1 23
+	FrameIndex REVL Y 0 24  FrameIndex REVL Y 1 24
+	FrameIndex REVL Z 0 25  FrameIndex REVL Z 1 25
+	FrameIndex REVO A 0 26  FrameIndex REVO a 1 26
+	FrameIndex REVO B 0 27  FrameIndex REVO b 1 27
+	FrameIndex REVO C 0 28  FrameIndex REVO c 1 28
+	FrameIndex REVO D 0 29  FrameIndex REVO d 1 29
+	FrameIndex REVO E 0 30  FrameIndex REVO e 1 30
+	FrameIndex REVO F 0 31  FrameIndex REVO f 1 31
+	FrameIndex REVO g 0 32  FrameIndex REVO g 1 32
+	FrameIndex REVO h 0 33  FrameIndex REVO h 1 33
+	FrameIndex REVO i 0 34  FrameIndex REVO i 1 34
+	FrameIndex REVO j 0 35  FrameIndex REVO j 1 35
+	FrameIndex REVO k 0 36  FrameIndex REVO k 1 36
+	FrameIndex REVO l 0 37  FrameIndex REVO l 1 37
+	FrameIndex REVO m 0 38  FrameIndex REVO m 1 38
+	FrameIndex REVO n 0 39  FrameIndex REVO n 1 39
+	FrameIndex REVO o 0 40  FrameIndex REVO o 1 40
+}
+
+Model VR_Revolver2
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "revf.md3"
+	Skin 0 "RedFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVF A 0 0 FrameIndex REVF A 1 0
+	FrameIndex REVF B 0 1 FrameIndex REVF B 1 1
+	FrameIndex REVF C 0 2 FrameIndex REVF C 1 2
+	FrameIndex REVF D 0 3 FrameIndex REVF D 1 3
+	FrameIndex REVF e 0 4 FrameIndex REVF e 1 4
+	FrameIndex REVF f 0 5 FrameIndex REVF f 1 5
+	FrameIndex REVF g 0 6 FrameIndex REVF g 1 6
+	FrameIndex REVF h 0 7 FrameIndex REVF h 1 7
+	FrameIndex REVF i 0 8 FrameIndex REVF i 1 8
+	FrameIndex REVF j 0 9 FrameIndex REVF j 1 9
+}
+
+// --- VR_Revolver3 (Ashwood Sentinel) ---
+
+Model VR_Revolver3
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "rev.md3"
+	Skin 0 "WPN-REV.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVL A 0 0   FrameIndex REVL A 1 0
+	FrameIndex REVL B 0 1   FrameIndex REVL B 1 1
+	FrameIndex REVL C 0 2   FrameIndex REVL C 1 2
+	FrameIndex REVL D 0 3   FrameIndex REVL D 1 3
+	FrameIndex REVL E 0 4   FrameIndex REVL E 1 4
+	FrameIndex REVL F 0 5   FrameIndex REVL F 1 5
+	FrameIndex REVL G 0 6   FrameIndex REVL G 1 6
+	FrameIndex REVL H 0 7   FrameIndex REVL H 1 7
+	FrameIndex REVL I 0 8   FrameIndex REVL I 1 8
+	FrameIndex REVL J 0 9   FrameIndex REVL J 1 9
+	FrameIndex REVL K 0 10  FrameIndex REVL K 1 10
+	FrameIndex REVL L 0 11  FrameIndex REVL L 1 11
+	FrameIndex REVL M 0 12  FrameIndex REVL M 1 12
+	FrameIndex REVL N 0 13  FrameIndex REVL N 1 13
+	FrameIndex REVL O 0 14  FrameIndex REVL O 1 14
+	FrameIndex REVL P 0 15  FrameIndex REVL P 1 15
+	FrameIndex REVL Q 0 16  FrameIndex REVL Q 1 16
+	FrameIndex REVL R 0 17  FrameIndex REVL R 1 17
+	FrameIndex REVL S 0 18  FrameIndex REVL S 1 18
+	FrameIndex REVL T 0 19  FrameIndex REVL T 1 19
+	FrameIndex REVL U 0 20  FrameIndex REVL U 1 20
+	FrameIndex REVL V 0 21  FrameIndex REVL V 1 21
+	FrameIndex REVL W 0 22  FrameIndex REVL W 1 22
+	FrameIndex REVL X 0 23  FrameIndex REVL X 1 23
+	FrameIndex REVL Y 0 24  FrameIndex REVL Y 1 24
+	FrameIndex REVL Z 0 25  FrameIndex REVL Z 1 25
+	FrameIndex REVO A 0 26  FrameIndex REVO a 1 26
+	FrameIndex REVO B 0 27  FrameIndex REVO b 1 27
+	FrameIndex REVO C 0 28  FrameIndex REVO c 1 28
+	FrameIndex REVO D 0 29  FrameIndex REVO d 1 29
+	FrameIndex REVO E 0 30  FrameIndex REVO e 1 30
+	FrameIndex REVO F 0 31  FrameIndex REVO f 1 31
+	FrameIndex REVO g 0 32  FrameIndex REVO g 1 32
+	FrameIndex REVO h 0 33  FrameIndex REVO h 1 33
+	FrameIndex REVO i 0 34  FrameIndex REVO i 1 34
+	FrameIndex REVO j 0 35  FrameIndex REVO j 1 35
+	FrameIndex REVO k 0 36  FrameIndex REVO k 1 36
+	FrameIndex REVO l 0 37  FrameIndex REVO l 1 37
+	FrameIndex REVO m 0 38  FrameIndex REVO m 1 38
+	FrameIndex REVO n 0 39  FrameIndex REVO n 1 39
+	FrameIndex REVO o 0 40  FrameIndex REVO o 1 40
+}
+
+Model VR_Revolver3
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "revf.md3"
+	Skin 0 "RedFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVF A 0 0 FrameIndex REVF A 1 0
+	FrameIndex REVF B 0 1 FrameIndex REVF B 1 1
+	FrameIndex REVF C 0 2 FrameIndex REVF C 1 2
+	FrameIndex REVF D 0 3 FrameIndex REVF D 1 3
+	FrameIndex REVF e 0 4 FrameIndex REVF e 1 4
+	FrameIndex REVF f 0 5 FrameIndex REVF f 1 5
+	FrameIndex REVF g 0 6 FrameIndex REVF g 1 6
+	FrameIndex REVF h 0 7 FrameIndex REVF h 1 7
+	FrameIndex REVF i 0 8 FrameIndex REVF i 1 8
+	FrameIndex REVF j 0 9 FrameIndex REVF j 1 9
+}
+
+// --- VR_Revolver4 (Crimson Vow) ---
+
+Model VR_Revolver4
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "rev.md3"
+	Skin 0 "WPN-REV.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVL A 0 0   FrameIndex REVL A 1 0
+	FrameIndex REVL B 0 1   FrameIndex REVL B 1 1
+	FrameIndex REVL C 0 2   FrameIndex REVL C 1 2
+	FrameIndex REVL D 0 3   FrameIndex REVL D 1 3
+	FrameIndex REVL E 0 4   FrameIndex REVL E 1 4
+	FrameIndex REVL F 0 5   FrameIndex REVL F 1 5
+	FrameIndex REVL G 0 6   FrameIndex REVL G 1 6
+	FrameIndex REVL H 0 7   FrameIndex REVL H 1 7
+	FrameIndex REVL I 0 8   FrameIndex REVL I 1 8
+	FrameIndex REVL J 0 9   FrameIndex REVL J 1 9
+	FrameIndex REVL K 0 10  FrameIndex REVL K 1 10
+	FrameIndex REVL L 0 11  FrameIndex REVL L 1 11
+	FrameIndex REVL M 0 12  FrameIndex REVL M 1 12
+	FrameIndex REVL N 0 13  FrameIndex REVL N 1 13
+	FrameIndex REVL O 0 14  FrameIndex REVL O 1 14
+	FrameIndex REVL P 0 15  FrameIndex REVL P 1 15
+	FrameIndex REVL Q 0 16  FrameIndex REVL Q 1 16
+	FrameIndex REVL R 0 17  FrameIndex REVL R 1 17
+	FrameIndex REVL S 0 18  FrameIndex REVL S 1 18
+	FrameIndex REVL T 0 19  FrameIndex REVL T 1 19
+	FrameIndex REVL U 0 20  FrameIndex REVL U 1 20
+	FrameIndex REVL V 0 21  FrameIndex REVL V 1 21
+	FrameIndex REVL W 0 22  FrameIndex REVL W 1 22
+	FrameIndex REVL X 0 23  FrameIndex REVL X 1 23
+	FrameIndex REVL Y 0 24  FrameIndex REVL Y 1 24
+	FrameIndex REVL Z 0 25  FrameIndex REVL Z 1 25
+	FrameIndex REVO A 0 26  FrameIndex REVO a 1 26
+	FrameIndex REVO B 0 27  FrameIndex REVO b 1 27
+	FrameIndex REVO C 0 28  FrameIndex REVO c 1 28
+	FrameIndex REVO D 0 29  FrameIndex REVO d 1 29
+	FrameIndex REVO E 0 30  FrameIndex REVO e 1 30
+	FrameIndex REVO F 0 31  FrameIndex REVO f 1 31
+	FrameIndex REVO g 0 32  FrameIndex REVO g 1 32
+	FrameIndex REVO h 0 33  FrameIndex REVO h 1 33
+	FrameIndex REVO i 0 34  FrameIndex REVO i 1 34
+	FrameIndex REVO j 0 35  FrameIndex REVO j 1 35
+	FrameIndex REVO k 0 36  FrameIndex REVO k 1 36
+	FrameIndex REVO l 0 37  FrameIndex REVO l 1 37
+	FrameIndex REVO m 0 38  FrameIndex REVO m 1 38
+	FrameIndex REVO n 0 39  FrameIndex REVO n 1 39
+	FrameIndex REVO o 0 40  FrameIndex REVO o 1 40
+}
+
+Model VR_Revolver4
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "revf.md3"
+	Skin 0 "RedFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVF A 0 0 FrameIndex REVF A 1 0
+	FrameIndex REVF B 0 1 FrameIndex REVF B 1 1
+	FrameIndex REVF C 0 2 FrameIndex REVF C 1 2
+	FrameIndex REVF D 0 3 FrameIndex REVF D 1 3
+	FrameIndex REVF e 0 4 FrameIndex REVF e 1 4
+	FrameIndex REVF f 0 5 FrameIndex REVF f 1 5
+	FrameIndex REVF g 0 6 FrameIndex REVF g 1 6
+	FrameIndex REVF h 0 7 FrameIndex REVF h 1 7
+	FrameIndex REVF i 0 8 FrameIndex REVF i 1 8
+	FrameIndex REVF j 0 9 FrameIndex REVF j 1 9
+}
+
+// --- VR_Revolver5 (Widow's Chime) ---
+
+Model VR_Revolver5
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "rev.md3"
+	Skin 0 "WPN-REV.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVL A 0 0   FrameIndex REVL A 1 0
+	FrameIndex REVL B 0 1   FrameIndex REVL B 1 1
+	FrameIndex REVL C 0 2   FrameIndex REVL C 1 2
+	FrameIndex REVL D 0 3   FrameIndex REVL D 1 3
+	FrameIndex REVL E 0 4   FrameIndex REVL E 1 4
+	FrameIndex REVL F 0 5   FrameIndex REVL F 1 5
+	FrameIndex REVL G 0 6   FrameIndex REVL G 1 6
+	FrameIndex REVL H 0 7   FrameIndex REVL H 1 7
+	FrameIndex REVL I 0 8   FrameIndex REVL I 1 8
+	FrameIndex REVL J 0 9   FrameIndex REVL J 1 9
+	FrameIndex REVL K 0 10  FrameIndex REVL K 1 10
+	FrameIndex REVL L 0 11  FrameIndex REVL L 1 11
+	FrameIndex REVL M 0 12  FrameIndex REVL M 1 12
+	FrameIndex REVL N 0 13  FrameIndex REVL N 1 13
+	FrameIndex REVL O 0 14  FrameIndex REVL O 1 14
+	FrameIndex REVL P 0 15  FrameIndex REVL P 1 15
+	FrameIndex REVL Q 0 16  FrameIndex REVL Q 1 16
+	FrameIndex REVL R 0 17  FrameIndex REVL R 1 17
+	FrameIndex REVL S 0 18  FrameIndex REVL S 1 18
+	FrameIndex REVL T 0 19  FrameIndex REVL T 1 19
+	FrameIndex REVL U 0 20  FrameIndex REVL U 1 20
+	FrameIndex REVL V 0 21  FrameIndex REVL V 1 21
+	FrameIndex REVL W 0 22  FrameIndex REVL W 1 22
+	FrameIndex REVL X 0 23  FrameIndex REVL X 1 23
+	FrameIndex REVL Y 0 24  FrameIndex REVL Y 1 24
+	FrameIndex REVL Z 0 25  FrameIndex REVL Z 1 25
+	FrameIndex REVO A 0 26  FrameIndex REVO a 1 26
+	FrameIndex REVO B 0 27  FrameIndex REVO b 1 27
+	FrameIndex REVO C 0 28  FrameIndex REVO c 1 28
+	FrameIndex REVO D 0 29  FrameIndex REVO d 1 29
+	FrameIndex REVO E 0 30  FrameIndex REVO e 1 30
+	FrameIndex REVO F 0 31  FrameIndex REVO f 1 31
+	FrameIndex REVO g 0 32  FrameIndex REVO g 1 32
+	FrameIndex REVO h 0 33  FrameIndex REVO h 1 33
+	FrameIndex REVO i 0 34  FrameIndex REVO i 1 34
+	FrameIndex REVO j 0 35  FrameIndex REVO j 1 35
+	FrameIndex REVO k 0 36  FrameIndex REVO k 1 36
+	FrameIndex REVO l 0 37  FrameIndex REVO l 1 37
+	FrameIndex REVO m 0 38  FrameIndex REVO m 1 38
+	FrameIndex REVO n 0 39  FrameIndex REVO n 1 39
+	FrameIndex REVO o 0 40  FrameIndex REVO o 1 40
+}
+
+Model VR_Revolver5
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "revf.md3"
+	Skin 0 "RedFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVF A 0 0 FrameIndex REVF A 1 0
+	FrameIndex REVF B 0 1 FrameIndex REVF B 1 1
+	FrameIndex REVF C 0 2 FrameIndex REVF C 1 2
+	FrameIndex REVF D 0 3 FrameIndex REVF D 1 3
+	FrameIndex REVF e 0 4 FrameIndex REVF e 1 4
+	FrameIndex REVF f 0 5 FrameIndex REVF f 1 5
+	FrameIndex REVF g 0 6 FrameIndex REVF g 1 6
+	FrameIndex REVF h 0 7 FrameIndex REVF h 1 7
+	FrameIndex REVF i 0 8 FrameIndex REVF i 1 8
+	FrameIndex REVF j 0 9 FrameIndex REVF j 1 9
+}
+
+// --- VR_Revolver6 (Iron Requiem) ---
+
+Model VR_Revolver6
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "rev.md3"
+	Skin 0 "WPN-REV.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVL A 0 0   FrameIndex REVL A 1 0
+	FrameIndex REVL B 0 1   FrameIndex REVL B 1 1
+	FrameIndex REVL C 0 2   FrameIndex REVL C 1 2
+	FrameIndex REVL D 0 3   FrameIndex REVL D 1 3
+	FrameIndex REVL E 0 4   FrameIndex REVL E 1 4
+	FrameIndex REVL F 0 5   FrameIndex REVL F 1 5
+	FrameIndex REVL G 0 6   FrameIndex REVL G 1 6
+	FrameIndex REVL H 0 7   FrameIndex REVL H 1 7
+	FrameIndex REVL I 0 8   FrameIndex REVL I 1 8
+	FrameIndex REVL J 0 9   FrameIndex REVL J 1 9
+	FrameIndex REVL K 0 10  FrameIndex REVL K 1 10
+	FrameIndex REVL L 0 11  FrameIndex REVL L 1 11
+	FrameIndex REVL M 0 12  FrameIndex REVL M 1 12
+	FrameIndex REVL N 0 13  FrameIndex REVL N 1 13
+	FrameIndex REVL O 0 14  FrameIndex REVL O 1 14
+	FrameIndex REVL P 0 15  FrameIndex REVL P 1 15
+	FrameIndex REVL Q 0 16  FrameIndex REVL Q 1 16
+	FrameIndex REVL R 0 17  FrameIndex REVL R 1 17
+	FrameIndex REVL S 0 18  FrameIndex REVL S 1 18
+	FrameIndex REVL T 0 19  FrameIndex REVL T 1 19
+	FrameIndex REVL U 0 20  FrameIndex REVL U 1 20
+	FrameIndex REVL V 0 21  FrameIndex REVL V 1 21
+	FrameIndex REVL W 0 22  FrameIndex REVL W 1 22
+	FrameIndex REVL X 0 23  FrameIndex REVL X 1 23
+	FrameIndex REVL Y 0 24  FrameIndex REVL Y 1 24
+	FrameIndex REVL Z 0 25  FrameIndex REVL Z 1 25
+	FrameIndex REVO A 0 26  FrameIndex REVO a 1 26
+	FrameIndex REVO B 0 27  FrameIndex REVO b 1 27
+	FrameIndex REVO C 0 28  FrameIndex REVO c 1 28
+	FrameIndex REVO D 0 29  FrameIndex REVO d 1 29
+	FrameIndex REVO E 0 30  FrameIndex REVO e 1 30
+	FrameIndex REVO F 0 31  FrameIndex REVO f 1 31
+	FrameIndex REVO g 0 32  FrameIndex REVO g 1 32
+	FrameIndex REVO h 0 33  FrameIndex REVO h 1 33
+	FrameIndex REVO i 0 34  FrameIndex REVO i 1 34
+	FrameIndex REVO j 0 35  FrameIndex REVO j 1 35
+	FrameIndex REVO k 0 36  FrameIndex REVO k 1 36
+	FrameIndex REVO l 0 37  FrameIndex REVO l 1 37
+	FrameIndex REVO m 0 38  FrameIndex REVO m 1 38
+	FrameIndex REVO n 0 39  FrameIndex REVO n 1 39
+	FrameIndex REVO o 0 40  FrameIndex REVO o 1 40
+}
+
+Model VR_Revolver6
+{
+	Path "Models/Weapons/hud/VR_Revolver"
+	Model 0 "revf.md3"
+	Skin 0 "RedFlash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex REVF A 0 0 FrameIndex REVF A 1 0
+	FrameIndex REVF B 0 1 FrameIndex REVF B 1 1
+	FrameIndex REVF C 0 2 FrameIndex REVF C 1 2
+	FrameIndex REVF D 0 3 FrameIndex REVF D 1 3
+	FrameIndex REVF e 0 4 FrameIndex REVF e 1 4
+	FrameIndex REVF f 0 5 FrameIndex REVF f 1 5
+	FrameIndex REVF g 0 6 FrameIndex REVF g 1 6
+	FrameIndex REVF h 0 7 FrameIndex REVF h 1 7
+	FrameIndex REVF i 0 8 FrameIndex REVF i 1 8
+	FrameIndex REVF j 0 9 FrameIndex REVF j 1 9
+}
+
+// ==== from VR_Rifle.modeldef ====
+// =====================================================================
+// VR_Rifle MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_Rifle
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+Model VR_Rifle2
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+Model VR_Rifle3
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+Model VR_Rifle4
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+Model VR_Rifle5
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+Model VR_Rifle6
+{
+	Path "Models/Weapons/hud/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RIFL A 0 0
+	FrameIndex RIFL B 0 1
+	FrameIndex RIFL C 0 2
+	FrameIndex RIFL D 0 3
+	FrameIndex RIFL E 0 4
+	FrameIndex RIFL L 0 11
+	FrameIndex RIFL M 0 12
+	FrameIndex RIFL N 0 13
+	FrameIndex RIFL O 0 14
+	FrameIndex RIFL P 0 15
+	FrameIndex RIFL Q 0 16
+	FrameIndex RIFL R 0 17
+	FrameIndex RIFL S 0 18
+	FrameIndex RIFL T 0 19
+	FrameIndex RIFL U 0 20
+	FrameIndex RIFL V 0 21
+	FrameIndex RIFL W 0 22
+	FrameIndex RIFL X 0 23
+	FrameIndex RIFL Y 0 24
+	FrameIndex RIFK A 0 26
+	FrameIndex RIFK B 0 27
+	FrameIndex RIFK C 0 28
+	FrameIndex RIFK D 0 29
+	FrameIndex RIFK E 0 30
+	FrameIndex RIFK F 0 31
+	FrameIndex RIFK G 0 32
+	FrameIndex RIFK H 0 33
+	FrameIndex RIFK I 0 34
+	FrameIndex RIFK J 0 35
+	FrameIndex RIFK K 0 36
+	FrameIndex RIFK L 0 37
+	FrameIndex RIFK M 0 38
+	FrameIndex RIFK N 0 39
+	FrameIndex RIFK O 0 40
+}
+
+
+// ==== from VR_RocketLauncher.modeldef ====
+// =====================================================================
+// VR_RocketLauncher MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF0.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF1.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF2.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF3.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF0.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF1.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF2.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF3.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF0.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF1.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF2.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF3.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF0.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF1.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF2.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF3.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF0.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF1.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF2.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF3.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+Model VR_RocketLauncher6
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	INTERPOLATEDOUBLEDFRAMES
+
+	FrameIndex MISG A 0 5
+	FrameIndex MISG B 0 10
+}
+
+Model VR_RocketLauncher6
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF0.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF A 0 0
+}
+
+Model VR_RocketLauncher6
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF1.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF B 0 0
+}
+
+Model VR_RocketLauncher6
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF2.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF C 0 0
+}
+
+Model VR_RocketLauncher6
+{
+	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Model 0 "RocketLauncher-MF.MD2"
+	Skin 0 "hud_RL_MF3.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 -16.0 38.0
+
+	FrameIndex MISF D 0 0
+}
+
+
+// ==== from VR_SMG.modeldef ====
+// =====================================================================
+// VR_SMG MODELDEF -- real DualSMG model/frame data, used for ALL SIX
+// identity subclasses (mainhand and offhand alike) per instruction --
+// every SMG is VR-held one-per-hand, so the twin model applies
+// uniformly. Real pitch split preserved exactly: idle/reload at 45
+// degrees, fire/flash level at 0.
+// =====================================================================
+
+Model VR_SMG
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGS B 0 1
+	FrameIndex SMGS C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+Model VR_SMG2
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG2
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGS B 0 1
+	FrameIndex SMGS C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+Model VR_SMG3
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG3
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGS B 0 1
+	FrameIndex SMGS C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+Model VR_SMG4
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG4
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGS B 0 1
+	FrameIndex SMGS C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+Model VR_SMG5
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG5
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGS B 0 1
+	FrameIndex SMGS C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+Model VR_SMG6
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 45.0
+	NoInterpolation
+
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model VR_SMG6
+{
+	Path "Models/Weapons/hud/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	ZOffset -5
+	PitchOffset 0.0
+	NoInterpolation
+
+	FrameIndex SMGG A 0 3
+	FrameIndex SMGS B 0 1
+	FrameIndex SMGS C 0 2
+	FrameIndex SMGF A 0 4
+	FrameIndex SMGF B 0 5
+	FrameIndex SMGF C 0 6
+}
+
+
+// ==== from VR_Shotgun.modeldef ====
+// =====================================================================
+// VR_Shotgun MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_Shotgun
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgun.md3"
+	Skin 0 "WPN-SHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTG A 0 0   FrameIndex SHTG A 1 0
+	FrameIndex SHTG B 0 1   FrameIndex SHTG B 1 1
+	FrameIndex SHTG C 0 2   FrameIndex SHTG C 1 2
+	FrameIndex SHTG D 0 3   FrameIndex SHTG D 1 3
+	FrameIndex SHTG E 0 4   FrameIndex SHTG E 1 4
+	FrameIndex SHTG F 0 5   FrameIndex SHTG F 1 5
+	FrameIndex SHTG G 0 6   FrameIndex SHTG G 1 6
+	FrameIndex SHTG H 0 7   FrameIndex SHTG H 1 7
+	FrameIndex SHTG I 0 8   FrameIndex SHTG I 1 8
+	FrameIndex SHTG J 0 9   FrameIndex SHTG J 1 9
+	FrameIndex SHTG K 0 10   FrameIndex SHTG K 1 10
+	FrameIndex SHTG L 0 11   FrameIndex SHTG L 1 11
+	FrameIndex SHTG M 0 12   FrameIndex SHTG M 1 12
+	FrameIndex SHTG N 0 13   FrameIndex SHTG N 1 13
+	FrameIndex SHTG O 0 14   FrameIndex SHTG O 1 14
+	FrameIndex SHTG P 0 15   FrameIndex SHTG P 1 15
+	FrameIndex SHTG Q 0 16   FrameIndex SHTG Q 1 16
+	FrameIndex SHTG R 0 17   FrameIndex SHTG R 1 17
+	FrameIndex SHTG S 0 18   FrameIndex SHTG S 1 18
+	FrameIndex SHTG T 0 19   FrameIndex SHTG T 1 19
+}
+
+Model VR_Shotgun
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgunF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTF A 0 0   FrameIndex SHTF A 1 0
+	FrameIndex SHTF B 0 1   FrameIndex SHTF B 1 1
+	FrameIndex SHTF C 0 2   FrameIndex SHTF C 1 2
+	FrameIndex SHTF D 0 3   FrameIndex SHTF D 1 3
+	FrameIndex SHTF E 0 4   FrameIndex SHTF E 1 4
+	FrameIndex SHTF F 0 5   FrameIndex SHTF F 1 5
+}
+
+Model VR_Shotgun2
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgun.md3"
+	Skin 0 "WPN-SHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTG A 0 0   FrameIndex SHTG A 1 0
+	FrameIndex SHTG B 0 1   FrameIndex SHTG B 1 1
+	FrameIndex SHTG C 0 2   FrameIndex SHTG C 1 2
+	FrameIndex SHTG D 0 3   FrameIndex SHTG D 1 3
+	FrameIndex SHTG E 0 4   FrameIndex SHTG E 1 4
+	FrameIndex SHTG F 0 5   FrameIndex SHTG F 1 5
+	FrameIndex SHTG G 0 6   FrameIndex SHTG G 1 6
+	FrameIndex SHTG H 0 7   FrameIndex SHTG H 1 7
+	FrameIndex SHTG I 0 8   FrameIndex SHTG I 1 8
+	FrameIndex SHTG J 0 9   FrameIndex SHTG J 1 9
+	FrameIndex SHTG K 0 10   FrameIndex SHTG K 1 10
+	FrameIndex SHTG L 0 11   FrameIndex SHTG L 1 11
+	FrameIndex SHTG M 0 12   FrameIndex SHTG M 1 12
+	FrameIndex SHTG N 0 13   FrameIndex SHTG N 1 13
+	FrameIndex SHTG O 0 14   FrameIndex SHTG O 1 14
+	FrameIndex SHTG P 0 15   FrameIndex SHTG P 1 15
+	FrameIndex SHTG Q 0 16   FrameIndex SHTG Q 1 16
+	FrameIndex SHTG R 0 17   FrameIndex SHTG R 1 17
+	FrameIndex SHTG S 0 18   FrameIndex SHTG S 1 18
+	FrameIndex SHTG T 0 19   FrameIndex SHTG T 1 19
+}
+
+Model VR_Shotgun2
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgunF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTF A 0 0   FrameIndex SHTF A 1 0
+	FrameIndex SHTF B 0 1   FrameIndex SHTF B 1 1
+	FrameIndex SHTF C 0 2   FrameIndex SHTF C 1 2
+	FrameIndex SHTF D 0 3   FrameIndex SHTF D 1 3
+	FrameIndex SHTF E 0 4   FrameIndex SHTF E 1 4
+	FrameIndex SHTF F 0 5   FrameIndex SHTF F 1 5
+}
+
+Model VR_Shotgun3
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgun.md3"
+	Skin 0 "WPN-SHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTG A 0 0   FrameIndex SHTG A 1 0
+	FrameIndex SHTG B 0 1   FrameIndex SHTG B 1 1
+	FrameIndex SHTG C 0 2   FrameIndex SHTG C 1 2
+	FrameIndex SHTG D 0 3   FrameIndex SHTG D 1 3
+	FrameIndex SHTG E 0 4   FrameIndex SHTG E 1 4
+	FrameIndex SHTG F 0 5   FrameIndex SHTG F 1 5
+	FrameIndex SHTG G 0 6   FrameIndex SHTG G 1 6
+	FrameIndex SHTG H 0 7   FrameIndex SHTG H 1 7
+	FrameIndex SHTG I 0 8   FrameIndex SHTG I 1 8
+	FrameIndex SHTG J 0 9   FrameIndex SHTG J 1 9
+	FrameIndex SHTG K 0 10   FrameIndex SHTG K 1 10
+	FrameIndex SHTG L 0 11   FrameIndex SHTG L 1 11
+	FrameIndex SHTG M 0 12   FrameIndex SHTG M 1 12
+	FrameIndex SHTG N 0 13   FrameIndex SHTG N 1 13
+	FrameIndex SHTG O 0 14   FrameIndex SHTG O 1 14
+	FrameIndex SHTG P 0 15   FrameIndex SHTG P 1 15
+	FrameIndex SHTG Q 0 16   FrameIndex SHTG Q 1 16
+	FrameIndex SHTG R 0 17   FrameIndex SHTG R 1 17
+	FrameIndex SHTG S 0 18   FrameIndex SHTG S 1 18
+	FrameIndex SHTG T 0 19   FrameIndex SHTG T 1 19
+}
+
+Model VR_Shotgun3
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgunF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTF A 0 0   FrameIndex SHTF A 1 0
+	FrameIndex SHTF B 0 1   FrameIndex SHTF B 1 1
+	FrameIndex SHTF C 0 2   FrameIndex SHTF C 1 2
+	FrameIndex SHTF D 0 3   FrameIndex SHTF D 1 3
+	FrameIndex SHTF E 0 4   FrameIndex SHTF E 1 4
+	FrameIndex SHTF F 0 5   FrameIndex SHTF F 1 5
+}
+
+Model VR_Shotgun4
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgun.md3"
+	Skin 0 "WPN-SHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTG A 0 0   FrameIndex SHTG A 1 0
+	FrameIndex SHTG B 0 1   FrameIndex SHTG B 1 1
+	FrameIndex SHTG C 0 2   FrameIndex SHTG C 1 2
+	FrameIndex SHTG D 0 3   FrameIndex SHTG D 1 3
+	FrameIndex SHTG E 0 4   FrameIndex SHTG E 1 4
+	FrameIndex SHTG F 0 5   FrameIndex SHTG F 1 5
+	FrameIndex SHTG G 0 6   FrameIndex SHTG G 1 6
+	FrameIndex SHTG H 0 7   FrameIndex SHTG H 1 7
+	FrameIndex SHTG I 0 8   FrameIndex SHTG I 1 8
+	FrameIndex SHTG J 0 9   FrameIndex SHTG J 1 9
+	FrameIndex SHTG K 0 10   FrameIndex SHTG K 1 10
+	FrameIndex SHTG L 0 11   FrameIndex SHTG L 1 11
+	FrameIndex SHTG M 0 12   FrameIndex SHTG M 1 12
+	FrameIndex SHTG N 0 13   FrameIndex SHTG N 1 13
+	FrameIndex SHTG O 0 14   FrameIndex SHTG O 1 14
+	FrameIndex SHTG P 0 15   FrameIndex SHTG P 1 15
+	FrameIndex SHTG Q 0 16   FrameIndex SHTG Q 1 16
+	FrameIndex SHTG R 0 17   FrameIndex SHTG R 1 17
+	FrameIndex SHTG S 0 18   FrameIndex SHTG S 1 18
+	FrameIndex SHTG T 0 19   FrameIndex SHTG T 1 19
+}
+
+Model VR_Shotgun4
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgunF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTF A 0 0   FrameIndex SHTF A 1 0
+	FrameIndex SHTF B 0 1   FrameIndex SHTF B 1 1
+	FrameIndex SHTF C 0 2   FrameIndex SHTF C 1 2
+	FrameIndex SHTF D 0 3   FrameIndex SHTF D 1 3
+	FrameIndex SHTF E 0 4   FrameIndex SHTF E 1 4
+	FrameIndex SHTF F 0 5   FrameIndex SHTF F 1 5
+}
+
+Model VR_Shotgun5
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgun.md3"
+	Skin 0 "WPN-SHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTG A 0 0   FrameIndex SHTG A 1 0
+	FrameIndex SHTG B 0 1   FrameIndex SHTG B 1 1
+	FrameIndex SHTG C 0 2   FrameIndex SHTG C 1 2
+	FrameIndex SHTG D 0 3   FrameIndex SHTG D 1 3
+	FrameIndex SHTG E 0 4   FrameIndex SHTG E 1 4
+	FrameIndex SHTG F 0 5   FrameIndex SHTG F 1 5
+	FrameIndex SHTG G 0 6   FrameIndex SHTG G 1 6
+	FrameIndex SHTG H 0 7   FrameIndex SHTG H 1 7
+	FrameIndex SHTG I 0 8   FrameIndex SHTG I 1 8
+	FrameIndex SHTG J 0 9   FrameIndex SHTG J 1 9
+	FrameIndex SHTG K 0 10   FrameIndex SHTG K 1 10
+	FrameIndex SHTG L 0 11   FrameIndex SHTG L 1 11
+	FrameIndex SHTG M 0 12   FrameIndex SHTG M 1 12
+	FrameIndex SHTG N 0 13   FrameIndex SHTG N 1 13
+	FrameIndex SHTG O 0 14   FrameIndex SHTG O 1 14
+	FrameIndex SHTG P 0 15   FrameIndex SHTG P 1 15
+	FrameIndex SHTG Q 0 16   FrameIndex SHTG Q 1 16
+	FrameIndex SHTG R 0 17   FrameIndex SHTG R 1 17
+	FrameIndex SHTG S 0 18   FrameIndex SHTG S 1 18
+	FrameIndex SHTG T 0 19   FrameIndex SHTG T 1 19
+}
+
+Model VR_Shotgun5
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgunF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTF A 0 0   FrameIndex SHTF A 1 0
+	FrameIndex SHTF B 0 1   FrameIndex SHTF B 1 1
+	FrameIndex SHTF C 0 2   FrameIndex SHTF C 1 2
+	FrameIndex SHTF D 0 3   FrameIndex SHTF D 1 3
+	FrameIndex SHTF E 0 4   FrameIndex SHTF E 1 4
+	FrameIndex SHTF F 0 5   FrameIndex SHTF F 1 5
+}
+
+Model VR_Shotgun6
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgun.md3"
+	Skin 0 "WPN-SHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTG A 0 0   FrameIndex SHTG A 1 0
+	FrameIndex SHTG B 0 1   FrameIndex SHTG B 1 1
+	FrameIndex SHTG C 0 2   FrameIndex SHTG C 1 2
+	FrameIndex SHTG D 0 3   FrameIndex SHTG D 1 3
+	FrameIndex SHTG E 0 4   FrameIndex SHTG E 1 4
+	FrameIndex SHTG F 0 5   FrameIndex SHTG F 1 5
+	FrameIndex SHTG G 0 6   FrameIndex SHTG G 1 6
+	FrameIndex SHTG H 0 7   FrameIndex SHTG H 1 7
+	FrameIndex SHTG I 0 8   FrameIndex SHTG I 1 8
+	FrameIndex SHTG J 0 9   FrameIndex SHTG J 1 9
+	FrameIndex SHTG K 0 10   FrameIndex SHTG K 1 10
+	FrameIndex SHTG L 0 11   FrameIndex SHTG L 1 11
+	FrameIndex SHTG M 0 12   FrameIndex SHTG M 1 12
+	FrameIndex SHTG N 0 13   FrameIndex SHTG N 1 13
+	FrameIndex SHTG O 0 14   FrameIndex SHTG O 1 14
+	FrameIndex SHTG P 0 15   FrameIndex SHTG P 1 15
+	FrameIndex SHTG Q 0 16   FrameIndex SHTG Q 1 16
+	FrameIndex SHTG R 0 17   FrameIndex SHTG R 1 17
+	FrameIndex SHTG S 0 18   FrameIndex SHTG S 1 18
+	FrameIndex SHTG T 0 19   FrameIndex SHTG T 1 19
+}
+
+Model VR_Shotgun6
+{
+	Path "Models/Weapons/hud/VR_Shotgun"
+	Model 0 "shotgunF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHTF A 0 0   FrameIndex SHTF A 1 0
+	FrameIndex SHTF B 0 1   FrameIndex SHTF B 1 1
+	FrameIndex SHTF C 0 2   FrameIndex SHTF C 1 2
+	FrameIndex SHTF D 0 3   FrameIndex SHTF D 1 3
+	FrameIndex SHTF E 0 4   FrameIndex SHTF E 1 4
+	FrameIndex SHTF F 0 5   FrameIndex SHTF F 1 5
+}
+
+
+// ==== from VR_SuperShotgun.modeldef ====
+// =====================================================================
+// VR_SuperShotgun MODELDEF -- real model/skin/frame data from the
+// actual old SSG MODELDEF, normalized path. Same real block duplicated
+// across all six identity subclasses (no distinct data exists for
+// slots 2-6, same situation as every other weapon type).
+// =====================================================================
+
+Model VR_SuperShotgun
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssg.md3"
+	Skin 0 "WPN-SSHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
+	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
+	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
+	FrameIndex SHT2 D 0 3   FrameIndex SHT2 D 1 3
+	FrameIndex SHT2 E 0 4   FrameIndex SHT2 E 1 4
+	FrameIndex SHT2 F 0 5   FrameIndex SHT2 F 1 5
+	FrameIndex SHT2 G 0 6   FrameIndex SHT2 G 1 6
+	FrameIndex SHT2 H 0 7   FrameIndex SHT2 H 1 7
+	FrameIndex SHT2 I 0 8   FrameIndex SHT2 I 1 8
+	FrameIndex SHT2 J 0 9   FrameIndex SHT2 J 1 9
+	FrameIndex SHT2 K 0 10  FrameIndex SHT2 K 1 10
+	FrameIndex SHT2 L 0 11  FrameIndex SHT2 L 1 11
+	FrameIndex SHT2 M 0 12  FrameIndex SHT2 M 1 12
+	FrameIndex SHT2 N 0 13  FrameIndex SHT2 N 1 13
+	FrameIndex SHT2 O 0 14  FrameIndex SHT2 O 1 14
+	FrameIndex SHT2 P 0 15  FrameIndex SHT2 P 1 15
+	FrameIndex SHT2 Q 0 16  FrameIndex SHT2 Q 1 16
+	FrameIndex SHT2 R 0 17  FrameIndex SHT2 R 1 17
+	FrameIndex SHT2 S 0 18  FrameIndex SHT2 S 1 18
+	FrameIndex SHT2 T 0 19  FrameIndex SHT2 T 1 19
+	FrameIndex SHT2 U 0 20  FrameIndex SHT2 U 1 20
+	FrameIndex SHT2 V 0 21  FrameIndex SHT2 V 1 21
+	FrameIndex SHT2 W 0 22  FrameIndex SHT2 W 1 22
+	FrameIndex SHT2 X 0 23  FrameIndex SHT2 X 1 23
+	FrameIndex SHT2 Y 0 24  FrameIndex SHT2 Y 1 24
+}
+
+Model VR_SuperShotgun
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssgF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT4 A 0 0   FrameIndex SHT4 A 1 0
+	FrameIndex SHT4 B 0 1   FrameIndex SHT4 B 1 1
+	FrameIndex SHT4 C 0 2   FrameIndex SHT4 C 1 2
+	FrameIndex SHT4 D 0 3   FrameIndex SHT4 D 1 3
+	FrameIndex SHT4 E 0 4   FrameIndex SHT4 E 1 4
+	FrameIndex SHT4 F 0 5   FrameIndex SHT4 F 1 5
+}
+
+Model VR_SuperShotgun2
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssg.md3"
+	Skin 0 "WPN-SSHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
+	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
+	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
+	FrameIndex SHT2 D 0 3   FrameIndex SHT2 D 1 3
+	FrameIndex SHT2 E 0 4   FrameIndex SHT2 E 1 4
+	FrameIndex SHT2 F 0 5   FrameIndex SHT2 F 1 5
+	FrameIndex SHT2 G 0 6   FrameIndex SHT2 G 1 6
+	FrameIndex SHT2 H 0 7   FrameIndex SHT2 H 1 7
+	FrameIndex SHT2 I 0 8   FrameIndex SHT2 I 1 8
+	FrameIndex SHT2 J 0 9   FrameIndex SHT2 J 1 9
+	FrameIndex SHT2 K 0 10  FrameIndex SHT2 K 1 10
+	FrameIndex SHT2 L 0 11  FrameIndex SHT2 L 1 11
+	FrameIndex SHT2 M 0 12  FrameIndex SHT2 M 1 12
+	FrameIndex SHT2 N 0 13  FrameIndex SHT2 N 1 13
+	FrameIndex SHT2 O 0 14  FrameIndex SHT2 O 1 14
+	FrameIndex SHT2 P 0 15  FrameIndex SHT2 P 1 15
+	FrameIndex SHT2 Q 0 16  FrameIndex SHT2 Q 1 16
+	FrameIndex SHT2 R 0 17  FrameIndex SHT2 R 1 17
+	FrameIndex SHT2 S 0 18  FrameIndex SHT2 S 1 18
+	FrameIndex SHT2 T 0 19  FrameIndex SHT2 T 1 19
+	FrameIndex SHT2 U 0 20  FrameIndex SHT2 U 1 20
+	FrameIndex SHT2 V 0 21  FrameIndex SHT2 V 1 21
+	FrameIndex SHT2 W 0 22  FrameIndex SHT2 W 1 22
+	FrameIndex SHT2 X 0 23  FrameIndex SHT2 X 1 23
+	FrameIndex SHT2 Y 0 24  FrameIndex SHT2 Y 1 24
+}
+
+Model VR_SuperShotgun2
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssgF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT4 A 0 0   FrameIndex SHT4 A 1 0
+	FrameIndex SHT4 B 0 1   FrameIndex SHT4 B 1 1
+	FrameIndex SHT4 C 0 2   FrameIndex SHT4 C 1 2
+	FrameIndex SHT4 D 0 3   FrameIndex SHT4 D 1 3
+	FrameIndex SHT4 E 0 4   FrameIndex SHT4 E 1 4
+	FrameIndex SHT4 F 0 5   FrameIndex SHT4 F 1 5
+}
+
+Model VR_SuperShotgun3
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssg.md3"
+	Skin 0 "WPN-SSHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
+	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
+	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
+	FrameIndex SHT2 D 0 3   FrameIndex SHT2 D 1 3
+	FrameIndex SHT2 E 0 4   FrameIndex SHT2 E 1 4
+	FrameIndex SHT2 F 0 5   FrameIndex SHT2 F 1 5
+	FrameIndex SHT2 G 0 6   FrameIndex SHT2 G 1 6
+	FrameIndex SHT2 H 0 7   FrameIndex SHT2 H 1 7
+	FrameIndex SHT2 I 0 8   FrameIndex SHT2 I 1 8
+	FrameIndex SHT2 J 0 9   FrameIndex SHT2 J 1 9
+	FrameIndex SHT2 K 0 10  FrameIndex SHT2 K 1 10
+	FrameIndex SHT2 L 0 11  FrameIndex SHT2 L 1 11
+	FrameIndex SHT2 M 0 12  FrameIndex SHT2 M 1 12
+	FrameIndex SHT2 N 0 13  FrameIndex SHT2 N 1 13
+	FrameIndex SHT2 O 0 14  FrameIndex SHT2 O 1 14
+	FrameIndex SHT2 P 0 15  FrameIndex SHT2 P 1 15
+	FrameIndex SHT2 Q 0 16  FrameIndex SHT2 Q 1 16
+	FrameIndex SHT2 R 0 17  FrameIndex SHT2 R 1 17
+	FrameIndex SHT2 S 0 18  FrameIndex SHT2 S 1 18
+	FrameIndex SHT2 T 0 19  FrameIndex SHT2 T 1 19
+	FrameIndex SHT2 U 0 20  FrameIndex SHT2 U 1 20
+	FrameIndex SHT2 V 0 21  FrameIndex SHT2 V 1 21
+	FrameIndex SHT2 W 0 22  FrameIndex SHT2 W 1 22
+	FrameIndex SHT2 X 0 23  FrameIndex SHT2 X 1 23
+	FrameIndex SHT2 Y 0 24  FrameIndex SHT2 Y 1 24
+}
+
+Model VR_SuperShotgun3
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssgF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT4 A 0 0   FrameIndex SHT4 A 1 0
+	FrameIndex SHT4 B 0 1   FrameIndex SHT4 B 1 1
+	FrameIndex SHT4 C 0 2   FrameIndex SHT4 C 1 2
+	FrameIndex SHT4 D 0 3   FrameIndex SHT4 D 1 3
+	FrameIndex SHT4 E 0 4   FrameIndex SHT4 E 1 4
+	FrameIndex SHT4 F 0 5   FrameIndex SHT4 F 1 5
+}
+
+Model VR_SuperShotgun4
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssg.md3"
+	Skin 0 "WPN-SSHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
+	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
+	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
+	FrameIndex SHT2 D 0 3   FrameIndex SHT2 D 1 3
+	FrameIndex SHT2 E 0 4   FrameIndex SHT2 E 1 4
+	FrameIndex SHT2 F 0 5   FrameIndex SHT2 F 1 5
+	FrameIndex SHT2 G 0 6   FrameIndex SHT2 G 1 6
+	FrameIndex SHT2 H 0 7   FrameIndex SHT2 H 1 7
+	FrameIndex SHT2 I 0 8   FrameIndex SHT2 I 1 8
+	FrameIndex SHT2 J 0 9   FrameIndex SHT2 J 1 9
+	FrameIndex SHT2 K 0 10  FrameIndex SHT2 K 1 10
+	FrameIndex SHT2 L 0 11  FrameIndex SHT2 L 1 11
+	FrameIndex SHT2 M 0 12  FrameIndex SHT2 M 1 12
+	FrameIndex SHT2 N 0 13  FrameIndex SHT2 N 1 13
+	FrameIndex SHT2 O 0 14  FrameIndex SHT2 O 1 14
+	FrameIndex SHT2 P 0 15  FrameIndex SHT2 P 1 15
+	FrameIndex SHT2 Q 0 16  FrameIndex SHT2 Q 1 16
+	FrameIndex SHT2 R 0 17  FrameIndex SHT2 R 1 17
+	FrameIndex SHT2 S 0 18  FrameIndex SHT2 S 1 18
+	FrameIndex SHT2 T 0 19  FrameIndex SHT2 T 1 19
+	FrameIndex SHT2 U 0 20  FrameIndex SHT2 U 1 20
+	FrameIndex SHT2 V 0 21  FrameIndex SHT2 V 1 21
+	FrameIndex SHT2 W 0 22  FrameIndex SHT2 W 1 22
+	FrameIndex SHT2 X 0 23  FrameIndex SHT2 X 1 23
+	FrameIndex SHT2 Y 0 24  FrameIndex SHT2 Y 1 24
+}
+
+Model VR_SuperShotgun4
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssgF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT4 A 0 0   FrameIndex SHT4 A 1 0
+	FrameIndex SHT4 B 0 1   FrameIndex SHT4 B 1 1
+	FrameIndex SHT4 C 0 2   FrameIndex SHT4 C 1 2
+	FrameIndex SHT4 D 0 3   FrameIndex SHT4 D 1 3
+	FrameIndex SHT4 E 0 4   FrameIndex SHT4 E 1 4
+	FrameIndex SHT4 F 0 5   FrameIndex SHT4 F 1 5
+}
+
+Model VR_SuperShotgun5
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssg.md3"
+	Skin 0 "WPN-SSHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
+	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
+	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
+	FrameIndex SHT2 D 0 3   FrameIndex SHT2 D 1 3
+	FrameIndex SHT2 E 0 4   FrameIndex SHT2 E 1 4
+	FrameIndex SHT2 F 0 5   FrameIndex SHT2 F 1 5
+	FrameIndex SHT2 G 0 6   FrameIndex SHT2 G 1 6
+	FrameIndex SHT2 H 0 7   FrameIndex SHT2 H 1 7
+	FrameIndex SHT2 I 0 8   FrameIndex SHT2 I 1 8
+	FrameIndex SHT2 J 0 9   FrameIndex SHT2 J 1 9
+	FrameIndex SHT2 K 0 10  FrameIndex SHT2 K 1 10
+	FrameIndex SHT2 L 0 11  FrameIndex SHT2 L 1 11
+	FrameIndex SHT2 M 0 12  FrameIndex SHT2 M 1 12
+	FrameIndex SHT2 N 0 13  FrameIndex SHT2 N 1 13
+	FrameIndex SHT2 O 0 14  FrameIndex SHT2 O 1 14
+	FrameIndex SHT2 P 0 15  FrameIndex SHT2 P 1 15
+	FrameIndex SHT2 Q 0 16  FrameIndex SHT2 Q 1 16
+	FrameIndex SHT2 R 0 17  FrameIndex SHT2 R 1 17
+	FrameIndex SHT2 S 0 18  FrameIndex SHT2 S 1 18
+	FrameIndex SHT2 T 0 19  FrameIndex SHT2 T 1 19
+	FrameIndex SHT2 U 0 20  FrameIndex SHT2 U 1 20
+	FrameIndex SHT2 V 0 21  FrameIndex SHT2 V 1 21
+	FrameIndex SHT2 W 0 22  FrameIndex SHT2 W 1 22
+	FrameIndex SHT2 X 0 23  FrameIndex SHT2 X 1 23
+	FrameIndex SHT2 Y 0 24  FrameIndex SHT2 Y 1 24
+}
+
+Model VR_SuperShotgun5
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssgF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT4 A 0 0   FrameIndex SHT4 A 1 0
+	FrameIndex SHT4 B 0 1   FrameIndex SHT4 B 1 1
+	FrameIndex SHT4 C 0 2   FrameIndex SHT4 C 1 2
+	FrameIndex SHT4 D 0 3   FrameIndex SHT4 D 1 3
+	FrameIndex SHT4 E 0 4   FrameIndex SHT4 E 1 4
+	FrameIndex SHT4 F 0 5   FrameIndex SHT4 F 1 5
+}
+
+Model VR_SuperShotgun6
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssg.md3"
+	Skin 0 "WPN-SSHTGUN.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
+	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
+	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
+	FrameIndex SHT2 D 0 3   FrameIndex SHT2 D 1 3
+	FrameIndex SHT2 E 0 4   FrameIndex SHT2 E 1 4
+	FrameIndex SHT2 F 0 5   FrameIndex SHT2 F 1 5
+	FrameIndex SHT2 G 0 6   FrameIndex SHT2 G 1 6
+	FrameIndex SHT2 H 0 7   FrameIndex SHT2 H 1 7
+	FrameIndex SHT2 I 0 8   FrameIndex SHT2 I 1 8
+	FrameIndex SHT2 J 0 9   FrameIndex SHT2 J 1 9
+	FrameIndex SHT2 K 0 10  FrameIndex SHT2 K 1 10
+	FrameIndex SHT2 L 0 11  FrameIndex SHT2 L 1 11
+	FrameIndex SHT2 M 0 12  FrameIndex SHT2 M 1 12
+	FrameIndex SHT2 N 0 13  FrameIndex SHT2 N 1 13
+	FrameIndex SHT2 O 0 14  FrameIndex SHT2 O 1 14
+	FrameIndex SHT2 P 0 15  FrameIndex SHT2 P 1 15
+	FrameIndex SHT2 Q 0 16  FrameIndex SHT2 Q 1 16
+	FrameIndex SHT2 R 0 17  FrameIndex SHT2 R 1 17
+	FrameIndex SHT2 S 0 18  FrameIndex SHT2 S 1 18
+	FrameIndex SHT2 T 0 19  FrameIndex SHT2 T 1 19
+	FrameIndex SHT2 U 0 20  FrameIndex SHT2 U 1 20
+	FrameIndex SHT2 V 0 21  FrameIndex SHT2 V 1 21
+	FrameIndex SHT2 W 0 22  FrameIndex SHT2 W 1 22
+	FrameIndex SHT2 X 0 23  FrameIndex SHT2 X 1 23
+	FrameIndex SHT2 Y 0 24  FrameIndex SHT2 Y 1 24
+}
+
+Model VR_SuperShotgun6
+{
+	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Model 0 "ssgF.md3"
+	Skin 0 "muzzleflash.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex SHT4 A 0 0   FrameIndex SHT4 A 1 0
+	FrameIndex SHT4 B 0 1   FrameIndex SHT4 B 1 1
+	FrameIndex SHT4 C 0 2   FrameIndex SHT4 C 1 2
+	FrameIndex SHT4 D 0 3   FrameIndex SHT4 D 1 3
+	FrameIndex SHT4 E 0 4   FrameIndex SHT4 E 1 4
+	FrameIndex SHT4 F 0 5   FrameIndex SHT4 F 1 5
+}
+
+
+
+Model Fist
+{
+	Path "Models/Weapons/hud/VR_Fist"
+	Model 0 "fist.md3"
+	Skin 0 "fist.png"
+
+	FrameIndex PUNG A 0 0
+	FrameIndex PUNG B 0 1
+	FrameIndex PUNG C 0 2
+	FrameIndex PUNG D 0 3
+}
+
+Model VR_Fist2
+{
+	Path "Models/Weapons/hud/VR_Fist"
+	Model 0 "fist.md3"
+	Skin 0 "fist.png"
+
+	FrameIndex PUNG A 0 0
+	FrameIndex PUNG B 0 1
+	FrameIndex PUNG C 0 2
+	FrameIndex PUNG D 0 3
+}

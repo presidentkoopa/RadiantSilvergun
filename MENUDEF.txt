@@ -1,0 +1,27 @@
+// =====================================================================
+// Hi-Fi Weapon Settings submenu, injected into the standard Options menu.
+// =====================================================================
+AddOptionMenu "OptionsMenu"
+{
+	StaticText " "
+	Submenu "Hi-Fi Weapon Settings", "RS_FXSettings"
+}
+
+OptionMenu "RS_FXSettings"
+{
+	Title "Hi-Fi Weapon Settings"
+	StaticText " "
+
+	Option "Hi-Fi Weapon Effects", "rs_fx_hifitier", "RS_HiFiTierOption"
+	Option "Bullet tracers", "rs_fx_tracers", "OnOff"
+	Option "Ricochet effects", "rs_fx_ricochet", "OnOff"
+	Option "HQ vanilla sound pack", "rs_fx_hqvanillasounds", "OnOff"
+	Option "Vanilla+ purist mode", "rs_vanillaplus_purist", "OnOff"
+}
+
+OptionValue "RS_HiFiTierOption"
+{
+	0, "Off"
+	1, "Standard"
+	2, "Hi-Fi"
+}

@@ -1,67 +1,368 @@
 // =====================================================================
-// VR Arsenal SNDINFO -- built from the REAL confirmed sound names
-// pulled from your actual old reference files, not generic placeholders.
+// RS_Main SNDINFO
 // ---------------------------------------------------------------------
-// AKEMPT is the one deliberately shared name (universal empty/backfire
-// click). 9mmclip1/9mmclip2/9mmslide are genuinely shared between
-// Revolver and Pistol -- confirmed real, the old files reused these on
-// purpose. Rifle got its own dedicated m16clip1/m16clip2/m16slide per
-// your explicit request to stop it reusing Pistol's. Everything else
-// is fully dedicated per weapon already.
+// Layout mirrors the zscript tree, so a path answers "which weapon set
+// owns this" on its own:
+//
+//   sounds/rs_weapon/vr_<weapon>/  one self-contained folder per weapon
+//   sounds/rs_weapon/shared/       shared across the main arsenal only
+//   sounds/bullets/                casings / ricochet / tracer whizz
+//   sounds/impact/                 ballistic projectile impacts
+//   sounds/hq_vanilla/             the HQ vanilla alternate pack
+//   sounds/UNUSED/                 pre-reorg originals, referenced by
+//                                  nothing here -- kept, not deleted
+//
+// bullets/, impact/, and hq_vanilla/ sit at top level rather than under
+// rs_weapon/ because BOTH weapon sets consume them -- the Vanilla+ set
+// (rs_vp_weapon) has no sound files of its own at all and rides these
+// plus the shared 9mm/AKEMPT entries entirely. Nesting them under one
+// set's folder would imply an ownership that isn't real.
+//
+// Every entry below is verified against what each weapon's own .zs code
+// actually calls (A_PlaySound/A_StartSound), not against what a folder
+// happens to contain.
+//
+// Paths use the lowercase folder names that actually exist on disk
+// (vr_pistol, not VR_Pistol) -- avoids the exact case-sensitivity trap
+// already found and fixed in the Revolver MODELDEF earlier in this
+// project; a case mismatch here is silently fine on Windows but breaks
+// on any case-sensitive packaging.
 // =====================================================================
 
 // --- Shared ---
-AKEMPT        Sounds/Weapons/VR_Shared/akempt.wav
+// Deliberately shared across all ten weapons (backfire + empty-click).
+AKEMPT        Sounds/rs_weapon/shared/AKEMPT
 
-// --- Pistol (source of the shared 9mm-family reload sounds) ---
-9mmshoot      Sounds/Weapons/VR_Pistol/9mmshoot.wav
-9mmclip1      Sounds/Weapons/VR_Pistol/9mmclip1.wav
-9mmclip2      Sounds/Weapons/VR_Pistol/9mmclip2.wav
-9mmslide      Sounds/Weapons/VR_Pistol/9mmslide.wav
+// --- Pistol ---
+9mmshoot      Sounds/rs_weapon/vr_pistol/9mmshoot.wav
+9mmclip1      Sounds/rs_weapon/vr_pistol/9mmclip1.wav
+9mmclip2      Sounds/rs_weapon/vr_pistol/9mmclip2.wav
+9mmslide      Sounds/rs_weapon/vr_pistol/9mmslide.wav
 
 // --- Revolver ---
-// (9mmclip1/9mmclip2/9mmslide reused from Pistol above -- real,
-// confirmed shared usage from the actual old files.)
-revolver      Sounds/Weapons/VR_Revolver/revolver.ogg
+// Fire sound switched to REVOFIR1 (one of four takes found on disk --
+// revolver.wav, REVOFIR2, REVOFIR3 are all copied into vr_revolver/ too,
+// reserved for a future altfire/random-variant pass, not wired here).
+// Reload reuses the Pistol's 9mm family -- genuinely shared, confirmed
+// real from the old reference files, not a lazy substitution.
+revolver      Sounds/rs_weapon/vr_revolver/REVOFIR1.ogg
 
 // --- Rifle ---
-// (9mmclip1/9mmclip2/9mmslide reused from Pistol above -- the old
-// file itself genuinely reuses these for rifle reload. No dedicated
-// rifle reload sound exists anywhere in the real files -- an earlier
-// pass invented m16clip1/m16clip2/m16slide, which were fake. Removed.)
-m16shoot      Sounds/Weapons/VR_Rifle/m16shoot.wav
+// Reload reuses the Pistol's 9mm family. Checked the entire sounds/
+// tree for a dedicated rifle reload sound -- none exists anywhere. An
+// earlier pass invented fake m16clip1/m16clip2/m16slide names with no
+// real audio behind them; this is the genuine, verified answer, not
+// laziness.
+m16shoot      Sounds/rs_weapon/vr_rifle/m16shoot.wav
 
 // --- SMG ---
-smgfire       Sounds/Weapons/VR_SMG/smgfire.wav
-smgclip       Sounds/Weapons/VR_SMG/smgclip.wav
+// smgclip reuses the Pistol's 9mmclip2 (the "new mag clicks in" sound)
+// as its single reload cue -- SMG's reload is one sound call, not
+// Pistol's three-stage sequence, so one representative moment covers it.
+smgfire       Sounds/rs_weapon/vr_smg/SMGFIRE.ogg
+smgclip       Sounds/rs_weapon/vr_smg/smgclip.wav
 
 // --- Shotgun ---
-shotgf        Sounds/Weapons/VR_Shotgun/shotgf.wav
-shotpump      Sounds/Weapons/VR_Shotgun/shotpump.wav
-shotcycle     Sounds/Weapons/VR_Shotgun/shotcycle.wav
-shotload      Sounds/Weapons/VR_Shotgun/shotload.wav
-shotload2     Sounds/Weapons/VR_Shotgun/shotload2.wav
+// shotgf/shotcycle were completely missing from the project; these are
+// name-matched from previously-unsorted loose files (DSSHOTGN.wav,
+// DSSGCOCK.wav) but not verified by ear -- flagged as possibly too loud,
+// swap the files later if they're wrong. shotpump/shotload/shotload2
+// were already correctly present.
+shotgf        Sounds/rs_weapon/vr_shotgun/shotgf.wav
+shotpump      Sounds/rs_weapon/vr_shotgun/shotpump.mp3
+shotcycle     Sounds/rs_weapon/vr_shotgun/shotcycle.wav
+shotload      Sounds/rs_weapon/vr_shotgun/SHOTLOAD1.ogg
+shotload2     Sounds/rs_weapon/vr_shotgun/SHOTLOAD2.ogg
 
 // --- Super Shotgun ---
-// Real name confirmed directly from the actual old SSG.zs. Reload
-// uses real built-in GZDoom actions (A_OpenShotgun2/A_LoadShotgun2/
-// A_CloseShotgun2), which play their own internal sounds -- no custom
-// reload sound names needed for those steps.
-wpn/shotgun2  Sounds/Weapons/VR_SuperShotgun/shotgun2.wav
+// shotgun2.wav was previously misplaced inside the Shotgun's folder --
+// this is genuinely the SuperShotgun's fire sound, moved to its own
+// folder. Reload uses built-in GZDoom actions (A_OpenShotgun2/
+// A_LoadShotgun2/A_CloseShotgun2), which play their own internal sounds
+// -- no custom reload sound names needed.
+wpn/shotgun2  Sounds/rs_weapon/vr_supershotgun/shotgun2.wav
 
 // --- Chaingun ---
-// Real main-fire name confirmed as "chngun" (not "chaingun" -- that's
-// the unbuilt alt-fire secondary sound in the real old file). No
-// reload exists for this weapon (belt-fed, confirmed real).
-chngun        Sounds/Weapons/VR_Chaingun/chngun.wav
+// Real vanilla Doom behavior: the Chaingun has no distinct fire sound
+// of its own -- A_FireCGun plays the Pistol's sound effect (sfx_pistol)
+// in the original engine. Now defaults to the HQ vanilla pack's DSPISTOL
+// (see "HQ Vanilla alternate pack" section below) rather than the
+// earlier plain copy. No reload exists for this weapon (belt-fed).
+chngun        Sounds/hq_vanilla/DSPISTOL
 
 // --- Rocket Launcher ---
-// Already a clean, real, non-HF path in the old file -- kept as-is.
-rocklf        Sounds/Weapons/VR_RocketLauncher/rocklf.wav
+// Defaults to the HQ vanilla pack's DSRLAUNC.
+rocklf        Sounds/hq_vanilla/DSRLAUNC
 
 // --- Plasma Rifle ---
-// Already a clean, real, non-HF path in the old file -- kept as-is.
-weapons/plasma/fire  Sounds/Weapons/VR_PlasmaRifle/fire.wav
+// NOT switched to HQ vanilla -- you explicitly replaced this with
+// PLFIRE2.ogg earlier because the original made you want to throw up.
+// Reverting to DSPLASMA would undo that on purpose; left alone.
+weapons/plasma/fire  Sounds/rs_weapon/vr_plasmarifle/fire.ogg
 
 // --- BFG9000 ---
-bfgf          Sounds/Weapons/VR_BFG9000/bfgf.wav
+// Defaults to the HQ vanilla pack's DSBFG.
+bfgf          Sounds/hq_vanilla/DSBFG
+
+// --- Ballistic projectile impact ---
+// 10 real takes, previously unused. RS_BallisticFired's Death state
+// played no sound at all before this.
+$random ballisticimpact { impact0 impact1 impact2 impact3 impact4 impact5 impact6 impact7 impact8 impact9 }
+impact0  Sounds/impact/impact0.wav
+impact1  Sounds/impact/impact1.wav
+impact2  Sounds/impact/impact2.wav
+impact3  Sounds/impact/impact3.wav
+impact4  Sounds/impact/impact4.wav
+impact5  Sounds/impact/impact5.wav
+impact6  Sounds/impact/impact6.wav
+impact7  Sounds/impact/impact7.wav
+impact8  Sounds/impact/impact8.wav
+impact9  Sounds/impact/impact9.mp3
+
+// --- Enhanced FX: bullets (casings, ricochet, tracer whiz) ---
+// Staged here with the assets already copied in; not yet called by any
+// code -- these are consumed once the Enhanced Weapon FX effects system
+// (RS_EnhancedFX.zs) exists. Logical names kept distinct from every
+// per-weapon section above so nothing here can collide with them.
+$random rs_fx_casing_chaingun { rs_fx_chgncas1 rs_fx_chgncas2 rs_fx_chgncas3 }
+rs_fx_chgncas1  Sounds/bullets/CHGNCAS1
+rs_fx_chgncas2  Sounds/bullets/CHGNCAS2
+rs_fx_chgncas3  Sounds/bullets/CHGNCAS3
+
+$random rs_fx_casing_pistol { rs_fx_dscasin1 rs_fx_dscasin2 rs_fx_dscasin3 }
+rs_fx_dscasin1  Sounds/bullets/DSCASIN1
+rs_fx_dscasin2  Sounds/bullets/DSCASIN2
+rs_fx_dscasin3  Sounds/bullets/DSCASIN3
+
+$random rs_fx_casing_shell { rs_fx_dsshell1 rs_fx_dsshell2 rs_fx_dsshell3 }
+rs_fx_dsshell1  Sounds/bullets/DSSHELL1
+rs_fx_dsshell2  Sounds/bullets/DSSHELL2
+rs_fx_dsshell3  Sounds/bullets/DSSHELL3
+
+$random rs_fx_ricochet { rs_fx_rico1 rs_fx_rico2 rs_fx_rico3 rs_fx_rico4 rs_fx_rico5 rs_fx_rico6 rs_fx_rico7 }
+rs_fx_rico1  Sounds/bullets/RICO1
+rs_fx_rico2  Sounds/bullets/RICO2
+rs_fx_rico3  Sounds/bullets/RICO3
+rs_fx_rico4  Sounds/bullets/RICO4
+rs_fx_rico5  Sounds/bullets/RICO5
+rs_fx_rico6  Sounds/bullets/RICO6
+rs_fx_rico7  Sounds/bullets/RICO7
+
+$random rs_fx_tracerwhizz { rs_fx_tracer1 rs_fx_tracer2 rs_fx_tracer3 }
+rs_fx_tracer1  Sounds/bullets/Tracer1.ogg
+rs_fx_tracer2  Sounds/bullets/Tracer2.ogg
+rs_fx_tracer3  Sounds/bullets/Tracer3.ogg
+
+// =====================================================================
+// Vanilla+ set (rs_vp_weapon) -- its own real per-weapon sounds.
+// ---------------------------------------------------------------------
+// These weapons were first wired to hq_* vanilla substitutes and a
+// borrowed 9mmclip1 reload, because the source pack's own sound set
+// hadn't been imported yet. This is that set: every entry below is the
+// sound the source actually used for that weapon, read from its own
+// SNDINFO rather than guessed by filename.
+//
+// Logical names are all rs_vp_-prefixed. The source used bare paths like
+// "weapons/pistol/fire", which is exactly the kind of name that collides
+// when two mods are co-loaded -- the same anti-collision rule the ZScript
+// classes follow (RS_VP_ on every class) applies to sound names too.
+//
+// $random groups where the source had them: multiple fire/punch takes
+// cycling is a lot of the character of this pack, and flattening them to
+// one take would lose it.
+// =====================================================================
+
+// --- Vanilla+ Pistol (Beretta) ---
+$random rs_vp_pistol_fire { rs_vp_pfire1 rs_vp_pfire2 rs_vp_pfire3 }
+rs_vp_pfire1        Sounds/rs_vp_weapon/vp_pistol/PFIRE01.ogg
+rs_vp_pfire2        Sounds/rs_vp_weapon/vp_pistol/PFIRE02.ogg
+rs_vp_pfire3        Sounds/rs_vp_weapon/vp_pistol/PFIRE03.ogg
+rs_vp_pistol_cout   Sounds/rs_vp_weapon/vp_pistol/PCOUT.ogg
+rs_vp_pistol_cin    Sounds/rs_vp_weapon/vp_pistol/PCIN.ogg
+rs_vp_pistol_slide  Sounds/rs_vp_weapon/vp_pistol/PSLID.ogg
+rs_vp_pistol_snap   Sounds/rs_vp_weapon/vp_pistol/PSNAP.ogg
+$volume rs_vp_pistol_slide 0.85
+$volume rs_vp_pistol_cout 0.8
+$volume rs_vp_pistol_cin 0.8
+$volume rs_vp_pistol_snap 0.8
+
+// --- Vanilla+ Assault Rifle ---
+$random rs_vp_arifle_fire { rs_vp_rifire1 rs_vp_rifire2 rs_vp_rifire3 }
+rs_vp_rifire1       Sounds/rs_vp_weapon/vp_arifle/RIFIRE1.ogg
+rs_vp_rifire2       Sounds/rs_vp_weapon/vp_arifle/RIFIRE2.ogg
+rs_vp_rifire3       Sounds/rs_vp_weapon/vp_arifle/RIFIRE3.ogg
+rs_vp_arifle_cout   Sounds/rs_vp_weapon/vp_arifle/RCOUT.ogg
+rs_vp_arifle_cin    Sounds/rs_vp_weapon/vp_arifle/RCIN.ogg
+rs_vp_arifle_slap   Sounds/rs_vp_weapon/vp_arifle/RSLAP.ogg
+rs_vp_arifle_click  Sounds/rs_vp_weapon/vp_arifle/RCLCK.ogg
+$volume rs_vp_arifle_cout 0.9
+$volume rs_vp_arifle_cin 0.9
+$volume rs_vp_arifle_slap 0.7
+$volume rs_vp_arifle_click 0.9
+
+// --- Vanilla+ Riot Shotgun ---
+$random rs_vp_shotgun_fire { rs_vp_rfire1 rs_vp_rfire2 rs_vp_rfire3 }
+rs_vp_rfire1        Sounds/rs_vp_weapon/vp_shotgun/RFIRE1.ogg
+rs_vp_rfire2        Sounds/rs_vp_weapon/vp_shotgun/RFIRE2.ogg
+rs_vp_rfire3        Sounds/rs_vp_weapon/vp_shotgun/RFIRE3.ogg
+rs_vp_shotgun_pump  Sounds/rs_vp_weapon/vp_shotgun/RCOCK.ogg
+$random rs_vp_shotgun_load { rs_vp_sgs1 rs_vp_sgs2 rs_vp_sgs3 }
+rs_vp_sgs1          Sounds/rs_vp_weapon/vp_shotgun/SGS1.ogg
+rs_vp_sgs2          Sounds/rs_vp_weapon/vp_shotgun/SGS2.ogg
+rs_vp_sgs3          Sounds/rs_vp_weapon/vp_shotgun/SGS3.ogg
+rs_vp_shotgun_bck   Sounds/rs_vp_weapon/vp_shotgun/RCKBCK.ogg
+rs_vp_shotgun_fwd   Sounds/rs_vp_weapon/vp_shotgun/RCKFWD.ogg
+$volume rs_vp_shotgun_pump 0.75
+$volume rs_vp_shotgun_load 0.45
+$volume rs_vp_shotgun_bck 0.875
+$volume rs_vp_shotgun_fwd 0.875
+
+// --- Vanilla+ Double-Barrel Shotgun ---
+// Both barrels at once uses the source's "kapow" pair, not its single-
+// barrel takes -- this weapon always fires both.
+$random rs_vp_ssg_fire { rs_vp_double1 rs_vp_double2 }
+rs_vp_double1       Sounds/rs_vp_weapon/vp_supershotgun/DOUBLE1.ogg
+rs_vp_double2       Sounds/rs_vp_weapon/vp_supershotgun/DOUBLE2.ogg
+rs_vp_ssg_opn       Sounds/rs_vp_weapon/vp_supershotgun/DBOPN.ogg
+rs_vp_ssg_load      Sounds/rs_vp_weapon/vp_supershotgun/DBLOD.ogg
+rs_vp_ssg_cls       Sounds/rs_vp_weapon/vp_supershotgun/DBCLS.ogg
+$volume rs_vp_ssg_opn 0.6
+$volume rs_vp_ssg_load 0.6
+$volume rs_vp_ssg_cls 0.6
+
+// --- Vanilla+ Minigun ---
+// Finally has its own fire sound instead of borrowing the pistol's.
+rs_vp_minigun_fire   Sounds/rs_vp_weapon/vp_chaingun/MGFIRE.ogg
+rs_vp_minigun_reload Sounds/rs_vp_weapon/vp_chaingun/MGLOAD.ogg
+rs_vp_minigun_chain  Sounds/rs_vp_weapon/vp_chaingun/MGCHAIN.ogg
+rs_vp_minigun_down   Sounds/rs_vp_weapon/vp_chaingun/MGDOWN.ogg
+rs_vp_minigun_start  Sounds/rs_vp_weapon/vp_chaingun/MGSTRT.ogg
+rs_vp_minigun_spin   Sounds/rs_vp_weapon/vp_chaingun/MGSPIN.ogg
+rs_vp_minigun_stop   Sounds/rs_vp_weapon/vp_chaingun/MGSTOP.ogg
+$volume rs_vp_minigun_chain 0.6
+
+// --- Vanilla+ Rocket Launcher ---
+rs_vp_rocket_fire   Sounds/rs_vp_weapon/vp_rocketlauncher/RLFIRE.ogg
+rs_vp_rocket_cycle  Sounds/rs_vp_weapon/vp_rocketlauncher/RLCYCL.ogg
+rs_vp_rocket_cin    Sounds/rs_vp_weapon/vp_rocketlauncher/RLCIN.ogg
+rs_vp_rocket_cout   Sounds/rs_vp_weapon/vp_rocketlauncher/RLCOUT.ogg
+$random rs_vp_rocket_hit { rs_vp_rexp1 rs_vp_rexp2 }
+rs_vp_rexp1         Sounds/rs_vp_weapon/vp_rocketlauncher/REXP01.ogg
+rs_vp_rexp2         Sounds/rs_vp_weapon/vp_rocketlauncher/REXP02.ogg
+
+// --- Vanilla+ Plasma Rifle ---
+$random rs_vp_plasma_fire { rs_vp_plfire1 rs_vp_plfire2 rs_vp_plfire3 }
+rs_vp_plfire1       Sounds/rs_vp_weapon/vp_plasmarifle/PLFIRE1.ogg
+rs_vp_plfire2       Sounds/rs_vp_weapon/vp_plasmarifle/PLFIRE2.ogg
+rs_vp_plfire3       Sounds/rs_vp_weapon/vp_plasmarifle/PLFIRE3.ogg
+rs_vp_plasma_cout   Sounds/rs_vp_weapon/vp_plasmarifle/PLCOUT.ogg
+rs_vp_plasma_cin    Sounds/rs_vp_weapon/vp_plasmarifle/PLCIN.ogg
+rs_vp_plasma_chrg   Sounds/rs_vp_weapon/vp_plasmarifle/PLCHRG.ogg
+rs_vp_plasma_beep   Sounds/rs_vp_weapon/vp_plasmarifle/PLBEEP.ogg
+
+// --- Vanilla+ BFG9000 ---
+rs_vp_bfg_fire      Sounds/rs_vp_weapon/vp_bfg9000/BFGFIRE.ogg
+rs_vp_bfg_prefire   Sounds/rs_vp_weapon/vp_bfg9000/BFGPFR.ogg
+rs_vp_bfg_charge    Sounds/rs_vp_weapon/vp_bfg9000/BFGCHRG.ogg
+rs_vp_bfg_opn       Sounds/rs_vp_weapon/vp_bfg9000/BFGOPN.ogg
+rs_vp_bfg_cout      Sounds/rs_vp_weapon/vp_bfg9000/BFGCOUT.ogg
+rs_vp_bfg_cls       Sounds/rs_vp_weapon/vp_bfg9000/BFGCLS.ogg
+$volume rs_vp_bfg_prefire 0.85
+
+// --- Vanilla+ Brass Knuckle ---
+$random rs_vp_fist_punch { rs_vp_fistpun1 rs_vp_fistpun2 rs_vp_fistpun3 }
+rs_vp_fistpun1      Sounds/rs_vp_weapon/vp_fist/FISTPUN1.ogg
+rs_vp_fistpun2      Sounds/rs_vp_weapon/vp_fist/FISTPUN2.ogg
+rs_vp_fistpun3      Sounds/rs_vp_weapon/vp_fist/FISTPUN3.ogg
+$random rs_vp_fist_swing { rs_vp_fistsw1 rs_vp_fistsw2 }
+rs_vp_fistsw1       Sounds/rs_vp_weapon/vp_fist/FISTSW1.ogg
+rs_vp_fistsw2       Sounds/rs_vp_weapon/vp_fist/FISTSW2.ogg
+rs_vp_fist_bsrk     Sounds/rs_vp_weapon/vp_fist/BFISTSW.ogg
+$random rs_vp_fist_smash { rs_vp_smash1 rs_vp_smash2 rs_vp_smash3 }
+rs_vp_smash1        Sounds/rs_vp_weapon/vp_fist/smash1.ogg
+rs_vp_smash2        Sounds/rs_vp_weapon/vp_fist/smash2.ogg
+rs_vp_smash3        Sounds/rs_vp_weapon/vp_fist/smash3.ogg
+
+// --- Vanilla+ Chainsaw ---
+rs_vp_saw_start     Sounds/rs_vp_weapon/vp_chainsaw/CSTRT.ogg
+rs_vp_saw_idle      Sounds/rs_vp_weapon/vp_chainsaw/CSIDLE.ogg
+rs_vp_saw_loop      Sounds/rs_vp_weapon/vp_chainsaw/CSLOOP.ogg
+rs_vp_saw_stop      Sounds/rs_vp_weapon/vp_chainsaw/CSTOP.ogg
+rs_vp_saw_off       Sounds/rs_vp_weapon/vp_chainsaw/CSOFF.ogg
+rs_vp_saw_zip       Sounds/rs_vp_weapon/vp_chainsaw/CSZIP.ogg
+$random rs_vp_saw_flesh { rs_vp_sawhit1 rs_vp_sawhit2 rs_vp_sawhit3 }
+rs_vp_sawhit1       Sounds/rs_vp_weapon/vp_chainsaw/CSHIT1.ogg
+rs_vp_sawhit2       Sounds/rs_vp_weapon/vp_chainsaw/CSHIT2.ogg
+rs_vp_sawhit3       Sounds/rs_vp_weapon/vp_chainsaw/CSHIT3.ogg
+$random rs_vp_saw_wall { rs_vp_sawwal1 rs_vp_sawwal2 rs_vp_sawwal3 }
+rs_vp_sawwal1       Sounds/rs_vp_weapon/vp_chainsaw/CSWAL1.ogg
+rs_vp_sawwal2       Sounds/rs_vp_weapon/vp_chainsaw/CSWAL2.ogg
+rs_vp_sawwal3       Sounds/rs_vp_weapon/vp_chainsaw/CSWAL3.ogg
+$volume rs_vp_saw_idle 0.6
+$volume rs_vp_saw_loop 0.6
+$volume rs_vp_saw_stop 0.6
+$volume rs_vp_saw_flesh 0.8
+$volume rs_vp_saw_wall 0.6
+
+// --- Magazine drops (set-agnostic) ---
+// RS_MagDrop had no sound at all until now. Small/large clip and BFG clip
+// variants, so a dropped pistol mag and a dropped BFG cell don't sound
+// identical. Lives outside the per-weapon sections because RS_HiFiFX.MagDrop
+// is called by both weapon sets.
+$random rs_fx_magdrop_small { rs_fx_magsm1 rs_fx_magsm2 rs_fx_magsm3 }
+rs_fx_magsm1        Sounds/rs_vp_weapon/vp_shared/DSBOUNC1.ogg
+rs_fx_magsm2        Sounds/rs_vp_weapon/vp_shared/DSBOUNC2.ogg
+rs_fx_magsm3        Sounds/rs_vp_weapon/vp_shared/DSBOUNC3.ogg
+$random rs_fx_magdrop_large { rs_fx_maglg1 rs_fx_maglg2 rs_fx_maglg3 }
+rs_fx_maglg1        Sounds/rs_vp_weapon/vp_shared/DSAOUNC1.ogg
+rs_fx_maglg2        Sounds/rs_vp_weapon/vp_shared/DSAOUNC2.ogg
+rs_fx_maglg3        Sounds/rs_vp_weapon/vp_shared/DSAOUNC3.ogg
+$random rs_fx_magdrop_bfg { rs_fx_magbfg1 rs_fx_magbfg2 rs_fx_magbfg3 }
+rs_fx_magbfg1       Sounds/rs_vp_weapon/vp_shared/BFGCLI01.ogg
+rs_fx_magbfg2       Sounds/rs_vp_weapon/vp_shared/BFGCLI02.ogg
+rs_fx_magbfg3       Sounds/rs_vp_weapon/vp_shared/BFGCLI03.ogg
+$volume rs_fx_magdrop_small 0.75
+$volume rs_fx_magdrop_large 0.65
+$volume rs_fx_magdrop_bfg 0.7
+
+// --- Chainsaw-on-wall (set-agnostic) ---
+// RS_ChainsawPuff lives in the shared FX library, so it gets its own
+// rs_fx_ name rather than borrowing the Vanilla+ chainsaw's -- if another
+// chainsaw is ever imported, the shared puff shouldn't point at one set's
+// sounds. Same three files as rs_vp_saw_wall, different logical name.
+$random rs_fx_sawwall { rs_fx_sawwal1 rs_fx_sawwal2 rs_fx_sawwal3 }
+rs_fx_sawwal1       Sounds/rs_vp_weapon/vp_chainsaw/CSWAL1.ogg
+rs_fx_sawwal2       Sounds/rs_vp_weapon/vp_chainsaw/CSWAL2.ogg
+rs_fx_sawwal3       Sounds/rs_vp_weapon/vp_chainsaw/CSWAL3.ogg
+$volume rs_fx_sawwall 0.6
+
+// --- HQ Vanilla alternate pack ---
+// Full set staged for the rs_fx_hqvanillasounds toggle (any weapon can
+// opt into this pack once that system exists). chngun/rocklf/bfgf above
+// already point directly at three of these as their new *default* --
+// the entries below cover the rest of the set for completeness and for
+// weapons that stay on their current sounds unless the toggle is used.
+hq_dsbfg      Sounds/hq_vanilla/DSBFG
+hq_dsdbcls    Sounds/hq_vanilla/DSDBCLS
+hq_dsdbload   Sounds/hq_vanilla/DSDBLOAD
+hq_dsdbopn    Sounds/hq_vanilla/DSDBOPN
+hq_dsdshtgn   Sounds/hq_vanilla/DSDSHTGN
+hq_dsfirsht   Sounds/hq_vanilla/DSFIRSHT
+hq_dsnoway    Sounds/hq_vanilla/DSNOWAY
+hq_dsoof      Sounds/hq_vanilla/DSOOF
+hq_dspdiehi   Sounds/hq_vanilla/DSPDIEHI
+hq_dspistol   Sounds/hq_vanilla/DSPISTOL
+hq_dsplasma   Sounds/hq_vanilla/DSPLASMA
+hq_dspldeth   Sounds/hq_vanilla/DSPLDETH
+hq_dsplpain   Sounds/hq_vanilla/DSPLPAIN
+hq_dspunch    Sounds/hq_vanilla/DSPUNCH
+hq_dsrlaunc   Sounds/hq_vanilla/DSRLAUNC
+hq_dsrxplod   Sounds/hq_vanilla/DSRXPLOD
+hq_dssawful   Sounds/hq_vanilla/DSSAWFUL
+hq_dssawhit   Sounds/hq_vanilla/DSSAWHIT
+hq_dssawidl   Sounds/hq_vanilla/DSSAWIDL
+hq_dssawup    Sounds/hq_vanilla/DSSAWUP
+hq_dssgcock   Sounds/hq_vanilla/DSSGCOCK
+hq_dsshotgn   Sounds/hq_vanilla/DSSHOTGN
+hq_dsvilatk   Sounds/hq_vanilla/DSVILATK
+hq_dswpnup    Sounds/hq_vanilla/DSWPNUP

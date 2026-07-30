@@ -1,0 +1,286 @@
+// =====================================================================
+// VR_BFG9000 MODELDEF -- real model/skin/frame data, normalized path.
+// =====================================================================
+
+Model VR_BFG9000
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG9000
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG9000
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG9000
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+Model VR_BFG90002
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG90002
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG90002
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG90002
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+Model VR_BFG90003
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG90003
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG90003
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG90003
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+Model VR_BFG90004
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG90004
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG90004
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG90004
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+Model VR_BFG90005
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG90005
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG90005
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG90005
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+
+Model VR_BFG90006
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+
+	FrameIndex BFGG A 0 6
+}
+
+Model VR_BFG90006
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 10.0 0.0
+
+	FrameIndex BFGG B 0 7
+	FrameIndex BFGG C 0 14
+}
+
+Model VR_BFG90006
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash0.png"
+	Scale -4.0 1.0 4.0
+	Offset 0.0 -50.0 50.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF A 0 0
+}
+
+Model VR_BFG90006
+{
+	Path "Models/Weapons/hud/VR_BFG9000"
+	Model 0 "bfgexpo.md2"
+	Skin 0 "energy_flash1.png"
+	Offset 0.0 -50.0 50.0
+	Scale -4.0 1.0 4.0
+	NOINTERPOLATION
+
+	FrameIndex BFGF B 0 0
+}
+

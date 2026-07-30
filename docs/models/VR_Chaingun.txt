@@ -1,0 +1,71 @@
+==============================================================================
+VR_Chaingun -- MD3 FRAME INVENTORY
+==============================================================================
+Sources : VR_Chaingun.modeldef
+          zscript/weapons/RS_Chaingun.zs
+
+MD3 internal frame names are empty or "(md3 frame)" (Blender exporter
+default), so every label below is derived by joining the MODELDEF
+FrameIndex bindings to the state that plays that sprite letter.
+Nothing here is guessed -- unmapped frames are marked UNBOUND.
+
+------------------------------------------------------------------------------
+MODELS
+------------------------------------------------------------------------------
+  chaingun.md3           submodel 0   16 frames, 6 surface(s), 0 skins   sprite CHGG
+      path: Models/Weapons/hud/VR_Chaingun
+      skin: chaingun.png
+  CG_MF1.md3             submodel 0    1 frames, 1 surface(s), 0 skins   sprite CHGF
+      path: Models/Weapons/hud/VR_Chaingun
+      skin: mf0.png
+  CG_MF2.md3             submodel 1    1 frames, 1 surface(s), 0 skins   sprite -
+      path: Models/Weapons/hud/VR_Chaingun
+      skin: mf2.png
+
+------------------------------------------------------------------------------
+SKIN BY IDENTITY (geometry is shared; only the texture differs)
+------------------------------------------------------------------------------
+  VR_Chaingun            chaingun.png | mf0.png, mf2.png | mf1.png, mf3.png
+  VR_Chaingun2           chaingun.png | mf0.png, mf2.png | mf1.png, mf3.png
+  VR_Chaingun3           chaingun.png | mf0.png, mf2.png | mf1.png, mf3.png
+  VR_Chaingun4           chaingun.png | mf0.png, mf2.png | mf1.png, mf3.png
+  VR_Chaingun5           chaingun.png | mf0.png, mf2.png | mf1.png, mf3.png
+  VR_Chaingun6           chaingun.png | mf0.png, mf2.png | mf1.png, mf3.png
+
+------------------------------------------------------------------------------
+FRAME MAP -- chaingun.md3 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  4      CHGG A      Spawn, Ready, Deselect, Select, Shoot, Flash shared frame
+  10     CHGG B      Shoot                          firing
+
+  UNBOUND: 14 of 16 frames have no MODELDEF binding and are never
+           displayed -- 0-3, 5-9, 11-15
+
+------------------------------------------------------------------------------
+FRAME MAP -- CG_MF1.md3 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  0      CHGF A      BOUND-BUT-UNPLAYED             no state plays CHGF A
+
+  UNBOUND: none -- all 1 frames are bound.
+
+------------------------------------------------------------------------------
+FRAME MAP -- CG_MF1.md3 (submodel 0)
+------------------------------------------------------------------------------
+  frame  sprite  played by state(s)             purpose
+  0      CHGF B      BOUND-BUT-UNPLAYED             no state plays CHGF B
+
+  UNBOUND: none -- all 1 frames are bound.
+
+------------------------------------------------------------------------------
+STATES AND THEIR SPRITES
+------------------------------------------------------------------------------
+  Spawn            CHGG         pickup sprite in world (not a HUD model)
+  Ready            CHGG         idle / weapon ready
+  Deselect         CHGG         lower (switching away)
+  Select           CHGG         raise (switching to this weapon)
+  Fire             (TNT1 only)  fire gate (logic only, no visible frame)
+  Shoot            CHGG         firing
+  Flash            CHGG         muzzle flash
+  OutOfAmmo        (TNT1 only)  empty click
