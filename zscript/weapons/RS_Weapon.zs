@@ -316,6 +316,14 @@ class RS_Weapon : Weapon abstract
 		return null;
 	}
 
+	// Class-gating family -- None by default (heavy ordnance, Fist,
+	// Vanilla+ weapons all stay ungated). Each Dual_X-owned weapon type
+	// overrides this to name its own family; see RS_ClassGating.zs.
+	virtual EVR_Family GetFamily()
+	{
+		return EVR_Family_None;
+	}
+
 	// Each weapon type overrides this to call its own RS_Roll function
 	// (e.g. RS_Roll.RollRevolverStats) and set its type-specific stats.
 	virtual void RollStats(EVR_Tier t)
@@ -366,7 +374,7 @@ class RS_Weapon : Weapon abstract
 
 	// Seats this weapon into the off-hand the instant it actually enters
 	// the player's inventory, unless the off-hand already holds a REAL
-	// weapon. VR_Fist2/RS_VP_Fist2 (the off-hand's melee fallback, see
+	// weapon. VR_Fist2 (the off-hand's melee fallback, see
 	// RS_Fist.zs) are explicitly exempt from "already holds something" --
 	// every class's Player.StartItem list grants the fist filler BEFORE
 	// the real starting weapon specifically so it gets bumped immediately,
@@ -384,7 +392,7 @@ class RS_Weapon : Weapon abstract
 		if (bOffhandWeapon && newOwner.player)
 		{
 			let current = newOwner.player.OffhandWeapon;
-			bool slotIsFillerOrEmpty = !current || current is "VR_Fist2" || current is "RS_VP_Fist2";
+			bool slotIsFillerOrEmpty = !current || current is "VR_Fist2";
 			if (slotIsFillerOrEmpty)
 				newOwner.player.OffhandWeapon = self;
 		}

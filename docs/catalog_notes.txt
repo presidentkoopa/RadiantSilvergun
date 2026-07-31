@@ -1,0 +1,7 @@
+Projectile and Asset Catalog System
+
+Imported weapons require a standardized data extraction system. When a weapon is added, its raw assets are processed and separated into reusable components. Projectile definitions, projectile sprites, visual effects, firing sounds, impact sounds, and related data are extracted, renamed using a consistent naming convention, and stored in centralized databases.
+
+The purpose of this database is to prevent every weapon from being permanently tied to a single attack behavior. Instead of each imported weapon containing a unique hardcoded projectile, the weapon can reference entries from the projectile database. This allows existing attacks to be reused, modified, combined, and rapidly tested when designing new weapons.
+
+Each projectile entry contains the information required to recreate an attack, including its visual identity, audio, movement behavior, damage properties, and special characteristics. By cataloguing these components with standardized IDs, new weapon attacks can be created quickly by assigning different projectile, visual, and audio combinations without needing to manually create new code for every weapon.

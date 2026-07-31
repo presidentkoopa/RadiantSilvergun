@@ -2,6 +2,8 @@
 
 Status: **plan only, not started.** Nothing below has been executed.
 
+{edit - this has been started, maybe even finished, as effect_catalog.md and catalog_notes)
+
 ## 1. Why this is worth doing
 
 **GZDoom's sprite namespace is flat.** The engine identifies a sprite by its

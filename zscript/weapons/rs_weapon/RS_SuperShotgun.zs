@@ -24,6 +24,8 @@ class VR_SuperShotgun : RS_Weapon
 		+WEAPON.NOHANDSWITCH;
 	}
 
+	override EVR_Family GetFamily() { return EVR_Family_SuperShotgun; }
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;

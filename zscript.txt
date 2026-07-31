@@ -5,14 +5,17 @@ version "4.14"
 //#include "zscript/systems/RS_OffhandSeat.zs" // disabled -- see plan history, offhand system needs rebuilding
 #include "zscript/systems/RS_Roll.zs"
 #include "zscript/systems/RS_Bits.zs"
-#include "zscript/systems/RS_MenuActions.zs"
+
+// Must load after RS_Weapon.zs and VR_PlayerClasses.zs (needs GetFamily()
+// on both) -- ZScript compiles as one unit so include order doesn't
+// actually matter for this, but keeping it last for readability.
+#include "zscript/systems/RS_ClassGating.zs"
+#include "zscript/systems/RS_DebugGive.zs"
 
 // Ammo must precede the weapons -- their AmmoType2 strings resolve against these.
 #include "zscript/weapons/rs_weapon/RS_Ammo.zs"
-#include "zscript/weapons/rs_vp_weapon/RS_VP_Ammo.zs"
 
 // Weapon tempaltes moved here for file organization
-#include "zscript/weapons/RS_VP_Weapon.zs"
 #include "zscript/weapons/RS_Weapon.zs"
 
 // --- RS set (original Dual_Class weapons, basically our main focus for the 'game') ---
@@ -28,22 +31,6 @@ version "4.14"
 #include "zscript/weapons/rs_weapon/RS_RocketLauncher.zs"
 #include "zscript/weapons/rs_weapon/RS_PlasmaRifle.zs"
 #include "zscript/weapons/rs_weapon/RS_BFG9000.zs"
-
-// --- Vanilla+ set (GNRCWPN import, first of many fun weapon sets rebuilt from 0 into RS_MAIN) ---
-// Ammo first, same ordering rule as the main arsenal: the weapons'
-// AmmoType2 strings resolve against these.
-// (RS_VP_Weapon.zs itself is included above alongside RS_Weapon.zs -- it
-// lives at zscript/weapons/RS_VP_Weapon.zs, not in this subfolder.)
-#include "zscript/weapons/rs_vp_weapon/RS_VP_Pistol.zs"
-#include "zscript/weapons/rs_vp_weapon/RS_VP_ARifle.zs"
-#include "zscript/weapons/rs_vp_weapon/RS_VP_Shotgun.zs"
-#include "zscript/weapons/rs_vp_weapon/RS_VP_SuperShotgun.zs"
-#include "zscript/weapons/rs_vp_weapon/RS_VP_Chaingun.zs"
-#include "zscript/weapons/rs_vp_weapon/RS_VP_RocketLauncher.zs"
-#include "zscript/weapons/rs_vp_weapon/RS_VP_PlasmaRifle.zs"
-#include "zscript/weapons/rs_vp_weapon/RS_VP_BFG9000.zs"
-#include "zscript/weapons/rs_vp_weapon/RS_VP_Fist.zs"
-#include "zscript/weapons/rs_vp_weapon/RS_VP_Chainsaw.zs"
 
 // --- WeaponFX meant to house all attack visual data
 // Projectiles first: bullets, then heavy ordnance. Both are pointed at by
@@ -74,13 +61,3 @@ version "4.14"
 // (OffhandHUD.zsc, OffhandStatusDisplay.zsc, the EventHandler.zsc redirect
 // logic) -- see docs/HANDOFF_2.md for what that depends on in RS_Weapon.zs.
 #include "zscript/GunBonsai/main.zsc"
-
-// Shared drawing toolkit for the RS_Menu_* screens below.
-#include "zscript/systems/RS_UIKit.zs"
-
-// RS-flavored card presentation for GunBonsai's level-up picker and status
-// screen. Must load after GunBonsai (references TFLV_* types).
-#include "zscript/systems/RS_LevelUpCards.zs"
-#include "zscript/systems/RS_StatusCards.zs"
-#include "zscript/systems/RS_WeaponSelect.zs"
-#include "zscript/systems/RS_PlayerDashboard.zs"

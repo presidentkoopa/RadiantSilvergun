@@ -21,6 +21,22 @@ enum EVR_Tier
 	VRT_Prototype
 }
 
+// Class-gating families -- one per Dual_X starting class. None is the
+// "not gated" value: heavy ordnance (Rocket/Plasma/BFG) is deliberately
+// universal (every class gets it via "Allow Big Guns"), Fist and the
+// Vanilla+ set aren't part of the class system at all.
+enum EVR_Family
+{
+	EVR_Family_None,
+	EVR_Family_Pistol,
+	EVR_Family_Revolver,
+	EVR_Family_Rifle,
+	EVR_Family_SMG,
+	EVR_Family_Shotgun,
+	EVR_Family_SuperShotgun,
+	EVR_Family_Chaingun
+}
+
 class RS_Roll : Object
 {
 	// -------------------------------------------------------------

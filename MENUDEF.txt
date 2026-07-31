@@ -18,35 +18,10 @@ OptionMenu "RS_MainOptions"
 	Title "Radiant Silvergun Options"
 	StaticText " "
 
-	Submenu "General Options", "RS_GeneralOptions"
-	Submenu "Weapon Selection", "RS_WeaponSelect"
-	Submenu "Player", "RS_PlayerDashboard"
 	Submenu "Weapon Fidelity Options", "RS_FXSettings"
-	Submenu "Vanilla+ Weapon Behavior", "RS_VanillaPlusSettings"
-	Submenu "Dual Class Behavior", "RS_DualClassSettings"
+	Submenu "Debug: Give Weapons", "RS_DebugGiveMenu"
 	Submenu "$TFLV_OPT_TITLE", "GunBonsaiOptions"
 	Submenu "Kill Rewards", "RS_BitsSettings"
-}
-
-// ---------------------------------------------------------------------
-// General Options -- native cheat toggles plus map navigation. Cheats
-// are plain Command buttons (same as typing the console command) rather
-// than tracked On/Off state, since GZDoom doesn't expose god/noclip/
-// notarget as cvars to bind an Option to -- clicking again just re-runs
-// the same toggle command. Map navigation runs through RS_MenuActions.zs
-// (RS_MenuActionHandler) since it needs real logic, not just a ccmd.
-// ---------------------------------------------------------------------
-OptionMenu "RS_GeneralOptions"
-{
-	Title "General Options"
-	StaticText " "
-
-	Command "God Mode", "god"
-	Command "No Clip", "noclip"
-	Command "No Target", "notarget"
-	StaticText " "
-	Command "Go To Next Map", "netevent rs_general_nextmap"
-	Command "Go To Random Map", "netevent rs_general_randommap"
 }
 
 // ---------------------------------------------------------------------
@@ -127,38 +102,25 @@ OptionMenu "RS_FXSettings"
 }
 
 // ---------------------------------------------------------------------
-// Vanilla+ Weapon Behavior -- settings specific to the rs_vp_weapon set.
-// One entry today; the real home for whatever else that set grows
-// (its own reload behavior, once the universal reload system lands).
+// Debug: Give Weapons -- one "+1" button per family, up to owning all 6
+// identities. See zscript/systems/RS_DebugGive.zs.
 // ---------------------------------------------------------------------
-OptionMenu "RS_VanillaPlusSettings"
+OptionMenu "RS_DebugGiveMenu"
 {
-	Title "Vanilla+ Weapon Behavior"
+	Title "Debug: Give Weapons"
 	StaticText " "
 
-	Option "Roll Weapon Stats", "rs_vanillaplus_rollstats", "OnOff"
-	Slider "Rifle Replaces Chaingun Appearances", "rs_vanillaplus_arifle_chance", 0.0, 1.0, 0.05, 2
-	StaticText " "
-	Command "Give All Vanilla+ Weapons and Ammo", "netevent rs_vanillaplus_giveall"
-}
-
-// ---------------------------------------------------------------------
-// Dual Class Behavior -- settings specific to the 7 VR_Dual_* player
-// classes. Heavy ordnance was deliberately removed from their starting
-// loadout earlier; this is the opt-back-in.
-// ---------------------------------------------------------------------
-OptionMenu "RS_DualClassSettings"
-{
-	Title "Dual Class Behavior"
-	StaticText " "
-
-	Option "Allow Big Guns (Plasma Rifle, Rocket Launcher, BFG can appear in-game)", "rs_dualclass_allowbigguns", "OnOff"
-	StaticText " "
-	Command "Give Big Guns (all 3, both hands)", "netevent rs_dualclass_givebigguns"
-	Command "Give Rocket Launcher", "netevent rs_dualclass_giverocket"
-	Command "Give Plasma Rifle", "netevent rs_dualclass_giveplasma"
-	Command "Give BFG 9000", "netevent rs_dualclass_givebfg"
-	Command "Give Chainsaw", "netevent rs_dualclass_givechainsaw"
+	Command "+1 Pistol", "netevent rs_debug_give_pistol"
+	Command "+1 Revolver", "netevent rs_debug_give_revolver"
+	Command "+1 Rifle", "netevent rs_debug_give_rifle"
+	Command "+1 SMG", "netevent rs_debug_give_smg"
+	Command "+1 Shotgun", "netevent rs_debug_give_shotgun"
+	Command "+1 Super Shotgun", "netevent rs_debug_give_supershotgun"
+	Command "+1 Chaingun", "netevent rs_debug_give_chaingun"
+	Command "+1 Rocket Launcher", "netevent rs_debug_give_rocketlauncher"
+	Command "+1 Plasma Rifle", "netevent rs_debug_give_plasmarifle"
+	Command "+1 BFG9000", "netevent rs_debug_give_bfg9000"
+	Command "+1 Chainsaw", "netevent rs_debug_give_chainsaw"
 }
 
 OptionValue "RS_HiFiTierOption"
@@ -245,8 +207,8 @@ OptionMenu "GunBonsaiOptions"
 
   TextField "$TFLV_OPT_NAME_BASE_LEVEL_COST", "bonsai_base_level_cost" //, 100, 10000, 100, 0
   TFLV_Tooltip "$TFLV_OPT_TT_BASE_LEVEL_COST"
-  ScaleSlider "$TFLV_OPT_NAME_UPGRADE_CHOICES_PER_GUN_LEVEL", "bonsai_upgrade_choices_per_gun_level", -1, 50, 1, "$TFLV_OPT_SLIDER_NOUPGRADES", "$TFLV_OPT_SLIDER_ALLUPGRADES"
-  ScaleSlider "$TFLV_OPT_NAME_UPGRADE_CHOICES_PER_PLAYER_LEVEL", "bonsai_upgrade_choices_per_player_level", -1, 50, 1, "$TFLV_OPT_SLIDER_NOUPGRADES", "$TFLV_OPT_SLIDER_ALLUPGRADES"
+  Slider "$TFLV_OPT_NAME_UPGRADE_CHOICES_PER_GUN_LEVEL", "bonsai_upgrade_choices_per_gun_level", 1, 8, 1, 0
+  Slider "$TFLV_OPT_NAME_UPGRADE_CHOICES_PER_PLAYER_LEVEL", "bonsai_upgrade_choices_per_player_level", 1, 8, 1, 0
   TFLV_Tooltip "$TFLV_OPT_TT_UPGRADE_CHOICES_PER_LEVEL"
 
   Slider "$TFLV_OPT_NAME_GUN_LEVELS_PER_PLAYER_LEVEL", "bonsai_gun_levels_per_player_level", 1, 100, 1, 0
@@ -317,36 +279,15 @@ OptionValue "GunBonsaiWhatKindOfGunSelector" {
   3, "$TFLV_OPT_LDMODE_3"
 }
 
-// RS-original comparison screen -- see zscript/systems/RS_WeaponSelect.zs.
-// Also reachable in-game via the "Weapon Selection" keybind (default O).
-OptionMenu "RS_WeaponSelect"
-{
-  class RS_Menu_WeaponSelect
-  Title "Weapon Selection"
-}
-
-// RS-original dashboard -- see zscript/systems/RS_PlayerDashboard.zs.
-// Top area reserved for later; bottom is a working player-attribute
-// toggle/tune screen against GunBonsai's real player upgrade bag.
-OptionMenu "RS_PlayerDashboard"
-{
-  class RS_Menu_PlayerDashboard
-  Title "Player"
-}
-
 OptionMenu "GunBonsaiPlayerLevelUpMenu"
 {
-  // RS card presentation -- see zscript/systems/RS_LevelUpCards.zs. Was
-  // TFLV_Menu_PlayerLevelUpMenu.
-  class RS_Menu_PlayerLevelUpCards
+  class TFLV_Menu_PlayerLevelUpMenu
   Title "$TFLV_MENU_PLAYER_LEVELUP_TITLE"
 }
 
 OptionMenu "GunBonsaiWeaponLevelUpMenu"
 {
-  // RS card presentation -- see zscript/systems/RS_LevelUpCards.zs. Was
-  // TFLV_Menu_WeaponLevelUpMenu.
-  class RS_Menu_WeaponLevelUpCards
+  class TFLV_Menu_WeaponLevelUpMenu
   Title "$TFLV_MENU_WEAPON_LEVELUP_TITLE"
 }
 
@@ -364,7 +305,5 @@ OptionMenu "GunBonsaiStatusDisplay"
 
 OptionMenu "GunBonsaiStatusDisplay"
 {
-  // RS card presentation -- see zscript/systems/RS_StatusCards.zs. Was
-  // TFLV_Menu_UnifiedStatusDisplay.
-  Class "RS_Menu_StatusCards"
+  Class "TFLV_Menu_UnifiedStatusDisplay"
 }

@@ -1,28 +1,15 @@
 // =====================================================================
-// VR_PlayerClasses -- 8 selectable starting loadouts.
+// VR_PlayerClasses -- 7 selectable starting loadouts.
 // ---------------------------------------------------------------------
-// Vanilla+ is the standard Doom start. Every Dual_X class grants Fist +
-// two Basic-tier weapons of that type (one mainhand, one offhand),
-// plus all three heavy ordnance pieces universally (Rocket, Plasma,
-// BFG) if "Allow Big Guns" is on -- those don't belong to any one
-// specialization, every class gets them when enabled.
+// Every Dual_X class grants Fist + two Basic-tier weapons of that type
+// (one mainhand, one offhand), plus all three heavy ordnance pieces
+// universally (Rocket, Plasma, BFG) if "Allow Big Guns" is on -- those
+// don't belong to any one specialization, every class gets them when
+// enabled.
 //
-// All 8 get listed in MAPINFO's PlayerClasses -- GZDoom shows its own
+// All 7 get listed in MAPINFO's PlayerClasses -- GZDoom shows its own
 // native class-select screen at game start automatically.
 // =====================================================================
-
-class VR_VanillaPlus : DoomPlayer
-{
-	Default
-	{
-		Player.DisplayName "Vanilla+";
-		Player.StartItem "RS_VP_Fist";
-		Player.StartItem "RS_VP_Fist2"; // VR needs an off-hand fallback; not a map pickup either way
-		Player.StartItem "RS_VP_Pistol"; // mainhand only -- real vanilla Doom start
-		Player.StartItem "Clip", 50;
-		Player.StartItem "RS_VP_PistolLoaded", 11;
-	}
-}
 
 // ---------------------------------------------------------------------
 // VR_DualClassBase -- shared behavior for all 7 Dual_X classes.
@@ -45,6 +32,14 @@ class VR_DualClassBase : DoomPlayer abstract
 	virtual string GetMainhandClass()
 	{
 		return "";
+	}
+
+	// Class-gating family this class is allowed to pick up -- see
+	// RS_ClassGating.zs. None means "not gated" and should never be
+	// returned by a real Dual_X subclass.
+	virtual EVR_Family GetFamily()
+	{
+		return EVR_Family_None;
 	}
 
 	override void PostBeginPlay()
@@ -91,6 +86,7 @@ class VR_Dual_Pistol : VR_DualClassBase
 	}
 
 	override string GetMainhandClass() { return "VR_Pistol"; }
+	override EVR_Family GetFamily() { return EVR_Family_Pistol; }
 }
 
 class VR_Dual_Revolver : VR_DualClassBase
@@ -108,6 +104,7 @@ class VR_Dual_Revolver : VR_DualClassBase
 	}
 
 	override string GetMainhandClass() { return "VR_Revolver"; }
+	override EVR_Family GetFamily() { return EVR_Family_Revolver; }
 }
 
 class VR_Dual_Rifle : VR_DualClassBase
@@ -125,6 +122,7 @@ class VR_Dual_Rifle : VR_DualClassBase
 	}
 
 	override string GetMainhandClass() { return "VR_Rifle"; }
+	override EVR_Family GetFamily() { return EVR_Family_Rifle; }
 }
 
 class VR_Dual_SMG : VR_DualClassBase
@@ -142,6 +140,7 @@ class VR_Dual_SMG : VR_DualClassBase
 	}
 
 	override string GetMainhandClass() { return "VR_SMG"; }
+	override EVR_Family GetFamily() { return EVR_Family_SMG; }
 }
 
 class VR_Dual_Shotgun : VR_DualClassBase
@@ -159,6 +158,7 @@ class VR_Dual_Shotgun : VR_DualClassBase
 	}
 
 	override string GetMainhandClass() { return "VR_Shotgun"; }
+	override EVR_Family GetFamily() { return EVR_Family_Shotgun; }
 }
 
 class VR_Dual_SSG : VR_DualClassBase
@@ -176,6 +176,7 @@ class VR_Dual_SSG : VR_DualClassBase
 	}
 
 	override string GetMainhandClass() { return "VR_SuperShotgun"; }
+	override EVR_Family GetFamily() { return EVR_Family_SuperShotgun; }
 }
 
 class VR_Dual_Chaingun : VR_DualClassBase
@@ -191,4 +192,5 @@ class VR_Dual_Chaingun : VR_DualClassBase
 	}
 
 	override string GetMainhandClass() { return "VR_Chaingun"; }
+	override EVR_Family GetFamily() { return EVR_Family_Chaingun; }
 }

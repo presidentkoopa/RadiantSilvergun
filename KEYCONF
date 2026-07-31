@@ -20,7 +20,3 @@ alias bonsai_cycle_ld_effect "netevent bonsai-cycle-ld-effect"
 defaultbind P bonsai_cycle_ld_effect
 
 addkeysection "Radiant Silvergun" RSMain
-
-addmenukey "Weapon Selection" rs_open_weaponselect
-alias rs_open_weaponselect "netevent rs_open_weaponselect"
-defaultbind O rs_open_weaponselect

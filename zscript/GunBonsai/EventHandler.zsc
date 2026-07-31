@@ -146,10 +146,7 @@ class TFLV_EventHandler : StaticEventHandler {
     // Check for pending level ups and apply those if present.
     if (stats.GetInfoForCurrentWeapon() && stats.GetInfoForCurrentWeapon().StartLevelUp()) return;
     if (stats.StartLevelUp()) return;
-    // RS: was a flat Menu.SetMenu("GunBonsaiStatusDisplay") -- now cycles
-    // Status/Weapon Selection/Player on repeat presses so one key (I)
-    // reaches all three. See RS_MenuActionHandler.CycleBrowseMenu().
-    if (p == consoleplayer) RS_MenuActionHandler.CycleBrowseMenu(p);
+    if (p == consoleplayer) Menu.SetMenu("GunBonsaiStatusDisplay");
     return;
   }
 

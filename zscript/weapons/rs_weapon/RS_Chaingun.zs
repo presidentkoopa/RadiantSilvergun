@@ -20,6 +20,8 @@ class VR_Chaingun : RS_Weapon
 		+WEAPON.NOHANDSWITCH;
 	}
 
+	override EVR_Family GetFamily() { return EVR_Family_Chaingun; }
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;

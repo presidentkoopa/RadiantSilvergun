@@ -27,6 +27,8 @@ class VR_Revolver : RS_Weapon
 		+WEAPON.NOHANDSWITCH;
 	}
 
+	override EVR_Family GetFamily() { return EVR_Family_Revolver; }
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
