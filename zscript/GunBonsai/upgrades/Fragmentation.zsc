@@ -81,7 +81,7 @@ class TFLV_Upgrade_FragmentationShots_Boom : Actor {
     Spawn:
       TNT1 A 3; // the fragments take a few millis to travel
       TNT1 A 0 Explode();
-      LFRG CDE 2;
+      RSE8 CDE 2;
       STOP;
   }
 }
@@ -106,11 +106,11 @@ class TFLV_Upgrade_FragmentationShots_Fragment : FastProjectile {
 
   States {
     Spawn:
-      LPUF A 1 BRIGHT;
+      RSU4 A 1 BRIGHT;
       LOOP;
     Crash:
     Death:
-      LPUF ABCD 2 BRIGHT;
+      RSU4 ABCD 2 BRIGHT;
       STOP;
     XDeath:
       STOP;
@@ -147,7 +147,7 @@ class TFLV_Upgrade_FragmentationShots_Trail : Actor {
 
   States {
     Spawn:
-      LPUF A 1 BRIGHT A_FadeOut(0.3);
+      RSU4 A 1 BRIGHT A_FadeOut(0.3);
       LOOP;
   }
 }

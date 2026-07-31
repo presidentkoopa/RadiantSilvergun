@@ -3,7 +3,7 @@
 // Real data pulled from the old reference file (sprites/sounds/frame
 // sequences/damage only -- no old architecture): dmg anchor 4-10,
 // magazine 12, reload frames PISG F-R / S-W / X-Y exactly. Real sounds:
-// 9mmshoot/9mmclip1/9mmclip2/9mmslide/AKEMPT. True semi-auto: trigger
+// 9mmshoot/9mmclip1/9mmclip2/9mmslide/rs_fx_weapon_empty. True semi-auto: trigger
 // release required, cadence overshoot costs Accuracy, not blocked.
 // =====================================================================
 class VR_Pistol : RS_Weapon
@@ -154,7 +154,7 @@ class VR_Pistol : RS_Weapon
 
 	action void A_RS_Backfire()
 	{
-		A_PlaySound("AKEMPT", CHAN_WEAPON);
+		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
 		double dmg = invoker.DamagePerShot;
 		if (FRandom(0, 1) < invoker.CritChance)
 			dmg *= 2.0;
@@ -211,7 +211,7 @@ class VR_Pistol : RS_Weapon
 		Stop;
 
 	OutOfAmmo:
-		TNT1 A 0 A_PlaySound("AKEMPT", CHAN_AUTO);
+		TNT1 A 0 A_PlaySound("rs_fx_weapon_empty", CHAN_AUTO);
 		Goto Ready;
 	}
 }

@@ -68,7 +68,7 @@ class RS_BallisticFired : FastProjectile
 		Loop;
 
 	Death:
-		TNT1 A 0 A_PlaySound("ballisticimpact", CHAN_AUTO);
+		TNT1 A 0 A_PlaySound("rs_fx_impact_bullet", CHAN_AUTO);
 		RSU0 A 4;
 		Stop;
 	}
@@ -78,7 +78,7 @@ class RS_BallisticFired : FastProjectile
 // RS_BallisticType1 -- First Selectable Ballistic Visual Type
 // ---------------------------------------------------------------------
 // Inherits from the master file and applies the in-flight sprite
-// animation frames named BB01 sequentially while traveling.
+// animation frames named RSB0 sequentially while traveling.
 // =====================================================================
 
 class RS_BallisticType1 : RS_BallisticFired
@@ -86,11 +86,11 @@ class RS_BallisticType1 : RS_BallisticFired
 	States
 	{
 	Spawn:
-		BB01 A 2 Bright;
-		BB01 B 2 Bright;
-		BB01 C 2 Bright;
-		BB01 D 2 Bright;
-		BB01 E 2 Bright;
+		RSB0 A 2 Bright;
+		RSB0 B 2 Bright;
+		RSB0 C 2 Bright;
+		RSB0 D 2 Bright;
+		RSB0 E 2 Bright;
 		Loop;
 	}
 }

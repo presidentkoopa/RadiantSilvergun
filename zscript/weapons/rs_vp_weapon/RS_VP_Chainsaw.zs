@@ -142,7 +142,7 @@ class RS_VP_Chainsaw : RS_VP_Weapon replaces Chainsaw
 	// starting it in the first place.
 	Rev:
 		TNT1 A 0 { invoker.bMotorRunning = true; }
-		TNT1 A 0 A_PlaySound("rs_fx_foley", CHAN_AUTO);
+		TNT1 A 0 A_PlaySound("rs_vp_saw_cord", CHAN_AUTO);
 		SAWG A 2;
 		SAWR A 6;
 		TNT1 A 0 A_PlaySound("rs_vp_saw_zip", CHAN_AUTO);

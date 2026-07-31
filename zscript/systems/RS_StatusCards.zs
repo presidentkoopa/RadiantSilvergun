@@ -127,20 +127,24 @@ class RS_Menu_StatusCards : OptionMenu {
     else cursorO = v;
   }
 
-  bool GetFocusedDesc(out string name, out string desc) {
+  // "name" is a reserved ZScript keyword (the built-in Name type), so it
+  // can't be used as a parameter identifier -- the compiler reads
+  // "out string name" as the start of a type declaration and chokes on
+  // the "=" that follows inside the body. Renamed to outName.
+  bool GetFocusedDesc(out string outName, out string desc) {
     int c = GetCursor();
     if (focusSection == 0 && c >= 0 && c < playerNames.size()) {
-      name = string.format("%s (Lv %d)", playerNames[c], playerLevels[c]);
+      outName = string.format("%s (Lv %d)", playerNames[c], playerLevels[c]);
       desc = playerDescs[c];
       return true;
     }
     if (focusSection == 1 && c >= 0 && c < weaponNames.size()) {
-      name = string.format("%s (Lv %d)", weaponNames[c], weaponLevels[c]);
+      outName = string.format("%s (Lv %d)", weaponNames[c], weaponLevels[c]);
       desc = weaponDescs[c];
       return true;
     }
     if (focusSection == 2 && c >= 0 && c < offhandNames.size()) {
-      name = string.format("%s (Lv %d)", offhandNames[c], offhandLevels[c]);
+      outName = string.format("%s (Lv %d)", offhandNames[c], offhandLevels[c]);
       desc = offhandDescs[c];
       return true;
     }

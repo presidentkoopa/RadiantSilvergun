@@ -244,7 +244,7 @@ class RS_VP_Chaingun : RS_VP_Weapon replaces Chaingun
 		Goto LightDone;
 
 	OutOfAmmo:
-		TNT1 A 0 A_PlaySound("AKEMPT", CHAN_AUTO);
+		TNT1 A 0 A_PlaySound("rs_fx_weapon_empty", CHAN_AUTO);
 		Goto Ready;
 	}
 }

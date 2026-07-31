@@ -123,10 +123,16 @@ class RS_VP_PlasmaRifle : RS_VP_Weapon replaces PlasmaRifle
 		if (FRandom(0, 1) < invoker.CritChance)
 			dmg *= 2.0;
 
-		int aimflags = invoker.bOffhandWeapon ? ALF_ISOFFHAND : 0;
+		// NOT offhand-aware: unlike SpawnPlayerMissile (used by every other
+		// fire path in this project), A_RailAttack does not accept an
+		// aimflags argument on this engine -- confirmed by compile error,
+		// not assumed. The beam always fires from the mainhand transform,
+		// even when triggered from the offhand plasma rifle. Acceptable for
+		// now since it's a straight line rather than a spawned actor with a
+		// visible origin point; revisit if that turns out to read wrong
+		// in a headset.
 		A_RailAttack(int(dmg), 0, false, "0F59EF", "8080FF",
-			RGF_SILENT | RGF_FULLBRIGHT | RGF_NOPIERCING,
-			aim: aimflags);
+			RGF_SILENT | RGF_FULLBRIGHT | RGF_NOPIERCING);
 
 		A_PlaySound("rs_vp_plasma_altfire", CHAN_WEAPON);
 		RS_HiFiFX.MuzzleEffects(self, true);
@@ -261,7 +267,7 @@ class RS_VP_PlasmaRifle : RS_VP_Weapon replaces PlasmaRifle
 		Goto LightDone;
 
 	OutOfAmmo:
-		TNT1 A 0 A_PlaySound("AKEMPT", CHAN_AUTO);
+		TNT1 A 0 A_PlaySound("rs_fx_weapon_empty", CHAN_AUTO);
 		Goto Ready;
 	}
 }

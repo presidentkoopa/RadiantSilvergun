@@ -661,7 +661,7 @@ class TFLV_Upgrade_ChainLightning_VFX : Actor {
 
   States {
     Spawn:
-      LLIT ABCDEFGHIJK 3;
+      RSL0 ABCDEFGHIJK 3;
       STOP;
   }
 }
@@ -680,9 +680,9 @@ class TFLV_Upgrade_Thunderbolt_VFX : Actor {
 
   States {
     Spawn:
-      LTHN ABCD 1;
-      LTHN EFGHI 4;
-      LTHN JKLM 1;
+      RSL2 ABCD 1;
+      RSL2 EFGHI 4;
+      RSL2 JKLM 1;
       STOP;
   }
 }
@@ -701,7 +701,7 @@ class TFLV_Upgrade_Revivification_VFX : Actor {
 
   States {
     Spawn:
-      LRVV ABCDEFGHIJKLMNOPQRSTUVWXY 1;
+      RSL1 ABCDEFGHIJKLMNOPQRSTUVWXY 1;
       STOP;
   }
 }

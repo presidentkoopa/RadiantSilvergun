@@ -212,7 +212,7 @@ class TFLV_Upgrade_Putrefaction_Aux : Actor {
 
   States {
     Spawn:
-      LPBX ABABABCBCBCDCDCDEE 7 Spread();
+      RSN0 ABABABCBCBCDCDCDEE 7 Spread();
       STOP;
   }
 }

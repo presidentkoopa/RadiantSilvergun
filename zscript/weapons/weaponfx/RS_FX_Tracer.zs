@@ -20,7 +20,7 @@ class RS_BallisticTracer : RS_BallisticFired
 		TNT1 A 0 A_FadeOut(0.1);
 		Loop;
 	SpawnNear:
-		BAL1 A 30 Bright A_PlaySound("rs_fx_tracerwhizz", CHAN_AUTO, 1.0, false, ATTN_STATIC);
+		BAL1 A 30 Bright A_PlaySound("rs_fx_tracer_whizz", CHAN_AUTO, 1.0, false, ATTN_STATIC);
 		Loop;
 	Death:
 		TNT1 A 0 A_JumpIf(!CVar.GetCVar("rs_fx_ricochet", null), "Super::Death");

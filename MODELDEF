@@ -5,7 +5,7 @@
 
 Model VR_BFG9000
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG.png"
 	Scale -1.0 1.0 1.0
@@ -16,7 +16,7 @@ Model VR_BFG9000
 
 Model VR_BFG9000
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG2.png"
 	Scale -1.0 1.0 1.0
@@ -28,7 +28,7 @@ Model VR_BFG9000
 
 Model VR_BFG9000
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash0.png"
 	Scale -4.0 1.0 4.0
@@ -40,7 +40,7 @@ Model VR_BFG9000
 
 Model VR_BFG9000
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash1.png"
 	Offset 0.0 -50.0 50.0
@@ -52,7 +52,7 @@ Model VR_BFG9000
 
 Model VR_BFG90002
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG.png"
 	Scale -1.0 1.0 1.0
@@ -63,7 +63,7 @@ Model VR_BFG90002
 
 Model VR_BFG90002
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG2.png"
 	Scale -1.0 1.0 1.0
@@ -75,7 +75,7 @@ Model VR_BFG90002
 
 Model VR_BFG90002
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash0.png"
 	Scale -4.0 1.0 4.0
@@ -87,7 +87,7 @@ Model VR_BFG90002
 
 Model VR_BFG90002
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash1.png"
 	Offset 0.0 -50.0 50.0
@@ -99,7 +99,7 @@ Model VR_BFG90002
 
 Model VR_BFG90003
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG.png"
 	Scale -1.0 1.0 1.0
@@ -110,7 +110,7 @@ Model VR_BFG90003
 
 Model VR_BFG90003
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG2.png"
 	Scale -1.0 1.0 1.0
@@ -122,7 +122,7 @@ Model VR_BFG90003
 
 Model VR_BFG90003
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash0.png"
 	Scale -4.0 1.0 4.0
@@ -134,7 +134,7 @@ Model VR_BFG90003
 
 Model VR_BFG90003
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash1.png"
 	Offset 0.0 -50.0 50.0
@@ -146,7 +146,7 @@ Model VR_BFG90003
 
 Model VR_BFG90004
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG.png"
 	Scale -1.0 1.0 1.0
@@ -157,7 +157,7 @@ Model VR_BFG90004
 
 Model VR_BFG90004
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG2.png"
 	Scale -1.0 1.0 1.0
@@ -169,7 +169,7 @@ Model VR_BFG90004
 
 Model VR_BFG90004
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash0.png"
 	Scale -4.0 1.0 4.0
@@ -181,7 +181,7 @@ Model VR_BFG90004
 
 Model VR_BFG90004
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash1.png"
 	Offset 0.0 -50.0 50.0
@@ -193,7 +193,7 @@ Model VR_BFG90004
 
 Model VR_BFG90005
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG.png"
 	Scale -1.0 1.0 1.0
@@ -204,7 +204,7 @@ Model VR_BFG90005
 
 Model VR_BFG90005
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG2.png"
 	Scale -1.0 1.0 1.0
@@ -216,7 +216,7 @@ Model VR_BFG90005
 
 Model VR_BFG90005
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash0.png"
 	Scale -4.0 1.0 4.0
@@ -228,7 +228,7 @@ Model VR_BFG90005
 
 Model VR_BFG90005
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash1.png"
 	Offset 0.0 -50.0 50.0
@@ -240,7 +240,7 @@ Model VR_BFG90005
 
 Model VR_BFG90006
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG.png"
 	Scale -1.0 1.0 1.0
@@ -251,7 +251,7 @@ Model VR_BFG90006
 
 Model VR_BFG90006
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
 	Skin 0 "BFG2.png"
 	Scale -1.0 1.0 1.0
@@ -263,7 +263,7 @@ Model VR_BFG90006
 
 Model VR_BFG90006
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash0.png"
 	Scale -4.0 1.0 4.0
@@ -275,7 +275,7 @@ Model VR_BFG90006
 
 Model VR_BFG90006
 {
-	Path "Models/Weapons/hud/VR_BFG9000"
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "bfgexpo.md2"
 	Skin 0 "energy_flash1.png"
 	Offset 0.0 -50.0 50.0
@@ -293,7 +293,7 @@ Model VR_BFG90006
 
 Model VR_Chaingun
 {
-	Path "Models/Weapons/hud/VR_Chaingun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chaingun"
 	Model 0 "chaingun.md3"
 	Skin 0 "chaingun.png"
 	Scale -1.0 1.0 1.0
@@ -306,7 +306,7 @@ Model VR_Chaingun
 
 Model VR_Chaingun2
 {
-	Path "Models/Weapons/hud/VR_Chaingun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chaingun"
 	Model 0 "chaingun.md3"
 	Skin 0 "chaingun.png"
 	Scale -1.0 1.0 1.0
@@ -319,7 +319,7 @@ Model VR_Chaingun2
 
 Model VR_Chaingun3
 {
-	Path "Models/Weapons/hud/VR_Chaingun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chaingun"
 	Model 0 "chaingun.md3"
 	Skin 0 "chaingun.png"
 	Scale -1.0 1.0 1.0
@@ -332,7 +332,7 @@ Model VR_Chaingun3
 
 Model VR_Chaingun4
 {
-	Path "Models/Weapons/hud/VR_Chaingun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chaingun"
 	Model 0 "chaingun.md3"
 	Skin 0 "chaingun.png"
 	Scale -1.0 1.0 1.0
@@ -345,7 +345,7 @@ Model VR_Chaingun4
 
 Model VR_Chaingun5
 {
-	Path "Models/Weapons/hud/VR_Chaingun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chaingun"
 	Model 0 "chaingun.md3"
 	Skin 0 "chaingun.png"
 	Scale -1.0 1.0 1.0
@@ -358,7 +358,7 @@ Model VR_Chaingun5
 
 Model VR_Chaingun6
 {
-	Path "Models/Weapons/hud/VR_Chaingun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chaingun"
 	Model 0 "chaingun.md3"
 	Skin 0 "chaingun.png"
 	Scale -1.0 1.0 1.0
@@ -372,15 +372,14 @@ Model VR_Chaingun6
 
 // ==== VR_Chainsaw -- new, main-arsenal melee weapon ====
 // Source: 1.0b_Weapons_VanillaVRPlus_v1.2 pack's Chainsaw.md3/png, copied
-// to Models/Weapons/Hud/VR_Chainsaw/ (renamed lowercase to match this
-// project's convention). Frame indices (SAWG A/B/C/D -> model frames
+// to Models/Weapons/hud/RS_Weapon/VR_Chainsaw/. Frame indices (SAWG A/B/C/D -> model frames
 // 0/3/5/7) and Scale/Offset are the pack's own verified values, not
 // guessed -- its own modeldef fragment defined exactly these four.
 // Ready idle wobbles A<->B; Fire attack wobbles C<->D (see RS_Chainsaw.zs).
 
 Model VR_Chainsaw
 {
-	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chainsaw"
 	Model 0 "chainsaw.md3"
 	Skin 0 "chainsaw.png"
 	Offset 0.0 14.0 0.0
@@ -395,7 +394,7 @@ Model VR_Chainsaw
 
 Model VR_Chainsaw2
 {
-	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chainsaw"
 	Model 0 "chainsaw.md3"
 	Skin 0 "chainsaw.png"
 	Offset 0.0 14.0 0.0
@@ -410,7 +409,7 @@ Model VR_Chainsaw2
 
 Model VR_Chainsaw3
 {
-	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chainsaw"
 	Model 0 "chainsaw.md3"
 	Skin 0 "chainsaw.png"
 	Offset 0.0 14.0 0.0
@@ -425,7 +424,7 @@ Model VR_Chainsaw3
 
 Model VR_Chainsaw4
 {
-	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chainsaw"
 	Model 0 "chainsaw.md3"
 	Skin 0 "chainsaw.png"
 	Offset 0.0 14.0 0.0
@@ -440,7 +439,7 @@ Model VR_Chainsaw4
 
 Model VR_Chainsaw5
 {
-	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chainsaw"
 	Model 0 "chainsaw.md3"
 	Skin 0 "chainsaw.png"
 	Offset 0.0 14.0 0.0
@@ -455,7 +454,7 @@ Model VR_Chainsaw5
 
 Model VR_Chainsaw6
 {
-	Path "Models/Weapons/Hud/VR_Chainsaw"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chainsaw"
 	Model 0 "chainsaw.md3"
 	Skin 0 "chainsaw.png"
 	Offset 0.0 14.0 0.0
@@ -476,7 +475,7 @@ Model VR_Chainsaw6
 
 Model VR_Pistol
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistolet.md3"
 	Skin 0 "WPN-9mm.png"
 	Scale 1.35 1.35 1.35
@@ -508,7 +507,7 @@ Model VR_Pistol
 
 Model VR_Pistol
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistF.md3"
 	Skin 0 "9mmFlash.png"
 	Scale 1.35 1.35 1.35
@@ -521,7 +520,7 @@ Model VR_Pistol
 
 Model VR_Pistol2
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistolet.md3"
 	Skin 0 "WPN-9mm2.png"
 	Scale 1.35 1.35 1.35
@@ -553,7 +552,7 @@ Model VR_Pistol2
 
 Model VR_Pistol2
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistF.md3"
 	Skin 0 "9mmFlash.png"
 	Scale 1.35 1.35 1.35
@@ -566,7 +565,7 @@ Model VR_Pistol2
 
 Model VR_Pistol3
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistolet.md3"
 	Skin 0 "WPN-9mm3.png"
 	Scale 1.35 1.35 1.35
@@ -598,7 +597,7 @@ Model VR_Pistol3
 
 Model VR_Pistol3
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistF.md3"
 	Skin 0 "9mmFlash.png"
 	Scale 1.35 1.35 1.35
@@ -611,7 +610,7 @@ Model VR_Pistol3
 
 Model VR_Pistol4
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistolet.md3"
 	Skin 0 "WPN-9mm4.png"
 	Scale 1.35 1.35 1.35
@@ -643,7 +642,7 @@ Model VR_Pistol4
 
 Model VR_Pistol4
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistF.md3"
 	Skin 0 "9mmFlash.png"
 	Scale 1.35 1.35 1.35
@@ -656,7 +655,7 @@ Model VR_Pistol4
 
 Model VR_Pistol5
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistolet.md3"
 	Skin 0 "WPN-9mm5.png"
 	Scale 1.35 1.35 1.35
@@ -688,7 +687,7 @@ Model VR_Pistol5
 
 Model VR_Pistol5
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistF.md3"
 	Skin 0 "9mmFlash.png"
 	Scale 1.35 1.35 1.35
@@ -701,7 +700,7 @@ Model VR_Pistol5
 
 Model VR_Pistol6
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistolet.md3"
 	Skin 0 "WPN-9mm6.png"
 	Scale 1.35 1.35 1.35
@@ -733,7 +732,7 @@ Model VR_Pistol6
 
 Model VR_Pistol6
 {
-	Path "Models/Weapons/hud/VR_Pistol"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistF.md3"
 	Skin 0 "9mmFlash.png"
 	Scale 1.35 1.35 1.35
@@ -752,7 +751,7 @@ Model VR_Pistol6
 
 Model VR_PlasmaRifle
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle.md3"
 	Skin 0 "PlasmaRifle.png"
 	Scale -1.0 1.0 1.0
@@ -764,7 +763,7 @@ Model VR_PlasmaRifle
 
 Model VR_PlasmaRifle
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL.png"
 	Scale -2.0 1.0 2.0
@@ -775,7 +774,7 @@ Model VR_PlasmaRifle
 
 Model VR_PlasmaRifle
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL1.png"
 	Scale -2.0 1.0 2.0
@@ -786,7 +785,7 @@ Model VR_PlasmaRifle
 
 Model VR_PlasmaRifle2
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle.md3"
 	Skin 0 "PlasmaRifle.png"
 	Scale -1.0 1.0 1.0
@@ -798,7 +797,7 @@ Model VR_PlasmaRifle2
 
 Model VR_PlasmaRifle2
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL.png"
 	Scale -2.0 1.0 2.0
@@ -809,7 +808,7 @@ Model VR_PlasmaRifle2
 
 Model VR_PlasmaRifle2
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL1.png"
 	Scale -2.0 1.0 2.0
@@ -820,7 +819,7 @@ Model VR_PlasmaRifle2
 
 Model VR_PlasmaRifle3
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle.md3"
 	Skin 0 "PlasmaRifle.png"
 	Scale -1.0 1.0 1.0
@@ -832,7 +831,7 @@ Model VR_PlasmaRifle3
 
 Model VR_PlasmaRifle3
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL.png"
 	Scale -2.0 1.0 2.0
@@ -843,7 +842,7 @@ Model VR_PlasmaRifle3
 
 Model VR_PlasmaRifle3
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL1.png"
 	Scale -2.0 1.0 2.0
@@ -854,7 +853,7 @@ Model VR_PlasmaRifle3
 
 Model VR_PlasmaRifle4
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle.md3"
 	Skin 0 "PlasmaRifle.png"
 	Scale -1.0 1.0 1.0
@@ -866,7 +865,7 @@ Model VR_PlasmaRifle4
 
 Model VR_PlasmaRifle4
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL.png"
 	Scale -2.0 1.0 2.0
@@ -877,7 +876,7 @@ Model VR_PlasmaRifle4
 
 Model VR_PlasmaRifle4
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL1.png"
 	Scale -2.0 1.0 2.0
@@ -888,7 +887,7 @@ Model VR_PlasmaRifle4
 
 Model VR_PlasmaRifle5
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle.md3"
 	Skin 0 "PlasmaRifle.png"
 	Scale -1.0 1.0 1.0
@@ -900,7 +899,7 @@ Model VR_PlasmaRifle5
 
 Model VR_PlasmaRifle5
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL.png"
 	Scale -2.0 1.0 2.0
@@ -911,7 +910,7 @@ Model VR_PlasmaRifle5
 
 Model VR_PlasmaRifle5
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL1.png"
 	Scale -2.0 1.0 2.0
@@ -922,7 +921,7 @@ Model VR_PlasmaRifle5
 
 Model VR_PlasmaRifle6
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle.md3"
 	Skin 0 "PlasmaRifle.png"
 	Scale -1.0 1.0 1.0
@@ -934,7 +933,7 @@ Model VR_PlasmaRifle6
 
 Model VR_PlasmaRifle6
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL.png"
 	Scale -2.0 1.0 2.0
@@ -945,7 +944,7 @@ Model VR_PlasmaRifle6
 
 Model VR_PlasmaRifle6
 {
-	Path "Models/Weapons/hud/VR_PlasmaRifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle-FL.MD2"
 	Skin 0 "PlasmaRifle-FL1.png"
 	Scale -2.0 1.0 2.0
@@ -971,7 +970,7 @@ Model VR_PlasmaRifle6
 
 Model VR_Revolver
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "rev.md3"
 	Skin 0 "WPN-REV.png"
 	Scale 1.35 1.35 1.35
@@ -1021,7 +1020,7 @@ Model VR_Revolver
 
 Model VR_Revolver
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "revf.md3"
 	Skin 0 "RedFlash.png"
 	Scale 1.35 1.35 1.35
@@ -1042,7 +1041,7 @@ Model VR_Revolver
 
 Model VR_Revolver2
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "rev.md3"
 	Skin 0 "WPN-REV.png"
 	Scale 1.35 1.35 1.35
@@ -1092,7 +1091,7 @@ Model VR_Revolver2
 
 Model VR_Revolver2
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "revf.md3"
 	Skin 0 "RedFlash.png"
 	Scale 1.35 1.35 1.35
@@ -1113,7 +1112,7 @@ Model VR_Revolver2
 
 Model VR_Revolver3
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "rev.md3"
 	Skin 0 "WPN-REV.png"
 	Scale 1.35 1.35 1.35
@@ -1163,7 +1162,7 @@ Model VR_Revolver3
 
 Model VR_Revolver3
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "revf.md3"
 	Skin 0 "RedFlash.png"
 	Scale 1.35 1.35 1.35
@@ -1184,7 +1183,7 @@ Model VR_Revolver3
 
 Model VR_Revolver4
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "rev.md3"
 	Skin 0 "WPN-REV.png"
 	Scale 1.35 1.35 1.35
@@ -1234,7 +1233,7 @@ Model VR_Revolver4
 
 Model VR_Revolver4
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "revf.md3"
 	Skin 0 "RedFlash.png"
 	Scale 1.35 1.35 1.35
@@ -1255,7 +1254,7 @@ Model VR_Revolver4
 
 Model VR_Revolver5
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "rev.md3"
 	Skin 0 "WPN-REV.png"
 	Scale 1.35 1.35 1.35
@@ -1305,7 +1304,7 @@ Model VR_Revolver5
 
 Model VR_Revolver5
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "revf.md3"
 	Skin 0 "RedFlash.png"
 	Scale 1.35 1.35 1.35
@@ -1326,7 +1325,7 @@ Model VR_Revolver5
 
 Model VR_Revolver6
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "rev.md3"
 	Skin 0 "WPN-REV.png"
 	Scale 1.35 1.35 1.35
@@ -1376,7 +1375,7 @@ Model VR_Revolver6
 
 Model VR_Revolver6
 {
-	Path "Models/Weapons/hud/VR_Revolver"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "revf.md3"
 	Skin 0 "RedFlash.png"
 	Scale 1.35 1.35 1.35
@@ -1400,7 +1399,7 @@ Model VR_Revolver6
 
 Model VR_Rifle
 {
-	Path "Models/Weapons/hud/VR_Rifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Rifle"
 	Model 0 "m16.md3"
 	Skin 0 "WPN-M16.png"
 	Scale 1.35 1.35 1.35
@@ -1443,7 +1442,7 @@ Model VR_Rifle
 
 Model VR_Rifle2
 {
-	Path "Models/Weapons/hud/VR_Rifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Rifle"
 	Model 0 "m16.md3"
 	Skin 0 "WPN-M16.png"
 	Scale 1.35 1.35 1.35
@@ -1486,7 +1485,7 @@ Model VR_Rifle2
 
 Model VR_Rifle3
 {
-	Path "Models/Weapons/hud/VR_Rifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Rifle"
 	Model 0 "m16.md3"
 	Skin 0 "WPN-M16.png"
 	Scale 1.35 1.35 1.35
@@ -1529,7 +1528,7 @@ Model VR_Rifle3
 
 Model VR_Rifle4
 {
-	Path "Models/Weapons/hud/VR_Rifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Rifle"
 	Model 0 "m16.md3"
 	Skin 0 "WPN-M16.png"
 	Scale 1.35 1.35 1.35
@@ -1572,7 +1571,7 @@ Model VR_Rifle4
 
 Model VR_Rifle5
 {
-	Path "Models/Weapons/hud/VR_Rifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Rifle"
 	Model 0 "m16.md3"
 	Skin 0 "WPN-M16.png"
 	Scale 1.35 1.35 1.35
@@ -1615,7 +1614,7 @@ Model VR_Rifle5
 
 Model VR_Rifle6
 {
-	Path "Models/Weapons/hud/VR_Rifle"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Rifle"
 	Model 0 "m16.md3"
 	Skin 0 "WPN-M16.png"
 	Scale 1.35 1.35 1.35
@@ -1664,7 +1663,7 @@ Model VR_Rifle6
 
 Model VR_RocketLauncher
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RPG.md3"
 	Skin 0 "RPG.png"
 	Scale -1.0 1.0 1.0
@@ -1677,7 +1676,7 @@ Model VR_RocketLauncher
 
 Model VR_RocketLauncher
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF0.png"
 	Scale 1.0 1.0 1.0
@@ -1688,7 +1687,7 @@ Model VR_RocketLauncher
 
 Model VR_RocketLauncher
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF1.png"
 	Scale 1.0 1.0 1.0
@@ -1699,7 +1698,7 @@ Model VR_RocketLauncher
 
 Model VR_RocketLauncher
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF2.png"
 	Scale 1.0 1.0 1.0
@@ -1710,7 +1709,7 @@ Model VR_RocketLauncher
 
 Model VR_RocketLauncher
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF3.png"
 	Scale 1.0 1.0 1.0
@@ -1721,7 +1720,7 @@ Model VR_RocketLauncher
 
 Model VR_RocketLauncher2
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RPG.md3"
 	Skin 0 "RPG.png"
 	Scale -1.0 1.0 1.0
@@ -1734,7 +1733,7 @@ Model VR_RocketLauncher2
 
 Model VR_RocketLauncher2
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF0.png"
 	Scale 1.0 1.0 1.0
@@ -1745,7 +1744,7 @@ Model VR_RocketLauncher2
 
 Model VR_RocketLauncher2
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF1.png"
 	Scale 1.0 1.0 1.0
@@ -1756,7 +1755,7 @@ Model VR_RocketLauncher2
 
 Model VR_RocketLauncher2
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF2.png"
 	Scale 1.0 1.0 1.0
@@ -1767,7 +1766,7 @@ Model VR_RocketLauncher2
 
 Model VR_RocketLauncher2
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF3.png"
 	Scale 1.0 1.0 1.0
@@ -1778,7 +1777,7 @@ Model VR_RocketLauncher2
 
 Model VR_RocketLauncher3
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RPG.md3"
 	Skin 0 "RPG.png"
 	Scale -1.0 1.0 1.0
@@ -1791,7 +1790,7 @@ Model VR_RocketLauncher3
 
 Model VR_RocketLauncher3
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF0.png"
 	Scale 1.0 1.0 1.0
@@ -1802,7 +1801,7 @@ Model VR_RocketLauncher3
 
 Model VR_RocketLauncher3
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF1.png"
 	Scale 1.0 1.0 1.0
@@ -1813,7 +1812,7 @@ Model VR_RocketLauncher3
 
 Model VR_RocketLauncher3
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF2.png"
 	Scale 1.0 1.0 1.0
@@ -1824,7 +1823,7 @@ Model VR_RocketLauncher3
 
 Model VR_RocketLauncher3
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF3.png"
 	Scale 1.0 1.0 1.0
@@ -1835,7 +1834,7 @@ Model VR_RocketLauncher3
 
 Model VR_RocketLauncher4
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RPG.md3"
 	Skin 0 "RPG.png"
 	Scale -1.0 1.0 1.0
@@ -1848,7 +1847,7 @@ Model VR_RocketLauncher4
 
 Model VR_RocketLauncher4
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF0.png"
 	Scale 1.0 1.0 1.0
@@ -1859,7 +1858,7 @@ Model VR_RocketLauncher4
 
 Model VR_RocketLauncher4
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF1.png"
 	Scale 1.0 1.0 1.0
@@ -1870,7 +1869,7 @@ Model VR_RocketLauncher4
 
 Model VR_RocketLauncher4
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF2.png"
 	Scale 1.0 1.0 1.0
@@ -1881,7 +1880,7 @@ Model VR_RocketLauncher4
 
 Model VR_RocketLauncher4
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF3.png"
 	Scale 1.0 1.0 1.0
@@ -1892,7 +1891,7 @@ Model VR_RocketLauncher4
 
 Model VR_RocketLauncher5
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RPG.md3"
 	Skin 0 "RPG.png"
 	Scale -1.0 1.0 1.0
@@ -1905,7 +1904,7 @@ Model VR_RocketLauncher5
 
 Model VR_RocketLauncher5
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF0.png"
 	Scale 1.0 1.0 1.0
@@ -1916,7 +1915,7 @@ Model VR_RocketLauncher5
 
 Model VR_RocketLauncher5
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF1.png"
 	Scale 1.0 1.0 1.0
@@ -1927,7 +1926,7 @@ Model VR_RocketLauncher5
 
 Model VR_RocketLauncher5
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF2.png"
 	Scale 1.0 1.0 1.0
@@ -1938,7 +1937,7 @@ Model VR_RocketLauncher5
 
 Model VR_RocketLauncher5
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF3.png"
 	Scale 1.0 1.0 1.0
@@ -1949,7 +1948,7 @@ Model VR_RocketLauncher5
 
 Model VR_RocketLauncher6
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RPG.md3"
 	Skin 0 "RPG.png"
 	Scale -1.0 1.0 1.0
@@ -1962,7 +1961,7 @@ Model VR_RocketLauncher6
 
 Model VR_RocketLauncher6
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF0.png"
 	Scale 1.0 1.0 1.0
@@ -1973,7 +1972,7 @@ Model VR_RocketLauncher6
 
 Model VR_RocketLauncher6
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF1.png"
 	Scale 1.0 1.0 1.0
@@ -1984,7 +1983,7 @@ Model VR_RocketLauncher6
 
 Model VR_RocketLauncher6
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF2.png"
 	Scale 1.0 1.0 1.0
@@ -1995,7 +1994,7 @@ Model VR_RocketLauncher6
 
 Model VR_RocketLauncher6
 {
-	Path "Models/Weapons/hud/VR_RocketLauncher"
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RocketLauncher-MF.MD2"
 	Skin 0 "hud_RL_MF3.png"
 	Scale 1.0 1.0 1.0
@@ -2016,7 +2015,7 @@ Model VR_RocketLauncher6
 
 Model VR_SMG
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2049,7 +2048,7 @@ Model VR_SMG
 
 Model VR_SMG
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2066,7 +2065,7 @@ Model VR_SMG
 
 Model VR_SMG2
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2099,7 +2098,7 @@ Model VR_SMG2
 
 Model VR_SMG2
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2116,7 +2115,7 @@ Model VR_SMG2
 
 Model VR_SMG3
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2149,7 +2148,7 @@ Model VR_SMG3
 
 Model VR_SMG3
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2166,7 +2165,7 @@ Model VR_SMG3
 
 Model VR_SMG4
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2199,7 +2198,7 @@ Model VR_SMG4
 
 Model VR_SMG4
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2216,7 +2215,7 @@ Model VR_SMG4
 
 Model VR_SMG5
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2249,7 +2248,7 @@ Model VR_SMG5
 
 Model VR_SMG5
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2266,7 +2265,7 @@ Model VR_SMG5
 
 Model VR_SMG6
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2299,7 +2298,7 @@ Model VR_SMG6
 
 Model VR_SMG6
 {
-	Path "Models/Weapons/hud/VR_SMG"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
 	Skin 0 "SMG.png"
 	Scale -1.0 1.0 1.0
@@ -2322,7 +2321,7 @@ Model VR_SMG6
 
 Model VR_Shotgun
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgun.md3"
 	Skin 0 "WPN-SHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2351,7 +2350,7 @@ Model VR_Shotgun
 
 Model VR_Shotgun
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgunF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2366,7 +2365,7 @@ Model VR_Shotgun
 
 Model VR_Shotgun2
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgun.md3"
 	Skin 0 "WPN-SHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2395,7 +2394,7 @@ Model VR_Shotgun2
 
 Model VR_Shotgun2
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgunF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2410,7 +2409,7 @@ Model VR_Shotgun2
 
 Model VR_Shotgun3
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgun.md3"
 	Skin 0 "WPN-SHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2439,7 +2438,7 @@ Model VR_Shotgun3
 
 Model VR_Shotgun3
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgunF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2454,7 +2453,7 @@ Model VR_Shotgun3
 
 Model VR_Shotgun4
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgun.md3"
 	Skin 0 "WPN-SHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2483,7 +2482,7 @@ Model VR_Shotgun4
 
 Model VR_Shotgun4
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgunF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2498,7 +2497,7 @@ Model VR_Shotgun4
 
 Model VR_Shotgun5
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgun.md3"
 	Skin 0 "WPN-SHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2527,7 +2526,7 @@ Model VR_Shotgun5
 
 Model VR_Shotgun5
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgunF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2542,7 +2541,7 @@ Model VR_Shotgun5
 
 Model VR_Shotgun6
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgun.md3"
 	Skin 0 "WPN-SHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2571,7 +2570,7 @@ Model VR_Shotgun6
 
 Model VR_Shotgun6
 {
-	Path "Models/Weapons/hud/VR_Shotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgunF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2595,7 +2594,7 @@ Model VR_Shotgun6
 
 Model VR_SuperShotgun
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssg.md3"
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2629,7 +2628,7 @@ Model VR_SuperShotgun
 
 Model VR_SuperShotgun
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssgF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2644,7 +2643,7 @@ Model VR_SuperShotgun
 
 Model VR_SuperShotgun2
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssg.md3"
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2678,7 +2677,7 @@ Model VR_SuperShotgun2
 
 Model VR_SuperShotgun2
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssgF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2693,7 +2692,7 @@ Model VR_SuperShotgun2
 
 Model VR_SuperShotgun3
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssg.md3"
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2727,7 +2726,7 @@ Model VR_SuperShotgun3
 
 Model VR_SuperShotgun3
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssgF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2742,7 +2741,7 @@ Model VR_SuperShotgun3
 
 Model VR_SuperShotgun4
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssg.md3"
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2776,7 +2775,7 @@ Model VR_SuperShotgun4
 
 Model VR_SuperShotgun4
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssgF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2791,7 +2790,7 @@ Model VR_SuperShotgun4
 
 Model VR_SuperShotgun5
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssg.md3"
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2825,7 +2824,7 @@ Model VR_SuperShotgun5
 
 Model VR_SuperShotgun5
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssgF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2840,7 +2839,7 @@ Model VR_SuperShotgun5
 
 Model VR_SuperShotgun6
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssg.md3"
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
@@ -2874,7 +2873,7 @@ Model VR_SuperShotgun6
 
 Model VR_SuperShotgun6
 {
-	Path "Models/Weapons/hud/VR_SuperShotgun"
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssgF.md3"
 	Skin 0 "muzzleflash.png"
 	Scale 1.35 1.35 1.35
@@ -2897,7 +2896,7 @@ Model VR_SuperShotgun6
 // rendering the same handedness instead of being mirror images.
 Model Fist
 {
-	Path "Models/Weapons/hud/VR_Fist"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Fist"
 	Model 0 "fist.md3"
 	Skin 0 "fist.png"
 	Scale -1.0 1.0 1.0
@@ -2910,7 +2909,7 @@ Model Fist
 
 Model VR_Fist2
 {
-	Path "Models/Weapons/hud/VR_Fist"
+	Path "Models/Weapons/hud/RS_Weapon/VR_Fist"
 	Model 0 "fist.md3"
 	Skin 0 "fist.png"
 	Scale -1.0 1.0 1.0

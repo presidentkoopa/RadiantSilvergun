@@ -81,7 +81,7 @@ class VR_RocketLauncher : RS_Weapon
 
 	action void A_RS_Backfire()
 	{
-		A_PlaySound("AKEMPT", CHAN_WEAPON);
+		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
 		double dmg = invoker.DamagePerShot;
 		if (FRandom(0, 1) < invoker.CritChance)
 			dmg *= 2.0;
@@ -127,7 +127,7 @@ class VR_RocketLauncher : RS_Weapon
 		Stop;
 
 	OutOfAmmo:
-		TNT1 A 0 A_PlaySound("AKEMPT", CHAN_AUTO);
+		TNT1 A 0 A_PlaySound("rs_fx_weapon_empty", CHAN_AUTO);
 		Goto Ready;
 	}
 }

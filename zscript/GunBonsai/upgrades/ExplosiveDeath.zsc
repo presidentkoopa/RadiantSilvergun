@@ -46,11 +46,11 @@ class TFLV_Upgrade_ExplosiveDeath_Aux : Actor {
 
   States {
     Spawn:
-      LEXP B 7 Bright;
+      RSE6 B 7 Bright;
       // Delay 1/5th of a second before actually dealing damage, so that chain
       // reactions "ripple" across the room rather than happening in a single frame.
-      LEXP C 7 Bright A_Explode(power, radius*(3.0 + level*0.5), XF_HURTSOURCE, false, level*16);
-      LEXP D 7 Bright;
+      RSE6 C 7 Bright A_Explode(power, radius*(3.0 + level*0.5), XF_HURTSOURCE, false, level*16);
+      RSE6 D 7 Bright;
       STOP;
   }
 }

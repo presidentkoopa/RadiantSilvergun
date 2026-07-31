@@ -268,8 +268,8 @@ class TFLV_Upgrade_Conflagration_Aux : Actor {
 
   States {
     Spawn:
-      LFIR G 7 NoDelay Ignite();
-      LFIR H 7;
+      RSI3 G 7 NoDelay Ignite();
+      RSI3 H 7;
       STOP;
   }
 }

@@ -32,17 +32,17 @@ class RS_MenuActionHandler : EventHandler
 		Array<string> pool;
 		for (int i = 1; i <= 32; i++)
 		{
-			string name = i < 10 ? String.Format("MAP0%d", i) : String.Format("MAP%d", i);
-			if (name != level.MapName && LevelInfo.MapExists(name))
-				pool.Push(name);
+			string mapName = i < 10 ? String.Format("MAP0%d", i) : String.Format("MAP%d", i);
+			if (mapName != level.MapName && LevelInfo.MapExists(mapName))
+				pool.Push(mapName);
 		}
 		for (int e = 1; e <= 4; e++)
 		{
 			for (int m = 1; m <= 9; m++)
 			{
-				string name = String.Format("E%dM%d", e, m);
-				if (name != level.MapName && LevelInfo.MapExists(name))
-					pool.Push(name);
+				string mapName = String.Format("E%dM%d", e, m);
+				if (mapName != level.MapName && LevelInfo.MapExists(mapName))
+					pool.Push(mapName);
 			}
 		}
 

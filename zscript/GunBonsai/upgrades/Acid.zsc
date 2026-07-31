@@ -244,8 +244,8 @@ class TFLV_Upgrade_AcidSpray_Aux : Actor {
 
   States {
     Spawn:
-      LACD A 5 Bright NoDelay Spread();
-      LACD BCDE 5 Bright;
+      RSA0 A 5 Bright NoDelay Spread();
+      RSA0 BCDE 5 Bright;
       STOP;
   }
 }

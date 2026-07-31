@@ -1,8 +1,15 @@
 # DIRECTIVE: Asset Layout & GNRC Weapon Re-Import
 
-Status: **approved, not yet executed.** This is the standing plan for the
-next work pass on the Vanilla+ (GNRCWPN) weapon set. Nothing below has been
-built yet — this document is the contract for what "done" means when it is.
+Status: **executed.** Both sections below landed: the folder reorg (§1) and
+the full Vanilla+ weapon rebuild (§2) — real alt-fires, real multi-stage
+reloads, source-accurate primary fire, all sounds moved/registered, across
+Pistol/Shotgun/SuperShotgun/Chaingun/RocketLauncher/PlasmaRifle/BFG9000/
+ARifle. Verified via `git diff` against each `RS_VP_*.zs` file, not assumed.
+Not independently re-verified: §1's "no dangling lump names" guarantee
+(every relocated asset's references fixed in the same pass) — the bulk of
+it looked consistent where checked, but this wasn't audited file-by-file.
+This document stays as the record of what was planned and built, not a
+to-do list anymore.
 
 ## 1. Asset folder layout (project-wide, not just Vanilla+)
 

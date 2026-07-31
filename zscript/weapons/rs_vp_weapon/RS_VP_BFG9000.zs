@@ -188,7 +188,7 @@ class RS_VP_BFG9000 : RS_VP_Weapon replaces BFG9000
 		Goto LightDone;
 
 	OutOfAmmo:
-		TNT1 A 0 A_PlaySound("AKEMPT", CHAN_AUTO);
+		TNT1 A 0 A_PlaySound("rs_fx_weapon_empty", CHAN_AUTO);
 		Goto Ready;
 	}
 }

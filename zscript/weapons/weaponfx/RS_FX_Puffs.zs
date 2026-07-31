@@ -72,7 +72,7 @@ class RS_ChainsawPuff : RS_EnhancedBulletPuff
 	{
 	Spawn:
 		TNT1 A 0 A_SpawnItemEx("RS_WallPart", 0, 0, 0, Random(6, 9), 0, Random(6, 15), Random(0, 360), 0, 64);
-		TNT1 A 0 A_PlaySound("rs_fx_sawwall");
+		TNT1 A 0 A_PlaySound("rs_fx_saw_wall");
 		TNT1 "A" 0 A_SpawnItemEx("RS_RicochetSpark", 0, 0, 0, Random(1, 2), 0, Random(5, 10), Random(0, 360), 0, 40);
 		RSU2 ABCD 1 Bright;
 		Stop;

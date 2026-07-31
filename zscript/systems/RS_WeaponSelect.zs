@@ -84,11 +84,12 @@ class RS_Menu_WeaponSelect : OptionMenu {
     if (stat == "DPS") return 0xFF40FF60;
     if (stat == "Acc") return 0xFFFF8030;
     if (stat == "Vel") return 0xFFC060FF;
-    if (stat == "Cyl") return 0xFF40FFF0;
+    if (stat == "Cyl" || stat == "Cap") return 0xFF40FFF0;
     if (stat == "Pellets") return 0xFF4090FF;
     if (stat == "BonSoc") return 0xFFFF6060;
     if (stat == "CND") return 0xFF40C0A0;
     if (stat == "Crit") return 0xFFFFF040;
+    if (stat == "TimeBtwn") return 0xFFB0B0FF;
     return 0xFFFFFFFF;
   }
 
@@ -147,9 +148,60 @@ class RS_Menu_WeaponSelect : OptionMenu {
     RS_UIKit.DrawTextAt(fnt, value, x + colW, y, 0xFFE6E6E6, fbw, fbh);
   }
 
+  // Fixed 4-column, 3-row grid -- every stat gets its own cell, values
+  // always line up regardless of label length. Replaces the old
+  // hand-placed row-by-row calls, which used one column width for labels
+  // of very different lengths ("DMG" vs "Pellets") and drifted out of
+  // alignment against the icon block above it.
+  void DrawStatGrid(RS_Weapon wep, int x, int y, int w, Font fnt, int fbw, int fbh) {
+    int dps = wep.DamagePerShot * max(1, wep.PelletCount) * max(0, wep.RateOfFire);
+    string loaded = "--";
+    if (wep.AmmoType2)
+      loaded = string.format("%d/%d", wep.owner ? wep.owner.CountInv(wep.AmmoType2) : 0, wep.Capacity);
+    // Can't call wep.GetTimeBetweenShots() here -- it's a play-scope
+    // function (like the rest of RS_Weapon's firing logic) and this menu
+    // draws in ui scope, which GZDoom keeps strictly separate. Reading
+    // the plain RateOfFire field it's built from is fine (only function
+    // calls are scope-restricted, not member reads) -- same math
+    // (1.0 / RateOfFire), just done locally instead of through the call.
+    double tbs = 1.0 / max(1, wep.RateOfFire);
+
+    // label/value pairs, read order matches the reference layout: row of
+    // damage/rate stats, row of capacity/precision stats, row of
+    // condition/timing stats. Array + Push, not a fixed-size array
+    // initializer -- this file already uses Array<string>.Push
+    // everywhere else (see the upgrade-summary block below), so it's a
+    // pattern already proven to compile on this engine rather than a
+    // second untested guess.
+    array<string> labels;
+    array<string> values;
+    labels.Push("DMG");     values.Push(string.format("%d", wep.DamagePerShot));
+    labels.Push("RoF");     values.Push(string.format("%d/s", wep.RateOfFire));
+    labels.Push("DPS");     values.Push(string.format("%d", dps));
+    labels.Push("Acc");     values.Push(string.format("%.0f%%", wep.Accuracy));
+    labels.Push("Cap");     values.Push(loaded);
+    labels.Push("Crit");    values.Push(string.format("%.0f%%", wep.CritChance * 100.0));
+    labels.Push("Pellets"); values.Push(string.format("%d", max(1, wep.PelletCount)));
+    labels.Push("Vel");     values.Push(string.format("%.0f", wep.Velocity));
+    labels.Push("BonSoc");  values.Push(string.format("%d", wep.GunBonaiSockets));
+    labels.Push("TimeBtwn"); values.Push(string.format("%.2fs", tbs));
+    labels.Push("CND");     values.Push(string.format("%.0f%%", wep.Condition));
+
+    int cols = 4;
+    int colW = w / cols;
+    int rowGap = int((fnt.GetHeight() + 2) * 1.6);
+    for (int i = 0; i < labels.size(); ++i) {
+      int row = i / cols;
+      int col = i % cols;
+      int cx = x + col * colW;
+      int cy = y + row * rowGap;
+      DrawStatRow(labels[i], values[i], cx, cy, int(colW * 0.42), fnt, fbw, fbh);
+    }
+  }
+
   void DrawStatPanel(string sectionLabel, array<RS_Weapon> list, int cursor, bool offhand,
       int x, int y, int w, int h, Font bodyFont, Font nameFont, int lh, int fbw, int fbh) {
-    RS_UIKit.FillRect(x, y, w, h, 0xFF0A0814, 0.7, fbw, fbh);
+    RS_UIKit.FillRect(x, y, w, h, 0xFF0A0814, 0.85, fbw, fbh);
     RS_UIKit.BorderRect(x, y, w, h, 2, 0xFF505050, fbw, fbh);
 
     int pad = int(w * 0.03);
@@ -164,20 +216,26 @@ class RS_Menu_WeaponSelect : OptionMenu {
     let stats = TFLV_EventHandler.GetConsolePlayerStats();
     let info = stats ? stats.GetInfoFor(wep) : null;
 
-    // Icon block, left side -- fills what used to be dead space with
-    // actual content instead of just spacing text out further.
-    int iconBoxW = int(w * 0.22);
-    int iconBoxH = int(h * 0.5);
-    RS_UIKit.DrawIconFit(IconFor(wep), x + pad, y + pad, iconBoxW, iconBoxH, fbw, fbh);
+    // Icon lives in its own fixed box in the top-left corner. Nothing
+    // else is allowed to draw inside iconBoxW x iconBoxH -- that's what
+    // was causing the name/tier text to overlap the icon before: text
+    // started at the icon's right edge but the icon's actual drawn
+    // height (DrawIconFit centers and scales it) wasn't reserved as
+    // dead space for anything below it.
+    int iconBoxW = int(w * 0.20);
+    int iconBoxH = iconBoxW;
+    RS_UIKit.FillRect(x + pad, y + pad, iconBoxW, iconBoxH, 0xFF000000, 0.5, fbw, fbh);
+    RS_UIKit.BorderRect(x + pad, y + pad, iconBoxW, iconBoxH, 1, 0xFF404040, fbw, fbh);
+    RS_UIKit.DrawIconFit(IconFor(wep), x + pad + 2, y + pad + 2, iconBoxW - 4, iconBoxH - 4, fbw, fbh);
 
     int textX = x + pad*2 + iconBoxW;
     int ty = y + pad;
     RS_UIKit.DrawTextAt(nameFont, wep.GetTag(), textX, ty, 0xFFFFFFFF, fbw, fbh);
-    ty += int(lh * 1.8);
+    ty += int(lh * 1.4);
 
     if (equipped) {
       RS_UIKit.DrawTextAt(bodyFont, "[EQUIPPED]", textX, ty, 0xFF50E070, fbw, fbh);
-      ty += int(lh * 1.3);
+      ty += lh;
     }
 
     RS_UIKit.DrawTextAt(bodyFont, TierName(wep.Tier), textX, ty, TierAccent(wep.Tier), fbw, fbh);
@@ -188,30 +246,14 @@ class RS_Menu_WeaponSelect : OptionMenu {
       RS_UIKit.DrawTextAt(bodyFont, "(fire at an enemy to track)", textX, ty, 0xFF909090, fbw, fbh);
     }
 
-    int sy = y + pad + max(iconBoxH, ty - y) + int(h * 0.04);
-    int colW = int(w * 0.20);
-    int col2X = x + pad + int(w * 0.46);
-    int rowGap = int(lh * 1.3);
-
-    int dps = wep.DamagePerShot * max(1, wep.PelletCount) * max(0, wep.RateOfFire);
-
-    DrawStatRow("DMG", string.format("%d", wep.DamagePerShot), x + pad, sy, colW, bodyFont, fbw, fbh);
-    DrawStatRow("RoF", string.format("%d/s", wep.RateOfFire), col2X, sy, colW, bodyFont, fbw, fbh);
-    sy += rowGap;
-    DrawStatRow("DPS", string.format("%d", dps), x + pad, sy, colW, bodyFont, fbw, fbh);
-    DrawStatRow("Acc", string.format("%.0f%%", wep.Accuracy), col2X, sy, colW, bodyFont, fbw, fbh);
-    sy += rowGap;
-    DrawStatRow("Vel", string.format("%.0f", wep.Velocity), x + pad, sy, colW, bodyFont, fbw, fbh);
-    DrawStatRow("Crit", string.format("%.0f%%", wep.CritChance * 100.0), col2X, sy, colW, bodyFont, fbw, fbh);
-    sy += rowGap;
-    string loaded = "--";
-    if (wep.AmmoType2) loaded = string.format("%d/%d", wep.owner ? wep.owner.CountInv(wep.AmmoType2) : 0, wep.Capacity);
-    DrawStatRow("Cyl", loaded, x + pad, sy, colW, bodyFont, fbw, fbh);
-    DrawStatRow("Pellets", string.format("%d", max(1, wep.PelletCount)), col2X, sy, colW, bodyFont, fbw, fbh);
-    sy += rowGap;
-    DrawStatRow("BonSoc", string.format("%d", wep.GunBonaiSockets), x + pad, sy, colW, bodyFont, fbw, fbh);
-    DrawStatRow("CND", string.format("%.0f%%", wep.Condition), col2X, sy, colW, bodyFont, fbw, fbh);
-    sy += rowGap;
+    // Stat grid starts BELOW the taller of the icon box or the name/tier
+    // text block, with real clearance -- the old code took max() of the
+    // two but then added almost no gap, so the first stat row still
+    // clipped the icon's bottom edge on some weapon names.
+    int sy = y + pad + max(iconBoxH, ty - y + lh) + int(h * 0.05);
+    DrawStatGrid(wep, x + pad, sy, w - pad*2, bodyFont, fbw, fbh);
+    int rowGap = int(lh * 1.6);
+    sy += rowGap * 3;
 
     // Read-only upgrade summary -- see file header for why this doesn't
     // toggle here. Boxes are display only, no cursor, no selected state.

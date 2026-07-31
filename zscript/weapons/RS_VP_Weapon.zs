@@ -90,7 +90,7 @@ class RS_VP_Weapon : RS_Weapon abstract
 
 	action void A_RS_VP_Backfire()
 	{
-		A_PlaySound("AKEMPT", CHAN_WEAPON);
+		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
 		double dmg = invoker.DamagePerShot;
 		if (FRandom(0, 1) < invoker.CritChance)
 			dmg *= 2.0;
