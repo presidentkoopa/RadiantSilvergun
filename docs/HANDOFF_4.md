@@ -528,13 +528,28 @@ New this session:
   direct, no hedging paragraphs, no restating what was already said. Get
   to the point, especially when correcting a mistake.
 
-## Read `docs/DIRECTIVE_RS_BLOCKS.md` next
+## Read order for the next session: this doc → SUPPLEMENTAL → RS_BLOCKS
 
-Written after this handoff, not summarized in it. Concept-only, no code —
-it proposes **replacing `RS_Menu_WeaponSelect`** (this session's own
-Weapon Selection screen, above) with a different shape, on the stated
-reasoning that the current one "answered the right question with the
-wrong shape — a text stat dump with no visual identity, no offhand
-parity, and no relationship to the card templates the rest of the project
-is built around." Read it before touching Weapon Select again, and before
-assuming this session's version is the settled design.
+`docs/HANDOFF_4_SUPPLEMENTAL.md` — written by a parallel session that ran
+alongside this one, covering the asset-naming pass, the Vanilla+ weapon
+rebuild's verification, the effect catalog, and real compile errors it
+found and fixed in files this session touched (`RS_StatusCards.zs`,
+`RS_MenuActions.zs`, `RS_VP_PlasmaRifle.zs`). Also documents its own
+mistakes (over-broad renames, a global rewrite script that corrupted two
+files and had to be reverted via git, case-sensitivity misses) — read
+those before running any similar rename/reorg pass again. It ends by
+pointing at the same next document:
+
+`docs/DIRECTIVE_RS_BLOCKS.md` — concept-only, no code. Proposes
+**replacing `RS_Menu_WeaponSelect`** (this session's own Weapon Selection
+screen, above) with a different shape, on the stated reasoning that the
+current one "answered the right question with the wrong shape — a text
+stat dump with no visual identity, no offhand parity, and no relationship
+to the card templates the rest of the project is built around." The
+supplemental also independently found a real layout bug in the current
+screen (icon box height wrongly derived from panel width, pushing stat
+rows outside the panel) and declined to patch it for the same reason:
+this screen is getting replaced. Read `DIRECTIVE_RS_BLOCKS.md` before
+touching Weapon Select again, and before assuming this session's version
+is the settled design. Its first open decision: paused menu or live
+overlay — that choice shapes the whole rebuild.
