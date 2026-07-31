@@ -480,3 +480,38 @@ $random rs_fx_casing_rifle { rs_fx_riflc1 rs_fx_riflc2 rs_fx_riflc3 }
 rs_fx_riflc1   Sounds/combatfx/casings/DSRIFLC1.ogg
 rs_fx_riflc2   Sounds/combatfx/casings/DSRIFLC2.ogg
 rs_fx_riflc3   Sounds/combatfx/casings/DSRIFLC3.ogg
+
+// =====================================================================
+// GunstarHeroes set (rs_gh_weapon) -- imported from the HB arsenal.
+// Catalogued: RS_Catalog.SND_GH_* returns these logical names, weapons
+// never reference the lump path directly.
+// =====================================================================
+$random rs_gh/machinegun_fire { rs_gh_mgfire1 rs_gh_mgfire2 }
+rs_gh_mgfire1  Sounds/rs_gh_weapon/gh_machinegun/HMGFIRE.ogg
+rs_gh_mgfire2  Sounds/rs_gh_weapon/gh_machinegun/HMGFIRE2.ogg
+rs_gh/grenade_launch   Sounds/rs_gh_weapon/gh_grenade/GLAUNCH.ogg
+rs_gh/grenade_bounce   Sounds/rs_gh_weapon/gh_grenade/GRNBNCE
+
+// --- GunstarHeroes set: per-weapon fire sounds. Logical names only;
+// weapons reach these through RS_Catalog.SND_GH_*, never by lump path.
+rs_gh/fist_fire   Sounds/rs_gh_weapon/gh_fist/DSSAWHIT
+rs_gh/chainsaw_fire   Sounds/rs_gh_weapon/gh_chainsaw/CSAWFUL.ogg
+rs_gh/pistol_fire   Sounds/rs_gh_weapon/gh_pistol/DSPISTOL.ogg
+rs_gh/revolver_fire   Sounds/rs_gh_weapon/gh_revolver/REVOFIR.ogg
+rs_gh/pumpshotgun_fire   Sounds/rs_gh_weapon/gh_pumpshotgun/SGFIRE.ogg
+rs_gh/assaultshotgun_fire   Sounds/rs_gh_weapon/gh_assaultshotgun/SGFIRE2.ogg
+rs_gh/ssg_fire   Sounds/rs_gh_weapon/gh_ssg/SSHFIRE.ogg
+rs_gh/minigun_fire   Sounds/rs_gh_weapon/gh_minigun/MINIGN1.ogg
+rs_gh/rifle_fire   Sounds/rs_gh_weapon/gh_rifle/DSRFIRE.ogg
+rs_gh/smg_fire   Sounds/rs_gh_weapon/gh_smg/SMGFIRE.ogg
+rs_gh/mp40_fire   Sounds/rs_gh_weapon/gh_mp40/MP40.ogg
+rs_gh/rocketlauncher_fire   Sounds/rs_gh_weapon/gh_rocketlauncher/RLFIRE.ogg
+rs_gh/grenadelauncher_fire   Sounds/rs_gh_weapon/gh_grenadelauncher/GLAUNCH.ogg
+rs_gh/handgrenade_fire   Sounds/rs_gh_weapon/gh_handgrenade/GRNTOSS
+rs_gh/plasma_fire   Sounds/rs_gh_weapon/gh_plasma/PFIRE.ogg
+rs_gh/railgun_fire   Sounds/rs_gh_weapon/gh_railgun/RAILF1
+rs_gh/bfg9000_fire   Sounds/rs_gh_weapon/gh_bfg9000/BFGFIRE.ogg
+rs_gh/bfg10k_fire   Sounds/rs_gh_weapon/gh_bfg10k/10KFIRE
+rs_gh/unmaker_fire   Sounds/rs_gh_weapon/gh_unmaker/UNMLOP.ogg
+rs_gh/flamethrower_fire   Sounds/rs_gh_weapon/gh_flamethrower/FLAMER
+rs_gh/machinegun_fire   Sounds/rs_gh_weapon/gh_machinegun/HMGFIRE.ogg

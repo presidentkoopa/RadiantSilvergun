@@ -1,0 +1,249 @@
+// RS_GH_Plasma -- GunstarHeroes set, imported from HF_HB_Plasma.
+// ---------------------------------------------------------------------
+// Taken from the source: sprites (HBPL + PLSR), the model and its real frame
+// indices (see MODELDEF -- copied verbatim from the pack's own
+// modeldef.vr_hb_weapons, nothing inferred), the fire sound, and the
+// weapon's SHAPE: slot 6, projectile, 1 pellet(s), 1.0 degree cone,
+// fireDelay 4 (~8 shots/sec).
+//
+// NOT taken: HF_Weapon's firing machinery and its parallel loot /
+// rarity / Condition / Divinity systems -- RS_Weapon already owns tier,
+// rolled stats, Condition, XP and sockets.
+//
+// The attack is a CATALOG REFERENCE, not hardcoded here. See
+// RS_Catalog and docs/catalog_notes.txt.
+// =====================================================================
+class RS_GH_Plasma : RS_Weapon
+{
+	Default
+	{
+		Tag "Gunstar Plasma Rifle";
+		Weapon.SelectionOrder 1100;
+		Weapon.SlotNumber 6;
+		Weapon.AmmoUse 0;
+		Weapon.AmmoGive1 0;
+		Weapon.AmmoType1 "Cell";
+		Weapon.AmmoType2 "RS_GH_PlasmaLoaded";
+		Inventory.Icon "HBPLA0";
+		+WEAPON.NOHANDSWITCH;
+	}
+
+	override EVR_Family GetFamily() { return EVR_Family_None; }
+
+	override void BuildAttackProfiles()
+	{
+		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
+			proj: "RS_EnhancedPlasmaBall",
+			fireSnd: RS_Catalog.SND_GH_Plasma(),
+			ammoCost: 1,
+			bigMuzzle: true,
+			profName: "Gunstar Plasma Rifle"));
+	}
+
+	// Source anchor: 10-10 flat damage. That becomes the Basic-tier
+	// midpoint, with tiers ramping from it, so a GH Plasma is a rolled weapon
+	// like everything else instead of a fixed statline.
+	override void RollStats(EVR_Tier t)
+	{
+		Tier = t;
+		int idx = int(t >= VRT_Basic ? t : VRT_Basic);
+
+		switch (t)
+		{
+			case VRT_Basic:
+				DamagePerShot = RS_Roll.RollInt(8, 12);
+				Accuracy      = RS_Roll.RollDouble(69, 79);
+				Velocity      = RS_Roll.RollDouble(6500, 8500);
+				CritChance    = RS_Roll.RollDouble(0.010, 0.020);
+				Capacity      = 50;
+				break;
+			case VRT_Common:
+				DamagePerShot = RS_Roll.RollInt(9, 14);
+				Accuracy      = RS_Roll.RollDouble(71, 81);
+				Velocity      = RS_Roll.RollDouble(6500, 9000);
+				CritChance    = RS_Roll.RollDouble(0.014, 0.027);
+				Capacity      = 50;
+				break;
+			case VRT_Uncommon:
+				DamagePerShot = RS_Roll.RollInt(11, 17);
+				Accuracy      = RS_Roll.RollDouble(73, 83);
+				Velocity      = RS_Roll.RollDouble(6500, 9500);
+				CritChance    = RS_Roll.RollDouble(0.018, 0.034);
+				Capacity      = 50;
+				break;
+			case VRT_Advanced:
+				DamagePerShot = RS_Roll.RollInt(13, 19);
+				Accuracy      = RS_Roll.RollDouble(75, 85);
+				Velocity      = RS_Roll.RollDouble(6500, 10000);
+				CritChance    = RS_Roll.RollDouble(0.022, 0.041);
+				Capacity      = 50;
+				break;
+			case VRT_Designer:
+				DamagePerShot = RS_Roll.RollInt(15, 22);
+				Accuracy      = RS_Roll.RollDouble(77, 87);
+				Velocity      = RS_Roll.RollDouble(6500, 10500);
+				CritChance    = RS_Roll.RollDouble(0.026, 0.048);
+				Capacity      = 50;
+				break;
+			case VRT_Prototype:
+				DamagePerShot = RS_Roll.RollInt(17, 25);
+				Accuracy      = RS_Roll.RollDouble(79, 89);
+				Velocity      = RS_Roll.RollDouble(6500, 11000);
+				CritChance    = RS_Roll.RollDouble(0.030, 0.055);
+				Capacity      = 50;
+				break;
+			case VRT_Trash:
+				if (RS_Roll.RollDouble(0, 1) < 0.05)
+				{
+					DamagePerShot = RS_Roll.RollInt(14, 19);
+					CritChance    = RS_Roll.RollDouble(0.040, 0.060);
+				}
+				else
+				{
+					DamagePerShot = RS_Roll.RollInt(4, 7);
+					CritChance    = RS_Roll.RollDouble(0.005, 0.015);
+				}
+				Accuracy = RS_Roll.RollDouble(59, 71);
+				Velocity = RS_Roll.RollDouble(6000, 8000);
+				Capacity = 50;
+				break;
+			case VRT_Cursed:
+				DamagePerShot = RS_Roll.RollInt(10, 15);
+				Accuracy      = RS_Roll.RollDouble(63, 75);
+				Velocity      = RS_Roll.RollDouble(6500, 9000);
+				CritChance    = RS_Roll.RollDouble(0.030, 0.050);
+				Capacity      = 50;
+				break;
+		}
+
+		if (t == VRT_Cursed)
+		{
+			LockedDamage     = true;
+			LockedCritChance = true;
+		}
+		else
+		{
+			LockedDamage = LockedAccuracy = LockedVelocity = LockedCritChance = LockedCapacity = false;
+		}
+
+		RateOfFire      = 8;
+		ReloadSpeed     = RS_Roll.RollDouble(0.8 + idx * 0.03, 1.0 + idx * 0.05);
+		PelletCount     = 1;
+		Choke           = 0;
+		GunBonaiSockets = RS_Roll.SocketsForTier(t);
+
+		if (!bStatsRolled)
+			Condition = RS_Roll.RollDouble(1, 100);
+
+		bStatsRolled = true;
+	}
+
+	override void ApplyUpgradeCard(EVR_Tier newTier)
+	{
+		bool isSacrificeDowngrade = (Tier == VRT_Prototype && newTier == VRT_Basic);
+		RollStats(newTier);
+		if (isSacrificeDowngrade)
+			PelletCount += 1;
+	}
+
+	States
+	{
+	Spawn:
+		HBPL A -1;
+		Stop;
+
+	Ready:
+		HBPL A 1 A_WeaponReady(WRF_ALLOWRELOAD);
+		Loop;
+
+	Deselect:
+		HBPL A 1 A_Lower;
+		Loop;
+
+	Select:
+		HBPL A 1 A_Raise;
+		Loop;
+
+	Fire:
+		TNT1 A 0 A_JumpIf(!invoker.AutoCooldownReady(), "Ready");
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) > 0, "Shoot");
+		Goto Reload;
+
+	Shoot:
+		HBPL B 1 Bright A_GunFlash();
+		TNT1 A 0 A_RS_FireSlot(0);
+		HBPL C 2;
+		HBPL D 2;
+		TNT1 A 0 A_ReFire();
+		Goto Ready;
+
+	Reload:
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) >= invoker.Capacity, "Ready");
+		TNT1 A 0 A_JumpIf(CountInv("Cell") <= 0, "OutOfAmmo");
+		PLSR ABCDEFGHIJKL 1;
+		TNT1 A 0 A_RS_ReloadAtomic();
+		Goto Ready;
+
+	Flash:
+		TNT1 A 0 A_RS_MuzzleFlash();
+		HBPL B 1 Bright A_Light2();
+		Stop;
+
+	OutOfAmmo:
+		TNT1 A 0 A_PlaySound("rs_fx_weapon_empty", CHAN_AUTO);
+		Goto Ready;
+	}
+}
+
+class RS_GH_Plasma2 : RS_GH_Plasma
+{
+	Default
+	{
+		Tag "Gunstar Plasma Rifle II";
+		Weapon.SelectionOrder 1099;
+		Weapon.AmmoType2 "RS_GH_PlasmaLoaded2";
+	}
+}
+
+class RS_GH_Plasma3 : RS_GH_Plasma
+{
+	Default
+	{
+		Tag "Gunstar Plasma Rifle III";
+		Weapon.SelectionOrder 1098;
+		Weapon.AmmoType2 "RS_GH_PlasmaLoaded3";
+	}
+}
+
+class RS_GH_Plasma4 : RS_GH_Plasma
+{
+	Default
+	{
+		Tag "Gunstar Plasma Rifle IV";
+		Weapon.SelectionOrder 1097;
+		Weapon.AmmoType2 "RS_GH_PlasmaLoaded4";
+		+WEAPON.OFFHANDWEAPON;
+	}
+}
+
+class RS_GH_Plasma5 : RS_GH_Plasma
+{
+	Default
+	{
+		Tag "Gunstar Plasma Rifle V";
+		Weapon.SelectionOrder 1096;
+		Weapon.AmmoType2 "RS_GH_PlasmaLoaded5";
+		+WEAPON.OFFHANDWEAPON;
+	}
+}
+
+class RS_GH_Plasma6 : RS_GH_Plasma
+{
+	Default
+	{
+		Tag "Gunstar Plasma Rifle VI";
+		Weapon.SelectionOrder 1095;
+		Weapon.AmmoType2 "RS_GH_PlasmaLoaded6";
+		+WEAPON.OFFHANDWEAPON;
+	}
+}

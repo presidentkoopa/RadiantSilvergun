@@ -2919,3 +2919,3202 @@ Model VR_Fist2
 	FrameIndex PUNG C 0 2
 	FrameIndex PUNG D 0 3
 }
+
+// =====================================================================
+// GunstarHeroes set (RS_GH_) -- MODELDEF
+// ---------------------------------------------------------------------
+// Generated from the source pack's own modeldef.vr_hb_weapons. Every
+// Path/Model/Skin/FrameIndex below is copied verbatim from it -- no
+// frame index is inferred. Only the paths are rehomed into this
+// project's models/weapons/hud/RS_GH_Weapon/<weapon>/ layout and the
+// class names rewritten HF_HB_* -> RS_GH_*.
+//
+// Six identities per weapon: 1-3 mainhand (Scale X -1.0), 4-6 offhand
+// (Scale X +1.0 so the left-hand model faces correctly) -- exactly how
+// the source's own _2 twin blocks handled the mirror.
+// =====================================================================
+
+Model RS_GH_Fist
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Fist"
+	Model 0 "fistclosed.md3"
+	Skin 0 "fist.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFS A 0 0
+	FrameIndex HBFS B 0 1
+	FrameIndex HBFS C 0 4
+	FrameIndex HBFS D 0 6
+}
+
+Model RS_GH_Fist2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Fist"
+	Model 0 "fistclosed.md3"
+	Skin 0 "fist.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFS A 0 0
+	FrameIndex HBFS B 0 1
+	FrameIndex HBFS C 0 4
+	FrameIndex HBFS D 0 6
+}
+
+Model RS_GH_Fist3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Fist"
+	Model 0 "fistclosed.md3"
+	Skin 0 "fist.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFS A 0 0
+	FrameIndex HBFS B 0 1
+	FrameIndex HBFS C 0 4
+	FrameIndex HBFS D 0 6
+}
+
+Model RS_GH_Fist4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Fist"
+	Model 0 "fistclosed.md3"
+	Skin 0 "fist.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFS A 0 0
+	FrameIndex HBFS B 0 1
+	FrameIndex HBFS C 0 4
+	FrameIndex HBFS D 0 6
+}
+
+Model RS_GH_Fist5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Fist"
+	Model 0 "fistclosed.md3"
+	Skin 0 "fist.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFS A 0 0
+	FrameIndex HBFS B 0 1
+	FrameIndex HBFS C 0 4
+	FrameIndex HBFS D 0 6
+}
+
+Model RS_GH_Fist6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Fist"
+	Model 0 "fistclosed.md3"
+	Skin 0 "fist.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFS A 0 0
+	FrameIndex HBFS B 0 1
+	FrameIndex HBFS C 0 4
+	FrameIndex HBFS D 0 6
+}
+
+Model RS_GH_Chainsaw
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Chainsaw"
+	Model 0 "Chain_saw.md3"
+	Skin 0 "Chain_saw.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBCS A 0 27
+	FrameIndex HBCS B 0 28
+	FrameIndex HBCS C 0 29
+	FrameIndex HBCS D 0 30
+}
+
+Model RS_GH_Chainsaw2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Chainsaw"
+	Model 0 "Chain_saw.md3"
+	Skin 0 "Chain_saw.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBCS A 0 27
+	FrameIndex HBCS B 0 28
+	FrameIndex HBCS C 0 29
+	FrameIndex HBCS D 0 30
+}
+
+Model RS_GH_Chainsaw3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Chainsaw"
+	Model 0 "Chain_saw.md3"
+	Skin 0 "Chain_saw.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBCS A 0 27
+	FrameIndex HBCS B 0 28
+	FrameIndex HBCS C 0 29
+	FrameIndex HBCS D 0 30
+}
+
+Model RS_GH_Chainsaw4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Chainsaw"
+	Model 0 "Chain_saw.md3"
+	Skin 0 "Chain_saw.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBCS A 0 27
+	FrameIndex HBCS B 0 28
+	FrameIndex HBCS C 0 29
+	FrameIndex HBCS D 0 30
+}
+
+Model RS_GH_Chainsaw5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Chainsaw"
+	Model 0 "Chain_saw.md3"
+	Skin 0 "Chain_saw.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBCS A 0 27
+	FrameIndex HBCS B 0 28
+	FrameIndex HBCS C 0 29
+	FrameIndex HBCS D 0 30
+}
+
+Model RS_GH_Chainsaw6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Chainsaw"
+	Model 0 "Chain_saw.md3"
+	Skin 0 "Chain_saw.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBCS A 0 27
+	FrameIndex HBCS B 0 28
+	FrameIndex HBCS C 0 29
+	FrameIndex HBCS D 0 30
+}
+
+Model RS_GH_Pistol
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Pistol"
+	Model 0 "Pistol.md3"
+	Skin 0 "Pistol.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPS A 0 2
+	FrameIndex HBPS B 0 3
+	FrameIndex HBPS C 0 4
+	FrameIndex HBPS D 0 5
+	FrameIndex PISR A 0 8
+	FrameIndex PISR B 0 9
+	FrameIndex PISR C 0 10
+	FrameIndex PISR D 0 11
+	FrameIndex PISR E 0 12
+	FrameIndex PISR F 0 13
+	FrameIndex PISR G 0 14
+	FrameIndex PISR H 0 15
+	FrameIndex PISR I 0 16
+	FrameIndex PISR J 0 17
+	FrameIndex PISR K 0 18
+	FrameIndex PISR L 0 19
+	FrameIndex PISR M 0 20
+	FrameIndex PISR N 0 21
+	FrameIndex PISR O 0 22
+	FrameIndex PISR P 0 23
+	FrameIndex PISR Q 0 24
+	FrameIndex PISR R 0 25
+}
+
+Model RS_GH_Pistol2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Pistol"
+	Model 0 "Pistol.md3"
+	Skin 0 "Pistol.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPS A 0 2
+	FrameIndex HBPS B 0 3
+	FrameIndex HBPS C 0 4
+	FrameIndex HBPS D 0 5
+	FrameIndex PISR A 0 8
+	FrameIndex PISR B 0 9
+	FrameIndex PISR C 0 10
+	FrameIndex PISR D 0 11
+	FrameIndex PISR E 0 12
+	FrameIndex PISR F 0 13
+	FrameIndex PISR G 0 14
+	FrameIndex PISR H 0 15
+	FrameIndex PISR I 0 16
+	FrameIndex PISR J 0 17
+	FrameIndex PISR K 0 18
+	FrameIndex PISR L 0 19
+	FrameIndex PISR M 0 20
+	FrameIndex PISR N 0 21
+	FrameIndex PISR O 0 22
+	FrameIndex PISR P 0 23
+	FrameIndex PISR Q 0 24
+	FrameIndex PISR R 0 25
+}
+
+Model RS_GH_Pistol3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Pistol"
+	Model 0 "Pistol.md3"
+	Skin 0 "Pistol.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPS A 0 2
+	FrameIndex HBPS B 0 3
+	FrameIndex HBPS C 0 4
+	FrameIndex HBPS D 0 5
+	FrameIndex PISR A 0 8
+	FrameIndex PISR B 0 9
+	FrameIndex PISR C 0 10
+	FrameIndex PISR D 0 11
+	FrameIndex PISR E 0 12
+	FrameIndex PISR F 0 13
+	FrameIndex PISR G 0 14
+	FrameIndex PISR H 0 15
+	FrameIndex PISR I 0 16
+	FrameIndex PISR J 0 17
+	FrameIndex PISR K 0 18
+	FrameIndex PISR L 0 19
+	FrameIndex PISR M 0 20
+	FrameIndex PISR N 0 21
+	FrameIndex PISR O 0 22
+	FrameIndex PISR P 0 23
+	FrameIndex PISR Q 0 24
+	FrameIndex PISR R 0 25
+}
+
+Model RS_GH_Pistol4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Pistol"
+	Model 0 "Pistol.md3"
+	Skin 0 "Pistol.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPS A 0 2
+	FrameIndex HBPS B 0 3
+	FrameIndex HBPS C 0 4
+	FrameIndex HBPS D 0 5
+	FrameIndex PISR A 0 8
+	FrameIndex PISR B 0 9
+	FrameIndex PISR C 0 10
+	FrameIndex PISR D 0 11
+	FrameIndex PISR E 0 12
+	FrameIndex PISR F 0 13
+	FrameIndex PISR G 0 14
+	FrameIndex PISR H 0 15
+	FrameIndex PISR I 0 16
+	FrameIndex PISR J 0 17
+	FrameIndex PISR K 0 18
+	FrameIndex PISR L 0 19
+	FrameIndex PISR M 0 20
+	FrameIndex PISR N 0 21
+	FrameIndex PISR O 0 22
+	FrameIndex PISR P 0 23
+	FrameIndex PISR Q 0 24
+	FrameIndex PISR R 0 25
+}
+
+Model RS_GH_Pistol5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Pistol"
+	Model 0 "Pistol.md3"
+	Skin 0 "Pistol.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPS A 0 2
+	FrameIndex HBPS B 0 3
+	FrameIndex HBPS C 0 4
+	FrameIndex HBPS D 0 5
+	FrameIndex PISR A 0 8
+	FrameIndex PISR B 0 9
+	FrameIndex PISR C 0 10
+	FrameIndex PISR D 0 11
+	FrameIndex PISR E 0 12
+	FrameIndex PISR F 0 13
+	FrameIndex PISR G 0 14
+	FrameIndex PISR H 0 15
+	FrameIndex PISR I 0 16
+	FrameIndex PISR J 0 17
+	FrameIndex PISR K 0 18
+	FrameIndex PISR L 0 19
+	FrameIndex PISR M 0 20
+	FrameIndex PISR N 0 21
+	FrameIndex PISR O 0 22
+	FrameIndex PISR P 0 23
+	FrameIndex PISR Q 0 24
+	FrameIndex PISR R 0 25
+}
+
+Model RS_GH_Pistol6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Pistol"
+	Model 0 "Pistol.md3"
+	Skin 0 "Pistol.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPS A 0 2
+	FrameIndex HBPS B 0 3
+	FrameIndex HBPS C 0 4
+	FrameIndex HBPS D 0 5
+	FrameIndex PISR A 0 8
+	FrameIndex PISR B 0 9
+	FrameIndex PISR C 0 10
+	FrameIndex PISR D 0 11
+	FrameIndex PISR E 0 12
+	FrameIndex PISR F 0 13
+	FrameIndex PISR G 0 14
+	FrameIndex PISR H 0 15
+	FrameIndex PISR I 0 16
+	FrameIndex PISR J 0 17
+	FrameIndex PISR K 0 18
+	FrameIndex PISR L 0 19
+	FrameIndex PISR M 0 20
+	FrameIndex PISR N 0 21
+	FrameIndex PISR O 0 22
+	FrameIndex PISR P 0 23
+	FrameIndex PISR Q 0 24
+	FrameIndex PISR R 0 25
+}
+
+Model RS_GH_Revolver
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Revolver"
+	Model 0 "Revolver.md3"
+	Skin 0 "Revolver.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRV A 0 0
+	FrameIndex HBRV B 0 1
+	FrameIndex HBRV C 0 2
+	FrameIndex HBRV D 0 3
+	FrameIndex REVR A 0 18
+	FrameIndex REVR B 0 19
+	FrameIndex REVR C 0 20
+	FrameIndex REVR D 0 21
+	FrameIndex REVR E 0 22
+	FrameIndex REVR F 0 23
+	FrameIndex REVR G 0 24
+	FrameIndex REVR H 0 25
+	FrameIndex REVR I 0 26
+	FrameIndex REVR J 0 27
+	FrameIndex REVR K 0 28
+	FrameIndex REVR L 0 29
+	FrameIndex REVR M 0 30
+}
+
+Model RS_GH_Revolver2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Revolver"
+	Model 0 "Revolver.md3"
+	Skin 0 "Revolver.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRV A 0 0
+	FrameIndex HBRV B 0 1
+	FrameIndex HBRV C 0 2
+	FrameIndex HBRV D 0 3
+	FrameIndex REVR A 0 18
+	FrameIndex REVR B 0 19
+	FrameIndex REVR C 0 20
+	FrameIndex REVR D 0 21
+	FrameIndex REVR E 0 22
+	FrameIndex REVR F 0 23
+	FrameIndex REVR G 0 24
+	FrameIndex REVR H 0 25
+	FrameIndex REVR I 0 26
+	FrameIndex REVR J 0 27
+	FrameIndex REVR K 0 28
+	FrameIndex REVR L 0 29
+	FrameIndex REVR M 0 30
+}
+
+Model RS_GH_Revolver3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Revolver"
+	Model 0 "Revolver.md3"
+	Skin 0 "Revolver.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRV A 0 0
+	FrameIndex HBRV B 0 1
+	FrameIndex HBRV C 0 2
+	FrameIndex HBRV D 0 3
+	FrameIndex REVR A 0 18
+	FrameIndex REVR B 0 19
+	FrameIndex REVR C 0 20
+	FrameIndex REVR D 0 21
+	FrameIndex REVR E 0 22
+	FrameIndex REVR F 0 23
+	FrameIndex REVR G 0 24
+	FrameIndex REVR H 0 25
+	FrameIndex REVR I 0 26
+	FrameIndex REVR J 0 27
+	FrameIndex REVR K 0 28
+	FrameIndex REVR L 0 29
+	FrameIndex REVR M 0 30
+}
+
+Model RS_GH_Revolver4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Revolver"
+	Model 0 "Revolver.md3"
+	Skin 0 "Revolver.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRV A 0 0
+	FrameIndex HBRV B 0 1
+	FrameIndex HBRV C 0 2
+	FrameIndex HBRV D 0 3
+	FrameIndex REVR A 0 18
+	FrameIndex REVR B 0 19
+	FrameIndex REVR C 0 20
+	FrameIndex REVR D 0 21
+	FrameIndex REVR E 0 22
+	FrameIndex REVR F 0 23
+	FrameIndex REVR G 0 24
+	FrameIndex REVR H 0 25
+	FrameIndex REVR I 0 26
+	FrameIndex REVR J 0 27
+	FrameIndex REVR K 0 28
+	FrameIndex REVR L 0 29
+	FrameIndex REVR M 0 30
+}
+
+Model RS_GH_Revolver5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Revolver"
+	Model 0 "Revolver.md3"
+	Skin 0 "Revolver.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRV A 0 0
+	FrameIndex HBRV B 0 1
+	FrameIndex HBRV C 0 2
+	FrameIndex HBRV D 0 3
+	FrameIndex REVR A 0 18
+	FrameIndex REVR B 0 19
+	FrameIndex REVR C 0 20
+	FrameIndex REVR D 0 21
+	FrameIndex REVR E 0 22
+	FrameIndex REVR F 0 23
+	FrameIndex REVR G 0 24
+	FrameIndex REVR H 0 25
+	FrameIndex REVR I 0 26
+	FrameIndex REVR J 0 27
+	FrameIndex REVR K 0 28
+	FrameIndex REVR L 0 29
+	FrameIndex REVR M 0 30
+}
+
+Model RS_GH_Revolver6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Revolver"
+	Model 0 "Revolver.md3"
+	Skin 0 "Revolver.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRV A 0 0
+	FrameIndex HBRV B 0 1
+	FrameIndex HBRV C 0 2
+	FrameIndex HBRV D 0 3
+	FrameIndex REVR A 0 18
+	FrameIndex REVR B 0 19
+	FrameIndex REVR C 0 20
+	FrameIndex REVR D 0 21
+	FrameIndex REVR E 0 22
+	FrameIndex REVR F 0 23
+	FrameIndex REVR G 0 24
+	FrameIndex REVR H 0 25
+	FrameIndex REVR I 0 26
+	FrameIndex REVR J 0 27
+	FrameIndex REVR K 0 28
+	FrameIndex REVR L 0 29
+	FrameIndex REVR M 0 30
+}
+
+Model RS_GH_PumpShotgun
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_PumpShotgun"
+	Model 0 "Shotgun.md3"
+	Skin 0 "Shotgun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSG A 0 4
+	FrameIndex HBSG B 0 5
+	FrameIndex HBSG C 0 14
+	FrameIndex HBSG D 0 21
+	FrameIndex SSHR A 0 23
+	FrameIndex SSHR B 0 24
+	FrameIndex SSHR C 0 25
+	FrameIndex SSHR D 0 26
+	FrameIndex SSHR E 0 27
+	FrameIndex SSHR F 0 28
+	FrameIndex SSHR G 0 29
+	FrameIndex SSHR H 0 30
+	FrameIndex SSHR I 0 31
+}
+
+Model RS_GH_PumpShotgun2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_PumpShotgun"
+	Model 0 "Shotgun.md3"
+	Skin 0 "Shotgun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSG A 0 4
+	FrameIndex HBSG B 0 5
+	FrameIndex HBSG C 0 14
+	FrameIndex HBSG D 0 21
+	FrameIndex SSHR A 0 23
+	FrameIndex SSHR B 0 24
+	FrameIndex SSHR C 0 25
+	FrameIndex SSHR D 0 26
+	FrameIndex SSHR E 0 27
+	FrameIndex SSHR F 0 28
+	FrameIndex SSHR G 0 29
+	FrameIndex SSHR H 0 30
+	FrameIndex SSHR I 0 31
+}
+
+Model RS_GH_PumpShotgun3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_PumpShotgun"
+	Model 0 "Shotgun.md3"
+	Skin 0 "Shotgun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSG A 0 4
+	FrameIndex HBSG B 0 5
+	FrameIndex HBSG C 0 14
+	FrameIndex HBSG D 0 21
+	FrameIndex SSHR A 0 23
+	FrameIndex SSHR B 0 24
+	FrameIndex SSHR C 0 25
+	FrameIndex SSHR D 0 26
+	FrameIndex SSHR E 0 27
+	FrameIndex SSHR F 0 28
+	FrameIndex SSHR G 0 29
+	FrameIndex SSHR H 0 30
+	FrameIndex SSHR I 0 31
+}
+
+Model RS_GH_PumpShotgun4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_PumpShotgun"
+	Model 0 "Shotgun.md3"
+	Skin 0 "Shotgun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSG A 0 4
+	FrameIndex HBSG B 0 5
+	FrameIndex HBSG C 0 14
+	FrameIndex HBSG D 0 21
+	FrameIndex SSHR A 0 23
+	FrameIndex SSHR B 0 24
+	FrameIndex SSHR C 0 25
+	FrameIndex SSHR D 0 26
+	FrameIndex SSHR E 0 27
+	FrameIndex SSHR F 0 28
+	FrameIndex SSHR G 0 29
+	FrameIndex SSHR H 0 30
+	FrameIndex SSHR I 0 31
+}
+
+Model RS_GH_PumpShotgun5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_PumpShotgun"
+	Model 0 "Shotgun.md3"
+	Skin 0 "Shotgun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSG A 0 4
+	FrameIndex HBSG B 0 5
+	FrameIndex HBSG C 0 14
+	FrameIndex HBSG D 0 21
+	FrameIndex SSHR A 0 23
+	FrameIndex SSHR B 0 24
+	FrameIndex SSHR C 0 25
+	FrameIndex SSHR D 0 26
+	FrameIndex SSHR E 0 27
+	FrameIndex SSHR F 0 28
+	FrameIndex SSHR G 0 29
+	FrameIndex SSHR H 0 30
+	FrameIndex SSHR I 0 31
+}
+
+Model RS_GH_PumpShotgun6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_PumpShotgun"
+	Model 0 "Shotgun.md3"
+	Skin 0 "Shotgun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSG A 0 4
+	FrameIndex HBSG B 0 5
+	FrameIndex HBSG C 0 14
+	FrameIndex HBSG D 0 21
+	FrameIndex SSHR A 0 23
+	FrameIndex SSHR B 0 24
+	FrameIndex SSHR C 0 25
+	FrameIndex SSHR D 0 26
+	FrameIndex SSHR E 0 27
+	FrameIndex SSHR F 0 28
+	FrameIndex SSHR G 0 29
+	FrameIndex SSHR H 0 30
+	FrameIndex SSHR I 0 31
+}
+
+Model RS_GH_AssaultShotgun
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_AssaultShotgun"
+	Model 0 "AssaultShotgun.md3"
+	Skin 0 "AssaultShotgun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBAG A 0 4
+	FrameIndex HBAG B 0 5
+	FrameIndex HBAG C 0 6
+	FrameIndex HBAG D 0 7
+	FrameIndex A12R A 0 11
+	FrameIndex A12R B 0 12
+	FrameIndex A12R C 0 13
+	FrameIndex A12R D 0 14
+	FrameIndex A12R E 0 15
+	FrameIndex A12R F 0 16
+	FrameIndex A12R G 0 17
+	FrameIndex A12R H 0 18
+	FrameIndex A12R I 0 19
+	FrameIndex A12R J 0 20
+	FrameIndex A12R K 0 21
+	FrameIndex A12R L 0 22
+	FrameIndex A12R M 0 23
+	FrameIndex A12R N 0 24
+	FrameIndex A12R O 0 25
+	FrameIndex A12R P 0 26
+	FrameIndex A12R Q 0 27
+	FrameIndex A12R R 0 28
+	FrameIndex A12R S 0 29
+	FrameIndex A12R T 0 30
+	FrameIndex A12R U 0 31
+}
+
+Model RS_GH_AssaultShotgun2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_AssaultShotgun"
+	Model 0 "AssaultShotgun.md3"
+	Skin 0 "AssaultShotgun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBAG A 0 4
+	FrameIndex HBAG B 0 5
+	FrameIndex HBAG C 0 6
+	FrameIndex HBAG D 0 7
+	FrameIndex A12R A 0 11
+	FrameIndex A12R B 0 12
+	FrameIndex A12R C 0 13
+	FrameIndex A12R D 0 14
+	FrameIndex A12R E 0 15
+	FrameIndex A12R F 0 16
+	FrameIndex A12R G 0 17
+	FrameIndex A12R H 0 18
+	FrameIndex A12R I 0 19
+	FrameIndex A12R J 0 20
+	FrameIndex A12R K 0 21
+	FrameIndex A12R L 0 22
+	FrameIndex A12R M 0 23
+	FrameIndex A12R N 0 24
+	FrameIndex A12R O 0 25
+	FrameIndex A12R P 0 26
+	FrameIndex A12R Q 0 27
+	FrameIndex A12R R 0 28
+	FrameIndex A12R S 0 29
+	FrameIndex A12R T 0 30
+	FrameIndex A12R U 0 31
+}
+
+Model RS_GH_AssaultShotgun3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_AssaultShotgun"
+	Model 0 "AssaultShotgun.md3"
+	Skin 0 "AssaultShotgun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBAG A 0 4
+	FrameIndex HBAG B 0 5
+	FrameIndex HBAG C 0 6
+	FrameIndex HBAG D 0 7
+	FrameIndex A12R A 0 11
+	FrameIndex A12R B 0 12
+	FrameIndex A12R C 0 13
+	FrameIndex A12R D 0 14
+	FrameIndex A12R E 0 15
+	FrameIndex A12R F 0 16
+	FrameIndex A12R G 0 17
+	FrameIndex A12R H 0 18
+	FrameIndex A12R I 0 19
+	FrameIndex A12R J 0 20
+	FrameIndex A12R K 0 21
+	FrameIndex A12R L 0 22
+	FrameIndex A12R M 0 23
+	FrameIndex A12R N 0 24
+	FrameIndex A12R O 0 25
+	FrameIndex A12R P 0 26
+	FrameIndex A12R Q 0 27
+	FrameIndex A12R R 0 28
+	FrameIndex A12R S 0 29
+	FrameIndex A12R T 0 30
+	FrameIndex A12R U 0 31
+}
+
+Model RS_GH_AssaultShotgun4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_AssaultShotgun"
+	Model 0 "AssaultShotgun.md3"
+	Skin 0 "AssaultShotgun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBAG A 0 4
+	FrameIndex HBAG B 0 5
+	FrameIndex HBAG C 0 6
+	FrameIndex HBAG D 0 7
+	FrameIndex A12R A 0 11
+	FrameIndex A12R B 0 12
+	FrameIndex A12R C 0 13
+	FrameIndex A12R D 0 14
+	FrameIndex A12R E 0 15
+	FrameIndex A12R F 0 16
+	FrameIndex A12R G 0 17
+	FrameIndex A12R H 0 18
+	FrameIndex A12R I 0 19
+	FrameIndex A12R J 0 20
+	FrameIndex A12R K 0 21
+	FrameIndex A12R L 0 22
+	FrameIndex A12R M 0 23
+	FrameIndex A12R N 0 24
+	FrameIndex A12R O 0 25
+	FrameIndex A12R P 0 26
+	FrameIndex A12R Q 0 27
+	FrameIndex A12R R 0 28
+	FrameIndex A12R S 0 29
+	FrameIndex A12R T 0 30
+	FrameIndex A12R U 0 31
+}
+
+Model RS_GH_AssaultShotgun5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_AssaultShotgun"
+	Model 0 "AssaultShotgun.md3"
+	Skin 0 "AssaultShotgun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBAG A 0 4
+	FrameIndex HBAG B 0 5
+	FrameIndex HBAG C 0 6
+	FrameIndex HBAG D 0 7
+	FrameIndex A12R A 0 11
+	FrameIndex A12R B 0 12
+	FrameIndex A12R C 0 13
+	FrameIndex A12R D 0 14
+	FrameIndex A12R E 0 15
+	FrameIndex A12R F 0 16
+	FrameIndex A12R G 0 17
+	FrameIndex A12R H 0 18
+	FrameIndex A12R I 0 19
+	FrameIndex A12R J 0 20
+	FrameIndex A12R K 0 21
+	FrameIndex A12R L 0 22
+	FrameIndex A12R M 0 23
+	FrameIndex A12R N 0 24
+	FrameIndex A12R O 0 25
+	FrameIndex A12R P 0 26
+	FrameIndex A12R Q 0 27
+	FrameIndex A12R R 0 28
+	FrameIndex A12R S 0 29
+	FrameIndex A12R T 0 30
+	FrameIndex A12R U 0 31
+}
+
+Model RS_GH_AssaultShotgun6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_AssaultShotgun"
+	Model 0 "AssaultShotgun.md3"
+	Skin 0 "AssaultShotgun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBAG A 0 4
+	FrameIndex HBAG B 0 5
+	FrameIndex HBAG C 0 6
+	FrameIndex HBAG D 0 7
+	FrameIndex A12R A 0 11
+	FrameIndex A12R B 0 12
+	FrameIndex A12R C 0 13
+	FrameIndex A12R D 0 14
+	FrameIndex A12R E 0 15
+	FrameIndex A12R F 0 16
+	FrameIndex A12R G 0 17
+	FrameIndex A12R H 0 18
+	FrameIndex A12R I 0 19
+	FrameIndex A12R J 0 20
+	FrameIndex A12R K 0 21
+	FrameIndex A12R L 0 22
+	FrameIndex A12R M 0 23
+	FrameIndex A12R N 0 24
+	FrameIndex A12R O 0 25
+	FrameIndex A12R P 0 26
+	FrameIndex A12R Q 0 27
+	FrameIndex A12R R 0 28
+	FrameIndex A12R S 0 29
+	FrameIndex A12R T 0 30
+	FrameIndex A12R U 0 31
+}
+
+Model RS_GH_SSG
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SSG"
+	Model 0 "SSG.md3"
+	Skin 0 "ssg.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSS A 0 1
+	FrameIndex HBSS B 0 2
+	FrameIndex HBSS C 0 3
+	FrameIndex HBSS D 0 4
+	FrameIndex SHTZ B 0 13
+	FrameIndex SHTZ C 0 14
+	FrameIndex SHTZ D 0 15
+	FrameIndex SHTZ E 0 16
+	FrameIndex SHTZ F 0 17
+	FrameIndex SHTZ G 0 18
+	FrameIndex SHTZ H 0 19
+	FrameIndex SHTZ I 0 20
+	FrameIndex SHTZ J 0 21
+	FrameIndex SHTZ K 0 22
+	FrameIndex SHTZ L 0 23
+	FrameIndex SHTZ M 0 24
+	FrameIndex SHTZ N 0 25
+	FrameIndex SHTZ O 0 26
+	FrameIndex SHTZ P 0 27
+	FrameIndex SHTZ Q 0 28
+	FrameIndex SHTZ R 0 29
+	FrameIndex SHTZ S 0 30
+	FrameIndex SHTZ T 0 31
+	FrameIndex SHTZ U 0 32
+	FrameIndex SHTZ V 0 33
+	FrameIndex SHTZ W 0 34
+	FrameIndex SHTZ X 0 35
+	FrameIndex SHTZ Y 0 36
+	FrameIndex SHTZ Z 0 37
+}
+
+Model RS_GH_SSG2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SSG"
+	Model 0 "SSG.md3"
+	Skin 0 "ssg.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSS A 0 1
+	FrameIndex HBSS B 0 2
+	FrameIndex HBSS C 0 3
+	FrameIndex HBSS D 0 4
+	FrameIndex SHTZ B 0 13
+	FrameIndex SHTZ C 0 14
+	FrameIndex SHTZ D 0 15
+	FrameIndex SHTZ E 0 16
+	FrameIndex SHTZ F 0 17
+	FrameIndex SHTZ G 0 18
+	FrameIndex SHTZ H 0 19
+	FrameIndex SHTZ I 0 20
+	FrameIndex SHTZ J 0 21
+	FrameIndex SHTZ K 0 22
+	FrameIndex SHTZ L 0 23
+	FrameIndex SHTZ M 0 24
+	FrameIndex SHTZ N 0 25
+	FrameIndex SHTZ O 0 26
+	FrameIndex SHTZ P 0 27
+	FrameIndex SHTZ Q 0 28
+	FrameIndex SHTZ R 0 29
+	FrameIndex SHTZ S 0 30
+	FrameIndex SHTZ T 0 31
+	FrameIndex SHTZ U 0 32
+	FrameIndex SHTZ V 0 33
+	FrameIndex SHTZ W 0 34
+	FrameIndex SHTZ X 0 35
+	FrameIndex SHTZ Y 0 36
+	FrameIndex SHTZ Z 0 37
+}
+
+Model RS_GH_SSG3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SSG"
+	Model 0 "SSG.md3"
+	Skin 0 "ssg.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSS A 0 1
+	FrameIndex HBSS B 0 2
+	FrameIndex HBSS C 0 3
+	FrameIndex HBSS D 0 4
+	FrameIndex SHTZ B 0 13
+	FrameIndex SHTZ C 0 14
+	FrameIndex SHTZ D 0 15
+	FrameIndex SHTZ E 0 16
+	FrameIndex SHTZ F 0 17
+	FrameIndex SHTZ G 0 18
+	FrameIndex SHTZ H 0 19
+	FrameIndex SHTZ I 0 20
+	FrameIndex SHTZ J 0 21
+	FrameIndex SHTZ K 0 22
+	FrameIndex SHTZ L 0 23
+	FrameIndex SHTZ M 0 24
+	FrameIndex SHTZ N 0 25
+	FrameIndex SHTZ O 0 26
+	FrameIndex SHTZ P 0 27
+	FrameIndex SHTZ Q 0 28
+	FrameIndex SHTZ R 0 29
+	FrameIndex SHTZ S 0 30
+	FrameIndex SHTZ T 0 31
+	FrameIndex SHTZ U 0 32
+	FrameIndex SHTZ V 0 33
+	FrameIndex SHTZ W 0 34
+	FrameIndex SHTZ X 0 35
+	FrameIndex SHTZ Y 0 36
+	FrameIndex SHTZ Z 0 37
+}
+
+Model RS_GH_SSG4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SSG"
+	Model 0 "SSG.md3"
+	Skin 0 "ssg.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSS A 0 1
+	FrameIndex HBSS B 0 2
+	FrameIndex HBSS C 0 3
+	FrameIndex HBSS D 0 4
+	FrameIndex SHTZ B 0 13
+	FrameIndex SHTZ C 0 14
+	FrameIndex SHTZ D 0 15
+	FrameIndex SHTZ E 0 16
+	FrameIndex SHTZ F 0 17
+	FrameIndex SHTZ G 0 18
+	FrameIndex SHTZ H 0 19
+	FrameIndex SHTZ I 0 20
+	FrameIndex SHTZ J 0 21
+	FrameIndex SHTZ K 0 22
+	FrameIndex SHTZ L 0 23
+	FrameIndex SHTZ M 0 24
+	FrameIndex SHTZ N 0 25
+	FrameIndex SHTZ O 0 26
+	FrameIndex SHTZ P 0 27
+	FrameIndex SHTZ Q 0 28
+	FrameIndex SHTZ R 0 29
+	FrameIndex SHTZ S 0 30
+	FrameIndex SHTZ T 0 31
+	FrameIndex SHTZ U 0 32
+	FrameIndex SHTZ V 0 33
+	FrameIndex SHTZ W 0 34
+	FrameIndex SHTZ X 0 35
+	FrameIndex SHTZ Y 0 36
+	FrameIndex SHTZ Z 0 37
+}
+
+Model RS_GH_SSG5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SSG"
+	Model 0 "SSG.md3"
+	Skin 0 "ssg.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSS A 0 1
+	FrameIndex HBSS B 0 2
+	FrameIndex HBSS C 0 3
+	FrameIndex HBSS D 0 4
+	FrameIndex SHTZ B 0 13
+	FrameIndex SHTZ C 0 14
+	FrameIndex SHTZ D 0 15
+	FrameIndex SHTZ E 0 16
+	FrameIndex SHTZ F 0 17
+	FrameIndex SHTZ G 0 18
+	FrameIndex SHTZ H 0 19
+	FrameIndex SHTZ I 0 20
+	FrameIndex SHTZ J 0 21
+	FrameIndex SHTZ K 0 22
+	FrameIndex SHTZ L 0 23
+	FrameIndex SHTZ M 0 24
+	FrameIndex SHTZ N 0 25
+	FrameIndex SHTZ O 0 26
+	FrameIndex SHTZ P 0 27
+	FrameIndex SHTZ Q 0 28
+	FrameIndex SHTZ R 0 29
+	FrameIndex SHTZ S 0 30
+	FrameIndex SHTZ T 0 31
+	FrameIndex SHTZ U 0 32
+	FrameIndex SHTZ V 0 33
+	FrameIndex SHTZ W 0 34
+	FrameIndex SHTZ X 0 35
+	FrameIndex SHTZ Y 0 36
+	FrameIndex SHTZ Z 0 37
+}
+
+Model RS_GH_SSG6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SSG"
+	Model 0 "SSG.md3"
+	Skin 0 "ssg.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSS A 0 1
+	FrameIndex HBSS B 0 2
+	FrameIndex HBSS C 0 3
+	FrameIndex HBSS D 0 4
+	FrameIndex SHTZ B 0 13
+	FrameIndex SHTZ C 0 14
+	FrameIndex SHTZ D 0 15
+	FrameIndex SHTZ E 0 16
+	FrameIndex SHTZ F 0 17
+	FrameIndex SHTZ G 0 18
+	FrameIndex SHTZ H 0 19
+	FrameIndex SHTZ I 0 20
+	FrameIndex SHTZ J 0 21
+	FrameIndex SHTZ K 0 22
+	FrameIndex SHTZ L 0 23
+	FrameIndex SHTZ M 0 24
+	FrameIndex SHTZ N 0 25
+	FrameIndex SHTZ O 0 26
+	FrameIndex SHTZ P 0 27
+	FrameIndex SHTZ Q 0 28
+	FrameIndex SHTZ R 0 29
+	FrameIndex SHTZ S 0 30
+	FrameIndex SHTZ T 0 31
+	FrameIndex SHTZ U 0 32
+	FrameIndex SHTZ V 0 33
+	FrameIndex SHTZ W 0 34
+	FrameIndex SHTZ X 0 35
+	FrameIndex SHTZ Y 0 36
+	FrameIndex SHTZ Z 0 37
+}
+
+Model RS_GH_Minigun
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Minigun"
+	Model 0 "Minigun.md3"
+	Skin 0 "Minigun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMN A 0 4
+	FrameIndex HBMN B 0 8
+	FrameIndex HBMN C 0 9
+	FrameIndex HBMN D 0 10
+}
+
+Model RS_GH_Minigun2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Minigun"
+	Model 0 "Minigun.md3"
+	Skin 0 "Minigun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMN A 0 4
+	FrameIndex HBMN B 0 8
+	FrameIndex HBMN C 0 9
+	FrameIndex HBMN D 0 10
+}
+
+Model RS_GH_Minigun3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Minigun"
+	Model 0 "Minigun.md3"
+	Skin 0 "Minigun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMN A 0 4
+	FrameIndex HBMN B 0 8
+	FrameIndex HBMN C 0 9
+	FrameIndex HBMN D 0 10
+}
+
+Model RS_GH_Minigun4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Minigun"
+	Model 0 "Minigun.md3"
+	Skin 0 "Minigun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMN A 0 4
+	FrameIndex HBMN B 0 8
+	FrameIndex HBMN C 0 9
+	FrameIndex HBMN D 0 10
+}
+
+Model RS_GH_Minigun5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Minigun"
+	Model 0 "Minigun.md3"
+	Skin 0 "Minigun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMN A 0 4
+	FrameIndex HBMN B 0 8
+	FrameIndex HBMN C 0 9
+	FrameIndex HBMN D 0 10
+}
+
+Model RS_GH_Minigun6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Minigun"
+	Model 0 "Minigun.md3"
+	Skin 0 "Minigun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMN A 0 4
+	FrameIndex HBMN B 0 8
+	FrameIndex HBMN C 0 9
+	FrameIndex HBMN D 0 10
+}
+
+Model RS_GH_Rifle
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Rifle"
+	Model 0 "Rifle.md3"
+	Skin 0 "Rifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRI A 0 3
+	FrameIndex HBRI B 0 4
+	FrameIndex HBRI C 0 5
+	FrameIndex HBRI D 0 6
+	FrameIndex RIFR A 0 7
+	FrameIndex RIFR B 0 8
+	FrameIndex RIFR C 0 9
+	FrameIndex RIFR D 0 10
+	FrameIndex RIFR E 0 11
+	FrameIndex RIFR F 0 12
+	FrameIndex RIFR G 0 13
+	FrameIndex RIFR H 0 14
+	FrameIndex RIFR I 0 15
+	FrameIndex RIFR J 0 16
+	FrameIndex RIFR K 0 17
+	FrameIndex RIFR L 0 18
+	FrameIndex RIFR M 0 19
+	FrameIndex RIFR N 0 20
+	FrameIndex RIFR O 0 21
+	FrameIndex RIFR P 0 22
+	FrameIndex RIFR Q 0 23
+	FrameIndex RIFR R 0 24
+	FrameIndex RIFR S 0 25
+	FrameIndex RIFR T 0 26
+}
+
+Model RS_GH_Rifle2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Rifle"
+	Model 0 "Rifle.md3"
+	Skin 0 "Rifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRI A 0 3
+	FrameIndex HBRI B 0 4
+	FrameIndex HBRI C 0 5
+	FrameIndex HBRI D 0 6
+	FrameIndex RIFR A 0 7
+	FrameIndex RIFR B 0 8
+	FrameIndex RIFR C 0 9
+	FrameIndex RIFR D 0 10
+	FrameIndex RIFR E 0 11
+	FrameIndex RIFR F 0 12
+	FrameIndex RIFR G 0 13
+	FrameIndex RIFR H 0 14
+	FrameIndex RIFR I 0 15
+	FrameIndex RIFR J 0 16
+	FrameIndex RIFR K 0 17
+	FrameIndex RIFR L 0 18
+	FrameIndex RIFR M 0 19
+	FrameIndex RIFR N 0 20
+	FrameIndex RIFR O 0 21
+	FrameIndex RIFR P 0 22
+	FrameIndex RIFR Q 0 23
+	FrameIndex RIFR R 0 24
+	FrameIndex RIFR S 0 25
+	FrameIndex RIFR T 0 26
+}
+
+Model RS_GH_Rifle3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Rifle"
+	Model 0 "Rifle.md3"
+	Skin 0 "Rifle.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRI A 0 3
+	FrameIndex HBRI B 0 4
+	FrameIndex HBRI C 0 5
+	FrameIndex HBRI D 0 6
+	FrameIndex RIFR A 0 7
+	FrameIndex RIFR B 0 8
+	FrameIndex RIFR C 0 9
+	FrameIndex RIFR D 0 10
+	FrameIndex RIFR E 0 11
+	FrameIndex RIFR F 0 12
+	FrameIndex RIFR G 0 13
+	FrameIndex RIFR H 0 14
+	FrameIndex RIFR I 0 15
+	FrameIndex RIFR J 0 16
+	FrameIndex RIFR K 0 17
+	FrameIndex RIFR L 0 18
+	FrameIndex RIFR M 0 19
+	FrameIndex RIFR N 0 20
+	FrameIndex RIFR O 0 21
+	FrameIndex RIFR P 0 22
+	FrameIndex RIFR Q 0 23
+	FrameIndex RIFR R 0 24
+	FrameIndex RIFR S 0 25
+	FrameIndex RIFR T 0 26
+}
+
+Model RS_GH_Rifle4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Rifle"
+	Model 0 "Rifle.md3"
+	Skin 0 "Rifle.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRI A 0 3
+	FrameIndex HBRI B 0 4
+	FrameIndex HBRI C 0 5
+	FrameIndex HBRI D 0 6
+	FrameIndex RIFR A 0 7
+	FrameIndex RIFR B 0 8
+	FrameIndex RIFR C 0 9
+	FrameIndex RIFR D 0 10
+	FrameIndex RIFR E 0 11
+	FrameIndex RIFR F 0 12
+	FrameIndex RIFR G 0 13
+	FrameIndex RIFR H 0 14
+	FrameIndex RIFR I 0 15
+	FrameIndex RIFR J 0 16
+	FrameIndex RIFR K 0 17
+	FrameIndex RIFR L 0 18
+	FrameIndex RIFR M 0 19
+	FrameIndex RIFR N 0 20
+	FrameIndex RIFR O 0 21
+	FrameIndex RIFR P 0 22
+	FrameIndex RIFR Q 0 23
+	FrameIndex RIFR R 0 24
+	FrameIndex RIFR S 0 25
+	FrameIndex RIFR T 0 26
+}
+
+Model RS_GH_Rifle5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Rifle"
+	Model 0 "Rifle.md3"
+	Skin 0 "Rifle.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRI A 0 3
+	FrameIndex HBRI B 0 4
+	FrameIndex HBRI C 0 5
+	FrameIndex HBRI D 0 6
+	FrameIndex RIFR A 0 7
+	FrameIndex RIFR B 0 8
+	FrameIndex RIFR C 0 9
+	FrameIndex RIFR D 0 10
+	FrameIndex RIFR E 0 11
+	FrameIndex RIFR F 0 12
+	FrameIndex RIFR G 0 13
+	FrameIndex RIFR H 0 14
+	FrameIndex RIFR I 0 15
+	FrameIndex RIFR J 0 16
+	FrameIndex RIFR K 0 17
+	FrameIndex RIFR L 0 18
+	FrameIndex RIFR M 0 19
+	FrameIndex RIFR N 0 20
+	FrameIndex RIFR O 0 21
+	FrameIndex RIFR P 0 22
+	FrameIndex RIFR Q 0 23
+	FrameIndex RIFR R 0 24
+	FrameIndex RIFR S 0 25
+	FrameIndex RIFR T 0 26
+}
+
+Model RS_GH_Rifle6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Rifle"
+	Model 0 "Rifle.md3"
+	Skin 0 "Rifle.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRI A 0 3
+	FrameIndex HBRI B 0 4
+	FrameIndex HBRI C 0 5
+	FrameIndex HBRI D 0 6
+	FrameIndex RIFR A 0 7
+	FrameIndex RIFR B 0 8
+	FrameIndex RIFR C 0 9
+	FrameIndex RIFR D 0 10
+	FrameIndex RIFR E 0 11
+	FrameIndex RIFR F 0 12
+	FrameIndex RIFR G 0 13
+	FrameIndex RIFR H 0 14
+	FrameIndex RIFR I 0 15
+	FrameIndex RIFR J 0 16
+	FrameIndex RIFR K 0 17
+	FrameIndex RIFR L 0 18
+	FrameIndex RIFR M 0 19
+	FrameIndex RIFR N 0 20
+	FrameIndex RIFR O 0 21
+	FrameIndex RIFR P 0 22
+	FrameIndex RIFR Q 0 23
+	FrameIndex RIFR R 0 24
+	FrameIndex RIFR S 0 25
+	FrameIndex RIFR T 0 26
+}
+
+Model RS_GH_SMG
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSM A 0 3
+	FrameIndex HBSM B 0 4
+	FrameIndex HBSM C 0 5
+	FrameIndex HBSM D 0 6
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model RS_GH_SMG2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSM A 0 3
+	FrameIndex HBSM B 0 4
+	FrameIndex HBSM C 0 5
+	FrameIndex HBSM D 0 6
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model RS_GH_SMG3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSM A 0 3
+	FrameIndex HBSM B 0 4
+	FrameIndex HBSM C 0 5
+	FrameIndex HBSM D 0 6
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model RS_GH_SMG4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSM A 0 3
+	FrameIndex HBSM B 0 4
+	FrameIndex HBSM C 0 5
+	FrameIndex HBSM D 0 6
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model RS_GH_SMG5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSM A 0 3
+	FrameIndex HBSM B 0 4
+	FrameIndex HBSM C 0 5
+	FrameIndex HBSM D 0 6
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model RS_GH_SMG6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBSM A 0 3
+	FrameIndex HBSM B 0 4
+	FrameIndex HBSM C 0 5
+	FrameIndex HBSM D 0 6
+	FrameIndex SMGR A 0 7
+	FrameIndex SMGR B 0 8
+	FrameIndex SMGR C 0 9
+	FrameIndex SMGR D 0 10
+	FrameIndex SMGR E 0 11
+	FrameIndex SMGR F 0 12
+	FrameIndex SMGR G 0 13
+	FrameIndex SMGR H 0 14
+	FrameIndex SMGR I 0 15
+	FrameIndex SMGR J 0 16
+	FrameIndex SMGR K 0 17
+	FrameIndex SMGR L 0 18
+	FrameIndex SMGR M 0 19
+	FrameIndex SMGR N 0 20
+	FrameIndex SMGR O 0 21
+	FrameIndex SMGR P 0 22
+	FrameIndex SMGR Q 0 23
+	FrameIndex SMGR R 0 24
+	FrameIndex SMGR S 0 25
+	FrameIndex SMGR T 0 26
+}
+
+Model RS_GH_MP40
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_MP40"
+	Model 0 "MP40.md3"
+	Skin 0 "MP40.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMP A 0 2
+	FrameIndex HBMP B 0 3
+	FrameIndex HBMP C 0 5
+	FrameIndex HBMP D 0 6
+	FrameIndex MP4R A 0 7
+	FrameIndex MP4R B 0 8
+	FrameIndex MP4R C 0 9
+	FrameIndex MP4R D 0 10
+	FrameIndex MP4R E 0 11
+	FrameIndex MP4R F 0 12
+	FrameIndex MP4R G 0 13
+}
+
+Model RS_GH_MP402
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_MP40"
+	Model 0 "MP40.md3"
+	Skin 0 "MP40.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMP A 0 2
+	FrameIndex HBMP B 0 3
+	FrameIndex HBMP C 0 5
+	FrameIndex HBMP D 0 6
+	FrameIndex MP4R A 0 7
+	FrameIndex MP4R B 0 8
+	FrameIndex MP4R C 0 9
+	FrameIndex MP4R D 0 10
+	FrameIndex MP4R E 0 11
+	FrameIndex MP4R F 0 12
+	FrameIndex MP4R G 0 13
+}
+
+Model RS_GH_MP403
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_MP40"
+	Model 0 "MP40.md3"
+	Skin 0 "MP40.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMP A 0 2
+	FrameIndex HBMP B 0 3
+	FrameIndex HBMP C 0 5
+	FrameIndex HBMP D 0 6
+	FrameIndex MP4R A 0 7
+	FrameIndex MP4R B 0 8
+	FrameIndex MP4R C 0 9
+	FrameIndex MP4R D 0 10
+	FrameIndex MP4R E 0 11
+	FrameIndex MP4R F 0 12
+	FrameIndex MP4R G 0 13
+}
+
+Model RS_GH_MP404
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_MP40"
+	Model 0 "MP40.md3"
+	Skin 0 "MP40.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMP A 0 2
+	FrameIndex HBMP B 0 3
+	FrameIndex HBMP C 0 5
+	FrameIndex HBMP D 0 6
+	FrameIndex MP4R A 0 7
+	FrameIndex MP4R B 0 8
+	FrameIndex MP4R C 0 9
+	FrameIndex MP4R D 0 10
+	FrameIndex MP4R E 0 11
+	FrameIndex MP4R F 0 12
+	FrameIndex MP4R G 0 13
+}
+
+Model RS_GH_MP405
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_MP40"
+	Model 0 "MP40.md3"
+	Skin 0 "MP40.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMP A 0 2
+	FrameIndex HBMP B 0 3
+	FrameIndex HBMP C 0 5
+	FrameIndex HBMP D 0 6
+	FrameIndex MP4R A 0 7
+	FrameIndex MP4R B 0 8
+	FrameIndex MP4R C 0 9
+	FrameIndex MP4R D 0 10
+	FrameIndex MP4R E 0 11
+	FrameIndex MP4R F 0 12
+	FrameIndex MP4R G 0 13
+}
+
+Model RS_GH_MP406
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_MP40"
+	Model 0 "MP40.md3"
+	Skin 0 "MP40.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMP A 0 2
+	FrameIndex HBMP B 0 3
+	FrameIndex HBMP C 0 5
+	FrameIndex HBMP D 0 6
+	FrameIndex MP4R A 0 7
+	FrameIndex MP4R B 0 8
+	FrameIndex MP4R C 0 9
+	FrameIndex MP4R D 0 10
+	FrameIndex MP4R E 0 11
+	FrameIndex MP4R F 0 12
+	FrameIndex MP4R G 0 13
+}
+
+Model RS_GH_RocketLauncher
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRL A 0 5
+	FrameIndex HBRL B 0 9
+	FrameIndex HBRL C 0 10
+	FrameIndex HBRL D 0 11
+	FrameIndex MISR A 0 17
+	FrameIndex MISR B 0 18
+	FrameIndex MISR C 0 19
+	FrameIndex MISR D 0 20
+	FrameIndex MISR E 0 21
+	FrameIndex MISR F 0 22
+	FrameIndex MISR G 0 23
+	FrameIndex MISR H 0 24
+	FrameIndex MISR I 0 25
+	FrameIndex MISR J 0 26
+	FrameIndex MISR K 0 27
+	FrameIndex MISR L 0 28
+	FrameIndex MISR M 0 29
+	FrameIndex MISR N 0 30
+	FrameIndex MISR O 0 31
+	FrameIndex MISR P 0 32
+	FrameIndex MISR Q 0 33
+	FrameIndex MISR R 0 34
+}
+
+Model RS_GH_RocketLauncher2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRL A 0 5
+	FrameIndex HBRL B 0 9
+	FrameIndex HBRL C 0 10
+	FrameIndex HBRL D 0 11
+	FrameIndex MISR A 0 17
+	FrameIndex MISR B 0 18
+	FrameIndex MISR C 0 19
+	FrameIndex MISR D 0 20
+	FrameIndex MISR E 0 21
+	FrameIndex MISR F 0 22
+	FrameIndex MISR G 0 23
+	FrameIndex MISR H 0 24
+	FrameIndex MISR I 0 25
+	FrameIndex MISR J 0 26
+	FrameIndex MISR K 0 27
+	FrameIndex MISR L 0 28
+	FrameIndex MISR M 0 29
+	FrameIndex MISR N 0 30
+	FrameIndex MISR O 0 31
+	FrameIndex MISR P 0 32
+	FrameIndex MISR Q 0 33
+	FrameIndex MISR R 0 34
+}
+
+Model RS_GH_RocketLauncher3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRL A 0 5
+	FrameIndex HBRL B 0 9
+	FrameIndex HBRL C 0 10
+	FrameIndex HBRL D 0 11
+	FrameIndex MISR A 0 17
+	FrameIndex MISR B 0 18
+	FrameIndex MISR C 0 19
+	FrameIndex MISR D 0 20
+	FrameIndex MISR E 0 21
+	FrameIndex MISR F 0 22
+	FrameIndex MISR G 0 23
+	FrameIndex MISR H 0 24
+	FrameIndex MISR I 0 25
+	FrameIndex MISR J 0 26
+	FrameIndex MISR K 0 27
+	FrameIndex MISR L 0 28
+	FrameIndex MISR M 0 29
+	FrameIndex MISR N 0 30
+	FrameIndex MISR O 0 31
+	FrameIndex MISR P 0 32
+	FrameIndex MISR Q 0 33
+	FrameIndex MISR R 0 34
+}
+
+Model RS_GH_RocketLauncher4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRL A 0 5
+	FrameIndex HBRL B 0 9
+	FrameIndex HBRL C 0 10
+	FrameIndex HBRL D 0 11
+	FrameIndex MISR A 0 17
+	FrameIndex MISR B 0 18
+	FrameIndex MISR C 0 19
+	FrameIndex MISR D 0 20
+	FrameIndex MISR E 0 21
+	FrameIndex MISR F 0 22
+	FrameIndex MISR G 0 23
+	FrameIndex MISR H 0 24
+	FrameIndex MISR I 0 25
+	FrameIndex MISR J 0 26
+	FrameIndex MISR K 0 27
+	FrameIndex MISR L 0 28
+	FrameIndex MISR M 0 29
+	FrameIndex MISR N 0 30
+	FrameIndex MISR O 0 31
+	FrameIndex MISR P 0 32
+	FrameIndex MISR Q 0 33
+	FrameIndex MISR R 0 34
+}
+
+Model RS_GH_RocketLauncher5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRL A 0 5
+	FrameIndex HBRL B 0 9
+	FrameIndex HBRL C 0 10
+	FrameIndex HBRL D 0 11
+	FrameIndex MISR A 0 17
+	FrameIndex MISR B 0 18
+	FrameIndex MISR C 0 19
+	FrameIndex MISR D 0 20
+	FrameIndex MISR E 0 21
+	FrameIndex MISR F 0 22
+	FrameIndex MISR G 0 23
+	FrameIndex MISR H 0 24
+	FrameIndex MISR I 0 25
+	FrameIndex MISR J 0 26
+	FrameIndex MISR K 0 27
+	FrameIndex MISR L 0 28
+	FrameIndex MISR M 0 29
+	FrameIndex MISR N 0 30
+	FrameIndex MISR O 0 31
+	FrameIndex MISR P 0 32
+	FrameIndex MISR Q 0 33
+	FrameIndex MISR R 0 34
+}
+
+Model RS_GH_RocketLauncher6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRL A 0 5
+	FrameIndex HBRL B 0 9
+	FrameIndex HBRL C 0 10
+	FrameIndex HBRL D 0 11
+	FrameIndex MISR A 0 17
+	FrameIndex MISR B 0 18
+	FrameIndex MISR C 0 19
+	FrameIndex MISR D 0 20
+	FrameIndex MISR E 0 21
+	FrameIndex MISR F 0 22
+	FrameIndex MISR G 0 23
+	FrameIndex MISR H 0 24
+	FrameIndex MISR I 0 25
+	FrameIndex MISR J 0 26
+	FrameIndex MISR K 0 27
+	FrameIndex MISR L 0 28
+	FrameIndex MISR M 0 29
+	FrameIndex MISR N 0 30
+	FrameIndex MISR O 0 31
+	FrameIndex MISR P 0 32
+	FrameIndex MISR Q 0 33
+	FrameIndex MISR R 0 34
+}
+
+Model RS_GH_GrenadeLauncher
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_GrenadeLauncher"
+	Model 0 "M79.md3"
+	Skin 0 "M79.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBGL A 0 3
+	FrameIndex HBGL B 0 4
+	FrameIndex HBGL C 0 6
+	FrameIndex HBGL D 0 5
+	FrameIndex GLR1 A 0 7
+	FrameIndex GLR1 B 0 8
+	FrameIndex GLR1 C 0 9
+	FrameIndex GLR1 D 0 10
+	FrameIndex GLR1 E 0 11
+	FrameIndex GLR1 F 0 12
+	FrameIndex GLR1 G 0 13
+	FrameIndex GLR1 H 0 14
+	FrameIndex GLR1 I 0 15
+	FrameIndex GLR1 J 0 16
+	FrameIndex GLR1 K 0 17
+	FrameIndex GLR1 L 0 18
+	FrameIndex GLR1 M 0 19
+	FrameIndex GLR1 N 0 20
+	FrameIndex GLR1 O 0 21
+	FrameIndex GLR1 P 0 22
+	FrameIndex GLR1 Q 0 23
+	FrameIndex GLR1 R 0 24
+	FrameIndex GLR1 S 0 25
+	FrameIndex GLR1 T 0 26
+	FrameIndex GLR1 U 0 27
+	FrameIndex GLR1 V 0 28
+	FrameIndex GLR1 W 0 29
+	FrameIndex GLR1 X 0 30
+	FrameIndex GLR1 Y 0 31
+	FrameIndex GLR1 Z 0 32
+}
+
+Model RS_GH_GrenadeLauncher2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_GrenadeLauncher"
+	Model 0 "M79.md3"
+	Skin 0 "M79.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBGL A 0 3
+	FrameIndex HBGL B 0 4
+	FrameIndex HBGL C 0 6
+	FrameIndex HBGL D 0 5
+	FrameIndex GLR1 A 0 7
+	FrameIndex GLR1 B 0 8
+	FrameIndex GLR1 C 0 9
+	FrameIndex GLR1 D 0 10
+	FrameIndex GLR1 E 0 11
+	FrameIndex GLR1 F 0 12
+	FrameIndex GLR1 G 0 13
+	FrameIndex GLR1 H 0 14
+	FrameIndex GLR1 I 0 15
+	FrameIndex GLR1 J 0 16
+	FrameIndex GLR1 K 0 17
+	FrameIndex GLR1 L 0 18
+	FrameIndex GLR1 M 0 19
+	FrameIndex GLR1 N 0 20
+	FrameIndex GLR1 O 0 21
+	FrameIndex GLR1 P 0 22
+	FrameIndex GLR1 Q 0 23
+	FrameIndex GLR1 R 0 24
+	FrameIndex GLR1 S 0 25
+	FrameIndex GLR1 T 0 26
+	FrameIndex GLR1 U 0 27
+	FrameIndex GLR1 V 0 28
+	FrameIndex GLR1 W 0 29
+	FrameIndex GLR1 X 0 30
+	FrameIndex GLR1 Y 0 31
+	FrameIndex GLR1 Z 0 32
+}
+
+Model RS_GH_GrenadeLauncher3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_GrenadeLauncher"
+	Model 0 "M79.md3"
+	Skin 0 "M79.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBGL A 0 3
+	FrameIndex HBGL B 0 4
+	FrameIndex HBGL C 0 6
+	FrameIndex HBGL D 0 5
+	FrameIndex GLR1 A 0 7
+	FrameIndex GLR1 B 0 8
+	FrameIndex GLR1 C 0 9
+	FrameIndex GLR1 D 0 10
+	FrameIndex GLR1 E 0 11
+	FrameIndex GLR1 F 0 12
+	FrameIndex GLR1 G 0 13
+	FrameIndex GLR1 H 0 14
+	FrameIndex GLR1 I 0 15
+	FrameIndex GLR1 J 0 16
+	FrameIndex GLR1 K 0 17
+	FrameIndex GLR1 L 0 18
+	FrameIndex GLR1 M 0 19
+	FrameIndex GLR1 N 0 20
+	FrameIndex GLR1 O 0 21
+	FrameIndex GLR1 P 0 22
+	FrameIndex GLR1 Q 0 23
+	FrameIndex GLR1 R 0 24
+	FrameIndex GLR1 S 0 25
+	FrameIndex GLR1 T 0 26
+	FrameIndex GLR1 U 0 27
+	FrameIndex GLR1 V 0 28
+	FrameIndex GLR1 W 0 29
+	FrameIndex GLR1 X 0 30
+	FrameIndex GLR1 Y 0 31
+	FrameIndex GLR1 Z 0 32
+}
+
+Model RS_GH_GrenadeLauncher4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_GrenadeLauncher"
+	Model 0 "M79.md3"
+	Skin 0 "M79.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBGL A 0 3
+	FrameIndex HBGL B 0 4
+	FrameIndex HBGL C 0 6
+	FrameIndex HBGL D 0 5
+	FrameIndex GLR1 A 0 7
+	FrameIndex GLR1 B 0 8
+	FrameIndex GLR1 C 0 9
+	FrameIndex GLR1 D 0 10
+	FrameIndex GLR1 E 0 11
+	FrameIndex GLR1 F 0 12
+	FrameIndex GLR1 G 0 13
+	FrameIndex GLR1 H 0 14
+	FrameIndex GLR1 I 0 15
+	FrameIndex GLR1 J 0 16
+	FrameIndex GLR1 K 0 17
+	FrameIndex GLR1 L 0 18
+	FrameIndex GLR1 M 0 19
+	FrameIndex GLR1 N 0 20
+	FrameIndex GLR1 O 0 21
+	FrameIndex GLR1 P 0 22
+	FrameIndex GLR1 Q 0 23
+	FrameIndex GLR1 R 0 24
+	FrameIndex GLR1 S 0 25
+	FrameIndex GLR1 T 0 26
+	FrameIndex GLR1 U 0 27
+	FrameIndex GLR1 V 0 28
+	FrameIndex GLR1 W 0 29
+	FrameIndex GLR1 X 0 30
+	FrameIndex GLR1 Y 0 31
+	FrameIndex GLR1 Z 0 32
+}
+
+Model RS_GH_GrenadeLauncher5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_GrenadeLauncher"
+	Model 0 "M79.md3"
+	Skin 0 "M79.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBGL A 0 3
+	FrameIndex HBGL B 0 4
+	FrameIndex HBGL C 0 6
+	FrameIndex HBGL D 0 5
+	FrameIndex GLR1 A 0 7
+	FrameIndex GLR1 B 0 8
+	FrameIndex GLR1 C 0 9
+	FrameIndex GLR1 D 0 10
+	FrameIndex GLR1 E 0 11
+	FrameIndex GLR1 F 0 12
+	FrameIndex GLR1 G 0 13
+	FrameIndex GLR1 H 0 14
+	FrameIndex GLR1 I 0 15
+	FrameIndex GLR1 J 0 16
+	FrameIndex GLR1 K 0 17
+	FrameIndex GLR1 L 0 18
+	FrameIndex GLR1 M 0 19
+	FrameIndex GLR1 N 0 20
+	FrameIndex GLR1 O 0 21
+	FrameIndex GLR1 P 0 22
+	FrameIndex GLR1 Q 0 23
+	FrameIndex GLR1 R 0 24
+	FrameIndex GLR1 S 0 25
+	FrameIndex GLR1 T 0 26
+	FrameIndex GLR1 U 0 27
+	FrameIndex GLR1 V 0 28
+	FrameIndex GLR1 W 0 29
+	FrameIndex GLR1 X 0 30
+	FrameIndex GLR1 Y 0 31
+	FrameIndex GLR1 Z 0 32
+}
+
+Model RS_GH_GrenadeLauncher6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_GrenadeLauncher"
+	Model 0 "M79.md3"
+	Skin 0 "M79.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBGL A 0 3
+	FrameIndex HBGL B 0 4
+	FrameIndex HBGL C 0 6
+	FrameIndex HBGL D 0 5
+	FrameIndex GLR1 A 0 7
+	FrameIndex GLR1 B 0 8
+	FrameIndex GLR1 C 0 9
+	FrameIndex GLR1 D 0 10
+	FrameIndex GLR1 E 0 11
+	FrameIndex GLR1 F 0 12
+	FrameIndex GLR1 G 0 13
+	FrameIndex GLR1 H 0 14
+	FrameIndex GLR1 I 0 15
+	FrameIndex GLR1 J 0 16
+	FrameIndex GLR1 K 0 17
+	FrameIndex GLR1 L 0 18
+	FrameIndex GLR1 M 0 19
+	FrameIndex GLR1 N 0 20
+	FrameIndex GLR1 O 0 21
+	FrameIndex GLR1 P 0 22
+	FrameIndex GLR1 Q 0 23
+	FrameIndex GLR1 R 0 24
+	FrameIndex GLR1 S 0 25
+	FrameIndex GLR1 T 0 26
+	FrameIndex GLR1 U 0 27
+	FrameIndex GLR1 V 0 28
+	FrameIndex GLR1 W 0 29
+	FrameIndex GLR1 X 0 30
+	FrameIndex GLR1 Y 0 31
+	FrameIndex GLR1 Z 0 32
+}
+
+Model RS_GH_HandGrenade
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_HandGrenade"
+	Model 0 "nade.md3"
+	Skin 0 "nade.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBHG A 0 2
+	FrameIndex HBHG B 0 3
+	FrameIndex HBHG C 0 10
+	FrameIndex HBHG D 0 12
+}
+
+Model RS_GH_HandGrenade2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_HandGrenade"
+	Model 0 "nade.md3"
+	Skin 0 "nade.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBHG A 0 2
+	FrameIndex HBHG B 0 3
+	FrameIndex HBHG C 0 10
+	FrameIndex HBHG D 0 12
+}
+
+Model RS_GH_HandGrenade3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_HandGrenade"
+	Model 0 "nade.md3"
+	Skin 0 "nade.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBHG A 0 2
+	FrameIndex HBHG B 0 3
+	FrameIndex HBHG C 0 10
+	FrameIndex HBHG D 0 12
+}
+
+Model RS_GH_HandGrenade4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_HandGrenade"
+	Model 0 "nade.md3"
+	Skin 0 "nade.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBHG A 0 2
+	FrameIndex HBHG B 0 3
+	FrameIndex HBHG C 0 10
+	FrameIndex HBHG D 0 12
+}
+
+Model RS_GH_HandGrenade5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_HandGrenade"
+	Model 0 "nade.md3"
+	Skin 0 "nade.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBHG A 0 2
+	FrameIndex HBHG B 0 3
+	FrameIndex HBHG C 0 10
+	FrameIndex HBHG D 0 12
+}
+
+Model RS_GH_HandGrenade6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_HandGrenade"
+	Model 0 "nade.md3"
+	Skin 0 "nade.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBHG A 0 2
+	FrameIndex HBHG B 0 3
+	FrameIndex HBHG C 0 10
+	FrameIndex HBHG D 0 12
+}
+
+Model RS_GH_Plasma
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Plasma"
+	Model 0 "Plasma.md3"
+	Skin 0 "Plasma.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPL A 0 4
+	FrameIndex HBPL B 0 5
+	FrameIndex HBPL C 0 6
+	FrameIndex HBPL D 0 7
+	FrameIndex PLSR A 0 18
+	FrameIndex PLSR B 0 19
+	FrameIndex PLSR C 0 20
+	FrameIndex PLSR D 0 21
+	FrameIndex PLSR E 0 22
+	FrameIndex PLSR F 0 23
+	FrameIndex PLSR G 0 24
+	FrameIndex PLSR H 0 25
+	FrameIndex PLSR I 0 26
+	FrameIndex PLSR J 0 27
+	FrameIndex PLSR K 0 28
+	FrameIndex PLSR L 0 29
+}
+
+Model RS_GH_Plasma2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Plasma"
+	Model 0 "Plasma.md3"
+	Skin 0 "Plasma.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPL A 0 4
+	FrameIndex HBPL B 0 5
+	FrameIndex HBPL C 0 6
+	FrameIndex HBPL D 0 7
+	FrameIndex PLSR A 0 18
+	FrameIndex PLSR B 0 19
+	FrameIndex PLSR C 0 20
+	FrameIndex PLSR D 0 21
+	FrameIndex PLSR E 0 22
+	FrameIndex PLSR F 0 23
+	FrameIndex PLSR G 0 24
+	FrameIndex PLSR H 0 25
+	FrameIndex PLSR I 0 26
+	FrameIndex PLSR J 0 27
+	FrameIndex PLSR K 0 28
+	FrameIndex PLSR L 0 29
+}
+
+Model RS_GH_Plasma3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Plasma"
+	Model 0 "Plasma.md3"
+	Skin 0 "Plasma.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPL A 0 4
+	FrameIndex HBPL B 0 5
+	FrameIndex HBPL C 0 6
+	FrameIndex HBPL D 0 7
+	FrameIndex PLSR A 0 18
+	FrameIndex PLSR B 0 19
+	FrameIndex PLSR C 0 20
+	FrameIndex PLSR D 0 21
+	FrameIndex PLSR E 0 22
+	FrameIndex PLSR F 0 23
+	FrameIndex PLSR G 0 24
+	FrameIndex PLSR H 0 25
+	FrameIndex PLSR I 0 26
+	FrameIndex PLSR J 0 27
+	FrameIndex PLSR K 0 28
+	FrameIndex PLSR L 0 29
+}
+
+Model RS_GH_Plasma4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Plasma"
+	Model 0 "Plasma.md3"
+	Skin 0 "Plasma.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPL A 0 4
+	FrameIndex HBPL B 0 5
+	FrameIndex HBPL C 0 6
+	FrameIndex HBPL D 0 7
+	FrameIndex PLSR A 0 18
+	FrameIndex PLSR B 0 19
+	FrameIndex PLSR C 0 20
+	FrameIndex PLSR D 0 21
+	FrameIndex PLSR E 0 22
+	FrameIndex PLSR F 0 23
+	FrameIndex PLSR G 0 24
+	FrameIndex PLSR H 0 25
+	FrameIndex PLSR I 0 26
+	FrameIndex PLSR J 0 27
+	FrameIndex PLSR K 0 28
+	FrameIndex PLSR L 0 29
+}
+
+Model RS_GH_Plasma5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Plasma"
+	Model 0 "Plasma.md3"
+	Skin 0 "Plasma.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPL A 0 4
+	FrameIndex HBPL B 0 5
+	FrameIndex HBPL C 0 6
+	FrameIndex HBPL D 0 7
+	FrameIndex PLSR A 0 18
+	FrameIndex PLSR B 0 19
+	FrameIndex PLSR C 0 20
+	FrameIndex PLSR D 0 21
+	FrameIndex PLSR E 0 22
+	FrameIndex PLSR F 0 23
+	FrameIndex PLSR G 0 24
+	FrameIndex PLSR H 0 25
+	FrameIndex PLSR I 0 26
+	FrameIndex PLSR J 0 27
+	FrameIndex PLSR K 0 28
+	FrameIndex PLSR L 0 29
+}
+
+Model RS_GH_Plasma6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Plasma"
+	Model 0 "Plasma.md3"
+	Skin 0 "Plasma.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBPL A 0 4
+	FrameIndex HBPL B 0 5
+	FrameIndex HBPL C 0 6
+	FrameIndex HBPL D 0 7
+	FrameIndex PLSR A 0 18
+	FrameIndex PLSR B 0 19
+	FrameIndex PLSR C 0 20
+	FrameIndex PLSR D 0 21
+	FrameIndex PLSR E 0 22
+	FrameIndex PLSR F 0 23
+	FrameIndex PLSR G 0 24
+	FrameIndex PLSR H 0 25
+	FrameIndex PLSR I 0 26
+	FrameIndex PLSR J 0 27
+	FrameIndex PLSR K 0 28
+	FrameIndex PLSR L 0 29
+}
+
+Model RS_GH_Railgun
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Railgun"
+	Model 0 "RailGun.md3"
+	Skin 0 "RailGun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRA A 0 3
+	FrameIndex HBRA B 0 4
+	FrameIndex HBRA C 0 5
+	FrameIndex HBRA D 0 6
+	FrameIndex RAIR A 0 11
+	FrameIndex RAIR B 0 12
+	FrameIndex RAIR C 0 13
+	FrameIndex RAIR D 0 14
+	FrameIndex RAIR E 0 15
+	FrameIndex RAIR F 0 16
+	FrameIndex RAIR G 0 17
+	FrameIndex RAIR H 0 18
+	FrameIndex RAIR I 0 19
+	FrameIndex RAIR J 0 20
+	FrameIndex RAIR K 0 21
+	FrameIndex RAIR L 0 22
+	FrameIndex RAIR M 0 23
+	FrameIndex RAIR N 0 24
+	FrameIndex RAIR O 0 25
+	FrameIndex RAIR P 0 26
+	FrameIndex RAIR Q 0 27
+	FrameIndex RAIR R 0 28
+	FrameIndex RAIR S 0 29
+	FrameIndex RAIR T 0 30
+	FrameIndex RAIR U 0 31
+	FrameIndex RAIR V 0 32
+	FrameIndex RAIR W 0 33
+	FrameIndex RAIR X 0 34
+}
+
+Model RS_GH_Railgun2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Railgun"
+	Model 0 "RailGun.md3"
+	Skin 0 "RailGun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRA A 0 3
+	FrameIndex HBRA B 0 4
+	FrameIndex HBRA C 0 5
+	FrameIndex HBRA D 0 6
+	FrameIndex RAIR A 0 11
+	FrameIndex RAIR B 0 12
+	FrameIndex RAIR C 0 13
+	FrameIndex RAIR D 0 14
+	FrameIndex RAIR E 0 15
+	FrameIndex RAIR F 0 16
+	FrameIndex RAIR G 0 17
+	FrameIndex RAIR H 0 18
+	FrameIndex RAIR I 0 19
+	FrameIndex RAIR J 0 20
+	FrameIndex RAIR K 0 21
+	FrameIndex RAIR L 0 22
+	FrameIndex RAIR M 0 23
+	FrameIndex RAIR N 0 24
+	FrameIndex RAIR O 0 25
+	FrameIndex RAIR P 0 26
+	FrameIndex RAIR Q 0 27
+	FrameIndex RAIR R 0 28
+	FrameIndex RAIR S 0 29
+	FrameIndex RAIR T 0 30
+	FrameIndex RAIR U 0 31
+	FrameIndex RAIR V 0 32
+	FrameIndex RAIR W 0 33
+	FrameIndex RAIR X 0 34
+}
+
+Model RS_GH_Railgun3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Railgun"
+	Model 0 "RailGun.md3"
+	Skin 0 "RailGun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRA A 0 3
+	FrameIndex HBRA B 0 4
+	FrameIndex HBRA C 0 5
+	FrameIndex HBRA D 0 6
+	FrameIndex RAIR A 0 11
+	FrameIndex RAIR B 0 12
+	FrameIndex RAIR C 0 13
+	FrameIndex RAIR D 0 14
+	FrameIndex RAIR E 0 15
+	FrameIndex RAIR F 0 16
+	FrameIndex RAIR G 0 17
+	FrameIndex RAIR H 0 18
+	FrameIndex RAIR I 0 19
+	FrameIndex RAIR J 0 20
+	FrameIndex RAIR K 0 21
+	FrameIndex RAIR L 0 22
+	FrameIndex RAIR M 0 23
+	FrameIndex RAIR N 0 24
+	FrameIndex RAIR O 0 25
+	FrameIndex RAIR P 0 26
+	FrameIndex RAIR Q 0 27
+	FrameIndex RAIR R 0 28
+	FrameIndex RAIR S 0 29
+	FrameIndex RAIR T 0 30
+	FrameIndex RAIR U 0 31
+	FrameIndex RAIR V 0 32
+	FrameIndex RAIR W 0 33
+	FrameIndex RAIR X 0 34
+}
+
+Model RS_GH_Railgun4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Railgun"
+	Model 0 "RailGun.md3"
+	Skin 0 "RailGun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRA A 0 3
+	FrameIndex HBRA B 0 4
+	FrameIndex HBRA C 0 5
+	FrameIndex HBRA D 0 6
+	FrameIndex RAIR A 0 11
+	FrameIndex RAIR B 0 12
+	FrameIndex RAIR C 0 13
+	FrameIndex RAIR D 0 14
+	FrameIndex RAIR E 0 15
+	FrameIndex RAIR F 0 16
+	FrameIndex RAIR G 0 17
+	FrameIndex RAIR H 0 18
+	FrameIndex RAIR I 0 19
+	FrameIndex RAIR J 0 20
+	FrameIndex RAIR K 0 21
+	FrameIndex RAIR L 0 22
+	FrameIndex RAIR M 0 23
+	FrameIndex RAIR N 0 24
+	FrameIndex RAIR O 0 25
+	FrameIndex RAIR P 0 26
+	FrameIndex RAIR Q 0 27
+	FrameIndex RAIR R 0 28
+	FrameIndex RAIR S 0 29
+	FrameIndex RAIR T 0 30
+	FrameIndex RAIR U 0 31
+	FrameIndex RAIR V 0 32
+	FrameIndex RAIR W 0 33
+	FrameIndex RAIR X 0 34
+}
+
+Model RS_GH_Railgun5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Railgun"
+	Model 0 "RailGun.md3"
+	Skin 0 "RailGun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRA A 0 3
+	FrameIndex HBRA B 0 4
+	FrameIndex HBRA C 0 5
+	FrameIndex HBRA D 0 6
+	FrameIndex RAIR A 0 11
+	FrameIndex RAIR B 0 12
+	FrameIndex RAIR C 0 13
+	FrameIndex RAIR D 0 14
+	FrameIndex RAIR E 0 15
+	FrameIndex RAIR F 0 16
+	FrameIndex RAIR G 0 17
+	FrameIndex RAIR H 0 18
+	FrameIndex RAIR I 0 19
+	FrameIndex RAIR J 0 20
+	FrameIndex RAIR K 0 21
+	FrameIndex RAIR L 0 22
+	FrameIndex RAIR M 0 23
+	FrameIndex RAIR N 0 24
+	FrameIndex RAIR O 0 25
+	FrameIndex RAIR P 0 26
+	FrameIndex RAIR Q 0 27
+	FrameIndex RAIR R 0 28
+	FrameIndex RAIR S 0 29
+	FrameIndex RAIR T 0 30
+	FrameIndex RAIR U 0 31
+	FrameIndex RAIR V 0 32
+	FrameIndex RAIR W 0 33
+	FrameIndex RAIR X 0 34
+}
+
+Model RS_GH_Railgun6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Railgun"
+	Model 0 "RailGun.md3"
+	Skin 0 "RailGun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBRA A 0 3
+	FrameIndex HBRA B 0 4
+	FrameIndex HBRA C 0 5
+	FrameIndex HBRA D 0 6
+	FrameIndex RAIR A 0 11
+	FrameIndex RAIR B 0 12
+	FrameIndex RAIR C 0 13
+	FrameIndex RAIR D 0 14
+	FrameIndex RAIR E 0 15
+	FrameIndex RAIR F 0 16
+	FrameIndex RAIR G 0 17
+	FrameIndex RAIR H 0 18
+	FrameIndex RAIR I 0 19
+	FrameIndex RAIR J 0 20
+	FrameIndex RAIR K 0 21
+	FrameIndex RAIR L 0 22
+	FrameIndex RAIR M 0 23
+	FrameIndex RAIR N 0 24
+	FrameIndex RAIR O 0 25
+	FrameIndex RAIR P 0 26
+	FrameIndex RAIR Q 0 27
+	FrameIndex RAIR R 0 28
+	FrameIndex RAIR S 0 29
+	FrameIndex RAIR T 0 30
+	FrameIndex RAIR U 0 31
+	FrameIndex RAIR V 0 32
+	FrameIndex RAIR W 0 33
+	FrameIndex RAIR X 0 34
+}
+
+Model RS_GH_BFG9000
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBF A 0 6
+	FrameIndex HBBF B 0 11
+	FrameIndex HBBF C 0 12
+	FrameIndex HBBF D 0 13
+}
+
+Model RS_GH_BFG90002
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBF A 0 6
+	FrameIndex HBBF B 0 11
+	FrameIndex HBBF C 0 12
+	FrameIndex HBBF D 0 13
+}
+
+Model RS_GH_BFG90003
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBF A 0 6
+	FrameIndex HBBF B 0 11
+	FrameIndex HBBF C 0 12
+	FrameIndex HBBF D 0 13
+}
+
+Model RS_GH_BFG90004
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBF A 0 6
+	FrameIndex HBBF B 0 11
+	FrameIndex HBBF C 0 12
+	FrameIndex HBBF D 0 13
+}
+
+Model RS_GH_BFG90005
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBF A 0 6
+	FrameIndex HBBF B 0 11
+	FrameIndex HBBF C 0 12
+	FrameIndex HBBF D 0 13
+}
+
+Model RS_GH_BFG90006
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBF A 0 6
+	FrameIndex HBBF B 0 11
+	FrameIndex HBBF C 0 12
+	FrameIndex HBBF D 0 13
+}
+
+Model RS_GH_BFG10k
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG10k"
+	Model 0 "BFG_10k.md3"
+	Skin 0 "BFG_10k.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBT A 0 6
+	FrameIndex HBBT B 0 7
+	FrameIndex HBBT C 0 8
+	FrameIndex HBBT D 0 9
+}
+
+Model RS_GH_BFG10k2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG10k"
+	Model 0 "BFG_10k.md3"
+	Skin 0 "BFG_10k.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBT A 0 6
+	FrameIndex HBBT B 0 7
+	FrameIndex HBBT C 0 8
+	FrameIndex HBBT D 0 9
+}
+
+Model RS_GH_BFG10k3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG10k"
+	Model 0 "BFG_10k.md3"
+	Skin 0 "BFG_10k.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBT A 0 6
+	FrameIndex HBBT B 0 7
+	FrameIndex HBBT C 0 8
+	FrameIndex HBBT D 0 9
+}
+
+Model RS_GH_BFG10k4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG10k"
+	Model 0 "BFG_10k.md3"
+	Skin 0 "BFG_10k.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBT A 0 6
+	FrameIndex HBBT B 0 7
+	FrameIndex HBBT C 0 8
+	FrameIndex HBBT D 0 9
+}
+
+Model RS_GH_BFG10k5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG10k"
+	Model 0 "BFG_10k.md3"
+	Skin 0 "BFG_10k.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBT A 0 6
+	FrameIndex HBBT B 0 7
+	FrameIndex HBBT C 0 8
+	FrameIndex HBBT D 0 9
+}
+
+Model RS_GH_BFG10k6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_BFG10k"
+	Model 0 "BFG_10k.md3"
+	Skin 0 "BFG_10k.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBBT A 0 6
+	FrameIndex HBBT B 0 7
+	FrameIndex HBBT C 0 8
+	FrameIndex HBBT D 0 9
+}
+
+Model RS_GH_Unmaker
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Unmaker"
+	Model 0 "Unmaker.md3"
+	Skin 0 "Unmaker.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBUM A 0 0
+	FrameIndex HBUM B 0 12
+	FrameIndex HBUM C 0 13
+	FrameIndex HBUM D 0 14
+}
+
+Model RS_GH_Unmaker2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Unmaker"
+	Model 0 "Unmaker.md3"
+	Skin 0 "Unmaker.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBUM A 0 0
+	FrameIndex HBUM B 0 12
+	FrameIndex HBUM C 0 13
+	FrameIndex HBUM D 0 14
+}
+
+Model RS_GH_Unmaker3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Unmaker"
+	Model 0 "Unmaker.md3"
+	Skin 0 "Unmaker.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBUM A 0 0
+	FrameIndex HBUM B 0 12
+	FrameIndex HBUM C 0 13
+	FrameIndex HBUM D 0 14
+}
+
+Model RS_GH_Unmaker4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Unmaker"
+	Model 0 "Unmaker.md3"
+	Skin 0 "Unmaker.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBUM A 0 0
+	FrameIndex HBUM B 0 12
+	FrameIndex HBUM C 0 13
+	FrameIndex HBUM D 0 14
+}
+
+Model RS_GH_Unmaker5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Unmaker"
+	Model 0 "Unmaker.md3"
+	Skin 0 "Unmaker.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBUM A 0 0
+	FrameIndex HBUM B 0 12
+	FrameIndex HBUM C 0 13
+	FrameIndex HBUM D 0 14
+}
+
+Model RS_GH_Unmaker6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Unmaker"
+	Model 0 "Unmaker.md3"
+	Skin 0 "Unmaker.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBUM A 0 0
+	FrameIndex HBUM B 0 12
+	FrameIndex HBUM C 0 13
+	FrameIndex HBUM D 0 14
+}
+
+Model RS_GH_Flamethrower
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Flamethrower"
+	Model 0 "Flamethrower2.md3"
+	Skin 0 "Flamethrower2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFT A 0 0
+	FrameIndex HBFT B 0 1
+	FrameIndex HBFT C 0 2
+	FrameIndex HBFT D 0 3
+}
+
+Model RS_GH_Flamethrower2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Flamethrower"
+	Model 0 "Flamethrower2.md3"
+	Skin 0 "Flamethrower2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFT A 0 0
+	FrameIndex HBFT B 0 1
+	FrameIndex HBFT C 0 2
+	FrameIndex HBFT D 0 3
+}
+
+Model RS_GH_Flamethrower3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Flamethrower"
+	Model 0 "Flamethrower2.md3"
+	Skin 0 "Flamethrower2.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFT A 0 0
+	FrameIndex HBFT B 0 1
+	FrameIndex HBFT C 0 2
+	FrameIndex HBFT D 0 3
+}
+
+Model RS_GH_Flamethrower4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Flamethrower"
+	Model 0 "Flamethrower2.md3"
+	Skin 0 "Flamethrower2.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFT A 0 0
+	FrameIndex HBFT B 0 1
+	FrameIndex HBFT C 0 2
+	FrameIndex HBFT D 0 3
+}
+
+Model RS_GH_Flamethrower5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Flamethrower"
+	Model 0 "Flamethrower2.md3"
+	Skin 0 "Flamethrower2.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFT A 0 0
+	FrameIndex HBFT B 0 1
+	FrameIndex HBFT C 0 2
+	FrameIndex HBFT D 0 3
+}
+
+Model RS_GH_Flamethrower6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Flamethrower"
+	Model 0 "Flamethrower2.md3"
+	Skin 0 "Flamethrower2.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBFT A 0 0
+	FrameIndex HBFT B 0 1
+	FrameIndex HBFT C 0 2
+	FrameIndex HBFT D 0 3
+}
+
+Model RS_GH_Machinegun
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Machinegun"
+	Model 0 "Machinegun.md3"
+	Skin 0 "Machinegun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMG A 0 4
+	FrameIndex HBMG B 0 5
+	FrameIndex HBMG C 0 6
+	FrameIndex HBMG D 0 7
+}
+
+Model RS_GH_Machinegun2
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Machinegun"
+	Model 0 "Machinegun.md3"
+	Skin 0 "Machinegun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMG A 0 4
+	FrameIndex HBMG B 0 5
+	FrameIndex HBMG C 0 6
+	FrameIndex HBMG D 0 7
+}
+
+Model RS_GH_Machinegun3
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Machinegun"
+	Model 0 "Machinegun.md3"
+	Skin 0 "Machinegun.png"
+	Scale -1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMG A 0 4
+	FrameIndex HBMG B 0 5
+	FrameIndex HBMG C 0 6
+	FrameIndex HBMG D 0 7
+}
+
+Model RS_GH_Machinegun4
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Machinegun"
+	Model 0 "Machinegun.md3"
+	Skin 0 "Machinegun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMG A 0 4
+	FrameIndex HBMG B 0 5
+	FrameIndex HBMG C 0 6
+	FrameIndex HBMG D 0 7
+}
+
+Model RS_GH_Machinegun5
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Machinegun"
+	Model 0 "Machinegun.md3"
+	Skin 0 "Machinegun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMG A 0 4
+	FrameIndex HBMG B 0 5
+	FrameIndex HBMG C 0 6
+	FrameIndex HBMG D 0 7
+}
+
+Model RS_GH_Machinegun6
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_Machinegun"
+	Model 0 "Machinegun.md3"
+	Skin 0 "Machinegun.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	NoInterpolation
+	ZOffset -5
+	FrameIndex HBMG A 0 4
+	FrameIndex HBMG B 0 5
+	FrameIndex HBMG C 0 6
+	FrameIndex HBMG D 0 7
+}
+
+// Launched grenade projectile. FrameIndex values (16-21) are the source
+// pack's own for HF_HB_GrenadeProj -- copied, not inferred.
+Model RS_GH_GrenadeLaunched
+{
+	Path "Models/Weapons/hud/RS_GH_Weapon/RS_GH_GrenadeProj"
+	Model 0 "nade.md3"
+	Skin 0 "nade.png"
+	Scale 1.0 1.0 1.0
+	NoInterpolation
+	FrameIndex JGRN A 0 16
+	FrameIndex JGRN B 0 17
+	FrameIndex JGRN C 0 18
+	FrameIndex JGRN D 0 19
+	FrameIndex JGRN E 0 20
+	FrameIndex JGRN F 0 21
+}

@@ -63,5 +63,26 @@ class RS_DebugGive : EventHandler
 		else if (e.Name ~== "rs_debug_give_plasmarifle") Family(plr, "VR_PlasmaRifle");
 		else if (e.Name ~== "rs_debug_give_bfg9000") FamilyBFG(plr);
 		else if (e.Name ~== "rs_debug_give_chainsaw") Family(plr, "VR_Chainsaw");
+		else if (e.Name ~== "rs_debug_give_gh_assaultshotgun") Family(plr, "RS_GH_AssaultShotgun");
+		else if (e.Name ~== "rs_debug_give_gh_bfg10k") Family(plr, "RS_GH_BFG10k");
+		else if (e.Name ~== "rs_debug_give_gh_bfg9000") Family(plr, "RS_GH_BFG9000");
+		else if (e.Name ~== "rs_debug_give_gh_chainsaw") Family(plr, "RS_GH_Chainsaw");
+		else if (e.Name ~== "rs_debug_give_gh_fist") Family(plr, "RS_GH_Fist");
+		else if (e.Name ~== "rs_debug_give_gh_flamethrower") Family(plr, "RS_GH_Flamethrower");
+		else if (e.Name ~== "rs_debug_give_gh_grenadelauncher") Family(plr, "RS_GH_GrenadeLauncher");
+		else if (e.Name ~== "rs_debug_give_gh_handgrenade") Family(plr, "RS_GH_HandGrenade");
+		else if (e.Name ~== "rs_debug_give_gh_mp40") Family(plr, "RS_GH_MP40");
+		else if (e.Name ~== "rs_debug_give_gh_machinegun") Family(plr, "RS_GH_Machinegun");
+		else if (e.Name ~== "rs_debug_give_gh_minigun") Family(plr, "RS_GH_Minigun");
+		else if (e.Name ~== "rs_debug_give_gh_pistol") Family(plr, "RS_GH_Pistol");
+		else if (e.Name ~== "rs_debug_give_gh_plasma") Family(plr, "RS_GH_Plasma");
+		else if (e.Name ~== "rs_debug_give_gh_pumpshotgun") Family(plr, "RS_GH_PumpShotgun");
+		else if (e.Name ~== "rs_debug_give_gh_railgun") Family(plr, "RS_GH_Railgun");
+		else if (e.Name ~== "rs_debug_give_gh_revolver") Family(plr, "RS_GH_Revolver");
+		else if (e.Name ~== "rs_debug_give_gh_rifle") Family(plr, "RS_GH_Rifle");
+		else if (e.Name ~== "rs_debug_give_gh_rocketlauncher") Family(plr, "RS_GH_RocketLauncher");
+		else if (e.Name ~== "rs_debug_give_gh_smg") Family(plr, "RS_GH_SMG");
+		else if (e.Name ~== "rs_debug_give_gh_ssg") Family(plr, "RS_GH_SSG");
+		else if (e.Name ~== "rs_debug_give_gh_unmaker") Family(plr, "RS_GH_Unmaker");
 	}
 }
