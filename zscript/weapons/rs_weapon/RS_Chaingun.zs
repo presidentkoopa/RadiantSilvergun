@@ -122,41 +122,25 @@ class VR_Chaingun : RS_Weapon
 		RollStats(newTier);
 	}
 
-	action void A_RS_FireChaingun()
+	// The one hitscan weapon in the arsenal -- belt-fed straight from
+	// VR_ChaingunAmmo (its AmmoType1), no magazine, so the pool is named
+	// explicitly rather than falling through to AmmoType2. Full-auto, so
+	// no cadence-overshoot penalty.
+	//
+	// KNOWN GAP (pre-existing, not introduced here): a hitscan trace
+	// spawns no projectile, so nothing carries the master pointer
+	// GunBonsai reads for XP attribution. This fork has no CreditShot
+	// equivalent to call instead -- verified, not assumed.
+	override void BuildAttackProfiles()
 	{
-		double dmgMult, pelletMult, backfireChance;
-		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
-
-		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
-		{
-			A_RS_Backfire();
-			TakeInventory("VR_ChaingunAmmo", 1);
-			A_RS_MarkFired();
-			return;
-		}
-
-		double dmg = invoker.DamagePerShot * dmgMult;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-
-		int pellets = max(1, int(invoker.PelletCount * pelletMult));
-		double spread = (100.0 - invoker.Accuracy) * 0.05;
-
-		A_FireBullets(spread, spread, pellets, int(dmg), "bulletpuff", FBF_NORANDOM);
-		A_PlaySound("chngun", CHAN_WEAPON);
-		TakeInventory("VR_ChaingunAmmo", 1);
-		RS_HiFiFX.MuzzleEffects(self, true);
-		RS_HiFiFX.CasingEject(self, "RS_CasingRifle");
-		A_RS_MarkFired();
-	}
-
-	action void A_RS_Backfire()
-	{
-		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
-		double dmg = invoker.DamagePerShot;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+		PrimarySlot.Append(RS_AttackProfile.MakeHitscan(
+			fireSnd: "chngun",
+			spreadScale: 0.05,
+			ammoCost: 1,
+			ammo: "VR_ChaingunAmmo",
+			casing: "RS_CasingRifle",
+			bigMuzzle: true,
+			profName: "Belt Fed"));
 	}
 
 	States
@@ -185,10 +169,10 @@ class VR_Chaingun : RS_Weapon
 
 	Shoot:
 		CHGG A 2 A_GunFlash();
-		TNT1 A 0 A_RS_FireChaingun();
+		TNT1 A 0 A_RS_FireSlot(0);
 		TNT1 A 0 A_JumpIf(CountInv("VR_ChaingunAmmo") <= 0, "Ready");
 		CHGG B 2 A_GunFlash();
-		TNT1 A 0 A_RS_FireChaingun();
+		TNT1 A 0 A_RS_FireSlot(0);
 		TNT1 A 0 A_ReFire();
 		Goto Ready;
 

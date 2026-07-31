@@ -126,42 +126,17 @@ class VR_Shotgun : RS_Weapon
 			PelletCount += 1;
 	}
 
-	action void A_RS_FireShotgun()
+	// Shotgun family: wider spread scale (0.1) and Choke tightens the cone.
+	override void BuildAttackProfiles()
 	{
-		double dmgMult, pelletMult, backfireChance;
-		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
-
-		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
-		{
-			A_RS_Backfire();
-			TakeInventory(invoker.AmmoType2, 1);
-			A_RS_MarkFired();
-			return;
-		}
-
-		double dmg = invoker.DamagePerShot * dmgMult;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-
-		int pellets = max(1, int(invoker.PelletCount * pelletMult));
-		int overshoot = invoker.GetCadenceOvershoot();
-		double spread = (100.0 - invoker.Accuracy) * (1.0 - invoker.Choke * 0.5) * 0.1 + (overshoot * 0.15);
-
-		A_RS_FireBallisticVolley(pellets, spread, int(dmg), invoker.CritChance, invoker.Velocity);
-		A_PlaySound("shotgf", CHAN_WEAPON);
-		RS_HiFiFX.MuzzleEffects(self, false);
-		RS_HiFiFX.CasingEject(self, "RS_CasingShell");
-		TakeInventory(invoker.AmmoType2, 1);
-		A_RS_MarkFired();
-	}
-
-	action void A_RS_Backfire()
-	{
-		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
-		double dmg = invoker.DamagePerShot;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
+			fireSnd: "shotgf",
+			spreadScale: 0.1,
+			usesCadence: true,
+			ammoCost: 1,
+			casing: "RS_CasingShell",
+			usesChoke: true,
+			profName: "Buckshot"));
 	}
 
 	// Loads one shell per call -- caller loops this per reversed-frame pass.
@@ -192,7 +167,7 @@ class VR_Shotgun : RS_Weapon
 	// Real exact frame sequence -- recoil then pump cycle, all one action.
 	Shoot:
 		TNT1 A 0 A_GunFlash();
-		TNT1 A 0 A_RS_FireShotgun();
+		TNT1 A 0 A_RS_FireSlot(0);
 		SHTG BCDE 1;
 		SHTG F 1 A_StartSound("shotpump", CHAN_BODY, CHANF_OVERLAP);
 		SHTG G 1 A_StartSound("shotcycle", CHAN_5, CHANF_OVERLAP);

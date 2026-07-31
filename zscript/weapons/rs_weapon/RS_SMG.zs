@@ -123,41 +123,18 @@ class VR_SMG : RS_Weapon
 			PelletCount += 1;
 	}
 
-	action void A_RS_FireSMG()
+	// Full-auto: no cadence-overshoot penalty. RateOfFire IS the cadence
+	// here, hard-gated by AutoCooldownReady(), so there's nothing to outpace.
+	override void BuildAttackProfiles()
 	{
-		double dmgMult, pelletMult, backfireChance;
-		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
-
-		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
-		{
-			A_RS_Backfire();
-			TakeInventory(invoker.AmmoType2, 1);
-			A_RS_MarkFired();
-			return;
-		}
-
-		double dmg = invoker.DamagePerShot * dmgMult;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-
-		int pellets = max(1, int(invoker.PelletCount * pelletMult));
-		double spread = (100.0 - invoker.Accuracy) * 0.05; // full-auto has no cadence-overshoot penalty, ROF is the cadence
-
-		A_RS_FireBallisticVolley(pellets, spread, int(dmg), invoker.CritChance, invoker.Velocity);
-		A_PlaySound("smgfire", CHAN_WEAPON);
-		RS_HiFiFX.MuzzleEffects(self, true);
-		RS_HiFiFX.CasingEject(self, "RS_CasingSmall");
-		TakeInventory(invoker.AmmoType2, 1);
-		A_RS_MarkFired();
-	}
-
-	action void A_RS_Backfire()
-	{
-		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
-		double dmg = invoker.DamagePerShot;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
+			fireSnd: "smgfire",
+			spreadScale: 0.05,
+			usesCadence: false,
+			ammoCost: 1,
+			casing: "RS_CasingSmall",
+			bigMuzzle: true,
+			profName: "Auto Burst"));
 	}
 
 	States
@@ -191,7 +168,7 @@ class VR_SMG : RS_Weapon
 		// moves was checked against the wrong reference -- it does move,
 		// on the main sprite, not just the flash overlay below.
 		SMGF A 1 Bright A_GunFlash();
-		TNT1 A 0 A_RS_FireSMG();
+		TNT1 A 0 A_RS_FireSlot(0);
 		SMGF B 1;
 		SMGF C 1;
 		TNT1 A 0 A_ReFire();

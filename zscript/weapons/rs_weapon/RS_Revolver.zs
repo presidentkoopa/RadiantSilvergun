@@ -132,42 +132,16 @@ class VR_Revolver : RS_Weapon
 			PelletCount += 1;
 	}
 
-	action void A_RS_FireRevolver()
+	// Primary: one chambered round. Semi-auto, so firing ahead of cadence
+	// widens the cone. No casing eject -- a revolver holds its brass.
+	override void BuildAttackProfiles()
 	{
-		double dmgMult, pelletMult, backfireChance;
-		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
-
-		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
-		{
-			A_RS_Backfire();
-			TakeInventory(invoker.AmmoType2, 1);
-			A_RS_MarkFired();
-			return;
-		}
-
-		double dmg = invoker.DamagePerShot * dmgMult;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-
-		int pellets = max(1, int(invoker.PelletCount * pelletMult));
-		int overshoot = invoker.GetCadenceOvershoot(); // tics fired early, if any
-		double spread = (100.0 - invoker.Accuracy) * 0.05 + (overshoot * 0.15); // outpacing cadence widens spread
-
-		A_RS_FireBallisticVolley(pellets, spread, int(dmg), invoker.CritChance, invoker.Velocity);
-		A_PlaySound("revolver", CHAN_WEAPON);
-		RS_HiFiFX.MuzzleEffects(self, false);
-		TakeInventory(invoker.AmmoType2, 1);
-		A_RS_MarkFired();
-	}
-
-	// Backfire: same DamagePerShot + crit roll every normal shot gets.
-	action void A_RS_Backfire()
-	{
-		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
-		double dmg = invoker.DamagePerShot;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
+			fireSnd: "revolver",
+			spreadScale: 0.05,
+			usesCadence: true,
+			ammoCost: 1,
+			profName: "Chambered Round"));
 	}
 
 	// Speed loader: fills every empty chamber at once from reserve Clip.
@@ -198,7 +172,7 @@ class VR_Revolver : RS_Weapon
 	Shoot:
 		REVL BCD 1;
 		TNT1 A 0 A_GunFlash();
-		TNT1 A 0 A_RS_FireRevolver();
+		TNT1 A 0 A_RS_FireSlot(0);
 		REVL EF 2;
 		REVL GHIJKLMNOP 1 A_WeaponReady(WRF_ALLOWRELOAD);
 		Goto Ready;

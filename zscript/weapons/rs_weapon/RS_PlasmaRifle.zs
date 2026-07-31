@@ -62,31 +62,13 @@ class VR_PlasmaRifle : RS_Weapon
 		return "RS_EnhancedPlasmaBall";
 	}
 
-	action void A_RS_FirePlasma()
+	// ammoCost 0 -- see RS_RocketLauncher.zs for why this stays 0 for now.
+	override void BuildAttackProfiles()
 	{
-		double dmgMult, pelletMult, backfireChance;
-		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
-
-		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
-		{
-			A_RS_Backfire();
-			A_RS_MarkFired();
-			return;
-		}
-
-		A_RS_FireHeavyProjectile();
-		A_PlaySound("weapons/plasma/fire", CHAN_WEAPON);
-		RS_HiFiFX.MuzzleEffects(self, true);
-		A_RS_MarkFired();
-	}
-
-	action void A_RS_Backfire()
-	{
-		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
-		double dmg = invoker.DamagePerShot;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
+			fireSnd: "weapons/plasma/fire",
+			ammoCost: 0,
+			profName: "Plasma Bolt"));
 	}
 
 	States
@@ -114,7 +96,7 @@ class VR_PlasmaRifle : RS_Weapon
 
 	Shoot:
 		PLSG A 2 A_GunFlash();
-		TNT1 A 0 A_RS_FirePlasma();
+		TNT1 A 0 A_RS_FireSlot(0);
 		PLSG B 2 A_ReFire();
 		Goto Ready;
 

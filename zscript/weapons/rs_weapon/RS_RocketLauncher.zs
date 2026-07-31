@@ -61,31 +61,17 @@ class VR_RocketLauncher : RS_Weapon
 		return "RS_EnhancedRocket";
 	}
 
-	action void A_RS_FireRocket()
+	// ammoCost 0 preserves existing behaviour exactly: this weapon's Fire:
+	// state gates on CountInv("RocketAmmo") but nothing ever spends it.
+	// That's the known "infinite ammo on the 3 heavy weapons" issue --
+	// carried forward deliberately rather than silently balance-patched
+	// during a refactor. Set this to 1 when that gets fixed on purpose.
+	override void BuildAttackProfiles()
 	{
-		double dmgMult, pelletMult, backfireChance;
-		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
-
-		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
-		{
-			A_RS_Backfire();
-			A_RS_MarkFired();
-			return;
-		}
-
-		A_RS_FireHeavyProjectile();
-		A_PlaySound("rocklf", CHAN_WEAPON);
-		RS_HiFiFX.MuzzleEffects(self, true);
-		A_RS_MarkFired();
-	}
-
-	action void A_RS_Backfire()
-	{
-		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
-		double dmg = invoker.DamagePerShot;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
+			fireSnd: "rocklf",
+			ammoCost: 0,
+			profName: "Rocket"));
 	}
 
 	States
@@ -114,7 +100,7 @@ class VR_RocketLauncher : RS_Weapon
 
 	Shoot:
 		MISG B 6 A_GunFlash();
-		TNT1 A 0 A_RS_FireRocket();
+		TNT1 A 0 A_RS_FireSlot(0);
 		MISG B 4;
 		MISG A 1 A_WeaponReady(WRF_ALLOWRELOAD);
 		Goto Ready;

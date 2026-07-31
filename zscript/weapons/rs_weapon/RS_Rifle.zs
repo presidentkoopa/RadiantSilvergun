@@ -125,42 +125,15 @@ class VR_Rifle : RS_Weapon
 			PelletCount += 1;
 	}
 
-	action void A_RS_FireRifle()
+	override void BuildAttackProfiles()
 	{
-		double dmgMult, pelletMult, backfireChance;
-		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
-
-		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
-		{
-			A_RS_Backfire();
-			TakeInventory(invoker.AmmoType2, 1);
-			A_RS_MarkFired();
-			return;
-		}
-
-		double dmg = invoker.DamagePerShot * dmgMult;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-
-		int pellets = max(1, int(invoker.PelletCount * pelletMult));
-		int overshoot = invoker.GetCadenceOvershoot();
-		double spread = (100.0 - invoker.Accuracy) * 0.05 + (overshoot * 0.15);
-
-		A_RS_FireBallisticVolley(pellets, spread, int(dmg), invoker.CritChance, invoker.Velocity);
-		A_PlaySound("m16shoot", CHAN_WEAPON);
-		RS_HiFiFX.MuzzleEffects(self, false);
-		RS_HiFiFX.CasingEject(self, "RS_CasingRifle");
-		TakeInventory(invoker.AmmoType2, 1);
-		A_RS_MarkFired();
-	}
-
-	action void A_RS_Backfire()
-	{
-		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
-		double dmg = invoker.DamagePerShot;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
+			fireSnd: "m16shoot",
+			spreadScale: 0.05,
+			usesCadence: true,
+			ammoCost: 1,
+			casing: "RS_CasingRifle",
+			profName: "5.56"));
 	}
 
 	States
@@ -190,7 +163,7 @@ class VR_Rifle : RS_Weapon
 	Shoot:
 		RIFL BC 1;
 		TNT1 A 0 A_GunFlash();
-		TNT1 A 0 A_RS_FireRifle();
+		TNT1 A 0 A_RS_FireSlot(0);
 		RIFL A 1 A_WeaponReady(WRF_ALLOWRELOAD);
 		Goto Ready;
 

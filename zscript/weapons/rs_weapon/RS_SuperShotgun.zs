@@ -126,42 +126,18 @@ class VR_SuperShotgun : RS_Weapon
 		RollStats(newTier);
 	}
 
-	action void A_RS_FireSSG()
+	// Both barrels together -- ammoCost 2, consumed on a backfire too
+	// (the dispatch spends before it branches, same as the old code did).
+	override void BuildAttackProfiles()
 	{
-		double dmgMult, pelletMult, backfireChance;
-		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
-
-		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
-		{
-			A_RS_Backfire();
-			TakeInventory(invoker.AmmoType2, 2); // both barrels consumed regardless
-			A_RS_MarkFired();
-			return;
-		}
-
-		double dmg = invoker.DamagePerShot * dmgMult;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-
-		int pellets = max(1, int(invoker.PelletCount * pelletMult));
-		int overshoot = invoker.GetCadenceOvershoot();
-		double spread = (100.0 - invoker.Accuracy) * (1.0 - invoker.Choke * 0.5) * 0.1 + (overshoot * 0.15);
-
-		A_RS_FireBallisticVolley(pellets, spread, int(dmg), invoker.CritChance, invoker.Velocity);
-		A_PlaySound("wpn/shotgun2", CHAN_WEAPON);
-		RS_HiFiFX.MuzzleEffects(self, false);
-		RS_HiFiFX.CasingEject(self, "RS_CasingShell");
-		TakeInventory(invoker.AmmoType2, 2); // real: both barrels fire together
-		A_RS_MarkFired();
-	}
-
-	action void A_RS_Backfire()
-	{
-		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
-		double dmg = invoker.DamagePerShot;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
+			fireSnd: "wpn/shotgun2",
+			spreadScale: 0.1,
+			usesCadence: true,
+			ammoCost: 2,
+			casing: "RS_CasingShell",
+			usesChoke: true,
+			profName: "Both Barrels"));
 	}
 
 	// Break-action reload: refills both chamber slots at once from VR_Shell.
@@ -192,7 +168,7 @@ class VR_SuperShotgun : RS_Weapon
 
 	Shoot:
 		TNT1 A 0 A_GunFlash();
-		TNT1 A 0 A_RS_FireSSG();
+		TNT1 A 0 A_RS_FireSlot(0);
 		SHT2 A 2;
 		SHT2 BCDEFGH 2;
 		Goto Reload;

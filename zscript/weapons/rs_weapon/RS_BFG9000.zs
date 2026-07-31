@@ -63,31 +63,13 @@ class VR_BFG9000 : RS_Weapon
 		return "RS_EnhancedBFGBall";
 	}
 
-	action void A_RS_FireBFG()
+	// ammoCost 0 -- see RS_RocketLauncher.zs for why this stays 0 for now.
+	override void BuildAttackProfiles()
 	{
-		double dmgMult, pelletMult, backfireChance;
-		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
-
-		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
-		{
-			A_RS_Backfire();
-			A_RS_MarkFired();
-			return;
-		}
-
-		A_RS_FireHeavyProjectile();
-		A_PlaySound("bfgf", CHAN_WEAPON);
-		RS_HiFiFX.MuzzleEffects(self, true);
-		A_RS_MarkFired();
-	}
-
-	action void A_RS_Backfire()
-	{
-		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
-		double dmg = invoker.DamagePerShot;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
+			fireSnd: "bfgf",
+			ammoCost: 0,
+			profName: "BFG Ball"));
 	}
 
 	States
@@ -117,7 +99,7 @@ class VR_BFG9000 : RS_Weapon
 	Shoot:
 		BFGG A 20 A_PlaySound("bfgf", CHAN_WEAPON);
 		BFGG B 10 A_GunFlash();
-		TNT1 A 0 A_RS_FireBFG();
+		TNT1 A 0 A_RS_FireSlot(0);
 		BFGG A 1 A_WeaponReady(WRF_ALLOWRELOAD);
 		Goto Ready;
 

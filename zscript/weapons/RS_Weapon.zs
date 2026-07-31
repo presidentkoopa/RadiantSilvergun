@@ -305,6 +305,247 @@ class RS_Weapon : Weapon abstract
 		RS_HiFiFX.SpawnMuzzleLight(self);
 	}
 
+	// =================================================================
+	// ATTACK SLOTS -- the assembly system. See RS_AttackProfile.zs for
+	// the full rationale; the short version:
+	//
+	//   Primary slot   = main trigger.  Secondary slot = alt-fire.
+	//   Each slot is an ordered LIST of RS_AttackProfile plus a cursor.
+	//   Firing a slot fires the profile at the cursor, then advances.
+	//
+	// This is ADDITIVE and OPT-IN. A weapon that never calls
+	// BuildAttackProfiles() has empty slots, A_RS_FireSlot does nothing,
+	// and its existing Fire: states keep calling
+	// A_RS_FireBallisticVolley / A_RS_FireHeavyProjectile exactly as
+	// they do today. Nothing in the current arsenal changes until a
+	// weapon deliberately opts in.
+	// =================================================================
+
+	RS_AttackSlot PrimarySlot;
+	RS_AttackSlot SecondarySlot;
+
+	// 0 = primary (main trigger), 1 = secondary (alt-fire).
+	RS_AttackSlot GetSlot(int which)
+	{
+		return (which == 0) ? PrimarySlot : SecondarySlot;
+	}
+
+	// Each weapon overrides this to author what it SHIPS with -- the
+	// hand-tuned starting content of each slot. Virtual rather than a
+	// Default property for the same reason GetHeavyProjectile() is:
+	// ZScript can't build objects in a Default block.
+	//
+	// Authoring a normal single-attack weapon is one Append into
+	// PrimarySlot. A weapon with a real alt-fire appends into
+	// SecondarySlot too. GunBonsai grows these later; it never has to
+	// have designed the starting point.
+	virtual void BuildAttackProfiles()
+	{
+	}
+
+	// -----------------------------------------------------------------
+	// GunBonsai-facing API. Three write targets, all one call:
+	//   grow the rotation  -> AppendProfile / InsertProfileAt
+	//   swap one entry     -> ReplaceProfile
+	// An affix that says "every 3rd shot is explosive" is:
+	//   PadSlotTo(0, 3); ReplaceProfile(0, 2, explosiveProfile);
+	// -----------------------------------------------------------------
+
+	void AppendProfile(int which, RS_AttackProfile p)
+	{
+		let s = GetSlot(which);
+		if (s) s.Append(p);
+	}
+
+	void InsertProfileAt(int which, int index, RS_AttackProfile p)
+	{
+		let s = GetSlot(which);
+		if (s) s.InsertAt(index, p);
+	}
+
+	void ReplaceProfile(int which, int index, RS_AttackProfile p)
+	{
+		let s = GetSlot(which);
+		if (s) s.Replace(index, p);
+	}
+
+	void PadSlotTo(int which, int length)
+	{
+		let s = GetSlot(which);
+		if (!s) return;
+		let filler = s.PeekAt(0);
+		if (filler) s.PadTo(length, filler);
+	}
+
+	int GetSlotCount(int which)
+	{
+		let s = GetSlot(which);
+		return s ? s.Count() : 0;
+	}
+
+	// -----------------------------------------------------------------
+	// Dispatch. One entry point for every attack type -- the profile's
+	// own Mode decides which firing path runs, so a slot can rotate
+	// through a bullet, then a rocket, then a melee swing with none of
+	// them being a special case.
+	//
+	// Fire: states call A_RS_FireSlot(0); AltFire: states call
+	// A_RS_FireSlot(1).
+	// -----------------------------------------------------------------
+	action bool A_RS_FireSlot(int which = 0)
+	{
+		let slot = invoker.GetSlot(which);
+		if (!slot || slot.IsEmpty())
+			return false;
+
+		// Peek before spending anything -- an unaffordable shot must not
+		// advance the rotation, or a dry trigger pull would silently eat
+		// the player's place in the cycle.
+		let p = slot.Peek();
+		if (!p)
+			return false;
+
+		// Resolve the pool this profile draws from. Null AmmoClass with a
+		// real cost means the weapon's own magazine, which differs per
+		// identity subclass (VR_RevLoaded vs VR_RevLoaded4) -- so it has
+		// to be read off the instance here, not baked into the profile.
+		Class<Ammo> pool = p.AmmoClass;
+		if (!pool && p.AmmoCost > 0)
+			pool = invoker.AmmoType2;
+
+		if (pool && p.AmmoCost > 0 && CountInv(pool) < p.AmmoCost)
+			return false;
+
+		double dmgMult, pelletMult, backfireChance;
+		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
+
+		// Backfire eats the ammo and the shot but does NOT advance the
+		// rotation -- a jam shouldn't cost you your place in the cycle.
+		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
+		{
+			A_RS_Backfire();
+			if (pool && p.AmmoCost > 0)
+				TakeInventory(pool, p.AmmoCost);
+			A_RS_MarkFired();
+			return false;
+		}
+
+		// Committed. Spend, and step the rotation forward.
+		slot.Advance();
+		if (pool && p.AmmoCost > 0)
+			TakeInventory(pool, p.AmmoCost);
+
+		double dmg = invoker.DamagePerShot * dmgMult * p.DamageMult;
+		if (FRandom(0, 1) < (invoker.CritChance + p.CritBonus))
+			dmg *= 2.0;
+
+		int pellets = (p.PelletOverride > 0) ? p.PelletOverride : invoker.PelletCount;
+		pellets = max(1, int(pellets * pelletMult));
+
+		double choke = p.UsesChoke ? (1.0 - invoker.Choke * 0.5) : 1.0;
+		double spread = (100.0 - invoker.Accuracy) * p.SpreadScale * choke + p.SpreadBonus;
+		if (p.UsesCadence)
+			spread += invoker.GetCadenceOvershoot() * 0.15;
+
+		// Hitscan and melee run inline because A_FireBullets/A_CustomPunch
+		// are action functions -- they can't be reached from the play-scope
+		// helpers the projectile modes use.
+		if (p.Mode == RS_ATK_HITSCAN)
+		{
+			A_FireBullets(spread, spread, pellets, int(dmg), "bulletpuff", FBF_NORANDOM);
+		}
+		else if (p.Mode == RS_ATK_MELEE)
+		{
+			Class<Actor> puff = p.MeleePuff;
+			if (!puff) puff = "BulletPuff";
+			A_CustomPunch(int(dmg), false, 0, puff, p.MeleeRange);
+		}
+		else if (p.Mode == RS_ATK_HEAVY)
+		{
+			invoker.RS_FireProfileHeavy(self, p, dmg);
+		}
+		else
+		{
+			invoker.RS_FireProfileBullet(self, p, dmg, pellets, spread);
+		}
+
+		if (p.FireSound)
+			A_PlaySound(p.FireSound, CHAN_WEAPON);
+		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle);
+		if (p.CasingClass != "")
+			RS_HiFiFX.CasingEject(self, p.CasingClass);
+
+		A_RS_MarkFired();
+		return true;
+	}
+
+	// Condition backfire -- was an identical copy on all 11 weapons.
+	// Same DamagePerShot + crit roll a normal shot gets.
+	action void A_RS_Backfire()
+	{
+		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
+		double dmg = invoker.DamagePerShot;
+		if (FRandom(0, 1) < invoker.CritChance)
+			dmg *= 2.0;
+		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+	}
+
+	// Bullet volley. Damage/pellets/spread are resolved by the dispatch
+	// above and passed in, so this stays a pure spawn loop -- and so the
+	// same numbers the dispatch computed are the ones that actually fly.
+	void RS_FireProfileBullet(Actor shooter, RS_AttackProfile p, double dmg, int pellets, double spread)
+	{
+		Class<Actor> cls = p.ProjectileClass;
+		if (!cls) cls = ProjectileClass;
+		if (!cls) cls = "RS_BallisticType1";
+
+		int aimflags = bOffhandWeapon ? ALF_ISOFFHAND : 0;
+		double vel = Velocity * p.VelocityMult;
+		double crit = CritChance + p.CritBonus;
+
+		for (int i = 0; i < pellets; i++)
+		{
+			double a  = shooter.angle + FRandom(-spread, spread);
+			double pt = shooter.pitch + FRandom(-spread, spread);
+			let proj = RS_BallisticFired(
+				shooter.SpawnPlayerMissile(cls, a, pitch: pt, aimflags: aimflags));
+			if (proj)
+			{
+				proj.SetupStats(int(dmg), vel, crit);
+				// THE SACRED POINTER -- GunBonsai reads master to attribute
+				// XP to the hand that actually fired. Never break it.
+				proj.master = self;
+			}
+		}
+	}
+
+	// One heavy round. Mirrors A_RS_FireHeavyProjectile's per-type
+	// SetupStats branching, for the same reason: Rocket/PlasmaBall/
+	// BFGBall inherit three unrelated vanilla bases and share no ancestor
+	// to cast to.
+	void RS_FireProfileHeavy(Actor shooter, RS_AttackProfile p, double dmg)
+	{
+		Class<Actor> cls = p.ProjectileClass;
+		if (!cls) cls = HeavyProjectileClass;
+		if (!cls) return;
+
+		int aimflags = bOffhandWeapon ? ALF_ISOFFHAND : 0;
+
+		let proj = shooter.SpawnPlayerMissile(cls, shooter.angle, 0, 0, p.SpawnHeight,
+			noautoaim: true, aimflags: aimflags, pitch: shooter.pitch);
+		if (!proj)
+			return;
+		proj.master = self;   // see RS_FireProfileBullet
+
+		double crit = CritChance + p.CritBonus;
+		if (proj is "RS_EnhancedRocket")
+			RS_EnhancedRocket(proj).SetupStats(int(dmg), crit);
+		else if (proj is "RS_EnhancedPlasmaBall")
+			RS_EnhancedPlasmaBall(proj).SetupStats(int(dmg), crit);
+		else if (proj is "RS_EnhancedBFGBall")
+			RS_EnhancedBFGBall(proj).SetupStats(int(dmg), crit);
+	}
+
 	// Each heavy weapon overrides this to declare what it launches. A
 	// virtual getter rather than a Default property because ZScript can't
 	// assign a plain member in a Default block, and property support for
@@ -407,6 +648,7 @@ class RS_Weapon : Weapon abstract
 		// uses, safe to run either order.
 		if (!bStatsRolled)
 			RollStats(VRT_Basic);
+		EnsureAttackProfiles();
 
 		// AmmoType2 is this project's magazine slot (AmmoType1 is reserve).
 		// Weapons with no magazine at all -- fists, chainsaw, and the heavy
@@ -421,6 +663,23 @@ class RS_Weapon : Weapon abstract
 		}
 	}
 
+	// Slots are created once and then owned for the weapon's lifetime --
+	// GunBonsai appends to the live lists, so they must survive across
+	// re-equips. Guarded like bStatsRolled because AttachToOwner and
+	// PostBeginPlay can run in either order depending on how the weapon
+	// was acquired.
+	bool bProfilesBuilt;
+
+	void EnsureAttackProfiles()
+	{
+		if (bProfilesBuilt)
+			return;
+		bProfilesBuilt = true;
+		PrimarySlot   = RS_AttackSlot(new("RS_AttackSlot"));
+		SecondarySlot = RS_AttackSlot(new("RS_AttackSlot"));
+		BuildAttackProfiles();
+	}
+
 	override void PostBeginPlay()
 	{
 		Super.PostBeginPlay();
@@ -430,5 +689,6 @@ class RS_Weapon : Weapon abstract
 			ProjectileClass = CVar.GetCVar("rs_fx_tracers", null).GetBool() ? "RS_BallisticTracer" : "RS_BallisticType1";
 		if (!HeavyProjectileClass)
 			HeavyProjectileClass = GetHeavyProjectile();
+		EnsureAttackProfiles();
 	}
 }
