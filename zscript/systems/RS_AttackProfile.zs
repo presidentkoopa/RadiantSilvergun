@@ -93,6 +93,17 @@ class RS_AttackProfile : Object
 	bool   BigMuzzle;           // RS_HiFiFX.MuzzleEffects(self, <this>)
 	double SpawnHeight;         // muzzle offset, heavy profiles
 
+	// --- Player Feedback layer (bullet/hitscan profiles only) ---
+	// null = use the Sequence's own built-in default (RS_BallisticFired's
+	// RSU0 self-frames, "bulletpuff" for hitscan, RS_SmokeWisp for muzzle
+	// smoke) -- every existing weapon that doesn't set these keeps
+	// firing exactly as it does today. Set one to actually override it.
+	// Heavy-mode profiles don't use these: their impact IS the
+	// explosion, already fully catalogued per projectile class.
+	Class<Actor> ImpactPuff;
+	Class<Actor> ImpactSparks;
+	Class<Actor> MuzzleSmoke;
+
 	// --- Melee only ---
 	double MeleeRange;
 	Class<Actor> MeleePuff;
@@ -135,7 +146,10 @@ class RS_AttackProfile : Object
 		bool usesChoke = false,
 		double dmgMult = 1.0,
 		Class<Actor> proj = null,
-		string profName = "")
+		string profName = "",
+		Class<Actor> impactPuff = null,
+		Class<Actor> impactSparks = null,
+		Class<Actor> muzzleSmoke = null)
 	{
 		let p = RS_AttackProfile(new("RS_AttackProfile"));
 		p.InitDefaults();
@@ -150,6 +164,9 @@ class RS_AttackProfile : Object
 		p.DamageMult      = dmgMult;
 		p.ProjectileClass = proj;
 		p.ProfileName     = profName;
+		p.ImpactPuff      = impactPuff;
+		p.ImpactSparks    = impactSparks;
+		p.MuzzleSmoke     = muzzleSmoke;
 		return p;
 	}
 
@@ -162,7 +179,10 @@ class RS_AttackProfile : Object
 		Class<Ammo> ammo = null,
 		string casing = "",
 		bool bigMuzzle = false,
-		string profName = "")
+		string profName = "",
+		Class<Actor> impactPuff = null,
+		Class<Actor> impactSparks = null,
+		Class<Actor> muzzleSmoke = null)
 	{
 		let p = RS_AttackProfile(new("RS_AttackProfile"));
 		p.InitDefaults();
@@ -174,6 +194,9 @@ class RS_AttackProfile : Object
 		p.CasingClass = casing;
 		p.BigMuzzle   = bigMuzzle;
 		p.ProfileName = profName;
+		p.ImpactPuff      = impactPuff;
+		p.ImpactSparks    = impactSparks;
+		p.MuzzleSmoke     = muzzleSmoke;
 		return p;
 	}
 
@@ -243,6 +266,9 @@ class RS_AttackProfile : Object
 		p.CasingClass     = CasingClass;
 		p.BigMuzzle       = BigMuzzle;
 		p.SpawnHeight     = SpawnHeight;
+		p.ImpactPuff      = ImpactPuff;
+		p.ImpactSparks    = ImpactSparks;
+		p.MuzzleSmoke     = MuzzleSmoke;
 		p.MeleeRange      = MeleeRange;
 		p.MeleePuff       = MeleePuff;
 		p.ProfileName     = ProfileName;

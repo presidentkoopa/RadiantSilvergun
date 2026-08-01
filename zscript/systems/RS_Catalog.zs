@@ -93,16 +93,19 @@ class RS_Catalog
 		return "RS_GH_UnmakerShot";
 	}
 
-	// Real travelling bolts, not hitscan -- see RS_GH_RailProjectiles.zs
+	// Real travelling bolts, not hitscan -- see RS_FX_RailProjectiles.zs
 	// for why. Primary = coiled helix, secondary = straight BD-faithful.
-	static Class<Actor> PROJ_GH_RailBolt()
+	// Not GH-specific despite where it was first used -- generic shared
+	// building block, same as PROJ_Ballistic() above, just built for the
+	// Railgun first.
+	static Class<Actor> PROJ_RailBolt()
 	{
-		return "RS_GH_RailBolt";
+		return "RS_RailBolt";
 	}
 
-	static Class<Actor> PROJ_GH_RailBoltStraight()
+	static Class<Actor> PROJ_RailBoltStraight()
 	{
-		return "RS_GH_RailBoltStraight";
+		return "RS_RailBoltStraight";
 	}
 
 	// No source class existed for this in this project -- genuine new
@@ -121,6 +124,26 @@ class RS_Catalog
 	static string CASING_Small()  { return "RS_CasingSmall"; }
 	static string CASING_Rifle()  { return "RS_CasingRifle"; }
 	static string CASING_Shell()  { return "RS_CasingShell"; }
+
+	// -----------------------------------------------------------------
+	// PLAYER FEEDBACK ENTRIES -- impact puffs, impact sparks, muzzle
+	// smoke. Read by RS_AttackProfile.ImpactPuff/ImpactSparks/MuzzleSmoke
+	// (bullet/hitscan profiles only). Real classes live in
+	// RS_FX_Puffs.zs / RS_FX_Sparks.zs / RS_FX_Ricochet.zs / RS_FX_Smoke.zs.
+	// -----------------------------------------------------------------
+	static Class<Actor> PUFF_Bullet()   { return "RS_EnhancedBulletPuff"; }
+	static Class<Actor> PUFF_Shot()     { return "RS_EnhancedShotPuff"; }
+	static Class<Actor> PUFF_Chainsaw() { return "RS_ChainsawPuff"; }
+	static Class<Actor> PUFF_Vanilla()  { return "BulletPuff"; }
+
+	static Class<Actor> SPARK_Hit()        { return "RS_HitSpark"; }
+	static Class<Actor> SPARK_X()          { return "RS_SparkX"; }
+	static Class<Actor> SPARK_XNoModel()   { return "RS_SparkXNoModel"; }
+	static Class<Actor> SPARK_XHeavy()     { return "RS_SparkXHeavy"; }
+	static Class<Actor> SPARK_Ricochet()   { return "RS_RicochetSpark"; }
+	static Class<Actor> SPARK_Rail()       { return "RS_RailImpactSpark"; }
+
+	static Class<Actor> SMOKE_Wisp() { return "RS_SmokeWisp"; }
 
 	// -----------------------------------------------------------------
 	// SOUND ENTRIES

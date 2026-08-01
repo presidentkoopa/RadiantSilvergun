@@ -82,7 +82,7 @@ class RS_VanillaPlusSwaps : Object
 		return "not-a-match";
 	}
 
-	static bool TrySwapPair(WorldEvent e, string actualClass, string baseClass, string cvarName, string swapToClass)
+	static play bool TrySwapPair(WorldEvent e, string actualClass, string baseClass, string cvarName, string swapToClass)
 	{
 		string suffix = IdentitySuffix(actualClass, baseClass);
 		if (suffix == "not-a-match")
@@ -110,7 +110,7 @@ class RS_VanillaPlusSwaps : Object
 	// underscore) is handled by IdentitySuffix the same as any other --
 	// "RS_GH_BFG9000" is just the base class string, digits after it are
 	// still 2..6 the same way.
-	static bool TryRandomBFG(WorldEvent e, string actualClass)
+	static play bool TryRandomBFG(WorldEvent e, string actualClass)
 	{
 		let cv = CVar.GetCVar("rs_vp_randombfg", null);
 		if (!cv || !cv.GetBool())
@@ -139,7 +139,7 @@ class RS_VanillaPlusSwaps : Object
 		return true;
 	}
 
-	static bool TrySwap(WorldEvent e)
+	static play bool TrySwap(WorldEvent e)
 	{
 		if (!e.Thing)
 			return false;

@@ -37,8 +37,13 @@ class RS_HiFiFX
 
 	// Barrel smoke. At Standard, only sustained/heavy fire spawns it
 	// (caller passes heavyFire=true for full-auto/high-rate weapons);
-	// at Hi-Fi, every shot gets a wisp.
-	static play void MuzzleEffects(Actor shooter, bool heavyFire = false)
+	// at Hi-Fi, every shot gets a wisp. smokeClass lets a firing
+	// profile's MuzzleSmoke override which actor spawns; null (the
+	// default for every existing call site) keeps the real, original
+	// RS_SmokeWisp behavior exactly as it's always been. Only
+	// RS_SmokeWisp gets the SetupVisual() alpha/scale/vspeed tuning --
+	// a different override class is trusted to look right on its own.
+	static play void MuzzleEffects(Actor shooter, bool heavyFire = false, Class<Actor> smokeClass = null)
 	{
 		int tier = Tier();
 		if (tier == RSFX_OFF)
@@ -49,7 +54,11 @@ class RS_HiFiFX
 		double scaleVal = (tier == RSFX_HIFI) ? 0.18 : 0.12;
 		double alphaVal = (tier == RSFX_HIFI) ? 0.35 : 0.22;
 
-		let wisp = RS_SmokeWisp(shooter.Spawn("RS_SmokeWisp", shooter.Pos + (0, 0, shooter.Height * 0.5)));
+		if (!smokeClass)
+			smokeClass = "RS_SmokeWisp";
+
+		let spawned = shooter.Spawn(smokeClass, shooter.Pos + (0, 0, shooter.Height * 0.5));
+		let wisp = RS_SmokeWisp(spawned);
 		if (wisp)
 			wisp.SetupVisual(alphaVal, scaleVal, 0.3);
 	}

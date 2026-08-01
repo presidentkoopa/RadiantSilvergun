@@ -458,7 +458,9 @@ class RS_Weapon : Weapon abstract
 		// helpers the projectile modes use.
 		if (p.Mode == RS_ATK_HITSCAN)
 		{
-			A_FireBullets(spread, spread, pellets, int(dmg), "bulletpuff", FBF_NORANDOM);
+			Class<Actor> hitscanPuff = p.ImpactPuff;
+			if (!hitscanPuff) hitscanPuff = "bulletpuff";
+			A_FireBullets(spread, spread, pellets, int(dmg), hitscanPuff, FBF_NORANDOM);
 		}
 		else if (p.Mode == RS_ATK_MELEE)
 		{
@@ -477,7 +479,7 @@ class RS_Weapon : Weapon abstract
 
 		if (p.FireSound)
 			A_PlaySound(p.FireSound, CHAN_WEAPON);
-		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle);
+		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle, p.MuzzleSmoke);
 		if (p.CasingClass != "")
 			RS_HiFiFX.CasingEject(self, p.CasingClass);
 
@@ -518,6 +520,7 @@ class RS_Weapon : Weapon abstract
 			if (proj)
 			{
 				proj.SetupStats(int(dmg), vel, crit);
+				proj.SetupFeedback(p.ImpactPuff, p.ImpactSparks);
 				// THE SACRED POINTER -- GunBonsai reads master to attribute
 				// XP to the hand that actually fired. Never break it.
 				proj.master = self;

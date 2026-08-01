@@ -54,7 +54,6 @@ version "4.14"
 #include "zscript/weapons/rs_gh_weapon/RS_GH_GrenadeLauncher.zs"
 #include "zscript/weapons/rs_gh_weapon/RS_GH_HandGrenade.zs"
 #include "zscript/weapons/rs_gh_weapon/RS_GH_HeavyProjectiles.zs"
-#include "zscript/weapons/rs_gh_weapon/RS_GH_RailProjectiles.zs"
 #include "zscript/weapons/rs_gh_weapon/RS_GH_MP40.zs"
 #include "zscript/weapons/rs_gh_weapon/RS_GH_Machinegun.zs"
 #include "zscript/weapons/rs_gh_weapon/RS_GH_Minigun.zs"
@@ -73,6 +72,7 @@ version "4.14"
 // Projectiles first: bullets, then heavy ordnance. Both are pointed at by
 // swappable fields on RS_Weapon rather than named in any weapon file.
 #include "zscript/weapons/weaponfx/RS_FX_BallisticFired.zs"
+#include "zscript/weapons/weaponfx/RS_FX_RailProjectiles.zs"
 #include "zscript/weapons/weaponfx/RS_FX_HeavyProjectiles.zs"
 
 // --- Performance CVAR gated levels of weapon feedbacks

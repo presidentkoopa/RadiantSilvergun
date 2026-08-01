@@ -44,7 +44,7 @@ class RS_GH_Railgun : RS_Weapon
 			usesCadence: true,
 			ammoCost: 10,
 			bigMuzzle: false,
-			proj: RS_Catalog.PROJ_GH_RailBolt(),
+			proj: RS_Catalog.PROJ_RailBolt(),
 			profName: "Gunstar Railgun"));
 
 		// Secondary: BD-faithful straight bolt, same cost/cadence.
@@ -54,7 +54,7 @@ class RS_GH_Railgun : RS_Weapon
 			usesCadence: true,
 			ammoCost: 10,
 			bigMuzzle: false,
-			proj: RS_Catalog.PROJ_GH_RailBoltStraight(),
+			proj: RS_Catalog.PROJ_RailBoltStraight(),
 			profName: "Straight Bolt"));
 	}
 

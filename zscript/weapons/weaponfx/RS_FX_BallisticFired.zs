@@ -12,6 +12,15 @@ class RS_BallisticFired : FastProjectile
 	double ShotCritChance;
 	int ghostTimer;
 
+	// Player Feedback layer override -- null means "use this Sequence's
+	// own built-in default impact." Set via SetupFeedback(), called from
+	// RS_Weapon's dispatch right alongside SetupStats(). Every subclass
+	// that defines its own Death: state (RS_RailBolt, etc.) checks
+	// these the same way, so the override works uniformly across every
+	// bullet-mode Sequence in the game, not just this base one.
+	Class<Actor> ImpactPuffOverride;
+	Class<Actor> ImpactSparkOverride;
+
 	Default
 	{
 		Radius 2;
@@ -61,6 +70,16 @@ class RS_BallisticFired : FastProjectile
 		ShotCritChance = critChance;
 	}
 
+	// Player Feedback layer -- called alongside SetupStats() by whatever
+	// spawned this round, if the firing profile set an ImpactPuff/
+	// ImpactSparks override. Left uncalled (both stay null) means this
+	// Sequence's own default impact plays, unchanged.
+	void SetupFeedback(Class<Actor> puffOverride, Class<Actor> sparkOverride)
+	{
+		ImpactPuffOverride = puffOverride;
+		ImpactSparkOverride = sparkOverride;
+	}
+
 	States
 	{
 	Spawn:
@@ -69,6 +88,14 @@ class RS_BallisticFired : FastProjectile
 
 	Death:
 		TNT1 A 0 A_PlaySound("rs_fx_impact_bullet", CHAN_AUTO);
+		TNT1 A 0 A_JumpIf(ImpactPuffOverride == null, "DefaultPuff");
+		TNT1 A 0
+		{
+			Spawn(ImpactPuffOverride, pos);
+			if (ImpactSparkOverride) Spawn(ImpactSparkOverride, pos);
+		}
+		Stop;
+	DefaultPuff:
 		RSU0 A 4;
 		Stop;
 	}

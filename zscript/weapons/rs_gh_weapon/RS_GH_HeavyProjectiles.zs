@@ -162,7 +162,16 @@ class RS_GH_FlameJet : RS_BallisticFired
 		Stop;
 
 	Death:
-		TNT1 A 0 A_PlaySound("rs_fx_impact_bullet", CHAN_AUTO);
+		TNT1 A 0
+		{
+			A_PlaySound("rs_fx_impact_bullet", CHAN_AUTO);
+			// Player Feedback override, same mechanism as the base
+			// RS_BallisticFired.Death -- default here is genuinely "no
+			// puff, just the sound," so only spawn something if a
+			// profile actually set one.
+			if (ImpactPuffOverride) Spawn(ImpactPuffOverride, pos);
+			if (ImpactSparkOverride) Spawn(ImpactSparkOverride, pos);
+		}
 		Stop;
 	}
 }

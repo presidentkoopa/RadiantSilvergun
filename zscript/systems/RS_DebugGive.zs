@@ -147,8 +147,8 @@ class RS_DebugGive : EventHandler
 		projPool.Push(RS_Catalog.PROJ_GH_BFGShot());
 		projPool.Push(RS_Catalog.PROJ_GH_PlasmaShot());
 		projPool.Push(RS_Catalog.PROJ_GH_UnmakerShot());
-		projPool.Push(RS_Catalog.PROJ_GH_RailBolt());
-		projPool.Push(RS_Catalog.PROJ_GH_RailBoltStraight());
+		projPool.Push(RS_Catalog.PROJ_RailBolt());
+		projPool.Push(RS_Catalog.PROJ_RailBoltStraight());
 		projPool.Push(RS_Catalog.PROJ_GH_FlameJet());
 		projPool.Push(RS_Catalog.PROJ_GrenadeLaunched());
 		projPool.Push(RS_Catalog.PROJ_GrenadeThrown());
@@ -166,8 +166,33 @@ class RS_DebugGive : EventHandler
 		sndPool.Push(RS_Catalog.SND_GH_Flamethrower());
 		sndPool.Push(RS_Catalog.SND_GH_Minigun());
 
+		// Player Feedback layer -- same random-assembly treatment as the
+		// Data (via dmgMult) and Audiovisual (proj/fireSnd) layers above.
+		// Only visibly affects picks that actually spawn an
+		// RS_BallisticFired (PROJ_Ballistic/GH_RailBolt/RailBoltStraight/
+		// FlameJet in the pool above) -- the Heavy-class picks mixed into
+		// this pool (Rocket/PlasmaBall/BFGBall/etc.) aren't
+		// RS_BallisticFired and never were; that's a pre-existing quirk
+		// of this debug tool's pool, not something this change fixes.
+		Array<Class<Actor> > puffPool;
+		puffPool.Push(RS_Catalog.PUFF_Bullet());
+		puffPool.Push(RS_Catalog.PUFF_Shot());
+		puffPool.Push(RS_Catalog.PUFF_Chainsaw());
+		puffPool.Push(RS_Catalog.PUFF_Vanilla());
+
+		Array<Class<Actor> > sparkPool;
+		sparkPool.Push(RS_Catalog.SPARK_Hit());
+		sparkPool.Push(RS_Catalog.SPARK_X());
+		sparkPool.Push(RS_Catalog.SPARK_XNoModel());
+		sparkPool.Push(RS_Catalog.SPARK_XHeavy());
+		sparkPool.Push(RS_Catalog.SPARK_Ricochet());
+		sparkPool.Push(RS_Catalog.SPARK_Rail());
+
 		Class<Actor> proj = projPool[Random(0, projPool.Size() - 1)];
 		sound fireSnd = sndPool[Random(0, sndPool.Size() - 1)];
+		Class<Actor> puff = puffPool[Random(0, puffPool.Size() - 1)];
+		Class<Actor> spark = sparkPool[Random(0, sparkPool.Size() - 1)];
+		Class<Actor> smoke = (Random(0, 1) == 1) ? RS_Catalog.SMOKE_Wisp() : null;
 
 		let p = RS_AttackProfile.MakeBullet(
 			fireSnd: fireSnd,
@@ -177,13 +202,18 @@ class RS_DebugGive : EventHandler
 			bigMuzzle: (Random(0, 1) == 1),
 			dmgMult: FRandom(0.5, 2.0),
 			proj: proj,
-			profName: "Debug Random");
+			profName: "Debug Random",
+			impactPuff: puff,
+			impactSparks: spark,
+			muzzleSmoke: smoke);
 		if (Random(0, 2) == 0)
 			p.PelletOverride = Random(2, 6);
 
 		wpn.EnsureAttackProfiles();
 		wpn.ReplaceProfile(0, 0, p);
-		Console.Printf("RS Debug: %s primary is now [%s / %s].", wpn.GetTag(), proj.GetClassName(), fireSnd);
+		Console.Printf("RS Debug: %s primary is now [%s / %s / puff:%s / spark:%s / smoke:%s].",
+			wpn.GetTag(), proj.GetClassName(), fireSnd, puff.GetClassName(), spark.GetClassName(),
+			smoke ? smoke.GetClassName() : "default");
 	}
 
 	override void NetworkProcess(ConsoleEvent e)
