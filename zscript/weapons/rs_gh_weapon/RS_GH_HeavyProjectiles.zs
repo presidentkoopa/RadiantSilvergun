@@ -5,8 +5,8 @@
 // Ported from the HB master (hf_hb_weapons.zs) art/behavior, NOT the
 // generic vanilla-based fallbacks the broken import left in place. Same
 // SetupStats(int, double) contract as RS_EnhancedRocket/PlasmaBall/
-// BFGBall, so RS_Weapon.A_RS_FireHeavyProjectile / RS_FireProfileHeavy
-// reach these exactly the same way.
+// BFGBall, so RS_Weapon.RS_FireProfileHeavy reaches these exactly the
+// same way.
 //
 // Sprites: BFS1 -> RSR5, BFGB -> RSE9, SHOK -> RSF7, PBAL -> RSP7,
 // EXPL -> RSI4, FRFX -> RSI5/RSI6, LEYS(R) -> RSF8. See EFFECT_CATALOG.md.

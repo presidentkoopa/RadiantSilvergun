@@ -82,12 +82,21 @@ class TFLV_Settings : Object {
   }
 
   static string levelup_sound() {
-    // Must be kept in sync with the GunBonsaiLevelUpSoundOption in MENUDEF
-    static const string sounds[] = { "", "bonsai/gunlevelup", "misc/secret", "misc/teleport" };
+    // Must be kept in sync with the GunBonsaiLevelUpSoundOption in MENUDEF.
+    // Plain switch, not a static const array -- this engine build doesn't
+    // resolve `static const string X[] = {...}` reliably (same issue
+    // found and fixed in RS_Keywords.zs/RS_Bits.zs earlier tonight --
+    // almost certainly why the level-up sound wasn't playing at all).
     let mode = GetInt("bonsai_levelup_sound_mode");
     if (mode < 0) return GetString("bonsai_levelup_sound");
-    if (mode > 3) return "";
-    return sounds[mode];
+    switch (mode)
+    {
+      case 0: return "";
+      case 1: return "bonsai/gunlevelup";
+      case 2: return "misc/secret";
+      case 3: return "misc/teleport";
+      default: return "";
+    }
   }
 
   static bool have_legendoom() {

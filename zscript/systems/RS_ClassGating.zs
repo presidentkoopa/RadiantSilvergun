@@ -31,6 +31,8 @@ class RS_ClassGating : EventHandler
 		if (!wep || wep.owner || wep.GetFamily() == EVR_Family_None)
 			return;
 
+		// consoleplayer is deliberate, not a multiplayer oversight -- this
+		// project is singleplayer/VR-only, confirmed with the dev.
 		let pawn = players[consoleplayer].mo;
 		if (!pawn)
 			return;

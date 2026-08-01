@@ -126,11 +126,6 @@ class VR_SuperShotgun : RS_Weapon
 		bStatsRolled = true;
 	}
 
-	override void ApplyUpgradeCard(EVR_Tier newTier)
-	{
-		RollStats(newTier);
-	}
-
 	// Both barrels together -- ammoCost 2, consumed on a backfire too
 	// (the dispatch spends before it branches, same as the old code did).
 	override void BuildAttackProfiles()

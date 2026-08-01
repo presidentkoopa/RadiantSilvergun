@@ -57,11 +57,6 @@ class VR_PlasmaRifle : RS_Weapon
 		bStatsRolled = true;
 	}
 
-	override void ApplyUpgradeCard(EVR_Tier newTier)
-	{
-		RollStats(newTier);
-	}
-
 	override Class<Actor> GetHeavyProjectile()
 	{
 		return RS_Catalog.PROJ_PlasmaBall();

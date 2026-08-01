@@ -128,14 +128,6 @@ class VR_Revolver : RS_Weapon
 		bStatsRolled = true;
 	}
 
-	// A deliberate Prototype -> Basic downgrade grants +1 permanent pellet.
-	override void ApplyUpgradeCard(EVR_Tier newTier)
-	{
-		bool isSacrificeDowngrade = (Tier == VRT_Prototype && newTier == VRT_Basic);
-		RollStats(newTier);
-		if (isSacrificeDowngrade)
-			PelletCount += 1;
-	}
 
 	// Primary: one chambered round. Semi-auto, so firing ahead of cadence
 	// widens the cone. No casing eject -- a revolver holds its brass.

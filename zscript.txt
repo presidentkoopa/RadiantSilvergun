@@ -95,5 +95,11 @@ version "4.14"
 // --- GunBonsai (offhand-aware fork) -- weapon leveling/upgrade system.
 // Untouched from upstream except for the offhand tracking additions
 // (OffhandHUD.zsc, OffhandStatusDisplay.zsc, the EventHandler.zsc redirect
-// logic) -- see docs/HANDOFF_2.md for what that depends on in RS_Weapon.zs.
+// logic) and the Promotion XP-curve discount in WeaponInfo.zsc's
+// GetXPForLevel() -- see docs/rs_01_promotion_system.txt.
 #include "zscript/GunBonsai/main.zsc"
+
+// RS <-> GunBonsai integration layer -- the only file allowed to
+// reference both RS_Weapon and TFLV_* types directly. Must load after
+// both RS_Weapon.zs and GunBonsai/main.zsc.
+#include "zscript/systems/RS_GunBonsaiBridge.zs"

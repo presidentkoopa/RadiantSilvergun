@@ -24,7 +24,7 @@ class VR_Chaingun : RS_Weapon
 
 	override string GetBaseKeywords()
 	{
-		return "archetype:chaingun trigger:fullauto delivery:hitscan payload:single feed:pool reserve:clip element:kinetic set:radiantsilvergun";
+		return "archetype:chaingun trigger:fullauto delivery:bullet payload:single feed:pool reserve:clip element:kinetic set:radiantsilvergun";
 	}
 
 	override void RollStats(EVR_Tier t)
@@ -120,11 +120,6 @@ class VR_Chaingun : RS_Weapon
 			Condition = RS_Roll.RollDouble(1, 100);
 
 		bStatsRolled = true;
-	}
-
-	override void ApplyUpgradeCard(EVR_Tier newTier)
-	{
-		RollStats(newTier);
 	}
 
 	// The one hitscan weapon in the arsenal -- belt-fed straight from

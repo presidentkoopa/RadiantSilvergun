@@ -115,7 +115,74 @@ server float rs_bits_healthscale_ratio = 10;	// monster SpawnHealth / this = bit
 server int rs_bits_ratio_health = 1;
 server int rs_bits_ratio_armor = 1;
 server int rs_bits_ratio_ammo = 1;
+server int rs_bits_ratio_grey = 1;				// repair currency, joins the same weighted roll
 
 server int rs_bits_ammo_mode = 0;				// 0: Current Weapon, 1: All Owned Weapons
 server bool rs_bits_ammo_usetype1 = true;
 server bool rs_bits_ammo_usetype2 = false;
+
+// Curse Bits are deliberately NOT in the ratio pool above -- rarer,
+// independent per-kill roll, since curse removal is meant to stay a real
+// cost, not a routine drop like health/armor/ammo/repair.
+server int rs_bits_curse_chance = 5;			// per-kill percent chance, independent of the batch above
+
+// zscript/systems/RS_Keywords.zs -- logs unknown keys in a weapon's
+// GetBaseKeywords() string once per class, on first PostBeginPlay. Off by
+// default, cheap enough to leave on during content work.
+server bool rs_debug_validate_keywords = false;
+
+// =====================================================================
+// Weapon Sound Assignment -- MENUDEF's RS_WeaponSoundOptions, resolved
+// by RS_Weapon.GetEffectiveFireSound(). user scope, not server -- this
+// is cosmetic/personal preference, not something that needs syncing.
+// 0 = default (that weapon's normal FireSound). Only rs_soundchoice_revolver
+// has more than one real option today (see RS_Catalog.SND_Revolver_Resolve);
+// the rest exist so the menu lists every weapon now and just needs more
+// OptionValue entries -- not new cvars -- once more takes are sourced.
+//
+// Suffix is the weapon's real archetype: keyword value (GetBaseKeywords()),
+// not its class name -- GetEffectiveFireSound reads the keyword directly,
+// so this has to match exactly. Where those differ from the obvious
+// class-name guess: Chainsaw is archetype:melee (not chainsaw), Rocket
+// Launcher is archetype:launcher (not rocketlauncher), Plasma Rifle is
+// archetype:energy (not plasmarifle), BFG9000 is archetype:bfg (not
+// bfg9000). This also means any other weapon sharing that same archetype
+// (e.g. a future melee or launcher import) automatically shares the slot.
+// =====================================================================
+user int rs_soundchoice_pistol = 0;
+user int rs_soundchoice_revolver = 0;
+user int rs_soundchoice_rifle = 0;
+user int rs_soundchoice_smg = 0;
+user int rs_soundchoice_shotgun = 0;
+user int rs_soundchoice_supershotgun = 0;
+user int rs_soundchoice_chaingun = 0;
+user int rs_soundchoice_melee = 0;
+user int rs_soundchoice_launcher = 0;
+user int rs_soundchoice_energy = 0;
+user int rs_soundchoice_bfg = 0;
+
+// =====================================================================
+// Debug: Ballistic Attack Pattern -- MENUDEF's RS_DebugBallisticMenu,
+// read by RS_DebugGive.RandomProfile(). All default ON so the tool's
+// existing "randomize everything" behavior is unchanged unless you
+// uncheck something. user scope -- local debug preference, not synced.
+// =====================================================================
+user bool rs_debugrandom_projectile = true;
+user bool rs_debugrandom_sound = true;
+user bool rs_debugrandom_puff = true;
+user bool rs_debugrandom_spark = true;
+user bool rs_debugrandom_smoke = true;
+user bool rs_debugrandom_trail = true;
+user bool rs_debugrandom_bigmuzzle = true;
+user bool rs_debugrandom_dmgmult = true;
+user bool rs_debugrandom_velmult = true;
+user bool rs_debugrandom_critbonus = true;
+user bool rs_debugrandom_spread = true;
+user bool rs_debugrandom_choke = true;
+user bool rs_debugrandom_cadence = true;
+user bool rs_debugrandom_pellets = true;
+user bool rs_debugrandom_casing = true;
+user bool rs_debugrandom_ammocost = true;
+// AmmoClass is deliberately NOT randomized -- could point the profile at
+// ammo the player doesn't have, softlocking the very testing loop this
+// tool exists for. Always inherits the weapon's own AmmoType2 (null).

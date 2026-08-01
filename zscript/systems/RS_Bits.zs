@@ -28,21 +28,14 @@ class RS_BitUtil
 
 class RS_KillRewardsHandler : EventHandler
 {
-	static const string blacklist[] =
-	{
-		"BootSmearerRed", 	// Brutal Doom gib actors -- not real monsters
-		"BootSmearerBlue",
-		"BootSmearerGreen"
-	};
-
+	// Plain comparison chain, not a static const array -- this engine
+	// build doesn't resolve `static const string X[] = {...}` reliably.
 	bool IsBlacklisted(string actor)
 	{
-		for (int i = 0; i < blacklist.Size(); i++)
-		{
-			if (actor == blacklist[i])
-				return true;
-		}
-		return false;
+		// Brutal Doom gib actors -- not real monsters.
+		return actor == "BootSmearerRed"
+			|| actor == "BootSmearerBlue"
+			|| actor == "BootSmearerGreen";
 	}
 
 	override void WorldThingDied(WorldEvent e)
@@ -96,6 +89,7 @@ class RS_KillRewardsHandler : EventHandler
 		int ratioHealth = CVar.GetCVar("rs_bits_ratio_health", null).GetInt();
 		int ratioArmor = CVar.GetCVar("rs_bits_ratio_armor", null).GetInt();
 		int ratioAmmo = CVar.GetCVar("rs_bits_ratio_ammo", null).GetInt();
+		int ratioGrey = CVar.GetCVar("rs_bits_ratio_grey", null).GetInt();
 
 		for (int i = 0; i < num; i++)
 		{
@@ -103,7 +97,7 @@ class RS_KillRewardsHandler : EventHandler
 			if (!a.bBoss && random(1, 100) > dropChance)
 				continue;
 
-			int sum = ratioHealth + ratioArmor + ratioAmmo;
+			int sum = ratioHealth + ratioArmor + ratioAmmo + ratioGrey;
 			int roll = random(1, max(1, sum));
 			string spawn = "";
 
@@ -122,13 +116,29 @@ class RS_KillRewardsHandler : EventHandler
 				{
 					roll -= ratioArmor;
 					if (ratioAmmo && roll <= ratioAmmo)
+					{
 						spawn = "RS_Bit_Ammo";
+					}
+					else
+					{
+						roll -= ratioAmmo;
+						if (ratioGrey && roll <= ratioGrey)
+							spawn = "RS_Bit_Grey";
+					}
 				}
 			}
 
 			if (spawn != "")
 				a.A_SpawnItemEx(spawn, 0, 0, 32, random(1, 6), 0, random(1, 6), random(0, 360));
 		}
+
+		// Curse Bits: STUBBED OFF along with curse-rolling on Promote() --
+		// no point dropping currency with nothing to spend it on yet.
+		// `false &&` short-circuits the roll below without touching the
+		// cvar or the drop-chance math, so re-enabling is a one-word flip.
+		int curseChance = CVar.GetCVar("rs_bits_curse_chance", null).GetInt();
+		if (false && curseChance > 0 && random(1, 100) <= curseChance)
+			a.A_SpawnItemEx("RS_Bit_Curse", 0, 0, 32, random(1, 6), 0, random(1, 6), random(0, 360));
 	}
 }
 
@@ -265,6 +275,83 @@ class RS_Bit_Armor : BasicArmorBonus
 	Spawn:
 		ABIT A 4;
 		ABIT A 4 BRIGHT;
+		Loop;
+	}
+}
+
+// Repair currency -- accumulates in inventory like ammo, spent later via
+// RS_Weapon.RepairWithGreyBits() (the spend UI itself isn't built yet).
+// Deliberately NOT an instant-effect bit like Health/Armor/Ammo above --
+// no auto-activate, just stacks. Reuses the Health Bit's gem sprite,
+// recolored via STYLE_Shaded + SetShade instead of new art -- same
+// color-variant trick this project already uses elsewhere (monster
+// tiers), just without a TRNSLATE lump.
+class RS_Bit_Grey : Inventory
+{
+	Default
+	{
+		Radius 10;
+		Height 8;
+		Inventory.Amount 1;
+		Inventory.MaxAmount 999;
+		Inventory.PickupMessage "";
+		+INVENTORY.ALWAYSPICKUP;
+	}
+
+	int bit_life;
+
+	override void Tick()
+	{
+		Super.Tick();
+		if (RS_BitUtil.TickLife(bit_life))
+			Destroy();
+	}
+
+	States
+	{
+	Spawn:
+		TNT1 A 0 A_SetRenderStyle(1.0, STYLE_Shaded);
+		TNT1 A 0 SetShade("C0 C0 C8");
+		HBIT A 4;
+		HBIT A 4 BRIGHT;
+		Loop;
+	}
+}
+
+// Curse-removal currency -- accumulates in inventory, spent later on a
+// chosen weapon's chosen curse (menu work, not built yet). Deliberately
+// rarer than the routine bits above -- see rs_bits_curse_chance in
+// RS_KillRewardsHandler, an independent per-kill roll outside the
+// weighted pool, not scaled by the batch-size settings the others use.
+// Same recolor trick as RS_Bit_Grey, rust red instead of silver.
+class RS_Bit_Curse : Inventory
+{
+	Default
+	{
+		Radius 10;
+		Height 8;
+		Inventory.Amount 1;
+		Inventory.MaxAmount 999;
+		Inventory.PickupMessage "";
+		+INVENTORY.ALWAYSPICKUP;
+	}
+
+	int bit_life;
+
+	override void Tick()
+	{
+		Super.Tick();
+		if (RS_BitUtil.TickLife(bit_life))
+			Destroy();
+	}
+
+	States
+	{
+	Spawn:
+		TNT1 A 0 A_SetRenderStyle(1.0, STYLE_Shaded);
+		TNT1 A 0 SetShade("B7 41 0E");
+		HBIT A 4;
+		HBIT A 4 BRIGHT;
 		Loop;
 	}
 }

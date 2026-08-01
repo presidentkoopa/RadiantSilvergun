@@ -118,11 +118,6 @@ class RS_Roll : Object
 		pelletMult = 1.0;
 		backfireChance = 0.0;
 
-		// TEMP: Condition-driven backfire/penalties disabled until the system
-		// is redesigned (was firing far too often, far too early). Guarded
-		// with `if (false)` rather than an early return so the tier logic
-		// below stays intact and easy to re-enable later.
-		if (false)
 		if (cnd >= 80.0)
 		{
 			return; // 80-100: no penalties
@@ -137,14 +132,17 @@ class RS_Roll : Object
 		}
 		else if (cnd >= 50.0)
 		{
-			dmgMult = 0.85; // heavier penalty, first flicker of instability
-			backfireChance = 0.05;
+			// heavier penalty, first flicker of instability -- no backfire
+			// risk yet. Original tuning put a 5% backfire chance here; it
+			// made "half-worn" already dangerous, which read as too often,
+			// too early. Risk now starts at 20 (see below).
+			dmgMult = 0.85;
 		}
 		else if (cnd >= 40.0)
 		{
 			// 20% chance of +1-pellet-equivalent (2x pellet mult on a
 			// 1-pellet base weapon) at the cost of -30% damage; otherwise
-			// just a straight damage penalty.
+			// just a straight damage penalty. No backfire risk.
 			if (RollDouble(0, 1) < 0.20)
 			{
 				pelletMult = 2.0;
@@ -157,6 +155,7 @@ class RS_Roll : Object
 		}
 		else if (cnd >= 30.0)
 		{
+			// Still no backfire risk -- same reasoning as the 50-59 band.
 			if (RollDouble(0, 1) < 0.30)
 			{
 				pelletMult = 2.0;
@@ -166,25 +165,29 @@ class RS_Roll : Object
 			{
 				dmgMult = 0.75;
 			}
-			backfireChance = 0.15;
 		}
 		else if (cnd >= 20.0)
 		{
+			// First real backfire risk. Was 0.40 -- cut to a quarter of
+			// that; this band is "worn, not ruined."
 			dmgMult = 1.25;
 			pelletMult = 1.25;
-			backfireChance = 0.40;
+			backfireChance = 0.10;
 		}
 		else if (cnd >= 10.0)
 		{
+			// Was 0.60.
 			dmgMult = 1.5;
 			pelletMult = 1.5;
-			backfireChance = 0.60;
+			backfireChance = 0.20;
 		}
 		else // 1-9
 		{
+			// Was 0.75. Still the worst band by far, but a coin flip
+			// rather than a near-certainty on every shot.
 			dmgMult = 2.0;
 			pelletMult = 2.0;
-			backfireChance = 0.75;
+			backfireChance = 0.35;
 		}
 	}
 }

@@ -23,8 +23,17 @@
 
 // delivery:
 //   bullet heavy radial melee
-//   (NOT hitscan/projectile as originally drafted -- everything here
-//   is already real-projectile, see Hard Rule 5)
+//   Describes shot SHAPE, not resolution timing. "Instant, no travelling
+//   projectile actor" is real today (RS_ATK_HITSCAN mode, e.g. the
+//   Chaingun; every melee attack too -- A_CustomPunch has no projectile
+//   either) but is NOT its own delivery value -- a hitscan gun still
+//   says delivery:bullet, melee still says delivery:melee. The
+//   projectile-vs-instant distinction lives at the code level
+//   (RS_AttackProfile.Mode), not the keyword level, specifically so a
+//   future affix can grant "fires as hitscan" onto any weapon without
+//   fighting a base keyword that claims otherwise. See also: the shared
+//   GunBonsai XP-attribution gap this same instant/no-projectile fact
+//   causes for hitscan AND melee alike (task #6).
 
 // payload:
 //   REAL:      single multi explosive

@@ -146,13 +146,6 @@ class RS_GH_PumpShotgun : RS_Weapon
 		bStatsRolled = true;
 	}
 
-	override void ApplyUpgradeCard(EVR_Tier newTier)
-	{
-		bool isSacrificeDowngrade = (Tier == VRT_Prototype && newTier == VRT_Basic);
-		RollStats(newTier);
-		if (isSacrificeDowngrade)
-			PelletCount += 1;
-	}
 
 	States
 	{

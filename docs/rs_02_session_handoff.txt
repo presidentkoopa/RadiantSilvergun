@@ -1,0 +1,242 @@
+Session Handoff -- 2026-08-01
+
+What this document is: an honest account of one long session's worth of work on RS_Main --
+what actually got built and verified, what's stubbed off on purpose, and what's genuinely
+half-finished or not started. Written so a fresh read (yours, next time, or mine) doesn't have
+to reconstruct any of this from the conversation.
+
+=====================================================================
+PART 1 -- DONE, VERIFIED, LIVE
+=====================================================================
+
+--Original code-review findings (all closed)
+
+1. Deleted the dead legacy fire path (A_RS_FireBallisticVolley / A_RS_FireHeavyProjectile) from
+   RS_Weapon.zs -- zero callers anywhere in the whole arsenal, confirmed by grep before removal.
+2. RS_ClassGating's consoleplayer-only read confirmed intentional (singleplayer/VR-only project),
+   commented in place so it doesn't get "fixed" later.
+3. RS_Keywords.Validate() -- debug-gated (rs_debug_validate_keywords, off by default) typo
+   checker for GetBaseKeywords() strings. Found and fixed a real bug along the way: RS_Chaingun's
+   delivery:hitscan contradicted the documented schema (delivery describes shot SHAPE, not
+   instant-vs-projectile resolution) -- changed to delivery:bullet, RS_KeywordIndex.zs's note
+   updated to explain melee and hitscan share the same "no projectile actor" property on purpose.
+4. Melee/hitscan offhand XP-attribution gap -- fixed by DIRECT DECLARATION, not detection.
+   A_RS_FireSlot calls RS_GunBonsaiBridge.NotifyFired(self, invoker) the instant a shot commits,
+   for every Mode uniformly. Sets VR_DualClassBase.RS_LastFiredWeapon (a new field). GunBonsai's
+   WorldThingDamaged checks this as a fallback when there's no projectile to inspect. Nothing
+   about A_CustomPunch/A_FireBullets/LineAttack was touched -- chainsaw pushback, hitscan feel,
+   zero regression risk, confirmed by tracing the actual timing (real projectiles carry their own
+   permanent master pointer set at spawn; melee/hitscan resolve synchronously in the same call
+   that sets the pointer, so there's no window for the two hands to cross-contaminate).
+5. RS_Weapon vs vendored GunBonsai integration direction, decided: clean split, not a merge.
+   GunBonsai owns XP/Level/the level-up event and (still to be authored) the family/tier/keyword-
+   aware affix pool. RS owns rolled stats, Condition, and Promotion (Tier movement). RS_Weapon's
+   own dead XP/Level/GiveXP scaffolding (pre-GunBonsai leftover, nothing ever called it) is
+   confirmed out of scope -- not yet deleted, still sitting there, safe to remove whenever.
+
+--Promotion system (docs/rs_01_promotion_system.txt has the full spec -- this is the summary)
+
+Real, implemented, in RS_Weapon.Promote():
+  - Gate: only from Tier == Prototype.
+  - Proportional 20% cut on all five rolled stats (DamagePerShot/Accuracy/Velocity/CritChance/
+    Capacity) -- 20% OF the current value, not a fresh re-roll, not a flat subtraction.
+  - Tier -> Basic, GunBonaiSockets -> RS_Roll.SocketsForTier(Basic) (0), read fresh not hardcoded.
+  - PelletCount +1 (flat, every weapon type today -- shotgun-family probably wants a smaller
+    number here per the Cyberdemon-math finding below; not decided, not built).
+  - PromotionCount +1, permanent, never resets.
+  - RollPromotionCurse() -- escalating: Nth promotion rolls N independent curse chances (was a
+    flat repeating chance, changed after you called it "too much" and I misread the fix once).
+    A hit locks a random stat at 50% of its cut value, tags the weapon "curse:<statname>".
+  - UnlockStat() -- lifting ANY lock (Cursed-tier original or a Promotion curse, same flags,
+    same function) gives a real 1.5x boost on top of whatever the stat was at while locked.
+  - GetDamageCeiling() -- data-only stub, 1.8x placeholder off PromotionDamageBaseline. Nothing
+    calls it yet -- there's no RS-side (or GunBonsai-side) level-up stat picker to plug it into.
+  - All 32 duplicate per-weapon ApplyUpgradeCard overrides (main arsenal + GH set) deleted; the
+    base class now does this correctly in one place. Bonus find: RS_RocketLauncher's old override
+    was silently missing the pellet bonus entirely -- fixed as a side effect.
+
+STUBBED OFF ON PURPOSE (short-circuited, not deleted -- same disable idiom as RS_Roll's earlier
+Condition-effects stub):
+  - RollPromotionCurse() -- the whole curse mechanism. `if (true) return;` at the top.
+  - Curse Bit kill-reward roll in RS_Bits.zs -- `false &&` short-circuit.
+  Flip both back on with a one-word edit whenever curses are wanted again.
+
+Reference math, not RS's real data: the "3 promotions = boss-viable" conclusion in
+rs_01_promotion_system.txt was sanity-checked against an EXTERNAL Colourful-Hell-style monster
+tier file (HF_Monster/HF_Zombieman/HF_Cyberdemon, shown as examples only) -- not RS's own monster
+tiers, which don't exist yet. Re-check that conclusion once real monster tier numbers exist.
+
+--Curse Bits / Grey Bits (RS_Bits.zs)
+
+Built as stacking currency pickups (accumulate in inventory, no auto-effect -- same shape as
+ammo, not like the instant-effect Health/Armor/Ammo bits). Both reuse the Health Bit's gem sprite
+recolored via STYLE_Shaded + SetShade (rust red for Curse, silvery grey for Grey/repair) instead
+of new art. Grey joins the normal weighted kill-reward pool (rs_bits_ratio_grey). Curse is
+deliberately rarer and OUTSIDE the pool -- its own independent per-kill roll, rs_bits_curse_chance.
+Currently stubbed off along with the curse mechanic (see above).
+
+NOT BUILT: the actual "spend X Curse/Grey Bits" menu action. RS_Weapon.RepairWithGreyBits() and
+UnlockStat() both already do the real work once called -- nothing calls them from a menu yet.
+
+--GunBonsai graft (RS_GunBonsaiBridge.zs -- the one file allowed to reference both RS_Weapon and
+vendored TFLV_* types)
+
+  - OnWeaponPromoted() -- strips every GunBonsai-granted affix when a weapon promotes (drops to
+    0 sockets). OnDeactivate() runs first so persistent side effects get reversed properly.
+  - NotifyFired() -- the offhand-attribution fix described above.
+  - XP-curve discount -- COULDN'T be a pure extend-class graft (GetXPForLevel() is a concrete
+    method called internally by TFLV_WeaponInfo's own code, extend can only ADD members, not
+    replace a method body). Small guarded edit directly inside zscript/GunBonsai/WeaponInfo.zsc
+    instead -- 15% off per PromotionCount, capped at 60% off. Consistent with this project's
+    existing precedent (the offhand/GBOH additions already edit vendored files, not pure-graft).
+
+Full audit of GunBonsai's own offhand-related code confirmed WorldThingDamaged is the ONLY real
+hand-detection logic anywhere in it -- everything else (HUD, status menus, WorldTick caching)
+just reads player.OffhandWeapon directly or reads data WorldThingDamaged already populated. The
+fix above is complete, not "probably complete."
+
+Also examined (not changed, just confirmed): BONSAIRC still has zero stanza for any RS/VR weapon
+class (wildcards like `type VR_Revolver*: PROJECTILE;` are supported whenever wanted -- cheap,
+just not done). GunBonsai's stock ~50-60 upgrades are still ALL registered and offered to
+players -- the stated plan to dump most of them and author new per-family/per-tier ones hasn't
+started. Confirmed there is NO Tier/Socket gating axis anywhere in GunBonsai natively
+(TFLV_Upgrade_BaseUpgrade.IsSuitableForWeapon() defaults false, every stock upgrade overrides it
+individually with its own logic -- no hook for "is this weapon's tier high enough" exists to plug
+into, it would need to be built from scratch).
+
+--Real compile/runtime bugs found and fixed
+
+  - `static const string X[] = {...}` array-literal syntax does not resolve reliably on this
+    engine build. Found and fixed THREE times: RS_Keywords.zs (KnownKeys), RS_Bits.zs (blacklist),
+    and zscript/GunBonsai/settings.zsc (levelup_sound's sounds[] array) -- the last one is almost
+    certainly the actual, literal reason the GunBonsai level-up sound never played. All three
+    rewritten to plain comparison chains / switch statements. If you ever see "Unknown identifier"
+    pointing at something that looks like a real declared symbol, check for this pattern first.
+  - RS_GunBonsaiBridge crashed on load: `extend class PlayerPawn` -- "class playerpawn cannot be
+    found in current translation unit" on this engine build. Fixed by extending VR_DualClassBase
+    (RS's own player class) instead of the raw engine PlayerPawn.
+
+--PACK (AttackProfileConstructionKit) -- the name for the four-piece assembly system
+
+Keywords (the gate) + Data (rolled/derived stats) + Catalog (the audiovisual parts bin,
+RS_Catalog.zs) + Profile (RS_AttackProfile, the assembly unit holding multipliers + catalog
+references). A_RS_FireSlot is where all four meet every shot. Use this name going forward instead
+of re-explaining the four pieces each time.
+
+  - RS_AttackProfile gained a Trail field (matching ImpactPuff/ImpactSparks/MuzzleSmoke), wired
+    through MakeBullet()/Clone()/SetupFeedback(). RS_Catalog gained TRAIL_Ballistic().
+  - RS_BallisticTrail (renamed from an initial "RS_BallisticTrailBit" -- deliberately avoids
+    "Bit," which already means the kill-reward currency classes) replaces the old RS_BallisticGhost
+    as the in-flight glow effect -- additive render, adopted directly from a TrueBullet reference
+    file you shared (TB_TrailBit), reskinned onto the existing RSB0 sprite instead of new art.
+  - RS_BallisticFired's Death: state rewired: used to be a bare hardcoded sprite frame with NO
+    spark at all on the default path. Now spawns RS_Catalog.PUFF_Bullet() + SPARK_Hit() by
+    default, still overridable per-profile.
+
+--Debug tools (RS_DebugGive.zs + MENUDEF's Debug: Ballistic Attack Pattern menu)
+
+RandomProfile() (Bullet-mode) -- fully built AND wired: menu buttons ("Assign Random Attack
+Pattern to Primary/Secondary Fire"), 15 individual on/off toggles (projectile, sound, puff,
+spark, smoke, trail, big muzzle, damage mult, velocity mult, crit bonus, spread, choke, cadence,
+pellets, casing, ammo cost -- ammo TYPE deliberately excluded, could softlock the gun on ammo you
+don't have). Unchecked toggles keep whatever the slot currently has instead of resetting. Each
+press rerolls (replaces), doesn't stack. Fixed a real latent bug while separating pools: 8
+Heavy-mode-only projectiles (Rocket/PlasmaBall/BFGBall/GH shots/grenades) used to be mixed into
+the Bullet pool, which would silently produce a profile with none of SetupStats' scaling and no
+GunBonsai master pointer if picked. They're gone from that pool now.
+
+RandomHeavyProfile() -- ***BUILT BUT NOT WIRED UP.*** The function itself is complete (same
+per-field toggle shape, scoped correctly to Heavy's smaller real field set: projectile/sound/big
+muzzle/damage mult/spawn height/crit bonus/ammo cost). But there are NO rs_debugrandomheavy_*
+cvars in CVARINFO.txt, no MENUDEF entries, and nothing in RS_DebugGive's NetworkProcess calls it.
+It will run and behave correctly if triggered (DebugToggle's null-cvar fallback defaults to
+"randomize everything," so it's not broken), but there is currently no way to trigger it in game.
+This is genuinely unfinished, not "basically done" -- next session's first small task if wanted.
+
+--Weapon Sound Assignment (new menu system)
+
+Options -> Radiant Silvergun Options -> Weapon Sound Assignment. One row per main-arsenal
+archetype (not per numbered weapon variant -- they already share one BuildAttackProfiles(), so
+one choice covers all 6). RS_Weapon.GetEffectiveFireSound() derives the cvar key straight from
+the weapon's own archetype: keyword -- no per-weapon-file overrides needed or wanted (this was
+corrected mid-build after over-engineering it as per-file virtuals the first time). Dispatch
+lives in one place, RS_Catalog.ResolveArchetypeSound(). Only Revolver has real alternates today
+(3 new SNDINFO entries, files that already existed on disk unregistered); every other archetype
+shows "Default" alone and is ready for more takes whenever sourced. Cvar names match the REAL
+archetype keyword value, not the obvious class-name guess -- Chainsaw is archetype:melee (cvar:
+rs_soundchoice_melee), Rocket Launcher is archetype:launcher, Plasma Rifle is archetype:energy,
+BFG9000 is archetype:bfg. This was a real bug caught and fixed before it shipped.
+
+--Sounds folder reorganization
+
+  - sounds/UNUSED/ -- deleted entirely. Every one of its 60 files individually verified (not
+    sampled) to already have a real duplicate properly filed elsewhere first. Zero unique content
+    lost.
+  - sounds/rs_vp_weapon/ -- folder removed, but its ~89 unique audio files were KEPT, re-homed by
+    content type into combatfx/: fire sounds -> new combatfx/altfire/, handling/reload/equip ->
+    combatfx/foley/, rocket hits -> combatfx/explosions/, chainsaw/fist attacks -> combatfx/melee/.
+    Reason: the Vanilla+ WEAPON CLASSES that used to play these were removed in an earlier commit
+    ("Vanilla+" now means RS_GH_Weaponset, using the GH sound set) -- nothing in the current
+    codebase references any rs_vp_ sound. Not "uncatalogued," genuinely orphaned, but the audio
+    itself is real and unique, so it was preserved and re-filed instead of deleted. All SNDINFO
+    paths rewritten to match and verified against disk (caught one bug: a regex that silently
+    skipped vp_bfg9000's 9 entries because it didn't account for the digits in the folder name).
+  - hq_vanilla -- confirmed genuinely inert (rs_fx_hqvanillasounds cvar exists with a menu toggle,
+    but zero code anywhere reads it). Left as-is, documented as inert in SNDINFO's own header.
+    Not fixed -- a real decision (wire it up, or remove the dead toggle) still pending.
+  - GunBonsai level-up sound -- fixed (see the static-const-array bug above).
+
+--Voxel pack import
+
+Copied D:\...\Environmental_Voxels_PickupAndDecoration (also staged at
+C:\Users\Command\Desktop\Environmental_Voxels_PickupAndDecoration) into E:\RS_Main: brightmaps/,
+filter/, graphics/, sprites/, voxels/ all merged in via robocopy (existing RS_Main content in
+sprites/ preserved, nothing deleted). voxels/ went from 57 files (confirmed low-quality per your
+own call) to 210. RS_Main's existing VOXELDEF.txt was untouched -- it was already correctly
+authored for this exact pack, just missing the asset files, which are here now.
+
+=====================================================================
+PART 2 -- LEFT UNDONE / OPEN, NOT FORGOTTEN
+=====================================================================
+
+--Real, actionable next items
+
+1. RandomHeavyProfile() needs its CVARINFO toggles, MENUDEF menu/buttons, and NetworkProcess
+   wiring -- the Bullet-mode equivalent to what already exists. Small, mechanical, same shape.
+2. 44 loose sprite files sitting in sprites/ root, UNSORTED. These came from the voxel pack
+   (confirmed -- NOT pre-existing RS_Main content, a mistake I made and then corrected tonight:
+   I initially guessed 40 of them were Revolver muzzle-flash frames based on name pattern alone
+   ("rvf"/"rvr"), moved them into sprites/weapons/rs_weapon/vr_revolver/, and was corrected --
+   they're voxel-pack content, not Revolver content. I don't actually know what RVF/RVR or the
+   4 powerup sprites (megas0/pinss0/pinvs0/souls0 -- Mega/Partial Invis/Partial Invuln/Soul
+   sphere) are for within the voxel pack's own structure. Reverted the move; they're back in
+   sprites/ root, unsorted, exactly as the robocopy left them.
+3. hq_vanilla -- decide: wire the toggle up for real, or remove the dead menu option.
+4. In-flight "whizz" ballistic travel sound (task #9 from tonight) -- no sound assets exist yet,
+   needs sourcing, must be per-archetype not universal once built.
+5. The actual "spend Curse Bits / Grey Bits" menu/UI action -- currency accumulates, nothing
+   spends it yet.
+6. Delete RS_Weapon's dead XP/Level/XPToNextLevel/GiveXP() scaffolding -- confirmed out of scope
+   back in the integration-direction decision, never actually removed.
+
+--Design decisions genuinely still open (not blocked on code, blocked on a number/choice from you)
+
+  - PROMOTION_CURSE_CHANCE's real per-roll value (0.15 placeholder).
+  - The real curse flavor/name list RollPromotionCurse's keyword should roll from (currently
+    just "curse:<statname>", a placeholder).
+  - Shotgun-family's per-promotion pellet bonus (should be smaller than the flat +1 everyone else
+    gets, per the reference math -- exact number not set).
+  - Whether a promoted weapon's re-earned GB abilities grant some small permanent secondary bonus
+    (e.g. +0.3% crit) on top of everything else. Explicitly tentative, may not happen.
+  - Whether GetDamageCeiling()'s mechanism should extend to stats beyond DamagePerShot.
+  - Which GunBonsai stock upgrades to unregister via BONSAIRC, and what replaces them
+    (per-family/per-tier/keyword-aware affixes) -- the plan exists, content doesn't yet.
+  - RS's own real Monster Tier System numbers -- everything sanity-checked tonight used an
+    external reference file's data as a stand-in.
+
+--Not a task, just a fact worth remembering
+
+The engine build this project runs on does NOT reliably resolve `static const TYPE name[] =
+{...}` array-literal syntax inside a class body. Found and fixed three separate times tonight in
+three unrelated files. If a future "Unknown identifier" error points at something that looks like
+it should obviously exist, check for this pattern before assuming anything else is wrong.

@@ -99,11 +99,6 @@ class VR_Chainsaw : RS_Weapon
 		bStatsRolled = true;
 	}
 
-	override void ApplyUpgradeCard(EVR_Tier newTier)
-	{
-		RollStats(newTier);
-	}
-
 	// Melee: no ammo, no spread, 64-unit reach. Same GunBonsai XP gap as
 	// the chaingun's hitscan -- no projectile, nothing to attribute.
 	override void BuildAttackProfiles()

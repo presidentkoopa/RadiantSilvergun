@@ -145,6 +145,13 @@ class RS_Catalog
 
 	static Class<Actor> SMOKE_Wisp() { return "RS_SmokeWisp"; }
 
+	// In-flight trail piece dropped periodically behind a travelling
+	// bullet -- see RS_FX_BallisticFired.zs's RS_BallisticFired.Tick().
+	// Read as the default when an AttackProfile doesn't set its own
+	// Trail override (RS_AttackProfile.Trail), same null-means-default
+	// shape as the puff/spark/smoke entries above.
+	static Class<Actor> TRAIL_Ballistic() { return "RS_BallisticTrail"; }
+
 	// -----------------------------------------------------------------
 	// SOUND ENTRIES
 	// Logical names, resolved through SNDINFO. A weapon references the
@@ -157,6 +164,22 @@ class RS_Catalog
 	// don't duplicate or rename them.
 	static sound SND_Pistol()       { return "9mmshoot"; }
 	static sound SND_Revolver()     { return "revolver"; }
+
+	// Alternate fire-sound takes for the Weapon Sound Assignment options
+	// menu (MENUDEF's RS_WeaponSoundOptions, rs_soundchoice_revolver).
+	// Only the Revolver has real alternates staged today -- everything
+	// else in the arsenal has exactly one cataloged fire sound, so their
+	// menu rows only ever offer "Default" until more takes get sourced.
+	static sound SND_Revolver_Resolve(int choice)
+	{
+		switch (choice)
+		{
+			case 1: return "rs_revolver_alt1";
+			case 2: return "rs_revolver_alt2";
+			case 3: return "rs_revolver_alt3";
+			default: return SND_Revolver();
+		}
+	}
 	static sound SND_Rifle()        { return "m16shoot"; }
 	static sound SND_SMG()          { return "smgfire"; }
 	static sound SND_Shotgun()      { return "shotgf"; }
@@ -194,4 +217,20 @@ class RS_Catalog
 
 	// Grenade launch thump -- underbarrel and any future launcher.
 	static sound SND_GH_GrenadeLaunch() { return "rs_gh/grenade_launch"; }
+
+	// -----------------------------------------------------------------
+	// WEAPON SOUND ASSIGNMENT DISPATCH
+	// Single choke point for RS_Weapon.GetEffectiveFireSound(): given an
+	// archetype (read straight off the weapon's own archetype: keyword,
+	// not its class name) and a menu choice index, return the sound.
+	// Add a new archetype's alternates here, and here only -- never by
+	// touching an individual weapon file. fallback covers every
+	// archetype with no case below (the common case today).
+	// -----------------------------------------------------------------
+	static sound ResolveArchetypeSound(string archetype, int choice, sound fallback)
+	{
+		if (archetype == "revolver")
+			return SND_Revolver_Resolve(choice);
+		return fallback;
+	}
 }

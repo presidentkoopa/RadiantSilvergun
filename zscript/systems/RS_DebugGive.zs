@@ -122,13 +122,30 @@ class RS_DebugGive : EventHandler
 
 	// -------------------------------------------------------------
 	// RS_DebugRandomProfile -- grabs the mainhand weapon (player.
-	// ReadyWeapon), builds one RS_AttackProfile out of a random catalog
-	// projectile + a random catalog fire sound + randomized shot-shape
-	// numbers, and replaces PrimarySlot's entry 0 with it. Doesn't touch
-	// the weapon's rolled stats (Tier/DamagePerShot/etc.) -- only the
-	// attack itself, same as a GunBonsai affix would.
+	// ReadyWeapon), builds one RS_AttackProfile and replaces the given
+	// slot's entry 0 with it (which: 0 = PrimarySlot/main trigger, 1 =
+	// SecondarySlot/alt-fire -- same indexing as RS_Weapon.GetSlot).
+	// Doesn't touch the weapon's rolled stats (Tier/DamagePerShot/etc.)
+	// -- only the attack itself, same as a GunBonsai affix would. Each
+	// press REPLACES the slot's entry (reroll), not stacks.
+	//
+	// Which PIECES actually get re-rolled is gated per-category by the
+	// rs_debugrandom_* cvars (RS_DebugBallisticMenu) -- unchecked means
+	// "keep whatever this slot already has," read off the current
+	// profile before it gets replaced, not "reset to nothing." A field
+	// with no existing profile to read from (first-ever press) falls
+	// back to a sane default rather than null. PelletOverride/spread ARE
+	// allowed to randomize here even though a real affix should respect
+	// archetype-locked pellet counts -- this is a debug sandbox,
+	// deliberately wilder, and that's opt-in via its own toggle.
 	// -------------------------------------------------------------
-	static void RandomProfile(PlayerInfo plr)
+	static bool DebugToggle(string name, bool def = true)
+	{
+		CVar cv = CVar.FindCVar(name);
+		return cv ? cv.GetBool() : def;
+	}
+
+	static void RandomProfile(PlayerInfo plr, int which = 0)
 	{
 		if (!plr.mo || !plr.ReadyWeapon)
 			return;
@@ -138,20 +155,24 @@ class RS_DebugGive : EventHandler
 			Console.Printf("RS Debug: current weapon isn't an RS_Weapon.");
 			return;
 		}
+		wpn.EnsureAttackProfiles();
 
+		// What's already sitting in this slot -- the "keep it" source for
+		// any category whose toggle is off.
+		let cur = wpn.GetSlot(which) ? wpn.GetSlot(which).PeekAt(0) : null;
+
+		// Only real RS_BallisticFired-derived projectiles -- the Heavy-mode
+		// ones (Rocket/PlasmaBall/BFGBall/GH shots/grenades) used to be
+		// mixed in here, which silently produced a broken profile: cast to
+		// RS_BallisticFired failed in RS_FireProfileBullet, so the pick
+		// would spawn with none of SetupStats' damage/velocity/crit scaling
+		// and no GunBonsai master pointer. They now live in their own pool
+		// -- see RandomHeavyProfile.
 		Array<Class<Actor> > projPool;
 		projPool.Push(RS_Catalog.PROJ_Ballistic());
-		projPool.Push(RS_Catalog.PROJ_Rocket());
-		projPool.Push(RS_Catalog.PROJ_PlasmaBall());
-		projPool.Push(RS_Catalog.PROJ_BFGBall());
-		projPool.Push(RS_Catalog.PROJ_GH_BFGShot());
-		projPool.Push(RS_Catalog.PROJ_GH_PlasmaShot());
-		projPool.Push(RS_Catalog.PROJ_GH_UnmakerShot());
 		projPool.Push(RS_Catalog.PROJ_RailBolt());
 		projPool.Push(RS_Catalog.PROJ_RailBoltStraight());
 		projPool.Push(RS_Catalog.PROJ_GH_FlameJet());
-		projPool.Push(RS_Catalog.PROJ_GrenadeLaunched());
-		projPool.Push(RS_Catalog.PROJ_GrenadeThrown());
 
 		Array<sound> sndPool;
 		sndPool.Push(RS_Catalog.SND_Pistol());
@@ -188,32 +209,183 @@ class RS_DebugGive : EventHandler
 		sparkPool.Push(RS_Catalog.SPARK_Ricochet());
 		sparkPool.Push(RS_Catalog.SPARK_Rail());
 
-		Class<Actor> proj = projPool[Random(0, projPool.Size() - 1)];
-		sound fireSnd = sndPool[Random(0, sndPool.Size() - 1)];
-		Class<Actor> puff = puffPool[Random(0, puffPool.Size() - 1)];
-		Class<Actor> spark = sparkPool[Random(0, sparkPool.Size() - 1)];
-		Class<Actor> smoke = (Random(0, 1) == 1) ? RS_Catalog.SMOKE_Wisp() : null;
+		Array<Class<Actor> > trailPool;
+		trailPool.Push(RS_Catalog.TRAIL_Ballistic());
+
+		Array<string> casingPool;
+		casingPool.Push(RS_Catalog.CASING_Small());
+		casingPool.Push(RS_Catalog.CASING_Rifle());
+		casingPool.Push(RS_Catalog.CASING_Shell());
+		casingPool.Push(""); // no casing ejected
+
+		Class<Actor> proj = DebugToggle("rs_debugrandom_projectile")
+			? projPool[Random(0, projPool.Size() - 1)]
+			: (cur ? cur.ProjectileClass : RS_Catalog.PROJ_Ballistic());
+		sound fireSnd = DebugToggle("rs_debugrandom_sound")
+			? sndPool[Random(0, sndPool.Size() - 1)]
+			: (cur ? cur.FireSound : RS_Catalog.SND_Pistol());
+		Class<Actor> puff = DebugToggle("rs_debugrandom_puff")
+			? puffPool[Random(0, puffPool.Size() - 1)]
+			: (cur ? cur.ImpactPuff : null);
+		Class<Actor> spark = DebugToggle("rs_debugrandom_spark")
+			? sparkPool[Random(0, sparkPool.Size() - 1)]
+			: (cur ? cur.ImpactSparks : null);
+		Class<Actor> smoke = DebugToggle("rs_debugrandom_smoke")
+			? ((Random(0, 1) == 1) ? RS_Catalog.SMOKE_Wisp() : null)
+			: (cur ? cur.MuzzleSmoke : null);
+		Class<Actor> trail = DebugToggle("rs_debugrandom_trail")
+			? trailPool[Random(0, trailPool.Size() - 1)]
+			: (cur ? cur.Trail : null);
+		bool bigMuzzle = DebugToggle("rs_debugrandom_bigmuzzle")
+			? (Random(0, 1) == 1)
+			: (cur ? cur.BigMuzzle : false);
+		double dmgMult = DebugToggle("rs_debugrandom_dmgmult")
+			? FRandom(0.5, 2.0)
+			: (cur ? cur.DamageMult : 1.0);
+		double spreadScale = DebugToggle("rs_debugrandom_spread")
+			? FRandom(0.02, 0.15)
+			: (cur ? cur.SpreadScale : 0.05);
+		bool usesChoke = DebugToggle("rs_debugrandom_choke")
+			? (Random(0, 1) == 1)
+			: (cur ? cur.UsesChoke : false);
+		bool usesCadence = DebugToggle("rs_debugrandom_cadence")
+			? (Random(0, 1) == 1)
+			: (cur ? cur.UsesCadence : true);
+		string casing = DebugToggle("rs_debugrandom_casing")
+			? casingPool[Random(0, casingPool.Size() - 1)]
+			: (cur ? cur.CasingClass : "");
+		int ammoCost = DebugToggle("rs_debugrandom_ammocost")
+			? Random(0, 2)
+			: (cur ? cur.AmmoCost : 1);
 
 		let p = RS_AttackProfile.MakeBullet(
 			fireSnd: fireSnd,
-			spreadScale: FRandom(0.02, 0.15),
-			usesCadence: true,
-			ammoCost: 1,
-			bigMuzzle: (Random(0, 1) == 1),
-			dmgMult: FRandom(0.5, 2.0),
+			spreadScale: spreadScale,
+			usesCadence: usesCadence,
+			ammoCost: ammoCost,
+			casing: casing,
+			bigMuzzle: bigMuzzle,
+			usesChoke: usesChoke,
+			dmgMult: dmgMult,
 			proj: proj,
 			profName: "Debug Random",
 			impactPuff: puff,
 			impactSparks: spark,
-			muzzleSmoke: smoke);
-		if (Random(0, 2) == 0)
-			p.PelletOverride = Random(2, 6);
+			muzzleSmoke: smoke,
+			trail: trail);
 
+		// Not exposed as MakeBullet() params -- set directly, same
+		// pattern as PelletOverride below.
+		p.VelocityMult = DebugToggle("rs_debugrandom_velmult")
+			? FRandom(0.5, 2.0)
+			: (cur ? cur.VelocityMult : 1.0);
+		p.CritBonus = DebugToggle("rs_debugrandom_critbonus")
+			? FRandom(0.0, 0.2)
+			: (cur ? cur.CritBonus : 0.0);
+
+		if (DebugToggle("rs_debugrandom_pellets"))
+		{
+			if (Random(0, 2) == 0)
+				p.PelletOverride = Random(2, 6);
+		}
+		else if (cur)
+		{
+			p.PelletOverride = cur.PelletOverride;
+		}
+
+		wpn.ReplaceProfile(which, 0, p);
+		string smokeName = smoke ? smoke.GetClassName().."" : "default";
+		string trailName = trail ? trail.GetClassName().."" : "default";
+		string puffName = puff ? puff.GetClassName().."" : "default";
+		string sparkName = spark ? spark.GetClassName().."" : "default";
+		Console.Printf("RS Debug: %s slot %d is now [%s / %s / puff:%s / spark:%s / smoke:%s / trail:%s].",
+			wpn.GetTag(), which, proj.GetClassName(), fireSnd, puffName,
+			sparkName, smokeName, trailName);
+	}
+
+	// -------------------------------------------------------------
+	// RandomHeavyProfile -- the Heavy-mode (Rocket/Plasma/BFG-shaped)
+	// equivalent of RandomProfile above. Deliberately a SMALLER field
+	// set: Heavy profiles have no puff/spark/trail/pellets/spread/
+	// choke/casing -- "impact IS the explosion," already fully
+	// catalogued per projectile class (see RS_Weapon.zs's own
+	// RS_FireProfileHeavy comment). Same reroll-not-stack,
+	// keep-if-unchecked shape as the Bullet version, own toggle cvars
+	// (RS_DebugHeavyMenu).
+	// -------------------------------------------------------------
+	static void RandomHeavyProfile(PlayerInfo plr, int which = 0)
+	{
+		if (!plr.mo || !plr.ReadyWeapon)
+			return;
+		let wpn = RS_Weapon(plr.ReadyWeapon);
+		if (!wpn)
+		{
+			Console.Printf("RS Debug: current weapon isn't an RS_Weapon.");
+			return;
+		}
 		wpn.EnsureAttackProfiles();
-		wpn.ReplaceProfile(0, 0, p);
-		Console.Printf("RS Debug: %s primary is now [%s / %s / puff:%s / spark:%s / smoke:%s].",
-			wpn.GetTag(), proj.GetClassName(), fireSnd, puff.GetClassName(), spark.GetClassName(),
-			smoke ? smoke.GetClassName() : "default");
+
+		let cur = wpn.GetSlot(which) ? wpn.GetSlot(which).PeekAt(0) : null;
+
+		Array<Class<Actor> > projPool;
+		projPool.Push(RS_Catalog.PROJ_Rocket());
+		projPool.Push(RS_Catalog.PROJ_PlasmaBall());
+		projPool.Push(RS_Catalog.PROJ_BFGBall());
+		projPool.Push(RS_Catalog.PROJ_GH_BFGShot());
+		projPool.Push(RS_Catalog.PROJ_GH_PlasmaShot());
+		projPool.Push(RS_Catalog.PROJ_GH_UnmakerShot());
+		projPool.Push(RS_Catalog.PROJ_GrenadeLaunched());
+		projPool.Push(RS_Catalog.PROJ_GrenadeThrown());
+
+		Array<sound> sndPool;
+		sndPool.Push(RS_Catalog.SND_RocketLauncher());
+		sndPool.Push(RS_Catalog.SND_PlasmaRifle());
+		sndPool.Push(RS_Catalog.SND_BFG9000());
+		sndPool.Push(RS_Catalog.SND_GH_RocketLauncher());
+		sndPool.Push(RS_Catalog.SND_GH_Plasma());
+		sndPool.Push(RS_Catalog.SND_GH_BFG9000());
+		sndPool.Push(RS_Catalog.SND_GH_BFG10k());
+		sndPool.Push(RS_Catalog.SND_GH_Unmaker());
+		sndPool.Push(RS_Catalog.SND_GH_GrenadeLauncher());
+		sndPool.Push(RS_Catalog.SND_GH_HandGrenade());
+
+		Class<Actor> proj = DebugToggle("rs_debugrandomheavy_projectile")
+			? projPool[Random(0, projPool.Size() - 1)]
+			: (cur ? cur.ProjectileClass : RS_Catalog.PROJ_Rocket());
+		sound fireSnd = DebugToggle("rs_debugrandomheavy_sound")
+			? sndPool[Random(0, sndPool.Size() - 1)]
+			: (cur ? cur.FireSound : RS_Catalog.SND_RocketLauncher());
+		bool bigMuzzle = DebugToggle("rs_debugrandomheavy_bigmuzzle")
+			? (Random(0, 1) == 1)
+			: (cur ? cur.BigMuzzle : true);
+		double dmgMult = DebugToggle("rs_debugrandomheavy_dmgmult")
+			? FRandom(0.5, 2.0)
+			: (cur ? cur.DamageMult : 1.0);
+		double spawnHeight = DebugToggle("rs_debugrandomheavy_spawnheight")
+			? FRandom(0.0, 24.0)
+			: (cur ? cur.SpawnHeight : 0.0);
+		int ammoCost = DebugToggle("rs_debugrandomheavy_ammocost")
+			? Random(0, 2)
+			: (cur ? cur.AmmoCost : 1);
+		// AmmoClass deliberately not randomized -- same softlock risk as
+		// the Bullet version. Always inherits the weapon's own AmmoType2.
+
+		let p = RS_AttackProfile.MakeHeavy(
+			proj: proj,
+			fireSnd: fireSnd,
+			ammoCost: ammoCost,
+			bigMuzzle: bigMuzzle,
+			spawnHeight: spawnHeight,
+			dmgMult: dmgMult,
+			profName: "Debug Random Heavy");
+
+		p.CritBonus = DebugToggle("rs_debugrandomheavy_critbonus")
+			? FRandom(0.0, 0.2)
+			: (cur ? cur.CritBonus : 0.0);
+
+		wpn.ReplaceProfile(which, 0, p);
+		Console.Printf("RS Debug: %s slot %d (heavy) is now [%s / %s].",
+			wpn.GetTag(), which, proj.GetClassName(), fireSnd);
 	}
 
 	override void NetworkProcess(ConsoleEvent e)
@@ -222,7 +394,8 @@ class RS_DebugGive : EventHandler
 		if (!plr || !plr.mo)
 			return;
 
-		if (e.Name ~== "rs_debug_random_profile") RandomProfile(plr);
+		if (e.Name ~== "rs_debug_random_profile") RandomProfile(plr, 0);
+		else if (e.Name ~== "rs_debug_random_profile_secondary") RandomProfile(plr, 1);
 		else if (e.Name ~== "rs_debug_give_pistol") Family(plr, "VR_Pistol");
 		else if (e.Name ~== "rs_debug_give_revolver") Family(plr, "VR_Revolver");
 		else if (e.Name ~== "rs_debug_give_rifle") Family(plr, "VR_Rifle");

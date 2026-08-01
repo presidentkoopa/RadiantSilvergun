@@ -162,6 +162,18 @@ class TFLV_WeaponInfo : Object play {
     if (IsWimpy()) {
       mul = min(mul, bonsai_level_cost_mul_for_wimpy);
     }
+    // RS GRAFT: a Promoted weapon (RS_Weapon.PromotionCount > 0) relevels
+    // faster -- discounted per promotion, capped so it never hits zero.
+    // Placeholder curve (15%/promotion, capped at 60% off); see
+    // docs/rs_01_promotion_system.txt. This has to live here rather than
+    // in RS_GunBonsaiBridge.zs: `extend class` can only add new members,
+    // it can't replace this method's body, and this is a concrete
+    // (non-virtual) method called internally by Rebind()/
+    // CountPendingLevels() above.
+    let rswpn = RS_Weapon(wpn);
+    if (rswpn && rswpn.PromotionCount > 0) {
+      mul = min(mul, 1.0 - min(0.6, rswpn.PromotionCount * 0.15));
+    }
 //    DEBUG("GetXPForLevel: level %d -> XP %.1f", level, XP);
     return XP * mul;
   }

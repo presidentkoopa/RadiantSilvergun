@@ -123,13 +123,6 @@ class VR_Shotgun : RS_Weapon
 		bStatsRolled = true;
 	}
 
-	override void ApplyUpgradeCard(EVR_Tier newTier)
-	{
-		bool isSacrificeDowngrade = (Tier == VRT_Prototype && newTier == VRT_Basic);
-		RollStats(newTier);
-		if (isSacrificeDowngrade)
-			PelletCount += 1;
-	}
 
 	// Shotgun family: wider spread scale (0.1) and Choke tightens the cone.
 	override void BuildAttackProfiles()

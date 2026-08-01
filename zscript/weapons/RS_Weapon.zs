@@ -35,9 +35,13 @@ class RS_Weapon : Weapon abstract
 	double Condition;        // rolled, 1-100%, degrades/repairs via RS_Roll
 	double Choke;            // pellet cone/spread control, dormant until PelletCount > 1
 
-	int XP;
-	int Level;
-	int XPToNextLevel;
+	// How many times this weapon has been sacrificed from Prototype back to
+	// Basic via Promote() below. Never resets, never decreases. Vanity as
+	// storage, but read by two real systems: RS's own stat level-up
+	// magnitude (a promoted weapon's picks are worth more), and eventually
+	// GunBonsai's affix rank selection once a promoted weapon climbs back
+	// to a socket-bearing tier. See docs/rs_01_promotion_system.txt.
+	int PromotionCount;
 
 	bool LockedDamage, LockedAccuracy, LockedVelocity, LockedCritChance, LockedCapacity;
 
@@ -199,110 +203,6 @@ class RS_Weapon : Weapon abstract
 		}
 	}
 
-	// Shared by every bullet-firing weapon type instead of vanilla
-	// A_FireBullets, so all of them get real traveling rounds through one
-	// place rather than each weapon file managing its own projectile
-	// spawn. ProjectileClass is read fresh every shot, so swapping it at
-	// runtime changes what flies out immediately, no re-equip needed.
-	//
-	// aimflags passes ALF_ISOFFHAND (this engine's dual-wield fork,
-	// DXR2 -- see QuestZDoom's Dual-Wield API changes) whenever the
-	// firing weapon is an offhand identity, so the engine spawns the
-	// shot from the tracked offhand controller's real position/angle
-	// instead of always defaulting to the mainhand transform. Universal
-	// fix, one call site -- every weapon in both sets already routes
-	// through this function, so nothing per-weapon needs to change.
-	action void A_RS_FireBallisticVolley(int pellets, double spread, int dmg, double critChance, double velocity)
-	{
-		Class<RS_BallisticFired> cls = invoker.ProjectileClass;
-		if (!cls)
-			cls = "RS_BallisticType1";
-
-		int aimflags = invoker.bOffhandWeapon ? ALF_ISOFFHAND : 0;
-
-		for (int p = 0; p < pellets; p++)
-		{
-			double a = angle + FRandom(-spread, spread);
-			double pi = pitch + FRandom(-spread, spread);
-			let proj = RS_BallisticFired(SpawnPlayerMissile(cls, a, pitch: pi, aimflags: aimflags));
-			if (proj)
-			{
-				proj.SetupStats(dmg, velocity, critChance);
-				// master is otherwise unused on these projectiles; GunBonsai's
-				// offhand tracking reads it to attribute XP to the hand that
-				// actually fired, since target is always the player, not the gun.
-				proj.master = invoker;
-			}
-		}
-	}
-
-	// The heavy-ordnance counterpart to A_RS_FireBallisticVolley. Every
-	// heavy weapon in both sets routes through this instead of naming its
-	// projectile in a literal string, which is what makes the projectile
-	// data rather than code -- and is why the rolled DamagePerShot now
-	// reaches the projectile at all. Before this existed, all six heavy
-	// weapons fired a stock vanilla class carrying its own fixed damage,
-	// so tier, Condition, XP and purist mode had no effect on them.
-	//
-	// spawnHeight is a real per-weapon value (the muzzle offset each
-	// weapon's own model needs), passed through rather than flattened to
-	// one number.
-	//
-	// Fires via SpawnPlayerMissile rather than A_FireProjectile -- this
-	// engine's dual-wield fork (DXR2 -- see QuestZDoom's Dual-Wield API
-	// changes) never extended A_FireProjectile with an offhand flag, only
-	// SpawnPlayerMissile/SpawnSubMissile/LineAttack/RailAttack/
-	// AimLineAttack. SpawnPlayerMissile is what A_FireProjectile forwards
-	// to internally, so angle/pitch/z-offset semantics carry over
-	// directly: passing the actor's own angle/pitch (no offset) plus
-	// noautoaim reproduces the old FPF_NOAUTOAIM, straight-ahead-only
-	// behavior, while aimflags now lets an offhand-identity weapon spawn
-	// from its real tracked controller transform instead of always
-	// defaulting to mainhand's. Same universal, one-call-site fix as
-	// A_RS_FireBallisticVolley above.
-	//
-	// Ammo is deliberately NOT touched here: the two sets meter it
-	// differently (main arsenal draws AmmoType1 directly, Vanilla+ runs a
-	// magazine through AmmoType2), so it stays each weapon's business,
-	// exactly as it was before.
-	action void A_RS_FireHeavyProjectile(double spawnHeight = 0)
-	{
-		Class<Actor> cls = invoker.HeavyProjectileClass;
-		if (!cls)
-			return;
-
-		double dmgMult, pelletMult, backfireChance;
-		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
-
-		double dmg = invoker.DamagePerShot * dmgMult;
-		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-
-		int aimflags = invoker.bOffhandWeapon ? ALF_ISOFFHAND : 0;
-		let proj = SpawnPlayerMissile(cls, angle, 0, 0, spawnHeight, noautoaim: true, aimflags: aimflags, pitch: pitch);
-		if (!proj)
-			return;
-		proj.master = invoker; // see A_RS_FireBallisticVolley for why
-
-		// Rocket/PlasmaBall/BFGBall inherit three different vanilla bases,
-		// so there's no shared ancestor to cast to and SetupStats has to be
-		// reached per type. If a fourth heavy projectile type is ever added,
-		// it needs a branch here -- the honest cost of not reimplementing
-		// vanilla explosion behavior just to get a common parent.
-		if (proj is "RS_EnhancedRocket")
-			RS_EnhancedRocket(proj).SetupStats(int(dmg), invoker.CritChance);
-		else if (proj is "RS_EnhancedPlasmaBall")
-			RS_EnhancedPlasmaBall(proj).SetupStats(int(dmg), invoker.CritChance);
-		else if (proj is "RS_EnhancedBFGBall")
-			RS_EnhancedBFGBall(proj).SetupStats(int(dmg), invoker.CritChance);
-		else if (proj is "RS_GH_BFGShot")
-			RS_GH_BFGShot(proj).SetupStats(int(dmg), invoker.CritChance);
-		else if (proj is "RS_GH_PlasmaShot")
-			RS_GH_PlasmaShot(proj).SetupStats(int(dmg), invoker.CritChance);
-		else if (proj is "RS_GH_UnmakerShot")
-			RS_GH_UnmakerShot(proj).SetupStats(int(dmg), invoker.CritChance);
-	}
-
 	// Called from each weapon's Flash: state. Only ever does anything at
 	// Hi-Fi tier -- RS_HiFiFX itself decides that, this call site never
 	// needs to know or check the tier.
@@ -319,12 +219,11 @@ class RS_Weapon : Weapon abstract
 	//   Each slot is an ordered LIST of RS_AttackProfile plus a cursor.
 	//   Firing a slot fires the profile at the cursor, then advances.
 	//
-	// This is ADDITIVE and OPT-IN. A weapon that never calls
-	// BuildAttackProfiles() has empty slots, A_RS_FireSlot does nothing,
-	// and its existing Fire: states keep calling
-	// A_RS_FireBallisticVolley / A_RS_FireHeavyProjectile exactly as
-	// they do today. Nothing in the current arsenal changes until a
-	// weapon deliberately opts in.
+	// Every weapon in both the main arsenal and the GH set now authors
+	// BuildAttackProfiles() and fires exclusively through A_RS_FireSlot;
+	// the old per-weapon direct-fire path this migration replaced is
+	// gone. A weapon that somehow ships without BuildAttackProfiles()
+	// just has empty slots and A_RS_FireSlot does nothing.
 	// =================================================================
 
 	RS_AttackSlot PrimarySlot;
@@ -441,6 +340,13 @@ class RS_Weapon : Weapon abstract
 		if (pool && p.AmmoCost > 0)
 			TakeInventory(pool, p.AmmoCost);
 
+		// Declare who's firing, right here, before any mode-specific path
+		// runs -- this is the one place that already knows for certain,
+		// for every Mode (bullet/heavy/hitscan/melee) uniformly. See
+		// RS_GunBonsaiBridge.zs for why this replaces trying to infer the
+		// firing hand after the fact from a projectile's master pointer.
+		RS_GunBonsaiBridge.NotifyFired(self, invoker);
+
 		double dmg = invoker.DamagePerShot * dmgMult * p.DamageMult;
 		if (FRandom(0, 1) < (invoker.CritChance + p.CritBonus))
 			dmg *= 2.0;
@@ -478,7 +384,7 @@ class RS_Weapon : Weapon abstract
 		}
 
 		if (p.FireSound)
-			A_PlaySound(p.FireSound, CHAN_WEAPON);
+			A_PlaySound(invoker.GetEffectiveFireSound(p.FireSound), CHAN_WEAPON);
 		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle, p.MuzzleSmoke);
 		if (p.CasingClass != "")
 			RS_HiFiFX.CasingEject(self, p.CasingClass);
@@ -520,7 +426,7 @@ class RS_Weapon : Weapon abstract
 			if (proj)
 			{
 				proj.SetupStats(int(dmg), vel, crit);
-				proj.SetupFeedback(p.ImpactPuff, p.ImpactSparks);
+				proj.SetupFeedback(p.ImpactPuff, p.ImpactSparks, p.Trail);
 				// THE SACRED POINTER -- GunBonsai reads master to attribute
 				// XP to the hand that actually fired. Never break it.
 				proj.master = self;
@@ -528,10 +434,10 @@ class RS_Weapon : Weapon abstract
 		}
 	}
 
-	// One heavy round. Mirrors A_RS_FireHeavyProjectile's per-type
-	// SetupStats branching, for the same reason: Rocket/PlasmaBall/
-	// BFGBall inherit three unrelated vanilla bases and share no ancestor
-	// to cast to.
+	// One heavy round. Same per-type SetupStats branching as the bullet
+	// path's projectile-class switch below, for the same reason:
+	// Rocket/PlasmaBall/BFGBall inherit three unrelated vanilla bases
+	// and share no ancestor to cast to.
 	void RS_FireProfileHeavy(Actor shooter, RS_AttackProfile p, double dmg)
 	{
 		Class<Actor> cls = p.ProjectileClass;
@@ -580,6 +486,32 @@ class RS_Weapon : Weapon abstract
 		return EVR_Family_None;
 	}
 
+	// -----------------------------------------------------------------
+	// Weapon Sound Assignment (MENUDEF's RS_WeaponSoundOptions). No
+	// per-weapon overrides needed or wanted -- the cvar key is read
+	// straight off the weapon's own archetype: keyword (every weapon
+	// already declares one in GetBaseKeywords()), and the actual
+	// choice -> sound mapping lives entirely in RS_Catalog
+	// (ResolveArchetypeSound), not scattered across weapon files. Adding
+	// a new archetype's alternates later means editing RS_Catalog.zs
+	// once, never touching an individual weapon file. Checked fresh
+	// every shot (called from A_RS_FireSlot) rather than baked in at
+	// BuildAttackProfiles() time, so changing the menu selection
+	// mid-game takes effect on the very next shot, not after a re-equip.
+	// -----------------------------------------------------------------
+	sound GetEffectiveFireSound(sound defaultSound)
+	{
+		string archetype = GetKeywordValue("archetype");
+		if (archetype == "")
+			return defaultSound;
+
+		CVar cv = CVar.FindCVar("rs_soundchoice_" .. archetype);
+		if (!cv || cv.GetInt() <= 0)
+			return defaultSound;
+
+		return RS_Catalog.ResolveArchetypeSound(archetype, cv.GetInt(), defaultSound);
+	}
+
 	// Each weapon type overrides this to call its own RS_Roll function
 	// (e.g. RS_Roll.RollRevolverStats) and set its type-specific stats.
 	virtual void RollStats(EVR_Tier t)
@@ -587,18 +519,174 @@ class RS_Weapon : Weapon abstract
 		Tier = t;
 	}
 
+	// Lifting a curse (Cursed-tier's original lock, or a Promotion-rolled
+	// one from RollPromotionCurse below -- same Locked* flags, same unlock
+	// path either way) doesn't just free the stat, it rewards clearing it:
+	// a 1.5x boost on top of whatever the stat was sitting at while locked.
+	// Guarded on the flag actually being set so calling this twice (or on
+	// a stat that was never locked) can't double-dip the boost.
 	void UnlockStat(String statName)
 	{
-		if (statName == "damage")     LockedDamage     = false;
-		else if (statName == "accuracy")   LockedAccuracy   = false;
-		else if (statName == "velocity")   LockedVelocity   = false;
-		else if (statName == "critchance") LockedCritChance = false;
-		else if (statName == "capacity")   LockedCapacity   = false;
+		if (statName == "damage" && LockedDamage)
+		{
+			LockedDamage = false;
+			DamagePerShot = max(1, int(DamagePerShot * 1.5));
+		}
+		else if (statName == "accuracy" && LockedAccuracy)
+		{
+			LockedAccuracy = false;
+			Accuracy *= 1.5;
+		}
+		else if (statName == "velocity" && LockedVelocity)
+		{
+			LockedVelocity = false;
+			Velocity *= 1.5;
+		}
+		else if (statName == "critchance" && LockedCritChance)
+		{
+			LockedCritChance = false;
+			CritChance *= 1.5;
+		}
+		else if (statName == "capacity" && LockedCapacity)
+		{
+			LockedCapacity = false;
+			Capacity = max(1, int(Capacity * 1.5));
+		}
+	}
+
+	// The DamagePerShot ceiling a stat level-up may not exceed until the
+	// next Promotion. Placeholder curve -- 1.8x headroom off whatever
+	// DamagePerShot was set to at the moment of the last Promote() (or off
+	// the initial roll, pre-promotion). This is the exact multiplier that
+	// fell out of the worked Cyberdemon-math sanity check in
+	// docs/rs_01_promotion_system.txt (cycle 0 42->cycle-1-peak ~58 is a
+	// 1.38x *increase from the cut point*, i.e. cut-point 34 * 1.8 ~= 61 --
+	// close enough to use as the starting number), not independently
+	// re-derived. Nothing calls this yet -- RS doesn't own the level-up
+	// picker UI (that's GunBonsai's, see docs/rs_01), so this is the data
+	// half of the mechanism, ready for that hook to read once it exists.
+	int GetDamageCeiling()
+	{
+		return max(1, int(PromotionDamageBaseline * 1.8));
 	}
 
 	virtual void ApplyUpgradeCard(EVR_Tier newTier)
 	{
-		RollStats(newTier);
+		if (Tier == VRT_Prototype && newTier == VRT_Basic)
+			Promote();
+		else
+			RollStats(newTier);
+	}
+
+	// The value DamagePerShot was cut to at the moment of the most recent
+	// Promote() (or the initial roll, if never promoted) -- the anchor
+	// GetDamageCeiling() scales off of. Not the live DamagePerShot value,
+	// which keeps climbing from here via normal level-ups.
+	int PromotionDamageBaseline;
+
+	// The Prototype -> Basic sacrifice. See docs/rs_01_promotion_system.txt
+	// for the full worked-out design; this is the locked mechanical core:
+	//   - Tier drops to Basic, sockets go to 0 with it (RS_Roll.SocketsForTier
+	//     is the single source of truth for that -- read it fresh rather
+	//     than hardcoding 0, so a future tier table change can't drift).
+	//   - Every rolled stat takes a proportional 20% cut from its CURRENT
+	//     value -- 20% OF the current number, not a fresh Basic-range
+	//     re-roll and not a flat 20-point subtraction. An 88 Accuracy
+	//     becomes 88*0.8 = 70.4, not 66 and not 68. Applies regardless of
+	//     Locked state -- Locked only blocks upward level-up gains, it
+	//     doesn't exempt a stat from this cut.
+	//   - PelletCount +1, permanent. (Flat +1 for every weapon type today;
+	//     docs/rs_01 flags that shotgun-family probably wants a different
+	//     number here, not yet decided.)
+	//   - PromotionCount +1, permanent, never resets.
+	//   - A chance to additionally curse one rolled stat -- see
+	//     RollPromotionCurse below.
+	// Deliberately does NOT touch GunBonsai Level/XP -- that axis is
+	// GunBonsai's, not RS's, and keeps climbing regardless of Tier.
+	// Deliberately does NOT strip GunBonsai-granted affixes here -- that
+	// has to happen on GunBonsai's side (its upgrade bag, not anything
+	// stored on RS_Weapon), via the extend-class hook described in
+	// docs/rs_01_promotion_system.txt. Until that hook exists, an affix
+	// picked before promoting will keep functioning even though the
+	// weapon is nominally back at 0 sockets -- known gap, not silent.
+	void Promote()
+	{
+		DamagePerShot = max(1, int(DamagePerShot * 0.8));
+		Accuracy      *= 0.8;
+		Velocity      *= 0.8;
+		CritChance    *= 0.8;
+		Capacity      = max(1, int(Capacity * 0.8));
+
+		Tier = VRT_Basic;
+		GunBonaiSockets = RS_Roll.SocketsForTier(VRT_Basic);
+		PelletCount += 1;
+		PromotionCount += 1;
+		PromotionDamageBaseline = DamagePerShot;
+
+		RollPromotionCurse();
+		RS_GunBonsaiBridge.OnWeaponPromoted(self);
+	}
+
+	const PROMOTION_CURSE_CHANCE = 0.15;
+
+	// Escalates with PromotionCount instead of one flat roll forever: your
+	// 1st promotion gets 1 independent curse chance, 2nd gets 2 rolls, 3rd
+	// gets 3, etc. -- PromotionCount is already incremented by the time
+	// this runs, so it reads directly as "how many rolls this time."
+	// Each roll can land on any of the five stats (no dedupe against a
+	// stat already hit this call -- keep it simple).
+	//
+	// A hit: locks the stat (the same Locked* flags Cursed-tier weapons
+	// use at creation -- UnlockStat already knows how to lift either kind)
+	// at 50% of whatever it was just cut to, and tags the weapon with a
+	// curse: keyword. WHICH stat gets hit is picked here; the curse's
+	// actual flavor/name is a placeholder ("curse:<statname>") until a
+	// real curse list exists to roll the keyword's value from instead --
+	// "we will roll from a list later," per design discussion.
+	// STUBBED OFF -- disabled for now, mechanism kept intact for later.
+	// Same shape as RS_Roll.GetConditionEffects' own disable.
+	void RollPromotionCurse()
+	{
+		if (true)
+			return;
+
+		for (int i = 0; i < PromotionCount; i++)
+			RollOneCurse();
+	}
+
+	void RollOneCurse()
+	{
+		if (FRandom(0, 1) >= PROMOTION_CURSE_CHANCE)
+			return;
+
+		switch (Random(0, 4))
+		{
+			case 0:
+				DamagePerShot = max(1, int(DamagePerShot * 0.5));
+				LockedDamage = true;
+				GrantKeyword("curse", "damage");
+				break;
+			case 1:
+				Accuracy *= 0.5;
+				LockedAccuracy = true;
+				GrantKeyword("curse", "accuracy");
+				break;
+			case 2:
+				Velocity *= 0.5;
+				LockedVelocity = true;
+				GrantKeyword("curse", "velocity");
+				break;
+			case 3:
+				CritChance *= 0.5;
+				LockedCritChance = true;
+				GrantKeyword("curse", "critchance");
+				break;
+			case 4:
+				Capacity = max(1, int(Capacity * 0.5));
+				LockedCapacity = true;
+				GrantKeyword("curse", "capacity");
+				break;
+		}
 	}
 
 	void RepairWithGreyBits(int greyBitsSpent)
@@ -611,21 +699,6 @@ class RS_Weapon : Weapon abstract
 	void OnPlayerDamaged(int rawDamageTaken)
 	{
 		Condition = RS_Roll.DegradeCondition(Condition, rawDamageTaken);
-	}
-
-	void GiveXP(int amount)
-	{
-		XP += amount;
-		if (XPToNextLevel <= 0)
-			XPToNextLevel = 100;
-
-		while (XP >= XPToNextLevel)
-		{
-			XP -= XPToNextLevel;
-			Level++;
-			XPToNextLevel = 100 + Level * 50;
-			if (!LockedDamage) DamagePerShot += 1;
-		}
 	}
 
 	// Seats this weapon into the off-hand the instant it actually enters
@@ -705,6 +778,7 @@ class RS_Weapon : Weapon abstract
 		if (!HeavyProjectileClass)
 			HeavyProjectileClass = GetHeavyProjectile();
 		EnsureAttackProfiles();
+		RS_Keywords.Validate(GetBaseKeywords(), GetClassName());
 	}
 
 	// =================================================================

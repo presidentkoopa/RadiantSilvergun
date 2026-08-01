@@ -1,0 +1,7 @@
+brightmap texture BRNPOIS	{map brightmaps/doom1/BRNPOIS.png	iwad	disablefullbright}
+brightmap texture NUKEPOIS	{map brightmaps/doom1/NUKEPOIS.png	iwad	disablefullbright}
+brightmap texture STEP1		{map brightmaps/doom1/STEP1.png		iwad	disablefullbright}
+brightmap texture STEP3		{map brightmaps/doom1/STEP3.png		iwad	disablefullbright}
+brightmap texture SW1STONE	{map brightmaps/doom1/SW1STONE.png	iwad	disablefullbright}
+brightmap texture SW2STON2	{map brightmaps/doom1/SW2STON2.png	iwad	disablefullbright}
+brightmap texture SW2STONE	{map brightmaps/doom1/SW2STONE.png	iwad	disablefullbright}

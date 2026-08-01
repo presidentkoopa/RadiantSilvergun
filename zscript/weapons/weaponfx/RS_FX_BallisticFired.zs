@@ -20,6 +20,7 @@ class RS_BallisticFired : FastProjectile
 	// bullet-mode Sequence in the game, not just this base one.
 	Class<Actor> ImpactPuffOverride;
 	Class<Actor> ImpactSparkOverride;
+	Class<Actor> TrailOverride;
 
 	Default
 	{
@@ -41,14 +42,8 @@ class RS_BallisticFired : FastProjectile
 		if (++ghostTimer >= 2)
 		{
 			ghostTimer = 0;
-			let ghost = RS_BallisticGhost(Spawn("RS_BallisticGhost", pos));
-			if (ghost)
-			{
-				ghost.sprite = sprite;
-				ghost.frame = frame;
-				ghost.scale = scale;
-				ghost.Alpha = 0.55;
-			}
+			Class<Actor> trail = TrailOverride ? TrailOverride : RS_Catalog.TRAIL_Ballistic();
+			Spawn(trail, pos);
 		}
 	}
 
@@ -72,12 +67,15 @@ class RS_BallisticFired : FastProjectile
 
 	// Player Feedback layer -- called alongside SetupStats() by whatever
 	// spawned this round, if the firing profile set an ImpactPuff/
-	// ImpactSparks override. Left uncalled (both stay null) means this
-	// Sequence's own default impact plays, unchanged.
-	void SetupFeedback(Class<Actor> puffOverride, Class<Actor> sparkOverride)
+	// ImpactSparks/Trail override. Leaving any of them unset (null) means
+	// this Sequence falls back to RS_Catalog's default for that slot --
+	// never affects FireSound, which is the weapon's own, set separately
+	// per weapon in its own BuildAttackProfiles().
+	void SetupFeedback(Class<Actor> puffOverride, Class<Actor> sparkOverride, Class<Actor> trailOverride = null)
 	{
 		ImpactPuffOverride = puffOverride;
 		ImpactSparkOverride = sparkOverride;
+		TrailOverride = trailOverride;
 	}
 
 	States
@@ -88,15 +86,13 @@ class RS_BallisticFired : FastProjectile
 
 	Death:
 		TNT1 A 0 A_PlaySound("rs_fx_impact_bullet", CHAN_AUTO);
-		TNT1 A 0 A_JumpIf(ImpactPuffOverride == null, "DefaultPuff");
 		TNT1 A 0
 		{
-			Spawn(ImpactPuffOverride, pos);
-			if (ImpactSparkOverride) Spawn(ImpactSparkOverride, pos);
+			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
+			Class<Actor> spark = ImpactSparkOverride ? ImpactSparkOverride : RS_Catalog.SPARK_Hit();
+			Spawn(puff, pos);
+			if (spark) Spawn(spark, pos);
 		}
-		Stop;
-	DefaultPuff:
-		RSU0 A 4;
 		Stop;
 	}
 }
@@ -123,26 +119,31 @@ class RS_BallisticType1 : RS_BallisticFired
 }
 
 // =====================================================================
-// RS_BallisticGhost -- one fading afterimage, spawned periodically along
-// a bullet's path. Never collides with anything or affects gameplay --
-// purely the trail effect behind an in-flight round.
+// RS_BallisticTrail -- one fading, additive-glow trail piece, spawned
+// periodically along a bullet's path. Never collides with anything or
+// affects gameplay -- purely the trail effect behind an in-flight round.
+// Adopted directly from the TrueBullet reference (TB_TrailBit): additive
+// render + small scale + fast two-frame fade is what makes the trail
+// glow instead of just fading like a flat sprite. Deliberately not named
+// with "Bit" -- that word means the Health/Armor/Ammo/Grey/Curse kill-
+// reward currency pickups elsewhere in this project (RS_Bits.zs); reusing
+// it here would be confusing.
 // =====================================================================
 
-class RS_BallisticGhost : Actor
+class RS_BallisticTrail : Actor
 {
 	Default
 	{
-		+NOBLOCKMAP
-		+NOGRAVITY
-		+NOTELEPORT
-		+CANNOTPUSH
-		RenderStyle "Translucent";
+		+NOINTERACTION +CLIENTSIDEONLY +FORCEXYBILLBOARD +NOGRAVITY +NOTIMEFREEZE
+		RenderStyle "Add";
+		Scale 0.30;
+		Alpha 0.85;
 	}
-
 	States
 	{
 	Spawn:
-		TNT1 A 1 A_FadeOut(0.11);
-		Loop;
+		RSB0 B 2 Bright A_FadeOut(0.22);
+		RSB0 C 2 Bright A_FadeOut(0.28);
+		Stop;
 	}
 }

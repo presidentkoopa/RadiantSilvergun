@@ -120,13 +120,6 @@ class VR_SMG : RS_Weapon
 		bStatsRolled = true;
 	}
 
-	override void ApplyUpgradeCard(EVR_Tier newTier)
-	{
-		bool isSacrificeDowngrade = (Tier == VRT_Prototype && newTier == VRT_Basic);
-		RollStats(newTier);
-		if (isSacrificeDowngrade)
-			PelletCount += 1;
-	}
 
 	// Full-auto: no cadence-overshoot penalty. RateOfFire IS the cadence
 	// here, hard-gated by AutoCooldownReady(), so there's nothing to outpace.

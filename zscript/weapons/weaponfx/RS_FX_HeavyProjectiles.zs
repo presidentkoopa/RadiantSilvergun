@@ -11,8 +11,8 @@
 // weapons. Their damage rolls were decorative.
 //
 // These three now carry SetupStats(), matching RS_BallisticFired's
-// signature and role, and RS_Weapon.A_RS_FireHeavyProjectile() calls it
-// the tic the projectile spawns. Same shape as the bullet path, so both
+// signature and role, and RS_Weapon.RS_FireProfileHeavy() calls it the
+// tic the projectile spawns. Same shape as the bullet path, so both
 // halves of the arsenal work the same way.
 //
 // `replaces` is deliberately KEPT on all three. Weapons point their

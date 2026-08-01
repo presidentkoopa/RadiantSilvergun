@@ -19,10 +19,56 @@ OptionMenu "RS_MainOptions"
 	StaticText " "
 
 	Submenu "Weapon Fidelity Options", "RS_FXSettings"
+	Submenu "Weapon Sound Assignment", "RS_WeaponSoundOptions"
 	Submenu "Debug: Give Weapons", "RS_DebugGiveMenu"
+	Submenu "Debug: Ballistic Attack Pattern", "RS_DebugBallisticMenu"
 	Submenu "$TFLV_OPT_TITLE", "GunBonsaiOptions"
 	Submenu "Kill Rewards", "RS_BitsSettings"
 	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
+}
+
+// ---------------------------------------------------------------------
+// Weapon Sound Assignment -- pick each main-arsenal weapon's fire sound
+// from whatever alternate takes exist for it. See
+// zscript/weapons/RS_Weapon.zs (GetEffectiveFireSound/SoundChoiceKey)
+// and zscript/systems/RS_Catalog.zs. One row per weapon FAMILY, not per
+// numbered variant (Revolver through Revolver6 all share one
+// BuildAttackProfiles() and so already share one fire sound today --
+// picking here changes all six at once, same as it already works).
+// Only Revolver has real alternates staged right now; everything else
+// lists "Default" alone until more takes get sourced -- the row exists
+// now so adding a weapon's alternates later is just new OptionValue
+// entries, not a menu restructure.
+// ---------------------------------------------------------------------
+OptionMenu "RS_WeaponSoundOptions"
+{
+	Title "Weapon Sound Assignment"
+	StaticText " "
+
+	Option "Pistol",         "rs_soundchoice_pistol",         "RS_SoundChoice_DefaultOnly"
+	Option "Revolver",       "rs_soundchoice_revolver",       "RS_SoundChoice_Revolver"
+	Option "Rifle",          "rs_soundchoice_rifle",          "RS_SoundChoice_DefaultOnly"
+	Option "SMG",            "rs_soundchoice_smg",            "RS_SoundChoice_DefaultOnly"
+	Option "Shotgun",        "rs_soundchoice_shotgun",        "RS_SoundChoice_DefaultOnly"
+	Option "Super Shotgun",  "rs_soundchoice_supershotgun",   "RS_SoundChoice_DefaultOnly"
+	Option "Chaingun",       "rs_soundchoice_chaingun",       "RS_SoundChoice_DefaultOnly"
+	Option "Chainsaw (Melee)",     "rs_soundchoice_melee",    "RS_SoundChoice_DefaultOnly"
+	Option "Rocket Launcher",      "rs_soundchoice_launcher", "RS_SoundChoice_DefaultOnly"
+	Option "Plasma Rifle (Energy)","rs_soundchoice_energy",   "RS_SoundChoice_DefaultOnly"
+	Option "BFG9000",              "rs_soundchoice_bfg",      "RS_SoundChoice_DefaultOnly"
+}
+
+OptionValue "RS_SoundChoice_DefaultOnly"
+{
+	0, "Default"
+}
+
+OptionValue "RS_SoundChoice_Revolver"
+{
+	0, "Default (REVOFIR1)"
+	1, "Alternate 1"
+	2, "Alternate 2"
+	3, "Alternate 3"
 }
 
 // ---------------------------------------------------------------------
@@ -174,6 +220,42 @@ OptionMenu "RS_DebugGiveMenu"
 	Command "+1 GH SMG", "netevent rs_debug_give_gh_smg"
 	Command "+1 GH SSG", "netevent rs_debug_give_gh_ssg"
 	Command "+1 GH Unmaker", "netevent rs_debug_give_gh_unmaker"
+}
+
+// ---------------------------------------------------------------------
+// Debug: Ballistic Attack Pattern -- pick which pieces of the current
+// weapon's attack profile actually re-roll, then press one of the two
+// buttons at the bottom. Unchecked = keep whatever that slot currently
+// has, not "reset to nothing." See RS_DebugGive.zs (RandomProfile).
+// ---------------------------------------------------------------------
+OptionMenu "RS_DebugBallisticMenu"
+{
+	Title "Debug: Ballistic Attack Pattern"
+	StaticText " "
+	StaticText "Randomize which parts? (unchecked = keep current)"
+	Option "Projectile",         "rs_debugrandom_projectile", "OnOff"
+	Option "Fire Sound",         "rs_debugrandom_sound",      "OnOff"
+	Option "Impact Puff",        "rs_debugrandom_puff",       "OnOff"
+	Option "Impact Spark",       "rs_debugrandom_spark",      "OnOff"
+	Option "Muzzle Smoke",       "rs_debugrandom_smoke",      "OnOff"
+	Option "In-Flight Trail",    "rs_debugrandom_trail",      "OnOff"
+	Option "Big Muzzle Flash",   "rs_debugrandom_bigmuzzle",  "OnOff"
+	Option "Damage Multiplier",  "rs_debugrandom_dmgmult",    "OnOff"
+	Option "Velocity Multiplier","rs_debugrandom_velmult",    "OnOff"
+	Option "Crit Bonus",         "rs_debugrandom_critbonus",  "OnOff"
+	Option "Spread",             "rs_debugrandom_spread",     "OnOff"
+	Option "Choke",              "rs_debugrandom_choke",      "OnOff"
+	Option "Cadence Behavior",   "rs_debugrandom_cadence",    "OnOff"
+	Option "Pellet Count",       "rs_debugrandom_pellets",    "OnOff"
+	Option "Casing",             "rs_debugrandom_casing",     "OnOff"
+	Option "Ammo Cost",          "rs_debugrandom_ammocost",   "OnOff"
+	StaticText " "
+	StaticText "Not randomized on purpose:"
+	StaticText "Ammo Type (could softlock the gun on ammo you lack)"
+	StaticText "Profile Name (label only, no gameplay effect)"
+	StaticText " "
+	Command "Assign Random Attack Pattern to Primary Fire", "netevent rs_debug_random_profile"
+	Command "Assign Random Attack Pattern to Secondary Fire", "netevent rs_debug_random_profile_secondary"
 }
 
 OptionValue "RS_HiFiTierOption"
