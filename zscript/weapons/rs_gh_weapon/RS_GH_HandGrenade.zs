@@ -29,10 +29,15 @@ class RS_GH_HandGrenade : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:launcher trigger:semiauto delivery:heavy payload:single feed:none reserve:rocket element:explosive promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
-			proj: "RS_GH_GrenadeLaunched",
+			proj: RS_Catalog.PROJ_GrenadeThrown(),
 			fireSnd: RS_Catalog.SND_GH_HandGrenade(),
 			ammoCost: 1,
 			ammo: "RocketAmmo",

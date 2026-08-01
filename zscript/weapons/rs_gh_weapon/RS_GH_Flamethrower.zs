@@ -29,17 +29,26 @@ class RS_GH_Flamethrower : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:flamethrower trigger:fullauto delivery:bullet payload:single feed:pool reserve:cell element:thermal promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
-		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
+		// MakeBullet has no "ammo" named argument -- set AmmoClass
+		// directly on the built profile instead. Real travelling round
+		// (RS_GH_FlameJet, an RS_BallisticFired subclass), not hitscan.
+		let primary = RS_AttackProfile.MakeBullet(
 			fireSnd: RS_Catalog.SND_GH_Flamethrower(),
 			spreadScale: 0.05,
 			usesCadence: false,
 			ammoCost: 1,
-			ammo: "Cell",
 			bigMuzzle: true,
-			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Flamethrower"));
+			proj: RS_Catalog.PROJ_GH_FlameJet(),
+			profName: "Gunstar Flamethrower");
+		primary.AmmoClass = "Cell";
+		PrimarySlot.Append(primary);
 	}
 
 	// Source anchor: 10-10 flat damage. That becomes the Basic-tier

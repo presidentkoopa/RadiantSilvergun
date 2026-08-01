@@ -22,6 +22,11 @@ class VR_Rifle : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_Rifle; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:rifle trigger:semiauto trigger:fullauto delivery:bullet payload:single feed:atomic-fill reserve:clip element:kinetic promotion:pellet set:radiantsilvergun";
+	}
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
@@ -128,11 +133,11 @@ class VR_Rifle : RS_Weapon
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
-			fireSnd: "m16shoot",
+			fireSnd: RS_Catalog.SND_Rifle(),
 			spreadScale: 0.05,
 			usesCadence: true,
 			ammoCost: 1,
-			casing: "RS_CasingRifle",
+			casing: RS_Catalog.CASING_Rifle(),
 			profName: "5.56"));
 	}
 

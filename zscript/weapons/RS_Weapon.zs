@@ -295,6 +295,12 @@ class RS_Weapon : Weapon abstract
 			RS_EnhancedPlasmaBall(proj).SetupStats(int(dmg), invoker.CritChance);
 		else if (proj is "RS_EnhancedBFGBall")
 			RS_EnhancedBFGBall(proj).SetupStats(int(dmg), invoker.CritChance);
+		else if (proj is "RS_GH_BFGShot")
+			RS_GH_BFGShot(proj).SetupStats(int(dmg), invoker.CritChance);
+		else if (proj is "RS_GH_PlasmaShot")
+			RS_GH_PlasmaShot(proj).SetupStats(int(dmg), invoker.CritChance);
+		else if (proj is "RS_GH_UnmakerShot")
+			RS_GH_UnmakerShot(proj).SetupStats(int(dmg), invoker.CritChance);
 	}
 
 	// Called from each weapon's Flash: state. Only ever does anything at
@@ -544,6 +550,12 @@ class RS_Weapon : Weapon abstract
 			RS_EnhancedPlasmaBall(proj).SetupStats(int(dmg), crit);
 		else if (proj is "RS_EnhancedBFGBall")
 			RS_EnhancedBFGBall(proj).SetupStats(int(dmg), crit);
+		else if (proj is "RS_GH_BFGShot")
+			RS_GH_BFGShot(proj).SetupStats(int(dmg), crit);
+		else if (proj is "RS_GH_PlasmaShot")
+			RS_GH_PlasmaShot(proj).SetupStats(int(dmg), crit);
+		else if (proj is "RS_GH_UnmakerShot")
+			RS_GH_UnmakerShot(proj).SetupStats(int(dmg), crit);
 	}
 
 	// Each heavy weapon overrides this to declare what it launches. A
@@ -686,9 +698,70 @@ class RS_Weapon : Weapon abstract
 		if (!bStatsRolled)
 			RollStats(VRT_Basic);
 		if (!ProjectileClass)
-			ProjectileClass = CVar.GetCVar("rs_fx_tracers", null).GetBool() ? "RS_BallisticTracer" : "RS_BallisticType1";
+			ProjectileClass = "RS_BallisticType1";
 		if (!HeavyProjectileClass)
 			HeavyProjectileClass = GetHeavyProjectile();
 		EnsureAttackProfiles();
+	}
+
+	// =================================================================
+	// KEYWORDS -- see docs/rs_03_keywords_v2.txt for the full schema.
+	// BASE ships on the class (GetBaseKeywords, authored per weapon type
+	// as space-delimited "key:value" tokens). GRANTED is added at
+	// runtime by GunBonsai affixes / Promotion / sockets. Queries check
+	// the union of both, same shape as the AttackProfile system: BASE is
+	// what the weapon ships with, GRANTED is what got added since.
+	// =================================================================
+
+	Array<string> GrantedKeywords;
+
+	// Each weapon type overrides this with its own real, authored BASE
+	// tags. Empty default -- matches every other opt-in virtual already
+	// on this class (BuildAttackProfiles, GetHeavyProjectile, GetFamily).
+	virtual string GetBaseKeywords()
+	{
+		return "";
+	}
+
+	bool HasKeyword(string key, string value)
+	{
+		if (RS_Keywords.StringHas(GetBaseKeywords(), key, value))
+			return true;
+		string needle = key .. ":" .. value;
+		for (int i = 0; i < GrantedKeywords.Size(); i++)
+			if (GrantedKeywords[i] == needle)
+				return true;
+		return false;
+	}
+
+	// Single-value key lookup (archetype, delivery, feed, reserve, set,
+	// promotion, element). GRANTED overrides BASE when both are present,
+	// so a Promotion/affix that changes e.g. element actually sticks.
+	string GetKeywordValue(string key)
+	{
+		string v = RS_Keywords.GetValue(GetBaseKeywords(), key);
+		string prefix = key .. ":";
+		for (int i = 0; i < GrantedKeywords.Size(); i++)
+			if (GrantedKeywords[i].Left(prefix.Length()) == prefix)
+				v = GrantedKeywords[i].Mid(prefix.Length());
+		return v;
+	}
+
+	// Multi-value key lookup (trigger, payload, behavior, curse,
+	// characteristic). Union of every BASE and GRANTED entry, no
+	// overriding -- a weapon can genuinely have more than one.
+	void GetKeywordValues(string key, out Array<string> results)
+	{
+		RS_Keywords.GetValues(GetBaseKeywords(), key, results);
+		string prefix = key .. ":";
+		for (int i = 0; i < GrantedKeywords.Size(); i++)
+			if (GrantedKeywords[i].Left(prefix.Length()) == prefix)
+				results.Push(GrantedKeywords[i].Mid(prefix.Length()));
+	}
+
+	// GunBonsai/Promotion-facing write API.
+	void GrantKeyword(string key, string value)
+	{
+		GrantedKeywords.Push(key .. ":" .. value);
 	}
 }

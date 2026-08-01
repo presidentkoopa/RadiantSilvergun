@@ -40,7 +40,6 @@ class RS_GH_GrenadeLaunched : Actor
 		Gravity 0.7;       // the arc
 		Projectile;
 		-NOGRAVITY
-		+DOOMBOUNCE
 		+THRUSPECIES
 		Species "Player";
 		BounceType "Doom";
@@ -56,6 +55,13 @@ class RS_GH_GrenadeLaunched : Actor
 		RolledDamage   = finalDamage;
 		ShotCritChance = critChance;
 	}
+
+	// Real toss speed for the hand-thrown grenade (source: HF_HB_GrenadeProj,
+	// Speed 10) -- a slow, high arc, distinct from the launcher's faster
+	// punch-out. Was sharing this class's own Speed 33 (the LAUNCHER's
+	// speed) with no distinction at all; that's fixed by subclassing below
+	// rather than editing Speed here, so the Grenade Launcher keeps its
+	// real launcher speed unchanged.
 
 	double DamageRatio()
 	{
@@ -83,5 +89,17 @@ class RS_GH_GrenadeLaunched : Actor
 		TNT1 A 1 Bright A_Explode(Splash2(), BASE_RADIUS2, 1);
 		TNT1 A 0 A_StartSound("rs_fx_rocket_explode", CHAN_AUTO);
 		Stop;
+	}
+}
+
+// Hand-thrown variant -- same real arc/bounce/two-stage blast, just the
+// real slower toss speed (source: HF_HB_GrenadeProj, Speed 10) instead of
+// the launcher's faster punch-out. Everything else (damage scaling,
+// bounce, death FX) is identical, inherited as-is.
+class RS_GH_GrenadeThrown : RS_GH_GrenadeLaunched
+{
+	Default
+	{
+		Speed 10;
 	}
 }

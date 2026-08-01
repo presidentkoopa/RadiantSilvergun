@@ -30,16 +30,32 @@ class RS_GH_Railgun : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:railgun trigger:semiauto delivery:bullet payload:single feed:atomic-fill reserve:cell element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
+		// Primary: coiled double-helix bolt.
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
 			fireSnd: RS_Catalog.SND_GH_Railgun(),
-			spreadScale: 0.05,
+			spreadScale: 0.0,
 			usesCadence: true,
-			ammoCost: 1,
+			ammoCost: 10,
 			bigMuzzle: false,
-			proj: RS_Catalog.PROJ_Ballistic(),
+			proj: RS_Catalog.PROJ_GH_RailBolt(),
 			profName: "Gunstar Railgun"));
+
+		// Secondary: BD-faithful straight bolt, same cost/cadence.
+		SecondarySlot.Append(RS_AttackProfile.MakeBullet(
+			fireSnd: RS_Catalog.SND_GH_Railgun(),
+			spreadScale: 0.0,
+			usesCadence: true,
+			ammoCost: 10,
+			bigMuzzle: false,
+			proj: RS_Catalog.PROJ_GH_RailBoltStraight(),
+			profName: "Straight Bolt"));
 	}
 
 	// Source anchor: 400-400 flat damage. That becomes the Basic-tier
@@ -169,12 +185,26 @@ class RS_GH_Railgun : RS_Weapon
 
 	Fire:
 		TNT1 A 0 A_JumpIf(!invoker.CanFireSemiAuto(), "Ready");
-		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) > 0, "Shoot");
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) >= 10, "Shoot");
 		Goto Reload;
 
 	Shoot:
 		HBRA B 1 Bright A_GunFlash();
 		TNT1 A 0 A_RS_FireSlot(0);
+		HBRA C 2;
+		HBRA D 2;
+		HBRA A 1 A_WeaponReady(WRF_ALLOWRELOAD);
+		Goto Ready;
+
+	// Straight-bolt secondary, same 10-cell cost as primary.
+	AltFire:
+		TNT1 A 0 A_JumpIf(!invoker.CanFireSemiAuto(), "Ready");
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) >= 10, "ShootAlt");
+		Goto Reload;
+
+	ShootAlt:
+		HBRA B 1 Bright A_GunFlash();
+		TNT1 A 0 A_RS_FireSlot(1);
 		HBRA C 2;
 		HBRA D 2;
 		HBRA A 1 A_WeaponReady(WRF_ALLOWRELOAD);

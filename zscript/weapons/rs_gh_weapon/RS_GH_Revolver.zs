@@ -30,6 +30,11 @@ class RS_GH_Revolver : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:revolver trigger:semiauto delivery:bullet payload:single payload:multi feed:atomic-fill reserve:shell element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
@@ -40,6 +45,22 @@ class RS_GH_Revolver : RS_Weapon
 			bigMuzzle: false,
 			proj: RS_Catalog.PROJ_Ballistic(),
 			profName: "Gunstar Scattergun Revolver"));
+
+		// Source alt-fire: close-range 10-pellet scatter, same total damage
+		// as one primary round (source: 60 total / 10 pellets = 6 each,
+		// i.e. 0.1x per pellet), wide 14-degree cone, still 1 shell.
+		let scatter = RS_AttackProfile.MakeBullet(
+			fireSnd: RS_Catalog.SND_GH_Revolver(),
+			spreadScale: 0.05,
+			usesCadence: true,
+			ammoCost: 1,
+			bigMuzzle: false,
+			proj: RS_Catalog.PROJ_Ballistic(),
+			dmgMult: 0.1,
+			profName: "Scatter Load");
+		scatter.PelletOverride = 10;
+		scatter.SpreadBonus = 14.0;
+		SecondarySlot.Append(scatter);
 	}
 
 	// Source anchor: 60-60 flat damage. That becomes the Basic-tier
@@ -185,6 +206,20 @@ class RS_GH_Revolver : RS_Weapon
 		TNT1 A 0 A_JumpIf(CountInv("Shell") <= 0, "OutOfAmmo");
 		REVR ABCDEFGHIJKLM 1;
 		TNT1 A 0 A_RS_ReloadAtomic();
+		Goto Ready;
+
+	// Source alt-fire: close-range 10-pellet scatter, same 1-shell cost as
+	// primary.
+	AltFire:
+		TNT1 A 0 A_JumpIf(!invoker.CanFireSemiAuto(), "Ready");
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) > 0, "Spread");
+		Goto Reload;
+
+	Spread:
+		HBRV B 1 Bright A_GunFlash();
+		TNT1 A 0 A_RS_FireSlot(1);
+		HBRV C 2;
+		HBRV A 1 A_WeaponReady(WRF_ALLOWRELOAD);
 		Goto Ready;
 
 	Flash:

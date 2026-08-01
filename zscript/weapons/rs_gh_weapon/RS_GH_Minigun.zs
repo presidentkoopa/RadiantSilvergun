@@ -29,18 +29,45 @@ class RS_GH_Minigun : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:chaingun trigger:fullauto delivery:bullet payload:single feed:pool reserve:clip element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
-		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
+		// MakeBullet has no "ammo" named argument (only MakeHitscan/
+		// MakeHeavy do) -- set AmmoClass directly on the built profile
+		// instead, same as PelletOverride/SpreadBonus elsewhere. This is
+		// a real travelling round (RS_BallisticFired), not hitscan.
+		let primary = RS_AttackProfile.MakeBullet(
 			fireSnd: RS_Catalog.SND_GH_Minigun(),
 			spreadScale: 0.05,
 			usesCadence: false,
 			ammoCost: 1,
 			casing: "RS_CasingRifle",
-			ammo: "Clip",
 			bigMuzzle: true,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Minigun"));
+			profName: "Gunstar Minigun");
+		primary.AmmoClass = "Clip";
+		PrimarySlot.Append(primary);
+
+		// Source alt-fire "Overdrive": 2 rounds per tic instead of 1, wider
+		// spread, same per-round damage. The 2x rate comes from the
+		// Overdrive state chain firing this slot twice per frame, not from
+		// anything on the profile itself.
+		let overdrive = RS_AttackProfile.MakeBullet(
+			fireSnd: RS_Catalog.SND_GH_Minigun(),
+			spreadScale: 0.05,
+			usesCadence: false,
+			ammoCost: 1,
+			casing: "RS_CasingRifle",
+			bigMuzzle: true,
+			proj: RS_Catalog.PROJ_Ballistic(),
+			profName: "Overdrive");
+		overdrive.AmmoClass = "Clip";
+		overdrive.SpreadBonus = 3.0;
+		SecondarySlot.Append(overdrive);
 	}
 
 	// Source anchor: 16-16 flat damage. That becomes the Basic-tier
@@ -178,6 +205,21 @@ class RS_GH_Minigun : RS_Weapon
 		HBMN C 2;
 		HBMN D 2;
 		TNT1 A 0 A_ReFire();
+		Goto Ready;
+
+	// Source alt-fire "Overdrive": 2 rounds per tic -- fires the slot
+	// twice, checking ammo between shots so it can't overdraw the mag.
+	AltFire:
+		TNT1 A 0 A_JumpIf(!invoker.AutoCooldownReady(), "Ready");
+		TNT1 A 0 A_JumpIf(CountInv("Clip") > 0, "Overdrive");
+		Goto OutOfAmmo;
+
+	Overdrive:
+		HBMN B 1 Bright A_GunFlash();
+		TNT1 A 0 A_RS_FireSlot(1);
+		TNT1 A 0 A_JumpIf(CountInv("Clip") <= 0, "Ready");
+		TNT1 A 0 A_RS_FireSlot(1);
+		HBMN D 1 A_ReFire;
 		Goto Ready;
 
 	Flash:

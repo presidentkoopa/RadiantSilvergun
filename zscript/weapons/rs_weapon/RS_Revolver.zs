@@ -29,6 +29,11 @@ class VR_Revolver : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_Revolver; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:revolver trigger:semiauto delivery:bullet payload:single feed:atomic-fill reserve:clip element:kinetic promotion:pellet set:radiantsilvergun";
+	}
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
@@ -137,7 +142,7 @@ class VR_Revolver : RS_Weapon
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
-			fireSnd: "revolver",
+			fireSnd: RS_Catalog.SND_Revolver(),
 			spreadScale: 0.05,
 			usesCadence: true,
 			ammoCost: 1,

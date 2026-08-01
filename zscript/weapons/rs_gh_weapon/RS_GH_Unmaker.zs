@@ -29,10 +29,15 @@ class RS_GH_Unmaker : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:energy trigger:fullauto delivery:heavy payload:single feed:pool reserve:cell element:melt promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
-			proj: "RS_EnhancedPlasmaBall",
+			proj: RS_Catalog.PROJ_GH_UnmakerShot(),
 			fireSnd: RS_Catalog.SND_GH_Unmaker(),
 			ammoCost: 1,
 			ammo: "Cell",

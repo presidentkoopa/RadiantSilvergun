@@ -26,6 +26,11 @@ class VR_SuperShotgun : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_SuperShotgun; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:supershotgun trigger:semiauto delivery:bullet payload:multi feed:atomic-fill reserve:shell element:kinetic set:radiantsilvergun";
+	}
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
@@ -131,11 +136,11 @@ class VR_SuperShotgun : RS_Weapon
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
-			fireSnd: "wpn/shotgun2",
+			fireSnd: RS_Catalog.SND_SuperShotgun(),
 			spreadScale: 0.1,
 			usesCadence: true,
 			ammoCost: 2,
-			casing: "RS_CasingShell",
+			casing: RS_Catalog.CASING_Shell(),
 			usesChoke: true,
 			profName: "Both Barrels"));
 	}

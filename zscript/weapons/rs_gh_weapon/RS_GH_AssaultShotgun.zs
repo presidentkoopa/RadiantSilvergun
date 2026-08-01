@@ -30,6 +30,11 @@ class RS_GH_AssaultShotgun : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:shotgun trigger:fullauto delivery:bullet payload:multi feed:atomic-fill reserve:shell element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(

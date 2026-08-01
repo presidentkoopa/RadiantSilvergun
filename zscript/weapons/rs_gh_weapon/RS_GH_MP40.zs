@@ -30,6 +30,11 @@ class RS_GH_MP40 : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:smg trigger:fullauto delivery:bullet payload:single feed:atomic-fill reserve:clip element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(

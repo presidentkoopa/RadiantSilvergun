@@ -30,6 +30,11 @@ class RS_GH_GrenadeLauncher : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:launcher trigger:semiauto delivery:heavy payload:single feed:atomic-fill reserve:rocket element:explosive promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(

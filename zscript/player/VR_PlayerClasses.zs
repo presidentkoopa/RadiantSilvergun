@@ -194,3 +194,56 @@ class VR_Dual_Chaingun : VR_DualClassBase
 	override string GetMainhandClass() { return "VR_Chaingun"; }
 	override EVR_Family GetFamily() { return EVR_Family_Chaingun; }
 }
+
+// ---------------------------------------------------------------------
+// RS_GH_Weaponset -- displayed as "Vanilla+". Ungated (no family gating,
+// same as leaving GetFamily() at its EVR_Family_None default -- see
+// RS_ClassGating.zs's own comment, which already anticipated exactly
+// this case). Starts with Fist/offhand Fist + two pistols, loaded.
+// RS_Weapon.AttachToOwner already auto-fills each weapon's loaded
+// chamber to Capacity the instant it's granted, so granting the guns is
+// enough -- the magazines fill themselves, no reload needed on pickup.
+//
+// "Start with Rifle instead of Pistols" (rs_vp_startrifle, Vanilla+
+// Options menu) swaps the granted mainhand+offhand pair entirely, so it
+// has to happen in PostBeginPlay code rather than static StartItem --
+// same shape as VR_DualClassBase's own "Allow Big Guns" cvar check.
+// ---------------------------------------------------------------------
+class RS_GH_Weaponset : VR_DualClassBase
+{
+	Default
+	{
+		Player.DisplayName "Vanilla+";
+
+		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist2";
+
+		// Reserve ammo -- covers the starting pistols (or rifles, if the
+		// swap option is on) and anything picked up later.
+		Player.StartItem "Clip", 200;
+	}
+
+	override string GetMainhandClass()
+	{
+		let cv = CVar.GetCVar("rs_vp_startrifle", null);
+		return (cv && cv.GetBool()) ? "RS_GH_Rifle" : "RS_GH_Pistol";
+	}
+
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		let cv = CVar.GetCVar("rs_vp_startrifle", null);
+		if (cv && cv.GetBool())
+		{
+			GiveInventory("RS_GH_Rifle", 1);
+			GiveInventory("RS_GH_Rifle4", 1);
+		}
+		else
+		{
+			GiveInventory("RS_GH_Pistol", 1);
+			GiveInventory("RS_GH_Pistol4", 1);
+		}
+	}
+	// No GetFamily() override -- inherits EVR_Family_None from the base,
+	// which is deliberately "ungated" here, not an oversight.
+}

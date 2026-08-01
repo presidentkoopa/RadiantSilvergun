@@ -7,13 +7,29 @@
 // independent feature toggles that aren't about intensity at all.
 // =====================================================================
 server int rs_fx_hifitier = 2;
-server bool rs_fx_tracers = true;
 server bool rs_fx_ricochet = true;
 server bool rs_fx_hqvanillasounds = false;
 
 // GPU-dependent ceiling on simultaneous muzzle lights (Hi-Fi tier only).
 // Default is conservative; raise it if the hardware can take it.
 server int rs_fx_maxmuzzlelights = 12;
+
+// =====================================================================
+// Vanilla+ (RS_GH_Weaponset) Options -- see MENUDEF.txt.
+// rs_vp_startrifle swaps the class's starting mainhand+offhand pair;
+// checked directly in RS_GH_Weaponset's PostBeginPlay/GetMainhandClass.
+// The six swap-chance sliders are 0-100 (%), read by RS_DebugGive's
+// family-give functions: when giving family X, roll against the slider;
+// a hit substitutes family Y instead of X.
+// =====================================================================
+server bool rs_vp_startrifle = false;
+server int rs_vp_swap_flamethrower_chainsaw = 0;
+server int rs_vp_swap_autoshotgun_ssg = 0;
+server int rs_vp_swap_rifle_minigun = 0;
+server int rs_vp_swap_machinegun_minigun = 0;
+server int rs_vp_swap_grenadelauncher_rocketlauncher = 0;
+server int rs_vp_swap_railgun_plasmarifle = 0;
+server bool rs_vp_randombfg = false;
 
 // Dual_ classes start with no heavy ordnance by default (see
 // VR_PlayerClasses.zs history -- explicitly removed after complaints about

@@ -9,7 +9,7 @@ Sprites live in `sprites/combatfx/<category>/`, sounds in
 
 ---
 
-## Explosions — `RSE0`–`RSE8`
+## Explosions — `RSE0`–`RSE9`
 
 | Pick | Frames | What it is |
 |---|---|---|
@@ -22,8 +22,9 @@ Sprites live in `sprites/combatfx/<category>/`, sounds in
 | `RSE6` | 3 | Short blast (was the explosive-death affix). |
 | `RSE7` | 3 | Short blast, alternate (was the explosive affix). |
 | `RSE8` | 5 | Fragmentation burst. |
+| `RSE9` | 8 | GunstarHeroes BFG green explosion (source: BFGB). Pairs with `RSF7` (shockwave) and `RSR5` (the ball itself). |
 
-## Fire — `RSI0`–`RSI3`
+## Fire — `RSI0`–`RSI6`
 
 | Pick | Frames | What it is |
 |---|---|---|
@@ -31,6 +32,8 @@ Sprites live in `sprites/combatfx/<category>/`, sounds in
 | `RSI1` | 13 | Medium fire. |
 | `RSI2` | 10 | Short fire. |
 | `RSI3` | 8 | Burning flame (was the fire affix). |
+| `RSI4` | 8 | GunstarHeroes Unmaker fire burst (source: EXPL). |
+| `RSI5` + `RSI6` | 26 + 5 | GunstarHeroes flung flame particle (source: FRFX), shared by the Unmaker and the Flamethrower. One continuous 16-frame sequence (each source frame held ~2 tics) split across two sprite names because a single sprite can't hold more than 26 letters — `RSI5` is frames 1–26, `RSI6` continues at 27–31. |
 
 ## Smoke — `RSK0`–`RSK2`
 
@@ -40,7 +43,7 @@ Sprites live in `sprites/combatfx/<category>/`, sounds in
 | `RSK1` | 18 | Second smoke variant. |
 | `RSK2` | 11 | Shorter, thinner smoke. |
 
-## Plasma — `RSP0`–`RSP6`
+## Plasma — `RSP0`–`RSP7`
 
 | Pick | Frames | What it is |
 |---|---|---|
@@ -51,6 +54,7 @@ Sprites live in `sprites/combatfx/<category>/`, sounds in
 | `RSP4` | 1 | Single plasma flare. |
 | `RSP5` | 6 | Plasma ball, larger. |
 | `RSP6` | 13 | Big plasma detonation. |
+| `RSP7` | 5 | GunstarHeroes plasma ball (source: PBAL). Distinct rounder look from RSP0/RSP2. |
 
 ## Lightning — `RSL0`–`RSL2`
 
@@ -67,14 +71,17 @@ Sprites live in `sprites/combatfx/<category>/`, sounds in
 | `RSA0` | 5 | Acid splash. |
 | `RSN0` | 5 | Poison cloud. |
 
-## Projectiles — `RSR0`–`RSR2`
+## Projectiles — `RSR0`–`RSR6`
 
 | Pick | Frames | What it is |
 |---|---|---|
 | `RSR0` | 1 | Rocket in flight. |
 | `RSR1` | 2 | BFG ball in flight. |
 | `RSR2` | 4 | Bomblet / submunition. |
-| `RSB0` | 5 | Bullet tracer in flight. |
+| `RSR4` | 1 | (pre-existing, unidentified — not part of the GunstarHeroes import) |
+| `RSR5` | 2 | GunstarHeroes BFG ball in flight (source: BFS1). Distinct from RSR1 — this is the round the GH BFG9000/BFG10k actually fire. |
+| `RSR6` | 1 (5 rotation angles) | GunstarHeroes railgun beam core segment (source: TRAC). Single frame with 8-angle billboard rotation art, not an animation. |
+| `RSB0` | 5 | Bullet round in flight. The only real bullet visual -- every bullet weapon in both sets shares this one. |
 
 ## Puffs (wall/flesh hit marks) — `RSU0`–`RSU4`
 
@@ -92,7 +99,10 @@ Sprites live in `sprites/combatfx/<category>/`, sounds in
 |---|---|---|
 | `RSS0` | 5 | Spark shower. |
 | `RSS1` | 1 | Single spark. |
+| `RSS2` | 2 | GunstarHeroes impact spark flash (source: SPKS). Used by the railgun/rail-adjacent impacts. |
 | `RSF0`–`RSF6` | 1 each | Coloured glow dots — blue, green, red, and four more. Use for light bloom on a projectile. |
+| `RSF7` | 18 | GunstarHeroes BFG green shockwave ring (source: SHOK). Pairs with `RSE9` (explosion) and `RSR5` (the ball). |
+| `RSF8` | 1 | GunstarHeroes thin laser sliver (source: LEYS, frame R only — the only frame the source code actually uses). Used for the railgun's coil trail and the Unmaker's bolt trail/laser. |
 
 ## Casings & Magazines
 
@@ -121,7 +131,6 @@ sound repetitive.
 | `rs_fx_bfg_explode` | 4 | BFG detonation. |
 | `rs_fx_impact_bullet` | 10 | Bullet hitting something. |
 | `rs_fx_ricochet` | 7 | Bullet ricochet. |
-| `rs_fx_tracer_whizz` | 3 | Round passing close by. |
 | `rs_fx_casing_pistol` | 3 | Small casing hitting floor. |
 | `rs_fx_casing_rifle` | 3 | Rifle casing hitting floor. |
 | `rs_fx_casing_chaingun` | 3 | Chaingun casing. |
@@ -146,7 +155,7 @@ The letter after it in code (`RSE3 A`, `RSE3 B`…) is the animation frame.
 | Letter | Category |
 |---|---|
 | A | Acid |
-| B | Bullet tracer |
+| B | Bullet round |
 | C | Casing |
 | E | Explosion |
 | F | Flare / glow |

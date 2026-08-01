@@ -23,6 +23,11 @@ class VR_Shotgun : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_Shotgun; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:shotgun trigger:semiauto delivery:bullet payload:multi feed:incremental reserve:shell element:kinetic promotion:pellet set:radiantsilvergun";
+	}
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
@@ -130,11 +135,11 @@ class VR_Shotgun : RS_Weapon
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
-			fireSnd: "shotgf",
+			fireSnd: RS_Catalog.SND_Shotgun(),
 			spreadScale: 0.1,
 			usesCadence: true,
 			ammoCost: 1,
-			casing: "RS_CasingShell",
+			casing: RS_Catalog.CASING_Shell(),
 			usesChoke: true,
 			profName: "Buckshot"));
 	}

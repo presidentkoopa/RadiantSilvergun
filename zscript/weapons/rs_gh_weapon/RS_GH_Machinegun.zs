@@ -30,18 +30,39 @@ class RS_GH_Machinegun : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:chaingun trigger:fullauto delivery:bullet delivery:heavy payload:single feed:pool reserve:clip element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
-		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
+		// MakeBullet has no "ammo" named argument -- set AmmoClass
+		// directly on the built profile instead. Real travelling round
+		// (RS_BallisticFired), not hitscan.
+		let primary = RS_AttackProfile.MakeBullet(
 			fireSnd: RS_Catalog.SND_GH_Machinegun(),
 			spreadScale: 0.05,
 			usesCadence: false,
 			ammoCost: 1,
 			casing: "RS_CasingRifle",
-			ammo: "Clip",
 			bigMuzzle: true,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Machine Gun"));
+			profName: "Gunstar Machine Gun");
+		primary.AmmoClass = "Clip";
+		PrimarySlot.Append(primary);
+
+		// Source alt-fire: underbarrel grenade launcher -- the signature
+		// MG alt-fire. Draws from RocketAmmo, matching the convention
+		// RS_GH_HandGrenade already uses for the same launched-grenade
+		// catalog entry.
+		SecondarySlot.Append(RS_AttackProfile.MakeHeavy(
+			proj: RS_Catalog.PROJ_GrenadeLaunched(),
+			fireSnd: RS_Catalog.SND_GH_GrenadeLaunch(),
+			ammoCost: 1,
+			ammo: "RocketAmmo",
+			bigMuzzle: true,
+			profName: "Underbarrel Grenade"));
 	}
 
 	// Source anchor: 20-20 flat damage. That becomes the Basic-tier
@@ -179,6 +200,24 @@ class RS_GH_Machinegun : RS_Weapon
 		HBMG C 2;
 		HBMG D 2;
 		TNT1 A 0 A_ReFire();
+		Goto Ready;
+
+	// Source alt-fire: underbarrel grenade launcher, drawing from RocketAmmo.
+	// No release-gate check -- this weapon's Ready: never calls
+	// A_RS_ClearTriggerGate() (it's a full-auto primary), so
+	// CanFireSemiAuto() would latch closed after the first shot ever
+	// fired. The Grenade chain below has no A_ReFire, so it's naturally
+	// one-shot-per-pull without needing the gate at all.
+	AltFire:
+		TNT1 A 0 A_JumpIf(CountInv("RocketAmmo") > 0, "Grenade");
+		Goto Ready;
+
+	Grenade:
+		HBMG B 2 Bright A_GunFlash();
+		TNT1 A 0 A_RS_FireSlot(1);
+		HBMG C 8;
+		HBMG D 8;
+		HBMG A 1 A_WeaponReady(WRF_ALLOWRELOAD);
 		Goto Ready;
 
 	Flash:

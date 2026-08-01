@@ -19,6 +19,11 @@ class VR_PlasmaRifle : RS_Weapon
 		+WEAPON.NOHANDSWITCH;
 	}
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:energy trigger:fullauto delivery:heavy payload:single feed:pool reserve:cell element:kinetic set:radiantsilvergun";
+	}
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
@@ -59,15 +64,19 @@ class VR_PlasmaRifle : RS_Weapon
 
 	override Class<Actor> GetHeavyProjectile()
 	{
-		return "RS_EnhancedPlasmaBall";
+		return RS_Catalog.PROJ_PlasmaBall();
 	}
 
-	// ammoCost 0 -- see RS_RocketLauncher.zs for why this stays 0 for now.
+	// Fire: gates on CountInv("Cell") > 0 -- one cell per shot, actually
+	// spent now (was ammoCost 0, the known infinite-ammo gap). AmmoClass
+	// explicit for the same reason as RS_RocketLauncher.zs -- no AmmoType2
+	// on this weapon, so the dispatch's default fallback would be null.
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
-			fireSnd: "weapons/plasma/fire",
-			ammoCost: 0,
+			fireSnd: RS_Catalog.SND_PlasmaRifle(),
+			ammoCost: 1,
+			ammo: "Cell",
 			profName: "Plasma Bolt"));
 	}
 

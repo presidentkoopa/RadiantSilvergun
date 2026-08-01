@@ -1,6 +1,6 @@
 GameInfo
 {
-	PlayerClasses = "VR_Dual_Pistol", "VR_Dual_Revolver", "VR_Dual_Rifle", "VR_Dual_SMG", "VR_Dual_Shotgun", "VR_Dual_SSG", "VR_Dual_Chaingun"
+	PlayerClasses = "VR_Dual_Pistol", "VR_Dual_Revolver", "VR_Dual_Rifle", "VR_Dual_SMG", "VR_Dual_Shotgun", "VR_Dual_SSG", "VR_Dual_Chaingun", "RS_GH_Weaponset"
 	// Registers GunBonsai's (zscript/GunBonsai/) event handler and the
 	// Kill Rewards (Bits) handler (zscript/systems/RS_Bits.zs).
 	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler"

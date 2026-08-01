@@ -20,6 +20,11 @@ class VR_SMG : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_SMG; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:smg trigger:fullauto delivery:bullet payload:single feed:atomic-fill reserve:clip element:kinetic promotion:pellet set:radiantsilvergun";
+	}
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
@@ -128,11 +133,11 @@ class VR_SMG : RS_Weapon
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
-			fireSnd: "smgfire",
+			fireSnd: RS_Catalog.SND_SMG(),
 			spreadScale: 0.05,
 			usesCadence: false,
 			ammoCost: 1,
-			casing: "RS_CasingSmall",
+			casing: RS_Catalog.CASING_Small(),
 			bigMuzzle: true,
 			profName: "Auto Burst"));
 	}

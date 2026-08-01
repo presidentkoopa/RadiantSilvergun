@@ -7,7 +7,7 @@
 //   sounds/rs_weapon/vr_<weapon>/     main arsenal, one folder per weapon
 //   sounds/rs_vp_weapon/vp_<weapon>/  Vanilla+ set, one folder per weapon
 //   sounds/combatfx/<category>/       SHARED effects -- owned by no weapon
-//        casings/ ricochet/ tracers/ impact/ magdrops/ explosions/
+//        casings/ ricochet/ impact/ magdrops/ explosions/
 //        foley/ melee/
 //   sounds/hq_vanilla/                the HQ vanilla alternate pack
 //
@@ -138,7 +138,7 @@ impact7  Sounds/combatfx/impact/impact7.wav
 impact8  Sounds/combatfx/impact/impact8.wav
 impact9  Sounds/combatfx/impact/impact9.mp3
 
-// --- Enhanced FX: bullets (casings, ricochet, tracer whiz) ---
+// --- Enhanced FX: bullets (casings, ricochet) ---
 // Staged here with the assets already copied in; not yet called by any
 // code -- these are consumed once the Enhanced Weapon FX effects system
 // (RS_EnhancedFX.zs) exists. Logical names kept distinct from every
@@ -166,11 +166,6 @@ rs_fx_rico4  Sounds/combatfx/ricochet/RICO4
 rs_fx_rico5  Sounds/combatfx/ricochet/RICO5
 rs_fx_rico6  Sounds/combatfx/ricochet/RICO6
 rs_fx_rico7  Sounds/combatfx/ricochet/RICO7
-
-$random rs_fx_tracer_whizz { rs_fx_tracer1 rs_fx_tracer2 rs_fx_tracer3 }
-rs_fx_tracer1  Sounds/combatfx/tracers/Tracer1.ogg
-rs_fx_tracer2  Sounds/combatfx/tracers/Tracer2.ogg
-rs_fx_tracer3  Sounds/combatfx/tracers/Tracer3.ogg
 
 // =====================================================================
 // Vanilla+ set (rs_vp_weapon) -- its own real per-weapon sounds.

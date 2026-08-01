@@ -29,12 +29,6 @@ class RS_HiFiFX
 		return cv ? cv.GetInt() : RSFX_OFF;
 	}
 
-	static bool TracersOn()
-	{
-		let cv = CVar.GetCVar("rs_fx_tracers", null);
-		return cv ? cv.GetBool() : true;
-	}
-
 	static bool RicochetOn()
 	{
 		let cv = CVar.GetCVar("rs_fx_ricochet", null);

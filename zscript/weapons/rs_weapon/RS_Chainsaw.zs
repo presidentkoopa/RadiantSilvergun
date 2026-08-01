@@ -28,6 +28,11 @@ class VR_Chainsaw : RS_Weapon
 		+WEAPON.NOHANDSWITCH;
 	}
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:melee trigger:fullauto delivery:melee payload:single feed:none reserve:none element:kinetic promotion:pellet set:radiantsilvergun";
+	}
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
@@ -105,7 +110,7 @@ class VR_Chainsaw : RS_Weapon
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeMelee(
 			range: 64.0,
-			fireSnd: "sawloop",
+			fireSnd: RS_Catalog.SND_Chainsaw(),
 			puff: "BulletPuff",
 			profName: "Sawteeth"));
 	}

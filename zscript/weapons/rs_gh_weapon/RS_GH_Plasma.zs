@@ -30,10 +30,15 @@ class RS_GH_Plasma : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:energy trigger:fullauto delivery:heavy payload:single feed:atomic-fill reserve:cell element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
-			proj: "RS_EnhancedPlasmaBall",
+			proj: RS_Catalog.PROJ_GH_PlasmaShot(),
 			fireSnd: RS_Catalog.SND_GH_Plasma(),
 			ammoCost: 1,
 			bigMuzzle: true,

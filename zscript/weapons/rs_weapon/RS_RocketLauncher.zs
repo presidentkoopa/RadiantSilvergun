@@ -18,6 +18,11 @@ class VR_RocketLauncher : RS_Weapon
 		+WEAPON.NOHANDSWITCH;
 	}
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:launcher trigger:semiauto delivery:heavy payload:single feed:pool reserve:rocket element:kinetic set:radiantsilvergun";
+	}
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
@@ -58,19 +63,19 @@ class VR_RocketLauncher : RS_Weapon
 
 	override Class<Actor> GetHeavyProjectile()
 	{
-		return "RS_EnhancedRocket";
+		return RS_Catalog.PROJ_Rocket();
 	}
 
-	// ammoCost 0 preserves existing behaviour exactly: this weapon's Fire:
-	// state gates on CountInv("RocketAmmo") but nothing ever spends it.
-	// That's the known "infinite ammo on the 3 heavy weapons" issue --
-	// carried forward deliberately rather than silently balance-patched
-	// during a refactor. Set this to 1 when that gets fixed on purpose.
+	// Fire: gates on CountInv("RocketAmmo") > 0 -- one rocket per shot,
+	// actually spent now (was ammoCost 0, the known infinite-ammo gap).
+	// AmmoClass is explicit because this weapon has no AmmoType2 (no
+	// magazine), so the dispatch's default fallback would resolve to null.
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
-			fireSnd: "rocklf",
-			ammoCost: 0,
+			fireSnd: RS_Catalog.SND_RocketLauncher(),
+			ammoCost: 1,
+			ammo: "RocketAmmo",
 			profName: "Rocket"));
 	}
 

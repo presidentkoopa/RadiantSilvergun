@@ -30,6 +30,11 @@ class RS_GH_Rifle : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:rifle trigger:semiauto delivery:bullet payload:single feed:atomic-fill reserve:clip element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
@@ -41,6 +46,19 @@ class RS_GH_Rifle : RS_Weapon
 			bigMuzzle: false,
 			proj: RS_Catalog.PROJ_Ballistic(),
 			profName: "Gunstar Rifle"));
+
+		// Source alt-fire: identical round, but full-auto instead of the
+		// primary's semi-auto -- the AltFire state chain below is what
+		// makes the difference, not the profile.
+		SecondarySlot.Append(RS_AttackProfile.MakeBullet(
+			fireSnd: RS_Catalog.SND_GH_Rifle(),
+			spreadScale: 0.05,
+			usesCadence: false,
+			ammoCost: 1,
+			casing: "RS_CasingRifle",
+			bigMuzzle: false,
+			proj: RS_Catalog.PROJ_Ballistic(),
+			profName: "Full Auto"));
 	}
 
 	// Source anchor: 20-20 flat damage. That becomes the Basic-tier
@@ -186,6 +204,20 @@ class RS_GH_Rifle : RS_Weapon
 		TNT1 A 0 A_JumpIf(CountInv("Clip") <= 0, "OutOfAmmo");
 		RIFR ABCDEFGHIKLMNOPQRST 1;
 		TNT1 A 0 A_RS_ReloadAtomic();
+		Goto Ready;
+
+	// Source alt-fire: full-auto secondary -- same round as primary, just
+	// held-trigger full-auto instead of one-shot-per-pull.
+	AltFire:
+		TNT1 A 0 A_JumpIf(!invoker.AutoCooldownReady(), "Ready");
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) > 0, "AltShoot");
+		Goto Reload;
+
+	AltShoot:
+		HBRI B 1 Bright A_GunFlash();
+		TNT1 A 0 A_RS_FireSlot(1);
+		HBRI C 1;
+		HBRI D 2 A_ReFire;
 		Goto Ready;
 
 	Flash:

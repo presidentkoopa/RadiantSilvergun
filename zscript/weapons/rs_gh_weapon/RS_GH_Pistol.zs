@@ -30,6 +30,11 @@ class RS_GH_Pistol : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:pistol trigger:semiauto trigger:burst delivery:bullet payload:single feed:atomic-fill reserve:clip element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
@@ -41,6 +46,19 @@ class RS_GH_Pistol : RS_Weapon
 			bigMuzzle: false,
 			proj: RS_Catalog.PROJ_Ballistic(),
 			profName: "Gunstar Sidearm"));
+
+		// Source alt-fire: 3-round burst, same round/sound as primary. The
+		// burst itself is driven by the AltFire state chain firing this
+		// slot 3 times, not by anything on the profile.
+		SecondarySlot.Append(RS_AttackProfile.MakeBullet(
+			fireSnd: RS_Catalog.SND_GH_Pistol(),
+			spreadScale: 0.05,
+			usesCadence: true,
+			ammoCost: 1,
+			casing: "RS_CasingSmall",
+			bigMuzzle: false,
+			proj: RS_Catalog.PROJ_Ballistic(),
+			profName: "3-Round Burst"));
 	}
 
 	// Source anchor: 14-14 flat damage. That becomes the Basic-tier
@@ -186,6 +204,29 @@ class RS_GH_Pistol : RS_Weapon
 		TNT1 A 0 A_JumpIf(CountInv("Clip") <= 0, "OutOfAmmo");
 		PISR ABCDEFGHIJKLMNOPQR 1;
 		TNT1 A 0 A_RS_ReloadAtomic();
+		Goto Ready;
+
+	// Source alt-fire: 3-round burst. Each pull fires up to 3 rounds,
+	// stopping early if the mag runs dry mid-burst.
+	AltFire:
+		TNT1 A 0 A_JumpIf(!invoker.CanFireSemiAuto(), "Ready");
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) > 0, "Burst");
+		Goto Reload;
+
+	Burst:
+		HBPS B 1 Bright A_GunFlash();
+		TNT1 A 0 A_RS_FireSlot(1);
+		HBPS C 1;
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) <= 0, "BurstEnd");
+		HBPS B 1 Bright A_GunFlash();
+		TNT1 A 0 A_RS_FireSlot(1);
+		HBPS C 1;
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) <= 0, "BurstEnd");
+		HBPS B 1 Bright A_GunFlash();
+		TNT1 A 0 A_RS_FireSlot(1);
+	BurstEnd:
+		HBPS C 3;
+		HBPS A 1 A_WeaponReady(WRF_ALLOWRELOAD);
 		Goto Ready;
 
 	Flash:

@@ -29,10 +29,15 @@ class RS_GH_BFG9000 : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:bfg trigger:semiauto delivery:heavy payload:single feed:pool reserve:cell element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
-			proj: "RS_EnhancedBFGBall",
+			proj: RS_Catalog.PROJ_GH_BFGShot(),
 			fireSnd: RS_Catalog.SND_GH_BFG9000(),
 			ammoCost: 1,
 			ammo: "Cell",

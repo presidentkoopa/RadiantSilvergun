@@ -22,6 +22,37 @@ OptionMenu "RS_MainOptions"
 	Submenu "Debug: Give Weapons", "RS_DebugGiveMenu"
 	Submenu "$TFLV_OPT_TITLE", "GunBonsaiOptions"
 	Submenu "Kill Rewards", "RS_BitsSettings"
+	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
+}
+
+// ---------------------------------------------------------------------
+// Vanilla+ (RS_GH_Weaponset) -- starting kit + debug-give substitution
+// chances. See zscript/player/VR_PlayerClasses.zs and
+// zscript/systems/RS_DebugGive.zs.
+// ---------------------------------------------------------------------
+OptionMenu "RS_VanillaPlusOptions"
+{
+	Title "Vanilla+ Options"
+	StaticText " "
+
+	Option "Start with Rifle instead of Pistols", "rs_vp_startrifle", "OnOff"
+	StaticText " "
+
+	StaticText "Debug-Give Substitution Chance"
+	Slider "Swap Flamethrower for Chainsaw (%)", "rs_vp_swap_flamethrower_chainsaw", 0, 100, 5, 0
+	Slider "Swap AutoShotgun for SSG (%)", "rs_vp_swap_autoshotgun_ssg", 0, 100, 5, 0
+	Slider "Swap Rifle for Minigun (%)", "rs_vp_swap_rifle_minigun", 0, 100, 5, 0
+	Slider "Swap Machinegun for Minigun (%)", "rs_vp_swap_machinegun_minigun", 0, 100, 5, 0
+	Slider "Swap GrenadeLauncher for RocketLauncher (%)", "rs_vp_swap_grenadelauncher_rocketlauncher", 0, 100, 5, 0
+	Slider "Swap RailGun for PlasmaRifle (%)", "rs_vp_swap_railgun_plasmarifle", 0, 100, 5, 0
+	StaticText " "
+
+	Option "Random BFG (33% Unmaker / BFG10k / BFG9000)", "rs_vp_randombfg", "OnOff"
+	StaticText " "
+
+	Command "God Mode (toggle)", "god"
+	Command "Give Dual GH Weapons (_1 and _4, all types)", "netevent rs_debug_give_gh_dual_all"
+	Command "Give All GH Weapons (_1 -> _6, all types)", "netevent rs_debug_give_gh_full_all"
 }
 
 // ---------------------------------------------------------------------
@@ -95,7 +126,6 @@ OptionMenu "RS_FXSettings"
 	StaticText " "
 
 	Option "Hi-Fi Weapon Effects", "rs_fx_hifitier", "RS_HiFiTierOption"
-	Option "Bullet tracers", "rs_fx_tracers", "OnOff"
 	Option "Ricochet effects", "rs_fx_ricochet", "OnOff"
 	Option "HQ vanilla sound pack", "rs_fx_hqvanillasounds", "OnOff"
 	Slider "Max simultaneous muzzle lights", "rs_fx_maxmuzzlelights", 0, 256, 4, 0

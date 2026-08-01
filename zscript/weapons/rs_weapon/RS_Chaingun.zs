@@ -22,6 +22,11 @@ class VR_Chaingun : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_Chaingun; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:chaingun trigger:fullauto delivery:hitscan payload:single feed:pool reserve:clip element:kinetic set:radiantsilvergun";
+	}
+
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
@@ -134,11 +139,11 @@ class VR_Chaingun : RS_Weapon
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeHitscan(
-			fireSnd: "chngun",
+			fireSnd: RS_Catalog.SND_Chaingun(),
 			spreadScale: 0.05,
 			ammoCost: 1,
 			ammo: "VR_ChaingunAmmo",
-			casing: "RS_CasingRifle",
+			casing: RS_Catalog.CASING_Rifle(),
 			bigMuzzle: true,
 			profName: "Belt Fed"));
 	}

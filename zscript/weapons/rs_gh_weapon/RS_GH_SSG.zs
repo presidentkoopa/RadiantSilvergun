@@ -30,9 +30,26 @@ class RS_GH_SSG : RS_Weapon
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
 
+	override string GetBaseKeywords()
+	{
+		return "archetype:supershotgun trigger:semiauto delivery:bullet payload:multi feed:atomic-fill reserve:shell element:kinetic promotion:pellet set:gunstarheroes";
+	}
+
 	override void BuildAttackProfiles()
 	{
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
+			fireSnd: RS_Catalog.SND_GH_SSG(),
+			spreadScale: 0.1,
+			usesCadence: true,
+			ammoCost: 2,
+			casing: "RS_CasingShell",
+			bigMuzzle: false,
+			proj: RS_Catalog.PROJ_Ballistic(),
+			profName: "Gunstar Double Barrel"));
+
+		// Source alt-fire: fire ONE barrel -- half the pellets, half the
+		// ammo, same per-pellet damage as the primary.
+		let oneBarrel = RS_AttackProfile.MakeBullet(
 			fireSnd: RS_Catalog.SND_GH_SSG(),
 			spreadScale: 0.1,
 			usesCadence: true,
@@ -40,7 +57,9 @@ class RS_GH_SSG : RS_Weapon
 			casing: "RS_CasingShell",
 			bigMuzzle: false,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Double Barrel"));
+			profName: "One Barrel");
+		oneBarrel.PelletOverride = 10;
+		SecondarySlot.Append(oneBarrel);
 	}
 
 	// Source anchor: 13-13 flat damage. That becomes the Basic-tier
@@ -170,7 +189,7 @@ class RS_GH_SSG : RS_Weapon
 
 	Fire:
 		TNT1 A 0 A_JumpIf(!invoker.CanFireSemiAuto(), "Ready");
-		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) > 0, "Shoot");
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) >= 2, "Shoot");
 		Goto Reload;
 
 	Shoot:
@@ -186,6 +205,19 @@ class RS_GH_SSG : RS_Weapon
 		TNT1 A 0 A_JumpIf(CountInv("Shell") <= 0, "OutOfAmmo");
 		SHTZ ABCDEFGHIJKLMNOPQRSTUVWXYZ 1;
 		TNT1 A 0 A_RS_ReloadAtomic();
+		Goto Ready;
+
+	// Source alt-fire: single barrel -- half the pellets, 1 shell.
+	AltFire:
+		TNT1 A 0 A_JumpIf(!invoker.CanFireSemiAuto(), "Ready");
+		TNT1 A 0 A_JumpIf(CountInv(invoker.AmmoType2) >= 1, "OneBarrel");
+		Goto Reload;
+
+	OneBarrel:
+		HBSS B 1 Bright A_GunFlash();
+		TNT1 A 0 A_RS_FireSlot(1);
+		HBSS C 2;
+		HBSS A 1 A_WeaponReady(WRF_ALLOWRELOAD);
 		Goto Ready;
 
 	Flash:

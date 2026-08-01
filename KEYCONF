@@ -20,3 +20,7 @@ alias bonsai_cycle_ld_effect "netevent bonsai-cycle-ld-effect"
 defaultbind P bonsai_cycle_ld_effect
 
 addkeysection "Radiant Silvergun" RSMain
+
+addmenukey "Give Current Weapon a Random Profile (Debug)" rs_debug_random_profile
+alias rs_debug_random_profile "netevent rs_debug_random_profile"
+defaultbind PGDN rs_debug_random_profile

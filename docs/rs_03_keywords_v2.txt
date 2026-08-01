@@ -1,0 +1,287 @@
+================================================================================
+                RADIANT SILVERGUN -- KEYWORD SCHEMA v2 (lockdown pass)
+================================================================================
+
+Supersedes the "KEYWORD SCHEMA v1" section of rs_02_keywords_and_state.txt.
+That file's PROJECT STATE / GAPS / GUNBONSAI sections are still current --
+this file replaces only the schema itself.
+
+
+--------------------------------------------------------------------------------
+DESIGN PRINCIPLE: THIS HAS TO STAY EASILY EXTENDABLE
+--------------------------------------------------------------------------------
+
+v1 made a mistake: it treated "no weapon uses this value today" as a reason to
+cut the value. That's wrong, and got corrected mid-session. A value existing
+in the schema before any weapon uses it is the WHOLE POINT -- it's headroom
+for a firing profile nobody has assembled yet. Cutting unused values fights
+the actual goal (assign any projectile/color/size/sound/puff to any weapon).
+
+So the rule changes shape:
+
+  AXIS-LEVEL cut test (unchanged from v1's Rule 2): does this AXIS ever
+  distinguish two weapons/profiles from each other, even hypothetically via
+  a GRANTED value? If truly nothing could ever differ on it, cut the axis.
+  Almost nothing fails this bar once GRANTED values count.
+
+  VALUE-LEVEL: never cut a value for being unused. Instead every value
+  carries a maturity tag:
+
+    REAL        -- implemented, cite the actual weapon/class.
+    DESIGNED    -- not coded yet, but a confirmed real target (a specific
+                   weapon or system you've stated intent to build it for).
+    SPECULATIVE -- plausible, not yet committed to anything.
+
+  Promoting SPECULATIVE -> DESIGNED -> REAL happens as work lands. Nothing
+  ever gets deleted for sitting at SPECULATIVE -- that's storage, not debt.
+
+RULE 1 is unchanged: a keyword is a permanent class-level fact. Per-instance
+values (DamagePerShot, Condition, rolled Accuracy, etc.) stay fields on
+RS_Weapon, never keywords.
+
+
+--------------------------------------------------------------------------------
+BASE vs GRANTED -- unchanged from the original draft, still the load-bearing
+mechanism
+--------------------------------------------------------------------------------
+
+  BASE      authored on the class. Ships with the weapon, never changes.
+  GRANTED   added at runtime by a GunBonsai affix, a Promotion, or a socket.
+
+Eligibility checks query the UNION of both -- this is what lets affixes chain
+into each other and produce weapon combinations nobody hand-designed. See the
+worked "emergent gun" example in the original draft (Basic Revolver + affix
+chain -> 4-pellet projectile cluster thermal revolver); nothing about that
+example changes here.
+
+
+--------------------------------------------------------------------------------
+STRUCTURAL FIXES BEFORE THE AXES -- three real collisions found in the
+raw draft, resolved here
+--------------------------------------------------------------------------------
+
+1. "archetype" and "family" are NOT the same thing, and the draft used them
+   interchangeably. EVR_Family already exists in code (RS_Roll.zs) and is
+   load-bearing: RS_ClassGating.zs uses it to destroy floor-pickup weapons
+   that don't match the player's class. It currently has 8 values (None +
+   7 gated families) and answers "which class exclusively owns this."
+   archetype is a NEW, broader axis answering "what kind of gun is this" --
+   a GH Minigun and VR_Chaingun are both archetype:chaingun despite neither
+   having a real EVR_Family gate (both are EVR_Family_None). Keep these as
+   two separate axes. archetype could theoretically become the thing
+   GetFamily() derives from later, but they're not identical today.
+
+2. "energy" appeared in archetype, delivery, AND element in the raw draft --
+   three different jobs for one word. Resolved: energy stays ONLY as an
+   archetype (the Plasma Rifle / Unmaker family of weapons). Dropped from
+   delivery (it's not a travel-shape concept) and from element (element
+   already has plasma/melt doing that job more precisely).
+
+3. "wave" and "radial" were listed under delivery, but they describe IMPACT
+   shape, not travel shape -- that's payload's job, not delivery's. Moved.
+   delivery answers "how does it get from gun to target" (hitscan / bullet /
+   heavy-projectile / beam / melee). payload answers "what happens per
+   shot" (single / multi / radial-burst / expanding-wave / etc).
+
+
+--------------------------------------------------------------------------------
+THE AXES
+--------------------------------------------------------------------------------
+
+## archetype
+revolver, pistol, smg, rifle, shotgun, supershotgun, chaingun, launcher,
+energy, bfg, melee, flamethrower, railgun
+
+  All REAL except: (all are real -- every value above has a weapon.)
+  chaingun covers VR_Chaingun + GH Minigun + GH Machinegun -- genuinely the
+    same archetype (pool-fed, no chamber, rapid-fire); what differs between
+    them is trigger/delivery, not archetype.
+  launcher covers Rocket AND Grenade launchers -- both "heavy ordnance,
+    travels, explodes on impact"; arc/bounce is a payload/delivery detail,
+    not a separate archetype.
+  energy covers Plasma Rifle + GH Plasma + GH Unmaker.
+  flamethrower, railgun are the two archetypes the GH import genuinely
+    added that nothing in the main-11 had -- confirmed real, not
+    speculative, both exist and fire today.
+
+## trigger
+semiauto, fullauto, burst -- REAL.
+  semiauto/fullauto: the only two gates that exist in RS_Weapon
+    (CanFireSemiAuto/AutoCooldownReady).
+  burst: REAL as of this session -- GH Pistol's 3-round burst alt-fire is
+    a real, working implementation, not a stub.
+
+charge, spool/windup, held/beam -- DESIGNED, not SPECULATIVE.
+  charge has a confirmed real target: Railgun, charge-to-fire with an
+    audible "ready" beep as the player-facing signal (this session's
+    direction, not yet built). This is also the FIRST real implementation
+    of the "ready to fire" feedback idea -- checked, no beep/cadence-signal
+    code exists anywhere in the project yet, so there's no earlier
+    prototype to build on; Railgun would be the reference implementation.
+  spool/windup: GH Minigun's name promises this and its code doesn't
+    deliver it (confirmed gap, noted earlier this session) -- a real,
+    named target once someone decides to build it, not just an abstract
+    idea.
+  held/beam: no target yet. SPECULATIVE, not DESIGNED, until one exists.
+
+## grip
+onehand, twohand -- SPECULATIVE, but with a real, cheap hook available now:
+  the offhand's current weapon identity is already inspectable data
+  (player.OffhandWeapon, and whether it's the VR_Fist2 filler class) -- so
+  "does this weapon get a bonus when the offhand is empty-fisted and free
+  to physically brace it" is buildable without new stat fields, just a
+  runtime check against existing state. Worth keeping as SPECULATIVE with
+  this note attached so future-you doesn't have to re-derive the hook.
+
+## cadence -- NOT a keyword axis. Clarifying, not cutting.
+RateOfFire and ReloadSpeed are already real per-weapon fields (Rule 1: any
+value you can only learn by inspecting one weapon instance is a stat, not
+a keyword). What you actually asked for -- "tell the player when it's
+clear to fire" -- is a HUD/feedback FEATURE, not a classification axis.
+trigger:charge (above) is the keyword that marks WHICH weapons need that
+feedback; the beep/HUD signal itself is a separate system that reads the
+trigger keyword to decide whether to activate. Railgun becomes the
+reference case for both at once.
+
+## delivery
+hitscan, bullet, heavy, melee -- REAL, map 1:1 onto RS_AttackProfile.Mode
+  (RS_ATK_HITSCAN/BULLET/HEAVY/MELEE) -- this is existing code, not new
+  vocabulary. hitscan stays in the set deliberately -- VR_Chaingun already
+  uses it and it's a legitimate mode, just one this project has chosen to
+  use rarely (Railgun deliberately went bullet-mode instead of hitscan
+  this session, for dodgeability -- a design choice, not a rule against
+  hitscan existing at all).
+beam -- DESIGNED. No weapon uses true continuous-beam delivery yet, but
+  it's a real, distinct travel shape (not bullet, not hitscan) worth
+  keeping named for whenever a beam weapon gets built.
+missile -- folded into heavy (same thing, heavy already covers
+  Rocket/Plasma/BFG-style travelling ordnance).
+
+## payload
+single, multi -- REAL (PelletCount category, Choke only matters on multi).
+radial -- REAL, just not previously named as a payload value: every
+  Heavy-mode weapon's A_Explode splash IS a radial burst already. This
+  value just gives that existing behavior a name.
+cluster -- DESIGNED. The GH grenade family's two-stage blast (direct hit +
+  wider concussion) is adjacent to this but isn't true submunition-
+  splitting yet. Real target once someone wants an actual cluster round.
+wave, timedelay -- SPECULATIVE. Named, not yet targeted at anything.
+
+## element
+kinetic -- REAL, and deliberately the "no special DamageType" default.
+  Answering the "aren't all attacks kinetic" question directly: yes, most
+  are, and that's fine -- kinetic isn't decoration, it's the valid null
+  value, and it DOES vary across the roster (explosive/melt/thermal
+  weapons are real exceptions), which is what actually matters for Rule 2.
+explosive -- REAL (Rocket/Grenade/BFG family).
+melt -- REAL, GH Unmaker only (DamageType "Melt", real and distinct from
+  plasma despite the visual similarity).
+thermal -- REAL as of this session (GH Flamethrower's RS_GH_FlameJet sets
+  DamageType "Fire" -- this was the exact bug flagged earlier and it's
+  fixed now, not still open).
+plasma -- NOT actually real yet, worth flagging: neither RS_EnhancedPlasmaBall
+  nor RS_GH_PlasmaShot sets a distinct DamageType -- they're mechanically
+  kinetic today despite the name. Same shape of gap as the flamethrower bug
+  was, just not yet fixed. DESIGNED, not REAL, until that's addressed.
+corrosive (acid), shock (lightning), cryo (ice) -- SPECULATIVE. Worth
+  naming precisely because the FX catalog already has real assets for two
+  of them (RSA0 acid splash, RSL0-2 lightning) -- but having catalog art
+  is a presentation-layer fact, not a mechanical DamageType fact. No
+  weapon deals any of these three damage types today. Keep them named;
+  don't treat the existing art as proof they're built.
+
+## behavior
+normal -- REAL (the baseline; same "is this decoration" logic as kinetic
+  above -- valid because ricochet/homing/etc. are real alternatives that
+  exist elsewhere in the engine, even if not on a base weapon yet).
+ricochet, homing, forking, orbiting, wall-running -- all SPECULATIVE as
+  BASE values, but worth noting explicitly: this axis is expected to stay
+  GRANTED-only in practice. This is literally what GunBonsai's replacement
+  affixes exist to hand out (the old BouncyShots/PiercingShots affixes did
+  exactly this, as GRANTED-only, never authored on a base weapon) -- so
+  don't expect to backfill BASE values here later; the design intent is
+  that affixes are the only source of these.
+
+## feed / reload
+atomic-fill, incremental, pool, none -- REAL, this exact 4-value set
+  (corrected from a wrong 6-value draft earlier this session after
+  checking the actual reload code -- see rs_02's gap notes for the
+  correction).
+belt -- explicitly NOT adding this as a separate value: it reads
+  identical to pool on every weapon that could plausibly claim it
+  (Chaingun/Minigun/Machinegun) -- pure flavor, not a mechanical
+  difference, so it fails even the loosened value-level bar (this isn't
+  "unused," it's "would never differ from an existing value"). "Belt-fed"
+  stays flavor text on the archetype, not its own feed value.
+recharge -- DESIGNED. The source Flamethrower's real design (HF_Fuel,
+  self-recharging over time) was deliberately simplified to shared Cell
+  ammo in this project's port -- recharge is the real, named mechanic for
+  if that gets un-simplified later. Pairs with reserve:fuel below.
+
+## reserve
+clip, shell, rocket, cell, none -- REAL.
+fuel -- DESIGNED, paired with feed:recharge above -- the real Flamethrower-
+  as-originally-intended resource, not currently used (GH Flamethrower
+  draws from Cell today, a deliberate simplification, not an oversight).
+
+## promotion
+Real, concrete evidence this axis matters, found while writing this doc:
+the Prototype->Basic sacrifice-for-+1-pellet mechanic (rs_00_overview.txt's
+whole "strongest weapon" thesis) is NOT universal. Checked every weapon:
+
+  HAS pellet-promotion (isSacrificeDowngrade -> PelletCount+=1):
+    Main-11: Pistol, Revolver, Rifle, SMG, Shotgun (5 of 11)
+    GH set:  all 21 weapons (21 of 21)
+
+  MISSING pellet-promotion entirely (ApplyUpgradeCard just re-rolls,
+  no bonus of any kind on Promotion):
+    Main-11: SuperShotgun, Chaingun, Chainsaw, RocketLauncher,
+             PlasmaRifle, BFG9000 (6 of 11)
+
+That's a real, verified split across the actual roster -- exactly the bar
+Rule 2 asks for. Whether the 6 missing main-11 weapons are a bug to fix or
+intentional (heavy ordnance/chaingun don't fit a "pellet" reward) is a
+separate decision, not answered by this doc -- but the axis itself is
+proven real by this split alone.
+
+  pellet -- REAL (see above).
+  crit, nodrop, upsocket -- SPECULATIVE. Named as alternate Promotion
+    reward flavors a weapon TYPE could be eligible for instead of pellet
+    (e.g. a hitscan/chaingun-family weapon promoting toward crit instead
+    of pellet count, since "more pellets" means less for a 1-pellet gun).
+    This is the natural fix path for the 6-weapon gap above, if wanted.
+
+## characteristic (repeatable, multi-value -- per the two-entry placeholder
+in the raw draft, "genericcategorywecanrepeat")
+Best-guess interpretation, flagging for confirmation rather than assuming
+silently: fast-learn / resilient / unlucky read as PER-INSTANCE rolled
+traits (this specific weapon learns faster / degrades slower / rolls
+worse), which would violate Rule 1 if authored as a class-level BASE tag.
+The Rule-1-consistent version: characteristic keywords mark which traits a
+CLASS is ELIGIBLE to roll into, mirroring how Trash tier already has a
+hidden 5% good-roll chance today -- the ELIGIBILITY is class-level (BASE),
+the actual rolled result is instance data (new fields, not yet built).
+All SPECULATIVE. CONFIRM: is that the intended split, or did you mean
+something else by the double-listed placeholder?
+
+## curse
+fragile, loud, bit-pusher -- all SPECULATIVE, but well-motivated: today's
+  Cursed tier does exactly ONE thing (LockedDamage + LockedCritChance),
+  despite rs_00_overview.txt's original text already saying "Each curse
+  must be individually unlocked" -- implying multiple distinct curse
+  flavors was always the intent, just never built past the single generic
+  one. This axis is the natural home for that original, never-finished
+  idea, not new scope.
+
+## set
+radiantsilvergun, gunstarheroes -- REAL, unchanged from v1.
+
+
+--------------------------------------------------------------------------------
+OPEN QUESTION FOR YOU
+--------------------------------------------------------------------------------
+Only one thing in this pass needs a real answer rather than a design
+judgment call: the "characteristic" interpretation above. Confirm or
+correct before it gets used anywhere.
+
+Everything else in this doc is ready to reference going forward.
