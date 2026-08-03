@@ -129,6 +129,31 @@ class RS_Weapon : Weapon abstract
 	// unused numbers -- nothing can fire before this, full-auto or not.
 	int NextFireTic;
 
+	// Tic of the last committed trigger pull (including backfires -- the
+	// gun still went bang). 0 = never fired. Read by the resolver for
+	// Overcharged's Focus Mastery ("first shot after a deliberate pause
+	// pays no spread penalty"); stamped by A_RS_FireSlot.
+	int RS_LastShotTic;
+
+	// Does any beat on either slot run in the given RS_ATK_* mode?
+	// Suitability gate for designed affixes -- Splitter wants a bullet
+	// or hitscan beat, Ghost a bullet beat, etc.
+	bool HasBeatMode(int mode)
+	{
+		for (int s = 0; s < 2; s++)
+		{
+			let slot = GetSlot(s);
+			if (!slot) continue;
+			for (int i = 0; i < slot.Count(); i++)
+			{
+				let prof = slot.PeekAt(i);
+				if (prof && prof.Mode == mode)
+					return true;
+			}
+		}
+		return false;
+	}
+
 	double GetTimeBetweenShots()
 	{
 		return 1.0 / max(1, RateOfFire);
@@ -397,6 +422,7 @@ class RS_Weapon : Weapon abstract
 			A_RS_Backfire();
 			if (pool && p.AmmoCost > 0)
 				TakeInventory(pool, p.AmmoCost);
+			invoker.RS_LastShotTic = Level.maptime;
 			A_RS_MarkFired();
 			return false;
 		}
@@ -433,7 +459,22 @@ class RS_Weapon : Weapon abstract
 		{
 			Class<Actor> hitscanPuff = invoker.AffixImpactPuff ? invoker.AffixImpactPuff : p.ImpactPuff;
 			if (!hitscanPuff) hitscanPuff = "bulletpuff";
-			A_FireBullets(spread, spread, pellets, int(dmg), hitscanPuff, FBF_NORANDOM);
+			if (mods.MasteryFan && pellets > 1)
+			{
+				// Splitter Mastery: deterministic even fan instead of
+				// random scatter. A_FireBullets can't do fixed per-pellet
+				// angles, so aim the player for each trace and restore.
+				double fanSpread = spread * 1.25;
+				double baseAngle = angle;
+				for (int i = 0; i < pellets; i++)
+				{
+					angle = baseAngle - fanSpread + (2.0 * fanSpread) * i / double(pellets - 1);
+					A_FireBullets(0, 0, 1, int(dmg), hitscanPuff, FBF_NORANDOM);
+				}
+				angle = baseAngle;
+			}
+			else
+				A_FireBullets(spread, spread, pellets, int(dmg), hitscanPuff, FBF_NORANDOM);
 		}
 		else if (p.Mode == RS_ATK_MELEE)
 		{
@@ -463,6 +504,7 @@ class RS_Weapon : Weapon abstract
 		if (fxCasing != "")
 			RS_HiFiFX.CasingEject(self, fxCasing);
 
+		invoker.RS_LastShotTic = Level.maptime;
 		A_RS_MarkFired();
 		return true;
 	}
@@ -491,6 +533,24 @@ class RS_Weapon : Weapon abstract
 		// round that silently skips SetupStats -- the exact old
 		// pool bug, fenced at the one place it could re-enter.
 		Class<Actor> cls = (Class<RS_BallisticFired>)(AffixProjectile);
+
+		// Plain-Actor affix parts (RS_AffixPartActor) are the ONE class
+		// of non-ballistic projectile the bullet path fires -- they exist
+		// precisely because FastProjectile can't bounce, so a bouncing
+		// round (Cryo's Mastery orb) must be a plain Actor. They carry
+		// their own exact-damage override; they use their own authored
+		// Speed (a lobbed orb at rolled bullet velocity would be a beam),
+		// and skip ballistic-only features (homing/rip/trail plumbing).
+		if (!cls)
+		{
+			Class<RS_AffixPartActor> partCls = (Class<RS_AffixPartActor>)(AffixProjectile);
+			if (partCls)
+			{
+				RS_FireAffixPartRound(shooter, partCls, p, dmg, pellets, spread, mods);
+				return;
+			}
+		}
+
 		if (!cls) cls = p.ProjectileClass;
 		if (!cls) cls = ProjectileClass;
 		if (!cls) cls = "RS_BallisticType1";
@@ -512,10 +572,24 @@ class RS_Weapon : Weapon abstract
 			: RS_Catalog.ScaleForArchetype(GetPaletteArchetype());
 		if (mods) projScale *= mods.ScaleMult;
 
+		bool fan = mods && mods.MasteryFan && pellets > 1;
+		double fanSpread = spread * 1.25;
+
 		for (int i = 0; i < pellets; i++)
 		{
-			double a  = shooter.angle + FRandom(-spread, spread);
-			double pt = shooter.pitch + FRandom(-spread, spread);
+			double a, pt;
+			if (fan)
+			{
+				// Splitter Mastery: fixed even geometry, flat pitch. The
+				// wall is readable and reliable, that's the whole point.
+				a  = shooter.angle - fanSpread + (2.0 * fanSpread) * i / double(pellets - 1);
+				pt = shooter.pitch;
+			}
+			else
+			{
+				a  = shooter.angle + FRandom(-spread, spread);
+				pt = shooter.pitch + FRandom(-spread, spread);
+			}
 			let proj = RS_BallisticFired(
 				shooter.SpawnPlayerMissile(cls, a, pitch: pt, aimflags: aimflags));
 			if (proj)
@@ -526,12 +600,55 @@ class RS_Weapon : Weapon abstract
 				if (mods)
 				{
 					proj.Homing = mods.Homing;
+					// Bonecaller mid-levels: each PELLET rolls its own
+					// chance to seek -- a mixed volley of straight and
+					// hunting rounds, per shot, per pellet.
+					if (!proj.Homing && mods.HomingChance > 0)
+						proj.Homing = FRandom(0, 1) < mods.HomingChance;
+					proj.SeekLevel   = mods.SeekLevel;
+					proj.SeekPrecise = mods.SeekPrecise;
 					// Native ripper -- the round passes through monsters,
 					// damaging each. Real GZDoom flag, no custom logic.
 					proj.bRIPPER = mods.Piercing;
+					proj.PierceLimit     = mods.PierceLevel;
+					proj.PierceRetention = mods.PierceRetention;
+					proj.StitchOnKill    = mods.Stitch;
+					if (mods.MasteryKick)
+						proj.ProjectileKickback = 600;
+					if (mods.MasteryIgnite)
+						proj.ImpactSpawnExtra = "RS_AffixGroundFire";
 				}
 				// THE SACRED POINTER -- GunBonsai reads master to attribute
 				// XP to the hand that actually fired. Never break it.
+				proj.master = self;
+			}
+		}
+	}
+
+	// The plain-Actor sibling of the loop above, for RS_AffixPartActor
+	// rounds (bouncing orbs and future non-FastProjectile parts). Kept
+	// deliberately lean: exact damage, scale, master pointer, and the
+	// part's own authored flight -- no homing/rip/trail plumbing, which
+	// all assumes RS_BallisticFired.
+	void RS_FireAffixPartRound(Actor shooter, Class<RS_AffixPartActor> cls,
+		RS_AttackProfile p, double dmg, int pellets, double spread,
+		RS_ShotKeywordMods mods)
+	{
+		int aimflags = bOffhandWeapon ? ALF_ISOFFHAND : 0;
+		double projScale = (p.ProjScale > 0)
+			? p.ProjScale
+			: RS_Catalog.ScaleForArchetype(GetPaletteArchetype());
+		if (mods) projScale *= mods.ScaleMult;
+
+		for (int i = 0; i < pellets; i++)
+		{
+			double a = shooter.angle + FRandom(-spread, spread);
+			let proj = RS_AffixPartActor(
+				shooter.SpawnPlayerMissile(cls, a, aimflags: aimflags));
+			if (proj)
+			{
+				proj.ExactDamage = int(dmg);
+				RS_Catalog.ApplyProjectileScale(proj, projScale);
 				proj.master = self;
 			}
 		}

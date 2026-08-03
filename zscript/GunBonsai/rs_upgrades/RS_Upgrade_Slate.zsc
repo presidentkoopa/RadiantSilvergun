@@ -1,0 +1,524 @@
+// =====================================================================
+// The designed affix slate -- ten RS-authored GunBonsai upgrades, the
+// full workshop record for every one of them in
+// docs/rs_09_affix_slate.txt. Read that first; this file is the
+// mechanism, the doc is the design.
+//
+// Shared shape: each affix is takeable 6 times. Takes 1-5 are the
+// level ladder; the 6th is the Mastery (a rule change, never bigger
+// numbers). Effects land as granted keywords the shot resolver
+// (RS_ShotKeywordMods.Resolve) reads fresh every shot -- OnActivate is
+// re-runnable (idempotent by reconstruction: ungrant my whole family,
+// grant the current level's value), OnDeactivate is a complete undo
+// (Promotion's affix-strip depends on that -- RS_GunBonsaiBridge).
+//
+// EXCLUSION GROUPS (design, enforced in IsSuitableForWeapon):
+//   shape:    Splitter <-> Slugger        -- one payload shape per gun
+//   identity: Painter <-> Bonecaller <-> Cryo -- one projectile identity
+// Everything across groups stacks freely; that's where builds live
+// (Seeker + Slugger = the homing slug).
+// =====================================================================
+
+// Shared plumbing: the leveled keyword family. A subclass names its
+// axis and its per-level value; this base keeps grants consistent and
+// deactivation airtight.
+class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
+{
+	virtual string KeyAxis() { return "payload"; }
+
+	// Value granted at a given take-count (1..6). "" = grant nothing at
+	// this level (identity-only levels, e.g. Bonecaller L1).
+	virtual string ValueForLevel(int lvl) { return ""; }
+
+	// Per-affix extras beyond the keyword grant (part-swaps, prices).
+	virtual void ExtraActivate(RS_Weapon wpn) {}
+	virtual void ExtraDeactivate(RS_Weapon wpn) {}
+
+	void ApplyLeveled(RS_Weapon wpn)
+	{
+		// Reconstruct, don't accumulate: strip every value this family
+		// could ever have granted, then grant exactly the current one.
+		// This is what makes OnActivate safely re-runnable at any level
+		// with no intervening OnDeactivate (GB's own documented case).
+		for (int l = 1; l <= 6; l++)
+		{
+			string v = ValueForLevel(l);
+			if (v != "")
+				wpn.UngrantKeyword(KeyAxis(), v);
+		}
+		string cur = ValueForLevel(clamp(int(level), 1, 6));
+		if (cur != "")
+			wpn.GrantKeyword(KeyAxis(), cur);
+	}
+
+	void RemoveLeveled(RS_Weapon wpn)
+	{
+		for (int l = 1; l <= 6; l++)
+		{
+			string v = ValueForLevel(l);
+			if (v != "")
+				wpn.UngrantKeyword(KeyAxis(), v);
+		}
+	}
+
+	override void OnActivate(TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		super.OnActivate(stats, info);
+		let wpn = RS_Weapon(info.wpn);
+		if (!wpn) return;
+		ApplyLeveled(wpn);
+		ExtraActivate(wpn);
+	}
+
+	override void OnDeactivate(TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		super.OnDeactivate(stats, info);
+		let wpn = RS_Weapon(info.wpn);
+		if (!wpn) return;
+		RemoveLeveled(wpn);
+		ExtraDeactivate(wpn);
+	}
+}
+
+// ---------------------------------------------------------------------
+// 01 SPLITTER -- payload shape. N-way exact wash, deeper per level.
+// Mastery: the deterministic fan.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Splitter : TFLV_Upgrade_RS_SlateBase
+{
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "split2";
+			case 2: return "split3";
+			case 3: return "split4";
+			case 4: return "split5";
+			case 5: return "split6";
+		}
+		return "splitmaster";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn
+			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HITSCAN))
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Slugger") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Splitter") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 02 SLUGGER -- payload shape. Collapse the volley into one heavy
+// round; damage climbs, spread tightens, the round visibly grows.
+// Mastery: the slug punches through.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Slugger : TFLV_Upgrade_RS_SlateBase
+{
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "slug1";
+			case 2: return "slug2";
+			case 3: return "slug3";
+			case 4: return "slug4";
+			case 5: return "slug5";
+		}
+		return "slugmaster";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn
+			&& wpn.PelletCount >= 2
+			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HITSCAN))
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Splitter") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Slugger") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 03 OVERCHARGED -- damage and spread climb together; the sloppiness
+// IS the price. Mastery: Focus -- the first shot after a >= 1s pause
+// pays no spread penalty. Excluded from zero-spread weapons (GH
+// Railgun), where the price would be counterfeit.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Overcharged : TFLV_Upgrade_RS_SlateBase
+{
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "over1";
+			case 2: return "over2";
+			case 3: return "over3";
+			case 4: return "over4";
+			case 5: return "over5";
+		}
+		return "overmaster";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		if (!wpn) return false;
+		let slot = wpn.GetSlot(0);
+		let beat = slot ? slot.PeekAt(0) : null;
+		return beat
+			&& beat.SpreadScale > 0
+			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HITSCAN))
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Overcharged") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 04 GIANT -- the joke that's secretly a build. Scale is visual AND
+// hitbox; price-free identity. Mastery: Wrecking Ball kickback.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Giant : TFLV_Upgrade_RS_SlateBase
+{
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "giant1";
+			case 2: return "giant2";
+			case 3: return "giant3";
+			case 4: return "giant4";
+			case 5: return "giant5";
+		}
+		return "giantmaster";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn
+			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HEAVY))
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Giant") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 05 SEEKER -- behavior. Homes true from L1; levels buy retarget
+// cycling across more victims. Price: -5% damage per level. Mastery:
+// unlimited cycling, precise tracking, curves around corners.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Seeker : TFLV_Upgrade_RS_SlateBase
+{
+	override string KeyAxis() { return "behavior"; }
+
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "seek1";
+			case 2: return "seek2";
+			case 3: return "seek3";
+			case 4: return "seek4";
+			case 5: return "seek5";
+		}
+		return "seekmaster";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn
+			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HEAVY))
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Seeker") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 06 GHOST -- behavior. Rounds punch through victims; retention decay
+// per punch IS the price. Bullet-only (a ripping rocket is a bug
+// generator, and hitscan has nothing to rip). Mastery: the stitch.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Ghost : TFLV_Upgrade_RS_SlateBase
+{
+	override string KeyAxis() { return "behavior"; }
+
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "pierce1";
+			case 2: return "pierce2";
+			case 3: return "pierce3";
+			case 4: return "pierce4";
+			case 5: return "pierce5";
+		}
+		return "piercemaster";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn
+			&& wpn.HasBeatMode(RS_ATK_BULLET)
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Ghost") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 07 PAINTER -- first element identity (thermal). Part-swap: the gun's
+// rounds BECOME fire, rolled once from a two-family wardrobe (Wisp /
+// Ember) the moment the affix is taken -- that roll is this gun's fire
+// forever. Levels: +3% damage each, identity-first. Mastery: impacts
+// ignite the ground.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Painter : TFLV_Upgrade_RS_SlateBase
+{
+	// -1 = not yet rolled. Rolled exactly once per upgrade instance --
+	// GB persists this object for the weapon's whole life, so the
+	// wardrobe roll is permanent until Promotion strips the affix.
+	int WardrobeRoll;
+
+	override string KeyAxis() { return "element"; }
+
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "fire1";
+			case 2: return "fire2";
+			case 3: return "fire3";
+			case 4: return "fire4";
+			case 5: return "fire5";
+		}
+		return "firemaster";
+	}
+
+	override void ExtraActivate(RS_Weapon wpn)
+	{
+		if (WardrobeRoll < 0 || WardrobeRoll > 1)
+			WardrobeRoll = Random(0, 1);
+		wpn.AffixProjectile = (WardrobeRoll == 0)
+			? (Class<Actor>)("RS_AffixFireWisp")
+			: (Class<Actor>)("RS_AffixFireEmber");
+		wpn.AffixFireSound = "hq_dsfirsht";
+	}
+
+	override void ExtraDeactivate(RS_Weapon wpn)
+	{
+		// Null only what is still ours -- single-slot layer, last writer
+		// wins, and the exclusion group should make collisions
+		// impossible, but deactivation stays polite anyway. Explicit
+		// class-lookup casts: Class<Actor> == string is not a reliable
+		// comparison in this engine.
+		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixFireWisp")
+			|| wpn.AffixProjectile == (Class<Actor>)("RS_AffixFireEmber"))
+			wpn.AffixProjectile = null;
+		if (wpn.AffixFireSound == "hq_dsfirsht")
+			wpn.AffixFireSound = "";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn
+			&& wpn.HasBeatMode(RS_ATK_BULLET)
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Cryo") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Painter") < 6;
+	}
+
+	// Fresh roll if this affix is ever re-taken after a Promotion strip.
+	TFLV_Upgrade_RS_Painter Init()
+	{
+		WardrobeRoll = -1;
+		return self;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 08 BONECALLER -- monster-part signature. Rounds become Revenant bone
+// tracers (vanilla sprite + vanilla skeleton audio, zero asset risk).
+// L1 is pure identity; L2-4 give each PELLET a growing chance to hunt;
+// L5 all rounds hunt. Mastery: twin-fire -- every round doubles into a
+// straight+seeking pair at half damage each. Exact wash, double dread.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Bonecaller : TFLV_Upgrade_RS_SlateBase
+{
+	override string KeyAxis() { return "behavior"; }
+
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "";              // identity only, an exact wash
+			case 2: return "bonechance25";
+			case 3: return "bonechance50";
+			case 4: return "bonechance75";
+			case 5: return "bonechance100";
+		}
+		return "bonemaster";
+	}
+
+	override void ExtraActivate(RS_Weapon wpn)
+	{
+		wpn.AffixProjectile = "RS_AffixBoneTracer";
+		wpn.AffixFireSound = "skeleton/attack";
+	}
+
+	override void ExtraDeactivate(RS_Weapon wpn)
+	{
+		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixBoneTracer"))
+			wpn.AffixProjectile = null;
+		if (wpn.AffixFireSound == "skeleton/attack")
+			wpn.AffixFireSound = "";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn
+			&& wpn.HasBeatMode(RS_ATK_BULLET)
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Painter") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Cryo") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 09 CRYO -- second element identity. Rounds become imported CH ice
+// shards (+6% damage per level); the price is real chambered rounds:
+// -1 Capacity per 2 levels, restored to the last point on removal.
+// Mastery: the round becomes the bouncing ice orb -- the first
+// plain-Actor part, and the first bounce any player round has ever
+// been allowed (FastProjectile can't; this isn't one).
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Cryo : TFLV_Upgrade_RS_SlateBase
+{
+	// Exactly how much Capacity we are currently holding -- restored
+	// before every re-apply and on deactivate, so level changes can
+	// never drift or double-charge.
+	int AppliedCapCut;
+
+	override string KeyAxis() { return "element"; }
+
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "ice1";
+			case 2: return "ice2";
+			case 3: return "ice3";
+			case 4: return "ice4";
+			case 5: return "ice5";
+		}
+		return "icemaster";
+	}
+
+	override void ExtraActivate(RS_Weapon wpn)
+	{
+		wpn.AffixProjectile = (level >= 6)
+			? (Class<Actor>)("RS_AffixIceOrb")
+			: (Class<Actor>)("RS_AffixIceShard");
+		wpn.AffixFireSound = "rs_fx_ice_cast";
+
+		// The price: heavier rounds, fewer chambered. Restore-then-apply
+		// keeps this exact across re-activations and level-ups.
+		wpn.Capacity += AppliedCapCut;
+		AppliedCapCut = min(int(level) / 2, wpn.Capacity - 1);
+		AppliedCapCut = max(0, AppliedCapCut);
+		wpn.Capacity -= AppliedCapCut;
+	}
+
+	override void ExtraDeactivate(RS_Weapon wpn)
+	{
+		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixIceShard")
+			|| wpn.AffixProjectile == (Class<Actor>)("RS_AffixIceOrb"))
+			wpn.AffixProjectile = null;
+		if (wpn.AffixFireSound == "rs_fx_ice_cast")
+			wpn.AffixFireSound = "";
+		wpn.Capacity += AppliedCapCut;
+		AppliedCapCut = 0;
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn
+			&& wpn.HasBeatMode(RS_ATK_BULLET)
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Painter") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Cryo") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 10 ECHO -- the rotation-layer showpiece; first real consumer of the
+// beat machinery (PadTo/Replace were built for exactly this and used
+// by nothing). Every Nth trigger pull is a free enhanced beat: costs
+// no ammo, fires a cluster round. L1 every 7th -> L5 every 3rd.
+// Mastery: every 2nd.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Echo : TFLV_Upgrade_RS_SlateBase
+{
+	// The weapon's own authored beat, captured before we ever touch the
+	// rotation -- the exact object, not a clone, so deactivation
+	// restores the true original.
+	RS_AttackProfile SavedOriginal;
+
+	override string ValueForLevel(int lvl) { return ""; }   // no keywords; pure rotation
+
+	override void ExtraActivate(RS_Weapon wpn)
+	{
+		let slot = wpn.GetSlot(0);
+		if (!slot) return;
+
+		if (!SavedOriginal)
+		{
+			// First touch: only adopt a rotation we understand (the
+			// universal single-beat case -- true of all 32 weapons
+			// today). Anything else, leave alone.
+			if (slot.Count() != 1) return;
+			SavedOriginal = slot.PeekAt(0);
+		}
+
+		// Reconstruct the whole rotation from scratch each activation --
+		// idempotent at any level, no drift.
+		int n = (level >= 6) ? 2 : max(3, 8 - int(level));
+		slot.Clear();
+		slot.Append(SavedOriginal);
+		slot.PadTo(n, SavedOriginal);
+
+		let echo = SavedOriginal.Clone();
+		echo.AmmoCost = 0;
+		echo.GrantLocal("payload", "cluster");
+		echo.ProfileName = "Echo";
+		slot.Replace(n - 1, echo);
+		slot.ResetCursor();
+	}
+
+	override void ExtraDeactivate(RS_Weapon wpn)
+	{
+		if (!SavedOriginal) return;
+		let slot = wpn.GetSlot(0);
+		if (!slot) return;
+		slot.Clear();
+		slot.Append(SavedOriginal);
+		slot.ResetCursor();
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		if (!wpn) return false;
+		let slot = wpn.GetSlot(0);
+		let beat = slot ? slot.PeekAt(0) : null;
+		if (!beat) return false;
+		bool modeOK = beat.Mode == RS_ATK_BULLET || beat.Mode == RS_ATK_HITSCAN;
+		// After first take the rotation is ours (Count > 1) -- keep
+		// offering deeper levels; before it, only adopt single-beat.
+		bool shapeOK = slot.Count() == 1
+			|| info.upgrades.Level("TFLV_Upgrade_RS_Echo") > 0;
+		return modeOK && shapeOK
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Echo") < 6;
+	}
+}

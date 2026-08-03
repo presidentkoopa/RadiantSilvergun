@@ -531,3 +531,12 @@ rs_gh/bfg10k_fire   Sounds/rs_gh_weapon/gh_bfg10k/10KFIRE
 rs_gh/unmaker_fire   Sounds/rs_gh_weapon/gh_unmaker/UNMLOP.ogg
 rs_gh/flamethrower_fire   Sounds/rs_gh_weapon/gh_flamethrower/FLAMER
 rs_gh/machinegun_fire   Sounds/rs_gh_weapon/gh_machinegun/HMGFIRE.ogg
+
+// --- Ice family (Cryo affix) -----------------------------------------
+// Imported from ART SOURCE/CH (originals: ICECAST/ICEI/FROSTNN/VORTEX),
+// re-homed per the one-name-two-places rule: sounds/combatfx/ice/
+// mirrors sprites/combatfx/ice/ (the imported ICEY shard art).
+rs_fx_ice_cast     Sounds/combatfx/ice/ice_cast.ogg
+rs_fx_ice_hit      Sounds/combatfx/ice/ice_hit.ogg
+rs_fx_ice_shatter  Sounds/combatfx/ice/ice_shatter.ogg
+rs_fx_ice_fly      Sounds/combatfx/ice/ice_fly.ogg

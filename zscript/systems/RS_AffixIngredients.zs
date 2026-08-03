@@ -139,11 +139,37 @@ class RS_AffixIngredientPool
 		// than pretended to be free; a generated bundle that includes
 		// this MUST pair it with a real downside elsewhere to net <= 0.
 		pool.Push(RS_AffixIngredient.Make("behavior", "behavior", "homing", 0.5));
+
+		// Piercing: same class of uncompensated bonus as homing, and
+		// bullet-mode only -- +RIPPER needs a travelling round (hitscan
+		// has none; a ripping rocket is a bug generator, fenced at the
+		// resolver too). First ingredient to actually use the mode mask.
+		pool.Push(RS_AffixIngredient.Make("behavior", "behavior", "piercing", 0.5,
+			modeMask: 1 << RS_ATK_BULLET));
+	}
+
+	static void DrawbackIngredients(out Array<RS_AffixIngredient> pool)
+	{
+		// Sluggish: -40% projectile velocity, bullet-only (a no-op on
+		// hitscan would mint counterfeit budget credit -- the exact
+		// exploit RequiredModeMask exists to kill). Priced near zero
+		// DELIBERATELY: at this arsenal's rolled velocities (2500-12500)
+		// the cut is numerically real but perceptually almost nil, so it
+		// must not fund much. Real price pending a velocity-scale rework.
+		pool.Push(RS_AffixIngredient.Make("drawback", "drawback", "sluggish", -0.1,
+			modeMask: 1 << RS_ATK_BULLET));
+
+		// Wild: +50% spread. Real, felt cost on both bullet and hitscan
+		// paths -- the honest workhorse downside that finally makes
+		// homing/piercing purchasable at all.
+		pool.Push(RS_AffixIngredient.Make("drawback", "drawback", "wild", -0.5,
+			modeMask: (1 << RS_ATK_BULLET) | (1 << RS_ATK_HITSCAN)));
 	}
 
 	static void AllIngredients(out Array<RS_AffixIngredient> pool)
 	{
 		PayloadIngredients(pool);
 		BehaviorIngredients(pool);
+		DrawbackIngredients(pool);
 	}
 }

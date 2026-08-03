@@ -71,6 +71,12 @@ class RS_MonsterMaster : Actor abstract
 	private Array<string> rsTints;    // parsed TintTable(), cached
 	private bool rsTablesParsed;
 
+	// Which tier's body we are actually WEARING right now, as opposed to
+	// which tier we are. -1 = nothing applied yet. See RS_WearBody --
+	// this is what stops it redoing a sprite lookup and a translation
+	// rebuild on every tic of every state for every live monster.
+	private int rsWornTier;
+
 	// --- Staggered transform ---
 	private bool   rsTransforming;
 	private int    rsPendingTier;
@@ -126,6 +132,7 @@ class RS_MonsterMaster : Actor abstract
 		}
 
 		rsAttacksBuiltFor = -1;
+		rsWornTier        = -1;   // nothing worn yet: force the first apply
 		ApplyTier(true);
 	}
 
@@ -338,8 +345,20 @@ class RS_MonsterMaster : Actor abstract
 
 	// Applied on tier change only -- a body doesn't change because the
 	// monster took a step.
+	//
+	// IDEMPOTENT BY TIER. This is called from inside EVERY state's action
+	// block, which means every tic, for every live monster. Doing the
+	// sprite lookup and the translation rebuild on each of those calls
+	// costs (monsters x 35) lookups a second and buys nothing -- the body
+	// only ever changes when the tier does. rsWornTier records what we
+	// last actually put on, so the repeat calls are a single int compare.
+	// -1 means "nothing worn yet", so the first call after spawn always
+	// applies.
 	void RS_WearBody()
 	{
+		if (rsWornTier == Tier)
+			return;
+
 		RS_ParseTables();
 
 		if (Tier >= 0 && Tier < rsBodies.Size())
@@ -358,6 +377,8 @@ class RS_MonsterMaster : Actor abstract
 			// we want when tiering down into an untranslated body.
 			A_SetTranslation(tn == "-" ? "" : tn);
 		}
+
+		rsWornTier = Tier;
 	}
 
 	// =================================================================

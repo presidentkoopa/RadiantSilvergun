@@ -1,0 +1,142 @@
+================================================================================
+        THE DESIGNED AFFIX SLATE -- DRAFT, revisit before cards go live
+================================================================================
+Status: DRAFT (owner's call, 2026-08-03). The engine half of everything below
+is BUILT and compiling-ready; the ten GunBonsai upgrade cards are WRITTEN but
+DELIBERATELY DORMANT -- not #included, not registered in BONSAIRC -- because
+the upgrade-selection UI (several missing menus) has to be discussed and built
+first. Nothing offers or applies these affixes in play until that happens.
+A systematic code-review pass over this work is also still owed, ON HOLD until
+the owner calls for it. Come back to this doc when either happens.
+
+WHERE EVERYTHING LIVES
+================================================================================
+  Resolver math (all level tables)  zscript/systems/RS_KeywordEffects.zs
+  Projectile behavior (seek cycle,  zscript/weapons/weaponfx/RS_FX_BallisticFired.zs
+    pierce retention, impact hook)
+  Fire-path geometry (fan, chance   zscript/weapons/RS_Weapon.zs
+    homing, kickback, part branch)    (A_RS_FireSlot / RS_FireProfileBullet /
+                                       RS_FireAffixPartRound / HasBeatMode /
+                                       RS_LastShotTic)
+  Projectile part bodies            zscript/weapons/weaponfx/RS_FX_AffixParts.zs
+                                      (INCLUDED in zscript.txt -- engine-side,
+                                       inert until something installs them)
+  The ten cards (DORMANT)           zscript/gunbonsai/rs_upgrades/RS_Upgrade_Slate.zsc
+                                      (NOT included in upgrades/main.zsc, NOT
+                                       in BONSAIRC -- that wiring is the "go
+                                       live" step, do it only with the UI)
+  Generator pool (now 7)            zscript/systems/RS_AffixIngredients.zs
+  Ice assets (imported+viewed)      sprites/combatfx/ice/ + sounds/combatfx/ice/
+                                      + SNDINFO rs_fx_ice_* entries
+
+GLOBAL POWER RULES (tuned against the monster ladder + rs_01 promotion math)
+================================================================================
+  * Everything multiplicative -- arsenal DamagePerShot spans 3..480.
+  * A maxed (L5) affix stays within ~±30% net DPS. Promotions own
+    tier-climbing (~1.9x per cycle, 1-3 monster tiers); affixes own SHAPE.
+  * Mastery (6th take) changes a RULE, never the number budget.
+  * Levels = GB re-takes (level field). Take 6 = Mastery. Cap enforced in
+    IsSuitableForWeapon (GB convention -- no engine-side max).
+  * OnActivate idempotent by reconstruction; OnDeactivate a complete undo
+    (Promotion's affix strip depends on it -- RS_GunBonsaiBridge).
+  * Exclusion groups: shape (Splitter<->Slugger), projectile identity
+    (Painter<->Bonecaller<->Cryo). Everything else stacks across groups.
+  * Wardrobe rule (owner-picked): part identities roll their look-FAMILY
+    once at take-time (permanent for that gun), escalate WITHIN the family
+    by level. First use: Painter's Wisp/Ember roll.
+
+THE TEN (condensed sheets -- L1..L5 / MASTERY / gate)
+================================================================================
+01 SPLITTER   payload:split2..6, splitmaster
+   N-way exact wash: xN fragments @ 1/N damage, N = level+1.
+   MASTERY: deterministic even fan (no random scatter), cone +25%.
+   Gate: bullet|hitscan beat. Excludes Slugger. Free (wash).
+02 SLUGGER    payload:slug1..5, slugmaster
+   Collapse volley to one round: dmg x1.8->2.6, spread x0.3->0.1,
+   scale +10%/lvl. MASTERY: the slug pierces 2 bodies @ 80% retention.
+   Gate: PelletCount >= 2, bullet|hitscan. Excludes Splitter.
+03 OVERCHARGED payload:over1..5, overmaster
+   dmg x(1+0.15L), spread x(1+0.20L) -- the sloppiness is the price.
+   MASTERY (Focus): first shot after >=1s pause pays no spread penalty
+   (RS_LastShotTic, stamped on every committed pull incl. backfires).
+   Gate: primary beat SpreadScale > 0 (GH Railgun excluded -- its price
+   would be counterfeit).
+04 GIANT      payload:giant1..5, giantmaster
+   Projectile scale x1.25->2.25 -- sprite AND hitbox (ApplyProjectileScale).
+   MASTERY: Wrecking Ball -- rounds carry ProjectileKickback 600.
+   Gate: bullet|heavy. Free -- identity/joke that's secretly a build.
+05 SEEKER     behavior:seek1..5, seekmaster
+   Homes TRUE at every level (owner's correction: never "gradually less
+   blind"). Levels buy CYCLING: retarget when the victim dies, L-1 extra
+   victims. Price -5% dmg/lvl. MASTERY: unlimited cycling + SMF_PRECISE;
+   curves around corners (steering never needed line of sight).
+   Gate: bullet|heavy.
+06 GHOST      behavior:pierce1..5, piercemaster
+   Punch through 1/2/3/4/all victims @ 70->90% damage retention per punch
+   (DoSpecialDamage). MASTERY (stitch): a rip-kill flips the round into an
+   unlimited precise seeker mid-flight. Gate: bullet only.
+07 PAINTER    element:fire1..5, firemaster  [identity group]
+   Part-swap: rounds BECOME fire -- wardrobe roll at take: Wisp (in-repo
+   RSI1 living flame) or Ember (vanilla BAL2 + spark shed). +3% dmg/lvl.
+   MASTERY: impacts ignite the ground (RS_AffixGroundFire via the new
+   ImpactSpawnExtra hook -- the impact-spawn hook rs_06 flagged as the
+   missing piece now EXISTS, this is its first consumer).
+08 BONECALLER behavior:bonechance25/50/75/100, bonemaster [identity group]
+   Part-swap: Revenant bone tracers (vanilla FATB + skeleton audio -- zero
+   asset risk). L1 pure identity; L2-4 per-PELLET hunt chance 25/50/75%;
+   L5 all rounds hunt (chance 1.0 -- deliberately NOT plain "homing" so
+   ungranting can never strip someone else's homing). MASTERY twin-fire:
+   every round doubles into straight+seeker pair @ half damage. Exact wash.
+09 CRYO       element:ice1..5, icemaster  [identity group]
+   Part-swap: imported CH ice shards (VIEWED before import; ICEY has no
+   D/E frames -- death anim is F..I, do not "fix" it to CDE). +6% dmg/lvl;
+   price -1 Capacity per 2 levels (restore-then-apply, drift-proof).
+   MASTERY: the BOUNCING ice orb -- plain-Actor part (RS_AffixPartActor
+   branch; FastProjectile cannot bounce, which is why that branch exists).
+   First bouncing player round in the project.
+10 ECHO       no keywords -- pure rotation
+   First real consumer of the beat machinery (PadTo/Replace, built and
+   never used). Every Nth pull is a free enhanced beat: 0 ammo, cluster
+   round. N: 7/6/5/4/3 by level. MASTERY: every 2nd. Adopts only
+   single-beat primaries (true of all 32 weapons today); restores the
+   exact original profile object on removal.
+
+GENERATOR POOL (gap #1 from rs_06 -- CLOSED)
+================================================================================
+The original seven, all live: multi/cluster/slug (washes, 0) + homing (+0.5)
++ piercing (+0.5, bullet-mask) + sluggish (-0.1, bullet-mask) + wild (-0.5,
+bullet+hitscan mask). wild exactly funds homing or piercing -- the generator
+can finally afford a bonus. sluggish priced near-zero ON PURPOSE: at rolled
+velocities 2500-12500 the cut is perceptually almost nil (real finding, this
+session); repricing waits on a velocity-scale rethink.
+
+DECISIONS MADE DURING THE BUILD (so nobody re-litigates them blind)
+================================================================================
+  * BASE keywords no longer drive shot math (resolver reads GRANTED +
+    beat-local only). This fixed every shotgun silently double-firing.
+  * Bullet damage is EXACT now (GetMissileDamage override) -- the engine's
+    stored x random(1,8) is gone from the ballistic tree. Heavy classes
+    (Enhanced trio, GH shots) NOT yet converted -- their own pass, later.
+  * Painter's fire sound is hq_dsfirsht for now (flamethrower loop reads
+    wrong per-shot). Revisit during audio polish.
+  * Bonecaller/Painter/Cryo deactivation nulls only its own installed
+    parts (explicit class-lookup compares).
+  * Ice import: 7 ICEY frames (A,B,C,F,G,H,I) + 4 CH oggs renamed
+    ice_cast/hit/shatter/fly. VORTEX/ice_fly imported unused so far.
+
+STILL OPEN / NEXT
+================================================================================
+  1. THE UPGRADE UI -- owner: "we are missing several menus, we will
+     discuss this." Cards stay dormant until then. Wiring when ready:
+     #include the Slate file in zscript/gunbonsai/upgrades/main.zsc,
+     register all ten in BONSAIRC, add LANGUAGE names/descs (none written
+     yet -- menu-facing, held with the UI).
+  2. The deferred self-review pass over all of the above (owner will say
+     when).
+  3. Compile check of this whole batch -- NOT yet run in GZDoom.
+  4. Socket enforcement (sockets still read by nothing) -- lands with the
+     tier-acquisition path, per the Discussion A design.
+  5. Heavy-tree exact damage; element axis on Heavy; melee (thinnest, v2).
+  6. FX catalog merge: docs/fx_inventory_staging/ -> rs_MASTER_FX_CATALOG
+     Sections 1-6 (source reports rescued this session, safe in-repo now).
+================================================================================

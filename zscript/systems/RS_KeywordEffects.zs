@@ -62,6 +62,59 @@ class RS_ShotKeywordMods : Object
 	bool Homing;
 	bool Piercing;
 
+	// --- Designed-affix extensions (see docs/rs_09_affix_slate.txt) ---
+	// Seeker: rounds always track true; SeekLevel is how many enemies one
+	// round may cycle through (retarget when its target dies), 99 =
+	// unlimited (Mastery). SeekPrecise adds SMF_PRECISE hard tracking.
+	int  SeekLevel;
+	bool SeekPrecise;
+	// Ghost: PierceLevel = victims one round may punch through (99 = all),
+	// PierceRetention = damage kept per punch-through. Stitch (Mastery):
+	// a rip-kill turns the round into an unlimited seeker mid-flight.
+	int    PierceLevel;
+	double PierceRetention;
+	bool   Stitch;
+	// Bonecaller mid-levels: chance per PELLET that this round seeks,
+	// when Homing itself isn't outright granted. 0 = off.
+	double HomingChance;
+	// Masteries with weapon-side geometry/spawn consequences.
+	bool MasteryFan;      // Splitter: deterministic even fan, no scatter
+	bool MasteryKick;     // Giant: rounds carry real kickback
+	bool MasteryIgnite;   // Painter: impact leaves burning ground
+
+	// Leveled-value tables for the designed affixes. Switch, not static
+	// const arrays -- this engine build does not reliably resolve
+	// `static const TYPE name[]` in class bodies (three separate real
+	// bugs; see CLAUDE.md). Values are the tuned numbers from the affix
+	// workshop -- change them here and docs/rs_09_affix_slate.txt
+	// together or the doc lies.
+
+	// Splitter: N-way exact wash. Returns the split count for a level.
+	static int SplitCount(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return 2;
+			case 2: return 3;
+			case 3: return 4;
+			case 4: return 5;
+		}
+		return 6;   // L5 and Mastery
+	}
+
+	// Slugger: damage climbs, spread tightens, the round visibly grows.
+	static void SlugRow(int lvl, out double dmg, out double spread, out double scale)
+	{
+		switch (lvl)
+		{
+			case 1: dmg = 1.8; spread = 0.30; scale = 1.0; return;
+			case 2: dmg = 2.0; spread = 0.25; scale = 1.1; return;
+			case 3: dmg = 2.2; spread = 0.20; scale = 1.2; return;
+			case 4: dmg = 2.4; spread = 0.15; scale = 1.3; return;
+		}
+		dmg = 2.6; spread = 0.10; scale = 1.4;   // L5 and Mastery
+	}
+
 	static play RS_ShotKeywordMods Resolve(RS_Weapon wpn, RS_AttackProfile p)
 	{
 		let m = RS_ShotKeywordMods(new("RS_ShotKeywordMods"));
@@ -70,6 +123,15 @@ class RS_ShotKeywordMods : Object
 		m.SpreadMult = 1.0;
 		m.VelMult = 1.0;
 		m.ScaleMult = 1.0;
+		m.PierceRetention = 1.0;
+
+		// Overcharged's spread cost is accumulated separately and applied
+		// at the end: its Focus Mastery waives the spread penalty (only
+		// the penalty -- never the weapon's own base spread) for the
+		// first shot after a deliberate >= 1s pause, and that decision
+		// needs the whole parse done first.
+		double overSpread = 1.0;
+		bool focusMastery = false;
 
 		// ---- payload: ------------------------------------------------
 		// GRANTED + beat-local only. BASE keywords are identity, not
@@ -108,6 +170,59 @@ class RS_ShotKeywordMods : Object
 				m.DmgMult *= 0.5;
 				m.PelletMult *= 2.0;
 			}
+			// --- Splitter (designed, leveled): splitN = N-way wash. ---
+			else if (vals[i].Left(5) == "split")
+			{
+				string tail = vals[i].Mid(5);
+				int n = (tail == "master") ? 6 : clamp(tail.ToInt(), 2, 6);
+				m.DmgMult    *= 1.0 / n;
+				m.PelletMult *= double(n);
+				if (tail == "master")
+					m.MasteryFan = true;
+			}
+			// --- Slugger (designed, leveled): slugN. Same collapse as
+			// the generator's "slug" above, deeper numbers per level.
+			// slugmaster additionally punches through a couple bodies. ---
+			else if (vals[i].Left(4) == "slug" && vals[i].Length() > 4)
+			{
+				string tail = vals[i].Mid(4);
+				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
+				double sdmg, sspread, sscale;
+				SlugRow(lvl, sdmg, sspread, sscale);
+				int current = max(1, wpn.PelletCount);
+				m.DmgMult    *= sdmg;
+				m.PelletMult *= 1.0 / current;
+				m.SpreadMult *= sspread;
+				m.ScaleMult  *= sscale;
+				if (tail == "master")
+				{
+					m.Piercing = true;
+					m.PierceLevel = 2;
+					m.PierceRetention = 0.8;
+				}
+			}
+			// --- Overcharged (designed, leveled): overN. Both numbers
+			// climb together; the spread half is the honest price and is
+			// applied at the end (Focus Mastery, see above). ---
+			else if (vals[i].Left(4) == "over")
+			{
+				string tail = vals[i].Mid(4);
+				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
+				m.DmgMult *= 1.0 + 0.15 * lvl;
+				overSpread *= 1.0 + 0.20 * lvl;
+				if (tail == "master")
+					focusMastery = true;
+			}
+			// --- Giant (designed, leveled): giantN. Scale is visual AND
+			// hitbox (ApplyProjectileScale), damage untouched. ---
+			else if (vals[i].Left(5) == "giant")
+			{
+				string tail = vals[i].Mid(5);
+				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
+				m.ScaleMult *= 1.0 + 0.25 * lvl;
+				if (tail == "master")
+					m.MasteryKick = true;
+			}
 			// explosive/hazard: no-ops on purpose, see header. single:
 			// the neutral default, already expressed by 1.0s.
 		}
@@ -123,8 +238,104 @@ class RS_ShotKeywordMods : Object
 				m.Homing = true;
 			else if (vals[i] == "piercing")
 				m.Piercing = true;
+			// --- Seeker (designed, leveled): seekN. Homes true at every
+			// level; the level buys retarget cycling, not accuracy.
+			// Price: -5% damage per level (rounds that can't miss earn
+			// slightly less per hit). Mastery: unlimited cycling +
+			// precise tracking; a locked round curves around corners
+			// because seeking never needed line of sight to steer. ---
+			else if (vals[i].Left(4) == "seek")
+			{
+				string tail = vals[i].Mid(4);
+				m.Homing = true;
+				if (tail == "master")
+				{
+					m.SeekLevel = 99;
+					m.SeekPrecise = true;
+					m.DmgMult *= 0.95 ** 5;
+				}
+				else
+				{
+					int lvl = clamp(tail.ToInt(), 1, 5);
+					m.SeekLevel = lvl;
+					m.DmgMult *= 0.95 ** lvl;
+				}
+			}
+			// --- Ghost (designed, leveled): pierceN. The retention loss
+			// per punch-through IS the price; no separate tax. ---
+			else if (vals[i].Left(6) == "pierce")
+			{
+				string tail = vals[i].Mid(6);
+				m.Piercing = true;
+				if (tail == "master")
+				{
+					m.PierceLevel = 99;
+					m.PierceRetention = 0.90;
+					m.Stitch = true;
+				}
+				else
+				{
+					int lvl = clamp(tail.ToInt(), 1, 5);
+					m.PierceLevel = (lvl >= 5) ? 99 : lvl;
+					m.PierceRetention = 0.70 + 0.05 * (lvl - 1);
+				}
+			}
+			// --- Bonecaller mid-levels: per-pellet homing chance. L5
+			// grants plain "homing" instead; Mastery is the twin-fire:
+			// every round doubles into a straight+seeking pair at half
+			// damage each -- an exact wash with double the menace. ---
+			else if (vals[i] == "bonechance25")
+				m.HomingChance = 0.25;
+			else if (vals[i] == "bonechance50")
+				m.HomingChance = 0.50;
+			else if (vals[i] == "bonechance75")
+				m.HomingChance = 0.75;
+			// L5: every round hunts. Expressed as chance 1.0 rather than
+			// granting plain "homing" so ungranting a Bonecaller level
+			// can never strip a homing granted by someone else (the
+			// generator's ingredient, another affix).
+			else if (vals[i] == "bonechance100")
+				m.HomingChance = 1.0;
+			else if (vals[i] == "bonemaster")
+			{
+				m.HomingChance = 1.0;
+				m.DmgMult    *= 0.5;
+				m.PelletMult *= 2.0;
+			}
 			// ricochet/forking/orbiting/stick-delay/wall-runner: not
 			// wired, see header for exactly why each isn't.
+		}
+
+		// ---- element: (first live wiring of this axis -- Painter/Cryo).
+		// The part identity (projectile class, sounds, DamageType) is
+		// installed by the upgrade through the Affix* part-swap layer;
+		// this is only the leveled math riding along with it.
+		vals.Clear();
+		wpn.GetGrantedValues("element", vals);
+		if (p) p.GetLocalValues("element", vals);
+
+		for (int i = 0; i < vals.Size(); i++)
+		{
+			// Painter: identity-first, +3%/level. Mastery ignites the
+			// ground at impact (the minimal impact-spawn hook's first
+			// real consumer).
+			if (vals[i].Left(4) == "fire")
+			{
+				string tail = vals[i].Mid(4);
+				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
+				m.DmgMult *= 1.0 + 0.03 * lvl;
+				if (tail == "master")
+					m.MasteryIgnite = true;
+			}
+			// Cryo: heavier rounds hit harder (+6%/level); the price is
+			// the Capacity cut the upgrade itself applies. Mastery swaps
+			// the part to the bouncing orb -- upgrade-side, not here.
+			else if (vals[i].Left(3) == "ice")
+			{
+				string tail = vals[i].Mid(3);
+				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
+				m.DmgMult *= 1.0 + 0.06 * lvl;
+			}
 		}
 
 		// ---- drawback: -----------------------------------------------
@@ -148,6 +359,19 @@ class RS_ShotKeywordMods : Object
 				// hitscan paths, so the ingredient allows both.
 				m.SpreadMult *= 1.5;
 			}
+		}
+
+		// Overcharged's accumulated spread penalty, last. Focus Mastery:
+		// the first shot after a >= 1 second pause pays no penalty --
+		// rhythm inside the chaos. RS_LastShotTic is stamped by
+		// A_RS_FireSlot on every committed pull (and on backfires).
+		if (overSpread != 1.0)
+		{
+			bool focused = focusMastery
+				&& (wpn.RS_LastShotTic == 0
+					|| wpn.Level.maptime - wpn.RS_LastShotTic >= 35);
+			if (!focused)
+				m.SpreadMult *= overSpread;
 		}
 
 		return m;

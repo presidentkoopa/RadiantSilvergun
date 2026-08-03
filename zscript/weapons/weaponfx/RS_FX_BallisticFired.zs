@@ -35,6 +35,33 @@ class RS_BallisticFired : FastProjectile
 	// trusting the tuning numbers below.
 	bool Homing;
 
+	// --- Seeker affix (docs/rs_09_affix_slate.txt) ---
+	// A Seeker round homes true from level 1; what levels buy is
+	// CYCLING: when the locked target dies, the round may drop lock and
+	// re-acquire, SeekLevel-1 times (99 = unlimited, Mastery). Precise
+	// adds SMF_PRECISE hard tracking.
+	int  SeekLevel;
+	int  RetargetsUsed;
+	bool SeekPrecise;
+
+	// --- Ghost affix ---
+	// PierceLimit: how many victims this round may punch through before
+	// it stops ripping (99 = all). PierceRetention: damage kept per
+	// punch-through, applied in DoSpecialDamage. StitchOnKill (Mastery):
+	// a rip-kill flips the round into an unlimited seeker mid-flight,
+	// visibly stitching the crowd together.
+	int    PierceLimit;
+	double PierceRetention;
+	int    PierceHits;
+	bool   StitchOnKill;
+
+	// --- Minimal impact-spawn hook ---
+	// Spawned at the impact point alongside the puff/spark, when set.
+	// This is the hook the payload:explosive/hazard keywords have been
+	// waiting for; its first real consumer is Painter's Mastery ignite
+	// (RS_AffixGroundFire). Null = nothing extra, the universal default.
+	Class<Actor> ImpactSpawnExtra;
+
 	Default
 	{
 		Radius 2;
@@ -53,13 +80,64 @@ class RS_BallisticFired : FastProjectile
 	{
 		Super.Tick();
 		if (Homing)
-			A_SeekerMissile(6, 10, SMF_LOOK);
+		{
+			// Seeker cycling: when the locked target dies, drop lock so
+			// SMF_LOOK re-acquires -- if this round has retargets left.
+			// SeekLevel 0 (plain behavior:homing, no Seeker affix) keeps
+			// the original semantics: one lock, no cycling.
+			if (tracer && tracer.health <= 0)
+			{
+				if (SeekLevel > 0 && (SeekLevel >= 99 || RetargetsUsed < SeekLevel - 1))
+				{
+					tracer = null;
+					RetargetsUsed++;
+				}
+				else
+					Homing = false;
+			}
+			if (Homing)
+			{
+				int flags = SMF_LOOK | (SeekPrecise ? SMF_PRECISE : 0);
+				A_SeekerMissile(6, 10, flags);
+			}
+		}
 		if (++ghostTimer >= 2)
 		{
 			ghostTimer = 0;
 			Class<Actor> trail = TrailOverride ? TrailOverride : RS_Catalog.TRAIL_Ballistic();
 			Spawn(trail, pos);
 		}
+	}
+
+	// Ghost's pierce economy, at the one hook the engine gives per-victim
+	// missile damage: retention decay per punch-through, a hard stop when
+	// the punch budget runs out, and the Mastery stitch. Rounds without
+	// PierceLimit set (including plain behavior:piercing rips) pass
+	// through unchanged.
+	override int DoSpecialDamage(Actor victim, int damage, Name damagetype)
+	{
+		if (PierceLimit > 0 && bRIPPER)
+		{
+			damage = max(1, int(damage * (PierceRetention ** PierceHits)));
+			PierceHits++;
+
+			// Mastery: this hit will kill, and the round is allowed to
+			// keep going -- turn it into an unlimited precise seeker so
+			// it visibly whips toward its next victim.
+			if (StitchOnKill && victim && victim.health <= damage)
+			{
+				Homing = true;
+				SeekLevel = 99;
+				SeekPrecise = true;
+				tracer = null;
+			}
+
+			// Punch budget spent: stop ripping. The round detonates on
+			// the next thing it touches instead of passing through.
+			if (PierceLimit < 99 && PierceHits >= PierceLimit)
+				bRIPPER = false;
+		}
+		return Super.DoSpecialDamage(victim, damage, damagetype);
 	}
 
 	// -----------------------------------------------------------------
@@ -124,6 +202,7 @@ class RS_BallisticFired : FastProjectile
 			Class<Actor> spark = ImpactSparkOverride ? ImpactSparkOverride : RS_Catalog.SPARK_Hit();
 			Spawn(puff, pos);
 			if (spark) Spawn(spark, pos);
+			if (ImpactSpawnExtra) Spawn(ImpactSpawnExtra, pos);
 		}
 		Stop;
 	}

@@ -170,6 +170,12 @@ version "4.14"
 #include "zscript/weapons/weaponfx/RS_FX_BallisticFired.zs"
 #include "zscript/weapons/weaponfx/RS_FX_RailProjectiles.zs"
 #include "zscript/weapons/weaponfx/RS_FX_HeavyProjectiles.zs"
+// Designed-affix projectile parts (fire/bone/ice bodies + the plain-
+// Actor bouncing orb). Engine-side only -- nothing spawns these until
+// the affix cards (rs_upgrades/RS_Upgrade_Slate.zsc) are registered,
+// which is deliberately NOT done yet: cards are on hold pending the
+// upgrade-UI discussion. See docs/rs_09_affix_slate.txt.
+#include "zscript/weapons/weaponfx/RS_FX_AffixParts.zs"
 
 // --- Performance CVAR gated levels of weapon feedbacks
 // The old monolithic RS_EnhancedFX.zs was split by category -- see
