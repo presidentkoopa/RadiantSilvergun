@@ -899,6 +899,12 @@ class RS_Weapon : Weapon abstract
 	// weapon is nominally back at 0 sockets -- known gap, not silent.
 	void Promote()
 	{
+		// Held-affix count, read BEFORE the strip below runs -- this is
+		// the number RollPromotionCurse's mitigation reads. A Prototype
+		// promoted loaded with affixes walks away luckier than one
+		// promoted bare; see RollPromotionCurse's own comment for why.
+		int heldAffixes = RS_GunBonsaiBridge.CountActiveAffixes(self);
+
 		DamagePerShot = max(1, int(DamagePerShot * 0.8));
 		Accuracy      *= 0.8;
 		Velocity      *= 0.8;
@@ -911,11 +917,20 @@ class RS_Weapon : Weapon abstract
 		PromotionCount += 1;
 		PromotionDamageBaseline = DamagePerShot;
 
-		RollPromotionCurse();
+		RollPromotionCurse(heldAffixes);
 		RS_GunBonsaiBridge.OnWeaponPromoted(self);
 	}
 
 	const PROMOTION_CURSE_CHANCE = 0.15;
+
+	// Each held affix at promote-time cuts 3 percentage points off every
+	// roll (floor 2%) -- design settled earlier: PromotionCount drives
+	// the ESCALATION (more rolls, see below), held-affix count drives
+	// the MITIGATION (each roll less likely to land). A gun promoted
+	// loaded is insurance you bought by investing in it, not a bigger
+	// number stacking with a bigger number.
+	const PROMOTION_CURSE_MITIGATION_PER_AFFIX = 0.03;
+	const PROMOTION_CURSE_CHANCE_FLOOR = 0.02;
 
 	// Escalates with PromotionCount instead of one flat roll forever: your
 	// 1st promotion gets 1 independent curse chance, 2nd gets 2 rolls, 3rd
@@ -933,18 +948,20 @@ class RS_Weapon : Weapon abstract
 	// "we will roll from a list later," per design discussion.
 	// STUBBED OFF -- disabled for now, mechanism kept intact for later.
 	// Same shape as RS_Roll.GetConditionEffects' own disable.
-	void RollPromotionCurse()
+	void RollPromotionCurse(int heldAffixes = 0)
 	{
 		if (true)
 			return;
 
+		double chance = max(PROMOTION_CURSE_CHANCE_FLOOR,
+			PROMOTION_CURSE_CHANCE - heldAffixes * PROMOTION_CURSE_MITIGATION_PER_AFFIX);
 		for (int i = 0; i < PromotionCount; i++)
-			RollOneCurse();
+			RollOneCurse(chance);
 	}
 
-	void RollOneCurse()
+	void RollOneCurse(double chance = PROMOTION_CURSE_CHANCE)
 	{
-		if (FRandom(0, 1) >= PROMOTION_CURSE_CHANCE)
+		if (FRandom(0, 1) >= chance)
 			return;
 
 		switch (Random(0, 4))

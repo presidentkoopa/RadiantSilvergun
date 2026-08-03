@@ -154,6 +154,24 @@ on the bits side) is short-circuited off for now -- same disable idiom as RS_Rol
 Condition-effects stub. Everything below in this section describes the built mechanism as it
 exists in code, not what's currently active. Flip it back on later; nothing was ripped out.
 
+--Curse Mitigation By Held Affixes (RS_Weapon.RollPromotionCurse())
+
+IMPLEMENTED (still behind the same stub as the rest of the curse system): the
+number of AFFIXES the weapon was carrying at the moment of promotion lowers the
+per-roll curse chance by 3 percentage points each, floored at 2%. Counted
+before the strip, by RS_GunBonsaiBridge.CountActiveAffixes, which counts only
+the ten designed affixes (TFLV_Upgrade_RS_SlateBase) -- stat and combo cards
+are permanent purchases, not affixes, and stacking damage cards shouldn't read
+as "well-equipped."
+
+The division of labour, settled in design discussion and worth not
+re-litigating: PromotionCount drives ESCALATION (how many rolls), held-affix
+count drives MITIGATION (how likely each roll lands). Each number has exactly
+one job. Promoting a loaded gun is insurance you bought by investing in it --
+and since promotion strips those affixes anyway, they are spent, not banked,
+which keeps the "affixes never grow power for free" rule intact even at the
+meta layer.
+
 --Curse Roll Frequency (RS_Weapon.RollPromotionCurse())
 
 REVISED, IMPLEMENTED: not a flat chance forever. Escalates with PromotionCount -- your 1st

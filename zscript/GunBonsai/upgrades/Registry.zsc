@@ -109,17 +109,26 @@ class TFLV_Upgrade_Registry : Object play {
     let nrof = bonsai_upgrade_choices_per_gun_level;
 
     // RS GRAFT (rs_10): offer breadth is tier-driven -- higher-tier
-    // guns literally see more possibility. rs_ui_offer_override > 0
+    // guns literally see more possibility. Cursed/Trash/Basic still get
+    // 2 -- never 0/1 -- because they hold no GunBonsai sockets (see the
+    // designed affixes' socket gate below) and would otherwise see an
+    // empty or pointless offer; the stat-card pool (which never checks
+    // sockets) is what fills those 2 slots. rs_ui_offer_override > 0
     // forces a fixed count for tuning; the stock cvar's special values
     // (-1/-2) still win above.
     let rsw = RS_Weapon(info.wpn);
     if (rsw && nrof > 0) {
       int forced = CVar.GetCVar("rs_ui_offer_override", null).GetInt();
       if (forced > 0)                        nrof = forced;
-      else if (rsw.Tier <= VRT_Basic)        nrof = 3;
+      else if (rsw.Tier <= VRT_Basic)        nrof = 2;
       else if (rsw.Tier <= VRT_Uncommon)     nrof = 4;
       else if (rsw.Tier <= VRT_Designer)     nrof = 5;
       else                                   nrof = 6;
+      // Cards bought with Gold on this offer (rs-ui-expand). Widening
+      // the draw is strictly better than rerolling it -- pricier per
+      // press, and the escalation makes a third or fourth card a real
+      // decision rather than a formality.
+      nrof += TFLV_WeaponUpgradeGiver.rsPendingExtra;
     }
 
     if (nrof == -2) {

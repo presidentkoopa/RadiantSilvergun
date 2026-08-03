@@ -107,6 +107,10 @@ class RS_UIHandler : EventHandler
 	// Reroll cost escalation: 5 << rsRerolls (5/10/20/40...), tracked on
 	// the giver itself (fresh giver per offer = automatic reset).
 	const REROLL_BASE_COST = 5;
+	// Buying an EXTRA card costs more than rerolling the same ones --
+	// widening the draw is strictly stronger than shuffling it.
+	// 12 << rsExtraCards (12/24/48...).
+	const EXPAND_BASE_COST = 12;
 	const REPAIR_BITS_PER_PRESS = 50;   // 50 grey = +5 condition per press
 
 	void ClearModel()
@@ -296,8 +300,13 @@ class RS_UIHandler : EventHandler
 			AddRow("(no GunBonsai stats)", "", Font.CR_DARKGRAY);
 			return;
 		}
+		// TFLV_PerPlayerStats has no maxXP field -- player-level max is the
+		// flat bonsai_gun_levels_per_player_level cvar (gun-levels needed
+		// per player level), same source stock GB's own status display
+		// reads (PerPlayerStats.GetCurrentStats: stats.pmax).
+		double pmax = bonsai_gun_levels_per_player_level;
 		AddRow(string.format("LEVEL %d", stats.level),
-			string.format("XP %s %d/%d", RS_UIStyle.XPBar(stats.XP, stats.maxXP), int(stats.XP), int(stats.maxXP)),
+			string.format("XP %s %d/%d", RS_UIStyle.XPBar(stats.XP, pmax), int(stats.XP), int(pmax)),
 			Font.CR_WHITE);
 		AddRule();
 		AddRow("GOLD BITS", string.format("%d", pawn.CountInv("RS_Bit_Gold")), Font.CR_GOLD,
@@ -439,25 +448,35 @@ class RS_UIHandler : EventHandler
 			else
 				pawn.A_Log("Not enough Grey Bits.", true);
 		}
-		else if (evt.name == "rs-ui-reroll")
+		else if (evt.name == "rs-ui-reroll" || evt.name == "rs-ui-expand")
 		{
-			// Reroll the current card offer for escalating Gold.
+			// Two Gold spends against the current offer: reroll the same
+			// number of cards, or buy one more card on top. Both rebuild
+			// the candidate list and reopen the picker.
 			let giver = stats ? TFLV_WeaponUpgradeGiver(stats.currentEffectGiver) : null;
 			if (!giver) return;
-			int cost = REROLL_BASE_COST << giver.rsRerolls;
+
+			bool expanding = (evt.name == "rs-ui-expand");
+			int cost = expanding
+				? (EXPAND_BASE_COST << giver.rsExtraCards)
+				: (REROLL_BASE_COST << giver.rsRerolls);
+
 			if (pawn.CountInv("RS_Bit_Gold") < cost)
 			{
-				pawn.A_Log(string.format("Reroll costs %d Gold Bits.", cost), true);
-				// Reopen the picker so the player isn't dumped to gameplay.
-				stats.currentEffectGiver = null;
-				giver.SetStateLabel("ChooseUpgrade");
-				return;
+				pawn.A_Log(string.format("%s costs %d Gold Bits.",
+					expanding ? "Another card" : "Reroll", cost), true);
 			}
-			pawn.TakeInventory("RS_Bit_Gold", cost);
-			giver.rsRerolls++;
-			giver.CreateUpgradeCandidates();
-			// Release the menu claim, then let the giver reclaim + reopen
-			// with the fresh offer.
+			else
+			{
+				pawn.TakeInventory("RS_Bit_Gold", cost);
+				if (expanding) giver.rsExtraCards++;
+				else           giver.rsRerolls++;
+				giver.CreateUpgradeCandidates();
+			}
+
+			// Release the menu claim either way, then let the giver
+			// reclaim and reopen -- the player is never dumped back to
+			// gameplay with a level still banked.
 			stats.currentEffectGiver = null;
 			giver.SetStateLabel("ChooseUpgrade");
 		}

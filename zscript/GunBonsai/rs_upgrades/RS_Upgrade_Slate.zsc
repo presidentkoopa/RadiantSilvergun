@@ -34,6 +34,17 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 	virtual void ExtraActivate(RS_Weapon wpn) {}
 	virtual void ExtraDeactivate(RS_Weapon wpn) {}
 
+	// GAP #2, closed for real: rs_00 is explicit that Cursed/Trash/Basic
+	// "cannot gain GunBonai abilities" -- GunBonaiSockets was rolled per
+	// tier from day one but read by nothing until now. Every one of the
+	// ten designed affixes gates on it; stat/combo cards (RS_Upgrade_
+	// Cards.zsc) deliberately do NOT, so a sockets-0 weapon still gets a
+	// real (if affix-free) offer instead of an empty one.
+	static bool HasSockets(RS_Weapon wpn)
+	{
+		return wpn && wpn.GunBonaiSockets > 0;
+	}
+
 	void ApplyLeveled(RS_Weapon wpn)
 	{
 		// Reconstruct, don't accumulate: strip every value this family
@@ -102,7 +113,7 @@ class TFLV_Upgrade_RS_Splitter : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return wpn
+		return HasSockets(wpn)
 			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HITSCAN))
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Slugger") == 0
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Splitter") < 6;
@@ -132,7 +143,7 @@ class TFLV_Upgrade_RS_Slugger : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return wpn
+		return HasSockets(wpn)
 			&& wpn.PelletCount >= 2
 			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HITSCAN))
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Splitter") == 0
@@ -164,7 +175,7 @@ class TFLV_Upgrade_RS_Overcharged : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		if (!wpn) return false;
+		if (!HasSockets(wpn)) return false;
 		let slot = wpn.GetSlot(0);
 		let beat = slot ? slot.PeekAt(0) : null;
 		return beat
@@ -196,7 +207,7 @@ class TFLV_Upgrade_RS_Giant : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return wpn
+		return HasSockets(wpn)
 			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HEAVY))
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Giant") < 6;
 	}
@@ -227,7 +238,7 @@ class TFLV_Upgrade_RS_Seeker : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return wpn
+		return HasSockets(wpn)
 			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HEAVY))
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Seeker") < 6;
 	}
@@ -258,7 +269,7 @@ class TFLV_Upgrade_RS_Ghost : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return wpn
+		return HasSockets(wpn)
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Ghost") < 6;
 	}
@@ -320,7 +331,7 @@ class TFLV_Upgrade_RS_Painter : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return wpn
+		return HasSockets(wpn)
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") == 0
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Cryo") == 0
@@ -376,7 +387,7 @@ class TFLV_Upgrade_RS_Bonecaller : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return wpn
+		return HasSockets(wpn)
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Painter") == 0
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Cryo") == 0
@@ -443,7 +454,7 @@ class TFLV_Upgrade_RS_Cryo : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return wpn
+		return HasSockets(wpn)
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Painter") == 0
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") == 0
@@ -509,7 +520,7 @@ class TFLV_Upgrade_RS_Echo : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		if (!wpn) return false;
+		if (!HasSockets(wpn)) return false;
 		let slot = wpn.GetSlot(0);
 		let beat = slot ? slot.PeekAt(0) : null;
 		if (!beat) return false;

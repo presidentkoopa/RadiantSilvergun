@@ -101,16 +101,27 @@ S4 -- CARD PICKER (rows AS cards -- the LevelUpTemplate's content in
    [Up/Dn] select  [Confirm] take  [Right] reroll  [Back] keep banked
   ------------------------------------------------------------------
   OFFER COUNT -- tier-driven (owner picked "a system"):
-      Cursed/Trash/Basic 3, Common/Uncommon 4, Advanced/Designer 5,
+      Cursed/Trash/Basic 2, Common/Uncommon 4, Advanced/Designer 5,
       Prototype 6. Higher-tier guns literally see more possibility.
+      The bottom band is 2, never 0/1: those tiers hold no sockets, so
+      the ten designed affixes gate themselves out (see below) and the
+      STAT-CARD pool -- which deliberately never checks sockets -- is
+      what fills those slots. A Basic gun always has a real choice.
       cvar rs_ui_offer_override (0 = tier system) for tuning.
-  REROLL (owner's Q2 addition): spends GOLD BITS -- escalating per
-      offer: 5 / 10 / 20, resets next offer. Right = reroll (the
-      single-subject lateral action, L2). NOTE: Gold Bits are in rs_00
-      but NOT in RS_Bits.zs yet (verified) -- Phase 2 implements
-      RS_Bit_Gold on the existing Grey/Curse stacking pattern; its
-      big-ticket sink (SetPieces) stays deferred, rerolls are its
-      first real spend.
+  SOCKET GATE (rs_06 gap #2, closed): all ten designed affixes require
+      GunBonaiSockets > 0, honoring rs_00's "Cursed/Trash/Basic cannot
+      gain GunBonai abilities." Stat and combo cards are exempt by
+      design -- they're purchases, not sockets.
+  TWO GOLD SPENDS on the picker (L2 laterals, no new binds):
+      [Right] REROLL       5 << n  gold (5/10/20...)  -- shuffle the offer
+      [Left]  ANOTHER CARD 12 << n gold (12/24/48...) -- widen the offer
+      Expanding costs more than rerolling on purpose: more choice is
+      strictly stronger than different choice. Both escalate within one
+      offer and reset on the next (state lives on the per-level-up
+      giver). Costs shown greyed when unaffordable -- price is info.
+      Gold Bits were in rs_00 but absent from code (verified);
+      RS_Bit_Gold now drops via rs_bits_ratio_gold. SetPieces remain
+      gold's deferred big-ticket sink.
   PROMOTE-AS-A-CARD (from the owner's own LevelUpTemplate): when the
       weapon is Prototype, the promo card appears in every offer
       (doesn't count against the tier's offer count). Confirm -> S5.

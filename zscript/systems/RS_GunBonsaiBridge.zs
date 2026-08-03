@@ -43,6 +43,35 @@ class RS_GunBonsaiBridge : Object play
 		info.upgrades.upgrades.Clear();
 	}
 
+	// How many affixes this weapon is currently carrying. Read by
+	// RS_Weapon.Promote() BEFORE the strip above, to mitigate the
+	// promotion curse roll: investing in a gun before cashing it in is
+	// insurance. Counts only the ten designed affixes -- stat and combo
+	// cards are permanent purchases, not affixes, and buying six damage
+	// cards shouldn't read as "well-equipped" here.
+	static int CountActiveAffixes(RS_Weapon wep)
+	{
+		if (!wep || !wep.Owner)
+			return 0;
+
+		let stats = TFLV_PerPlayerStats.GetStatsFor(wep.Owner);
+		if (!stats)
+			return 0;
+
+		let info = stats.GetInfoFor(wep);
+		if (!info)
+			return 0;
+
+		int n = 0;
+		for (int i = 0; i < info.upgrades.upgrades.Size(); i++)
+		{
+			let upg = info.upgrades.upgrades[i];
+			if (upg && upg.level > 0 && (upg is "TFLV_Upgrade_RS_SlateBase"))
+				n++;
+		}
+		return n;
+	}
+
 	// Called by A_RS_FireSlot, on the acting player, the instant a shot is
 	// committed -- before any mode-specific firing path runs. Attribution
 	// by direct declaration, not detection: this is why it works
