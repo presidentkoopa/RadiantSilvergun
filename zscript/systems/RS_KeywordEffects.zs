@@ -72,8 +72,11 @@ class RS_ShotKeywordMods : Object
 		m.ScaleMult = 1.0;
 
 		// ---- payload: ------------------------------------------------
+		// GRANTED + beat-local only. BASE keywords are identity, not
+		// live math -- see GetGrantedValues' own comment for the
+		// double-firing-shotgun bug that rule exists to prevent.
 		Array<string> vals;
-		wpn.GetKeywordValues("payload", vals);
+		wpn.GetGrantedValues("payload", vals);
 		if (p) p.GetLocalValues("payload", vals);
 
 		for (int i = 0; i < vals.Size(); i++)
@@ -111,7 +114,7 @@ class RS_ShotKeywordMods : Object
 
 		// ---- behavior: -----------------------------------------------
 		vals.Clear();
-		wpn.GetKeywordValues("behavior", vals);
+		wpn.GetGrantedValues("behavior", vals);
 		if (p) p.GetLocalValues("behavior", vals);
 
 		for (int i = 0; i < vals.Size(); i++)
@@ -126,7 +129,7 @@ class RS_ShotKeywordMods : Object
 
 		// ---- drawback: -----------------------------------------------
 		vals.Clear();
-		wpn.GetKeywordValues("drawback", vals);
+		wpn.GetGrantedValues("drawback", vals);
 		if (p) p.GetLocalValues("drawback", vals);
 
 		for (int i = 0; i < vals.Size(); i++)

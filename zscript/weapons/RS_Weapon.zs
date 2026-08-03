@@ -1006,6 +1006,20 @@ class RS_Weapon : Weapon abstract
 				results.Push(GrantedKeywords[i].Mid(prefix.Length()));
 	}
 
+	// GRANTED-only multi-value lookup. The shot-math resolver
+	// (RS_ShotKeywordMods.Resolve) reads THIS, not GetKeywordValues:
+	// BASE keywords are descriptive identity (palette/archetype/flavor
+	// queries), never live math. Before this split, payload:multi in
+	// the shotgun family's BASE strings silently double-fired every
+	// shotgun in the arsenal at half damage per pellet.
+	void GetGrantedValues(string key, out Array<string> results)
+	{
+		string prefix = key .. ":";
+		for (int i = 0; i < GrantedKeywords.Size(); i++)
+			if (GrantedKeywords[i].Left(prefix.Length()) == prefix)
+				results.Push(GrantedKeywords[i].Mid(prefix.Length()));
+	}
+
 	// GunBonsai/Promotion-facing write API. Idempotent -- GunBonsai's own
 	// docs require OnActivate to be safely callable multiple times
 	// without an intervening OnDeactivate (reselecting the weapon,

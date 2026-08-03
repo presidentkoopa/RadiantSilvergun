@@ -71,6 +71,7 @@ class RS_BallisticFired : FastProjectile
 	{
 		// 1. Assign the dynamically rolled damage
 		SetDamage(finalDamage);
+		ExactDamage = finalDamage;
 
 		// 2. Assign the dynamically rolled velocity and recalculate trajectory
 		Speed = rolledVelocity;
@@ -78,6 +79,22 @@ class RS_BallisticFired : FastProjectile
 
 		// 3. Store the rolled crit chance for impact calculations
 		ShotCritChance = critChance;
+	}
+
+	// The engine's default missile-damage formula multiplies the stored
+	// damage by random(1,8) on impact -- so the weapon's carefully rolled
+	// DamagePerShot would arrive as anywhere from 1x to 8x itself, while
+	// the chaingun's hitscan path (FBF_NORANDOM) deals exact ints. This
+	// override makes every ballistic round deal exactly what SetupStats
+	// was given: damage means what the stat screen says, and bullet and
+	// hitscan modes agree with each other.
+	int ExactDamage;
+
+	override int GetMissileDamage(int mask, int add)
+	{
+		if (ExactDamage > 0)
+			return ExactDamage;
+		return Super.GetMissileDamage(mask, add);
 	}
 
 	// Player Feedback layer -- called alongside SetupStats() by whatever
