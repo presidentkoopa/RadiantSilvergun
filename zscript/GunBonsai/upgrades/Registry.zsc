@@ -108,6 +108,20 @@ class TFLV_Upgrade_Registry : Object play {
     array<TFLV_Upgrade_BaseUpgrade> candidates;
     let nrof = bonsai_upgrade_choices_per_gun_level;
 
+    // RS GRAFT (rs_10): offer breadth is tier-driven -- higher-tier
+    // guns literally see more possibility. rs_ui_offer_override > 0
+    // forces a fixed count for tuning; the stock cvar's special values
+    // (-1/-2) still win above.
+    let rsw = RS_Weapon(info.wpn);
+    if (rsw && nrof > 0) {
+      int forced = CVar.GetCVar("rs_ui_offer_override", null).GetInt();
+      if (forced > 0)                        nrof = forced;
+      else if (rsw.Tier <= VRT_Basic)        nrof = 3;
+      else if (rsw.Tier <= VRT_Uncommon)     nrof = 4;
+      else if (rsw.Tier <= VRT_Designer)     nrof = 5;
+      else                                   nrof = 6;
+    }
+
     if (nrof == -2) {
       // Debug mode -- return all upgrades, even invalid ones.
       generated.Copy(upgrades);

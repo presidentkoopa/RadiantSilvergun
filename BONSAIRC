@@ -40,6 +40,29 @@
 register
   TFLV_Upgrade_RS_TwinBarrel
   TFLV_Upgrade_RS_Assembled
+  # The designed affix slate (docs/rs_09_affix_slate.txt)
+  TFLV_Upgrade_RS_Splitter
+  TFLV_Upgrade_RS_Slugger
+  TFLV_Upgrade_RS_Overcharged
+  TFLV_Upgrade_RS_Giant
+  TFLV_Upgrade_RS_Seeker
+  TFLV_Upgrade_RS_Ghost
+  TFLV_Upgrade_RS_Painter
+  TFLV_Upgrade_RS_Bonecaller
+  TFLV_Upgrade_RS_Cryo
+  TFLV_Upgrade_RS_Echo
+  # Stat cards (green) and combo cards (purple) -- docs/rs_10_ui_spec.txt
+  TFLV_Upgrade_RS_CardDamage
+  TFLV_Upgrade_RS_CardAccuracy
+  TFLV_Upgrade_RS_CardCapacity
+  TFLV_Upgrade_RS_CardCrit
+  TFLV_Upgrade_RS_CardChoke
+  TFLV_Upgrade_RS_CardReload
+  TFLV_Upgrade_RS_ComboMarksman
+  TFLV_Upgrade_RS_ComboChamber
+  TFLV_Upgrade_RS_ComboHotLoads
+  TFLV_Upgrade_RS_ComboWinterKit
+  TFLV_Upgrade_RS_ComboTwinDiscipline
   ;
 
 # All builtin upgrades that don't require other mods to function are registered

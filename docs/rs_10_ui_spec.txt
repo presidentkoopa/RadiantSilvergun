@@ -1,5 +1,8 @@
 ================================================================================
-   RS UNIFIED UI SPEC -- rev 2 after owner markup. Phase 2 builds THIS.
+   RS UNIFIED UI SPEC -- rev 2, BUILT (Phase 2 complete, same day).
+   Status: all screens + cards + reroll + gold implemented per this spec;
+   the ten affixes and all cards registered live. NOT YET COMPILED OR
+   BOOTED -- Phase 3 (one boot, one punch-list, one fix batch) is next.
 ================================================================================
 Owner markup incorporated (2026-08-03): reroll economy, tier-driven offer
 count, stat/combo card roster from RS_Roll, disclosure tiers, bind budget,

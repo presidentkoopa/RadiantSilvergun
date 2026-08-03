@@ -239,6 +239,14 @@ class TFLV_EventHandler : StaticEventHandler {
 
   // GBOH: Cycle through level-up menus -- offhand first, then main, then player, then info.
   void GBOH_UnifiedInfo(uint p) {
+    // RS GRAFT (rs_10): the unified bind now cycles the RS sheet
+    // screens (offhand -> mainhand -> player); level-ups launch from
+    // the sheets' own LEVEL UP rows instead of auto-opening here.
+    // Falls through to stock behavior only if the RS UI handler is
+    // missing (MAPINFO not updated -- should never happen).
+    let rsui = RS_UIHandler(EventHandler.Find("RS_UIHandler"));
+    if (rsui) { rsui.CycleSheets(p); return; }
+
     PlayerPawn pawn = players[p].mo;
     if (!pawn) return;
     let stats = TFLV_PerPlayerStats.GetStatsFor(pawn);

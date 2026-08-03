@@ -232,8 +232,10 @@ class TFLV_WeaponInfo : Object play {
   }
 
   void RejectLevelUp() {
-    // Don't adjust maxXP -- they didn't gain a level.
-    XP -= maxXP;
+    // RS GRAFT (rs_10 design law L5: Esc never punishes): stock GB
+    // charged a full level's XP for backing out of the picker. Now the
+    // banked level simply stays banked -- XP untouched, Fanfare
+    // re-signals that it's still waiting.
     wpn.owner.A_Log(StringTable.Localize("$TFLV_MSG_LEVELUP_REJECTED"), true);
     if (XP >= maxXP) Fanfare();
     return;

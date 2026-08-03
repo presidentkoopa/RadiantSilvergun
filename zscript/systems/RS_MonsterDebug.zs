@@ -63,6 +63,45 @@ class RS_MonsterDebug : EventHandler
 		return cv ? cv.GetBool() : def;
 	}
 
+	// Shared by Lineup and SpawnOne -- spawn one instance of DbgClass(i) at
+	// the given world position, apply tier, tag passive/hostile. Returns
+	// the spawned actor (or null) so callers can report success.
+	private Actor SpawnAt(PlayerPawn pmo, int i, Vector3 p, double ang, int tier)
+	{
+		string cls = DbgClass(i);
+		Class<Actor> c = cls;
+		if (!c)
+		{
+			Console.Printf("\cgRS: class \"%s\" does not exist.", cls);
+			return null;
+		}
+
+		let a = Actor.Spawn(c, p, ALLOW_REPLACE);
+		if (!a)
+		{
+			Console.Printf("\cgRS: %s failed to spawn (no room?).", cls);
+			return null;
+		}
+
+		a.angle = ang + 180;
+
+		let m = RS_MonsterMaster(a);
+		if (m)
+		{
+			m.SetTier(tier, true);
+			// Passive by default so it can be studied without a fight
+			// breaking out. FRIENDLY rather than DORMANT: a dormant
+			// monster stops ticking, which would hide the very behaviour
+			// this menu exists to inspect.
+			if (!GB("rs_mon_dbg_hostile", false))
+			{
+				m.bFRIENDLY = true;
+				m.bNOTARGET = true;
+			}
+		}
+		return a;
+	}
+
 	// -----------------------------------------------------------------
 	// SPAWN A ROW -- one of every family, same tier, facing the player.
 	// -----------------------------------------------------------------
@@ -76,46 +115,32 @@ class RS_MonsterDebug : EventHandler
 
 		for (int i = 0; i < n; i++)
 		{
-			string cls = DbgClass(i);
-			Class<Actor> c = cls;
-			if (!c)
-			{
-				Console.Printf("\cgRS: class \"%s\" does not exist.", cls);
-				failed++;
-				continue;
-			}
-
 			double across = (i - (n - 1) * 0.5) * RS_DBG_COLSTEP;
 			Vector3 p = (pmo.pos.xy + fwd * RS_DBG_START + side * across, pmo.pos.z);
-
-			let a = Actor.Spawn(c, p, ALLOW_REPLACE);
-			if (!a)
-			{
-				Console.Printf("\cgRS: %s failed to spawn (no room?).", cls);
-				failed++;
-				continue;
-			}
-
-			a.angle = ang + 180;
-
-			let m = RS_MonsterMaster(a);
-			if (m)
-			{
-				m.SetTier(tier, true);
-				// Passive by default so the row can be studied. FRIENDLY
-				// rather than DORMANT: a dormant monster stops ticking,
-				// which would hide the very behaviour we're inspecting.
-				if (!GB("rs_mon_dbg_hostile", false))
-				{
-					m.bFRIENDLY = true;
-					m.bNOTARGET = true;
-				}
-			}
-			spawned++;
+			if (SpawnAt(pmo, i, p, ang, tier)) spawned++; else failed++;
 		}
 
 		Console.Printf("\ccRS Lineup: %d spawned, %d failed, tier %02d.", spawned, failed, tier);
 		Console.Printf("\ccOrder: Zombie Shotgun Chaingun Imp Demon Spectre Soul Caco Pain Baron Knight Revenant Mancubus Arach Vile");
+	}
+
+	// -----------------------------------------------------------------
+	// SPAWN ONE -- a single family, alone, directly ahead, at T00. Built
+	// for VR bisection: clear, spawn one, tier it up by itself and watch
+	// where it hangs, without needing the console or a full row. Always
+	// T00 on spawn -- use the existing Tier Up button to walk it from
+	// there, one family at a time, until the freeze is isolated to one
+	// class and one tier.
+	// -----------------------------------------------------------------
+	private void SpawnOne(PlayerPawn pmo, int i)
+	{
+		double ang = pmo.angle;
+		Vector2 fwd = (cos(ang), sin(ang));
+		Vector3 p = (pmo.pos.xy + fwd * RS_DBG_START, pmo.pos.z);
+
+		let a = SpawnAt(pmo, i, p, ang, 0);
+		if (a)
+			Console.Printf("\ccRS: spawned %s at T00.", DbgClass(i));
 	}
 
 	// -----------------------------------------------------------------
@@ -318,6 +343,36 @@ class RS_MonsterDebug : EventHandler
 
 		if (e.Name ~== "rs_mon_line")
 			Lineup(pmo, GI("rs_mon_dbg_tier", 0));
+		else if (e.Name ~== "rs_mon_spawn_zombieman")
+			SpawnOne(pmo, 0);
+		else if (e.Name ~== "rs_mon_spawn_shotgunner")
+			SpawnOne(pmo, 1);
+		else if (e.Name ~== "rs_mon_spawn_chaingunner")
+			SpawnOne(pmo, 2);
+		else if (e.Name ~== "rs_mon_spawn_imp")
+			SpawnOne(pmo, 3);
+		else if (e.Name ~== "rs_mon_spawn_demon")
+			SpawnOne(pmo, 4);
+		else if (e.Name ~== "rs_mon_spawn_spectre")
+			SpawnOne(pmo, 5);
+		else if (e.Name ~== "rs_mon_spawn_lostsoul")
+			SpawnOne(pmo, 6);
+		else if (e.Name ~== "rs_mon_spawn_cacodemon")
+			SpawnOne(pmo, 7);
+		else if (e.Name ~== "rs_mon_spawn_painelemental")
+			SpawnOne(pmo, 8);
+		else if (e.Name ~== "rs_mon_spawn_baron")
+			SpawnOne(pmo, 9);
+		else if (e.Name ~== "rs_mon_spawn_hellknight")
+			SpawnOne(pmo, 10);
+		else if (e.Name ~== "rs_mon_spawn_revenant")
+			SpawnOne(pmo, 11);
+		else if (e.Name ~== "rs_mon_spawn_mancubus")
+			SpawnOne(pmo, 12);
+		else if (e.Name ~== "rs_mon_spawn_arachnotron")
+			SpawnOne(pmo, 13);
+		else if (e.Name ~== "rs_mon_spawn_archvile")
+			SpawnOne(pmo, 14);
 		else if (e.Name ~== "rs_mon_tier_up")
 			Retier(1, 1);
 		else if (e.Name ~== "rs_mon_tier_down")

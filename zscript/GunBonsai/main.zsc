@@ -4,6 +4,9 @@
 #include "zscript/GunBonsai/util.zsc"
 
 #include "zscript/GunBonsai/menu/main.zsc"
+// RS unified UI, ui-scope half (dynamic sheet renderer + card picker).
+// Play-scope half is zscript/systems/RS_UI.zs. See docs/rs_10_ui_spec.txt.
+#include "zscript/GunBonsai/rs_menu/RS_UIMenus.zsc"
 #include "zscript/GunBonsai/upgrades/main.zsc"
 
 #include "zscript/GunBonsai/debug.zsc"

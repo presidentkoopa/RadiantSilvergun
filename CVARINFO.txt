@@ -210,3 +210,11 @@ user bool rs_mon_transform_tell = true;
 // =====================================================================
 user int  rs_mon_dbg_tier = 0;
 user bool rs_mon_dbg_hostile = false;
+
+// --- RS unified UI (docs/rs_10_ui_spec.txt) --------------------------
+// 0 = offer count is tier-driven (3/4/5/6 by tier band); >0 forces a
+// fixed count for tuning.
+server int rs_ui_offer_override = 0;
+// Gold Bit weight in the kill-reward ratio pool (currency for card-
+// picker rerolls; SetPieces later).
+server int rs_bits_ratio_gold = 8;

@@ -336,10 +336,23 @@ OptionMenu "GunBonsaiPlayerLevelUpMenu"
   Title "$TFLV_MENU_PLAYER_LEVELUP_TITLE"
 }
 
+// RS: the weapon level-up menu name is re-pointed at the RS card
+// picker -- the vendored giver opens this name and never knows the
+// presentation changed. Stock class TFLV_Menu_WeaponLevelUpMenu still
+// exists, just unreferenced. See docs/rs_10_ui_spec.txt.
 OptionMenu "GunBonsaiWeaponLevelUpMenu"
 {
-  class TFLV_Menu_WeaponLevelUpMenu
+  class RS_Menu_CardPicker
   Title "$TFLV_MENU_WEAPON_LEVELUP_TITLE"
+}
+
+// RS: the one dynamic screen every RS sheet renders through (weapon
+// sheets, player sheet, promotion confirm, service). Content comes
+// from RS_UIHandler's model, built play-side before each open.
+OptionMenu "RSDynamicSheet"
+{
+  class RS_Menu_Dynamic
+  Title "$RS_UI_SHEET_TITLE"
 }
 
 OptionMenu "GunBonsaiNewLDEffectMenu"
@@ -392,6 +405,7 @@ OptionMenu "RS_MonsterDebugMenu"
 	StaticText "Spawn", 1
 	Slider  "Tier to spawn at", "rs_mon_dbg_tier", 0, 12, 1, 0
 	Command "SPAWN ROW -- one of every family", "netevent rs_mon_line"
+	Submenu "Spawn ONE family (T00) -- for bisecting", "RS_MonsterDebugSpawnOneMenu"
 	Command "Remove all RS monsters", "netevent rs_mon_clear"
 	StaticText " "
 
@@ -412,4 +426,35 @@ OptionMenu "RS_MonsterDebugMenu"
 	StaticText "AUDIT needs no spawns; it reads the tables directly.", 2
 	StaticText "WAKE tells you whether standing still is a targeting", 2
 	StaticText "problem or a state-machine problem.", 2
+}
+
+// ---------------------------------------------------------------------
+// Spawn ONE family at T00 -- for bisecting in VR without the console.
+// Spawn one, then use Tier UP on the previous page to walk it up by
+// itself and see exactly which family and which tier hangs.
+// ---------------------------------------------------------------------
+OptionMenu "RS_MonsterDebugSpawnOneMenu"
+{
+	Title "Spawn One (T00)"
+	StaticText " "
+	StaticText "Clear first, spawn one, Tier UP it alone.", 2
+	StaticText " "
+
+	Command "Zombieman",     "netevent rs_mon_spawn_zombieman"
+	Command "Shotgunner",    "netevent rs_mon_spawn_shotgunner"
+	Command "Chaingunner",   "netevent rs_mon_spawn_chaingunner"
+	Command "Imp",           "netevent rs_mon_spawn_imp"
+	Command "Demon",         "netevent rs_mon_spawn_demon"
+	Command "Spectre",       "netevent rs_mon_spawn_spectre"
+	Command "Lost Soul",     "netevent rs_mon_spawn_lostsoul"
+	Command "Cacodemon",     "netevent rs_mon_spawn_cacodemon"
+	Command "Pain Elemental","netevent rs_mon_spawn_painelemental"
+	Command "Baron",         "netevent rs_mon_spawn_baron"
+	Command "Hell Knight",   "netevent rs_mon_spawn_hellknight"
+	Command "Revenant",      "netevent rs_mon_spawn_revenant"
+	Command "Mancubus",      "netevent rs_mon_spawn_mancubus"
+	Command "Arachnotron",   "netevent rs_mon_spawn_arachnotron"
+	Command "Archvile",      "netevent rs_mon_spawn_archvile"
+	StaticText " "
+	Command "Remove all RS monsters", "netevent rs_mon_clear"
 }

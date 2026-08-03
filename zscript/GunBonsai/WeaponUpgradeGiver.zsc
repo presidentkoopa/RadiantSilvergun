@@ -5,6 +5,10 @@
 class TFLV_WeaponUpgradeGiver : TFLV_UpgradeGiver {
   TFLV_WeaponInfo wielded;
   uint nrof;
+  // RS GRAFT: rerolls taken against THIS offer. A fresh giver spawns
+  // per level-up, so the escalating cost (5 << rsRerolls Gold Bits,
+  // spent by RS_UIHandler's rs-ui-reroll) resets naturally per offer.
+  int rsRerolls;
 
   override void CreateUpgradeCandidates() {
     candidates.clear();

@@ -1,0 +1,229 @@
+// =====================================================================
+// Stat cards and combo cards -- the green and purple rows of the card
+// picker (docs/rs_10_ui_spec.txt). These are PERMANENT purchases, not
+// toggleable affixes: OnActivate applies each newly-taken level once
+// and OnDeactivate deliberately undoes nothing. When Promotion strips
+// the upgrade bag, the stat gains stay baked into the weapon -- and
+// then Promote()'s 20% cut trims them with everything else. That is
+// the designed loop, not an accident.
+//
+// Velocity cards are DELIBERATELY absent: at this arsenal's rolled
+// velocities the stat is perceptually nil (verified finding) -- a
+// velocity card would be selling fake value. Returns if the velocity
+// scale is ever reworked.
+// =====================================================================
+
+class TFLV_Upgrade_RS_CardBase : TFLV_Upgrade_BaseUpgrade abstract
+{
+	// How many of this card's taken levels have been paid out. The
+	// while-loop in OnActivate makes re-activation (wield, re-level)
+	// idempotent and each new take pay out exactly once.
+	int appliedLevels;
+
+	virtual void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info) {}
+
+	override void OnActivate(TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		super.OnActivate(stats, info);
+		let wpn = RS_Weapon(info.wpn);
+		if (!wpn) return;
+		while (appliedLevels < int(level))
+		{
+			ApplyOnce(wpn, stats, info);
+			appliedLevels++;
+		}
+	}
+	// No OnDeactivate: permanent by design (see header).
+}
+
+// ---------------------------------------------------------------------
+// Stat cards (green). Magnitudes read PromotionCount where the design
+// says promoted picks are worth more (rs_01).
+// ---------------------------------------------------------------------
+
+class TFLV_Upgrade_RS_CardDamage : TFLV_Upgrade_RS_CardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		wpn.DamagePerShot = min(wpn.GetDamageCeiling(),
+			wpn.DamagePerShot + 2 + wpn.PromotionCount);
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		// Absent while at ceiling -- the card simply isn't offered.
+		return wpn && wpn.DamagePerShot < wpn.GetDamageCeiling();
+	}
+}
+
+class TFLV_Upgrade_RS_CardAccuracy : TFLV_Upgrade_RS_CardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		wpn.Accuracy = min(98.0, wpn.Accuracy + 2.0);
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn && wpn.Accuracy < 98.0;
+	}
+}
+
+class TFLV_Upgrade_RS_CardCapacity : TFLV_Upgrade_RS_CardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		wpn.Capacity += 1;
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		return RS_Weapon(info.wpn) != null;
+	}
+}
+
+class TFLV_Upgrade_RS_CardCrit : TFLV_Upgrade_RS_CardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		wpn.CritChance += 0.005;
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		return RS_Weapon(info.wpn) != null;
+	}
+}
+
+class TFLV_Upgrade_RS_CardChoke : TFLV_Upgrade_RS_CardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		wpn.Choke = min(0.8, wpn.Choke + 0.05);
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		// Choke is only live on the rolled shotgun family (Choke > 0);
+		// dormant everywhere else -- verified, not assumed.
+		let wpn = RS_Weapon(info.wpn);
+		return wpn && wpn.Choke > 0 && wpn.Choke < 0.8;
+	}
+}
+
+class TFLV_Upgrade_RS_CardReload : TFLV_Upgrade_RS_CardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		wpn.ReloadSpeed = min(1.4, wpn.ReloadSpeed + 0.05);
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn && wpn.ReloadSpeed < 1.4;
+	}
+}
+
+// ---------------------------------------------------------------------
+// Combo cards (purple) -- two related things, one card. Offered only
+// to promoted or high-tier guns; magnitudes scale with PromotionCount
+// where damage is involved. "Promoted guns get truly wild."
+// ---------------------------------------------------------------------
+
+class TFLV_Upgrade_RS_ComboCardBase : TFLV_Upgrade_RS_CardBase abstract
+{
+	static bool ComboEligible(RS_Weapon wpn)
+	{
+		return wpn && (wpn.PromotionCount >= 1 || wpn.Tier >= VRT_Advanced);
+	}
+}
+
+class TFLV_Upgrade_RS_ComboMarksman : TFLV_Upgrade_RS_ComboCardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		wpn.Accuracy = min(98.0, wpn.Accuracy + 3.0);
+		wpn.CritChance += 0.0075;
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return ComboEligible(wpn) && wpn.Accuracy < 98.0;
+	}
+}
+
+class TFLV_Upgrade_RS_ComboChamber : TFLV_Upgrade_RS_ComboCardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		wpn.Capacity += 2;
+		wpn.ReloadSpeed = min(1.4, wpn.ReloadSpeed + 0.05);
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		return ComboEligible(RS_Weapon(info.wpn));
+	}
+}
+
+class TFLV_Upgrade_RS_ComboHotLoads : TFLV_Upgrade_RS_ComboCardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		wpn.DamagePerShot = min(wpn.GetDamageCeiling(),
+			wpn.DamagePerShot + 2 + wpn.PromotionCount);
+		// The price side splits by family: shotguns tighten (a bonus of
+		// a different flavor), everything else loses a little accuracy
+		// -- hot loads kick.
+		if (wpn.Choke > 0)
+			wpn.Choke = min(0.8, wpn.Choke + 0.05);
+		else
+			wpn.Accuracy = max(30.0, wpn.Accuracy - 2.0);
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return ComboEligible(wpn) && wpn.DamagePerShot < wpn.GetDamageCeiling();
+	}
+}
+
+// The affix-level-in-a-card pattern: a combo that deepens a held
+// identity affix AND pays a related stat. Never grants the 6th level --
+// Mastery must always be a deliberate pick.
+
+class TFLV_Upgrade_RS_ComboWinterKit : TFLV_Upgrade_RS_ComboCardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		info.upgrades.AddUpgrade(
+			TFLV_Upgrade_BaseUpgrade(new("TFLV_Upgrade_RS_Cryo"))).OnActivate(stats, info);
+		wpn.Capacity += 1;   // offsets Cryo's own capacity price a step
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let lv = info.upgrades.Level("TFLV_Upgrade_RS_Cryo");
+		return ComboEligible(RS_Weapon(info.wpn)) && lv >= 1 && lv < 5;
+	}
+}
+
+class TFLV_Upgrade_RS_ComboTwinDiscipline : TFLV_Upgrade_RS_ComboCardBase
+{
+	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		info.upgrades.AddUpgrade(
+			TFLV_Upgrade_BaseUpgrade(new("TFLV_Upgrade_RS_Splitter"))).OnActivate(stats, info);
+		wpn.Accuracy = min(98.0, wpn.Accuracy + 2.0);
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let lv = info.upgrades.Level("TFLV_Upgrade_RS_Splitter");
+		return ComboEligible(RS_Weapon(info.wpn)) && lv >= 1 && lv < 5;
+	}
+}

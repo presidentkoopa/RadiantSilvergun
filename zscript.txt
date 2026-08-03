@@ -104,6 +104,11 @@ version "4.14"
 // without that line this file compiles but never runs.
 #include "zscript/systems/RS_MonsterDebug.zs"
 
+// The unified UI's play-scope half: screen models + rs-ui-* netevents.
+// Also MAPINFO-registered. UI-scope half lives in the GunBonsai tree
+// (rs_menu/RS_UIMenus.zsc). Spec: docs/rs_10_ui_spec.txt.
+#include "zscript/systems/RS_UI.zs"
+
 // Archetype -> eligible Catalog slice, the fence PACK assembly reads so
 // a Shotgun stays a Shotgun instead of pooling the entire Catalog flat.
 #include "zscript/systems/RS_FamilyPalette.zs"

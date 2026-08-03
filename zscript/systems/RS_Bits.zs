@@ -114,6 +114,7 @@ class RS_KillRewardsHandler : EventHandler
 		int ratioArmor = CVar.GetCVar("rs_bits_ratio_armor", null).GetInt();
 		int ratioAmmo = CVar.GetCVar("rs_bits_ratio_ammo", null).GetInt();
 		int ratioGrey = CVar.GetCVar("rs_bits_ratio_grey", null).GetInt();
+		int ratioGold = CVar.GetCVar("rs_bits_ratio_gold", null).GetInt();
 
 		for (int i = 0; i < num; i++)
 		{
@@ -121,7 +122,7 @@ class RS_KillRewardsHandler : EventHandler
 			if (!a.bBoss && random(1, 100) > dropChance)
 				continue;
 
-			int sum = ratioHealth + ratioArmor + ratioAmmo + ratioGrey;
+			int sum = ratioHealth + ratioArmor + ratioAmmo + ratioGrey + ratioGold;
 			int roll = random(1, max(1, sum));
 			string spawn = "";
 
@@ -147,7 +148,15 @@ class RS_KillRewardsHandler : EventHandler
 					{
 						roll -= ratioAmmo;
 						if (ratioGrey && roll <= ratioGrey)
+						{
 							spawn = "RS_Bit_Grey";
+						}
+						else
+						{
+							roll -= ratioGrey;
+							if (ratioGold && roll <= ratioGold)
+								spawn = "RS_Bit_Gold";
+						}
 					}
 				}
 			}
@@ -336,6 +345,42 @@ class RS_Bit_Grey : Inventory
 	Spawn:
 		TNT1 A 0 A_SetRenderStyle(1.0, STYLE_Shaded);
 		TNT1 A 0 SetShade("C0 C0 C8");
+		HBIT A 4;
+		HBIT A 4 BRIGHT;
+		Loop;
+	}
+}
+
+// Gold Bit -- rs_00's currency, finally real. Same stacking pattern as
+// Grey; joins the weighted kill-reward pool via rs_bits_ratio_gold.
+// First real spend: card-picker rerolls (RS_UIHandler). The big-ticket
+// sink (SetPieces) stays a deferred future project on purpose.
+class RS_Bit_Gold : Inventory
+{
+	Default
+	{
+		Radius 10;
+		Height 8;
+		Inventory.Amount 1;
+		Inventory.MaxAmount 9999;
+		Inventory.PickupMessage "";
+		+INVENTORY.ALWAYSPICKUP;
+	}
+
+	int bit_life;
+
+	override void Tick()
+	{
+		Super.Tick();
+		if (RS_BitUtil.TickLife(bit_life))
+			Destroy();
+	}
+
+	States
+	{
+	Spawn:
+		TNT1 A 0 A_SetRenderStyle(1.0, STYLE_Shaded);
+		TNT1 A 0 SetShade("F8 D0 40");
 		HBIT A 4;
 		HBIT A 4 BRIGHT;
 		Loop;

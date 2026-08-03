@@ -5,6 +5,11 @@
 // separate folder from everything else in this manifest.
 #include "zscript/GunBonsai/rs_upgrades/RS_Upgrade_TwinBarrel.zsc"
 #include "zscript/GunBonsai/rs_upgrades/RS_Upgrade_Assembled.zsc"
+// The designed affix slate (ten cards) + stat/combo cards -- live now
+// that the card-picker UI exists. Design: docs/rs_09_affix_slate.txt,
+// docs/rs_10_ui_spec.txt.
+#include "zscript/GunBonsai/rs_upgrades/RS_Upgrade_Slate.zsc"
+#include "zscript/GunBonsai/rs_upgrades/RS_Upgrade_Cards.zsc"
 #include "zscript/GunBonsai/upgrades/Dot.zsc"
 #include "zscript/GunBonsai/upgrades/ElementalUpgrade.zsc"
 #include "zscript/GunBonsai/upgrades/Registry.zsc"

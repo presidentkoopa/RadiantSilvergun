@@ -1,13 +1,11 @@
 ================================================================================
         THE DESIGNED AFFIX SLATE -- DRAFT, revisit before cards go live
 ================================================================================
-Status: DRAFT (owner's call, 2026-08-03). The engine half of everything below
-is BUILT and compiling-ready; the ten GunBonsai upgrade cards are WRITTEN but
-DELIBERATELY DORMANT -- not #included, not registered in BONSAIRC -- because
-the upgrade-selection UI (several missing menus) has to be discussed and built
-first. Nothing offers or applies these affixes in play until that happens.
-A systematic code-review pass over this work is also still owed, ON HOLD until
-the owner calls for it. Come back to this doc when either happens.
+Status: LIVE as of the UI build (2026-08-03, same day). The ten cards are
+now #included (upgrades/main.zsc) and registered (BONSAIRC) -- the card
+picker UI exists (docs/rs_10_ui_spec.txt), so the go-live step this header
+used to gate on has happened. NOT YET COMPILED OR BOOTED. The systematic
+code-review pass is still owed, ON HOLD until the owner calls for it.
 
 WHERE EVERYTHING LIVES
 ================================================================================

@@ -1,0 +1,159 @@
+// =====================================================================
+// RS_UIMenus -- the unified UI's ui-scope half. Spec: docs/rs_10_ui_spec.txt.
+//
+// RS_Menu_Dynamic renders whatever screen model RS_UIHandler (play
+// scope, zscript/systems/RS_UI.zs) has built -- plain rows only, no
+// game API calls from ui scope, one rendering path for every RS screen
+// (weapon sheets, player sheet, promotion confirm, service).
+//
+// RS_Menu_CardPicker is the level-up screen. It rides GunBonsai's own
+// giver flow: MENUDEF points "GunBonsaiWeaponLevelUpMenu" at this
+// class, so the vendored giver opens it without knowing anything
+// changed. Rendering is ours; the choose/reject netevents are stock.
+// =====================================================================
+
+class RS_Menu_Dynamic : TFLV_Menu_GenericMenu
+{
+	override void Init(Menu parent, OptionMenuDescriptor desc)
+	{
+		super.InitDynamic(parent, desc);
+		TooltipGeometry(0.5, 1.0, 0.9, 1.0, 0.5);
+		TooltipAppearance("", "", "tfttbg");
+
+		let h = RS_UIHandler(EventHandler.Find("RS_UIHandler"));
+		if (!h)
+		{
+			PushText("RS_UIHandler not registered -- check MAPINFO.", Font.CR_RED);
+			return;
+		}
+
+		PushText(" ", Font.CR_GOLD);
+		PushText(h.mTitle, h.mTitleColor);
+		if (h.mSubtitle != "")
+			PushText(h.mSubtitle, h.mSubtitleColor);
+		PushText(" ", Font.CR_GOLD);
+
+		mDesc.mSelectedItem = -1;
+		for (int i = 0; i < h.mRowKey.Size(); i++)
+		{
+			if (h.mRowCmd[i] == "")
+			{
+				PushKeyValueText(h.mRowKey[i], h.mRowVal[i], h.mRowColor[i]);
+			}
+			else
+			{
+				PushKeyValueOption(h.mRowKey[i], h.mRowVal[i],
+					h.mRowCmd[i], h.mRowArg[i],
+					h.mRowColor[i], Font.CR_RED);
+				if (mDesc.mSelectedItem < 0)
+					mDesc.mSelectedItem = mDesc.mItems.Size() - 1;
+			}
+			if (h.mRowTip[i] != "")
+				PushTooltip(h.mRowTip[i]);
+		}
+	}
+}
+
+class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
+{
+	override void Init(Menu parent, OptionMenuDescriptor desc)
+	{
+		super.InitDynamic(parent, desc);
+		TooltipGeometry(0.5, 1.0, 0.75, 1.0, 0.5);
+		TooltipAppearance("", "", "tfttbg");
+
+		let stats = TFLV_EventHandler.GetConsolePlayerStats();
+		let giver = TFLV_WeaponUpgradeGiver(stats.currentEffectGiver);
+		if (!giver)
+		{
+			PushText("No level-up in progress.", Font.CR_RED);
+			return;
+		}
+
+		let wpn = giver.wielded.wpn;
+		let rsw = RS_Weapon(wpn);
+
+		PushText(" ", Font.CR_GOLD);
+		PushText(string.format("%s -- LEVEL UP  (%d banked)", wpn.GetTag(), giver.nrof),
+			rsw ? RS_UIStyle.TierColor(rsw.Tier) : Font.CR_GOLD);
+		if (rsw)
+			PushText(RS_UIStyle.TierName(rsw.Tier) .. "      " .. RS_UIStyle.Pips(rsw.PromotionCount),
+				RS_UIStyle.TierColor(rsw.Tier));
+		PushText(" ", Font.CR_GOLD);
+
+		mDesc.mSelectedItem = -1;
+		for (uint i = 0; i < giver.candidates.size(); ++i)
+		{
+			PushCard(giver.wielded.upgrades, giver.candidates[i], i);
+			if (mDesc.mSelectedItem < 0)
+				mDesc.mSelectedItem = mDesc.mItems.Size() - 2;   // -2: tooltip pushed after
+		}
+
+		// The promotion cash-in card -- present in every Prototype offer,
+		// on top of (not instead of) the tier's card count. Confirm
+		// declines this offer cleanly (bank preserved) and opens the
+		// promotion confirm screen.
+		if (rsw && rsw.Tier == VRT_Prototype)
+		{
+			PlayerPawn pawn = players[consoleplayer].mo;
+			int hand = (pawn && wpn == pawn.player.OffhandWeapon) ? 0 : 1;
+			PushKeyValueOption(
+				"PROMOTE",
+				RS_UIStyle.Pips(rsw.PromotionCount) .. "  ->  " .. RS_UIStyle.Pips(rsw.PromotionCount + 1),
+				"rs-ui-promote-ask", hand,
+				Font.CR_GOLD, Font.CR_ORANGE);
+			PushTooltip("Cash this Prototype in: lose its affixes and 20% of\nits stats; gain +1 pellet forever, a higher damage\nceiling, and faster releveling. Your banked level-up\nis kept.");
+		}
+
+		PushText(" ", Font.CR_GOLD);
+		PushText(string.format("REROLL: %d GOLD  [press Right]", 5 << giver.rsRerolls),
+			Font.CR_GOLD);
+		PushText("[Confirm] take   [Right] reroll   [Esc] keep banked", Font.CR_DARKGRAY);
+	}
+
+	// Stock PushUpgrade with the card-type color language on top:
+	// stat cards green, combo cards purple, Mastery offers orange,
+	// affixes white.
+	void PushCard(TFLV_Upgrade_UpgradeBag upgrades, TFLV_Upgrade_BaseUpgrade upgrade, int index)
+	{
+		let lvl = upgrades.Level(upgrade.GetClassName());
+		int idle = Font.CR_WHITE;
+		string label = upgrade.GetName();
+
+		if (upgrade is "TFLV_Upgrade_RS_ComboCardBase")
+		{
+			idle = Font.CR_PURPLE;
+		}
+		else if (upgrade is "TFLV_Upgrade_RS_CardBase")
+		{
+			idle = Font.CR_GREEN;
+		}
+		else if (lvl == 5)
+		{
+			// The visible "6th pick is special" moment.
+			idle = Font.CR_ORANGE;
+			label = label .. "  -- MASTERY";
+		}
+		else if (lvl > 0)
+		{
+			label = string.format("%s  Lv %d -> %d", label, lvl, lvl + 1);
+		}
+
+		PushKeyValueOption(label, upgrade.GetDesc(),
+			"bonsai-choose-level-up-option", index,
+			idle, Font.CR_RED);
+		PushTooltip(upgrade.GetTooltipDiff(lvl, lvl + 1));
+	}
+
+	override bool MenuEvent(int key, bool fromController)
+	{
+		if (key == Menu.MKey_Right)
+		{
+			Menu.MenuSound("menu/change");
+			EventHandler.SendNetworkEvent("rs-ui-reroll");
+			Menu.GetCurrentMenu().Close();
+			return true;
+		}
+		return super.MenuEvent(key, fromController);
+	}
+}
