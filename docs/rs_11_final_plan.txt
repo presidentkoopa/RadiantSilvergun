@@ -1,0 +1,133 @@
+================================================================================
+        RS CONTENT CONSTITUTION + FINAL BUILD PLAN -- rs_11, 2026-08-03
+================================================================================
+The binding design law for the affix/content system, written after the
+ten-card under-delivery and the owner's corrections. Supersedes rs_09's
+slate where they conflict. rs_10 (UI) remains valid.
+
+THE TWO LAYERS -- never confuse them again
+================================================================================
+  WEAPON STATS -- 12, rolled/derived/assigned (rs_00): DamagePerShot,
+    RateOfFire, TimeBetweenShots, DPS(derived), Accuracy, Velocity,
+    CritChance, Capacity, GunBonaiSockets, Condition, PelletCount,
+    Reserved. THE GUN'S SOUL. Affixes may read and amplify these,
+    never erase them.
+  PACK INGREDIENT AXES -- 8 per bullet profile (rs_05): Projectile,
+    Casing, Muzzleflash, Barrel Smoke, Firing Sound, Puff, ImpactFX,
+    Trail. THE ATTACK'S BODY. Affixes edit these axes and the
+    rotation; the catalog supplies every value.
+
+THE AUDIT -- every card passes or dies
+================================================================================
+  1 IDENTITY   does any rolled stat stop mattering?          -> fail
+  2 AMPLIFIER  does some rolled stat matter MORE?            -> best
+  3 CONVERGENCE do two different guns play the same with it? -> fail
+  4 GENERATIVE  similar / opposite / synergistic / antagonistic asked
+  5 OWNERSHIP  never duplicate Promotion's lane (pellet growth)
+  Standing verdicts: Echo reworked (own-shot echo, primes on full mag);
+  Seeker turn-rate scales with rolled Accuracy; Ghost retention scales
+  with rolled Velocity; elementals (Painter/Cryo) DIE as concepts,
+  plumbing re-aimed at Monster Signatures.
+
+MODE IS PRESENTATION (the railshot principle)
+================================================================================
+  A "hitscan" may really be a near-instant segmented projectile --
+  hitscan feel, projectile freedoms (arc, seek, visibility). The
+  catalog + profile system can represent mechanics the engine "lacks."
+  This is the license for every exotic affix.
+
+TIER -> OFFER LAW  (owner's rule; ONE FLAG below)
+================================================================================
+  Cursed/Trash/Basic  2 cards, STAT ONLY. Ranges scale with
+                      PromotionCount; ceilings real (Accuracy & Condition
+                      cap 100; Damage caps at promotion ceiling).
+  Common              [FLAG for owner: sockets begin here (1) per rs_00,
+                      but owner's latest says affixes begin "uncommon+".
+                      Plan assumes: Common = stats + the SIMPLEST affix
+                      rarity only. One-word veto flips it.]
+  Uncommon            4 cards; general affix pool opens.
+  Advanced/Designer   5 cards; RARE + family-flavored affixes join.
+  Designer/Prototype  6 cards; EXOTIC + Monster Signatures join.
+  All affixes: levels 1-5 + Mastery (6th take, rule-change).
+  Gold spends at the picker: reroll (5<<n) and +1 card (12<<n).
+
+AFFIX RARITY LANES
+================================================================================
+  GENERAL   (Uncommon+)  behavior cards, archetype-agnostic mechanics:
+            Splitter, Slugger, Overcharged, Giant, Seeker, Ghost,
+            Echo(reworked), Rifled, Tracker, Hammer, Fork, Overkill,
+            Deadeye, Impact Physics, Momentum, Scavenger, Combat
+            Reload, Ghost Load, Quickdraw, Pain Train, Gib Standard,
+            Fan the Hammer, Metronome, Opener, Last Rites, Duelist,
+            Patience, Wabi-Sabi, Grit, Infighter, Dead Man's Trigger.
+  FAMILY    (Advanced+)  the same mechanics wearing per-family flavor
+            tables (sound/visual/feel keys per archetype) + archetype
+            exclusives (Choke line, revolver/SSG/rail specials).
+  EXOTIC    (Designer+)  Monster Signatures -- Bonecaller, Cacospit,
+            Arach-Plasma, Swarm, Pain Orb (the bouncing orb, reframed)
+            -- and the mode-is-presentation pieces (segmented rail arc).
+  QUARANTINE dual-wield cards: ONE-WAY flow only (hand A buffs hand B,
+            never back -- no cascade loops). One prototype (Crossfire),
+            built late, behind its own gate, felt before more exist.
+
+STAT-STATE VISUAL LADDER (owner directive, build committed)
+================================================================================
+  The gun's LOOK reflects its stat state, using the catalog:
+    Damage vs ceiling:  LOW / MID / HIGH / PEAK -- hotter, brighter
+                        rounds as damage climbs (RSB0 base -> ember ->
+                        flare-shedding peak).
+    Condition bands:    clean / worn / failing -- dimmer rounds,
+                        sputter trails, heavy muzzle smoke as the gun
+                        wears.
+  Applies to DEFAULT bodies only -- never overrides an installed affix
+  part; trail/smoke/puff state effects compose with everything.
+  Sprites verified in-repo: RSB0, RSP0-6 plasma, RSL0 lightning, RSK0
+  smoke, RSS spark motes.
+
+THE TELL SYSTEM (cadence feedback -- the missing audiovisual language)
+================================================================================
+  Every archetype gets a READY-TO-FIRE tell: hammer-click (revolver),
+  pump-clunk (shotgun), bolt-snap (rifle), hiss (SMG), beep (plasma --
+  the owner's own prototype), capacitor whine (rail). Sound + small
+  muzzle shimmer at the ready instant. Teaches cadence with zero UI;
+  gives rhythm affixes a beat the player can HEAR; differentiates
+  archetypes on every single trigger pull.
+  Two-stage reload audio where the weapon's action warrants it.
+  SOURCE LIBRARY (verified): E:\New folder\li-gnrcwpn\ -- FOLEY1-5,
+  HOLSTR set, per-archetype equips (RFLEQUP/SGEQUP/RLEQUP/MGUPSN/
+  PLSUSND), per-weapon handling dirs with slide/pump/click/reload
+  already SNDINFO-mapped. Import per the ICEY discipline: listen/view,
+  categorize into sounds/combatfx/handling/, entries in our SNDINFO.
+
+THE PHASES
+================================================================================
+  A  CONSTITUTION LOCK -- owner marks up THIS DOC (esp. the Common-tier
+     flag). No content built on unapproved law.
+  B  THREE HELPERS, parallel:
+       B1 Catalog Indexer -- fx_inventory_staging/ + master catalog ->
+          machine-readable index: every sequence tagged by the PACK
+          axes it can fill. The wardrobe warehouse.
+       B2 Monsterfx Harvester -- all 16 monsterfx files -> signature
+          shortlist: every part worth being a Monster Signature or
+          wardrobe piece, exact baked behaviors noted.
+       B3 Flavor & Foley Drafter -- per archetype: its tell, its sound
+          family (incl. li-gnrcwpn inventory), its per-affix expression
+          notes. The family flavor tables.
+     Helpers survey and draft ONLY. All code and all design calls stay
+     on the main thread.
+  C  CORE CODE (main thread):
+       C1 tier-gated offers + stat-card promotion-scaled ranges and
+          ceilings (acc/cnd 100)          [replaces current flat cards]
+       C2 the Tell system + two-stage reload audio
+       C3 the stat-state visual ladder    [half-staged, sprites verified]
+       C4 Echo/Seeker/Ghost audit fixes; kill Painter/Cryo, re-aim
+          their plumbing; fix Winter Kit combo
+  D  AFFIX WAVES, built from the helper tables:
+       D1 Monster Signatures (the exotic lane opens)
+       D2 the general lane's new cards (audited list above)
+       D3 family flavor tables applied across the shared pool
+  E  BOOT + PUNCH-LIST -- nothing since the UI build has compiled;
+     one boot, one list, one fix batch. (Phase 3 of rs_10, still owed.)
+  F  the deferred systematic review pass, on the owner's word.
+
+================================================================================
