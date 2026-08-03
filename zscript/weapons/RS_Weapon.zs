@@ -488,7 +488,7 @@ class RS_Weapon : Weapon abstract
 		// The affix override is CHECKED-CAST to the bullet base class:
 		// if a part-swap affix ever installs a non-ballistic class on a
 		// bullet weapon, the override is ignored instead of spawning a
-		// round that silently skips SetupStats -- the exact old debug-
+		// round that silently skips SetupStats -- the exact old
 		// pool bug, fenced at the one place it could re-enter.
 		Class<Actor> cls = (Class<RS_BallisticFired>)(AffixProjectile);
 		if (!cls) cls = p.ProjectileClass;
@@ -949,7 +949,6 @@ class RS_Weapon : Weapon abstract
 		if (!HeavyProjectileClass)
 			HeavyProjectileClass = GetHeavyProjectile();
 		EnsureAttackProfiles();
-		RS_Keywords.Validate(GetBaseKeywords(), GetClassName());
 	}
 
 	// =================================================================

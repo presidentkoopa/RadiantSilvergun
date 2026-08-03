@@ -1,0 +1,668 @@
+================================================================================
+RS_Main ART SOURCE INVENTORY -- "THINGS THAT FLY AND DETONATE" SET
+Folders: EXPLOSIONS / PROJECTILES / FLARES / dakka / dakka_grenade
+Source root: E:\New folder\ART SOURCE\SPRITES\
+Read-only inventory. No source file was copied, moved, renamed or modified.
+================================================================================
+
+SUMMARY
+  Total sequences found ......... 65  (64 unique -- dakka_grenade/DGRN is a
+                                       byte-identical copy of dakka/DGRN)
+  Total files (frames) .......... 494
+      EXPLOSIONS ....  5 sequences /  53 files
+      PROJECTILES ...  5 sequences /  28 files
+      FLARES ........ 13 sequences /  27 files
+      dakka ......... 41 sequences / 380 files
+      dakka_grenade .  1 sequence  /   6 files
+  Visually inspected ............ 65 of 65 sequences (100%). Nothing unviewable.
+  Genuinely reusable combat FX .. ~40 sequences
+  NOT FX (weapons/player/pickups/UI) ... 17 sequences -- flagged below
+  Duplicates of existing RS_Main content ... 7 sequences -- see DUPLICATES
+
+IMPORTANT NOTE ON FOLDER CONTENTS
+  "dakka" is NOT a pure effects folder. It is a complete extracted weapon mod:
+  first-person weapon sprites, a full player skin with death/gib animation,
+  pickup items and even a text graphic are mixed in with the real effects.
+  Roughly 40% of the dakka folder is unusable as generic combat FX. Every such
+  sequence is marked [NOT FX] below so a generator never picks it.
+
+  Naming convention decoded (dakka): D**F = muzzle Flash (reusable),
+  D**G = Gun / first-person weapon sprite (not reusable).
+  e.g. DKSF = shotgun flash, DKSG = shotgun weapon. This pairing holds for
+  DKSF/DKSG, DMNF/DMNG, DSSF/DSSG, PLNF/PLNC.
+
+FILE FORMAT NOTES
+  - Many files have NO extension (XPAC, BBAL, BBB1, R044, ZAP7, FLAR, LEN*).
+    All of them are in fact ordinary PNGs, just mislabelled. All rendered fine.
+    There is no raw Doom picture-format lump anywhere in these five folders.
+  - 5 files (EXP1*, EXP2*, XPAC*, RR00*, SCPRZ0) are valid PNGs that the Python
+    Pillow library refuses to open, so they were excluded from the AUTOMATED
+    duplicate sweep. They were all inspected visually instead, and manually
+    compared against RS_Main explosions. GZDoom will load them normally.
+  - Doom `grAb` sprite-offset chunks are present on essentially everything,
+    so in-game alignment is already baked in. The only exceptions, which would
+    need offsets set by hand on import, are:
+        FLARES/LENB, LENG, LENR, LENY  (no grAb at all)
+        FLARES/LENS                    (1 of 2 frames only)
+
+TYPE COLUMN
+  animation = frames change over time (an effect developing)
+  rotation  = one solid object seen from 8 angles (filenames like A1 / A2A8)
+  mixed     = rotation frames for flight PLUS a separate animation tail
+  static    = single frame
+
+
+================================================================================
+FOLDER: EXPLOSIONS   (5 sequences, 53 files)
+================================================================================
+
+SEQUENCE: EXP1
+  FRAMES: 14 (A-N)          SIZE: 72x85          TYPE: animation
+  VISUAL: Tall vertical mushroom blast. Opens as a thin orange/yellow ring
+    outline, erupts into a white-hot column with a bulbous cap over a red-orange
+    fire base, then collapses into a dark brown-black smoke plume that keeps a
+    few glowing red embers at the crown. Full detonation-to-smoke arc in one
+    sequence.
+  FLAVOR WORDS: thunderous, mushroom, detonator, ordnance
+  USE: explosion, smoke
+  NOTE: Best "big bomb went off" asset in the whole assigned set -- it is one of
+    the very few sequences that carries all the way through to settled smoke.
+
+SEQUENCE: EXP2
+  FRAMES: 14 (A-N)          SIZE: 72x85          TYPE: animation
+  VISUAL: Visually near-identical twin of EXP1 -- same ring-to-column-to-smoke
+    mushroom arc, same palette and dimensions, differing only in fine pixel
+    detail and flame silhouette.
+  FLAVOR WORDS: thunderous, blastwave, siege, cataclysm
+  USE: explosion, smoke
+  NOTE: All 14 frames hash DIFFERENTLY from EXP1, so they are hand-varied, not
+    copies. Usable as an alternating variant so repeated explosions do not look
+    stamped. Do not treat as two distinct effects in a generator -- treat as one
+    effect with two rolls.
+
+SEQUENCE: EXPG
+  FRAMES: 7 (A-G)           SIZE: 64x64          TYPE: animation
+  VISUAL: Compact toxic-green burst. Starts as a soft green puff outline, peaks
+    as a ragged bright-green corona with a hard black void at the centre, then
+    thins to a broken green crescent as it dissipates.
+  FLAVOR WORDS: caustic, toxic, blight, venom
+  USE: explosion, impact-fx
+  NOTE: Palette-swap sibling of EXPL (identical shape language, green instead of
+    orange). See DUPLICATES -- EXPL itself is already in RS_Main.
+
+SEQUENCE: EXPL
+  FRAMES: 8 (A-H)           SIZE: 64x64          TYPE: animation
+  VISUAL: Compact orange fireburst. Pale pink-white core inside an orange ring,
+    blooms to a ragged orange corona around a black hollow centre, fades to a
+    dark red-brown crescent of smoke.
+  FLAVOR WORDS: searing, flashpoint, ember, scorch
+  USE: explosion, impact-fx
+  NOTE: *** EXACT DUPLICATE -- all 8 frames are byte-identical to RS_Main
+    sprites\combatfx\fire\RSI4. Already imported. Do not re-import. ***
+
+SEQUENCE: XPAC
+  FRAMES: 10 (A-J)          SIZE: 28x21 to 65x52 (grows then shrinks)
+                            TYPE: animation
+  VISUAL: Small, punchy, almost cartoon fireball. A yellow-orange blob with a
+    dark sooty upper edge swells over the first frames, then breaks apart into
+    sparse dark-red specks and debris flecks that scatter and vanish.
+  FLAVOR WORDS: popper, cracker, scattershot, burstfire
+  USE: impact-fx, explosion, impact-puff
+  NOTE: Physically small -- reads as a grenade pop or a solid rocket impact, not
+    a set-piece explosion. Good default for cheap frequent detonations.
+
+
+================================================================================
+FOLDER: PROJECTILES   (5 sequences, 28 files)
+================================================================================
+
+SEQUENCE: BBAL
+  FRAMES: 4 (A-D)           SIZE: 95x95          TYPE: animation (flicker loop)
+  VISUAL: Large blue-violet plasma sphere with a blinding white core, the outer
+    shell mottled and boiling with lighter blue cells. The four frames barely
+    differ -- it is a flicker cycle, not a progression, so it loops seamlessly
+    in flight.
+  FLAVOR WORDS: ballstorm, arcsphere, voltaic, azure
+  USE: projectile-visual, in-flight-trail
+  NOTE: Very large for a projectile (95px). Suits a slow heavy energy orb --
+    a BFG-class or charged-shot round rather than a rapid-fire bolt.
+
+SEQUENCE: BBB1
+  FRAMES: 5 (A-E)           SIZE: 111x111, 127, 143, 159, then 16x16
+                            TYPE: animation (expanding)
+  VISUAL: An expanding blue shockwave. A small mottled blue core sits at centre
+    while a thin, faint blue ring races outward and grows frame by frame; the
+    final frame drops to a tiny 16x16 blue spark remnant.
+  FLAVOR WORDS: shockwave, pulsewave, concussion, expander
+  USE: explosion, impact-fx
+  NOTE: The ring is very low-opacity -- this is an additive overlay effect meant
+    to be layered ON TOP of a brighter core explosion, not used alone. The odd
+    16x16 last frame is a residue/spawn frame.
+
+SEQUENCE: R044
+  FRAMES: 8 (J-Q)           SIZE: 103x101 to 107x104
+                            TYPE: animation
+  VISUAL: Striking and unusual -- a solid pure-black sphere sitting in the
+    centre, surrounded by thin pale-white smoke tendrils that writhe and curl
+    outward like ink in water. The black core stays hard-edged and opaque
+    throughout while the tendrils churn.
+  FLAVOR WORDS: singularity, voidmaw, eclipse, nullifier
+  USE: projectile-visual, explosion, impact-fx
+  NOTE: STANDOUT. Nothing in RS_Main looks remotely like this (nearest match
+    scored 61 on the similarity sweep -- effectively unrelated). Reads as a
+    black hole / void / antimatter weapon. High value for a "dark" weapon family
+    and an obvious hook for a named weapon tier.
+
+SEQUENCE: RR00
+  FRAMES: 6 (A-F)           SIZE: 80x80          TYPE: animation
+  VISUAL: A radial shatter-burst. Pale blue-white and lavender needles spike
+    outward from a bright centre; by the later frames the centre has hollowed
+    out and only a ring of jagged crystalline shards remains, pointing outward.
+  FLAVOR WORDS: shatter, frostbite, shardstorm, splinter
+  USE: impact-fx, explosion
+  NOTE: Reads strongly as ice/crystal shattering or a hard electrical discharge.
+    Excellent cold-damage impact. No RS_Main equivalent.
+
+SEQUENCE: ZAP7
+  FRAMES: 5 (A-E)           SIZE: 64x63 to 64x64  TYPE: animation
+  VISUAL: A writhing knot of pale grey-white tendrils, like a ball of smoke arms
+    or tangled electric arcs curling around a hollow centre. Spreads and loosens
+    across the five frames.
+  FLAVOR WORDS: writhing, tendril, spectral, coil
+  USE: impact-fx, projectile-visual, smoke
+  NOTE: Same tendril art language as R044 but light instead of dark -- the two
+    work as a matched light/dark pair for a single weapon family.
+
+
+================================================================================
+FOLDER: FLARES   (13 sequences, 27 files)
+================================================================================
+
+The flare folder resolves into THREE clean families. Within each family the
+sequences are pure colour swaps of one another, and where a sequence has an A0
+and a B0 frame, B0 is simply the same image at 240px instead of 256px -- a SCALE
+variant, NOT an animation frame. Treat each family as one effect with a colour
+parameter; that is exactly what a procedural generator wants.
+
+--- FAMILY 1: dithered starburst (long 4-point spike + short rays + noisy halo)
+SEQUENCES: FSO1 (2 frames, orange), LENS (2, A0 white / O0 orange),
+           LEYS (5: A0 yellow, B0 cyan-blue, G0 green, O0 orange, R0 red)
+  SIZE: 256x256   TYPE: static / colour set
+  VISUAL: A brilliant point-source star with four long thin spikes and a spray
+    of shorter rays, wrapped in a heavily dithered circular halo that fades to
+    black at the rim. The dithering gives it a gritty, retro, non-smooth look.
+  FLAVOR WORDS: starburst, radiant, nova, dazzle
+  USE: muzzleflash, ambient, in-flight-trail
+  NOTE: *** LARGELY ALREADY IN RS_MAIN. LEYSR0 is byte-identical to
+    flares\RSF8R0; LENSA0 is byte-identical to flares\RSF3A0; FSO1 and LEYSO0
+    score 1.7-2.4 (visually indistinguishable) against RSF8. Only genuinely new
+    colours here are LEYSB0 (cyan) and LEYSG0 (green). ***
+
+--- FAMILY 2: ringed lens flare (8-point star inside a lens ring)
+SEQUENCES: L2NB (blue), L2NG (green), L2NR (red), L2NY (amber/yellow)
+  FRAMES: 2 each (A0 256px, B0 240px -- scale variants)
+  SIZE: 255x255 / 240x240   TYPE: static / colour set
+  VISUAL: A smooth, clean 8-point star burst with a distinct thin circular lens
+    ring drawn around it at about half radius, all sitting on a dark radial
+    falloff disc. Much smoother and more "optical/photographic" than Family 1.
+  FLAVOR WORDS: lensfire, halo, beacon, prism
+  USE: muzzleflash, ambient, projectile-visual
+  NOTE: GENUINELY NEW -- nearest RS_Main match scored 10.6-19.8 (not a dupe).
+    The circular lens ring is the distinguishing feature and RS_Main has no
+    flare with it. Best new find in this folder. Four ready-made colours makes
+    it ideal for an element-keyed muzzle flash.
+
+--- FAMILY 3: soft radial glow blob (no star, no rays)
+SEQUENCES: LENB (blue), LENG (green), LENR (red-orange), LENW (white/grey),
+           LENY (amber)
+  FRAMES: 2 each except LENW (1). A0 256px, B0 240px -- scale variants.
+  SIZE: 256x256 / 240x240   TYPE: static / colour set
+  VISUAL: A featureless soft gradient sphere -- bright at the centre, falling
+    smoothly to black at the edge. The classic additive light-blob used for
+    glow, bloom and light halos.
+  FLAVOR WORDS: glowcore, aura, lumen, softlight
+  USE: ambient, in-flight-trail, projectile-visual
+  NOTE: Conceptually overlaps RS_Main RSF0 (blue glow) / RSF5 (orange glow) /
+    RSF6 (green glow) but NOT byte-identical -- the falloff radius and core
+    brightness differ (scores 9.6-19.3). Redundant in role. LENW (white) is the
+    most useful addition since it is colour-neutral and can be tinted at
+    runtime. *** These four also LACK grAb offsets -- offsets must be set by
+    hand if imported. ***
+
+SEQUENCE: FLAR
+  FRAMES: 1 (B0 only -- no A frame present)   SIZE: 96x96   TYPE: static
+  VISUAL: A dense red radial burst with a hot yellow-white pinpoint core and
+    short soft rays, on a dark red disc. Smaller and much denser than the
+    256px flares -- feels hotter and more contained.
+  FLAVOR WORDS: emberflare, hotshot, signal, cinder
+  USE: muzzleflash, ambient, projectile-visual
+  NOTE: The only flare at this size; the compact 96px footprint makes it the
+    most practical of the flares for an actual in-world muzzle flash.
+    Missing its A frame -- verify before use.
+
+
+================================================================================
+FOLDER: dakka   (41 sequences, 380 files)
+================================================================================
+
+--- REUSABLE COMBAT FX -----------------------------------------------------
+
+SEQUENCE: DBFE
+  FRAMES: 4 (A-D)           SIZE: 13x9 to 64x50   TYPE: animation
+  VISUAL: A jagged bright yellow-green starburst that flashes out and collapses
+    fast, ending as a tiny green chevron. Acid/toxic energy pop.
+  FLAVOR WORDS: acidic, venomous, spitfire, corrosive
+  USE: impact-fx, muzzleflash
+  NOTE: *** DUPLICATE -- scores 0.90 against RS_Main explosions\RSE4, i.e.
+    visually the same effect. Already covered. ***
+
+SEQUENCE: DBFF
+  FRAMES: 5 (A-E)           SIZE: 139x67          TYPE: animation
+  VISUAL: A wide, mostly-empty canvas holding two small green-and-yellow dart
+    shapes angled away from each other, which stretch into thin horizontal
+    streaks. This is a twin-barrel muzzle flash overlay, aligned to the DBFG
+    weapon sprite.
+  FLAVOR WORDS: twinbore, sidewinder, splitfire, wasp
+  USE: muzzleflash
+  NOTE: Only meaningful when composited on the matching weapon -- the wide empty
+    canvas and off-centre placement make it unusable as a free-standing effect.
+
+SEQUENCE: DBFP
+  FRAMES: 8 (A-H)           SIZE: 45x1 to 143x114 TYPE: animation
+  VISUAL: A rounded green-and-yellow explosion cloud with a blown-out white
+    centre, expanding wide then flattening into a thin horizontal green-yellow
+    streak as it dissipates.
+  FLAVOR WORDS: plaguebloom, bilious, gasburst, miasma
+  USE: explosion, impact-fx
+  NOTE: *** DUPLICATE -- scores 1.59 against RS_Main explosions\RSE3. Already
+    covered. ***
+
+SEQUENCE: DFLM
+  FRAMES: 11 (E-O)          SIZE: 86x43 to 109x90 TYPE: animation
+  VISUAL: A billowing orange-and-tan fire cloud with a cauliflower/popcorn
+    texture and bright yellow flecks scattered through it. Rolls upward and
+    outward, then flattens and settles. Warm, fuel-fed, napalm-like rather than
+    sharp and explosive.
+  FLAVOR WORDS: napalm, infernal, pyroclast, immolate
+  USE: explosion, in-flight-trail, smoke
+  NOTE: Strong find. RS_Main's nearest fire asset scored 30 -- this is a
+    distinctly different, softer and more voluminous fire look than anything
+    currently in the mod. Best choice for a flamethrower or incendiary payload.
+  FIRST FRAME NOTE: sequence starts at E, not A -- frames A-D are absent.
+
+SEQUENCE: DKFR
+  FRAMES: 16 (A-P)          SIZE: 16x11 to 24x38  TYPE: animation
+  VISUAL: A small orange-yellow flame teardrop, candle-like, that leans and
+    flickers over the first frames then shrinks to a small brown-orange smear
+    and gutters out.
+  FLAVOR WORDS: flicker, torchlight, wickfire, smoulder
+  USE: in-flight-trail, ambient, impact-fx
+  NOTE: Small and long (16 frames) -- built to be a lingering burning-object
+    trail or a persistent fire decal, not a one-shot hit effect.
+
+SEQUENCE: DKSF
+  FRAMES: 2 (A,B)           SIZE: 44x31 to 54x44  TYPE: animation
+  VISUAL: A wide, low, bright red-and-white flame crown -- a spiky fan of fire
+    spreading sideways from a hot white base. Classic shotgun muzzle bloom.
+  FLAVOR WORDS: buckshot, blastcrown, roaring, breach
+  USE: muzzleflash
+  NOTE: Genuinely new (nearest RS_Main match scored 57). Clean, well-shaped
+    two-frame flash -- immediately usable.
+
+SEQUENCE: DMIS
+  FRAMES: 6 (F-K)           SIZE: 58x58 to 103x86 TYPE: animation
+  VISUAL: Opens as a fierce orange-red fireball with radiating spikes, churns
+    into a swirling red vortex with a dark hollow centre, then resolves into a
+    ring of dark red splatter droplets flung outward.
+  FLAVOR WORDS: rupture, gutshot, visceral, maelstrom
+  USE: explosion, impact-fx, gore
+  NOTE: Unusual and useful -- an explosion that ENDS in wet red splatter. Reads
+    as a body-detonating hit. Good for a gore-oriented weapon effect.
+  FIRST FRAME NOTE: starts at F -- frames A-E absent.
+
+SEQUENCE: DMNF
+  FRAMES: 2 (A,B)           SIZE: 36x25           TYPE: animation
+  VISUAL: A small, tight red-orange flame crown with a white-hot base -- the
+    same shape family as DKSF but roughly half the size and more compact.
+  FLAVOR WORDS: rattling, spitter, hotbarrel, chatter
+  USE: muzzleflash
+  NOTE: The small footprint suits a rapid-fire weapon where a big flash would
+    strobe badly. Pairs naturally with DKSF as small/large flash variants.
+
+SEQUENCE: DPUF
+  FRAMES: 5 (A-E)           SIZE: 5x5 to 15x15    TYPE: animation
+  VISUAL: A tiny grey-white puff that pops open and dissipates in five frames.
+  FLAVOR WORDS: puff, dustoff, ricochet, nick
+  USE: impact-puff
+  NOTE: *** EXACT DUPLICATE -- all 5 frames byte-identical to RS_Main
+    sprites\combatfx\bullets\RSB0. Already imported. ***
+
+SEQUENCE: DSSF
+  FRAMES: 2 (A,B)           SIZE: 55x37 to 65x46  TYPE: animation
+  VISUAL: A TWIN flash -- two separate red-orange flame plumes side by side over
+    a dark barrel gap, growing from wide-and-low to tall-and-forked. Unmistakably
+    a double-barrel discharge.
+  FLAVOR WORDS: doublebarrel, twinfang, sawnoff, thunderclap
+  USE: muzzleflash
+  NOTE: STANDOUT. The two-plume silhouette is specific and readable and RS_Main
+    has nothing like it (nearest match scored 50). Ideal for any double-barrel
+    or twin-port weapon, and a natural naming hook.
+
+SEQUENCE: DVMP
+  FRAMES: 4 (A-D)           SIZE: 25x25           TYPE: animation
+  VISUAL: A small glossy deep-red sphere with a darker centre and a highlight,
+    pulsing slightly across the four frames. Reads as a blood orb or a dark
+    energy pearl.
+  FLAVOR WORDS: sanguine, leech, bloodpearl, vampiric
+  USE: projectile-visual, gore
+  NOTE: Compact and clean. Good life-steal / blood-magic projectile.
+
+SEQUENCE: GTRL
+  FRAMES: 3 (A-C)           SIZE: 37x35 to 50x44  TYPE: animation
+  VISUAL: A soft red-and-pink cloud with a pale centre that expands and thins
+    over three frames -- a blood mist rather than a solid splatter.
+  FLAVOR WORDS: bloodmist, gore, crimson, viscera
+  USE: gore, impact-fx, in-flight-trail
+  NOTE: Only 3 frames, so it is a quick accent. Good bleed trail on a wounded
+    target.
+
+SEQUENCE: MIS3
+  FRAMES: 5 files (A1, A2A8, A3A7, A4A6, A5)   SIZE: 15x13 to 46x13
+                            TYPE: rotation (8 angles from 5 files)
+  VISUAL: A tiny dark missile body with a small orange flame at its tail, drawn
+    from eight viewing angles -- side-on views are elongated, head-on views
+    compress to a small dot with flame.
+  FLAVOR WORDS: warhead, hellfire, screamer, bunkerbuster
+  USE: projectile-visual
+  NOTE: ROTATION-BASED, not animated -- it is one solid object seen from 8
+    directions, so it stays correctly oriented as it flies past the player.
+    That makes it far more valuable than a flat billboard sprite for any
+    physical (non-energy) projectile. Very small at 15px.
+
+SEQUENCE: PLNF
+  FRAMES: 7 (D-J)           SIZE: 150x57          TYPE: animation
+  VISUAL: Bright cyan/electric-blue chevron flashes appearing at the muzzle
+    position on an otherwise empty wide canvas -- the energy muzzle flash
+    overlay for the PLNC weapon sprite.
+  FLAVOR WORDS: ionbolt, cryostatic, cerulean, arclight
+  USE: muzzleflash
+  NOTE: Aligned to a specific weapon canvas; would need cropping and re-offsetting
+    to be reused generically. Scored 10.1 vs RS_Main RSE1 -- loosely similar.
+  FIRST FRAME NOTE: starts at D -- frames A-C absent.
+
+SEQUENCE: PLZM
+  FRAMES: 14 (F-S)          SIZE: 7x7 to 39x41    TYPE: animation
+  VISUAL: A complete plasma bolt lifecycle in one sequence: begins as a small
+    solid cyan-blue orb, develops into a swirling cyan ring with a darker core
+    during flight, then bursts into a spiky electric-blue splash on impact.
+  FLAVOR WORDS: ionstorm, voltaic, cryoburst, tempest
+  USE: projectile-visual, impact-fx, in-flight-trail
+  NOTE: Excellent value -- projectile AND its impact in a single sequence, so a
+    generator can wire one asset to both roles. Nearest RS_Main match scored
+    16.9 (acid\RSA0), so not a duplicate despite RS_Main having a plasma set.
+  FIRST FRAME NOTE: starts at F -- frames A-E absent.
+
+SEQUENCE: SCRB
+  FRAMES: 3 (A-C)           SIZE: 24x24           TYPE: animation
+  VISUAL: A small round glowing orange-yellow ember with a hot bright centre and
+    a soft rim, gently pulsing.
+  FLAVOR WORDS: ember, cinderdrop, molten, slagshot
+  USE: projectile-visual, ambient, gore
+  NOTE: Nominally a pickup item (a "scrap" collectible) but the art is a clean
+    glowing ember and works perfectly well as a small hot projectile or a
+    lingering ember particle.
+
+SEQUENCE: SCRN
+  FRAMES: 3 (A-C)           SIZE: 48x48           TYPE: animation
+  VISUAL: An angular orange-amber crystalline chunk -- faceted, glassy, with
+    bright highlights and darker facet edges. Looks like a shard of molten glass
+    or hot slag.
+  FLAVOR WORDS: shard, slagsteel, crystalline, fractal
+  USE: projectile-visual, casing, ambient
+  NOTE: Pickup art, but the faceted-shard look is distinctive and would serve
+    well as heavy debris or a crystal projectile.
+
+SEQUENCE: SCRS
+  FRAMES: 3 (A-C)           SIZE: 24x24           TYPE: animation
+  VISUAL: A small jagged orange-yellow fragment, rougher and less round than
+    SCRB -- a chip of hot debris.
+  FLAVOR WORDS: fragment, shrapnel, splinter, grit
+  USE: casing, impact-fx, gore
+  NOTE: Smallest of the SCR* trio. SCRB/SCRN/SCRS form a small/medium/large
+    glowing-debris set, which is directly useful for shrapnel scatter.
+
+SEQUENCE: SCRT
+  FRAMES: 1 (A0)            SIZE: 64x64           TYPE: static
+  VISUAL: A soft warm radial glow -- white-hot centre grading through orange to
+    a transparent edge. A clean additive light halo.
+  FLAVOR WORDS: hearthglow, aureole, warmlight, halo
+  USE: ambient, in-flight-trail
+  NOTE: This is the glow layer that sits behind the SCR* debris. Useful on its
+    own as a generic warm light sprite; a cleaner, softer blob than the FLARES
+    Family 3 glows and only 64px, so much cheaper to draw.
+
+SEQUENCE: SMK1
+  FRAMES: 18 (A-R)          SIZE: 64x64           TYPE: animation
+  VISUAL: A large, dense grey-white smoke puff with a ragged wispy outline and
+    visible internal curl structure. Blooms outward, then thins and frays until
+    only faint tendrils remain by the last frames.
+  FLAVOR WORDS: smokestack, shroud, cordite, veil
+  USE: smoke, impact-puff, in-flight-trail
+  NOTE: The 18-frame length gives a properly slow, believable dissipation --
+    much better than a short puff for lingering barrel smoke.
+
+SEQUENCE: SMK2
+  FRAMES: 18 (A-R)          SIZE: 64x64           TYPE: animation
+  VISUAL: As SMK1 but noticeably more solid and rounded -- a thicker, more
+    opaque cloud body with less feathering at the edges.
+  FLAVOR WORDS: billowing, chokedust, palled, murk
+  USE: smoke, impact-puff
+  NOTE: SMK1 and SMK2 are the "heavy" pair.
+
+SEQUENCE: SMK3
+  FRAMES: 16 (A-P)          SIZE: 64x64           TYPE: animation
+  VISUAL: A markedly fainter, sparser smoke wisp -- diffuse grey speckling
+    rather than a solid cloud, occupying less of the 64px canvas.
+  FLAVOR WORDS: wisp, haze, faintsmoke, drift
+  USE: smoke, impact-puff
+  NOTE: SMK3 and SMK4 are the "light" pair. Having heavy and light variants at
+    matched canvas size is exactly what a generator needs to scale smoke with
+    weapon calibre.
+
+SEQUENCE: SMK4
+  FRAMES: 16 (A-P)          SIZE: 64x64           TYPE: animation
+  VISUAL: As SMK3, a thin diffuse grey wisp, with a different scatter pattern;
+    all but gone by the final frames.
+  FLAVOR WORDS: vapour, ghosting, thinsmoke, breath
+  USE: smoke, impact-puff
+  NOTE: None of SMK1-4 resemble anything in RS_Main (nearest scores 48-52).
+    A complete, coherent, immediately usable 4-variant smoke set -- the single
+    most practically valuable group in the dakka folder.
+
+SEQUENCE: OPRT
+  FRAMES: 2 (A0, B0)        SIZE: A0 133x7, B0 23x23   TYPE: unclear
+  VISUAL: The two frames are unrelated to each other. A0 is a long thin
+    light-grey horizontal bar (133x7, flat grey, no structure). B0 is a small
+    round orange blob with a lighter centre.
+  FLAVOR WORDS: (none proposed -- purpose unclear)
+  USE: uncertain
+  NOTE: HONEST GAP: I viewed both frames but cannot determine what this is meant
+    to be. The two frames do not belong to the same visual. A0 may be a beam or
+    a UI rule; B0 may be an ember. Not recommended for the generator without a
+    human deciding what it is.
+
+
+--- [NOT FX] WEAPON / PLAYER / PICKUP / UI SPRITES --------------------------
+These are in the folder but are NOT reusable combat effects. Excluded from the
+generator pool. Listed so nobody re-derives them later.
+
+SEQUENCE: DBFG   FRAMES: 4 (A,B,C,Z)   SIZE: up to 170x84
+  [NOT FX] First-person weapon sprite: a large grey steel multi-barrel gun body
+  with red panel detailing, seen head-on. Pairs with flash DBFF.
+
+SEQUENCE: DKIP   FRAMES: 23 (A-V,Z)    SIZE: up to 320x200
+  [NOT FX] Full-screen first-person weapon sprite -- hands gripping a heavy
+  weapon, with a large orange star-shaped muzzle flash BAKED IN to the same
+  image. The gun body is identical across frames; only the flash changes. The
+  flash cannot be separated without manual cropping.
+
+SEQUENCE: DKP2   FRAMES: 8 (A-H)       SIZE: 320x200
+  [NOT FX] As DKIP -- same weapon, alternate (larger, multi-spike) baked-in
+  muzzle flash.
+
+SEQUENCE: DKSG   FRAMES: 9 (A-H,Z)     SIZE: up to 129x151
+  [NOT FX] First-person shotgun: gloved hand and pump barrel, with pump/reload
+  animation. Pairs with flash DKSF.
+
+SEQUENCE: DMNG   FRAMES: 13 (A-L,Z)    SIZE: up to 200x125
+  [NOT FX] First-person minigun/chaingun with a crown-of-flames muzzle flash
+  baked in. Pairs with flash DMNF.
+
+SEQUENCE: DSSG   FRAMES: 21 (A-T,Z)    SIZE: up to 187x130
+  [NOT FX] First-person super shotgun with a full break-open reload animation
+  (hand, shells, barrel). Pairs with flash DSSF.
+
+SEQUENCE: PLNC   FRAMES: 13 (A-L,Z)    SIZE: up to 150x57
+  [NOT FX] First-person dark twin-barrel plasma/nail gun with hand. Pairs with
+  flash PLNF.
+
+SEQUENCE: DPLC   FRAMES: 51            SIZE: up to 62x43
+  [NOT FX] PLAYER/ACTOR SKIN. Frames A1-G5 are 7 animation frames x 8 rotation
+  angles (a green-armoured marine walking); frames H0-W0 are the death and gib
+  animation, ending in a red gore splatter pool. This is a character, not an
+  effect. The gib tail frames could in principle be mined for gore decals.
+
+SEQUENCE: DPLY   FRAMES: 51            SIZE: up to 57x59
+  [NOT FX] Second PLAYER/ACTOR SKIN, same structure as DPLC (7 frames x 8
+  rotations, plus H0-W0 death/gib to a gore pool). A taller marine variant.
+
+SEQUENCE: DPLS   FRAMES: 1 (A0)        SIZE: 54x16
+  [NOT FX] Dropped weapon pickup sprite (a shotgun lying on the ground).
+
+SEQUENCE: DPST   FRAMES: 1 (Z0)        SIZE: 29x15
+  [NOT FX] Dropped weapon pickup sprite (a pistol).
+
+SEQUENCE: SCPR   FRAMES: 1 (Z0)        SIZE: 34x20
+  [NOT FX] Dropped weapon pickup -- a small dark mechanical body with red
+  detailing. (This file is a valid PNG that Pillow rejects; viewed via Read.)
+
+SEQUENCE: AGAS   FRAMES: 1 (A0)        SIZE: 12x17
+  [NOT FX] Small pickup item. Near-fully opaque, almost entirely dark grey and
+  black with a trace of dull yellow. Reads as a small canister or gas cell.
+
+SEQUENCE: DCLP   FRAMES: 1 (A0)        SIZE: 7x10
+  [NOT FX] Ammo clip pickup -- 7x10 and almost entirely black with two or three
+  orange pixels. Too small to read as anything else.
+
+SEQUENCE: SPAK   FRAMES: 1 (A0)        SIZE: 22x29
+  [NOT FX] Backpack/ammo-pack pickup -- dark olive and brown box shape.
+
+SEQUENCE: DGRN   FRAMES: 6             SIZE: 8x8 to 26x11
+  [NOT FX as a whole] Frames A1/A5/A6A4/A7A3/A8A2 are an 8-angle ROTATION set
+  of a tiny 8x8 dark spherical grenade in flight; frame Z0 is a separate
+  grenade-ammo pickup box. The rotation frames ARE usable as a projectile-visual
+  (see note under dakka_grenade), but at 8x8 the object is barely visible.
+
+SEQUENCE: RUDE   FRAMES: 1 (A0)        SIZE: 32x7
+  [NOT FX] A text graphic reading "RUDE" in a small pixel font. UI/menu asset.
+
+
+================================================================================
+FOLDER: dakka_grenade   (1 sequence, 6 files)
+================================================================================
+
+SEQUENCE: DGRN
+  FRAMES: 6 (A1, A5, A6A4, A7A3, A8A2, Z0)   SIZE: 8x8 to 26x11
+  TYPE: rotation (8 angles from 5 files) + 1 unrelated pickup frame
+  VISUAL: A very small dark spherical grenade with a faint highlight, drawn from
+    eight viewing angles. Frame Z0 is not part of the rotation set -- it is a
+    green and dark grenade-ammo pickup box.
+  FLAVOR WORDS: fraggrenade, pineapple, lobber, bouncer
+  USE: projectile-visual
+  NOTE: *** THIS ENTIRE FOLDER IS REDUNDANT. All 6 files are byte-identical to
+    the DGRN files already present in the dakka folder. dakka_grenade is a
+    duplicate copy, not additional content. Import from one location only. ***
+  NOTE: At 8x8 the grenade is nearly invisible in motion. Worth pairing with a
+    smoke trail (SMK3/SMK4) if used.
+
+
+================================================================================
+DUPLICATES AND OVERLAPS WITH EXISTING RS_Main CONTENT
+================================================================================
+Method: MD5 hash comparison of every file against every file under
+E:\RS_Main\sprites\combatfx\, plus a perceptual 16x16 RGBA similarity sweep for
+near-matches (score 0 = identical; under 5 = visually indistinguishable).
+
+EXACT, BYTE-IDENTICAL -- DO NOT RE-IMPORT
+  EXPLOSIONS\EXPL   == combatfx\fire\RSI4          all 8 frames identical
+                       (1 frame also matches explosions\RSE5)
+  dakka\DPUF        == combatfx\bullets\RSB0       all 5 frames identical
+  FLARES\LENSA0     == combatfx\flares\RSF3A0      identical
+  FLARES\LEYSR0     == combatfx\flares\RSF8R0      identical
+  FLARES\LEYS (1f)  == combatfx\lightning\RSL3     identical
+  dakka\DGRN        == dakka_grenade\DGRN          all 6 frames (internal dupe)
+
+VISUALLY INDISTINGUISHABLE (different bytes, same effect) -- TREAT AS DUPES
+  FLARES\FSO1       ~= combatfx\flares\RSF8        score 1.66-2.38
+  FLARES\LENSO0     ~= combatfx\flares\RSF8R0      score 2.38
+  FLARES\LEYSA0     ~= combatfx\flares\RSF8R0      score 5.29
+  dakka\DBFE        ~= combatfx\explosions\RSE4    score 0.90
+  dakka\DBFP        ~= combatfx\explosions\RSE3    score 1.59
+
+OVERLAPPING IN ROLE (not copies, but redundant capability)
+  FLARES\LENB/LENG/LENR/LENY (soft glow blobs) overlap RS_Main RSF0 (blue),
+    RSF5 (orange) and RSF6 (green). Scores 9.6-19.3 -- different falloff and
+    core size, so they are distinct art, but they fill a slot RS_Main already
+    has. LENW (white/neutral) is the one worth taking, because a neutral glow
+    can be runtime-tinted to any colour and RS_Main has no neutral equivalent.
+  EXPLOSIONS\EXPG is the green palette-swap of EXPLOSIONS\EXPL, and EXPL is
+    already in RS_Main as RSI4. So EXPG is effectively a recolour of content
+    the mod already ships.
+
+CONFIRMED NOT DUPLICATES (nearest RS_Main match was distant)
+  PROJECTILES\R044 (score 62), SMK1-4 (48-52), DSSF (50), DKSF (57),
+  PROJECTILES\ZAP7 (49), FLARES L2N* family (10.6-19.8), dakka\DFLM (30),
+  dakka\PLZM (16.9), PROJECTILES\RR00 and BBB1.
+
+COVERAGE CAVEAT
+  Five sequences -- EXP1, EXP2, XPAC, RR00 and SCPR -- are valid PNGs that the
+  Pillow library refuses to open, so they could not be included in the AUTOMATED
+  duplicate sweep. I inspected all five visually and manually compared EXP1/EXP2
+  and XPAC against RS_Main's explosion sets (RSE0, RSE1, RSE3, RSE4). EXP1/EXP2
+  share the general orange-fire-column idea with RSE0 but are clearly different
+  art in a different aspect ratio (72x85 vertical, with a dark smoke collapse
+  phase that RSE0 does not have). I judge them NOT duplicates, but that judgment
+  is by eye, not by hash.
+
+
+================================================================================
+TOP RECOMMENDATIONS FOR THE GENERATOR
+================================================================================
+Highest value, no overlap with existing content:
+
+  1. PROJECTILES\R044 -- black void sphere with white smoke tendrils. Nothing
+     like it exists in RS_Main. An entire dark/void weapon family could be built
+     and named off this one asset.
+  2. dakka\SMK1 / SMK2 / SMK3 / SMK4 -- a complete heavy/light smoke set, four
+     variants at matched 64x64, 16-18 frames each. Immediately usable and fills
+     a real gap.
+  3. dakka\DSSF -- twin-plume double-barrel muzzle flash. Specific, readable,
+     and a natural naming hook.
+  4. FLARES L2NB/L2NG/L2NR/L2NY -- ringed lens flare in four ready-made colours.
+     The lens ring is the distinguishing feature and RS_Main has no flare with
+     it. Ideal element-keyed muzzle flash.
+  5. dakka\PLZM -- full plasma bolt lifecycle (projectile plus impact) in one
+     14-frame sequence. One asset serves two FX roles.
+  6. EXPLOSIONS\EXP1 + EXP2 -- the only true full-arc mushroom explosion with a
+     settled smoke phase, and it ships as two hand-varied rolls.
+  7. dakka\DFLM -- soft billowing napalm cloud, distinctly different from
+     RS_Main's existing fire.
+  8. PROJECTILES\RR00 -- crystalline shatter burst; the obvious cold/ice impact.
+  9. dakka\MIS3 -- true 8-angle rotational missile. Rotational projectiles are
+     rare and much better than billboards for physical ordnance.
+ 10. dakka\DKSF + DMNF -- large and small flame-crown muzzle flashes that work
+     as a matched calibre-scaled pair.
+
+================================================================================
+END OF REPORT
+================================================================================

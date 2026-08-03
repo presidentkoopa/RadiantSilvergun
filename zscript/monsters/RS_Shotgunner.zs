@@ -73,16 +73,16 @@ class RS_Shotgunner : RS_HumanMonster replaces ShotgunGuy
 		}
 		Goto FireShot;
 	CallSquad:
-		"####" E 12 A_FaceTarget;
-		"####" F 14 Bright { RS_CallSquad(); }
-		"####" E 8;
+		"SPOS" E 12  { RS_WearBody(); A_FaceTarget(); }
+		"SPOS" F 14  Bright { RS_WearBody(); RS_CallSquad(); }
+		"SPOS" E 8 { RS_WearBody(); }
 		Goto See;
 	FireShot:
-		"####" E 10 A_FaceTarget;
+		"SPOS" E 10  { RS_WearBody(); A_FaceTarget(); }
 		// Three pellets baseline, wider cone. Higher tiers tighten it --
 		// a Tier 12 shotgunner is dangerous at range, not just tanky.
-		"####" F 10 Bright { RS_TierBullets(3, Tier >= 10 ? 7.5 : 11.2, 3, 15); }
-		"####" E 10;
+		"SPOS" F 10  Bright { RS_WearBody(); RS_TierBullets(3, Tier >= 10 ? 7.5 : 11.2, 3, 15); }
+		"SPOS" E 10 { RS_WearBody(); }
 		Goto See;
 	}
 }

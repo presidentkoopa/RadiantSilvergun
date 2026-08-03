@@ -86,23 +86,4 @@ class RS_AffixGenerator
 				wpn.GrantKeyword(bundle[i].Key, bundle[i].Value);
 		}
 	}
-
-	// Debug/verification helper -- prints what a bundle WOULD do without
-	// touching anything. Use this before ever calling Apply() on
-	// something you haven't looked at.
-	static string Describe(Array<RS_AffixIngredient> bundle)
-	{
-		if (bundle.Size() == 0)
-			return "(empty -- no eligible/affordable ingredients found)";
-		string s = "";
-		double total = 0.0;
-		for (int i = 0; i < bundle.Size(); i++)
-		{
-			if (i > 0) s = s .. ", ";
-			s = s .. bundle[i].Key .. ":" .. bundle[i].Value
-				.. " (" .. string.format("%.2f", bundle[i].PowerCost) .. ")";
-			total += bundle[i].PowerCost;
-		}
-		return s .. " -- net " .. string.format("%.2f", total);
-	}
 }

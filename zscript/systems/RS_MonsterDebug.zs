@@ -1,46 +1,32 @@
 // =====================================================================
-// RS_MonsterDebug -- the "let me actually look at this" handler.
+// RS_MonsterDebug -- monster-only diagnostics.
 // ---------------------------------------------------------------------
-// Two jobs:
+// REGISTRATION: this is a plain EventHandler, so it does NOT exist at
+// runtime unless it is listed in MAPINFO.txt's
+// GameInfo { AddEventHandlers = ... }. The previous version of this file
+// was never listed there, which is why every netevent it defined did
+// absolutely nothing -- no error, no output. If a command here goes
+// silent again, check MAPINFO first, before reading any other code.
 //
-//   1. LINE UP THE ZOO. Spawn a grid in front of the player -- one row
-//      per family, one column per tier -- so every body and every
-//      colour is visible side by side at once. This is the only
-//      practical way to check thirteen tiers times fifteen families
-//      without playing for an hour.
-//
-//   2. RETIER ON DEMAND. Push every live monster to a chosen tier and
-//      watch the stats and colours move. Retiers go through
-//      SetTier(t, false), so they use the staggered transform -- the
-//      room does NOT snap in one frame, each monster picks its own
-//      short delay and glows while it waits.
-//
-// Console commands (bind or type):
-//   rs_mon_line            ONE ROW -- one of every family, same tier.
-//                          The view for watching retiers: spawn the
-//                          row, then tier up/down and watch the stagger
-//                          ripple down the line.
-//   rs_mon_attack          every live monster faces you and attacks NOW
-//   rs_mon_zoo             grid of every family x every tier
-//   rs_mon_zoo_family      grid of ONE family x every tier (see cvar)
-//   rs_mon_tier_up         every live monster +1 tier
-//   rs_mon_tier_down       every live monster -1 tier
-//   rs_mon_tier_set        every live monster -> rs_debug_mon_tier
-//   rs_mon_tier_roll       every live monster -> its own random tier
-//   rs_mon_clear           remove every live RS monster
+// Console commands:
+//   rs_mon_line        spawn one of every family, in a row, at a tier
+//   rs_mon_tier_up     every live RS monster +1 tier
+//   rs_mon_tier_down   every live RS monster -1 tier
+//   rs_mon_tier_set    every live RS monster -> rs_mon_dbg_tier
+//   rs_mon_wake        hand every live RS monster the player as a target
+//   rs_mon_diag        per-monster dump: tier, sprite index, stats, flags
+//   rs_mon_audit       static check of every family's body/tint tables
+//   rs_mon_clear       remove every live RS monster
 // =====================================================================
 
 class RS_MonsterDebug : EventHandler
 {
-	// Spacing between spawned monsters. Generous -- Arachnotron and
-	// Mancubus are wide, and an overlapping grid is unreadable.
-	const RS_ZOO_COLSTEP = 130.0;   // between tiers (across)
-	const RS_ZOO_ROWSTEP = 150.0;   // between families (away from player)
-	const RS_ZOO_START   = 260.0;   // distance of the first row
+	const RS_DBG_COLSTEP = 130.0;   // spacing across the row
+	const RS_DBG_START   = 260.0;   // distance of the row from the player
 
-	// The roster. Comparison chain rather than a static const array --
-	// this engine build doesn't resolve those reliably in a class body.
-	static string ZooClass(int i)
+	// Comparison chain, not a static const array -- this engine build does
+	// not resolve those reliably in a class body.
+	static string DbgClass(int i)
 	{
 		switch (i)
 		{
@@ -63,167 +49,78 @@ class RS_MonsterDebug : EventHandler
 		}
 	}
 
-	static int ZooCount() { return 15; }
+	static int DbgCount() { return 15; }
 
-	// -----------------------------------------------------------------
-	// SPAWN
-	// -----------------------------------------------------------------
-
-	// Spawns one monster of `cls` at tier `t`, laid out at grid slot
-	// (col, row) relative to the player's facing. Returns false if the
-	// class doesn't exist or there was no room.
-	private bool SpawnAt(PlayerPawn pmo, string cls, int t, int col, int row, int cols)
+	private static int GI(string name, int def)
 	{
-		Class<Actor> c = cls;
-		if (!c)
-			return false;
+		let cv = CVar.FindCVar(name);
+		return cv ? cv.GetInt() : def;
+	}
 
-		// Centre the row on the player's view line, then push it out.
-		double across = (col - (cols - 1) * 0.5) * RS_ZOO_COLSTEP;
-		double outDist = RS_ZOO_START + row * RS_ZOO_ROWSTEP;
-
-		double ang = pmo.angle;
-		Vector2 fwd  = (cos(ang), sin(ang));
-		Vector2 side = (cos(ang - 90), sin(ang - 90));
-		Vector3 p = (pmo.pos.xy + fwd * outDist + side * across, pmo.pos.z);
-
-		// NOCHECKPOSITION on purpose: a debug grid that silently drops
-		// half its rows because something clipped a wall is worse than
-		// one that overlaps geometry. We want to SEE all of them.
-		let a = Actor.Spawn(c, p, ALLOW_REPLACE);
-		if (!a)
-			return false;
-
-		a.angle = ang + 180;   // face the player
-
-		let m = RS_MonsterMaster(a);
-		if (m)
-		{
-			// instant = true: no stagger, no flash. The zoo should be
-			// standing at its tiers the moment it appears.
-			m.SetTier(t, true);
-
-			// Two review modes, because they want opposite things:
-			//
-			//   PASSIVE (default) -- they hold the line and don't come
-			//     at you, so you can study bodies and watch retiers.
-			//     FRIENDLY rather than DORMANT deliberately: a dormant
-			//     monster is asleep, and that risks suppressing the very
-			//     transform you're trying to watch. Friendly monsters
-			//     tick and animate normally.
-			//
-			//   HOSTILE -- normal monsters that shoot back, for
-			//     reviewing what each tier's attack actually looks like.
-			//     Turn god mode on first.
-			if (!GB("rs_debug_mon_hostile", false))
-			{
-				m.bFRIENDLY = true;
-				m.bNOTARGET = true;
-			}
-		}
-		return true;
+	private static bool GB(string name, bool def)
+	{
+		let cv = CVar.FindCVar(name);
+		return cv ? cv.GetBool() : def;
 	}
 
 	// -----------------------------------------------------------------
-	// FIRE ON COMMAND.
-	// Point every live RS monster at the player and push it straight
-	// into its attack state. Waiting for fifteen monsters to notice you
-	// one at a time is a bad way to review attacks -- this makes the
-	// whole row fire at once, on demand, as many times as you want.
-	//
-	// Works on passive monsters too: it hands them a target directly
-	// rather than relying on them deciding to acquire one.
-	// -----------------------------------------------------------------
-	private void FireAll(PlayerPawn pmo)
-	{
-		ThinkerIterator it = ThinkerIterator.Create("RS_MonsterMaster");
-		RS_MonsterMaster m;
-		int fired = 0, noattack = 0;
-
-		while (m = RS_MonsterMaster(it.Next()))
-		{
-			if (m.health <= 0) continue;
-
-			m.target = pmo;
-			m.A_FaceTarget();
-
-			// Prefer the ranged attack; fall back to melee for the
-			// monsters that only have one (Demon, Spectre, tendrils).
-			State st = m.ResolveState("Missile");
-			if (!st) st = m.ResolveState("Melee");
-
-			if (st)
-			{
-				m.SetState(st);
-				fired++;
-			}
-			else noattack++;
-		}
-
-		if (noattack > 0)
-			Console.Printf("RS Fire: %d firing, %d have no attack state.", fired, noattack);
-		else
-			Console.Printf("RS Fire: %d monsters firing.", fired);
-	}
-
-	// -----------------------------------------------------------------
-	// THE LINEUP -- one of every family, shoulder to shoulder, all at
-	// the same tier. This is the view for watching a retier sweep: hit
-	// tier up/down and the whole row transforms, each monster picking
-	// its own short delay, so the stagger is visible as a ripple down
-	// the line rather than a single snap.
+	// SPAWN A ROW -- one of every family, same tier, facing the player.
 	// -----------------------------------------------------------------
 	private void Lineup(PlayerPawn pmo, int tier)
 	{
-		int n = ZooCount();
-		int spawned = 0;
+		int n = DbgCount();
+		int spawned = 0, failed = 0;
+		double ang = pmo.angle;
+		Vector2 fwd  = (cos(ang), sin(ang));
+		Vector2 side = (cos(ang - 90), sin(ang - 90));
 
 		for (int i = 0; i < n; i++)
 		{
-			// Row 0 for everything -- a single line, not a grid.
-			if (SpawnAt(pmo, ZooClass(i), tier, i, 0, n))
-				spawned++;
-		}
-
-		Console.Printf("RS Lineup: %d monsters at tier %02d, left to right: "
-		               "Zombieman Shotgunner Chaingunner Imp Demon Spectre LostSoul "
-		               "Caco PainElem Baron HellKnight Revenant Mancubus Arachnotron Archvile.",
-		               spawned, tier);
-	}
-
-	private void Zoo(PlayerPawn pmo, int onlyFamily = -1)
-	{
-		int lo = 0, hi = ZooCount() - 1;
-		if (onlyFamily >= 0 && onlyFamily < ZooCount())
-		{
-			lo = onlyFamily;
-			hi = onlyFamily;
-		}
-
-		int spawned = 0, failed = 0;
-		int row = 0;
-
-		for (int f = lo; f <= hi; f++)
-		{
-			string cls = ZooClass(f);
-			for (int t = 0; t <= 12; t++)
+			string cls = DbgClass(i);
+			Class<Actor> c = cls;
+			if (!c)
 			{
-				if (SpawnAt(pmo, cls, t, t, row, 13)) spawned++;
-				else failed++;
+				Console.Printf("\cgRS: class \"%s\" does not exist.", cls);
+				failed++;
+				continue;
 			}
-			row++;
+
+			double across = (i - (n - 1) * 0.5) * RS_DBG_COLSTEP;
+			Vector3 p = (pmo.pos.xy + fwd * RS_DBG_START + side * across, pmo.pos.z);
+
+			let a = Actor.Spawn(c, p, ALLOW_REPLACE);
+			if (!a)
+			{
+				Console.Printf("\cgRS: %s failed to spawn (no room?).", cls);
+				failed++;
+				continue;
+			}
+
+			a.angle = ang + 180;
+
+			let m = RS_MonsterMaster(a);
+			if (m)
+			{
+				m.SetTier(tier, true);
+				// Passive by default so the row can be studied. FRIENDLY
+				// rather than DORMANT: a dormant monster stops ticking,
+				// which would hide the very behaviour we're inspecting.
+				if (!GB("rs_mon_dbg_hostile", false))
+				{
+					m.bFRIENDLY = true;
+					m.bNOTARGET = true;
+				}
+			}
+			spawned++;
 		}
 
-		Console.Printf("RS Monster Zoo: %d spawned, %d failed. "
-		               "Columns are tiers 00-12 left to right; rows are families.",
-		               spawned, failed);
+		Console.Printf("\ccRS Lineup: %d spawned, %d failed, tier %02d.", spawned, failed, tier);
+		Console.Printf("\ccOrder: Zombie Shotgun Chaingun Imp Demon Spectre Soul Caco Pain Baron Knight Revenant Mancubus Arach Vile");
 	}
 
 	// -----------------------------------------------------------------
-	// RETIER
+	// RETIER. mode 0 = set to arg, 1 = add arg.
 	// -----------------------------------------------------------------
-	//
-	// mode: 0 = set to `arg`, 1 = +arg, 2 = random per monster.
 	private void Retier(int mode, int arg)
 	{
 		ThinkerIterator it = ThinkerIterator.Create("RS_MonsterMaster");
@@ -240,22 +137,161 @@ class RS_MonsterDebug : EventHandler
 				continue;
 			}
 
-			int want;
-			if (mode == 1)      want = m.Tier + arg;
-			else if (mode == 2) want = random(0, 12);
-			else                want = arg;
-
-			// instant = false -- this is the whole point. Each monster
-			// picks its own short delay and glows while it waits, so a
-			// roomful transforms as a ripple, not a single frame snap.
+			int want = (mode == 1) ? m.Tier + arg : arg;
+			int before = m.Tier;
 			m.SetTier(want, false);
 			touched++;
+			if (touched <= 4)
+				Console.Printf("\cc  %s: T%02d -> T%02d", m.GetClassName(), before, clamp(want, 0, 12));
 		}
 
-		if (locked > 0)
-			Console.Printf("RS Retier: %d monsters retiering, %d tier-locked (skipped).", touched, locked);
-		else
-			Console.Printf("RS Retier: %d monsters retiering.", touched);
+		Console.Printf("\ccRS Retier: %d retiering, %d tier-locked.", touched, locked);
+		if (touched == 0)
+			Console.Printf("\cgNo live RS monsters found. Spawn a row first.");
+	}
+
+	// -----------------------------------------------------------------
+	// WAKE -- hand every monster the player as a target. This is the test
+	// for "they stand still and do nothing": if they move after this but
+	// not before, the problem is target acquisition (A_Look), not the
+	// state machine or the chase code.
+	// -----------------------------------------------------------------
+	private void WakeAll(PlayerPawn pmo)
+	{
+		ThinkerIterator it = ThinkerIterator.Create("RS_MonsterMaster");
+		RS_MonsterMaster m;
+		int woke = 0;
+
+		while (m = RS_MonsterMaster(it.Next()))
+		{
+			if (m.health <= 0) continue;
+			m.bFRIENDLY = false;
+			m.bNOTARGET = false;
+			m.bAMBUSH   = false;
+			m.target    = pmo;
+			m.LastHeard = pmo;
+			let st = m.ResolveState("See");
+			if (st) m.SetState(st);
+			woke++;
+		}
+
+		Console.Printf("\ccRS Wake: %d monsters given the player as target and pushed into See.", woke);
+		Console.Printf("\ccIf they move NOW but not before, target acquisition is the bug.");
+	}
+
+	// -----------------------------------------------------------------
+	// PER-MONSTER DUMP. The numbers that actually tell us what is wrong:
+	// sprite index (does it change with tier?), frame, stats (did
+	// ApplyTier run?), velocity (are they moving?), and the flags that
+	// most commonly freeze a monster.
+	// -----------------------------------------------------------------
+	private void Diag()
+	{
+		ThinkerIterator it = ThinkerIterator.Create("RS_MonsterMaster");
+		RS_MonsterMaster m;
+		int n = 0;
+
+		Console.Printf("\cc--- RS MONSTER DIAG ---");
+		while (m = RS_MonsterMaster(it.Next()))
+		{
+			n++;
+			if (n > 20)
+				continue;
+
+			string body = m.RS_DbgBodyToken(m.Tier);
+			string tint = m.RS_DbgTintToken(m.Tier);
+
+			Console.Printf("\cw%s \ccT%02d  body=%s tint=%s  spr=%d frm=%d",
+				m.GetClassName(), m.Tier,
+				body.Length() > 0 ? body : "(none)",
+				tint.Length() > 0 ? tint : "(none)",
+				int(m.sprite), int(m.frame));
+
+			Console.Printf("\cc   hp=%d/%d spd=%.2f pain=%d dmgMul=%.2f vel=%.2f",
+				m.health, m.TierMaxHealth, m.Speed, m.PainChance,
+				m.TierDamageMul, m.vel.Length());
+
+			string flags = "";
+			if (m.bFRIENDLY)  flags = flags .. "FRIENDLY ";
+			if (m.bNOTARGET)  flags = flags .. "NOTARGET ";
+			if (m.bAMBUSH)    flags = flags .. "AMBUSH ";
+			if (m.bDORMANT)   flags = flags .. "DORMANT ";
+			if (m.bCORPSE)    flags = flags .. "CORPSE ";
+			if (!m.bSHOOTABLE) flags = flags .. "!SHOOTABLE ";
+			if (!m.bSOLID)    flags = flags .. "!SOLID ";
+			if (m.bNOSECTOR)  flags = flags .. "NOSECTOR ";
+
+			Console.Printf("\cc   target=%s  flags=%s",
+				m.target ? m.target.GetClassName() .. "" : "(none)",
+				flags.Length() > 0 ? flags : "(clean)");
+		}
+
+		if (n > 20)
+			Console.Printf("\cc... and %d more (showing first 20).", n - 20);
+		Console.Printf("\ccTotal live RS monsters: %d", n);
+		if (n == 0)
+			Console.Printf("\cgNone found. Either nothing spawned, or the classes are not RS_MonsterMaster.");
+	}
+
+	// -----------------------------------------------------------------
+	// STATIC TABLE AUDIT. Reads every family's BodyTable()/TintTable()
+	// off the class defaults -- no spawning required. Catches the data
+	// errors that silently produce an invisible or unchanged monster:
+	// wrong number of entries, tokens that are not 4 characters, and
+	// tiers that fall off the end of a short table.
+	// -----------------------------------------------------------------
+	private void Audit()
+	{
+		Console.Printf("\cc--- RS MONSTER TABLE AUDIT ---");
+		int problems = 0;
+
+		for (int i = 0; i < DbgCount(); i++)
+		{
+			string cls = DbgClass(i);
+			Class<Actor> c = cls;
+			if (!c)
+			{
+				Console.Printf("\cgMISSING CLASS: %s", cls);
+				problems++;
+				continue;
+			}
+
+			let def = RS_MonsterMaster(GetDefaultByType(c));
+			if (!def)
+			{
+				Console.Printf("\cg%s is not an RS_MonsterMaster.", cls);
+				problems++;
+				continue;
+			}
+
+			Array<string> bodies, tints;
+			string b = def.BodyTable();
+			string t = def.TintTable();
+			if (b.Length() > 0) b.Split(bodies, " ");
+			if (t.Length() > 0) t.Split(tints, " ");
+
+			string issues = "";
+			if (bodies.Size() != 13)
+				issues = issues .. String.Format("body has %d entries (want 13); ", bodies.Size());
+			if (tints.Size() != 13)
+				issues = issues .. String.Format("tint has %d entries (want 13); ", tints.Size());
+
+			for (int k = 0; k < bodies.Size(); k++)
+				if (bodies[k].Length() != 4)
+					issues = issues .. String.Format("body[%d]=\"%s\" not 4 chars; ", k, bodies[k]);
+
+			if (issues.Length() > 0)
+			{
+				Console.Printf("\cg%-18s %s", cls, issues);
+				problems++;
+			}
+			else
+			{
+				Console.Printf("\cc%-18s ok  %s", cls, b);
+			}
+		}
+
+		Console.Printf("\cc--- audit done: %d families with problems ---", problems);
 	}
 
 	private void ClearMonsters()
@@ -268,21 +304,7 @@ class RS_MonsterDebug : EventHandler
 			m.Destroy();
 			n++;
 		}
-		Console.Printf("RS Monster Zoo: removed %d.", n);
-	}
-
-	// -----------------------------------------------------------------
-
-	private static int GI(string name, int def)
-	{
-		let cv = CVar.FindCVar(name);
-		return cv ? cv.GetInt() : def;
-	}
-
-	private static bool GB(string name, bool def)
-	{
-		let cv = CVar.FindCVar(name);
-		return cv ? cv.GetBool() : def;
+		Console.Printf("\ccRS: removed %d monsters.", n);
 	}
 
 	override void NetworkProcess(ConsoleEvent e)
@@ -294,22 +316,20 @@ class RS_MonsterDebug : EventHandler
 		if (!pmo)
 			return;
 
-		if (e.Name ~== "rs_mon_attack")
-			FireAll(pmo);
-		else if (e.Name ~== "rs_mon_line")
-			Lineup(pmo, GI("rs_debug_mon_tier", 0));
-		else if (e.Name ~== "rs_mon_zoo")
-			Zoo(pmo);
-		else if (e.Name ~== "rs_mon_zoo_family")
-			Zoo(pmo, GI("rs_debug_mon_family", 0));
-		else if (e.Name ~== "rs_mon_tier_set")
-			Retier(0, GI("rs_debug_mon_tier", 0));
+		if (e.Name ~== "rs_mon_line")
+			Lineup(pmo, GI("rs_mon_dbg_tier", 0));
 		else if (e.Name ~== "rs_mon_tier_up")
 			Retier(1, 1);
 		else if (e.Name ~== "rs_mon_tier_down")
 			Retier(1, -1);
-		else if (e.Name ~== "rs_mon_tier_roll")
-			Retier(2, 0);
+		else if (e.Name ~== "rs_mon_tier_set")
+			Retier(0, GI("rs_mon_dbg_tier", 0));
+		else if (e.Name ~== "rs_mon_wake")
+			WakeAll(pmo);
+		else if (e.Name ~== "rs_mon_diag")
+			Diag();
+		else if (e.Name ~== "rs_mon_audit")
+			Audit();
 		else if (e.Name ~== "rs_mon_clear")
 			ClearMonsters();
 	}

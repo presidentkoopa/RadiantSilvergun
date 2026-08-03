@@ -85,7 +85,7 @@ class RS_Spectre : RS_DemonBase replaces Spectre
 	States
 	{
 	See:
-		"####" AABBCCDD 2 A_Chase;
+		"SARG" AABBCCDD 2  { RS_WearBody(); A_Chase(); }
 		TNT1 A 0
 		{
 			RS_Stalk();

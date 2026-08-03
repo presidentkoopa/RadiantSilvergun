@@ -138,16 +138,17 @@ class RS_PainElemental : RS_MonsterMaster replaces PainElemental
 	States
 	{
 	Spawn:
-		"####" A 10 A_Look;
+		"PAIN" A 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCC 3 A_Chase;
+		"PAIN" AABBCC 3  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Missile:
-		"####" D 5 A_FaceTarget;
-		"####" DE 5 A_FaceTarget;
-		"####" F 5 Bright
+		"PAIN" D 5  { RS_WearBody(); A_FaceTarget(); }
+		"PAIN" DE 5  { RS_WearBody(); A_FaceTarget(); }
+		"PAIN" F 5  Bright
 		{
+			RS_WearBody();
 			// High tier fires from the attack table; low tier keeps the
 			// vanilla lost-soul spit, which is the whole "T00-T05 stays
 			// recognisably Doom" posture.
@@ -158,18 +159,18 @@ class RS_PainElemental : RS_MonsterMaster replaces PainElemental
 		}
 		Goto See;
 	Pain:
-		"####" G 6;
-		"####" G 6 A_Pain;
+		"PAIN" G 6 { RS_WearBody(); }
+		"PAIN" G 6  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" H 8 Bright;
-		"####" I 8 Bright A_Scream;
-		"####" JK 8 Bright;
-		"####" L 8 Bright A_PainDie;
-		"####" M 8 Bright;
+		"PAIN" H 8  Bright { RS_WearBody(); }
+		"PAIN" I 8  Bright { RS_WearBody(); A_Scream(); }
+		"PAIN" JK 8  Bright { RS_WearBody(); }
+		"PAIN" L 8  Bright { RS_WearBody(); A_PainDie(); }
+		"PAIN" M 8  Bright { RS_WearBody(); }
 		Stop;
 	Raise:
-		"####" MLKJIH 8;
+		"PAIN" MLKJIH 8 { RS_WearBody(); }
 		Goto See;
 	}
 }
@@ -239,24 +240,24 @@ class RS_PainPilot : RS_MonsterMaster
 	States
 	{
 	Spawn:
-		"####" AB 6 A_Look;
+		"SKUL" AB 6  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AB 4 A_Chase;
+		"SKUL" AB 4  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Missile:
-		"####" C 6 A_FaceTarget;
-		"####" D 6 Bright { A_RS_MonsterFire(); }
+		"SKUL" C 6  { RS_WearBody(); A_FaceTarget(); }
+		"SKUL" D 6  Bright { RS_WearBody(); A_RS_MonsterFire(); }
 		Goto See;
 	Pain:
-		"####" E 3;
-		"####" E 3 A_Pain;
+		"SKUL" E 3 { RS_WearBody(); }
+		"SKUL" E 3  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" F 6 Bright;
-		"####" G 6 Bright A_Scream;
-		"####" H 6 Bright A_NoBlocking;
-		"####" IJ 6 Bright;
+		"SKUL" F 6  Bright { RS_WearBody(); }
+		"SKUL" G 6  Bright { RS_WearBody(); A_Scream(); }
+		"SKUL" H 6  Bright { RS_WearBody(); A_NoBlocking(); }
+		"SKUL" IJ 6  Bright { RS_WearBody(); }
 		Stop;
 	}
 }

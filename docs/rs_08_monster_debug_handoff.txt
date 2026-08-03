@@ -1,0 +1,116 @@
+RS_MonsterMaster -- DEBUG HANDOFF
+Written after a session that built the full monster system but never
+compiled-and-ran it until the very end. Read this before touching code.
+
+=====================================================================
+CURRENT SYMPTOM (take this literally, do not ask the user to clarify)
+=====================================================================
+Every debug menu option under Options -> Radiant Silvergun Options ->
+Debug: Monsters produces ZERO observable effect. Not "wrong effect" --
+NO effect. No console text, no monster appearance, no movement, no
+color change, no tier-appearance change. Regular map-placed monsters
+(replaces Zombieman etc.) DO spawn and DO render something, but do not
+visibly react, move, recolor, or change appearance when retiered.
+
+=====================================================================
+WHAT THIS RULES OUT
+=====================================================================
+Monsters spawning at all (confirmed by the user) means the classes
+compile and instantiate. This is NOT a total compile failure. Do not
+re-propose "maybe nothing loaded."
+
+=====================================================================
+FIRST ACTION -- DO THIS BEFORE EDITING ANYTHING
+=====================================================================
+Get raw evidence, not more static code reading. In-game console (~):
+
+1. Type directly:  netevent rs_mon_line
+   Does "RS Lineup: N monsters..." print? Y/N.
+   If NO console text at all -> the EventHandler itself is not firing.
+   Check: is RS_MonsterDebug actually reachable (zscript.txt includes
+   it -- verify against the CURRENT file, not this document, things
+   may have changed), and does typing the netevent command directly
+   (bypassing MENUDEF entirely) behave any differently than clicking
+   the menu button? That isolates menu-wiring from handler-wiring.
+
+2. Type:  netevent rs_mon_tier_up
+   Does "RS Retier: N monsters retiering." print?
+
+3. If console text DOES print but nothing visually changes, the bug is
+   downstream of NetworkProcess -- inside RS_WearBody() / ApplyTier()
+   in zscript/monsters/RS_MonsterMaster.zs. Console printing but no
+   visual change is a DIFFERENT, narrower bug than nothing printing.
+
+Do not write a single line of new code until you know which of these
+two situations is actually true.
+
+=====================================================================
+ALREADY FIXED THIS SESSION -- DO NOT RE-DIAGNOSE THESE
+=====================================================================
+1. Literal quoted "####" as a sprite-name placeholder does not mean
+   "keep current sprite" -- that requires the BARE unquoted token
+   (proven by a real working file the user has:
+   .../Gameplay_Hyper-V_1.0/zscript/vmm_offhand_fist.txt, states
+   Deselect/Select/Fire using bare ####). The fix applied does NOT use
+   #### at all anymore: every state's sprite is a real per-class
+   literal fallback, and RS_WearBody() is called explicitly inside
+   every frame's action block instead.
+
+2. Bare action references inside custom { } action blocks (e.g.
+   "A_Chase;" with no parens) do not actually call the function --
+   they compile as a no-op expression. Fixed by adding () to 223 call
+   sites across 19 files. Verify this fix is still intact if anything
+   downstream got touched again.
+
+=====================================================================
+UNVERIFIED ASSUMPTIONS -- THE REAL SUSPECTS
+=====================================================================
+Neither of these has ever been proven to work on this engine build.
+Both are called every single frame from inside RS_WearBody()
+(zscript/monsters/RS_MonsterMaster.zs, ~line 326):
+
+  A. `sprite = GetSpriteIndex(s);`
+     Direct assignment to the actor's own `sprite` field from a plain
+     (non-action) method. May not have the runtime effect assumed.
+
+  B. `A_SetTranslation(tn);`
+     Called from the same plain method, not from a bare state action.
+
+RECOMMENDED ISOLATION TEST: write ONE trivial throwaway actor (NOT
+inheriting RS_MonsterMaster, no tier system, no primitives) that does
+nothing but call `sprite = GetSpriteIndex("TROO");` once in
+PostBeginPlay while spawned with a different starting sprite (e.g.
+POSS). Spawn it via a debug netevent and look at it. This isolates
+assumption A from all the surrounding complexity in one shot. Do the
+same for A_SetTranslation independently.
+
+If EITHER assumption fails on this engine, the fallback is proven and
+sitting in the user's own files: give up on runtime sprite-swapping
+entirely and rebuild bodies as real per-tier state labels with literal
+hardcoded sprites (Spawn.T01, See.T01, Missile.T01, ...), dispatched by
+one small jump function -- exactly the pattern in
+hf_zombieman.zs's ColorState(). More lines, zero unverified engine
+assumptions.
+
+=====================================================================
+KEY FILES
+=====================================================================
+zscript/monsters/RS_MonsterMaster.zs   base class: Tier, RS_WearBody(),
+                                        ApplyTier(), PostBeginPlay(),
+                                        Tick(), generic States block
+zscript/monsters/RS_*.zs               15 concrete monsters + minions +
+                                        stages + EX bosses, each with
+                                        its own BodyTable()/TintTable()
+zscript/systems/RS_MonsterDebug.zs     debug menu netevent handlers
+zscript/systems/RS_AttackProfile.zs    attack data + scale/range fields
+zscript/systems/RS_MonsterCatalog.zs   summon/projectile/morph registry
+TRNSLATE.txt                           135 named colour recipes
+MENUDEF.txt / CVARINFO.txt             debug menu UI + cvar wiring
+
+=====================================================================
+WORKING AGREEMENT
+=====================================================================
+The user has been burned tonight by code that was written in large
+batches and never run until very late. Do not repeat that. Make the
+smallest possible change, state plainly what it should do, and get it
+tested before writing the next thing on top of it.

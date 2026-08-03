@@ -69,25 +69,25 @@ class RS_ArachnotronStage2 : RS_MonsterMaster
 	States
 	{
 	Spawn:
-		"####" AB 8 A_Look;
+		"BSP2" AB 8  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDDEEFF 3 A_BabyMetal;
+		"BSP2" AABBCCDDEEFF 3  { RS_WearBody(); A_BabyMetal(); }
 		Loop;
 	Missile:
-		"####" A 12 Bright A_FaceTarget;
-		"####" G 8 Bright { A_RS_MonsterFire(); }
-		"####" H 8 Bright;
+		"BSP2" A 12  Bright { RS_WearBody(); A_FaceTarget(); }
+		"BSP2" G 8  Bright { RS_WearBody(); A_RS_MonsterFire(); }
+		"BSP2" H 8  Bright { RS_WearBody(); }
 		Goto See;
 	Pain:
-		"####" I 3;
-		"####" I 3 A_Pain;
+		"BSP2" I 3 { RS_WearBody(); }
+		"BSP2" I 3  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" J 12 A_Scream;
-		"####" K 6 A_NoBlocking;
-		"####" LMNO 6;
-		"####" P -1;
+		"BSP2" J 12  { RS_WearBody(); A_Scream(); }
+		"BSP2" K 6  { RS_WearBody(); A_NoBlocking(); }
+		"BSP2" LMNO 6 { RS_WearBody(); }
+		"BSP2" P -1 { RS_WearBody(); }
 		Stop;
 	}
 }
@@ -120,11 +120,11 @@ class RS_ArachnotronStage3 : RS_ArachnotronStage2
 	States
 	{
 	Death:
-		"####" J 8 A_Scream;
-		"####" K 6 A_NoBlocking;
+		"POSS" J 8  { RS_WearBody(); A_Scream(); }
+		"POSS" K 6  { RS_WearBody(); A_NoBlocking(); }
 		// Shatters instead of leaving a corpse -- the visual full stop
 		// on the chain.
-		"####" L 6 { A_Burst("RS_ArachShard"); }
+		"POSS" L 6  { RS_WearBody(); A_Burst("RS_ArachShard"); }
 		Stop;
 	}
 }
@@ -203,25 +203,25 @@ class RS_DemonDog : RS_MonsterMaster
 	States
 	{
 	Spawn:
-		"####" AB 8 A_Look;
+		"HDOG" AB 8  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDD 2 A_Chase;
+		"HDOG" AABBCCDD 2  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Melee:
-		"####" EF 6 A_FaceTarget;
-		"####" G 6 A_SargAttack;
+		"HDOG" EF 6  { RS_WearBody(); A_FaceTarget(); }
+		"HDOG" G 6  { RS_WearBody(); A_SargAttack(); }
 		Goto See;
 	Pain:
-		"####" H 2;
-		"####" H 2 A_Pain;
+		"HDOG" H 2 { RS_WearBody(); }
+		"HDOG" H 2  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" I 6;
-		"####" J 6 A_Scream;
-		"####" K 4;
-		"####" L 4 A_NoBlocking;
-		"####" MN 4;
+		"HDOG" I 6 { RS_WearBody(); }
+		"HDOG" J 6  { RS_WearBody(); A_Scream(); }
+		"HDOG" K 4 { RS_WearBody(); }
+		"HDOG" L 4  { RS_WearBody(); A_NoBlocking(); }
+		"HDOG" MN 4 { RS_WearBody(); }
 		Stop;
 	}
 }

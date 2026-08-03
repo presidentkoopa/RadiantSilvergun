@@ -85,11 +85,11 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"BSPI" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" A 20;
-		"####" AABBCCDDEEFF 3 A_BabyMetal;
+		"BSPI" A 20 { RS_WearBody(); }
+		"BSPI" AABBCCDDEEFF 3  { RS_WearBody(); A_BabyMetal(); }
 		Loop;
 	Missile:
 		TNT1 A 0
@@ -98,31 +98,31 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 				return ResolveState("Hover");
 			return ResolveState(null);
 		}
-		"####" A 20 Bright A_FaceTarget;
-		"####" G 4 Bright A_BspiAttack;
-		"####" H 4 Bright;
-		"####" H 1 Bright A_SpidRefire;
+		"BSPI" A 20  Bright { RS_WearBody(); A_FaceTarget(); }
+		"BSPI" G 4  Bright { RS_WearBody(); A_BspiAttack(); }
+		"BSPI" H 4  Bright { RS_WearBody(); }
+		"BSPI" H 1  Bright { RS_WearBody(); A_SpidRefire(); }
 		Goto Missile + 2;
 	Hover:
-		"####" A 14 Bright A_FaceTarget;
+		"BSPI" A 14  Bright { RS_WearBody(); A_FaceTarget(); }
 		TNT1 A 0 { RS_HoverBarrage(); }
-		"####" G 8 Bright { A_RS_MonsterFire(); }
-		"####" H 8 Bright;
-		"####" G 8 Bright { A_RS_MonsterFire(); }
-		"####" H 10 Bright;
+		"BSPI" G 8  Bright { RS_WearBody(); A_RS_MonsterFire(); }
+		"BSPI" H 8  Bright { RS_WearBody(); }
+		"BSPI" G 8  Bright { RS_WearBody(); A_RS_MonsterFire(); }
+		"BSPI" H 10  Bright { RS_WearBody(); }
 		Goto See;
 	Pain:
-		"####" I 3;
-		"####" I 3 A_Pain;
+		"BSPI" I 3 { RS_WearBody(); }
+		"BSPI" I 3  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" J 20 A_Scream;
-		"####" K 7 A_NoBlocking;
-		"####" LMNO 7;
-		"####" P -1 A_BossDeath;
+		"BSPI" J 20  { RS_WearBody(); A_Scream(); }
+		"BSPI" K 7  { RS_WearBody(); A_NoBlocking(); }
+		"BSPI" LMNO 7 { RS_WearBody(); }
+		"BSPI" P -1  { RS_WearBody(); A_BossDeath(); }
 		Stop;
 	Raise:
-		"####" PONMLKJ 5;
+		"BSPI" PONMLKJ 5 { RS_WearBody(); }
 		Goto See;
 	}
 }

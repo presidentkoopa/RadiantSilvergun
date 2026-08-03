@@ -98,10 +98,10 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"SKUL" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AB 6 A_Chase;
+		"SKUL" AB 6  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Missile:
 		TNT1 A 0
@@ -111,17 +111,17 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 				return ResolveState("Borrow");
 			return ResolveState(null);
 		}
-		"####" C 10 A_FaceTarget;
-		"####" D 4 Bright A_SkullAttack;
-		"####" CD 4 Bright;
+		"SKUL" C 10  { RS_WearBody(); A_FaceTarget(); }
+		"SKUL" D 4  Bright { RS_WearBody(); A_SkullAttack(); }
+		"SKUL" CD 4  Bright { RS_WearBody(); }
 		Goto Missile + 3;
 	Borrow:
-		"####" C 8 Bright A_FaceTarget;
-		"####" D 10 Bright { A_RS_MonsterFire(); }
+		"SKUL" C 8  Bright { RS_WearBody(); A_FaceTarget(); }
+		"SKUL" D 10  Bright { RS_WearBody(); A_RS_MonsterFire(); }
 		Goto See;
 	Pain:
-		"####" E 3;
-		"####" E 3 A_Pain;
+		"SKUL" E 3 { RS_WearBody(); }
+		"SKUL" E 3  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0
 		{
 			// Halfway: remembers the rest of what it can imitate.
@@ -134,11 +134,11 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 		}
 		Goto See;
 	Death:
-		"####" F 6 Bright;
-		"####" G 6 Bright A_Scream;
-		"####" H 6 Bright;
-		"####" I 6 Bright A_NoBlocking;
-		"####" J 6;
+		"SKUL" F 6  Bright { RS_WearBody(); }
+		"SKUL" G 6  Bright { RS_WearBody(); A_Scream(); }
+		"SKUL" H 6  Bright { RS_WearBody(); }
+		"SKUL" I 6  Bright { RS_WearBody(); A_NoBlocking(); }
+		"SKUL" J 6 { RS_WearBody(); }
 		Stop;
 	}
 }

@@ -321,6 +321,21 @@ class RS_MonsterMaster : Actor abstract
 		rsTablesParsed = true;
 	}
 
+	// Read-only views of the parsed tables, for diagnostics. Return "" when
+	// the tier falls off the end of a short table -- which is itself the
+	// answer to "why doesn't this tier change appearance".
+	string RS_DbgBodyToken(int t)
+	{
+		RS_ParseTables();
+		return (t >= 0 && t < rsBodies.Size()) ? rsBodies[t] : "";
+	}
+
+	string RS_DbgTintToken(int t)
+	{
+		RS_ParseTables();
+		return (t >= 0 && t < rsTints.Size()) ? rsTints[t] : "";
+	}
+
 	// Applied on tier change only -- a body doesn't change because the
 	// monster took a step.
 	void RS_WearBody()
@@ -1031,24 +1046,24 @@ class RS_MonsterMaster : Actor abstract
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"POSS" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDD 4 A_Chase;
+		"POSS" AABBCCDD 4  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Pain:
-		"####" G 3;
-		"####" G 3 A_Pain;
+		"POSS" G 3 { RS_WearBody(); }
+		"POSS" G 3  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" H 5;
-		"####" I 5 A_Scream;
-		"####" J 5 A_NoBlocking;
-		"####" K 5;
-		"####" L -1;
+		"POSS" H 5 { RS_WearBody(); }
+		"POSS" I 5  { RS_WearBody(); A_Scream(); }
+		"POSS" J 5  { RS_WearBody(); A_NoBlocking(); }
+		"POSS" K 5 { RS_WearBody(); }
+		"POSS" L -1 { RS_WearBody(); }
 		Stop;
 	Raise:
-		"####" LKJIH 5;
+		"POSS" LKJIH 5 { RS_WearBody(); }
 		Goto See;
 	}
 }
@@ -1066,31 +1081,31 @@ class RS_HumanMonster : RS_MonsterMaster abstract
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"POSS" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDD 4 A_Chase;
+		"POSS" AABBCCDD 4  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Pain:
-		"####" G 3;
-		"####" G 3 A_Pain;
+		"POSS" G 3 { RS_WearBody(); }
+		"POSS" G 3  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" H 5;
-		"####" I 5 A_Scream;
-		"####" J 5 A_NoBlocking;
-		"####" K 5;
-		"####" L -1;
+		"POSS" H 5 { RS_WearBody(); }
+		"POSS" I 5  { RS_WearBody(); A_Scream(); }
+		"POSS" J 5  { RS_WearBody(); A_NoBlocking(); }
+		"POSS" K 5 { RS_WearBody(); }
+		"POSS" L -1 { RS_WearBody(); }
 		Stop;
 	XDeath:
-		"####" M 5;
-		"####" N 5 A_XScream;
-		"####" O 5 A_NoBlocking;
-		"####" PQRST 5;
-		"####" U -1;
+		"POSS" M 5 { RS_WearBody(); }
+		"POSS" N 5  { RS_WearBody(); A_XScream(); }
+		"POSS" O 5  { RS_WearBody(); A_NoBlocking(); }
+		"POSS" PQRST 5 { RS_WearBody(); }
+		"POSS" U -1 { RS_WearBody(); }
 		Stop;
 	Raise:
-		"####" LKJIH 5;
+		"POSS" LKJIH 5 { RS_WearBody(); }
 		Goto See;
 	}
 }
@@ -1102,29 +1117,29 @@ class RS_DemonBase : RS_MonsterMaster abstract
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"POSS" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDD 2 A_Chase;
+		"POSS" AABBCCDD 2  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Melee:
-		"####" EF 8 A_FaceTarget;
-		"####" G 8 A_SargAttack;
+		"POSS" EF 8  { RS_WearBody(); A_FaceTarget(); }
+		"POSS" G 8  { RS_WearBody(); A_SargAttack(); }
 		Goto See;
 	Pain:
-		"####" H 2;
-		"####" H 2 A_Pain;
+		"POSS" H 2 { RS_WearBody(); }
+		"POSS" H 2  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" I 8;
-		"####" J 8 A_Scream;
-		"####" K 4;
-		"####" L 4 A_NoBlocking;
-		"####" M 4;
-		"####" N -1;
+		"POSS" I 8 { RS_WearBody(); }
+		"POSS" J 8  { RS_WearBody(); A_Scream(); }
+		"POSS" K 4 { RS_WearBody(); }
+		"POSS" L 4  { RS_WearBody(); A_NoBlocking(); }
+		"POSS" M 4 { RS_WearBody(); }
+		"POSS" N -1 { RS_WearBody(); }
 		Stop;
 	Raise:
-		"####" NMLKJI 5;
+		"POSS" NMLKJI 5 { RS_WearBody(); }
 		Goto See;
 	}
 }
@@ -1135,30 +1150,30 @@ class RS_KnightBase : RS_MonsterMaster abstract
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"POSS" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDD 3 A_Chase;
+		"POSS" AABBCCDD 3  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Melee:
 	Missile:
-		"####" EF 8 A_FaceTarget;
-		"####" G 8 A_BruisAttack;
+		"POSS" EF 8  { RS_WearBody(); A_FaceTarget(); }
+		"POSS" G 8  { RS_WearBody(); A_BruisAttack(); }
 		Goto See;
 	Pain:
-		"####" H 2;
-		"####" H 2 A_Pain;
+		"POSS" H 2 { RS_WearBody(); }
+		"POSS" H 2  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" I 8;
-		"####" J 8 A_Scream;
-		"####" K 8;
-		"####" L 8 A_NoBlocking;
-		"####" MN 8;
-		"####" N -1 A_BossDeath;
+		"POSS" I 8 { RS_WearBody(); }
+		"POSS" J 8  { RS_WearBody(); A_Scream(); }
+		"POSS" K 8 { RS_WearBody(); }
+		"POSS" L 8  { RS_WearBody(); A_NoBlocking(); }
+		"POSS" MN 8 { RS_WearBody(); }
+		"POSS" N -1  { RS_WearBody(); A_BossDeath(); }
 		Stop;
 	Raise:
-		"####" NMLKJI 8;
+		"POSS" NMLKJI 8 { RS_WearBody(); }
 		Goto See;
 	}
 }

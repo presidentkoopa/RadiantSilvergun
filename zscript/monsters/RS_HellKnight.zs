@@ -87,7 +87,7 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 	{
 	Spawn:
 		TNT1 A 0 NoDelay { RS_Split(); }
-		"####" AB 10 A_Look;
+		"BOS2" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	Missile:
 		TNT1 A 0
@@ -96,21 +96,21 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 				return ResolveState("CallEscort");
 			return ResolveState(null);
 		}
-		"####" EF 8 A_FaceTarget;
-		"####" G 8 A_BruisAttack;
+		"BOS2" EF 8  { RS_WearBody(); A_FaceTarget(); }
+		"BOS2" G 8  { RS_WearBody(); A_BruisAttack(); }
 		Goto See;
 	CallEscort:
-		"####" E 10 A_FaceTarget;
-		"####" F 12 Bright { RS_CallEscort(); }
+		"BOS2" E 10  { RS_WearBody(); A_FaceTarget(); }
+		"BOS2" F 12  Bright { RS_WearBody(); RS_CallEscort(); }
 		Goto See;
 	// Hell Knight has no BossDeath in vanilla, unlike the shared block.
 	Death:
-		"####" I 8;
-		"####" J 8 A_Scream;
-		"####" K 8;
-		"####" L 8 A_NoBlocking;
-		"####" MN 8;
-		"####" N -1;
+		"BOS2" I 8 { RS_WearBody(); }
+		"BOS2" J 8  { RS_WearBody(); A_Scream(); }
+		"BOS2" K 8 { RS_WearBody(); }
+		"BOS2" L 8  { RS_WearBody(); A_NoBlocking(); }
+		"BOS2" MN 8 { RS_WearBody(); }
+		"BOS2" N -1 { RS_WearBody(); }
 		Stop;
 	}
 }

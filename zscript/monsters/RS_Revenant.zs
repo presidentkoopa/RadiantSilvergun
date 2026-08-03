@@ -58,26 +58,26 @@ class RS_Revenant : RS_MonsterMaster replaces Revenant
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"SKEL" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDDEEFF 2 A_Chase;
+		"SKEL" AABBCCDDEEFF 2  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Melee:
-		"####" G 0 Bright A_FaceTarget;
-		"####" G 6 A_SkelWhoosh;
-		"####" H 6 A_FaceTarget;
-		"####" I 6 A_SkelFist;
+		"SKEL" G 0  Bright { RS_WearBody(); A_FaceTarget(); }
+		"SKEL" G 6  { RS_WearBody(); A_SkelWhoosh(); }
+		"SKEL" H 6  { RS_WearBody(); A_FaceTarget(); }
+		"SKEL" I 6  { RS_WearBody(); A_SkelFist(); }
 		Goto See;
 	Missile:
-		"####" J 0 Bright A_FaceTarget;
-		"####" J 10 Bright A_FaceTarget;
-		"####" K 10 A_SkelMissile;
-		"####" K 10 A_FaceTarget;
+		"SKEL" J 0  Bright { RS_WearBody(); A_FaceTarget(); }
+		"SKEL" J 10  Bright { RS_WearBody(); A_FaceTarget(); }
+		"SKEL" K 10  { RS_WearBody(); A_SkelMissile(); }
+		"SKEL" K 10  { RS_WearBody(); A_FaceTarget(); }
 		Goto See;
 	Pain:
-		"####" L 5;
-		"####" L 5 A_Pain;
+		"SKEL" L 5 { RS_WearBody(); }
+		"SKEL" L 5  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0
 		{
 			// Goes airborne when hurt -- a revenant you cannot outrun on
@@ -94,14 +94,14 @@ class RS_Revenant : RS_MonsterMaster replaces Revenant
 		}
 		Goto See;
 	Death:
-		"####" LM 7;
-		"####" N 7 A_Scream;
-		"####" O 7 A_NoBlocking;
-		"####" P 7;
-		"####" Q -1;
+		"SKEL" LM 7 { RS_WearBody(); }
+		"SKEL" N 7  { RS_WearBody(); A_Scream(); }
+		"SKEL" O 7  { RS_WearBody(); A_NoBlocking(); }
+		"SKEL" P 7 { RS_WearBody(); }
+		"SKEL" Q -1 { RS_WearBody(); }
 		Stop;
 	Raise:
-		"####" QPONML 5;
+		"SKEL" QPONML 5 { RS_WearBody(); }
 		Goto See;
 	}
 }
@@ -171,25 +171,25 @@ class RS_RevenantShade : RS_MonsterMaster
 			SummonMinion(RS_MonsterCatalog.MORPH_RevShadow(), 0, 64.0, 0.0);
 			A_StartSound(RS_MonsterCatalog.SND_Morph(), CHAN_VOICE);
 		}
-		"####" AB 8 A_Look;
+		"DKNT" AB 8  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDDEEFF 2 A_Chase;
+		"DKNT" AABBCCDDEEFF 2  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Missile:
-		"####" J 8 Bright A_FaceTarget;
-		"####" K 10 Bright { A_RS_MonsterFire(); }
+		"DKNT" J 8  Bright { RS_WearBody(); A_FaceTarget(); }
+		"DKNT" K 10  Bright { RS_WearBody(); A_RS_MonsterFire(); }
 		Goto See;
 	Pain:
-		"####" L 4;
-		"####" L 4 A_Pain;
+		"DKNT" L 4 { RS_WearBody(); }
+		"DKNT" L 4  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" LM 6;
-		"####" N 6 A_Scream;
-		"####" O 6 A_NoBlocking;
-		"####" P 6;
-		"####" Q -1;
+		"DKNT" LM 6 { RS_WearBody(); }
+		"DKNT" N 6  { RS_WearBody(); A_Scream(); }
+		"DKNT" O 6  { RS_WearBody(); A_NoBlocking(); }
+		"DKNT" P 6 { RS_WearBody(); }
+		"DKNT" Q -1 { RS_WearBody(); }
 		Stop;
 	}
 }
@@ -232,20 +232,20 @@ class RS_RevenantShadow : RS_MonsterMaster
 	States
 	{
 	Spawn:
-		"####" AB 8 A_Look;
+		"DKNT" AB 8  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDDEEFF 2 A_Chase;
+		"DKNT" AABBCCDDEEFF 2  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Melee:
-		"####" G 0 Bright A_FaceTarget;
-		"####" G 6 A_SkelWhoosh;
-		"####" H 6 A_FaceTarget;
-		"####" I 6 A_SkelFist;
+		"DKNT" G 0  Bright { RS_WearBody(); A_FaceTarget(); }
+		"DKNT" G 6  { RS_WearBody(); A_SkelWhoosh(); }
+		"DKNT" H 6  { RS_WearBody(); A_FaceTarget(); }
+		"DKNT" I 6  { RS_WearBody(); A_SkelFist(); }
 		Goto See;
 	Death:
-		"####" LMNOP 4;
-		"####" Q -1;
+		"DKNT" LMNOP 4 { RS_WearBody(); }
+		"DKNT" Q -1 { RS_WearBody(); }
 		Stop;
 	}
 }

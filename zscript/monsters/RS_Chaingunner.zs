@@ -64,37 +64,38 @@ class RS_Chaingunner : RS_HumanMonster replaces ChaingunGuy
 		}
 		Goto FireLoop;
 	CallHelp:
-		"####" E 10 A_FaceTarget;
-		"####" F 12 Bright
+		"CPOS" E 10  { RS_WearBody(); A_FaceTarget(); }
+		"CPOS" F 12  Bright
 		{
+			RS_WearBody();
 			if (SummonPack("RS_Imp", 2, 4, -2, 96.0) > 0)
 				A_StartSound(RS_MonsterCatalog.SND_Summon(), CHAN_BODY);
 		}
 		Goto See;
 	FireLoop:
-		"####" E 10 A_FaceTarget;
+		"CPOS" E 10  { RS_WearBody(); A_FaceTarget(); }
 	MissileLoop:
-		"####" F 4 Bright { RS_TierBullets(1, 5.6, 3, 15); }
-		"####" E 4 A_CPosRefire;
+		"CPOS" F 4  Bright { RS_WearBody(); RS_TierBullets(1, 5.6, 3, 15); }
+		"CPOS" E 4  { RS_WearBody(); A_CPosRefire(); }
 		Goto MissileLoop;
 	// Chaingunner's death frames run one letter longer than the shared
 	// human block, so it overrides rather than using it.
 	Death:
-		"####" H 5;
-		"####" I 5 A_Scream;
-		"####" J 5 A_NoBlocking;
-		"####" KLM 5;
-		"####" N -1;
+		"CPOS" H 5 { RS_WearBody(); }
+		"CPOS" I 5  { RS_WearBody(); A_Scream(); }
+		"CPOS" J 5  { RS_WearBody(); A_NoBlocking(); }
+		"CPOS" KLM 5 { RS_WearBody(); }
+		"CPOS" N -1 { RS_WearBody(); }
 		Stop;
 	XDeath:
-		"####" O 5;
-		"####" P 5 A_XScream;
-		"####" Q 5 A_NoBlocking;
-		"####" RS 5;
-		"####" T -1;
+		"CPOS" O 5 { RS_WearBody(); }
+		"CPOS" P 5  { RS_WearBody(); A_XScream(); }
+		"CPOS" Q 5  { RS_WearBody(); A_NoBlocking(); }
+		"CPOS" RS 5 { RS_WearBody(); }
+		"CPOS" T -1 { RS_WearBody(); }
 		Stop;
 	Raise:
-		"####" NMLKJIH 5;
+		"CPOS" NMLKJIH 5 { RS_WearBody(); }
 		Goto See;
 	}
 }

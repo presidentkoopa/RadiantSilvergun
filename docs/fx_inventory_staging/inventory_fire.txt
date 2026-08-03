@@ -1,0 +1,474 @@
+================================================================================
+RS_MAIN ART SOURCE INVENTORY -- FIRE / FLAME / HEAT
+Agent scope: SPRITES\FLAMES, SPRITES\dakka_flame
+Date: 2026-08-03
+================================================================================
+
+SUMMARY
+  Total sequences found ...... 40
+  Total frames (files) ....... 564   (FLAMES 548, dakka_flame 16)
+  Sequences visually viewed .. 40 of 40  (100% -- nothing unviewable)
+  Doom-format / unviewable ... 0
+
+  NOTE ON EXTENSIONS: 179 of the 548 files in FLAMES have NO file extension.
+  I ran `file` on every one of those sequences -- they are ALL genuine PNGs,
+  merely missing the ".png" suffix. They are NOT Doom picture format. The Read
+  tool renders them fine. Any tool that imports these will need to either add
+  the extension or handle extensionless PNGs. Affected sequences:
+    CFCF, CFFX, FIR2, FIR3, FLME, FR7X, FRFX, FRPR, PLAF, RPGX, X004,
+    LAVA (frame A only), SRKR (frames A-L), TRKR (frames A-L)
+
+  SIZE CAVEAT: Doom sprites are trimmed per frame, so pixel dimensions vary
+  frame to frame. The SIZE listed is measured on the representative middle
+  frame I actually viewed, and is the practical "full development" size.
+
+  FOLDER SWEEP: I checked every subfolder under
+  E:\New folder\ART SOURCE\SPRITES\ for additional fire/flame/burn/heat
+  content outside my assignment and outside other agents' lists. The
+  remaining unassigned folders are all weapons (BERETTA, BFG, COACHGUN,
+  COMBATRIFLE, KNUCKLES, MINIGUN, MP40-1911, PULSERIFLE, RIOTGUN, SATURNV,
+  SAW, WEAPONS), monsters (arach, archvile, baron, caco, cybie, demon, hk,
+  imps, lostsoul, manc, pe, rev, spectre, spider, MONSTERS, CRITTERS,
+  humans), or UI/props (Hud, ITEMS, PLAYER, VEHICLES, food, icons,
+  legendoom_icons, ui). NO additional fire-specific folder exists.
+  (archvile\ may contain monster-attack flame frames, but it is a monster
+  actor folder, not a reusable-FX folder, and is out of scope here.)
+
+================================================================================
+STANDOUT FINDS -- read this first
+================================================================================
+
+  COLOR-VARIANT FAMILIES (gold for a procedural generator -- same motion,
+  different element, so one code path can serve fire/ice/toxic weapons):
+    * FIR1 / FIRB / FIRG  -- orange / BLUE / GREEN ember licks, identical size
+    * FRPR / FRPB / FRPG  -- orange / BLUE / GREEN billowing puff clouds
+    * SRKR / SRKB / SRKG  -- orange / BLUE / GREEN tapered plumes
+    * TRKR / TRKB / TRKG  -- second orange/blue/green plume set (near-twin of SRK)
+    * SPFM+SPFN / SPGM+SPGN -- red vs GREEN spark fountains, short + long cuts
+    * FIR3 / FIR5 / FIR6  -- yellow-white / BLUE / GREEN fireball blasts
+    * GPGX (green) is the toxic sibling of RPGX (orange) rocket blast
+
+  BIGGEST / MOST CINEMATIC:
+    X003 and X004 -- 128x128, 26 frames each, full anamorphic fireball ->
+    smoke-cloud explosion. Largest and most detailed FX in my scope.
+
+  MOST UNUSUAL:
+    LAVA -- 200x200 field of scattered molten droplets, 2-frame loop.
+    Not a normal sprite; reads as a screen-wide splatter/rain overlay.
+    EFIR -- a flat expanding TORUS/ring on the ground plane. Rare shape;
+    perfect for shockwave / ground-slam / "napalm ring" telegraphs.
+
+================================================================================
+FOLDER: E:\New folder\ART SOURCE\SPRITES\FLAMES     (39 sequences, 548 frames)
+================================================================================
+
+--------------------------------------------------------------------------------
+SEQUENCE: BEXP    FRAMES: 12 (frames F-Q -- note it does NOT start at A)
+SIZE: 80 x 96
+VISUAL: Tall rising fireball column. Bright pale-yellow/white incandescent
+  base, mid-body of churning orange, capped by a bulbous dark red-brown smoke
+  head that keeps climbing and fattening as the base burns out. Reads as a
+  fuel-air / barrel detonation seen from the side.
+FLAVOR WORDS: pillar, ascendant, bloom, cauldron
+USE: explosion, impact-fx
+*** DUPLICATE FLAG -- see duplicates section (matches RSE0)
+--------------------------------------------------------------------------------
+SEQUENCE: CFCF    FRAMES: 16    SIZE: 17 x 32 (mid-frame; grows from smaller)
+VISUAL: Small vertical candle/torch flame. Deep red outer licks over an
+  orange body with a bright yellow inner tongue; the tip whips and splits
+  left-right frame to frame. Tapers to a point, opaque core, soft edges.
+FLAVOR WORDS: taper, wick, candle, ember
+USE: muzzleflash, in-flight-trail, ambient, projectile-visual
+--------------------------------------------------------------------------------
+SEQUENCE: CFFX    FRAMES: 13    SIZE: 35 x 61
+VISUAL: Ragged upward-licking flame cluster -- several separate orange-red
+  tongues with darker crimson tips, more chaotic and gappy than CFCF, with
+  visible transparent gaps between the tongues. Flickers rather than fades.
+FLAVOR WORDS: lash, flicker, tongue, seething
+USE: ambient, in-flight-trail, impact-fx
+--------------------------------------------------------------------------------
+SEQUENCE: EFIR    FRAMES: 13    SIZE: 96 x 96
+VISUAL: A flat expanding RING on the ground plane. Starts as a small solid
+  orange oval (frame B), swells into a wide brown-orange torus with a bright
+  hollow centre (frame G), then breaks into dark scattered fragments as it
+  fades (frame L). Perspective-squashed, clearly meant to lie flat.
+FLAVOR WORDS: shockwave, ringfire, halo, concussive
+USE: explosion, impact-fx, ambient
+--------------------------------------------------------------------------------
+SEQUENCE: F1RE    FRAMES: 8    SIZE: 55 x 70
+VISUAL: Compact upward fireburst -- a hot white-yellow core low in the frame
+  throwing spiky red-orange flame petals up and outward, with hard jagged
+  silhouette edges. Punchy, short, more "flash" than "burn".
+FLAVOR WORDS: burst, flashfire, spike, detonant
+USE: explosion, muzzleflash, impact-fx
+--------------------------------------------------------------------------------
+SEQUENCE: F2RE    FRAMES: 8    SIZE: 55 x 70
+VISUAL: Sibling of F1RE, same size and cadence but taller and leaner -- the
+  yellow core rides higher and the red licks reach further up rather than
+  spreading sideways. Slightly more smoke-mottled in the late frames.
+FLAVOR WORDS: geyser, upshot, flare, roaring
+USE: explosion, muzzleflash, impact-fx
+--------------------------------------------------------------------------------
+SEQUENCE: FIR1    FRAMES: 9    SIZE: 32 x 67
+VISUAL: Sparse vertical column of ORANGE ember licks -- small disconnected
+  flame blobs floating up a tall thin frame with lots of empty space between
+  them. Reads as rising cinders, not a solid flame.
+FLAVOR WORDS: cinder, ember, drift, smoulder
+USE: in-flight-trail, ambient, impact-puff
+--------------------------------------------------------------------------------
+SEQUENCE: FIRB    FRAMES: 9    SIZE: 32 x 67
+VISUAL: BLUE recolour of FIR1 -- same sparse rising ember licks, rendered in
+  cyan/steel blue with pale white hot spots. Reads as cryo, gas flame, or
+  ghost fire.
+FLAVOR WORDS: cryo, wisp, azure, spectral
+USE: in-flight-trail, ambient, impact-puff
+--------------------------------------------------------------------------------
+SEQUENCE: FIRG    FRAMES: 9    SIZE: 32 x 67
+VISUAL: GREEN recolour of FIR1 -- same sparse rising embers in acid/lime
+  green with brighter yellow-green cores. Reads as toxic or radioactive.
+FLAVOR WORDS: toxic, verdant, blight, spore
+USE: in-flight-trail, ambient, impact-puff
+--------------------------------------------------------------------------------
+SEQUENCE: FIR2    FRAMES: 5    SIZE: 32 x 58
+VISUAL: Short, blobby orange flame mass -- soft-edged, rounded, low-contrast,
+  more of a warm glow blob than a defined flame. Only 5 frames, so it pops
+  and dies quickly.
+FLAVOR WORDS: glob, smoulder, warm, dull
+USE: impact-puff, ambient
+--------------------------------------------------------------------------------
+SEQUENCE: FIR3    FRAMES: 16    SIZE: 27 x 32
+VISUAL: Small compact fireball blast -- a solid white-hot yellow disc with a
+  ragged orange corona and darker orange fringe. Expands then dims. Very
+  readable at small size; a good generic "it went bang" hit.
+FLAVOR WORDS: pop, kernel, flashpoint, sunburst
+USE: impact-fx, explosion, muzzleflash
+--------------------------------------------------------------------------------
+SEQUENCE: FIR5    FRAMES: 16    SIZE: 96 x 96
+VISUAL: BLUE fireball. A large cyan/cobalt cloud-mass with a pale white
+  crystalline core and a spiky, frost-like fringe of fine radiating spines.
+  Grows from a small spiked ball into a big diffuse cold cloud. Genuinely
+  striking -- reads as cryo-detonation or arcane blast, not fire.
+FLAVOR WORDS: frostfire, glacial, hoarfrost, azure
+USE: explosion, impact-fx, projectile-visual
+--------------------------------------------------------------------------------
+SEQUENCE: FIR6    FRAMES: 16    SIZE: 59 x 60
+VISUAL: GREEN fireball. Dense mottled lime/emerald blob with a darker green
+  speckled interior, like a bubbling acid mass. Opaque, chunky, low internal
+  contrast. Toxic sibling of FIR3/FIR5.
+FLAVOR WORDS: caustic, bile, virulent, plague
+USE: explosion, impact-fx, projectile-visual
+--------------------------------------------------------------------------------
+SEQUENCE: FLME    FRAMES: 14    SIZE: 32 x 67
+VISUAL: Classic torch flame -- narrow at the base, widening into a rounded
+  orange body with a bright yellow heart and thin red tips that curl and
+  split at the top. Clean, iconic, loops well.
+FLAVOR WORDS: torch, blaze, pyre, kindled
+USE: ambient, muzzleflash, in-flight-trail
+--------------------------------------------------------------------------------
+SEQUENCE: FR7X    FRAMES: 2    SIZE: 12 x 14
+VISUAL: A tiny red-orange RING -- a hollow donut outline, just a few pixels
+  thick, on transparent background. Only 2 frames. Reads as a miniature
+  smoke ring or a hot ejecta ring.
+FLAVOR WORDS: ringlet, halo, eyelet, minor
+USE: impact-puff, muzzleflash
+--------------------------------------------------------------------------------
+SEQUENCE: FRFX    FRAMES: 16    SIZE: 12 x 14
+VISUAL: Very small pale peach/cream soft-edged puff. Almost no colour
+  saturation -- reads as a hot air/dust pop rather than flame. Sixteen frames
+  of a tiny blob slowly bulging and dissolving.
+FLAVOR WORDS: wisp, pale, breath, faint
+USE: impact-puff, muzzleflash
+--------------------------------------------------------------------------------
+SEQUENCE: FRPR    FRAMES: 8    SIZE: 55 x 75
+VISUAL: Billowing orange-red puff cloud -- lumpy cauliflower silhouette with
+  a hot orange interior and dark scorched edges. Expands and thins over 8
+  frames. Chunkier and smokier than FIR2.
+FLAVOR WORDS: billow, scorch, plume, ashen
+USE: impact-fx, explosion, smoke
+--------------------------------------------------------------------------------
+SEQUENCE: FRPB    FRAMES: 10    SIZE: 49 x 56
+VISUAL: BLUE version of the FRPR puff -- a dark navy/slate cloud with cooler
+  steel-blue highlights, noticeably darker overall than the orange original.
+  Reads as void/ice smoke.
+FLAVOR WORDS: nightfall, umbral, chill, void
+USE: impact-fx, explosion, smoke
+--------------------------------------------------------------------------------
+SEQUENCE: FRPG    FRAMES: 10    SIZE: 49 x 56
+VISUAL: GREEN version of the FRPR puff -- dark olive/forest cloud with acid
+  green highlights. Reads as a gas or spore burst.
+FLAVOR WORDS: miasma, fume, rot, noxious
+USE: impact-fx, explosion, smoke
+--------------------------------------------------------------------------------
+SEQUENCE: FX98    FRAMES: 17    SIZE: 80 x 64
+VISUAL: Wide, horizontally-spreading fire cloud. Starts as a bright
+  yellow-cored orange ball and flattens outward into a broad ragged orange
+  sheet with a bright interior. Wider than tall -- reads as a ground-hugging
+  fuel spill igniting.
+FLAVOR WORDS: spillfire, sprawl, wildfire, roiling
+USE: explosion, impact-fx, ambient
+--------------------------------------------------------------------------------
+SEQUENCE: GPGX    FRAMES: 21    SIZE: 100 x 102
+VISUAL: Large GREEN detonation cloud -- a fat mottled lime/emerald mass with
+  a darker speckled interior texture, expanding into a rounded blob. Big,
+  opaque, and unmistakably toxic. Green sibling of RPGX.
+FLAVOR WORDS: biohazard, corrosive, verdigris, contagion
+USE: explosion, impact-fx
+--------------------------------------------------------------------------------
+SEQUENCE: INFE    FRAMES: 20    SIZE: 96 x 96
+VISUAL: A spreading INFERNO sheet. Begins as a small red-orange blob, flattens
+  into a wide flat pancake of yellow-cored orange flame, then in the late
+  frames tears into a big ragged yellow-and-red flame sheet with holes.
+  Twenty frames makes it a long, lingering burn rather than a pop.
+FLAVOR WORDS: inferno, conflagration, sprawling, immolate
+USE: explosion, ambient, impact-fx
+--------------------------------------------------------------------------------
+SEQUENCE: LAVA    FRAMES: 2    SIZE: 200 x 200
+VISUAL: A full-canvas scatter field of molten droplets -- dozens of small
+  irregular red blobs with bright yellow-orange hot centres, spread randomly
+  across a large transparent square, denser toward the middle. Two frames
+  that reshuffle the droplet positions, so it loops as a boiling/spattering
+  field rather than an animation with an arc.
+FLAVOR WORDS: molten, spatter, magma, seething
+USE: ambient, impact-fx, explosion (as an overlay layer)
+NOTE: Unusually large (200x200) for a Doom FX sprite. Best used as a
+  full-screen or wide-area overlay, not as a per-hit effect.
+--------------------------------------------------------------------------------
+SEQUENCE: NF3R    FRAMES: 16    SIZE: 64 x 128
+VISUAL: Tall narrow napalm burst -- a dense orange-yellow flame body squatting
+  at the bottom of a very tall frame, throwing small dark smoke puffs upward
+  into the empty upper half. Body stays low; the smoke does the travelling.
+FLAVOR WORDS: napalm, sooty, gout, clinging
+USE: explosion, impact-fx, smoke
+--------------------------------------------------------------------------------
+SEQUENCE: NF4R    FRAMES: 22    SIZE: 64 x 128
+VISUAL: The bigger brother of NF3R -- same tall 64x128 frame, but the flame
+  body is much larger, brighter and rises further up the frame into a proper
+  vertical column with black smoke tearing off the top. 22 frames gives it a
+  long, satisfying burn-down.
+FLAVOR WORDS: firestorm, towering, gout, incendiary
+USE: explosion, impact-fx, smoke, ambient
+--------------------------------------------------------------------------------
+SEQUENCE: PLAF    FRAMES: 17    SIZE: 56 x 56
+VISUAL: Soft diffuse PALE BLUE cloud -- very low contrast, cotton-wool edges,
+  no hot core. Grows from a small wisp into a fluffy cyan puff and dissolves.
+  Nothing "fiery" about it despite the folder; reads as plasma vapour or
+  cold steam.
+FLAVOR WORDS: vapour, aether, hush, glacial
+USE: impact-puff, smoke, in-flight-trail
+--------------------------------------------------------------------------------
+SEQUENCE: RPGX    FRAMES: 21 (frames B-V -- note it does NOT start at A)
+SIZE: 55 x 50
+VISUAL: Rocket-warhead detonation. Early frames are a near-solid saturated
+  YELLOW disc with a thin red rim; mid frames become a textured orange-yellow
+  ball speckled with red; late frames collapse into a flat ragged red-crimson
+  smear that thins out. Very high saturation, almost cartoon-bold.
+FLAVOR WORDS: warhead, detonant, sunflare, thunderclap
+USE: explosion, impact-fx, muzzleflash
+--------------------------------------------------------------------------------
+SEQUENCE: SPFM    FRAMES: 7    SIZE: 120 x 90
+VISUAL: RED/ORANGE spark fountain, short cut. A tight cluster of tiny bright
+  sparks erupting from a point at bottom-centre and arcing up and outward in
+  a fan, on a mostly-empty wide canvas. Individual sparks are 1-2px dots and
+  short streaks.
+FLAVOR WORDS: sparkspray, fountain, grinder, arcing
+USE: impact-fx, muzzleflash, casing (ricochet flavour)
+--------------------------------------------------------------------------------
+SEQUENCE: SPFN    FRAMES: 26    SIZE: 120 x 90
+VISUAL: Same red/orange spark fountain as SPFM but the long 26-frame cut --
+  sparks climb higher, spread wider, and drift back down before fading. Late
+  frames are very sparse (a few stray dots), so it reads as a lingering
+  shower of falling cinders.
+FLAVOR WORDS: cascade, cinderfall, showering, lingering
+USE: impact-fx, ambient, casing
+--------------------------------------------------------------------------------
+SEQUENCE: SPGM    FRAMES: 7    SIZE: 120 x 90
+VISUAL: GREEN recolour of SPFM -- identical short spark fountain in acid
+  green/lime dots. Reads as electrical-toxic discharge.
+FLAVOR WORDS: voltaic, acidspark, sizzle, galvanic
+USE: impact-fx, muzzleflash
+--------------------------------------------------------------------------------
+SEQUENCE: SPGN    FRAMES: 26    SIZE: 120 x 90
+VISUAL: GREEN recolour of SPFN -- the long 26-frame green spark cascade with
+  the same rise-and-fall arc and sparse drifting tail.
+FLAVOR WORDS: emerald, cascade, sizzle, corrosive
+USE: impact-fx, ambient
+--------------------------------------------------------------------------------
+SEQUENCE: SRKR    FRAMES: 14 (A-L extensionless, M-N as .png)
+SIZE: 25 x 40
+VISUAL: Small tapered flame plume -- narrow flickering tip at the top over a
+  wider orange-yellow body, with a bright yellow core running up the middle
+  and red-orange edges. Leans and whips side to side across the frames.
+FLAVOR WORDS: quill, jetflame, lick, searing
+USE: in-flight-trail, muzzleflash, projectile-visual
+--------------------------------------------------------------------------------
+SEQUENCE: SRKB    FRAMES: 14    SIZE: 25 x 40
+VISUAL: BLUE version of SRKR -- same tapered plume silhouette in cyan/cobalt
+  with a pale white core. Reads as an oxy-acetylene or ion jet.
+FLAVOR WORDS: iondrive, coldjet, sapphire, hissing
+USE: in-flight-trail, muzzleflash, projectile-visual
+--------------------------------------------------------------------------------
+SEQUENCE: SRKG    FRAMES: 14    SIZE: 25 x 40
+VISUAL: GREEN version of SRKR -- same tapered plume in lime/emerald with a
+  yellow-green core.
+FLAVOR WORDS: witchfire, venomjet, emerald, hissing
+USE: in-flight-trail, muzzleflash, projectile-visual
+--------------------------------------------------------------------------------
+SEQUENCE: TRKR    FRAMES: 14 (A-L extensionless, M-N as .png)
+SIZE: 25 x 40
+VISUAL: Near-identical twin of SRKR -- same 25x40 tapered orange plume, same
+  frame count, same palette. Comparing frames A, B, G and L side by side I
+  could see no reliable visual difference at native resolution; the files are
+  byte-different and within 6 bytes of the same size, so it is most likely a
+  phase-shifted or one-pixel-offset variant of the same source animation.
+FLAVOR WORDS: quill, jetflame, lick, searing
+USE: in-flight-trail, muzzleflash, projectile-visual
+*** NEAR-DUPLICATE of SRKR -- see duplicates section
+--------------------------------------------------------------------------------
+SEQUENCE: TRKB    FRAMES: 14    SIZE: 25 x 40
+VISUAL: Blue twin of TRKR / near-identical to SRKB.
+FLAVOR WORDS: iondrive, coldjet, sapphire, hissing
+USE: in-flight-trail, muzzleflash, projectile-visual
+*** NEAR-DUPLICATE of SRKB
+--------------------------------------------------------------------------------
+SEQUENCE: TRKG    FRAMES: 14    SIZE: 25 x 40
+VISUAL: Green twin of TRKR / near-identical to SRKG.
+FLAVOR WORDS: witchfire, venomjet, emerald, hissing
+USE: in-flight-trail, muzzleflash, projectile-visual
+*** NEAR-DUPLICATE of SRKG
+--------------------------------------------------------------------------------
+SEQUENCE: X003    FRAMES: 26    SIZE: 128 x 128 (RGBA)
+VISUAL: The full cinematic explosion. Frame D is a pale cream-white
+  incandescent ball with a fine spiky black-edged fringe; by frame M it is a
+  big orange-brown churning fireball with a dark smoky void opening in its
+  centre; by frame W it has collapsed into a dark red-brown ragged smoke mass
+  drifting apart. Complete flash -> fireball -> smoke arc in one sequence.
+FLAVOR WORDS: cataclysm, fireball, apocalypse, thunderhead
+USE: explosion, impact-fx, smoke
+--------------------------------------------------------------------------------
+SEQUENCE: X004    FRAMES: 26    SIZE: 128 x 128 (8-bit colormap)
+VISUAL: The smoky sibling of X003. Same 128x128 canvas, same 26-frame
+  flash-to-smoke arc, but rendered in a browner, more sepia palette with less
+  saturated orange -- frame E is a cream/tan flash, frame M a dense brown
+  smoke-heavy ball with a black core. Where X003 reads as FIRE, X004 reads as
+  DIRT AND SMOKE.
+FLAVOR WORDS: scorched, sootfall, dustdevil, choking
+USE: explosion, smoke, impact-fx
+NOTE: X003 is RGBA and ~12KB/frame; X004 is 8-bit colormap and ~7KB/frame.
+  Strong likelihood X004 is a Doom-palettised render of the same source
+  animation as X003. Treat them as a warm/smoky PAIR, not two unrelated FX.
+
+================================================================================
+FOLDER: E:\New folder\ART SOURCE\SPRITES\dakka_flame   (1 sequence, 16 frames)
+================================================================================
+
+--------------------------------------------------------------------------------
+SEQUENCE: DKFR    FRAMES: 16    SIZE: 17 x 32
+VISUAL: Small hand-drawn flame lick. Early frames (C) are a bright
+  orange-yellow tongue with a hot yellow core; mid frames (H) shift to a
+  duller tan/brown as the flame cools and the tip curls over; late frames (N)
+  shrink to a small dark orange-brown nub. So it BURNS DOWN and browns out
+  rather than just fading -- a distinctly different arc from the FLAMES
+  folder's loops. Chunky pixel-art style, visibly different art hand from
+  everything in FLAMES.
+FLAVOR WORDS: guttering, cooling, taper, dwindling
+USE: in-flight-trail, ambient, impact-puff, muzzleflash
+NOTE: The only sequence in dakka_flame. Its "burn down and cool" arc makes it
+  a good burning-debris or lingering-ignition effect rather than a loop.
+
+================================================================================
+DUPLICATE CHECK vs EXISTING RS_MAIN CONTENT
+Compared against E:\RS_Main\sprites\combatfx\fire\ (RSI0-RSI6)
+                 E:\RS_Main\sprites\combatfx\explosions\ (RSE0-RSE9)
+================================================================================
+
+REFERENCE -- what RS_Main already has (viewed, for the record):
+  RSI0  19 fr  41x34   Low wide orange fire mound with dark red crown; ground burn
+  RSI1  13 fr  35x61   Tall ragged yellow-orange flame column, smoky
+  RSI2  10 fr  21x20   Tiny red-orange ember blob
+  RSI3   8 fr  46x86   Tall bright yellow multi-tongue flame wall (vivid, clean)
+  RSI4   8 fr  64x64   Orange ring blast with a BLACK hole in the centre (RGBA)
+  RSI5  26 fr  37x38   Pale peach/cream soft puff, near-white, very low contrast
+  RSI6   5 fr  44x50   Dark brown/black scorched smoke blob
+  RSE0  26 fr  80x96   Rising fireball column, yellow base + red-brown smoke cap
+  RSE1  25 fr  64x64   Round orange-white fireball with soft smoke fringe (RGBA)
+  RSE3   6 fr          Green-and-white spiky star burst
+  RSE8   5 fr          Tiny yellow-orange starburst
+  RSE9   8 fr          Bright green spiky star burst (larger RSE3 sibling)
+
+CONFIRMED / LIKELY DUPLICATES:
+
+  1. BEXP  ==  RSE0    (HIGH CONFIDENCE -- same effect)
+     Identical canvas size (80x96) and visually the same rising fireball
+     column: pale-yellow incandescent base, churning orange body, bulbous
+     red-brown smoke cap climbing off the top. BEXP is a 12-frame cut
+     (frames F-Q); RSE0 is the full 26-frame version (A-Z). Bytes differ at
+     every frame I checked (F, J, M, Q) and BEXP's frames are consistently
+     LARGER on disk (2.4-3.5KB vs RSE0's 1.2-2.9KB), so BEXP is a
+     higher-fidelity or differently-compressed encode of the same animation
+     rather than a byte copy.
+     RECOMMENDATION: Do not import BEXP as a new effect. If anything, compare
+     BEXP's larger frames against RSE0 as a possible quality UPGRADE for the
+     existing RSE0 -- but note BEXP only covers 12 of the 26 frames.
+
+  2. PLAF  ~~  RSI5    (MODERATE -- same read, different colour)
+     RSI5 (37x38, 26 frames) is a pale cream/near-white soft diffuse puff.
+     PLAF (56x56, 17 frames) is the same kind of low-contrast cotton-wool
+     puff but tinted pale blue and larger. Functionally overlapping. PLAF is
+     still worth having as the cool-tinted / larger variant, but do not treat
+     it as a new class of effect.
+
+  3. FRFX  ~~  RSI5    (MODERATE -- same read at smaller scale)
+     FRFX (12x14) is a tiny pale-peach soft puff -- essentially a miniature
+     RSI5. If a small pale puff is needed, RSI5 can likely be scaled instead.
+
+  4. TRKR/TRKB/TRKG  ==  SRKR/SRKB/SRKG   (INTERNAL duplicate, within FLAMES)
+     Not an RS_Main duplicate, but flagging it so the generator does not
+     treat these as six distinct plumes. Same dimensions, same frame count,
+     same palette, visually indistinguishable at native resolution. Import
+     ONE of the two sets (three colours), not both.
+
+  5. X004  ~~  X003    (INTERNAL near-duplicate, within FLAMES)
+     Same 128x128 canvas and 26-frame arc; X004 is a browner/smokier and
+     paletted rendering. Keep both only if you want a "fire" vs "dirt" pair;
+     otherwise X003 is the better-quality (RGBA) one.
+
+NOT DUPLICATES -- genuinely new content RS_Main does not have:
+  * All BLUE fire: FIR5, FIRB, FRPB, SRKB/TRKB, PLAF-as-blue. RS_Main's
+    combatfx\fire\ has no blue fire at all.
+  * All GREEN fire: FIR6, FIRG, FRPG, GPGX, SRKG/TRKG, SPGM/SPGN. RS_Main's
+    only green content is the RSE3/RSE9 spiky star bursts, which are a
+    completely different shape language.
+  * EFIR -- the flat ground-plane torus. RSI4 is the closest (a ring with a
+    black centre) but RSI4 is a face-on 64x64 ring blast, not a
+    perspective-squashed ground ring that expands and fragments.
+  * LAVA -- nothing at 200x200 exists in RS_Main combatfx.
+  * SPFM/SPFN/SPGM/SPGN -- spark fountains. RS_Main has a sparks\ folder that
+    I did not inventory (out of scope), so this one is UNVERIFIED; someone
+    should cross-check these four against E:\RS_Main\sprites\combatfx\sparks\.
+  * NF3R/NF4R -- tall 64x128 napalm columns. RS_Main's tallest fire is RSI3
+    at 46x86; these are a bigger format.
+  * DKFR -- distinct art style and a cool-down-and-brown-out arc RS_Main
+    has no equivalent for.
+
+================================================================================
+GAPS AND CAVEATS -- honest notes
+================================================================================
+  * I did NOT byte-compare every ART SOURCE frame against every RS_Main frame.
+    The duplicate findings above come from matching canvas dimensions, frame
+    counts, and side-by-side visual comparison of representative frames.
+  * SRKR vs TRKR (and their colour siblings): I could not find a visual
+    difference at native 25x40 resolution. They ARE different files. Someone
+    with an image diff tool should confirm whether the difference is
+    meaningful before discarding one set.
+  * Spark fountains (SPFM/SPFN/SPGM/SPGN) are very sparse -- at 120x90 with
+    1-2px sparks, my descriptions of the exact arc are based on what I could
+    resolve across frames D/E/M. The general behaviour (fountain up, drift
+    down, fade) is clear; exact spark counts are not.
+  * BEXP starts at frame F and RPGX starts at frame B. Both are missing their
+    opening frames. Any importer must not assume frame A exists.
+  * I did not inventory E:\RS_Main\sprites\combatfx\sparks\ or \puffs\, so
+    duplicate coverage for the spark and small-puff sequences is incomplete.
+  * READ-ONLY compliance: no file in E:\New folder\ART SOURCE or in E:\RS_Main
+    was created, copied, moved, renamed, modified or deleted. This report is
+    the only file written.
+================================================================================

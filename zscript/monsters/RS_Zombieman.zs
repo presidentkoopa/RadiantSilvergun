@@ -92,18 +92,19 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 	States
 	{
 	Missile:
-		"####" E 10 A_FaceTarget;
-		"####" F 8 Bright
+		"POSS" E 10  { RS_WearBody(); A_FaceTarget(); }
+		"POSS" F 8  Bright
 		{
+			RS_WearBody();
 			// The ladder pays off in shots, not just stats: each step
 			// adds a round to the burst.
 			RS_TierBullets(1 + rsStep, 5.6, 3, 15);
 		}
-		"####" E 8;
+		"POSS" E 8 { RS_WearBody(); }
 		Goto See;
 	Pain:
-		"####" G 3;
-		"####" G 3 A_Pain;
+		"POSS" G 3 { RS_WearBody(); }
+		"POSS" G 3  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0 { RS_ClimbLadder(); }
 		Goto See;
 	}

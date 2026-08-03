@@ -180,11 +180,11 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"VILE" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 
 	See:
-		"####" AABBCCDDEEFF 2 A_VileChase;
+		"VILE" AABBCCDDEEFF 2  { RS_WearBody(); A_VileChase(); }
 		Loop;
 
 	// The heal trigger. Vanilla jumps here when A_VileChase finds a
@@ -198,14 +198,15 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 				return ResolveState("Conjure");
 			return ResolveState(null);
 		}
-		"####" [\] 10 Bright;
+		"VILE" [\] 10  Bright { RS_WearBody(); }
 		Goto See;
 
 	Conjure:
-		"####" [ 8 Bright A_FaceTarget;
-		"####" \ 8 Bright { RS_Conjure(); }
-		"####" ] 8 Bright
+		"VILE" [ 8  Bright { RS_WearBody(); A_FaceTarget(); }
+		"VILE" \ 8  Bright { RS_WearBody(); RS_Conjure(); }
+		"VILE" ] 8  Bright
 		{
+			RS_WearBody();
 			// Every few conjures it commits to a portal instead, so the
 			// escalation arrives as an event rather than a slow drip.
 			if (Tier >= RS_VILE_TIER_PORTAL && ChargeCounter >= 3)
@@ -217,17 +218,17 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 		Goto See;
 
 	Missile:
-		"####" G 0 Bright A_VileStart;
-		"####" G 10 Bright A_FaceTarget;
-		"####" H 8 Bright A_VileTarget;
-		"####" IJKLMN 8 Bright A_FaceTarget;
-		"####" O 8 Bright A_VileAttack;
-		"####" P 20 Bright;
+		"VILE" G 0  Bright { RS_WearBody(); A_VileStart(); }
+		"VILE" G 10  Bright { RS_WearBody(); A_FaceTarget(); }
+		"VILE" H 8  Bright { RS_WearBody(); A_VileTarget(); }
+		"VILE" IJKLMN 8  Bright { RS_WearBody(); A_FaceTarget(); }
+		"VILE" O 8  Bright { RS_WearBody(); A_VileAttack(); }
+		"VILE" P 20  Bright { RS_WearBody(); }
 		Goto See;
 
 	Pain:
-		"####" Q 5;
-		"####" Q 5 A_Pain;
+		"VILE" Q 5 { RS_WearBody(); }
+		"VILE" Q 5  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0
 		{
 			// Enrage once, permanently, at half health -- then keep the
@@ -243,11 +244,11 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 		Goto See;
 
 	Death:
-		"####" Q 7;
-		"####" R 7 A_Scream;
-		"####" S 7 A_NoBlocking;
-		"####" TUVWXY 7;
-		"####" Z -1;
+		"VILE" Q 7 { RS_WearBody(); }
+		"VILE" R 7  { RS_WearBody(); A_Scream(); }
+		"VILE" S 7  { RS_WearBody(); A_NoBlocking(); }
+		"VILE" TUVWXY 7 { RS_WearBody(); }
+		"VILE" Z -1 { RS_WearBody(); }
 		Stop;
 	}
 }

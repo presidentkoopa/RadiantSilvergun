@@ -10,7 +10,6 @@ version "4.14"
 // on both) -- ZScript compiles as one unit so include order doesn't
 // actually matter for this, but keeping it last for readability.
 #include "zscript/systems/RS_ClassGating.zs"
-#include "zscript/systems/RS_DebugGive.zs"
 
 // Ammo must precede the weapons -- their AmmoType2 strings resolve against these.
 #include "zscript/weapons/rs_weapon/RS_Ammo.zs"
@@ -101,8 +100,8 @@ version "4.14"
 // classes from an older import and could not have compiled.
 #include "zscript/monsters/RS_ExBosses.zs"
 
-// Debug: spawn the whole roster as a grid (family x tier) and push live
-// monsters between tiers to watch the staggered transform.
+// Monster diagnostics. Registered in MAPINFO.txt's AddEventHandlers --
+// without that line this file compiles but never runs.
 #include "zscript/systems/RS_MonsterDebug.zs"
 
 // Archetype -> eligible Catalog slice, the fence PACK assembly reads so

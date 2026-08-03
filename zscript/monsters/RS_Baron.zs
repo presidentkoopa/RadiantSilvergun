@@ -131,16 +131,16 @@ class RS_Baron : RS_KnightBase replaces BaronOfHell
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"BOSS" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 
 	See:
-		"####" AABBCCDD 3 A_Chase;
+		"BOSS" AABBCCDD 3  { RS_WearBody(); A_Chase(); }
 		Loop;
 
 	Melee:
-		"####" EF 8 A_FaceTarget;
-		"####" G 8 A_BruisAttack;
+		"BOSS" EF 8  { RS_WearBody(); A_FaceTarget(); }
+		"BOSS" G 8  { RS_WearBody(); A_BruisAttack(); }
 		Goto See;
 
 	Missile:
@@ -153,9 +153,10 @@ class RS_Baron : RS_KnightBase replaces BaronOfHell
 				return ResolveState("SummonPack");
 			return ResolveState(null);
 		}
-		"####" EF 8 A_FaceTarget;
-		"####" G 8 Bright
+		"BOSS" EF 8  { RS_WearBody(); A_FaceTarget(); }
+		"BOSS" G 8  Bright
 		{
+			RS_WearBody();
 			if (Tier >= RS_BARON_TIER_RING)
 				A_RS_MonsterFire();
 			else
@@ -164,14 +165,14 @@ class RS_Baron : RS_KnightBase replaces BaronOfHell
 		Goto See;
 
 	SummonPack:
-		"####" E 10 A_FaceTarget;
-		"####" F 12 Bright { RS_SummonPack(); }
-		"####" G 8;
+		"BOSS" E 10  { RS_WearBody(); A_FaceTarget(); }
+		"BOSS" F 12  Bright { RS_WearBody(); RS_SummonPack(); }
+		"BOSS" G 8 { RS_WearBody(); }
 		Goto See;
 
 	Pain:
-		"####" H 2;
-		"####" H 2 A_Pain;
+		"BOSS" H 2 { RS_WearBody(); }
+		"BOSS" H 2  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0
 		{
 			if (CheckThreshold(RS_BARON_ENRAGE_SLOT, 0.5))
@@ -189,16 +190,16 @@ class RS_Baron : RS_KnightBase replaces BaronOfHell
 		Goto See;
 
 	Death:
-		"####" I 8;
-		"####" J 8 A_Scream;
-		"####" K 8;
-		"####" L 8 A_NoBlocking;
-		"####" MN 8;
-		"####" N -1 A_BossDeath;
+		"BOSS" I 8 { RS_WearBody(); }
+		"BOSS" J 8  { RS_WearBody(); A_Scream(); }
+		"BOSS" K 8 { RS_WearBody(); }
+		"BOSS" L 8  { RS_WearBody(); A_NoBlocking(); }
+		"BOSS" MN 8 { RS_WearBody(); }
+		"BOSS" N -1  { RS_WearBody(); A_BossDeath(); }
 		Stop;
 
 	Raise:
-		"####" NMLKJI 8;
+		"BOSS" NMLKJI 8 { RS_WearBody(); }
 		Goto See;
 	}
 }
@@ -267,26 +268,26 @@ class RS_BaronFallen : RS_MonsterMaster
 	States
 	{
 	Spawn:
-		"####" AB 8 A_Look;
+		"BOS4" AB 8  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDD 2 A_Chase;
+		"BOS4" AABBCCDD 2  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Missile:
-		"####" EF 6 A_FaceTarget;
-		"####" G 8 Bright { A_RS_MonsterFire(); }
+		"BOS4" EF 6  { RS_WearBody(); A_FaceTarget(); }
+		"BOS4" G 8  Bright { RS_WearBody(); A_RS_MonsterFire(); }
 		Goto See;
 	Pain:
-		"####" H 2;
-		"####" H 2 A_Pain;
+		"BOS4" H 2 { RS_WearBody(); }
+		"BOS4" H 2  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" I 8;
-		"####" J 8 A_Scream;
-		"####" K 8;
-		"####" L 8 A_NoBlocking;
-		"####" MN 8;
-		"####" N -1;
+		"BOS4" I 8 { RS_WearBody(); }
+		"BOS4" J 8  { RS_WearBody(); A_Scream(); }
+		"BOS4" K 8 { RS_WearBody(); }
+		"BOS4" L 8  { RS_WearBody(); A_NoBlocking(); }
+		"BOS4" MN 8 { RS_WearBody(); }
+		"BOS4" N -1 { RS_WearBody(); }
 		Stop;
 	}
 }

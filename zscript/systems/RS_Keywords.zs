@@ -67,35 +67,4 @@ class RS_Keywords
 			|| key == "species" || key == "role" || key == "mobility"
 			|| key == "trait";
 	}
-
-	// Debug-only typo check, gated on rs_debug_validate_keywords (off by
-	// default). Logs a console warning for any "key:value" token whose
-	// key isn't in KnownKeys, or that's missing the colon entirely.
-	// Doesn't touch, validate, or gate VALUES -- see RS_KeywordIndex.zs's
-	// per-key notes for which values are real vs reserved vs cut; that
-	// list changes too often to hardcode here without constant upkeep.
-	// context is a label (the weapon's class name) so a hit is
-	// actionable. Nothing calls this in a hot path -- see
-	// RS_Weapon.PostBeginPlay's once-per-class guarded call.
-	static void Validate(string kwString, string context)
-	{
-		if (!CVar.GetCVar("rs_debug_validate_keywords", null).GetBool())
-			return;
-
-		Array<string> tokens;
-		kwString.Split(tokens, " ");
-		for (int i = 0; i < tokens.Size(); i++)
-		{
-			string tok = tokens[i];
-			int colon = tok.IndexOf(":");
-			if (colon <= 0)
-			{
-				console.printf("RS_Keywords: %s -- malformed token \"%s\" (no key:value colon)", context, tok);
-				continue;
-			}
-			string key = tok.Left(colon);
-			if (!IsKnownKey(key))
-				console.printf("RS_Keywords: %s -- unknown keyword key \"%s\" (token \"%s\") -- typo?", context, key, tok);
-		}
-	}
 }

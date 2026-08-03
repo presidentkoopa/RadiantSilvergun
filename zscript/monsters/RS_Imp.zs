@@ -64,10 +64,10 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"TROO" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDD 3 A_Chase;
+		"TROO" AABBCCDD 3  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Melee:
 	Missile:
@@ -77,16 +77,16 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 				return ResolveState("SummonPack");
 			return ResolveState(null);
 		}
-		"####" EF 8 A_FaceTarget;
-		"####" G 6 A_TroopAttack;
+		"TROO" EF 8  { RS_WearBody(); A_FaceTarget(); }
+		"TROO" G 6  { RS_WearBody(); A_TroopAttack(); }
 		Goto See;
 	SummonPack:
-		"####" E 10 A_FaceTarget;
-		"####" F 14 Bright { RS_ImpPack(); }
+		"TROO" E 10  { RS_WearBody(); A_FaceTarget(); }
+		"TROO" F 14  Bright { RS_WearBody(); RS_ImpPack(); }
 		Goto See;
 	Pain:
-		"####" H 2;
-		"####" H 2 A_Pain;
+		"TROO" H 2 { RS_WearBody(); }
+		"TROO" H 2  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0
 		{
 			// Skids away instead of standing there taking it.
@@ -95,22 +95,22 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 		}
 		Goto See;
 	Death:
-		"####" I 8;
-		"####" J 8 A_Scream;
-		"####" K 6;
-		"####" L 6 A_NoBlocking;
-		"####" M -1;
+		"TROO" I 8 { RS_WearBody(); }
+		"TROO" J 8  { RS_WearBody(); A_Scream(); }
+		"TROO" K 6 { RS_WearBody(); }
+		"TROO" L 6  { RS_WearBody(); A_NoBlocking(); }
+		"TROO" M -1 { RS_WearBody(); }
 		Stop;
 	XDeath:
-		"####" N 5;
-		"####" O 5 A_XScream;
-		"####" P 5;
-		"####" Q 5 A_NoBlocking;
-		"####" RST 5;
-		"####" U -1;
+		"TROO" N 5 { RS_WearBody(); }
+		"TROO" O 5  { RS_WearBody(); A_XScream(); }
+		"TROO" P 5 { RS_WearBody(); }
+		"TROO" Q 5  { RS_WearBody(); A_NoBlocking(); }
+		"TROO" RST 5 { RS_WearBody(); }
+		"TROO" U -1 { RS_WearBody(); }
 		Stop;
 	Raise:
-		"####" MLKJI 8;
+		"TROO" MLKJI 8 { RS_WearBody(); }
 		Goto See;
 	}
 }

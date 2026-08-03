@@ -1,0 +1,822 @@
+================================================================================
+GORE / BLOOD / VISCERA SPRITE INVENTORY
+Radiant Silvergun (E:\RS_Main) -- procedural weapon-FX catalog
+Source root: E:\New folder\ART SOURCE\SPRITES\
+Agent scope: GORE_GENERIC, cooke-blood, FATALITY, MONSTERFATALITY, meatgrinder
+READ-ONLY pass. No source file was copied, moved, renamed or modified.
+================================================================================
+
+SUMMARY
+-------
+TOTAL SEQUENCES ..................... 140
+TOTAL FRAMES (individual sprites) ... 1339
+
+SCOPE SPLIT (the key judgment):
+  (a) REUSABLE GENERIC EFFECT ....... 44 sequences   (~31%)  <-- USE THESE
+  (b) CHARACTER-SPECIFIC DEATH ANIM .. 81 sequences   (~58%)  <-- reject
+  (c) NOT GORE AT ALL (weapon art) ... 12 sequences   (~9%)   <-- reject, see meatgrinder
+  (?) UNDETERMINED (Doom pic format) .. 3 sequences   (~2%)
+
+VISUAL CONFIRMATION COVERAGE:
+  Sequences I actually SAW with my own eyes ....  64 / 140
+  Sequences described from pixel-data only ......  73 / 140  (clearly flagged below)
+  Sequences with no data at all (Doom format) ...   3 / 140
+
+HEADLINE FINDINGS
+  1. cooke-blood (3 seq) is the single best asset here: clean 64x64 arterial
+     blood sprays on transparent canvas, 12-19 frames, full spawn->spread->fade
+     lifecycle. Drop-in ready as impact-fx. Highest value in the whole scope.
+  2. GORE_GENERIC/BLOOD + GORE_GENERIC root (38 seq) are the generic workhorse
+     library: splatters, pools, mists, tumbling gib chunks, decals.
+  3. CRS1/CRS2/CRS3/CRSB are the same crush-residue effect in RED / NAVY-BLUE /
+     RED-WIDE / GREEN. A ready-made colour-variant set -- ideal for
+     per-damage-type or per-monster-family blood colour in a generator.
+  4. FATALITY + MONSTERFATALITY (76 seq, 819 frames = 61% of all frames) are
+     PAIRED TWO-ACTOR FINISHER ANIMATIONS. Every frame contains the green
+     Doom-marine sprite locked to one specific monster. Unusable for weapon FX.
+     This was verified by eye on 12 sampled sequences, not inferred from names.
+  5. meatgrinder is NOT a gore folder. It is a first-person WEAPON sprite set
+     (fists, minigun, SSG, rocket launcher, plasma, BFG pickup). Zero gore
+     content. The folder name is misleading -- exactly the trap to avoid.
+  6. NO DUPLICATE RISK with RS_Main. See DUPLICATE CHECK section.
+
+METHOD / HONESTY NOTE
+  Sequences were grouped by the first 4 filename chars (Doom convention:
+  NNNNFR -> 4-char name, frame letter, rotation). Every sequence got a
+  representative middle frame opened with the image viewer.
+
+  A minority of frames return "Could not process image" from the image
+  pipeline. I chased this hard and it is NOT predictable from the file:
+    - not file size, not colour type, not bit depth, not alpha coverage
+    - not chunk CRC (files with a corrupt grAb CRC render fine)
+    - not zlib window size (X057J0=0x18 renders; BSPRE0=0x58 does not;
+      NJEXB0=0x58 renders) -- I tested this theory and disproved it
+  Failures are intermittent and frame-specific: BSPR frame B renders while
+  frame E does not. Where a representative frame failed I retried a different
+  frame of the same sequence; where that also failed the sequence is marked
+  NOT VISUALLY CONFIRMED and I give measured pixel data instead of a guess.
+
+  Anything marked [PIXEL-DATA ONLY] was NOT seen. Its geometry, palette and
+  motion are measured facts from the pixel buffer; its subject matter is not
+  asserted. I have not invented a description for anything I could not see.
+
+  Legend:  [SEEN] = visually inspected   [PIXEL-DATA ONLY] = measured, not seen
+  cov = % of canvas that is non-transparent. Coverage trajectory across frames
+  is given where it reveals motion (grow/fade vs. alternating 2-pose loop).
+
+================================================================================
+FOLDER 1 -- GORE_GENERIC\BLOOD        18 sequences / 132 frames
+Generic blood FX library. ALL 18 are scope (a) reusable generic effects.
+This is the most directly useful folder after cooke-blood.
+================================================================================
+
+SEQUENCE: BL8A   FRAMES: 6    SIZE: 64x64                              [SEEN]
+  VISUAL: Fine crimson spray -- a tight burst of small dark-red droplets and
+    thin streaks radiating outward from a centre point, slightly biased upward.
+    Sparse (3-5% coverage), reads as airborne blood mist rather than a solid
+    mass. Coverage 3-4-5-5-2-1: puffs out then thins away to nothing.
+  PALETTE: #730000 #5b0000 #660000 #7f0000 -- uniform deep red, no highlights.
+  FLAVOR WORDS: mist, atomizer, crimson, vaporize
+  USE: impact-fx, impact-puff, gore
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: BL8D   FRAMES: 5    SIZE: 8x8                                [SEEN]
+  VISUAL: A single small round dark-red droplet, near-solid fill. Shrinks
+    steadily across the 5 frames (83%->8% coverage) -- a droplet dwindling out.
+    Too small to carry detail; it is a dot, not a shape.
+  PALETTE: #5b0000 #670000 -- flat dark red.
+  FLAVOR WORDS: droplet, bleeder, speck
+  USE: impact-fx, in-flight-trail, gore
+  SCOPE: (a) reusable generic effect -- good as a trail/drip particle
+
+SEQUENCE: BLHT   FRAMES: 10   SIZE: 128x128                            [SEEN]
+  VISUAL: Big sprawling wall-splat decal. An irregular dark-red splatter with
+    spidery radiating arms and scattered outlying speckles, filling most of the
+    128px canvas at only 6-7% coverage -- open and web-like, not a solid blob.
+    Holds shape for ~6 frames then thins out (7->2%).
+  PALETTE: #670000 #5b0000 #7f0000 #730000 -- deep red throughout.
+  FLAVOR WORDS: splatter, rorschach, sprawl, arterial
+  USE: impact-fx, gore, ambient (wall decal)
+  SCOPE: (a) reusable generic effect -- largest splatter in the library
+
+SEQUENCE: BLOR   FRAMES: 12   SIZE: 64x64                              [SEEN]
+  VISUAL: A thick solid near-circular blob of deep red -- a pool/glob with a
+    soft rounded edge and a small lighter pinhole near centre. Very dense (51-63%
+    coverage) unlike the sparse sprays. Slowly shrinks/drains over 12 frames.
+  PALETTE: single flat #880000 (100% -- literally one colour, no shading).
+  FLAVOR WORDS: pool, congeal, glut, clot
+  USE: impact-fx, gore, ambient (floor pool)
+  SCOPE: (a) reusable generic effect -- the "pool" primitive
+
+SEQUENCE: BLUD   FRAMES: 3    SIZE: 20x20                              [SEEN]
+  VISUAL: Small compact red splat with a slightly ragged edge. Low detail at
+    this size. Coverage grows 22->24->35%, so it spreads rather than fades.
+  PALETTE: #730000 #6d0505 #430000 -- red with darker core.
+  FLAVOR WORDS: splat, spatter, nick
+  USE: impact-fx, impact-puff, gore
+  SCOPE: (a) reusable generic effect
+  NOTE: distinct from GORE_GENERIC root BLUD (different file, same 4-char name).
+
+SEQUENCE: BPDL   FRAMES: 4    SIZE: 65x20 - 72x16          [PIXEL-DATA ONLY]
+  MEASURED: Wide, short, low-lying footprint (bbox 69x14) at 18-22% coverage --
+    a horizontal smear/pool geometry, not a burst. Coverage flat across frames
+    (22,16,18,18) so it is a settled decal, not an animating spray.
+  PALETTE: #660000 (64%) #5b0000 (24%) -- overwhelmingly one flat dark red.
+  FLAVOR WORDS: pool, seep, spread
+  USE: impact-fx, gore, ambient (floor decal)
+  SCOPE: (a) reusable generic effect
+  GAP: representative and first frames both refused by the image pipeline.
+    Subject matter not visually confirmed -- geometry only.
+
+SEQUENCE: BRIB   FRAMES: 4    SIZE: 6x6                    [PIXEL-DATA ONLY]
+  MEASURED: 6x6 -- below the 8px floor the image viewer accepts, so it cannot
+    be rendered at all. Dense (72-87% fill). Palette mixes red #430000/#831f1f
+    with bone/tan #533f1f #774f2b -- flesh-plus-bone chip colouring.
+  FLAVOR WORDS: chip, fragment, shard
+  USE: gore, impact-fx (micro debris)
+  SCOPE: (a) reusable generic effect (micro gib particle)
+  GAP: physically too small to view. Palette is the only evidence.
+
+SEQUENCE: BRIN   FRAMES: 1    SIZE: 10x5                   [PIXEL-DATA ONLY]
+  MEASURED: 10x5, single frame, 68% fill. Red #7f0000 #670000 plus tan #8f5f37.
+  FLAVOR WORDS: sliver, scrap
+  USE: gore (micro debris)
+  SCOPE: (a) reusable generic effect
+  GAP: 5px tall -- under the viewer's minimum. Not seen.
+
+SEQUENCE: BRTL   FRAMES: 4    SIZE: 11x10 - 8x7            [PIXEL-DATA ONLY]
+  MEASURED: Tiny, sparse (23-38% fill), shrinking across frames. Brightest red
+    in the folder: #a70000 #d70000 -- notably more vivid than the #5b0000 family.
+  FLAVOR WORDS: trail, drip, bright
+  USE: in-flight-trail, gore
+  SCOPE: (a) reusable generic effect -- likely a trail/drip particle
+  GAP: not visually confirmed.
+
+SEQUENCE: BSPR   FRAMES: 10   SIZE: 64x64                              [SEEN]
+  VISUAL: A dense crimson starburst -- blood spraying violently outward from a
+    central impact point with radiating streaks and flecks, denser and more
+    aggressive than BL8A. Coverage 6-12-11-11-11-8-7-6-4-2: snaps open on
+    frame 2, holds, then dissipates. Excellent impact-moment spray.
+  PALETTE: #5b0000 #660000 #840000 #730000 -- deep red, slight bright accents.
+  FLAVOR WORDS: burst, arterial, geyser, rupture
+  USE: impact-fx, muzzleflash (recolour), gore
+  SCOPE: (a) reusable generic effect -- best generic impact spray in GORE_GENERIC
+
+SEQUENCE: GUTS   FRAMES: 12   SIZE: 26x23 - 36x20                      [SEEN]
+  VISUAL: A small dark-red lumpy mass -- a compact clump of viscera lying flat,
+    with lighter pink-red highlights (#bb5757) giving it wet, rounded volume.
+    Coverage falls 70->39% then rises again to 46%: it settles and spreads.
+  PALETTE: #6b0f0f #bb5757 #8f2b2b -- red with genuine highlight range, the
+    most "shaded" of the blood sprites.
+  FLAVOR WORDS: viscera, offal, entrail, butcher
+  USE: gore, impact-fx
+  SCOPE: (a) reusable generic effect (generic viscera clump, no species read)
+
+SEQUENCE: XDB5   FRAMES: 12   SIZE: 22x22 / 9x21                       [SEEN]
+  VISUAL: A small dark-red gib chunk. Coverage alternates 58,23,58,23,58,23...
+    -- a two-pose TUMBLING LOOP: the chunk spins, presenting broad face then
+    thin edge. Designed as a flying gib, not a static decal.
+  PALETTE: #8f2b2b #be5a5a #b34f4f -- mid red with pink highlights.
+  FLAVOR WORDS: gib, tumble, chunk, cleave
+  USE: gore, projectile-visual (thrown gib), casing-style debris
+  SCOPE: (a) reusable generic effect -- looping tumble is generator-friendly
+
+SEQUENCE: XDB6   FRAMES: 2    SIZE: 24x23                  [PIXEL-DATA ONLY]
+  MEASURED: 2 frames, both 50% coverage, bbox 23x16, has genuine soft alpha
+    (115 semi-transparent px) unlike most sprites here. Dark #430000 dominant.
+  FLAVOR WORDS: chunk, gib, morsel
+  USE: gore
+  SCOPE: (a) reusable generic effect
+  GAP: not visually confirmed.
+
+SEQUENCE: XDT1   FRAMES: 12   SIZE: 28x8 - 42x10                       [SEEN]
+  VISUAL: A small red droplet cluster with a bright spot -- reads as a spatter
+    of fine droplets on a wide thin canvas. Coverage spikes at frame 6 (52%)
+    then decays to 9%: a burst-then-fade droplet scatter.
+  PALETTE: #670000 #530707 #5b0707 -- flat dark reds.
+  FLAVOR WORDS: spatter, fleck, drizzle
+  USE: impact-fx, in-flight-trail, gore
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: XME5   FRAMES: 4    SIZE: 36x16 - 27x53                      [SEEN]
+  VISUAL: A vertical dark-red strip of meat/tissue -- an elongated ragged
+    chunk, denser at the top, hanging or falling. Coverage swings 58,64,32,69.
+  PALETTE: #430000 #660000 #8b0000 -- dark red, low contrast.
+  FLAVOR WORDS: strip, flense, rend, sinew
+  USE: gore
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: XME8   FRAMES: 2    SIZE: 16x7                   [PIXEL-DATA ONLY]
+  MEASURED: 15x7, dense (61-79% fill). Brighter reds #770b0b #af1b1b #bf1f1f.
+  FLAVOR WORDS: shred, scrap
+  USE: gore
+  SCOPE: (a) reusable generic effect
+  GAP: 7px tall -- under the viewer's minimum. Not seen.
+
+SEQUENCE: XMT1   FRAMES: 14   SIZE: 32x32 - 46x46                      [SEEN]
+  VISUAL: A dark-red gib chunk with a lighter cap, on a large mostly-empty
+    canvas. Coverage alternates 17,8,18,9,17,9,17,8 then jumps to 59/60 --
+    a tumbling loop that ends in a splat/landing at high coverage.
+  PALETTE: #430000 #660000 #5b0000 -- dark red.
+  FLAVOR WORDS: gib, tumble, impact, splat
+  USE: gore, projectile-visual
+  SCOPE: (a) reusable generic effect -- has a built-in "lands and splats" ending
+
+SEQUENCE: XMT2   FRAMES: 15   SIZE: 27x15 - 27x32                      [SEEN]
+  VISUAL: A small red chunk with a bright vertical highlight. Same alternating
+    signature as XMT1 (15,31,15,31...) then a 74% spike and a settled tail --
+    tumble loop resolving into a ground splat.
+  PALETTE: #430000 #4f0000 #730000 #a70000 -- dark red with brighter accents.
+  FLAVOR WORDS: gib, tumble, carve
+  USE: gore, projectile-visual
+  SCOPE: (a) reusable generic effect
+
+================================================================================
+FOLDER 2 -- GORE_GENERIC (root)       20 sequences / 103 frames
+Mixed generic gore debris, decals and crush residue. 19 of 20 are scope (a).
+================================================================================
+
+SEQUENCE: BLUD   FRAMES: 2    SIZE: 19x19 - 20x20                      [SEEN]
+  VISUAL: A small red splat with a distinct white/pale highlight speck. Compact,
+    ragged edge. Reads as a wet blood dot with a specular hit.
+  PALETTE: #730000 #6d0505 #430000
+  FLAVOR WORDS: splat, wet, nick
+  USE: impact-fx, gore
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: BR7B   FRAMES: 12   SIZE: 10x14 - 14x10                      [SEEN]
+  VISUAL: A tiny red-orange chunk, near-solid. Coverage steps 71 (x4), 69 (x4),
+    52 (x4) -- three 4-frame rotation banks, i.e. a rotating debris chunk.
+  PALETTE: #711010 #9d1901 with orange #9c633b and a hot #ff3300 accent --
+    warmer/rustier than the pure-red blood sprites.
+  FLAVOR WORDS: ember, cinder, chunk, rust
+  USE: gore, casing, impact-fx
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: BR7N   FRAMES: 2    SIZE: 12x12                              [SEEN]
+  VISUAL: A small red-orange chunk with a darker underside -- a single debris
+    fragment. Very low detail at 12px.
+  PALETTE: #5a0000 #8e0000 with tan #9b633b #7f532f
+  FLAVOR WORDS: fragment, nugget, shard
+  USE: gore, casing
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: BRIB   FRAMES: 20   SIZE: 12x12                              [SEEN]
+  VISUAL: A small orange-red chunk with a pale tan edge -- flesh-and-bone
+    fragment. 20 frames in 5 coverage bands (75/56/87/72/41/42/56) = multiple
+    rotation banks, a full spinning-debris set.
+  PALETTE: #9d1801 #731313 #875733 #9c633b #d78b5b -- red plus strong bone tan.
+  FLAVOR WORDS: bone, splinter, marrow, shatter
+  USE: gore, casing, impact-fx
+  SCOPE: (a) reusable generic effect -- richest rotation set in the folder
+
+SEQUENCE: BRIN   FRAMES: 6    SIZE: 12x8                   [PIXEL-DATA ONLY]
+  MEASURED: 12x8, coverage decays 71,68,40,61,63,16 -- a fragment that fades out.
+    Palette identical family to BRIB (#9d1801 #731313 #875733) plus pure #ff0000.
+  FLAVOR WORDS: splinter, chip
+  USE: gore
+  SCOPE: (a) reusable generic effect
+  GAP: not visually confirmed.
+
+SEQUENCE: BTRL   FRAMES: 1    SIZE: 11x7                   [PIXEL-DATA ONLY]
+  MEASURED: Single frame, 11x7, 29% fill, only 3 colours (#670b0b #5b0707
+    #730000). A minimal single-cel marker.
+  FLAVOR WORDS: trail, drip
+  USE: in-flight-trail, gore
+  SCOPE: (a) reusable generic effect
+  GAP: 7px tall -- under the viewer's minimum. Not seen.
+
+SEQUENCE: CRS1   FRAMES: 2    SIZE: 49x10 - 28x9                       [SEEN]
+  VISUAL: A flattened dark-red lumpy smear, wide and very short -- crushed
+    remains squashed flat against the floor. Bumpy silhouette, no limbs
+    readable, so it works as anonymous residue.
+  PALETTE: #8b0000 #660000 #430000
+  FLAVOR WORDS: crush, pulp, flatten, paste
+  USE: gore, ambient (floor decal)
+  SCOPE: (a) reusable generic effect
+  *** COLOUR-VARIANT SET with CRS2 / CRS3 / CRSB -- see note below ***
+
+SEQUENCE: CRS2   FRAMES: 3    SIZE: 80x20                              [SEEN]
+  VISUAL: The same flattened lumpy crush-smear silhouette as CRS1 but rendered
+    in NAVY / PURPLE-BLUE with dark red mixed in. Genuinely a blue gore pile.
+  PALETTE: #1a045b #000099 #0000cc #000052 with #771718 red -- blue-dominant.
+  FLAVOR WORDS: cobalt, azure, ichor, alien
+  USE: gore, ambient
+  SCOPE: (a) reusable generic effect
+  *** The blue member of the crush-residue colour set. Rare and valuable:
+      a non-red blood colour for synthetic/alien/energy damage types. ***
+
+SEQUENCE: CRS3   FRAMES: 2    SIZE: 128x17 - 128x24                    [SEEN]
+  VISUAL: A wide red lumpy pile spread horizontally across the full 128px --
+    the widest crush smear, several distinct lumps in a row.
+  PALETTE: #430000 #7b0000 #8e2a2a
+  FLAVOR WORDS: crush, wide, sprawl, pulp
+  USE: gore, ambient (floor decal)
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: CRSB   FRAMES: 4    SIZE: 55x10 - 46x10                      [SEEN]
+  VISUAL: The crush-smear silhouette again in GREEN -- a lumpy dark-green
+    horizontal pile. Clean, saturated, unmistakably a green-blood variant.
+  PALETTE: #27531b #17330f #1f4317 #2f6323 -- fully green, no red at all.
+  FLAVOR WORDS: bile, toxic, verdant, chlorine
+  USE: gore, ambient; pairs naturally with RS_Main's existing acid/poison FX
+  SCOPE: (a) reusable generic effect
+  *** The green member of the crush-residue colour set. ***
+
+  >>> CRS COLOUR-SET NOTE: CRS1 (red), CRS2 (navy), CRS3 (red, wide) and
+      CRSB (green) are the same crushed-residue concept in three colourways.
+      For a procedural generator this is a ready-made damage-type/blood-colour
+      axis -- swap the lump by weapon element without any recolouring work.
+
+SEQUENCE: GIBD   FRAMES: 4    SIZE: 70x19 - 56x16                      [SEEN]
+  VISUAL: A dark-red horizontal lumpy pile -- scattered gib debris settled on
+    the ground, slightly more granular than the CRS smears.
+  PALETTE: #6c141c #580000 #7c1c20 with brownish #5c2818 #442c24
+  FLAVOR WORDS: debris, scatter, remains
+  USE: gore, ambient (floor decal)
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: GIBS   FRAMES: 1    SIZE: 60x20                              [SEEN]
+  VISUAL: A jagged red pile with distinct peaks and spikes -- a spread of gore
+    chunks heaped on the ground, more angular than GIBD.
+  PALETTE: #430000 #660000 #8b0000 #7f0000
+  FLAVOR WORDS: heap, jagged, remains, ruin
+  USE: gore, ambient (floor decal)
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: GUTS   FRAMES: 1    SIZE: 77x20                  [PIXEL-DATA ONLY]
+  MEASURED: Single frame, 77x20, 54% coverage, bbox 77x18 -- a wide low pile
+    footprint matching the GIBD/GIBS floor-decal family. Flat dark reds
+    (#730000 #430000 #660000) with an unusually even colour spread.
+  FLAVOR WORDS: entrail, offal, spill
+  USE: gore, ambient (floor decal)
+  SCOPE: (a) reusable generic effect
+  GAP: not visually confirmed. Distinct from BLOOD\GUTS (different file).
+
+SEQUENCE: NJEX   FRAMES: 2    SIZE: 64x18 - 64x28                      [SEEN]
+  VISUAL: A near-black sprawled shape spread wide across the canvas, with a
+    faint limb-like outline. 66% of opaque pixels are pure #000000.
+  PALETTE: #000000 (66%) #1f170b #3f2f17 -- essentially a black silhouette.
+  FLAVOR WORDS: shadow, char, void
+  USE: gore, ambient
+  SCOPE: (b) LIKELY character-specific -- the silhouette reads as a sprawled
+    humanoid body, not anonymous residue. FLAGGED AS UNCERTAIN: at 64x18 the
+    read is not definitive. Treat as reject unless someone eyeballs it in-editor.
+
+SEQUENCE: TGIB   FRAMES: 17   SIZE: 55x51                              [SEEN]
+  VISUAL: A cluster of dark-red chunks and droplets scattered across the frame
+    with a denser mass toward the bottom -- a full gib-burst: body blown apart
+    into flying pieces. Coverage falls 50->37% then climbs back to 62% as the
+    pieces land and pile. 17 frames is a complete arc.
+  PALETTE: #430000 #4f0000 #7f0000 -- dark red.
+  FLAVOR WORDS: gib, eviscerate, burst, shrapnel
+  USE: gore, explosion, impact-fx
+  SCOPE: (a) reusable generic effect -- the "body explodes" primitive, and the
+    longest generic sequence in GORE_GENERIC root
+
+SEQUENCE: XARM   FRAMES: 7    SIZE: 24x24                              [SEEN]
+  VISUAL: A small elongated tan/orange limb piece with red at the severed end --
+    a detached arm segment. Flesh tone dominant, blood only at the stump.
+  PALETTE: #774f2b #8f6137 #996633 #875733 -- skin/tan, not red-dominant.
+  FLAVOR WORDS: dismember, sever, limb, butcher
+  USE: gore
+  SCOPE: (a) reusable generic effect -- generic limb, no species/armour detail
+
+SEQUENCE: XDT5   FRAMES: 3    SIZE: 9x9                                [SEEN]
+  VISUAL: A tiny red dot with a tan fleck. At 9px it is a coloured speck --
+    no internal shape resolvable.
+  PALETTE: #660000 #774f2b #b50000
+  FLAVOR WORDS: speck, mote, drip
+  USE: impact-fx, in-flight-trail, gore
+  SCOPE: (a) reusable generic effect (micro particle)
+
+SEQUENCE: XSKI   FRAMES: 4    SIZE: 14x11 - 25x33                      [SEEN]
+  VISUAL: Scattered dark-red droplets spread over a tall thin area -- falling/
+    flicked blood droplets rather than a single mass. Sparse (16-36%).
+  PALETTE: #990000 #430000 #4f0000
+  FLAVOR WORDS: fleck, scatter, drizzle
+  USE: impact-fx, in-flight-trail, gore
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: XSTO   FRAMES: 2    SIZE: 31x40 - 46x16                      [SEEN]
+  VISUAL: A red-brown lumpy mass lying flat with visible rounded lobes and a
+    pale tan edge -- an organ-like chunk on the ground.
+  PALETTE: #705743 #530807 #584333 #680b0b -- brown-red, meatier than pure blood.
+  FLAVOR WORDS: organ, offal, visceral, butcher
+  USE: gore
+  SCOPE: (a) reusable generic effect
+
+SEQUENCE: XTET   FRAMES: 8    SIZE: 15x15 - 10x15                      [SEEN]
+  VISUAL: A small vertical fragment, red-brown with a bright bone-white/cream
+    tip (#fdf9d2). Coverage alternates 75,49,75,49 -- a two-pose tumbling loop.
+    The pale tip makes it read as a bone or tooth shard rather than soft tissue.
+  PALETTE: #990100 with #fdf9d2 cream highlight -- only sprite here with a
+    genuinely bright near-white accent.
+  FLAVOR WORDS: bone, tooth, ivory, splinter
+  USE: gore, casing, impact-fx
+  SCOPE: (a) reusable generic effect -- the only "bone" reading in the library
+
+================================================================================
+FOLDER 3 -- GORE_GENERIC\BURNINGMAN   3 sequences / 39 frames
+Burning-body death animation. All (b), but the FLAME artwork is high quality.
+================================================================================
+
+SEQUENCE: BDT1   FRAMES: 31   SIZE: 56x77                              [SEEN]
+  VISUAL: A standing humanoid figure completely engulfed in bright orange and
+    yellow flame -- the body is a dark core almost entirely hidden by licking
+    fire that flickers over 31 frames. Coverage 38-45% for most of the run then
+    swells to 62-67% as the flames flare, settling around 43-50%.
+  PALETTE: #ffa35b #ff8f3b #efa373 #ffb37b #cb7f4f -- hot orange/amber, the
+    brightest and most saturated palette in this entire scope.
+  FLAVOR WORDS: immolate, pyre, ember, scorch
+  USE: gore (burning death); flame texture is reusable if cropped
+  SCOPE: (b) character-specific -- a human figure, clearly readable as a body
+  NOTE: 31 frames is the longest single sequence in the scope. The FIRE itself
+    is excellent reference/source material for RS_Main's fire FX even though the
+    silhouette makes the sequence unusable as-is.
+
+SEQUENCE: BDT2   FRAMES: 4    SIZE: 75x68 - 76x63                      [SEEN]
+  VISUAL: A collapsed burning mass -- the figure has fallen and the orange
+    flame spreads wide and low across the frame. Body outline barely readable
+    under the fire; closer to a burning heap than a person.
+  PALETTE: #ffb37b #ffa35b #efa373 #ff8f3b #ffc79b -- same hot amber family.
+  FLAVOR WORDS: pyre, cinder, immolate, ash
+  USE: gore, explosion (fire burst if cropped)
+  SCOPE: (b) character-specific (fallen burning body) -- but the low sprawling
+    flame is the closest thing here to a reusable ground-fire effect
+
+SEQUENCE: BDT3   FRAMES: 4    SIZE: 68x75                  [PIXEL-DATA ONLY]
+  MEASURED: Pixel statistics are IDENTICAL to BDT2 -- same 4 frames, same
+    coverage trajectory (45,41,44,46), same palette in the same proportions,
+    dimensions transposed (68x75 vs 76x63). This is almost certainly the
+    mirrored / alternate-facing variant of BDT2.
+  FLAVOR WORDS: pyre, cinder, immolate
+  USE: gore
+  SCOPE: (b) character-specific
+  GAP: not visually confirmed; the BDT2-variant reading is inferred from
+    identical measured statistics, not from seeing it.
+
+================================================================================
+FOLDER 4 -- GORE_GENERIC\CARBONIZED   8 sequences / 147 frames
+Burnt/charred remains. 2 reusable, 3 character-specific, 3 undecodable.
+================================================================================
+
+SEQUENCE: BRZ3   FRAMES: 21   SIZE: 55x69                              [SEEN]
+  VISUAL: A humanoid figure engulfed in vivid orange-yellow fire -- brighter and
+    more violent than BURNINGMAN, with flames streaming upward off the body.
+    Coverage swings 37-67% as the fire billows, then drops sharply to 18% at the
+    end as it burns out.
+  PALETTE: #590800 #ff6f00 #230000 #a32b00 -- hot orange over near-black char.
+  FLAVOR WORDS: incinerate, blaze, scorch, pyre
+  USE: gore, explosion (flame source if cropped)
+  SCOPE: (b) character-specific (burning humanoid)
+
+SEQUENCE: CARB   FRAMES: 14   SIZE: 26x9 - 25x12                       [SEEN]
+  VISUAL: A small black charred lump with dull red embers -- a burnt residue
+    pile, low and wide. No body shape readable; it is anonymous char.
+  PALETTE: #2a2a2a #191919 #000000 #222222 #333333 -- near-monochrome black/grey.
+  FLAVOR WORDS: cinder, char, soot, ash
+  USE: gore, ambient (scorch decal), smoke
+  SCOPE: (a) reusable generic effect -- generic burnt residue, no silhouette
+
+SEQUENCE: CPBR   FRAMES: 32   SIZE: unknown                        [UNVIEWABLE]
+  UNVIEWABLE (raw Doom picture format -- no PNG header, cannot be decoded by
+  the image viewer or by PIL). 32 frames. No descriptor possible.
+  SCOPE: (?) undetermined
+  GAP: needs a Doom-format tool (SLADE) + PLAYPAL to inspect. Largest unknown
+    in the scope at 32 frames.
+
+SEQUENCE: CRB7   FRAMES: 26   SIZE: 53x53 - 39x53                      [SEEN]
+  VISUAL: A standing charred humanoid -- a blackened body with glowing dull-red
+    cracks across the torso, arms at its sides. Clearly a burnt corpse figure.
+    Coverage oscillates 44-69% across 26 frames (smouldering flicker).
+  PALETTE: #232323 #131313 #000000 #070707 -- black-dominant with red embers.
+  FLAVOR WORDS: carbonize, char, ember, ashen
+  USE: gore
+  SCOPE: (b) character-specific (recognisable standing body)
+
+SEQUENCE: PBR1   FRAMES: 8    SIZE: 48x35 - 51x29                      [SEEN]
+  VISUAL: A dark red-and-black sprawled mass on the ground -- a burnt body
+    collapsed flat, limbs faintly readable. Coverage jumps to 57-58% in the
+    last two frames as it spreads/settles.
+  PALETTE: #430000 #5a0000 #131313 #b40000 -- burnt red over black.
+  FLAVOR WORDS: char, scorch, ruin
+  USE: gore, ambient
+  SCOPE: (b) character-specific (body silhouette readable)
+
+SEQUENCE: SBRG   FRAMES: 20   SIZE: unknown                        [UNVIEWABLE]
+  UNVIEWABLE (raw Doom picture format). 20 frames. No descriptor possible.
+  SCOPE: (?) undetermined
+
+SEQUENCE: TRBR   FRAMES: 20   SIZE: unknown                        [UNVIEWABLE]
+  UNVIEWABLE (raw Doom picture format). 20 frames. No descriptor possible.
+  SCOPE: (?) undetermined
+  NOTE: one TRBR frame is misidentified by `file` as a WonderSwan ROM -- a
+    classic signature collision on headerless data. It is not a ROM.
+
+SEQUENCE: XBRN   FRAMES: 6    SIZE: 53x56 - 85x65                      [SEEN]
+  VISUAL: A ring of small dark chunks and pale pink-white specks flung outward
+    in a rough circle -- an ash-and-ember scatter burst. Coverage collapses
+    52,56,46,10,5,3: it explodes outward then almost completely disperses.
+    Genuinely anonymous debris, no body shape.
+  PALETTE: #202020 #333333 #292929 #535353 -- greys and blacks with pale flecks.
+  FLAVOR WORDS: ash, cinder, disperse, scatter
+  USE: impact-fx, explosion, smoke, gore
+  SCOPE: (a) reusable generic effect -- the best "disintegrate into ash" effect
+    in the scope, and one of the few non-red options
+
+================================================================================
+FOLDER 5 -- cooke-blood               3 sequences / 49 frames
+*** HIGHEST-VALUE FOLDER IN SCOPE. All 3 are scope (a). ***
+Clean, long, transparent-canvas blood sprays with full lifecycle animation.
+================================================================================
+
+SEQUENCE: X057   FRAMES: 19   SIZE: 64x64                              [SEEN]
+  VISUAL: A wide crimson spray -- blood flung outward across the frame in
+    ragged streaks and a scatter of fine droplets, denser through the middle
+    and trailing off into isolated specks. Coverage ramps 1-3-5-7 then holds
+    7-8% for ten frames before easing to 4%: a clean spawn / spread / linger /
+    fade lifecycle over 19 frames.
+  PALETTE: #780101 #7f0101 #660101 #6b0101 -- pure saturated red, very clean
+    two-channel colour (#xx0101) with no muddy browns.
+  FLAVOR WORDS: arterial, crimson, spray, exsanguinate
+  USE: impact-fx, gore, in-flight-trail
+  SCOPE: (a) reusable generic effect -- BEST-IN-SCOPE general impact spray
+
+SEQUENCE: X058   FRAMES: 18   SIZE: 64x64                              [SEEN]
+  VISUAL: A narrower, more vertical crimson spurt -- a tighter column of blood
+    with streaks rising and droplets breaking off, sparser than X057
+    (bbox 37x44 vs 43x46). Same clean ramp-hold-fade curve over 18 frames.
+  PALETTE: #9f0101 #630101 #be0101 #b80101 -- brighter reds than X057.
+  FLAVOR WORDS: spurt, jet, arterial, lance
+  USE: impact-fx, gore, in-flight-trail
+  SCOPE: (a) reusable generic effect -- the directional/narrow variant
+
+SEQUENCE: X059   FRAMES: 12   SIZE: 64x64                              [SEEN]
+  VISUAL: A compact vertical crimson jet with a bright dense core and a small
+    splash breaking at the base -- the most directional of the three, reading
+    as a hard arterial squirt. Coverage 3-3-5-6-6-6-5-3-2-1-1-1: sharper attack
+    and a much faster decay than X057/X058.
+  PALETTE: #700101 #960101 #a00101 #a30101 -- bright clean red.
+  FLAVOR WORDS: jet, geyser, puncture, arterial
+  USE: impact-fx, gore, muzzleflash (recoloured)
+  SCOPE: (a) reusable generic effect -- the fast/punchy variant
+
+  >>> cooke-blood NOTE: these three form a natural intensity ladder --
+      X059 (fast, 12fr, punchy) / X058 (narrow, 18fr) / X057 (wide, 19fr).
+      A generator can map them to light / medium / heavy hit weight directly.
+      All three are 64x64 on transparent canvas with no baked-in character art,
+      which is exactly what the other 137 sequences mostly fail to be.
+
+================================================================================
+FOLDER 6 -- FATALITY                  63 sequences / 663 frames
+(57 root + 3 FIRSTPERSON + 3 MARINES)
+*** 61 of 63 are scope (b). This folder is almost entirely unusable. ***
+================================================================================
+
+WHAT THESE ACTUALLY ARE -- verified by eye on 10 sampled sequences:
+  Every sampled frame shows a GREEN-ARMOURED DOOM MARINE locked into a paired
+  finishing-move animation with one specific monster. Both actors are baked
+  into the same sprite. Examples I saw directly:
+    CACF -- marine grappling a Cacodemon (red sphere, teeth, single eye)
+    HKF1 -- marine vs a brown Hell Knight / Baron
+    AVF1 -- marine standing over a fallen enemy amid gore
+    ARF2 -- marine tearing into an Arachnotron, heavy blood spray baked in
+    FTSM -- marine attacking a Spider Mastermind (mech legs + brain body)
+    SFCG -- marine grappling a monster at close range
+    SFIM -- marine and a small monster locked together
+    FRSA -- marine beside a red figure with a bright blood burst between them
+    FRAA -- a red demon figure, arms spread
+    FRVX -- a brown-red creature lying dead
+    01CB -- a lone green-clad humanoid figure standing
+  The 4-char names map to monsters: CAC/CA2=Cacodemon, HKF=Hell Knight,
+  AVF=Archvile, ARF=Arachnotron, BS3/BS4=Baron, REV/FRE=Revenant, IPF=Imp,
+  FPZ=Zombie, SGF=Shotgun guy, FDEM/FD2M=Demon, CFT=Chaingunner, PA1F=Pain
+  Elemental, FTCY=Cyberdemon, FTSM=Spider Mastermind.
+
+WHY THEY ARE UNUSABLE FOR WEAPON FX:
+  - The player sprite is baked into nearly every frame.
+  - The monster is specific, so the effect cannot generalise across weapons.
+  - Blood that DOES appear (ARF2, FRSA, AVF1) is painted into the character
+    animation and cannot be extracted as a standalone particle.
+  - Canvases are large (100x100 to 196x112) and coverage sits at a flat
+    12-45% for the whole run -- the signature of a character animation
+    holding frame, not an effect spawning and dissipating.
+
+ALL 63 SEQUENCES -- frame counts and sizes (scope (b) unless noted):
+  root: 01CB 6fr 60x70 | 02CB 6fr 60x70 | ARF1 15fr 170x90 | ARF2 9fr 104x79
+    ARF3 7fr 170x90 | ARF5 14fr 170x90 | ARF6 7fr 196x112 | AVF1 26fr 100x100
+    AVF2 22fr 148x112 | BHF1 26fr 150x100 | BS4F 12fr 175x125 | CA2F 9fr 120x80
+    CACF 13fr 115x100 | CFTA 19fr 100x100 | CFTC 6fr 100x100 | FA2F 6fr 138x102
+    FA3F 11fr 138x102 | FATF 6fr 150x100 | FD2M 11fr 100x100 | FD7M 1fr 100x100
+    FDEM 15fr 100x100 | FPZ2 9fr 80x60 | FPZ3 19fr 120x100 | FPZ4 15fr 100x100
+    FRAA 10fr 100x80 | FRE2 7fr 100x100 | FREV 18fr 100x100 | FRSA 12fr 100x100
+    FRVX 3fr 90x42 | FSF1 13fr 47x52 | FSF2 18fr 64x53 | FSF3 8fr 73x78
+    FSP3 12fr 100x100 | FST1 6fr 100x100 | FTBI 8fr 150x100 | FTCI 12fr 100x100
+    FTCY 24fr 132x110 | FTDI 10fr 128x96 | FTS2 6fr 188x120 | FTSM 26fr 188x120
+    FTY3 1fr 100x100 | FTYI 16fr 120x120 | FTYS 18fr 70x70 | FTYZ 12fr 90x90
+    HKF1 9fr 100x100 | HKF2 15fr 100x100 | HKF3 14fr 46x70 | PA1F 21fr 150x100
+    SFCG 3fr 80x80 | SFIM 4fr 80x80 | SFNZ 3fr 80x80 | SFSZ 4fr 80x80
+    SFZL 4fr 80x80 | SFZM 4fr 80x80 | SGF8 14fr 100x100
+  FIRSTPERSON: 13EI 4fr 70x65 | 13EZ 5fr 60x45 | 14EZ 5fr 60x45
+    -- first-person-view fatality frames (viewer's own hands/weapon). Scope (b).
+  MARINES: PVP1 5fr 100x100 | PVP2 7fr 63x65 | PVPF 7fr 90x90
+    -- marine-vs-marine (PvP) fatality animations. Scope (b).
+
+THE TWO EXCEPTIONS -- worth extracting:
+
+SEQUENCE: CFTB   FRAMES: 4    SIZE: 65x16                              [SEEN]
+  VISUAL: A horizontal row of dark-red rounded lumps against a flat dark base --
+    a small gore pile / row of dropped chunks. No character or limbs readable;
+    it is anonymous residue, unlike everything else in this folder.
+  PALETTE: #333333 #520707 #993333 #6b100f #7f1b1b -- red over dark grey.
+  FLAVOR WORDS: remains, offal, heap
+  USE: gore, ambient (floor decal)
+  SCOPE: (a) reusable generic effect -- rare usable asset inside FATALITY
+
+SEQUENCE: F1CR   FRAMES: 1    SIZE: 42x35                              [SEEN]
+  VISUAL: A dense red mass with darker grey-black structure through it -- a
+    compact clump of gore/viscera, single frame, no readable body plan.
+  PALETTE: #701111 #ae0000 #232323 #373737 -- red with dark grey.
+  FLAVOR WORDS: viscera, clot, pulp
+  USE: gore, impact-fx
+  SCOPE: (a) reusable generic effect -- single-cel gore splat
+
+GAP DISCLOSURE: 51 of the 63 FATALITY sequences were NOT individually viewed.
+  Their (b) classification rests on: 10 directly-observed samples spanning the
+  naming families, systematic monster-abbreviation naming, and measured
+  geometry/coverage signatures consistent across the whole folder. I regard the
+  classification as high-confidence, but the individual VISUAL descriptors for
+  those 51 are deliberately omitted rather than invented.
+
+================================================================================
+FOLDER 7 -- MONSTERFATALITY           13 sequences / 156 frames
+*** All 13 are scope (b). Unusable. ***
+================================================================================
+
+WHAT THESE ACTUALLY ARE -- verified by eye on 3 sequences:
+  The mirror image of FATALITY: MONSTERS performing finishing moves ON the
+  player. SKF2 shows a skeletal Revenant standing over a fallen green marine
+  with a pool of gore beside it -- the marine sprite is baked in. PDEV and SARK
+  are close-ups of a red Pinky Demon. These are cutscene-style paired
+  animations, not effects.
+
+ALL 13 SEQUENCES (all scope (b)):
+  3HF1 17fr 69x70 | 3HF2 11fr 110x71 | BS3F 17fr 100x90 | CFPF 5fr 95x67
+  IPFP 16fr 100x100 | KNTF 7fr 100x100 | KTFP 13fr 100x100 | PDEV 15fr 58x50
+  REFP 10fr 95x80 | SARK 18fr 57x51 | SKF1 9fr 200x200 | SKF2 9fr 200x200
+  SKF3 9fr 200x200
+
+  Directly seen: SKF2 (Revenant over fallen marine), PDEV (red demon head),
+  SARK (red Pinky demon, standing).
+  SKF1/SKF2/SKF3 share a distinctive signature -- 9 frames on a large 200x200
+  canvas at a flat 5-6% coverage that jumps to 29-38% on the final frame. That
+  is a small figure animating, then a large final gore/impact pose.
+
+GAP DISCLOSURE: 10 of 13 not individually viewed; classification from 3 samples
+  plus consistent naming and geometry. Descriptors omitted rather than invented.
+
+================================================================================
+FOLDER 8 -- meatgrinder               12 sequences / 50 frames
+*** NOT A GORE FOLDER. Scope (c) -- out of scope entirely. ***
+================================================================================
+
+The name is misleading. This is a FIRST-PERSON WEAPON SPRITE SET. I viewed 8 of
+the 12 sequences directly and every one is player-view weapon art on a large
+320x168 / 320x200 / 217x126 HUD canvas (mostly empty, weapon at the bottom
+centre). There is no blood, viscera or impact effect anywhere in it.
+
+  FSTZ 9fr  320x168  [SEEN] two bare fists raised in first-person view
+  RLNC 4fr  320x200  [SEEN] rocket launcher, first-person, twin muzzle
+  RLNF 3fr  320x200  rocket launcher firing frames (same weapon)
+  MGNG 4fr  320x168  [SEEN] machine gun / rifle held first-person
+  MGNF 2fr  320x168  machine gun firing frames
+  MGUG 4fr  217x126  [SEEN] second machine gun, first-person
+  MGUF 2fr  217x126  that gun's firing frames (has an #ff7b06 orange flash
+                     pixel cluster -- the muzzle flash is baked into the sprite)
+  SSGG 7fr  320x168  [SEEN] super shotgun, first-person, twin barrels
+  SSGF 5fr  320x168  [SEEN] super shotgun firing/reload frames
+  PLSC 4fr  320x160  [SEEN] plasma rifle, first-person, ribbed barrel
+  BFGN 1fr  170x84   [SEEN] BFG-style weapon, side-on -- a PICKUP sprite
+  WPPI 5fr  63x14    [SEEN] a rifle lying on the ground -- PICKUP sprite
+
+  SCOPE: (c) not gore, not an effect. Recommend excluding this folder from the
+  gore catalogue entirely. It may still interest whoever is inventorying
+  WEAPON art -- worth forwarding to that pass rather than discarding.
+
+  The only FX-adjacent content is the baked-in muzzle flash inside MGUF, which
+  cannot be separated from the weapon sprite and is not worth extracting.
+
+================================================================================
+DUPLICATE CHECK vs E:\RS_Main\sprites\combatfx\
+================================================================================
+RESULT: NO DUPLICATES, NO OVERLAP. Nothing needs to be flagged.
+
+  1. NAMING: every sprite already in RS_Main\sprites\combatfx uses an RS-prefixed
+     4-char lump name (RSA0, RSB0, RSC0-RSC2, RSE0-RSE9, RSF0-RSF8, RSI0-RSI6,
+     RSK0-RSK2, RSL0-RSL4, RSM0-RSM3, RSN0, RSP0-RSP7, RSR0-RSR6, RSS0-RSS2,
+     RSU0-RSU4 -- 67 sequences, 453 files). No source sequence in this scope
+     uses an RS prefix, so there is zero filename collision if these are
+     imported. Any import will need renaming into the RS* scheme regardless.
+
+  2. CONTENT: RS_Main\sprites\combatfx has these subfolders --
+       acid(5) bullets(5) casings(15) explosions(86) fire(89) flares(26)
+       lightning(55) magdrops(22) plasma(39) poison(5) projectiles(28)
+       puffs(24) smoke(46) sparks(8)
+     There is NO blood, gore, viscera or flesh-impact category at all. The
+     folders named in the brief (acid, poison, puffs, sparks) are energy/chemical
+     and muzzle-puff effects; none of them duplicate a blood splatter, pool, gib
+     or crush smear. This gore set is additive, not redundant.
+
+  3. ADJACENCIES worth noting (complementary, not duplicate):
+     - CRSB (green crush residue) sits naturally beside the existing acid/poison
+       FX -- same colour language, could share a damage-type palette.
+     - CARB and XBRN (black char / ash-ember scatter) overlap conceptually with
+       the existing smoke and explosions sets. Check XBRN against explosions
+       before importing, as an ash-scatter may already be covered there.
+     - BURNINGMAN/BRZ3 flame palettes overlap the existing fire set (89 files).
+       RS_Main is already well supplied with fire; these add little.
+
+================================================================================
+RECOMMENDED SHORTLIST FOR THE GENERATOR
+================================================================================
+Ranked by usefulness for procedural weapon-FX. All are scope (a), all verified
+by eye except where noted.
+
+TIER 1 -- import first (clean, long, transparent, no character art)
+  X057 / X058 / X059  (cooke-blood)  19/18/12fr 64x64
+      natural light-medium-heavy intensity ladder for impact-fx
+  BSPR  10fr 64x64   violent impact starburst
+  BLHT  10fr 128x128 large wall-splat decal
+  BLOR  12fr 64x64   thick blood pool primitive
+  TGIB  17fr 55x51   full body-gib burst with land-and-pile ending
+
+TIER 2 -- strong support effects
+  BL8A  6fr  64x64   fine blood mist
+  XBRN  6fr  85x65   ash/ember scatter that disperses to nothing (non-red)
+  CARB  14fr 26x9    generic black char residue (non-red)
+  XDT1  12fr 42x10   droplet burst-and-fade
+  XSKI  4fr  25x33   flicked droplet scatter
+  GUTS (BLOOD) 12fr  viscera clump with real highlight shading
+
+TIER 3 -- the colour-variant axis (high generator value)
+  CRS1 (red) / CRS2 (NAVY) / CRS3 (red wide) / CRSB (GREEN)
+      same crush-residue concept in three colourways -- map to damage type
+
+TIER 4 -- tumbling debris particles (loop-ready, generator-friendly)
+  XDB5, XMT1, XMT2 (2-pose tumble loops, XMT1/XMT2 end in a splat)
+  BRIB (20fr, 5 rotation banks), BR7B (12fr, 3 banks)
+  XTET (bone/tooth shard with cream highlight -- only bone reading in scope)
+  XARM (generic severed limb), XSTO (organ chunk)
+
+WEAPON-NAMING VOCABULARY harvested from the above (for the Borderlands-style
+prefix/suffix generator):
+  arterial, crimson, visceral, butcher, rending, eviscerate, exsanguinate,
+  geyser, spurt, jet, atomizer, vaporize, splatter, sprawl, pulp, paste,
+  crush, flatten, gib, shrapnel, tumble, cleave, carve, flense, sinew,
+  offal, entrail, clot, congeal, glut, seep, bone, ivory, marrow, splinter,
+  shatter, sever, dismember, char, cinder, soot, ash, ashen, ember, scorch,
+  incinerate, immolate, pyre, blaze, carbonize, bile, toxic, verdant,
+  chlorine, ichor, cobalt, azure, alien, rupture, puncture, lance, shadow
+
+================================================================================
+GAPS AND CAVEATS -- stated plainly
+================================================================================
+1. 3 sequences (CPBR 32fr, SBRG 20fr, TRBR 20fr, all in CARBONIZED) are raw
+   Doom picture format with no PNG header. Neither the image viewer nor PIL can
+   decode them. 72 frames total are completely uninspected. They need SLADE
+   plus a PLAYPAL palette. CPBR at 32 frames is the single largest unknown.
+
+2. 5 sequences are physically smaller than the 8px minimum the image viewer
+   accepts and can never be rendered through it: BRIB(6x6), BRIN(10x5),
+   XME8(16x7), BTRL(11x7) and partially XDT5(9x9). Palette and coverage data
+   are given instead; subject matter is not asserted.
+
+3. 73 of 140 sequences were described from measured pixel data rather than
+   direct viewing, because of intermittent "could not process image" failures
+   in the image pipeline. I could not find any file property that predicts
+   these failures -- I tested and disproved size, colour type, alpha, chunk CRC
+   and zlib window-size theories. The same sequence can render on frame B and
+   fail on frame E. Anything not seen is labelled [PIXEL-DATA ONLY] and no
+   subject matter is claimed for it.
+
+4. The 51 unviewed FATALITY and 10 unviewed MONSTERFATALITY sequences are
+   classified (b) on strong but indirect evidence (12 directly-observed samples
+   across the naming families + systematic monster-name abbreviations +
+   consistent character-animation coverage signatures). If any single one of
+   them is secretly a reusable effect, it would most likely be one of the small
+   short ones (SFNZ/SFSZ/SFZL/SFZM, 3-4fr 80x80) -- but the four I did check
+   from that family (SFCG, SFIM) were both marine-plus-monster grapples.
+
+5. NJEX is the one genuinely ambiguous call in the generic folders. It reads as
+   a black sprawled humanoid silhouette, which would make it (b), but at
+   64x18 I would not stake the classification on it. Flagged, not resolved.
+
+6. I did not attempt to work around the image pipeline's rejections by
+   re-encoding or otherwise altering any source file. The brief was read-only
+   and I kept it read-only; no file in ART SOURCE or RS_Main was created,
+   copied, modified or deleted by this pass.
+
+================================================================================
+END OF REPORT
+================================================================================

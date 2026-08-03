@@ -76,8 +76,8 @@ class RS_Demon : RS_DemonBase replaces Demon
 	States
 	{
 	Pain:
-		"####" H 2;
-		"####" H 2 A_Pain;
+		"SARG" H 2 { RS_WearBody(); }
+		"SARG" H 2  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0 { RS_ButcherHit(); }
 		Goto See;
 	}

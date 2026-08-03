@@ -138,22 +138,22 @@ class RS_EX_Archvile : RS_MonsterMaster
 			AttachSatellite(RS_MonsterCatalog.SAT_VileEye(), 120, 46, 52);
 			AttachSatellite(RS_MonsterCatalog.SAT_VileEye(), 240, 46, 52);
 		}
-		"####" AB 10 A_Look;
+		"LMWZ" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDDEEFF 2 A_VileChase;
+		"LMWZ" AABBCCDDEEFF 2  { RS_WearBody(); A_VileChase(); }
 		Loop;
 	Missile:
-		"####" G 0 Bright A_VileStart;
-		"####" G 8 Bright A_FaceTarget;
-		"####" H 8 Bright { A_RS_MonsterFire(); }
-		"####" IJ 6 Bright A_FaceTarget;
-		"####" K 8 Bright { A_RS_MonsterFire(); }
-		"####" P 14 Bright;
+		"LMWZ" G 0  Bright { RS_WearBody(); A_VileStart(); }
+		"LMWZ" G 8  Bright { RS_WearBody(); A_FaceTarget(); }
+		"LMWZ" H 8  Bright { RS_WearBody(); A_RS_MonsterFire(); }
+		"LMWZ" IJ 6  Bright { RS_WearBody(); A_FaceTarget(); }
+		"LMWZ" K 8  Bright { RS_WearBody(); A_RS_MonsterFire(); }
+		"LMWZ" P 14  Bright { RS_WearBody(); }
 		Goto See;
 	Pain:
-		"####" Q 4;
-		"####" Q 4 A_Pain;
+		"LMWZ" Q 4 { RS_WearBody(); }
+		"LMWZ" Q 4  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0
 		{
 			RS_Gate();
@@ -162,11 +162,11 @@ class RS_EX_Archvile : RS_MonsterMaster
 		}
 		Goto See;
 	Death:
-		"####" Q 7;
-		"####" R 7 A_Scream;
-		"####" S 7 A_NoBlocking;
-		"####" TUVWXY 7;
-		"####" Z -1;
+		"LMWZ" Q 7 { RS_WearBody(); }
+		"LMWZ" R 7  { RS_WearBody(); A_Scream(); }
+		"LMWZ" S 7  { RS_WearBody(); A_NoBlocking(); }
+		"LMWZ" TUVWXY 7 { RS_WearBody(); }
+		"LMWZ" Z -1 { RS_WearBody(); }
 		Stop;
 	}
 }
@@ -249,27 +249,27 @@ class RS_EX_ArchvilePhantom : RS_MonsterMaster
 	{
 	Spawn:
 		TNT1 A 0 NoDelay A_StartSound("vile/sight", CHAN_VOICE);
-		"####" AB 8 A_Look;
+		"LMWZ" AB 8  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDDEEFF 2 A_Chase;
+		"LMWZ" AABBCCDDEEFF 2  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Missile:
-		"####" G 6 Bright A_FaceTarget;
-		"####" H 10 Bright { A_RS_MonsterFire(); }
-		"####" P 10 Bright;
+		"LMWZ" G 6  Bright { RS_WearBody(); A_FaceTarget(); }
+		"LMWZ" H 10  Bright { RS_WearBody(); A_RS_MonsterFire(); }
+		"LMWZ" P 10  Bright { RS_WearBody(); }
 		Goto See;
 	Pain:
-		"####" Q 3;
-		"####" Q 3 A_Pain;
+		"LMWZ" Q 3 { RS_WearBody(); }
+		"LMWZ" Q 3  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0 { RS_CountHit(); }
 		Goto See;
 	Death:
-		"####" Q 6;
-		"####" R 6 A_Scream;
-		"####" S 6 A_NoBlocking;
-		"####" TUVWXY 6;
-		"####" Z -1;
+		"LMWZ" Q 6 { RS_WearBody(); }
+		"LMWZ" R 6  { RS_WearBody(); A_Scream(); }
+		"LMWZ" S 6  { RS_WearBody(); A_NoBlocking(); }
+		"LMWZ" TUVWXY 6 { RS_WearBody(); }
+		"LMWZ" Z -1 { RS_WearBody(); }
 		Stop;
 	}
 }
@@ -374,22 +374,22 @@ class RS_EX_Baron : RS_MonsterMaster
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"VSTL" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDD 3 A_Chase;
+		"VSTL" AABBCCDD 3  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Melee:
-		"####" EF 6 A_FaceTarget;
-		"####" G 6 A_BruisAttack;
+		"VSTL" EF 6  { RS_WearBody(); A_FaceTarget(); }
+		"VSTL" G 6  { RS_WearBody(); A_BruisAttack(); }
 		Goto See;
 	Missile:
-		"####" EF 6 A_FaceTarget;
-		"####" G 10 Bright { A_RS_MonsterFire(); }
+		"VSTL" EF 6  { RS_WearBody(); A_FaceTarget(); }
+		"VSTL" G 10  Bright { RS_WearBody(); A_RS_MonsterFire(); }
 		Goto See;
 	Pain:
-		"####" H 2;
-		"####" H 2 A_Pain;
+		"VSTL" H 2 { RS_WearBody(); }
+		"VSTL" H 2  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0
 		{
 			if (CheckThreshold(RS_EXB_GATE1, 0.66) || CheckThreshold(RS_EXB_GATE2, 0.33))
@@ -401,12 +401,12 @@ class RS_EX_Baron : RS_MonsterMaster
 		}
 		Goto See;
 	Death:
-		"####" I 8;
-		"####" J 8 A_Scream;
-		"####" K 8;
-		"####" L 8 A_NoBlocking;
-		"####" MN 8;
-		"####" N -1 A_BossDeath;
+		"VSTL" I 8 { RS_WearBody(); }
+		"VSTL" J 8  { RS_WearBody(); A_Scream(); }
+		"VSTL" K 8 { RS_WearBody(); }
+		"VSTL" L 8  { RS_WearBody(); A_NoBlocking(); }
+		"VSTL" MN 8 { RS_WearBody(); }
+		"VSTL" N -1  { RS_WearBody(); A_BossDeath(); }
 		Stop;
 	}
 }

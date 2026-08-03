@@ -18,7 +18,7 @@ server int rs_fx_maxmuzzlelights = 12;
 // Vanilla+ (RS_GH_Weaponset) Options -- see MENUDEF.txt.
 // rs_vp_startrifle swaps the class's starting mainhand+offhand pair;
 // checked directly in RS_GH_Weaponset's PostBeginPlay/GetMainhandClass.
-// The six swap-chance sliders are 0-100 (%), read by RS_DebugGive's
+// The six swap-chance sliders are 0-100 (%), read by the Vanilla+
 // family-give functions: when giving family X, roll against the slider;
 // a hit substitutes family Y instead of X.
 // =====================================================================
@@ -141,7 +141,6 @@ server int rs_bits_curse_chance = 5;			// per-kill percent chance, independent o
 // zscript/systems/RS_Keywords.zs -- logs unknown keys in a weapon's
 // GetBaseKeywords() string once per class, on first PostBeginPlay. Off by
 // default, cheap enough to leave on during content work.
-server bool rs_debug_validate_keywords = false;
 
 // =====================================================================
 // Weapon Sound Assignment -- MENUDEF's RS_WeaponSoundOptions, resolved
@@ -174,47 +173,18 @@ user int rs_soundchoice_energy = 0;
 user int rs_soundchoice_bfg = 0;
 
 // =====================================================================
-// Debug: Ballistic Attack Pattern -- MENUDEF's RS_DebugBallisticMenu,
-// read by RS_DebugGive.RandomProfile(). All default ON so the tool's
 // existing "randomize everything" behavior is unchanged unless you
-// uncheck something. user scope -- local debug preference, not synced.
 // =====================================================================
-user bool rs_debugrandom_projectile = true;
-user bool rs_debugrandom_sound = true;
-user bool rs_debugrandom_puff = true;
-user bool rs_debugrandom_spark = true;
-user bool rs_debugrandom_smoke = true;
-user bool rs_debugrandom_trail = true;
-user bool rs_debugrandom_bigmuzzle = true;
-user bool rs_debugrandom_dmgmult = true;
-user bool rs_debugrandom_velmult = true;
-user bool rs_debugrandom_critbonus = true;
-user bool rs_debugrandom_spread = true;
-user bool rs_debugrandom_choke = true;
-user bool rs_debugrandom_cadence = true;
-user bool rs_debugrandom_pellets = true;
-user bool rs_debugrandom_casing = true;
-user bool rs_debugrandom_ammocost = true;
 // AmmoClass is deliberately NOT randomized -- could point the profile at
 // ammo the player doesn't have, softlocking the very testing loop this
 // tool exists for. Always inherits the weapon's own AmmoType2 (null).
 
 // =====================================================================
-// Debug: Heavy Attack Pattern -- MENUDEF's RS_DebugHeavyMenu, read by
-// RS_DebugGive.RandomHeavyProfile(). Smaller field set than the Bullet
 // version above -- Heavy profiles have no puff/spark/smoke/trail/
 // pellets/spread/choke/casing, "impact IS the explosion." explosionvisual
 // is the one exception: cosmetic-only blast look (RS_Catalog.EXPLOSION_*/
 // PLASMA_*), independent of the damage/splash math. All default ON.
 // =====================================================================
-user bool rs_debugrandomheavy_projectile = true;
-user bool rs_debugrandomheavy_sound = true;
-user bool rs_debugrandomheavy_bigmuzzle = true;
-user bool rs_debugrandomheavy_dmgmult = true;
-user bool rs_debugrandomheavy_spawnheight = true;
-user bool rs_debugrandomheavy_ammocost = true;
-user bool rs_debugrandomheavy_critbonus = true;
-user bool rs_debugrandomheavy_explosionvisual = true;
 // AmmoClass deliberately not randomized here either -- same softlock
 // risk as the Bullet version.
 
@@ -231,11 +201,12 @@ user bool rs_mon_retier_preserve_fraction = true;
 // as a ripple instead of snapping in one frame. Off: instant snap.
 user bool rs_mon_transform_tell = true;
 
-// Debug: which tier "rs_mon_tier_set" pushes everything to, and which
-// family index "rs_mon_zoo_family" lines up (0=Zombieman .. 14=Archvile).
-// Debug spawns: passive (hold the line, safe to study) or hostile
-// (normal monsters that shoot back -- turn god mode on first).
-user bool rs_debug_mon_hostile = false;
 
-user int rs_debug_mon_tier = 0;
-user int rs_debug_mon_family = 0;
+
+// =====================================================================
+// Monster diagnostics -- MENUDEF's RS_MonsterDebugMenu, read by
+// zscript/systems/RS_MonsterDebug.zs. user scope: local inspection
+// preference, nothing gameplay-affecting is synced from here.
+// =====================================================================
+user int  rs_mon_dbg_tier = 0;
+user bool rs_mon_dbg_hostile = false;

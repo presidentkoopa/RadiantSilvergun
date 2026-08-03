@@ -73,10 +73,10 @@ class RS_Mancubus : RS_MonsterMaster replaces Fatso
 	States
 	{
 	Spawn:
-		"####" AB 15 A_Look;
+		"FATT" AB 15  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDDEEFF 4 A_Chase;
+		"FATT" AABBCCDDEEFF 4  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Missile:
 		TNT1 A 0
@@ -90,33 +90,34 @@ class RS_Mancubus : RS_MonsterMaster replaces Fatso
 				return ResolveState("Barrage");
 			return ResolveState(null);
 		}
-		"####" G 20 A_FatRaise;
-		"####" H 10 Bright A_FatAttack1;
-		"####" IG 5 A_FaceTarget;
-		"####" H 10 Bright A_FatAttack2;
-		"####" IG 5 A_FaceTarget;
-		"####" H 10 Bright A_FatAttack3;
-		"####" IG 5 A_FaceTarget;
+		"FATT" G 20  { RS_WearBody(); A_FatRaise(); }
+		"FATT" H 10  Bright { RS_WearBody(); A_FatAttack1(); }
+		"FATT" IG 5  { RS_WearBody(); A_FaceTarget(); }
+		"FATT" H 10  Bright { RS_WearBody(); A_FatAttack2(); }
+		"FATT" IG 5  { RS_WearBody(); A_FaceTarget(); }
+		"FATT" H 10  Bright { RS_WearBody(); A_FatAttack3(); }
+		"FATT" IG 5  { RS_WearBody(); A_FaceTarget(); }
 		Goto See;
 	Barrage:
-		"####" G 14 A_FatRaise;
-		"####" H 10 Bright { A_RS_MonsterFire(); }
-		"####" IG 5 A_FaceTarget;
-		"####" H 10 Bright { A_RS_MonsterFire(); }
+		"FATT" G 14  { RS_WearBody(); A_FatRaise(); }
+		"FATT" H 10  Bright { RS_WearBody(); A_RS_MonsterFire(); }
+		"FATT" IG 5  { RS_WearBody(); A_FaceTarget(); }
+		"FATT" H 10  Bright { RS_WearBody(); A_RS_MonsterFire(); }
 		Goto See;
 	Panic:
-		"####" G 12 A_FatRaise;
-		"####" H 12 Bright
+		"FATT" G 12  { RS_WearBody(); A_FatRaise(); }
+		"FATT" H 12  Bright
 		{
+			RS_WearBody();
 			FireProfile(RS_AttackProfile.MakeVolley(
 				RS_MonsterCatalog.PROJ_MancFire(), 20, 360.0,
 				"fatso/attack", 1.0, 8.0, "Panic Ring"));
 		}
-		"####" I 12;
+		"FATT" I 12 { RS_WearBody(); }
 		Goto See;
 	Pain:
-		"####" J 3;
-		"####" J 3 A_Pain;
+		"FATT" J 3 { RS_WearBody(); }
+		"FATT" J 3  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0
 		{
 			if (Tier >= RS_MANC_TIER_PHASE && CheckThreshold(RS_MANC_PHASE_SLOT, 0.6))
@@ -129,15 +130,15 @@ class RS_Mancubus : RS_MonsterMaster replaces Fatso
 		}
 		Goto See;
 	Death:
-		"####" K 6;
-		"####" L 6 A_Scream;
-		"####" M 6 A_NoBlocking;
-		"####" NOPQRS 6;
-		"####" T -1 A_BossDeath;
+		"FATT" K 6 { RS_WearBody(); }
+		"FATT" L 6  { RS_WearBody(); A_Scream(); }
+		"FATT" M 6  { RS_WearBody(); A_NoBlocking(); }
+		"FATT" NOPQRS 6 { RS_WearBody(); }
+		"FATT" T -1  { RS_WearBody(); A_BossDeath(); }
 		Stop;
 	Raise:
-		"####" R 5;
-		"####" QPONMLK 5;
+		"FATT" R 5 { RS_WearBody(); }
+		"FATT" QPONMLK 5 { RS_WearBody(); }
 		Goto See;
 	}
 }

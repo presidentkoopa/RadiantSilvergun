@@ -96,18 +96,19 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 	States
 	{
 	Spawn:
-		"####" A 10 A_Look;
+		"HEAD" A 10  { RS_WearBody(); A_Look(); }
 		Loop;
 
 	See:
-		"####" A 3 A_Chase;
+		"HEAD" A 3  { RS_WearBody(); A_Chase(); }
 		Loop;
 
 	Missile:
-		"####" B 5 A_FaceTarget;
-		"####" C 5 A_FaceTarget;
-		"####" D 5 Bright
+		"HEAD" B 5  { RS_WearBody(); A_FaceTarget(); }
+		"HEAD" C 5  { RS_WearBody(); A_FaceTarget(); }
+		"HEAD" D 5  Bright
 		{
+			RS_WearBody();
 			if (Tier >= RS_CACO_TIER_RING)
 				A_RS_MonsterFire();
 			else
@@ -116,15 +117,15 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 		Goto See;
 
 	Pain:
-		"####" E 3;
-		"####" E 3 A_Pain;
+		"HEAD" E 3 { RS_WearBody(); }
+		"HEAD" E 3  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0
 		{
 			if (CanPlayDead() && random(0, 255) < 60)
 				return ResolveState("PlayDead");
 			return ResolveState(null);
 		}
-		"####" F 6;
+		"HEAD" F 6 { RS_WearBody(); }
 		Goto See;
 
 	// The fake. Drops, stops being a valid target, waits, then comes
@@ -138,11 +139,11 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 			bNOPAIN    = true;
 			A_StartSound("caco/death", CHAN_VOICE);
 		}
-		"####" G 8;
-		"####" H 8;
-		"####" I 8;
-		"####" JK 8;
-		"####" L 60;            // lies there long enough to be believed
+		"HEAD" G 8 { RS_WearBody(); }
+		"HEAD" H 8 { RS_WearBody(); }
+		"HEAD" I 8 { RS_WearBody(); }
+		"HEAD" JK 8 { RS_WearBody(); }
+		"HEAD" L 60 { RS_WearBody(); }            // lies there long enough to be believed
 		TNT1 A 0
 		{
 			bSHOOTABLE = true;
@@ -152,21 +153,21 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 			PulseStats(1.6, 1.25, 140, false);
 			A_StartSound("caco/sight", CHAN_VOICE);
 		}
-		"####" KJIHG 5;
+		"HEAD" KJIHG 5 { RS_WearBody(); }
 		Goto See;
 
 	Death:
-		"####" G 8;
-		"####" H 8 A_Scream;
-		"####" I 8;
-		"####" J 8;
-		"####" K 8 A_NoBlocking;
-		"####" L -1 A_SetFloorClip;
+		"HEAD" G 8 { RS_WearBody(); }
+		"HEAD" H 8  { RS_WearBody(); A_Scream(); }
+		"HEAD" I 8 { RS_WearBody(); }
+		"HEAD" J 8 { RS_WearBody(); }
+		"HEAD" K 8  { RS_WearBody(); A_NoBlocking(); }
+		"HEAD" L -1  { RS_WearBody(); A_SetFloorClip(); }
 		Stop;
 
 	Raise:
-		"####" L 8 A_UnSetFloorClip;
-		"####" KJIHG 8;
+		"HEAD" L 8  { RS_WearBody(); A_UnSetFloorClip(); }
+		"HEAD" KJIHG 8 { RS_WearBody(); }
 		Goto See;
 	}
 }
@@ -242,20 +243,20 @@ class RS_CacodemonReal : RS_MonsterMaster
 	{
 	Spawn:
 		// Announces itself. The shell died quietly; this doesn't.
-		"####" A 8 Bright A_StartSound("caco/sight", CHAN_VOICE);
-		"####" A 10 A_Look;
+		"HELE" A 8  Bright { RS_WearBody(); A_StartSound("caco/sight", CHAN_VOICE); }
+		"HELE" A 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" A 3 A_Chase;
+		"HELE" A 3  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Missile:
-		"####" B 4 A_FaceTarget;
-		"####" C 4 A_FaceTarget;
-		"####" D 5 Bright { A_RS_MonsterFire(); }
+		"HELE" B 4  { RS_WearBody(); A_FaceTarget(); }
+		"HELE" C 4  { RS_WearBody(); A_FaceTarget(); }
+		"HELE" D 5  Bright { RS_WearBody(); A_RS_MonsterFire(); }
 		Goto See;
 	Pain:
-		"####" E 3;
-		"####" E 3 A_Pain;
+		"HELE" E 3 { RS_WearBody(); }
+		"HELE" E 3  { RS_WearBody(); A_Pain(); }
 		TNT1 A 0
 		{
 			if (CheckThreshold(RS_CACOREAL_RAGE_SLOT, 0.45))
@@ -264,15 +265,15 @@ class RS_CacodemonReal : RS_MonsterMaster
 				A_StartSound(RS_MonsterCatalog.SND_Enrage(), CHAN_VOICE);
 			}
 		}
-		"####" F 5;
+		"HELE" F 5 { RS_WearBody(); }
 		Goto See;
 	Death:
-		"####" G 6;
-		"####" H 6 A_Scream;
-		"####" I 6;
-		"####" J 6;
-		"####" K 6 A_NoBlocking;
-		"####" L -1;
+		"HELE" G 6 { RS_WearBody(); }
+		"HELE" H 6  { RS_WearBody(); A_Scream(); }
+		"HELE" I 6 { RS_WearBody(); }
+		"HELE" J 6 { RS_WearBody(); }
+		"HELE" K 6  { RS_WearBody(); A_NoBlocking(); }
+		"HELE" L -1 { RS_WearBody(); }
 		Stop;
 	}
 }

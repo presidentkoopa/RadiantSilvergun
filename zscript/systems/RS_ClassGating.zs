@@ -56,7 +56,7 @@ class RS_ClassGating : EventHandler
 // The six swap-chance sliders and the Random BFG toggle (CVARINFO.txt,
 // MENUDEF.txt's RS_VanillaPlusOptions) apply HERE -- to whatever spawns
 // in the actual game world (map placements, Elite drops, anything that
-// goes through WorldThingSpawned) -- not to the debug give menu, which
+// goes through WorldThingSpawned) -- not to direct grants, which
 // stays deterministic on purpose (press the Chainsaw button, get a
 // Chainsaw, always).
 //

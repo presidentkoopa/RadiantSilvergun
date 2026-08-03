@@ -60,25 +60,25 @@ class RS_BaronTentacle : RS_MonsterMaster
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"SARG" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AABBCCDD 2 A_Chase;
+		"SARG" AABBCCDD 2  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Melee:
-		"####" EF 6 A_FaceTarget;
-		"####" G 6 A_SargAttack;
+		"SARG" EF 6  { RS_WearBody(); A_FaceTarget(); }
+		"SARG" G 6  { RS_WearBody(); A_SargAttack(); }
 		Goto See;
 	Pain:
-		"####" H 2;
-		"####" H 2 A_Pain;
+		"SARG" H 2 { RS_WearBody(); }
+		"SARG" H 2  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" I 6;
-		"####" J 6 A_Scream;
-		"####" K 4;
-		"####" L 4 A_NoBlocking;
-		"####" MN 4;
+		"SARG" I 6 { RS_WearBody(); }
+		"SARG" J 6  { RS_WearBody(); A_Scream(); }
+		"SARG" K 4 { RS_WearBody(); }
+		"SARG" L 4  { RS_WearBody(); A_NoBlocking(); }
+		"SARG" MN 4 { RS_WearBody(); }
 		Stop;
 	}
 }
@@ -115,8 +115,8 @@ class RS_BaronTentacleRanged : RS_BaronTentacle
 	States
 	{
 	Missile:
-		"####" EF 6 A_FaceTarget;
-		"####" G 8 { A_RS_MonsterFire(); }
+		"POSS" EF 6  { RS_WearBody(); A_FaceTarget(); }
+		"POSS" G 8  { RS_WearBody(); A_RS_MonsterFire(); }
 		Goto See;
 	}
 }
@@ -177,24 +177,24 @@ class RS_PainSentinel : RS_MonsterMaster
 	States
 	{
 	Spawn:
-		"####" AB 10 A_Look;
+		"SKUL" AB 10  { RS_WearBody(); A_Look(); }
 		Loop;
 	See:
-		"####" AB 5 A_Chase;
+		"SKUL" AB 5  { RS_WearBody(); A_Chase(); }
 		Loop;
 	Missile:
-		"####" C 8 A_FaceTarget;
-		"####" D 8 Bright { A_RS_MonsterFire(); }
+		"SKUL" C 8  { RS_WearBody(); A_FaceTarget(); }
+		"SKUL" D 8  Bright { RS_WearBody(); A_RS_MonsterFire(); }
 		Goto See;
 	Pain:
-		"####" E 3;
-		"####" E 3 A_Pain;
+		"SKUL" E 3 { RS_WearBody(); }
+		"SKUL" E 3  { RS_WearBody(); A_Pain(); }
 		Goto See;
 	Death:
-		"####" F 6 Bright;
-		"####" G 6 Bright A_Scream;
-		"####" H 6 Bright A_NoBlocking;
-		"####" IJ 6 Bright;
+		"SKUL" F 6  Bright { RS_WearBody(); }
+		"SKUL" G 6  Bright { RS_WearBody(); A_Scream(); }
+		"SKUL" H 6  Bright { RS_WearBody(); A_NoBlocking(); }
+		"SKUL" IJ 6  Bright { RS_WearBody(); }
 		Stop;
 	}
 }
