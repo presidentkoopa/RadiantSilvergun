@@ -167,10 +167,14 @@ class RS_DebugGive : EventHandler
 		// garnish, not archetype-defining, so full variety there doesn't
 		// hurt "family stays family."
 		string archetype = wpn.GetPaletteArchetype();
-		Array<Class<Actor> > projPool = RS_FamilyPalette.BulletProjectiles(archetype, wpn.Tier);
-		Array<sound> sndPool = RS_FamilyPalette.BulletSounds(archetype, wpn.Tier);
-		Array<Class<Actor> > puffPool = RS_FamilyPalette.BulletPuffs(archetype, wpn.Tier);
-		Array<string> casingPool = RS_FamilyPalette.BulletCasings(archetype, wpn.Tier);
+		Array<Class<Actor> > projPool;
+		RS_FamilyPalette.BulletProjectiles(archetype, wpn.Tier, projPool);
+		Array<sound> sndPool;
+		RS_FamilyPalette.BulletSounds(archetype, wpn.Tier, sndPool);
+		Array<Class<Actor> > puffPool;
+		RS_FamilyPalette.BulletPuffs(archetype, wpn.Tier, puffPool);
+		Array<string> casingPool;
+		RS_FamilyPalette.BulletCasings(archetype, wpn.Tier, casingPool);
 		casingPool.Push(""); // no casing ejected -- always an option regardless of archetype
 
 		Array<Class<Actor> > sparkPool;
@@ -306,8 +310,10 @@ class RS_DebugGive : EventHandler
 		// ball. Unmapped archetypes fall back to the full pool (see the
 		// palette file's own comment).
 		string archetype = wpn.GetPaletteArchetype();
-		Array<Class<Actor> > projPool = RS_FamilyPalette.HeavyProjectiles(archetype, wpn.Tier);
-		Array<sound> sndPool = RS_FamilyPalette.HeavySounds(archetype, wpn.Tier);
+		Array<Class<Actor> > projPool;
+		RS_FamilyPalette.HeavyProjectiles(archetype, wpn.Tier, projPool);
+		Array<sound> sndPool;
+		RS_FamilyPalette.HeavySounds(archetype, wpn.Tier, sndPool);
 
 		Class<Actor> proj = DebugToggle("rs_debugrandomheavy_projectile")
 			? projPool[Random(0, projPool.Size() - 1)]
@@ -335,7 +341,8 @@ class RS_DebugGive : EventHandler
 		// RS_EnhancedRocket/PlasmaBall/BFGBall actually read
 		// ExplosionVisual (RS_Weapon.RS_FireProfileHeavy); the GH heavy
 		// shots just ignore it.
-		Array<Class<Actor> > explosionPool = RS_FamilyPalette.HeavyExplosionVisuals(archetype, wpn.Tier);
+		Array<Class<Actor> > explosionPool;
+		RS_FamilyPalette.HeavyExplosionVisuals(archetype, wpn.Tier, explosionPool);
 		Class<Actor> explosionVisual = DebugToggle("rs_debugrandomheavy_explosionvisual")
 			? explosionPool[Random(0, explosionPool.Size() - 1)]
 			: null;

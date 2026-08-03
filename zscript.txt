@@ -91,6 +91,16 @@ version "4.14"
 // file header. Excluded from the level kill count.
 #include "zscript/monsters/RS_Minions.zs"
 
+// Multi-stage boss bodies (shrink chains, shades) and pack minions that
+// belong to no single family file. Referenced through RS_MonsterCatalog.
+#include "zscript/monsters/RS_MonsterStages.zs"
+
+// EX tier -- set-piece boss encounters, TierLocked so the ambient dial
+// leaves them alone. Rebuilt from CHP's BlackEX/WhiteEX variants; these
+// replace the removed RS_TEX_* files, which were still HF_-prefixed
+// classes from an older import and could not have compiled.
+#include "zscript/monsters/RS_ExBosses.zs"
+
 // Debug: spawn the whole roster as a grid (family x tier) and push live
 // monsters between tiers to watch the staggered transform.
 #include "zscript/systems/RS_MonsterDebug.zs"

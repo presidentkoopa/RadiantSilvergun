@@ -503,6 +503,15 @@ class RS_Weapon : Weapon abstract
 		Class<Actor> fxSpark = AffixImpactSparks ? AffixImpactSparks : p.ImpactSparks;
 		Class<Actor> fxTrail = AffixTrail        ? AffixTrail        : p.Trail;
 
+		// PROJECTILE SIZE. Derived from THIS weapon's archetype unless the
+		// profile forces a size, then multiplied by whatever affixes have
+		// to say. This is what lets a rifle fire a Cacodemon ball at
+		// bullet size without anyone authoring that pairing.
+		double projScale = (p.ProjScale > 0)
+			? p.ProjScale
+			: RS_Catalog.ScaleForArchetype(GetPaletteArchetype());
+		if (mods) projScale *= mods.ScaleMult;
+
 		for (int i = 0; i < pellets; i++)
 		{
 			double a  = shooter.angle + FRandom(-spread, spread);
@@ -513,6 +522,7 @@ class RS_Weapon : Weapon abstract
 			{
 				proj.SetupStats(int(dmg), vel, crit);
 				proj.SetupFeedback(fxPuff, fxSpark, fxTrail);
+				RS_Catalog.ApplyProjectileScale(proj, projScale);
 				if (mods)
 				{
 					proj.Homing = mods.Homing;
@@ -569,6 +579,18 @@ class RS_Weapon : Weapon abstract
 			double a = shooter.angle + fanStart + fanStep * i;
 			let proj = shooter.SpawnPlayerMissile(cls, a, 0, 0, p.SpawnHeight,
 				noautoaim: true, aimflags: aimflags, pitch: shooter.pitch);
+
+		// Same derivation as the bullet path -- a launcher firing a
+		// borrowed monster projectile still gets launcher-weight size.
+		if (proj)
+		{
+			double hvScale = (p.ProjScale > 0)
+				? p.ProjScale
+				: RS_Catalog.ScaleForArchetype(GetPaletteArchetype());
+			let hvMods = RS_ShotKeywordMods.Resolve(self, p);
+			if (hvMods) hvScale *= hvMods.ScaleMult;
+			RS_Catalog.ApplyProjectileScale(proj, hvScale);
+		}
 			if (!proj)
 				continue;
 			proj.master = self;   // see RS_FireProfileBullet

@@ -26,9 +26,9 @@ class RS_AffixGenerator
 	// eligible, affordable ingredients -- never pads with something
 	// ineligible just to hit a number. An affix bundle with 3 real
 	// ingredients is better than one with 6 where 3 shouldn't be there.
-	static Array<RS_AffixIngredient> Generate(RS_Weapon wpn, int targetCount)
+	static play void Generate(RS_Weapon wpn, int targetCount, out Array<RS_AffixIngredient> result)
 	{
-		Array<RS_AffixIngredient> result;
+		result.Clear();
 		Array<RS_AffixIngredient> pool;
 		RS_AffixIngredientPool.AllIngredients(pool);
 
@@ -70,15 +70,13 @@ class RS_AffixGenerator
 			result.Push(ing);
 			runningCost += ing.PowerCost;
 		}
-
-		return result;
 	}
 
 	// The side-effecting half. targetProfile is optional -- if given,
 	// grants land on that one rotation beat only (RS_AttackProfile.
 	// GrantLocal); if null, grants are weapon-wide (RS_Weapon.
 	// GrantKeyword), same as every affix built so far tonight.
-	static void Apply(RS_Weapon wpn, Array<RS_AffixIngredient> bundle, RS_AttackProfile targetProfile = null)
+	static play void Apply(RS_Weapon wpn, Array<RS_AffixIngredient> bundle, RS_AttackProfile targetProfile = null)
 	{
 		for (int i = 0; i < bundle.Size(); i++)
 		{

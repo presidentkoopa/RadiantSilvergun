@@ -46,7 +46,7 @@ class TFLV_Upgrade_RS_Assembled : TFLV_Upgrade_BaseUpgrade
 	{
 		if (HasGenerated)
 			return;
-		CachedBundle = RS_AffixGenerator.Generate(wpn, TARGET_INGREDIENT_COUNT);
+		RS_AffixGenerator.Generate(wpn, TARGET_INGREDIENT_COUNT, CachedBundle);
 		HasGenerated = true;
 	}
 

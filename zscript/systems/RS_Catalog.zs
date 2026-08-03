@@ -33,6 +33,103 @@ class RS_Catalog
 	// -----------------------------------------------------------------
 
 	// Standard travelling ballistic round. The main-arsenal default.
+	// =================================================================
+	// PROJECTILE SCALE -- derived from whatever is FIRING, not authored
+	// per attack.
+	// -----------------------------------------------------------------
+	// The problem this solves: the monster projectile library is 474
+	// entries drawn for the monsters that originally threw them. Hand a
+	// Cacodemon ball to a chaingunner and you get a sprite bigger than
+	// the chaingunner. Hand-resizing 474 actors per possible user is not
+	// a plan.
+	//
+	// So scale is a property of the FIRER's archetype. A rifle firing
+	// Lost Souls asks its own archetype: keyword, gets "rifle", and the
+	// Lost Soul comes out bullet-sized. Nobody authored that pairing --
+	// the weapon already knows what it is.
+	//
+	// This is the DEFAULT only. RS_ShotKeywordMods.ScaleMult multiplies
+	// on top, which is how an affix like "Giant Pellet" overrides it --
+	// exactly the same fold-in shape as damage, pellets and spread.
+	//
+	// PRACTICAL NOTE: scaling DOWN reads clean; scaling up gets chunky
+	// fast. The library was drawn for big monsters, so almost every
+	// entry here is a reduction, which is the direction that looks good.
+	// =================================================================
+
+	static double SCALE_Pellet() { return 0.35; }
+	static double SCALE_Bullet() { return 0.50; }
+	static double SCALE_Normal() { return 1.00; }
+	static double SCALE_Heavy()  { return 1.40; }
+	static double SCALE_Huge()   { return 2.00; }
+
+	// Comparison chain, not a static const table -- this engine build
+	// doesn't resolve `static const TYPE name[] = {...}` in a class body.
+	static double ScaleForArchetype(string archetype)
+	{
+		// Many small things.
+		if (archetype == "shotgun" || archetype == "supershotgun"
+		 || archetype == "smg")
+			return SCALE_Pellet();
+
+		// Single aimed rounds.
+		if (archetype == "pistol" || archetype == "revolver"
+		 || archetype == "rifle"  || archetype == "chaingun")
+			return SCALE_Bullet();
+
+		// Energy sits at native size -- the library's plasma/fire entries
+		// were already drawn at roughly this weight.
+		if (archetype == "energy" || archetype == "plasma")
+			return SCALE_Normal();
+
+		if (archetype == "launcher")
+			return SCALE_Heavy();
+
+		if (archetype == "bfg")
+			return SCALE_Huge();
+
+		// Melee archetypes never reach here (no projectile), and an
+		// unknown archetype falling through at native size is the safe
+		// failure: visibly wrong rather than invisibly tiny.
+		return SCALE_Normal();
+	}
+
+	// Apply a resolved scale to a freshly spawned projectile.
+	//
+	// Scales THREE things together, because scaling only the sprite is
+	// the classic mistake: a pellet-sized visual with a cacodemon-sized
+	// hitbox reads as the game cheating. Damage is deliberately NOT
+	// touched here -- that already rides DamageMult on the profile.
+	//
+	// No-ops at scale ~1.0, which is the overwhelmingly common case.
+	static play void ApplyProjectileScale(Actor proj, double scale)
+	{
+		if (!proj || scale <= 0 || abs(scale - 1.0) < 0.01)
+			return;
+
+		proj.A_SetScale(proj.Scale.X * scale, proj.Scale.Y * scale);
+
+		// Collision follows the visual. Floor at 1 so a heavily shrunk
+		// round doesn't end up with a zero-size hitbox and pass through
+		// everything it should hit.
+		proj.A_SetSize(max(1.0, proj.Radius * scale),
+		               max(1.0, proj.Height * scale));
+	}
+
+	// Monster-side equivalent, keyed on the role the monster declares.
+	// Same idea, different input -- a chaingunner firing Cacodemon balls
+	// is a bullet-delivery skirmisher, so it gets bullet scale.
+	static double ScaleForMonsterRole(string role, string delivery)
+	{
+		if (delivery == "bullet")   return SCALE_Bullet();
+		if (role == "fodder")       return SCALE_Bullet();
+		if (role == "skirmisher")   return SCALE_Bullet();
+		if (role == "artillery")    return SCALE_Normal();
+		if (role == "bruiser")      return SCALE_Heavy();
+		if (role == "summoner")     return SCALE_Normal();
+		return SCALE_Normal();
+	}
+
 	static Class<Actor> PROJ_Ballistic()
 	{
 		return "RS_BallisticType1";

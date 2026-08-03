@@ -145,6 +145,26 @@ class RS_AttackProfile : Object
 	double VolleyArc;
 	double VolleyPitchJitter;   // degrees of vertical scatter, 0 = flat
 
+	// --- Projectile size -----------------------------------------------
+	// 0 = DERIVE from the firer (RS_Catalog.ScaleForArchetype for weapons,
+	// ScaleForMonsterRole for monsters). That is the normal case and the
+	// reason the shared projectile library works at all -- a rifle firing
+	// a Cacodemon ball gets a bullet-sized one without anyone authoring
+	// the pairing.
+	//
+	// Set non-zero only to force a specific size regardless of who fires
+	// it (a deliberately oversized boss shot, say). Affix multipliers
+	// still apply on top either way.
+	double ProjScale;
+
+	// --- Range band -----------------------------------------------------
+	// The dispatch skips a profile whose window doesn't contain the
+	// current distance to target, so close/mid/long attacks are data
+	// rather than hand-written state branches.
+	// MaxRange 0 = no upper limit (the default: always eligible).
+	double MinRange;
+	double MaxRange;
+
 	// --- Summon mode --------------------------------------------------
 	// Class comes from RS_MonsterCatalog, never named inline.
 	Class<Actor> SummonClass;
@@ -241,6 +261,9 @@ class RS_AttackProfile : Object
 		VolleyCount       = 1;
 		VolleyArc         = 0.0;
 		VolleyPitchJitter = 0.0;
+		ProjScale         = 0.0;   // 0 = derive from firer
+		MinRange          = 0.0;
+		MaxRange          = 0.0;   // 0 = unlimited
 		SummonCount       = 0;
 		SummonCap         = 0;
 		SummonTierOffset  = -2;
@@ -466,6 +489,21 @@ class RS_AttackProfile : Object
 		return p;
 	}
 
+	// Is this profile usable at the given distance? MaxRange 0 means no
+	// ceiling, which is the default, so profiles that never set a band
+	// are always eligible.
+	bool InRange(double dist) const
+	{
+		if (dist < MinRange) return false;
+		if (MaxRange > 0 && dist > MaxRange) return false;
+		return true;
+	}
+
+	bool HasRangeBand() const
+	{
+		return MinRange > 0 || MaxRange > 0;
+	}
+
 	// Independent copy -- so a GunBonsai upgrade that tweaks one entry in
 	// a cycle can't accidentally mutate a profile shared with another
 	// weapon or another slot.
@@ -498,6 +536,9 @@ class RS_AttackProfile : Object
 		p.VolleyCount     = VolleyCount;
 		p.VolleyArc       = VolleyArc;
 		p.VolleyPitchJitter = VolleyPitchJitter;
+		p.ProjScale       = ProjScale;
+		p.MinRange        = MinRange;
+		p.MaxRange        = MaxRange;
 		p.SummonClass     = SummonClass;
 		p.SummonCount     = SummonCount;
 		p.SummonCap       = SummonCap;

@@ -24,9 +24,9 @@ class RS_FamilyPalette
 	// BULLET MODE
 	// -----------------------------------------------------------------
 
-	static Array<Class<Actor> > BulletProjectiles(string archetype, EVR_Tier tier)
+	static void BulletProjectiles(string archetype, EVR_Tier tier, out Array<Class<Actor> > pool)
 	{
-		Array<Class<Actor> > pool;
+		pool.Clear();
 		if (archetype == "railgun")
 		{
 			pool.Push(RS_Catalog.PROJ_RailBolt());
@@ -44,12 +44,11 @@ class RS_FamilyPalette
 			// variety in the Catalog yet, so there's nothing to fence.
 			pool.Push(RS_Catalog.PROJ_Ballistic());
 		}
-		return pool;
 	}
 
-	static Array<Class<Actor> > BulletPuffs(string archetype, EVR_Tier tier)
+	static void BulletPuffs(string archetype, EVR_Tier tier, out Array<Class<Actor> > pool)
 	{
-		Array<Class<Actor> > pool;
+		pool.Clear();
 		if (archetype == "shotgun" || archetype == "supershotgun")
 			pool.Push(RS_Catalog.PUFF_Shot());
 		else if (archetype == "melee")
@@ -58,14 +57,13 @@ class RS_FamilyPalette
 			pool.Push(RS_Catalog.PUFF_Bullet());
 		if (tier >= VRT_Advanced)
 			pool.Push(RS_Catalog.PUFF_Vanilla());
-		return pool;
 	}
 
 	// String, not Class<Actor> -- matches RS_Catalog.CASING_*'s own
 	// signature (RS_HiFiFX.CasingEject() takes a string).
-	static Array<string> BulletCasings(string archetype, EVR_Tier tier)
+	static void BulletCasings(string archetype, EVR_Tier tier, out Array<string> pool)
 	{
-		Array<string> pool;
+		pool.Clear();
 		if (archetype == "shotgun" || archetype == "supershotgun")
 			pool.Push(RS_Catalog.CASING_Shell());
 		else if (archetype == "rifle" || archetype == "chaingun" || archetype == "smg" || archetype == "railgun")
@@ -75,59 +73,65 @@ class RS_FamilyPalette
 		// melee/launcher/energy/bfg/flamethrower: deliberately empty --
 		// caller should fall back to "" (no casing ejected), correct for
 		// all of them.
-		return pool;
 	}
 
-	static Array<sound> BulletSounds(string archetype, EVR_Tier tier)
+	static void BulletSounds(string archetype, EVR_Tier tier, out Array<sound> pool)
 	{
-		Array<sound> pool;
+		pool.Clear();
 		bool prestige = tier >= VRT_Advanced;
-		switch (archetype)
+		if (archetype == "pistol")
 		{
-		case "pistol":
 			pool.Push(RS_Catalog.SND_Pistol());
 			if (prestige) pool.Push(RS_Catalog.SND_GH_Pistol());
-			break;
-		case "revolver":
+		}
+		else if (archetype == "revolver")
+		{
 			pool.Push(RS_Catalog.SND_Revolver());
 			if (prestige) pool.Push(RS_Catalog.SND_GH_Revolver());
-			break;
-		case "rifle":
+		}
+		else if (archetype == "rifle")
+		{
 			pool.Push(RS_Catalog.SND_Rifle());
 			if (prestige) pool.Push(RS_Catalog.SND_GH_Rifle());
-			break;
-		case "smg":
+		}
+		else if (archetype == "smg")
+		{
 			pool.Push(RS_Catalog.SND_SMG());
 			if (prestige) { pool.Push(RS_Catalog.SND_GH_SMG()); pool.Push(RS_Catalog.SND_GH_MP40()); }
-			break;
-		case "shotgun":
+		}
+		else if (archetype == "shotgun")
+		{
 			pool.Push(RS_Catalog.SND_Shotgun());
 			if (prestige) { pool.Push(RS_Catalog.SND_GH_PumpShotgun()); pool.Push(RS_Catalog.SND_GH_AssaultShotgun()); }
-			break;
-		case "supershotgun":
+		}
+		else if (archetype == "supershotgun")
+		{
 			pool.Push(RS_Catalog.SND_SuperShotgun());
 			if (prestige) pool.Push(RS_Catalog.SND_GH_SSG());
-			break;
-		case "chaingun":
+		}
+		else if (archetype == "chaingun")
+		{
 			pool.Push(RS_Catalog.SND_Chaingun());
 			if (prestige) { pool.Push(RS_Catalog.SND_GH_Minigun()); pool.Push(RS_Catalog.SND_GH_Machinegun()); }
-			break;
-		case "melee":
+		}
+		else if (archetype == "melee")
+		{
 			pool.Push(RS_Catalog.SND_Chainsaw());
 			if (prestige) { pool.Push(RS_Catalog.SND_GH_Chainsaw()); pool.Push(RS_Catalog.SND_GH_Fist()); }
-			break;
-		case "railgun":
+		}
+		else if (archetype == "railgun")
+		{
 			pool.Push(RS_Catalog.SND_GH_Railgun());
-			break;
-		case "flamethrower":
+		}
+		else if (archetype == "flamethrower")
+		{
 			pool.Push(RS_Catalog.SND_GH_Flamethrower());
-			break;
-		default:
+		}
+		else
+		{
 			// Unmapped archetype -- never return an empty pool.
 			pool.Push(RS_Catalog.SND_Pistol());
-			break;
 		}
-		return pool;
 	}
 
 	// Where "family stays family" actually shows up most: a Pistol
@@ -159,9 +163,9 @@ class RS_FamilyPalette
 	// is which classes are archetype-appropriate, not loose FX pieces.
 	// -----------------------------------------------------------------
 
-	static Array<Class<Actor> > HeavyProjectiles(string archetype, EVR_Tier tier)
+	static void HeavyProjectiles(string archetype, EVR_Tier tier, out Array<Class<Actor> > pool)
 	{
-		Array<Class<Actor> > pool;
+		pool.Clear();
 		bool prestige = tier >= VRT_Advanced;
 		if (archetype == "launcher")
 		{
@@ -200,12 +204,11 @@ class RS_FamilyPalette
 			pool.Push(RS_Catalog.PROJ_GrenadeLaunched());
 			pool.Push(RS_Catalog.PROJ_GrenadeThrown());
 		}
-		return pool;
 	}
 
-	static Array<sound> HeavySounds(string archetype, EVR_Tier tier)
+	static void HeavySounds(string archetype, EVR_Tier tier, out Array<sound> pool)
 	{
-		Array<sound> pool;
+		pool.Clear();
 		bool prestige = tier >= VRT_Advanced;
 		if (archetype == "launcher")
 		{
@@ -241,15 +244,14 @@ class RS_FamilyPalette
 			pool.Push(RS_Catalog.SND_PlasmaRifle());
 			pool.Push(RS_Catalog.SND_BFG9000());
 		}
-		return pool;
 	}
 
 	// Cosmetic blast look (RS_AttackProfile.ExplosionVisual) -- energy
 	// weapons stay plasma-splash colored, everything else gets the
 	// fireball family, exotic variants unlocked at Advanced+.
-	static Array<Class<Actor> > HeavyExplosionVisuals(string archetype, EVR_Tier tier)
+	static void HeavyExplosionVisuals(string archetype, EVR_Tier tier, out Array<Class<Actor> > pool)
 	{
-		Array<Class<Actor> > pool;
+		pool.Clear();
 		bool prestige = tier >= VRT_Advanced;
 		if (archetype == "energy")
 		{
@@ -268,6 +270,5 @@ class RS_FamilyPalette
 				pool.Push(RS_Catalog.EXPLOSION_Flash());
 			}
 		}
-		return pool;
 	}
 }

@@ -68,7 +68,7 @@ class RS_AffixIngredient : Object
 	}
 
 	// Every Mode present on either of the weapon's slots, as a mask.
-	static int WeaponModeMask(RS_Weapon wpn)
+	static play int WeaponModeMask(RS_Weapon wpn)
 	{
 		int mask = 0;
 		for (int s = 0; s < 2; s++)
@@ -84,7 +84,7 @@ class RS_AffixIngredient : Object
 		return mask;
 	}
 
-	bool IsEligible(RS_Weapon wpn)
+	play bool IsEligible(RS_Weapon wpn)
 	{
 		if (wpn.Tier < MinTier)
 			return false;

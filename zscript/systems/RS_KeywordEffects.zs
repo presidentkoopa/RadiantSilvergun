@@ -47,6 +47,13 @@ class RS_ShotKeywordMods : Object
 	double SpreadMult;
 	double VelMult;
 
+	// Visual/collision size of what spawns. Neutral 1.0 means "use the
+	// scale derived from the firer's archetype" (RS_Catalog.
+	// ScaleForArchetype); an affix multiplies it from there. This is the
+	// hook a joke upgrade like "Giant Pellet" writes to, and it composes
+	// with everything else exactly like the other four.
+	double ScaleMult;
+
 	// Behavior flags -- consumed by the mode dispatches. Homing works on
 	// bullet + heavy paths; Piercing is bullet-only (+RIPPER needs a
 	// travelling projectile; hitscan has none, and a ripping ROCKET
@@ -55,13 +62,14 @@ class RS_ShotKeywordMods : Object
 	bool Homing;
 	bool Piercing;
 
-	static RS_ShotKeywordMods Resolve(RS_Weapon wpn, RS_AttackProfile p)
+	static play RS_ShotKeywordMods Resolve(RS_Weapon wpn, RS_AttackProfile p)
 	{
 		let m = RS_ShotKeywordMods(new("RS_ShotKeywordMods"));
 		m.DmgMult = 1.0;
 		m.PelletMult = 1.0;
 		m.SpreadMult = 1.0;
 		m.VelMult = 1.0;
+		m.ScaleMult = 1.0;
 
 		// ---- payload: ------------------------------------------------
 		Array<string> vals;
