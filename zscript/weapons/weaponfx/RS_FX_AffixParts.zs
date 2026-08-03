@@ -22,7 +22,7 @@
 // ---------------------------------------------------------------------
 // Plain-Actor part base. The bullet path's RS_FireAffixPartRound spawns
 // these when the installed AffixProjectile isn't ballistic: exact
-// damage (same GetMissileDamage override contract as the ballistic
+// damage (same DoSpecialDamage override contract as the ballistic
 // tree), own authored flight, master pointer set by the caller.
 // ---------------------------------------------------------------------
 class RS_AffixPartActor : Actor
@@ -40,11 +40,14 @@ class RS_AffixPartActor : Actor
 		Species "Player";
 	}
 
-	override int GetMissileDamage(int mask, int add)
+	// See RS_BallisticFired: GetMissileDamage is native non-virtual and
+	// cannot be overridden. DoSpecialDamage is virtual and runs after the
+	// engine's random(1,8) roll, so returning the exact value replaces it.
+	override int DoSpecialDamage(Actor target, int damage, Name damagetype)
 	{
 		if (ExactDamage > 0)
 			return ExactDamage;
-		return Super.GetMissileDamage(mask, add);
+		return Super.DoSpecialDamage(target, damage, damagetype);
 	}
 }
 

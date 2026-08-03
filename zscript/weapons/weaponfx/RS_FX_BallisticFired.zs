@@ -109,13 +109,26 @@ class RS_BallisticFired : FastProjectile
 		}
 	}
 
-	// Ghost's pierce economy, at the one hook the engine gives per-victim
-	// missile damage: retention decay per punch-through, a hard stop when
-	// the punch budget runs out, and the Mastery stitch. Rounds without
-	// PierceLimit set (including plain behavior:piercing rips) pass
-	// through unchanged.
+	// ONE DoSpecialDamage override doing BOTH jobs, in the right order --
+	// exact damage first, then Ghost's pierce economy on top of it.
+	//
+	// Exact damage: DoSpecialDamage, not GetMissileDamage -- the latter
+	// is exposed to ZScript as native non-virtual and cannot be
+	// overridden (real compile error). This hook runs after the engine
+	// has already applied its random(1,8) roll, so overwriting the
+	// incoming value with ExactDamage replaces that roll outright:
+	// rounds deal exactly what SetupStats was given, and bullet/hitscan
+	// modes finally agree.
+	//
+	// Pierce economy (Ghost affix): retention decay per punch-through,
+	// a hard stop when the punch budget runs out, and the Mastery
+	// stitch. Rounds without PierceLimit set (including plain
+	// behavior:piercing rips) skip that block entirely.
 	override int DoSpecialDamage(Actor victim, int damage, Name damagetype)
 	{
+		if (ExactDamage > 0)
+			damage = ExactDamage;
+
 		if (PierceLimit > 0 && bRIPPER)
 		{
 			damage = max(1, int(damage * (PierceRetention ** PierceHits)));
@@ -160,20 +173,10 @@ class RS_BallisticFired : FastProjectile
 	}
 
 	// The engine's default missile-damage formula multiplies the stored
-	// damage by random(1,8) on impact -- so the weapon's carefully rolled
-	// DamagePerShot would arrive as anywhere from 1x to 8x itself, while
-	// the chaingun's hitscan path (FBF_NORANDOM) deals exact ints. This
-	// override makes every ballistic round deal exactly what SetupStats
-	// was given: damage means what the stat screen says, and bullet and
-	// hitscan modes agree with each other.
+	// damage by random(1,8) on impact. ExactDamage, applied in the
+	// merged DoSpecialDamage override above, replaces that roll so every
+	// ballistic round deals exactly what SetupStats was given.
 	int ExactDamage;
-
-	override int GetMissileDamage(int mask, int add)
-	{
-		if (ExactDamage > 0)
-			return ExactDamage;
-		return Super.GetMissileDamage(mask, add);
-	}
 
 	// Player Feedback layer -- called alongside SetupStats() by whatever
 	// spawned this round, if the firing profile set an ImpactPuff/
