@@ -103,8 +103,12 @@ class TFLV_Upgrade_Registry : Object play {
     }
   }
 
+  // RS GRAFT: extraCards is the count bought with Gold on this offer
+  // (WeaponUpgradeGiver.rsExtraCards). Defaults to 0 so any other caller
+  // -- including the vendored Service RPC -- is unaffected.
   void GenerateUpgradesForWeapon(
-      TFLV_WeaponInfo info, Array<TFLV_Upgrade_BaseUpgrade> generated) {
+      TFLV_WeaponInfo info, Array<TFLV_Upgrade_BaseUpgrade> generated,
+      int extraCards = 0) {
     array<TFLV_Upgrade_BaseUpgrade> candidates;
     let nrof = bonsai_upgrade_choices_per_gun_level;
 
@@ -128,7 +132,7 @@ class TFLV_Upgrade_Registry : Object play {
       // the draw is strictly better than rerolling it -- pricier per
       // press, and the escalation makes a third or fourth card a real
       // decision rather than a formality.
-      nrof += TFLV_WeaponUpgradeGiver.rsPendingExtra;
+      nrof += extraCards;
     }
 
     if (nrof == -2) {

@@ -9,25 +9,14 @@ class TFLV_WeaponUpgradeGiver : TFLV_UpgradeGiver {
   // per level-up, so the escalating cost (5 << rsRerolls Gold Bits,
   // spent by RS_UIHandler's rs-ui-reroll) resets naturally per offer.
   int rsRerolls;
-  // RS GRAFT: extra cards bought with Gold for THIS offer (rs-ui-expand).
-  // Read by Registry.GenerateUpgradesForWeapon via rsPendingExtra below.
+  // RS GRAFT: extra cards bought with Gold for THIS offer (rs-ui-expand),
+  // passed straight into the generator below.
   int rsExtraCards;
-
-  // The registry can't see the giver, so the pending extra-card count is
-  // handed over through this static for the duration of one generate
-  // call. Single-player menu flow, one giver at a time -- the same
-  // assumption GunBonsai's own currentEffectGiver already makes.
-  static int rsPendingExtra;
-
-  override void CreateUpgradeCandidates() {
-    rsPendingExtra = rsExtraCards;
-    super.CreateUpgradeCandidates();
-    rsPendingExtra = 0;
-  }
 
   override void CreateUpgradeCandidates() {
     candidates.clear();
-    TFLV_Upgrade_Registry.GetRegistry().GenerateUpgradesForWeapon(wielded, candidates);
+    TFLV_Upgrade_Registry.GetRegistry().GenerateUpgradesForWeapon(
+      wielded, candidates, rsExtraCards);
   }
 
   void InstallUpgrade(int index) {
