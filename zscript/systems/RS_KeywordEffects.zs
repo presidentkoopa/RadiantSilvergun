@@ -66,8 +66,13 @@ class RS_ShotKeywordMods : Object
 	// Seeker: rounds always track true; SeekLevel is how many enemies one
 	// round may cycle through (retarget when its target dies), 99 =
 	// unlimited (Mastery). SeekPrecise adds SMF_PRECISE hard tracking.
-	int  SeekLevel;
-	bool SeekPrecise;
+	// SeekTurn: degrees/tic of tracking authority, SCALED FROM THE
+	// WEAPON'S ROLLED ACCURACY (rs_11 amplifier rule: a precise gun
+	// hunts hard, a sloppy gun's seekers drift - the Accuracy roll
+	// matters MORE with Seeker, not less). 0 = legacy fixed rate.
+	int    SeekLevel;
+	bool   SeekPrecise;
+	double SeekTurn;
 	// Ghost: PierceLevel = victims one round may punch through (99 = all),
 	// PierceRetention = damage kept per punch-through. Stitch (Mastery):
 	// a rip-kill turns the round into an unlimited seeker mid-flight.
@@ -248,6 +253,10 @@ class RS_ShotKeywordMods : Object
 			{
 				string tail = vals[i].Mid(4);
 				m.Homing = true;
+				// Tracking authority comes from the ROLL: 4 deg/tic on a
+				// sloppy gun up to 12 on a laser-accurate one. Accuracy
+				// stays king even when rounds hunt.
+				m.SeekTurn = 4.0 + 8.0 * clamp(wpn.Accuracy / 100.0, 0.0, 1.0);
 				if (tail == "master")
 				{
 					m.SeekLevel = 99;
@@ -267,17 +276,21 @@ class RS_ShotKeywordMods : Object
 			{
 				string tail = vals[i].Mid(6);
 				m.Piercing = true;
+				// Velocity's first real job (rs_11 amplifier rule): a fast
+				// round punches deeper -- up to +10% retention at the top
+				// of the velocity roll range. Rolled 2500-12500.
+				double velBonus = 0.10 * clamp((wpn.Velocity - 2500.0) / 10000.0, 0.0, 1.0);
 				if (tail == "master")
 				{
 					m.PierceLevel = 99;
-					m.PierceRetention = 0.90;
+					m.PierceRetention = min(0.95, 0.90 + velBonus);
 					m.Stitch = true;
 				}
 				else
 				{
 					int lvl = clamp(tail.ToInt(), 1, 5);
 					m.PierceLevel = (lvl >= 5) ? 99 : lvl;
-					m.PierceRetention = 0.70 + 0.05 * (lvl - 1);
+					m.PierceRetention = min(0.95, 0.70 + 0.05 * (lvl - 1) + velBonus);
 				}
 			}
 			// --- Bonecaller mid-levels: per-pellet homing chance. L5

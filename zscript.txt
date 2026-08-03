@@ -181,6 +181,10 @@ version "4.14"
 // which is deliberately NOT done yet: cards are on hold pending the
 // upgrade-UI discussion. See docs/rs_09_affix_slate.txt.
 #include "zscript/weapons/weaponfx/RS_FX_AffixParts.zs"
+// Stat-state projectile bodies: damage-vs-ceiling and condition bands
+// change what the DEFAULT round looks like (never overrides authored
+// or affix-installed bodies). Selection: RS_Weapon.RS_StateLadderBody.
+#include "zscript/weapons/weaponfx/RS_FX_StateLadder.zs"
 
 // --- Performance CVAR gated levels of weapon feedbacks
 // The old monolithic RS_EnhancedFX.zs was split by category -- see

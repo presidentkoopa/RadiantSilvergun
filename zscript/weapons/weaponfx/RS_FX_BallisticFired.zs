@@ -40,9 +40,12 @@ class RS_BallisticFired : FastProjectile
 	// CYCLING: when the locked target dies, the round may drop lock and
 	// re-acquire, SeekLevel-1 times (99 = unlimited, Mastery). Precise
 	// adds SMF_PRECISE hard tracking.
-	int  SeekLevel;
-	int  RetargetsUsed;
-	bool SeekPrecise;
+	int    SeekLevel;
+	int    RetargetsUsed;
+	bool   SeekPrecise;
+	// Tracking authority in deg/tic, scaled from the firer's rolled
+	// Accuracy at spawn (rs_11 amplifier rule). 0 = legacy fixed 6/10.
+	double SeekTurn;
 
 	// --- Ghost affix ---
 	// PierceLimit: how many victims this round may punch through before
@@ -98,7 +101,10 @@ class RS_BallisticFired : FastProjectile
 			if (Homing)
 			{
 				int flags = SMF_LOOK | (SeekPrecise ? SMF_PRECISE : 0);
-				A_SeekerMissile(6, 10, flags);
+				if (SeekTurn > 0)
+					A_SeekerMissile(int(SeekTurn * 0.6), int(SeekTurn), flags);
+				else
+					A_SeekerMissile(6, 10, flags);
 			}
 		}
 		if (++ghostTimer >= 2)
@@ -142,6 +148,7 @@ class RS_BallisticFired : FastProjectile
 				Homing = true;
 				SeekLevel = 99;
 				SeekPrecise = true;
+				if (SeekTurn <= 0) SeekTurn = 12;
 				tracer = null;
 			}
 

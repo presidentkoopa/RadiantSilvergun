@@ -678,3 +678,38 @@ class RS_BlackImpSmokeOut : Actor
 		Stop;
 	}
 }
+
+// ---------------------------------------------------------------------
+// Brown imp (Warlord) spike volley -- ported from CH Fatsos.txt
+// FatsoSpikes2 (the small gravity spike the WARI imp actually throws;
+// the big FatsoSpikes belongs to the fatso and lives with it). RIP1
+// sprites imported to sprites/monsters/projectiles/.
+// ---------------------------------------------------------------------
+class RS_FatsoSpikes2 : Actor
+{
+	Default
+	{
+		Radius 4;
+		Height 4;
+		Speed 5;
+		Damage (random(10, 40));
+		Projectile;
+		DamageType "Melee";
+		-NOGRAVITY
+		+THRUGHOST
+		Gravity 0.1;
+		Scale 0.45;
+		SeeSound "monster/dknmsl";
+		DeathSound "weapons/rocklx";
+		Translation "144:151=90:95", "64:79=96:109", "236:239=104:111", "1:2=111:111";
+	}
+	States
+	{
+	Spawn:
+		RIP1 ABC 4 Bright;
+		Loop;
+	Death:
+		RIP1 ABCABCABCBA 12 A_Explode(random(1, 4), 8);
+		Stop;
+	}
+}

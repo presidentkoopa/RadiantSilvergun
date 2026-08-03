@@ -540,3 +540,92 @@ rs_fx_ice_cast     Sounds/combatfx/ice/ice_cast.ogg
 rs_fx_ice_hit      Sounds/combatfx/ice/ice_hit.ogg
 rs_fx_ice_shatter  Sounds/combatfx/ice/ice_shatter.ogg
 rs_fx_ice_fly      Sounds/combatfx/ice/ice_fly.ogg
+
+// =====================================================================
+// MONSTER VOICES -- Colourful Hell color-variant voices for the RS
+// monster set (rebuild spec: docs/rs_09_monster_rebuild_spec.txt).
+// Real lumps live in sounds/monsters/ (ripped from CH via ART SOURCE);
+// anything CH itself never shipped a lump for is aliased to a vanilla
+// voice, exactly as the proven HF SNDINFO did. Vanilla logical names
+// (imp/sight, grunt/attack, baron/*...) come from the IWAD -- never
+// redefine those here.
+// =====================================================================
+
+// ----- Black Imp (Agaures) voice -----
+$random agaures/sight  { agaures/sight1 agaures/sight2 }
+agaures/sight1      AGURSIT1
+agaures/sight2      AGURSIT2
+agaures/pain        AGURPAIN
+$random agaures/death  { agaures/death1 agaures/death2 }
+agaures/death1      AGURDTH1
+agaures/death2      AGURDTH2
+agaures/active      AGURACTV
+agaures/scratch     AGURHITS
+agaures/swing       AGURSWNG
+
+// ----- Red Imp (Doom 64) voice -----
+imp2/see            D64IMPS2
+imp2/hurt           D64IMP2
+imp2/die            D64IMPD
+imp2/active         D64IMPS
+
+// ----- Deep One (white spectre line) -----
+$random deepone/active     { deepone/groan1 deepone/groan2 }
+deepone/groan1      DEEPSTTH
+deepone/groan2      DEEPGN2
+$random deepone/meleegrowl { deepone/attack1 deepone/attack2 }
+deepone/attack1     DEEPAK1
+deepone/attack2     DEEPAK2
+deepone/sight       YOGG1
+deepone/death       YOGG2
+$random deepone/pain       { deepone/hurt1 deepone/hurt2 }
+deepone/hurt1       YOGG3
+deepone/hurt2       DEEPSTTH
+$alias deepone/melee       demon/melee
+
+// ----- Butcher demon -----
+butcher/melee       BCHRHIT
+
+// ----- Misc color-variant effects -----
+fiend/bomb          DSFBOMB
+moloch/nailhitbleed DSNAIIMP
+prox/beep           DSIGPRXB
+slimeworm/melee     DSWORMAT
+arachnophyte/engine DSAPHENG
+
+// ----- Bruiser (brown baron line) -----
+monster/brudth      DSBRUDTH
+monster/brusit      DSBRUSIT
+monster/bruwlk      DSBRUWLK
+$alias monster/bruact      baron/active
+$alias monster/brupai      baron/pain
+
+// ----- Dark Knight (revenant line) -----
+monster/dknact      DSDKNACT
+monster/dkndrt      DSDKNDRT
+monster/dknmsl      DSDKNMSL
+
+// ----- Hammer / Hell warrior (knight line) -----
+monster/hamhit      DSHAMHIT
+monster/hamswg      DSHAMSWG
+monster/helsit      DSHELSIT
+$random monster/helact     { monster/helac1 monster/helac2 }
+monster/helac1      DSHELAC1
+monster/helac2      DSHELAC2
+$alias monster/kntswg      skeleton/swing
+$alias monster/fihoof      cyber/hoof
+
+// ----- Queen (mastermind line) -----
+queen/sight         QUESIT
+queen/fire          QBFGFIRE
+
+// ----- Aliased-only voices (CH shipped no lump; HF aliased these) -----
+$alias hellhound/melee     demon/melee
+$alias hellsmith/laugh     vile/sight
+
+// --- The Tell (rs_11): ready-to-fire cadence beep ---------------------
+// Source: li-gnrcwpn plasma altfire beep (PLBEEP), imported. ONE lump;
+// per-archetype identity comes from pitch at play time
+// (RS_Weapon.TellPitch), not from separate sounds.
+rs_tell_ready  Sounds/combatfx/tells/READYBP
+$volume rs_tell_ready 0.65

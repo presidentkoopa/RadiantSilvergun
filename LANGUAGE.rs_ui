@@ -27,27 +27,27 @@ TFLV_Upgrade_RS_Giant_TT = "Projectile scale climbs to comical sizes; the hitbox
 
 TFLV_Upgrade_RS_Seeker_Name = "Seeker";
 TFLV_Upgrade_RS_Seeker_Desc = "rounds hunt -- levels let them cycle victims";
-TFLV_Upgrade_RS_Seeker_TT = "Homes true from level 1. Each level lets the round retarget one more victim when its target dies. Costs 5% damage per level. Mastery: unlimited cycling, precise tracking, curves around corners.";
+TFLV_Upgrade_RS_Seeker_TT = "Homes true from level 1 -- and tracking authority scales with this gun's rolled Accuracy: a precise gun hunts hard. Each level lets the round retarget one more victim when its target dies. Costs 5% damage per level. Mastery: unlimited cycling, curves around corners.";
 
 TFLV_Upgrade_RS_Ghost_Name = "Ghost Rounds";
 TFLV_Upgrade_RS_Ghost_Desc = "rounds punch through bodies";
-TFLV_Upgrade_RS_Ghost_TT = "Pierce 1/2/3/4/all victims, keeping 70-90% damage per punch-through. Mastery (the stitch): a piercing kill whips the round toward its next victim.";
+TFLV_Upgrade_RS_Ghost_TT = "Pierce 1/2/3/4/all victims, keeping 70-90% damage per punch-through -- and a fast gun punches deeper: retention scales with rolled Velocity. Mastery (the stitch): a piercing kill whips the round toward its next victim.";
 
-TFLV_Upgrade_RS_Painter_Name = "Painter";
-TFLV_Upgrade_RS_Painter_Desc = "your rounds become fire";
-TFLV_Upgrade_RS_Painter_TT = "Part-swap: the gun's own fire style is rolled once when taken -- Wisp or Ember -- and is this gun's fire forever. +3% damage per level. Mastery: impacts ignite the ground.";
+TFLV_Upgrade_RS_Cacospit_Name = "Cacospit";
+TFLV_Upgrade_RS_Cacospit_Desc = "your rounds become the Cacodemon's bile";
+TFLV_Upgrade_RS_Cacospit_TT = "The Cacodemon's own ammunition in your gun. Rolled once when taken: the classic bile ball or the hell-wisp -- that's this gun's spit forever. +3% damage per level. Mastery: impacts leave burning bile.";
 
 TFLV_Upgrade_RS_Bonecaller_Name = "Bonecaller";
 TFLV_Upgrade_RS_Bonecaller_Desc = "your rounds become revenant bone tracers";
 TFLV_Upgrade_RS_Bonecaller_TT = "The skeleton's own tracers, weapon-grade. Levels give each pellet a growing chance to hunt (25/50/75/100%). Mastery (twin-fire): every round doubles into a straight+seeking pair at half damage each.";
 
-TFLV_Upgrade_RS_Cryo_Name = "Cryo";
-TFLV_Upgrade_RS_Cryo_Desc = "your rounds become ice -- heavier, fewer chambered";
-TFLV_Upgrade_RS_Cryo_TT = "Ice shards: +6% damage per level, -1 magazine capacity per 2 levels. Mastery: the round becomes a bouncing ice orb -- the first player round allowed to bounce.";
+TFLV_Upgrade_RS_PainOrb_Name = "Pain Orb";
+TFLV_Upgrade_RS_PainOrb_Desc = "the Pain Elemental's bouncing orb -- heavier, fewer chambered";
+TFLV_Upgrade_RS_PainOrb_TT = "The Pain Elemental's own ice orb as your round -- it BOUNCES, from level 1, because that's what it is. +6% damage per level, -1 capacity per 2 levels. Mastery: bigger, six bounces, shatters into a shard spray.";
 
 TFLV_Upgrade_RS_Echo_Name = "Echo";
-TFLV_Upgrade_RS_Echo_Desc = "every Nth pull fires a free, enhanced beat";
-TFLV_Upgrade_RS_Echo_TT = "Adds an echo beat to the trigger rotation: every 7th (down to 3rd) pull costs no ammo and fires a cluster round. Mastery: every 2nd.";
+TFLV_Upgrade_RS_Echo_Desc = "every Nth pull, your own shot -- doubled";
+TFLV_Upgrade_RS_Echo_TT = "Adds an echo beat to the trigger rotation: every 7th (down to 3rd) pull fires YOUR OWN round twice, at double ammo cost -- your roll, amplified, paid for from your magazine. Mastery: every 2nd.";
 
 // --- Stat cards (green) ----------------------------------------------
 
@@ -90,8 +90,8 @@ TFLV_Upgrade_RS_ComboHotLoads_Desc = "+damage; shotguns tighten, others kick";
 TFLV_Upgrade_RS_ComboHotLoads_TT = "Ceiling-capped damage plus a family-flavored side: shotguns gain choke, everything else loses a little accuracy -- hot loads kick.";
 
 TFLV_Upgrade_RS_ComboWinterKit_Name = "Winter Kit";
-TFLV_Upgrade_RS_ComboWinterKit_Desc = "Cryo +1 level AND +1 capacity";
-TFLV_Upgrade_RS_ComboWinterKit_TT = "Deepens a held Cryo affix one level and offsets its capacity price a step. Never grants the Mastery -- that pick is always yours to make.";
+TFLV_Upgrade_RS_ComboWinterKit_Desc = "Pain Orb +1 level AND +1 capacity";
+TFLV_Upgrade_RS_ComboWinterKit_TT = "Deepens a held Pain Orb one level and offsets its capacity price a step. Never grants the Mastery -- that pick is always yours to make.";
 
 TFLV_Upgrade_RS_ComboTwinDiscipline_Name = "Twin Discipline";
 TFLV_Upgrade_RS_ComboTwinDiscipline_Desc = "Splitter +1 level AND +2 accuracy";

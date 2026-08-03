@@ -201,13 +201,13 @@ class TFLV_Upgrade_RS_ComboWinterKit : TFLV_Upgrade_RS_ComboCardBase
 	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
 	{
 		info.upgrades.AddUpgrade(
-			TFLV_Upgrade_BaseUpgrade(new("TFLV_Upgrade_RS_Cryo"))).OnActivate(stats, info);
-		wpn.Capacity += 1;   // offsets Cryo's own capacity price a step
+			TFLV_Upgrade_BaseUpgrade(new("TFLV_Upgrade_RS_PainOrb"))).OnActivate(stats, info);
+		wpn.Capacity += 1;   // offsets the Pain Orb's own capacity price a step
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
-		let lv = info.upgrades.Level("TFLV_Upgrade_RS_Cryo");
+		let lv = info.upgrades.Level("TFLV_Upgrade_RS_PainOrb");
 		return ComboEligible(RS_Weapon(info.wpn)) && lv >= 1 && lv < 5;
 	}
 }

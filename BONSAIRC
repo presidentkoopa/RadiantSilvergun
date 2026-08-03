@@ -47,9 +47,9 @@ register
   TFLV_Upgrade_RS_Giant
   TFLV_Upgrade_RS_Seeker
   TFLV_Upgrade_RS_Ghost
-  TFLV_Upgrade_RS_Painter
+  TFLV_Upgrade_RS_Cacospit
   TFLV_Upgrade_RS_Bonecaller
-  TFLV_Upgrade_RS_Cryo
+  TFLV_Upgrade_RS_PainOrb
   TFLV_Upgrade_RS_Echo
   # Stat cards (green) and combo cards (purple) -- docs/rs_10_ui_spec.txt
   TFLV_Upgrade_RS_CardDamage

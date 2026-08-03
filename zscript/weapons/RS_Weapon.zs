@@ -135,6 +135,57 @@ class RS_Weapon : Weapon abstract
 	// pays no spread penalty"); stamped by A_RS_FireSlot.
 	int RS_LastShotTic;
 
+	// -----------------------------------------------------------------
+	// THE TELL (rs_11) -- the ready-to-fire beep. ONE imported sound
+	// (rs_tell_ready, the li-gnrcwpn plasma beep -- the owner's own
+	// prototype pattern), given per-archetype identity purely through
+	// pitch. Audio-only ON PURPOSE: VR, 3D weapon models, nothing is
+	// ever drawn on the weapon or screen.
+	//
+	// Pitch <= 0 means NO tell for that archetype: the shotgun family's
+	// pump/break action IS its tell (you physically can't fire early),
+	// and melee has no cadence worth signalling.
+	// -----------------------------------------------------------------
+	double TellPitch()
+	{
+		string arch = GetPaletteArchetype();
+		if (arch == "shotgun")       return 0;
+		if (arch == "supershotgun")  return 0;
+		if (arch == "melee")         return 0;
+		if (arch == "pistol")        return 1.30;
+		if (arch == "revolver")      return 1.15;
+		if (arch == "rifle")         return 1.00;
+		if (arch == "smg")           return 1.45;
+		if (arch == "chaingun")      return 1.35;
+		if (arch == "railgun")       return 0.80;
+		if (arch == "launcher")      return 0.70;
+		if (arch == "energy")        return 1.00;   // the original beep, unshifted
+		if (arch == "bfg")           return 0.55;
+		if (arch == "flamethrower")  return 0.90;
+		return 1.0;   // unmapped archetype: neutral beep beats silence
+	}
+
+	// Fires the tell at the exact tic the weapon's cadence reopens --
+	// once per fire cycle, only while this weapon is in a hand. DoEffect
+	// ticks on the owner every game tic while the weapon is possessed;
+	// NextFireTic is stamped by A_RS_MarkFired on every committed shot,
+	// so equality happens exactly once per cycle (and never on a weapon
+	// that hasn't fired: NextFireTic 0 is always in the past).
+	override void DoEffect()
+	{
+		Super.DoEffect();
+		if (!owner || !owner.player) return;
+		if (owner.player.ReadyWeapon != self && owner.player.OffhandWeapon != self)
+			return;
+		if (NextFireTic == 0 || Level.maptime != NextFireTic) return;
+		if (!CVar.GetCVar("rs_tell_enable", owner.player).GetBool()) return;
+
+		double pitch = TellPitch();
+		if (pitch <= 0) return;
+		owner.A_StartSound("rs_tell_ready", CHAN_AUTO, CHANF_DEFAULT, 0.65,
+			ATTN_NORM, pitch);
+	}
+
 	// Does any beat on either slot run in the given RS_ATK_* mode?
 	// Suitability gate for designed affixes -- Splitter wants a bullet
 	// or hitscan beat, Ghost a bullet beat, etc.
@@ -497,7 +548,9 @@ class RS_Weapon : Weapon abstract
 		// profile's authored one; the profile's beats the default. Casing
 		// sentinel: AffixCasing "" = no override, "none" = suppress.
 		Class<Actor> fxSmoke = invoker.AffixMuzzleSmoke ? invoker.AffixMuzzleSmoke : p.MuzzleSmoke;
-		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle, fxSmoke);
+		// Worn guns smoke on every shot regardless of tier rules -- the
+		// condition state made audible-visible at the muzzle.
+		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle || invoker.Condition < 50.0, fxSmoke);
 		string fxCasing = p.CasingClass;
 		if (invoker.AffixCasing != "")
 			fxCasing = (invoker.AffixCasing ~== "none") ? "" : invoker.AffixCasing;
@@ -555,6 +608,13 @@ class RS_Weapon : Weapon abstract
 		if (!cls) cls = ProjectileClass;
 		if (!cls) cls = "RS_BallisticType1";
 
+		// STAT-STATE LADDER (rs_11): only the arsenal DEFAULT body is
+		// eligible -- authored/profile/affix bodies keep their identity.
+		// Condition outranks damage: a failing gun sputters no matter
+		// how hot its loads are.
+		if (cls == (Class<Actor>)("RS_BallisticType1"))
+			cls = RS_StateLadderBody();
+
 		int aimflags = bOffhandWeapon ? ALF_ISOFFHAND : 0;
 		double vel = Velocity * p.VelocityMult * (mods ? mods.VelMult : 1.0);
 		double crit = CritChance + p.CritBonus;
@@ -607,6 +667,7 @@ class RS_Weapon : Weapon abstract
 						proj.Homing = FRandom(0, 1) < mods.HomingChance;
 					proj.SeekLevel   = mods.SeekLevel;
 					proj.SeekPrecise = mods.SeekPrecise;
+					proj.SeekTurn    = mods.SeekTurn;
 					// Native ripper -- the round passes through monsters,
 					// damaging each. Real GZDoom flag, no custom logic.
 					proj.bRIPPER = mods.Piercing;
@@ -623,6 +684,18 @@ class RS_Weapon : Weapon abstract
 				proj.master = self;
 			}
 		}
+	}
+
+	// Which body the arsenal-default round wears, given this weapon's
+	// live state. See RS_FX_StateLadder.zs for the bodies and the rule.
+	Class<RS_BallisticFired> RS_StateLadderBody()
+	{
+		if (Condition < 20.0) return "RS_BallisticFailing";
+		if (Condition < 50.0) return "RS_BallisticWorn";
+		double ceilingRatio = double(DamagePerShot) / max(1, GetDamageCeiling());
+		if (ceilingRatio >= 0.90) return "RS_BallisticPeak";
+		if (ceilingRatio >= 0.65) return "RS_BallisticHot";
+		return "RS_BallisticType1";
 	}
 
 	// The plain-Actor sibling of the loop above, for RS_AffixPartActor

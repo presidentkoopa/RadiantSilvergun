@@ -67,22 +67,29 @@ class RS_MonsterMaster : Actor abstract
 	private bool   rsBaseCaptured;
 
 	// --- Body / tint ---
+	// BodyTable() is now DOCUMENTATION + AUDIT data only: the actual
+	// bodies are real per-tier state clusters (See.T03, Missile.T03...)
+	// with literal sprites, dispatched by TierState(). The sprite field
+	// is never assigned at runtime -- that was the skin-system bug that
+	// made monsters flash zombieman frames. TintTable() is still LIVE
+	// data: translations apply on tier change in RS_ApplyTint().
 	private Array<string> rsBodies;   // parsed BodyTable(), cached
 	private Array<string> rsTints;    // parsed TintTable(), cached
 	private bool rsTablesParsed;
 
-	// Which tier's body we are actually WEARING right now, as opposed to
-	// which tier we are. -1 = nothing applied yet. See RS_WearBody --
-	// this is what stops it redoing a sprite lookup and a translation
-	// rebuild on every tic of every state for every live monster.
-	private int rsWornTier;
+	// Deferred state jump, applied in Tick where SetState is legal.
+	// Set by ApplyTier after a tier change ("See.T05" if fighting,
+	// "Spawn.T05" if idle); consumed exactly once. Jumping states from
+	// a handler/inventory context silently fails -- this is the
+	// HF-proven safe route.
+	private string pendingStateJump;
 
 	// --- Staggered transform ---
 	private bool   rsTransforming;
 	private int    rsPendingTier;
 	private int    rsPendingTic;
-	private bool   rsStyleSaved;
-	private double rsSavedAlpha;
+	private int    rsTransformStart;   // when the tell began (for the accelerating flash)
+	private bool   rsFlashGold;        // current flicker phase
 
 	// --- Attacks ---
 	RS_AttackSlot CurrentAttacks;
@@ -132,7 +139,6 @@ class RS_MonsterMaster : Actor abstract
 		}
 
 		rsAttacksBuiltFor = -1;
-		rsWornTier        = -1;   // nothing worn yet: force the first apply
 		ApplyTier(true);
 	}
 
@@ -223,33 +229,50 @@ class RS_MonsterMaster : Actor abstract
 		rsPendingTier = want;
 		if (!rsTransforming)
 		{
-			rsTransforming  = true;
-			rsPendingTic    = level.time + random(2, 20);
-			rsStyleSaved    = true;
-			rsSavedAlpha    = alpha;
-			A_SetRenderStyle(1.0, STYLE_Add);
+			rsTransforming   = true;
+			rsTransformStart = level.time;
+			rsPendingTic     = level.time + random(10, 30);
+			rsFlashGold      = false;
 		}
 	}
 
 	// Runs the staggered transform. Called from Tick.
+	//
+	// THE TELL: the monster flickers between its current tint and gold,
+	// faster and faster as the snap approaches -- a 90s beat-em-up boss
+	// telegraph. Flicker period starts at ~6 tics and tightens to 1 as
+	// the remaining wait shrinks, so the acceleration is the signal.
+	// Owner-specified; do not swap back to a renderstyle flash.
 	private void RS_TickTransform()
 	{
 		if (!rsTransforming)
 			return;
 
 		if (level.time < rsPendingTic)
+		{
+			int remain = rsPendingTic - level.time;
+			int period = clamp(remain / 4, 1, 6);
+			if (((level.time - rsTransformStart) % (period * 2)) < period)
+			{
+				if (!rsFlashGold)
+				{
+					A_SetTranslation("rs_gold_flash");
+					rsFlashGold = true;
+				}
+			}
+			else if (rsFlashGold)
+			{
+				RS_ApplyTint();   // back to the CURRENT tier's real tint
+				rsFlashGold = false;
+			}
 			return;
+		}
 
 		int old = Tier;
 		Tier = rsPendingTier;
-		ApplyTier(false);
-
-		if (rsStyleSaved)
-		{
-			A_SetRenderStyle(rsSavedAlpha, STYLE_Normal);
-			rsStyleSaved = false;
-		}
 		rsTransforming = false;
+		rsFlashGold    = false;
+		ApplyTier(false);   // applies the NEW tier's tint, ending the flicker
 
 		if (old != Tier)
 			OnRetier(old, Tier);
@@ -285,9 +308,16 @@ class RS_MonsterMaster : Actor abstract
 		PainChance    = r.painChance;
 		TierDamageMul = r.dmgMul;
 
-		RS_WearBody();
+		RS_ApplyTint();
 		BuildAttacksForTier(Tier);
 		OnTierApplied(Tier);
+
+		// Route the state machine into the new tier's body. Deferred to
+		// Tick (SetState from a non-actor context silently fails). If
+		// we're mid-fight, enter the new See; if idle, the new Spawn --
+		// otherwise a retiered idle monster keeps showing the old body
+		// until something wakes it.
+		pendingStateJump = (target ? "See." : "Spawn.") .. TierLabel(Tier);
 	}
 
 	virtual void OnTierApplied(int t) {}
@@ -343,30 +373,12 @@ class RS_MonsterMaster : Actor abstract
 		return (t >= 0 && t < rsTints.Size()) ? rsTints[t] : "";
 	}
 
-	// Applied on tier change only -- a body doesn't change because the
-	// monster took a step.
-	//
-	// IDEMPOTENT BY TIER. This is called from inside EVERY state's action
-	// block, which means every tic, for every live monster. Doing the
-	// sprite lookup and the translation rebuild on each of those calls
-	// costs (monsters x 35) lookups a second and buys nothing -- the body
-	// only ever changes when the tier does. rsWornTier records what we
-	// last actually put on, so the repeat calls are a single int compare.
-	// -1 means "nothing worn yet", so the first call after spawn always
-	// applies.
-	void RS_WearBody()
+	// Tint only, on tier change only. The sprite half of the old
+	// "wear body" system is GONE -- bodies are real per-tier state
+	// clusters now (see TierState below), never runtime assignment.
+	void RS_ApplyTint()
 	{
-		if (rsWornTier == Tier)
-			return;
-
 		RS_ParseTables();
-
-		if (Tier >= 0 && Tier < rsBodies.Size())
-		{
-			string s = rsBodies[Tier];
-			if (s.Length() == 4)
-				sprite = GetSpriteIndex(s);
-		}
 
 		if (Tier >= 0 && Tier < rsTints.Size())
 		{
@@ -377,8 +389,50 @@ class RS_MonsterMaster : Actor abstract
 			// we want when tiering down into an untranslated body.
 			A_SetTranslation(tn == "-" ? "" : tn);
 		}
+	}
 
-		rsWornTier = Tier;
+	// DEPRECATED no-op kept only so not-yet-converted family files still
+	// compile mid-rebuild. The verification pass (docs/rs_09 spec) greps
+	// for callsites and deletes this stub once they hit zero. Do not add
+	// new calls.
+	void RS_WearBody() {}
+
+	// =================================================================
+	// TIER STATE DISPATCH -- the rebuilt body system.
+	// A tier's body is a real state cluster: See.T03, Missile.T03...
+	// with literal sprite tokens, exactly the architecture Colourful
+	// Hell and the proven HF port use. These helpers route into it.
+	// =================================================================
+
+	static string TierLabel(int t)
+	{
+		switch (t)
+		{
+			case 1:  return "T01";
+			case 2:  return "T02";
+			case 3:  return "T03";
+			case 4:  return "T04";
+			case 5:  return "T05";
+			case 6:  return "T06";
+			case 7:  return "T07";
+			case 8:  return "T08";
+			case 9:  return "T09";
+			case 10: return "T10";
+			case 11: return "T11";
+			case 12: return "T12";
+		}
+		return "T00";
+	}
+
+	// Resolve "prefix.<current tier>", falling back to "prefix.T00" for
+	// tiers that share the base body, then to null (caller's fallback
+	// line handles it). Families stack labels for shared bodies; the
+	// fallback is a safety net, not the design.
+	State TierState(string prefix)
+	{
+		State st = FindStateByString(prefix .. "." .. TierLabel(Tier), true);
+		if (st) return st;
+		return FindStateByString(prefix .. ".T00", true);
 	}
 
 	// =================================================================
@@ -1027,6 +1081,17 @@ class RS_MonsterMaster : Actor abstract
 	{
 		Super.Tick();
 
+		// Deferred tier-body jump (set by ApplyTier). Only while alive --
+		// a corpse must never be yanked back into See.
+		if (health > 0 && pendingStateJump.Length() > 0)
+		{
+			string j = pendingStateJump;
+			pendingStateJump = "";
+			State st = FindStateByString(j, true);
+			if (st)
+				SetState(st);
+		}
+
 		RS_TickTransform();
 		RS_TickPulse();
 		RS_TickDodge();
@@ -1059,32 +1124,44 @@ class RS_MonsterMaster : Actor abstract
 	}
 
 	// =================================================================
-	// DEFAULT STATES -- vanilla-shaped, sprite supplied by the body
-	// table. Families whose frame layout differs (floaters, Revenant's
-	// six-frame walk, Archvile's VileChase) override these.
+	// ENTRY-POINT DISPATCHERS. The engine enters monsters through these
+	// fixed label names (A_Chase looks up "Missile"/"Melee", pain
+	// routing looks up "Pain"...). Each one immediately routes to the
+	// current tier's real cluster. The plain-frame fallbacks after each
+	// dispatcher only run if a family shipped NO cluster at all for a
+	// label -- the audit treats that as a defect; the fallback just
+	// keeps it from being a freeze.
 	// =================================================================
 
 	States
 	{
 	Spawn:
-		"POSS" AB 10  { RS_WearBody(); A_Look(); }
+		TNT1 A 0 NoDelay { return TierState("Spawn"); }
+		TNT1 A 10 A_Look();
 		Loop;
 	See:
-		"POSS" AABBCCDD 4  { RS_WearBody(); A_Chase(); }
+		TNT1 A 0 { return TierState("See"); }
+		TNT1 A 4 A_Chase();
 		Loop;
+	Missile:
+		TNT1 A 0 { return TierState("Missile"); }
+		Goto See;
+	Melee:
+		TNT1 A 0 { return TierState("Melee"); }
+		Goto See;
 	Pain:
-		"POSS" G 3 { RS_WearBody(); }
-		"POSS" G 3  { RS_WearBody(); A_Pain(); }
+		TNT1 A 0 { return TierState("Pain"); }
+		TNT1 A 3 A_Pain();
 		Goto See;
 	Death:
-		"POSS" H 5 { RS_WearBody(); }
-		"POSS" I 5  { RS_WearBody(); A_Scream(); }
-		"POSS" J 5  { RS_WearBody(); A_NoBlocking(); }
-		"POSS" K 5 { RS_WearBody(); }
-		"POSS" L -1 { RS_WearBody(); }
+		TNT1 A 0 { return TierState("Death"); }
+		TNT1 A 5 { A_Scream(); A_NoBlocking(); }
 		Stop;
+	XDeath:
+		TNT1 A 0 { return TierState("XDeath"); }
+		Goto Death;
 	Raise:
-		"POSS" LKJIH 5 { RS_WearBody(); }
+		TNT1 A 0 { return TierState("Raise"); }
 		Goto See;
 	}
 }
@@ -1096,105 +1173,12 @@ class RS_MonsterMaster : Actor abstract
 // monster files belongs with the rest of the template machinery.
 // =====================================================================
 
-// Zombieman / Shotgunner / Chaingunner share this frame layout.
-class RS_HumanMonster : RS_MonsterMaster abstract
-{
-	States
-	{
-	Spawn:
-		"POSS" AB 10  { RS_WearBody(); A_Look(); }
-		Loop;
-	See:
-		"POSS" AABBCCDD 4  { RS_WearBody(); A_Chase(); }
-		Loop;
-	Pain:
-		"POSS" G 3 { RS_WearBody(); }
-		"POSS" G 3  { RS_WearBody(); A_Pain(); }
-		Goto See;
-	Death:
-		"POSS" H 5 { RS_WearBody(); }
-		"POSS" I 5  { RS_WearBody(); A_Scream(); }
-		"POSS" J 5  { RS_WearBody(); A_NoBlocking(); }
-		"POSS" K 5 { RS_WearBody(); }
-		"POSS" L -1 { RS_WearBody(); }
-		Stop;
-	XDeath:
-		"POSS" M 5 { RS_WearBody(); }
-		"POSS" N 5  { RS_WearBody(); A_XScream(); }
-		"POSS" O 5  { RS_WearBody(); A_NoBlocking(); }
-		"POSS" PQRST 5 { RS_WearBody(); }
-		"POSS" U -1 { RS_WearBody(); }
-		Stop;
-	Raise:
-		"POSS" LKJIH 5 { RS_WearBody(); }
-		Goto See;
-	}
-}
-
-// Demon / Spectre share this frame layout (spectre is the same body
-// plus fuzz render style, applied per-monster in its Default block).
-class RS_DemonBase : RS_MonsterMaster abstract
-{
-	States
-	{
-	Spawn:
-		"POSS" AB 10  { RS_WearBody(); A_Look(); }
-		Loop;
-	See:
-		"POSS" AABBCCDD 2  { RS_WearBody(); A_Chase(); }
-		Loop;
-	Melee:
-		"POSS" EF 8  { RS_WearBody(); A_FaceTarget(); }
-		"POSS" G 8  { RS_WearBody(); A_SargAttack(); }
-		Goto See;
-	Pain:
-		"POSS" H 2 { RS_WearBody(); }
-		"POSS" H 2  { RS_WearBody(); A_Pain(); }
-		Goto See;
-	Death:
-		"POSS" I 8 { RS_WearBody(); }
-		"POSS" J 8  { RS_WearBody(); A_Scream(); }
-		"POSS" K 4 { RS_WearBody(); }
-		"POSS" L 4  { RS_WearBody(); A_NoBlocking(); }
-		"POSS" M 4 { RS_WearBody(); }
-		"POSS" N -1 { RS_WearBody(); }
-		Stop;
-	Raise:
-		"POSS" NMLKJI 5 { RS_WearBody(); }
-		Goto See;
-	}
-}
-
-// Baron / Hell Knight share this frame layout.
-class RS_KnightBase : RS_MonsterMaster abstract
-{
-	States
-	{
-	Spawn:
-		"POSS" AB 10  { RS_WearBody(); A_Look(); }
-		Loop;
-	See:
-		"POSS" AABBCCDD 3  { RS_WearBody(); A_Chase(); }
-		Loop;
-	Melee:
-	Missile:
-		"POSS" EF 8  { RS_WearBody(); A_FaceTarget(); }
-		"POSS" G 8  { RS_WearBody(); A_BruisAttack(); }
-		Goto See;
-	Pain:
-		"POSS" H 2 { RS_WearBody(); }
-		"POSS" H 2  { RS_WearBody(); A_Pain(); }
-		Goto See;
-	Death:
-		"POSS" I 8 { RS_WearBody(); }
-		"POSS" J 8  { RS_WearBody(); A_Scream(); }
-		"POSS" K 8 { RS_WearBody(); }
-		"POSS" L 8  { RS_WearBody(); A_NoBlocking(); }
-		"POSS" MN 8 { RS_WearBody(); }
-		"POSS" N -1  { RS_WearBody(); A_BossDeath(); }
-		Stop;
-	Raise:
-		"POSS" NMLKJI 8 { RS_WearBody(); }
-		Goto See;
-	}
-}
+// Thin family-group shells. Their old shared "POSS"-literal state
+// blocks were the skin-system bug -- every state advance re-baked a
+// zombieman frame over whatever body the monster was supposed to wear.
+// Bodies now live in each family's own per-tier clusters; these
+// classes remain only as grouping points for shared mechanics and
+// `is`-checks, inheriting the base dispatchers unchanged.
+class RS_HumanMonster : RS_MonsterMaster abstract {}
+class RS_DemonBase   : RS_MonsterMaster abstract {}
+class RS_KnightBase  : RS_MonsterMaster abstract {}

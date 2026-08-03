@@ -249,6 +249,25 @@ class TFLV_WeaponInfo : Object play {
 
     if (upgrade) {
       upgrades.AddUpgrade(upgrade).OnActivate(stats, self);
+
+      // RS GRAFT (rs_11): promoted picks land +1. On a promoted weapon,
+      // every slate-affix pick advances one extra level -- new affixes
+      // enter at L2, re-picks jump 2 -- CAPPED at L5: the bonus never
+      // carries into level 6, Mastery is always a deliberate 6th pick.
+      // Flat +1 regardless of promotion count (scaling is a tuning
+      // dial, deliberately not v1). This replaced the bundle-card idea.
+      let rsw = RS_Weapon(wpn);
+      if (rsw && rsw.PromotionCount > 0
+          && upgrade is "TFLV_Upgrade_RS_SlateBase") {
+        string cls = upgrade.GetClassName() .. "";
+        if (upgrades.Level(cls) < 5) {
+          upgrades.AddUpgrade(
+            TFLV_Upgrade_BaseUpgrade(new(upgrade.GetClassName()))
+          ).OnActivate(stats, self);
+          wpn.owner.A_Log("Promoted weapon: the pick lands +1.", true);
+        }
+      }
+
       wpn.owner.A_Log(string.format(
           StringTable.Localize("$TFLV_MSG_WEAPON_LEVELUP"),
           wpn.GetTag(), upgrade.GetName()),

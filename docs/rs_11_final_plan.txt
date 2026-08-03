@@ -146,3 +146,33 @@ THE PHASES
   F  the deferred systematic review pass, on the owner's word.
 
 ================================================================================
+
+CANDIDATE POOL EXPANSION (owner's order: "roll up even more" -- strike
+freely; each line notes which rolled stat it amplifies [A:] -- the
+audit's identity/amplifier tests pre-applied, four-point on demand)
+================================================================================
+  CULL THE WEAK    +dmg vs enemies under 30% HP          [A: damage -- execution range scales with it]
+  OPENING SHOT     +crit vs full-health enemies           [A: crit -- ambushes reward the roll]
+  POINT BLANK      close-range kills refund 1 ammo        [A: capacity/economy]
+  LONG HAUL        accuracy climbs while holding fire     [A: accuracy -- patience compounds the roll]
+  HAIR TRIGGER     cadence-overshoot penalty halved       [A: RoF -- outpacing the beat costs less]
+  COLD BLOOD       standing still 1s+: +crit              [A: crit; VR body-play]
+  RUN AND GUN      moving: spread penalty inverted        [A: accuracy; COLD BLOOD's opposite -- exclusion pair]
+  BOTTOM OF THE MAG  last 25% of magazine hits harder     [A: capacity -- big mags get a longer power band]
+  TOP SHELF        first 25% of magazine +accuracy        [A: capacity, opposite end -- exclusion pair with above]
+  BIT MAGNET       kills pull their bits to you           [neutral QoL; passes identity trivially]
+  BLOOD PRICE      backfires damage Condition, not you    [A: condition -- the wear system as a shield]
+  FIELD STRIP      reloading a full mag: short +dmg window [A: reload/capacity -- active-reload flavor]
+  WARRANTY         Condition cannot drop below 30         [A: condition -- floor, never fuel; pairs vs WABI-SABI]
+  GRUDGE           your hits mark; your later shots +5% vs marked [A: RoF -- fast guns stack focus faster]
+  COUP DE GRACE    point-blank shots vs pained enemies auto-crit [A: crit + painchance interplay]
+  DEEP POCKETS     +reserve ammo capacity                  [neutral; economy]
+  SCATTERSONG      (shotgun-family) choke oscillates with cadence -- fire on the beat for the tight cone [A: choke + RoF; needs the Tell to be learnable]
+  DEAD AIR         the second shot of any pair is cleaner: fire-pause-fire-fire, shot 3 +acc [A: accuracy + cadence rhythm]
+  QUARTERTIME      every 4th consecutive on-beat shot: free crit [A: crit + cadence; Metronome's big sibling -- maybe merge]
+  IRONCLAD ROUNDS  rounds can't be deflected/reflected (future-proofs vs REFLECTIVE monsters -- they exist in the bin) [neutral defense]
+  Dual-wield (QUARANTINE lane, one-way flow only, prototyped LAST):
+  CROSSFIRE        kills by one hand briefly buff the other (one-way)
+  SOUTHPAW         offhand inherits this gun's affixes at half strength
+  TWIN LINK        both hands same archetype: faster spread recovery
+================================================================================

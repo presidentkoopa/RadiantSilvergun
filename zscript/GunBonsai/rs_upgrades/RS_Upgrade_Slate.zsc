@@ -45,6 +45,32 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 		return wpn && wpn.GunBonaiSockets > 0;
 	}
 
+	// SOCKETS = BREADTH CAP (rs_11, owner's law): the number of DISTINCT
+	// affixes a weapon holds may not exceed its sockets (1 Common .. 5
+	// Prototype). Re-picking a held affix -- leveling it -- never costs
+	// a socket: sockets gate NEW identities, levels are free depth.
+	static int DistinctAffixCount(TFLV_WeaponInfo info)
+	{
+		int n = 0;
+		for (int i = 0; i < info.upgrades.upgrades.Size(); i++)
+		{
+			let u = info.upgrades.upgrades[i];
+			if (u.level > 0 && u is "TFLV_Upgrade_RS_SlateBase")
+				n++;
+		}
+		return n;
+	}
+
+	// The one gate every slate affix's IsSuitableForWeapon leads with:
+	// sockets exist, AND either this affix is already held (leveling is
+	// always allowed) or a socket is free for a new identity.
+	static bool CanTake(RS_Weapon wpn, TFLV_WeaponInfo info, string myClass)
+	{
+		if (!HasSockets(wpn)) return false;
+		if (info.upgrades.Level(myClass) > 0) return true;
+		return DistinctAffixCount(info) < wpn.GunBonaiSockets;
+	}
+
 	void ApplyLeveled(RS_Weapon wpn)
 	{
 		// Reconstruct, don't accumulate: strip every value this family
@@ -113,7 +139,7 @@ class TFLV_Upgrade_RS_Splitter : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return HasSockets(wpn)
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Splitter")
 			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HITSCAN))
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Slugger") == 0
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Splitter") < 6;
@@ -143,7 +169,7 @@ class TFLV_Upgrade_RS_Slugger : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return HasSockets(wpn)
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Slugger")
 			&& wpn.PelletCount >= 2
 			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HITSCAN))
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Splitter") == 0
@@ -175,7 +201,7 @@ class TFLV_Upgrade_RS_Overcharged : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		if (!HasSockets(wpn)) return false;
+		if (!CanTake(wpn, info, "TFLV_Upgrade_RS_Overcharged")) return false;
 		let slot = wpn.GetSlot(0);
 		let beat = slot ? slot.PeekAt(0) : null;
 		return beat
@@ -207,7 +233,7 @@ class TFLV_Upgrade_RS_Giant : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return HasSockets(wpn)
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Giant")
 			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HEAVY))
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Giant") < 6;
 	}
@@ -238,7 +264,7 @@ class TFLV_Upgrade_RS_Seeker : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return HasSockets(wpn)
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Seeker")
 			&& (wpn.HasBeatMode(RS_ATK_BULLET) || wpn.HasBeatMode(RS_ATK_HEAVY))
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Seeker") < 6;
 	}
@@ -269,7 +295,7 @@ class TFLV_Upgrade_RS_Ghost : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return HasSockets(wpn)
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Ghost")
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Ghost") < 6;
 	}
@@ -282,7 +308,7 @@ class TFLV_Upgrade_RS_Ghost : TFLV_Upgrade_RS_SlateBase
 // forever. Levels: +3% damage each, identity-first. Mastery: impacts
 // ignite the ground.
 // ---------------------------------------------------------------------
-class TFLV_Upgrade_RS_Painter : TFLV_Upgrade_RS_SlateBase
+class TFLV_Upgrade_RS_Cacospit : TFLV_Upgrade_RS_SlateBase
 {
 	// -1 = not yet rolled. Rolled exactly once per upgrade instance --
 	// GB persists this object for the weapon's whole life, so the
@@ -309,9 +335,9 @@ class TFLV_Upgrade_RS_Painter : TFLV_Upgrade_RS_SlateBase
 		if (WardrobeRoll < 0 || WardrobeRoll > 1)
 			WardrobeRoll = Random(0, 1);
 		wpn.AffixProjectile = (WardrobeRoll == 0)
-			? (Class<Actor>)("RS_AffixFireWisp")
-			: (Class<Actor>)("RS_AffixFireEmber");
-		wpn.AffixFireSound = "hq_dsfirsht";
+			? (Class<Actor>)("RS_AffixCacoBall")
+			: (Class<Actor>)("RS_AffixFireWisp");
+		wpn.AffixFireSound = "caco/attack";
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
@@ -321,25 +347,25 @@ class TFLV_Upgrade_RS_Painter : TFLV_Upgrade_RS_SlateBase
 		// impossible, but deactivation stays polite anyway. Explicit
 		// class-lookup casts: Class<Actor> == string is not a reliable
 		// comparison in this engine.
-		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixFireWisp")
-			|| wpn.AffixProjectile == (Class<Actor>)("RS_AffixFireEmber"))
+		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixCacoBall")
+			|| wpn.AffixProjectile == (Class<Actor>)("RS_AffixFireWisp"))
 			wpn.AffixProjectile = null;
-		if (wpn.AffixFireSound == "hq_dsfirsht")
+		if (wpn.AffixFireSound == "caco/attack")
 			wpn.AffixFireSound = "";
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return HasSockets(wpn)
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Cacospit")
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") == 0
-			&& info.upgrades.Level("TFLV_Upgrade_RS_Cryo") == 0
-			&& info.upgrades.Level("TFLV_Upgrade_RS_Painter") < 6;
+			&& info.upgrades.Level("TFLV_Upgrade_RS_PainOrb") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Cacospit") < 6;
 	}
 
 	// Fresh roll if this affix is ever re-taken after a Promotion strip.
-	TFLV_Upgrade_RS_Painter Init()
+	TFLV_Upgrade_RS_Cacospit Init()
 	{
 		WardrobeRoll = -1;
 		return self;
@@ -387,23 +413,25 @@ class TFLV_Upgrade_RS_Bonecaller : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return HasSockets(wpn)
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Bonecaller")
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
-			&& info.upgrades.Level("TFLV_Upgrade_RS_Painter") == 0
-			&& info.upgrades.Level("TFLV_Upgrade_RS_Cryo") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Cacospit") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_PainOrb") == 0
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") < 6;
 	}
 }
 
 // ---------------------------------------------------------------------
-// 09 CRYO -- second element identity. Rounds become imported CH ice
-// shards (+6% damage per level); the price is real chambered rounds:
-// -1 Capacity per 2 levels, restored to the last point on removal.
-// Mastery: the round becomes the bouncing ice orb -- the first
-// plain-Actor part, and the first bounce any player round has ever
-// been allowed (FastProjectile can't; this isn't one).
+// 09 PAIN ORB -- Monster Signature (the elemental "Cryo" is dead;
+// this is its plumbing re-aimed). The Pain Elemental's bouncing ice
+// orb -- ITS OWN sourced part (RS_IceOrbCyanAra, pe_projectiles) --
+// as your round, bouncing from LEVEL 1 because the bounce IS the
+// identity (first plain-Actor player round; FastProjectile can't
+// bounce). +6% dmg/lvl; the price is real chambered rounds: -1
+// Capacity per 2 levels, restored exactly on removal. MASTERY: the
+// orb grows, bounces six times, and shatters into a shard spray.
 // ---------------------------------------------------------------------
-class TFLV_Upgrade_RS_Cryo : TFLV_Upgrade_RS_SlateBase
+class TFLV_Upgrade_RS_PainOrb : TFLV_Upgrade_RS_SlateBase
 {
 	// Exactly how much Capacity we are currently holding -- restored
 	// before every re-apply and on deactivate, so level changes can
@@ -428,8 +456,8 @@ class TFLV_Upgrade_RS_Cryo : TFLV_Upgrade_RS_SlateBase
 	override void ExtraActivate(RS_Weapon wpn)
 	{
 		wpn.AffixProjectile = (level >= 6)
-			? (Class<Actor>)("RS_AffixIceOrb")
-			: (Class<Actor>)("RS_AffixIceShard");
+			? (Class<Actor>)("RS_AffixPainOrbMaster")
+			: (Class<Actor>)("RS_AffixIceOrb");
 		wpn.AffixFireSound = "rs_fx_ice_cast";
 
 		// The price: heavier rounds, fewer chambered. Restore-then-apply
@@ -442,8 +470,8 @@ class TFLV_Upgrade_RS_Cryo : TFLV_Upgrade_RS_SlateBase
 
 	override void ExtraDeactivate(RS_Weapon wpn)
 	{
-		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixIceShard")
-			|| wpn.AffixProjectile == (Class<Actor>)("RS_AffixIceOrb"))
+		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixIceOrb")
+			|| wpn.AffixProjectile == (Class<Actor>)("RS_AffixPainOrbMaster"))
 			wpn.AffixProjectile = null;
 		if (wpn.AffixFireSound == "rs_fx_ice_cast")
 			wpn.AffixFireSound = "";
@@ -454,11 +482,11 @@ class TFLV_Upgrade_RS_Cryo : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		return HasSockets(wpn)
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_PainOrb")
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
-			&& info.upgrades.Level("TFLV_Upgrade_RS_Painter") == 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Cacospit") == 0
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") == 0
-			&& info.upgrades.Level("TFLV_Upgrade_RS_Cryo") < 6;
+			&& info.upgrades.Level("TFLV_Upgrade_RS_PainOrb") < 6;
 	}
 }
 
@@ -494,14 +522,24 @@ class TFLV_Upgrade_RS_Echo : TFLV_Upgrade_RS_SlateBase
 
 		// Reconstruct the whole rotation from scratch each activation --
 		// idempotent at any level, no drift.
+		//
+		// AUDIT REWORK (rs_11, identity test): the old echo was a FREE
+		// fixed cluster beat -- it ignored the Capacity roll and played
+		// identically on every gun. The echo is now YOUR OWN SHOT,
+		// DOUBLED: two full-damage rounds of this gun's own profile, at
+		// DOUBLE ammo cost. (multi's 0.5x2 wash x the 2.0 DamageMult =
+		// two rounds at full damage each.) Capacity and ammo economy
+		// matter MORE with Echo, not less; an SSG's echo and an SMG's
+		// echo are now entirely different beasts because the roll is.
 		int n = (level >= 6) ? 2 : max(3, 8 - int(level));
 		slot.Clear();
 		slot.Append(SavedOriginal);
 		slot.PadTo(n, SavedOriginal);
 
 		let echo = SavedOriginal.Clone();
-		echo.AmmoCost = 0;
-		echo.GrantLocal("payload", "cluster");
+		echo.AmmoCost = SavedOriginal.AmmoCost * 2;
+		echo.DamageMult *= 2.0;
+		echo.GrantLocal("payload", "multi");
 		echo.ProfileName = "Echo";
 		slot.Replace(n - 1, echo);
 		slot.ResetCursor();
@@ -520,7 +558,7 @@ class TFLV_Upgrade_RS_Echo : TFLV_Upgrade_RS_SlateBase
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
 	{
 		let wpn = RS_Weapon(info.wpn);
-		if (!HasSockets(wpn)) return false;
+		if (!CanTake(wpn, info, "TFLV_Upgrade_RS_Echo")) return false;
 		let slot = wpn.GetSlot(0);
 		let beat = slot ? slot.PeekAt(0) : null;
 		if (!beat) return false;

@@ -268,3 +268,89 @@ class RS_AffixIceOrb : RS_AffixPartActor
 		Stop;
 	}
 }
+
+// ---------------------------------------------------------------------
+// CACOSPIT (Monster Signature) -- the Cacodemon's own bile ball,
+// weapon-grade. Vanilla BAL2 sprite + vanilla caco sounds: zero asset
+// risk. Wardrobe family A for TFLV_Upgrade_RS_Cacospit (family B is
+// the RSI1 hell-wisp above).
+// ---------------------------------------------------------------------
+class RS_AffixCacoBall : RS_BallisticFired
+{
+	Default
+	{
+		DamageType "Fire";
+		RenderStyle "Add";
+		Alpha 0.95;
+		Scale 0.55;
+		DeathSound "caco/shotx";
+		+BRIGHT
+	}
+	States
+	{
+	Spawn:
+		BAL2 AB 4 Bright;
+		Loop;
+	Death:
+		TNT1 A 0 A_PlaySound("caco/shotx", CHAN_AUTO);
+		BAL2 C 4 Bright
+		{
+			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
+			Spawn(puff, pos);
+			if (ImpactSpawnExtra) Spawn(ImpactSpawnExtra, pos);
+		}
+		BAL2 DE 4 Bright;
+		Stop;
+	}
+}
+
+// ---------------------------------------------------------------------
+// PAIN ORB Mastery round -- the orb grown up: bigger, six bounces,
+// and a three-shard spray when it finally shatters. Spray shards are
+// the fixed-damage subclass below, NOT full rolled rounds -- the
+// orb's own rolled damage already paid out on the direct hit.
+// ---------------------------------------------------------------------
+class RS_AffixIceShardSpray : RS_AffixIceShard
+{
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		// Fixed modest damage; without this the engine's random(1,8)
+		// would multiply the class's fallback Damage unpredictably.
+		SetDamage(8);
+		ExactDamage = 8;
+	}
+}
+
+class RS_AffixPainOrbMaster : RS_AffixIceOrb
+{
+	Default
+	{
+		Scale 1.6;
+		Radius 12;
+		Height 12;
+		BounceCount 6;
+	}
+	States
+	{
+	Death:
+		TNT1 A 0 A_PlaySound("rs_fx_ice_shatter", CHAN_AUTO);
+		ICEY F 3 Bright
+		{
+			A_Explode(24, 112, 0, false);
+			for (int i = 0; i < 3; i++)
+			{
+				let s = Spawn("RS_AffixIceShardSpray", pos + (0, 0, 8));
+				if (s)
+				{
+					s.angle = angle + 120 * i;
+					s.VelFromAngle(18);
+					s.vel.z = frandom(2, 5);
+					s.master = master;
+				}
+			}
+		}
+		ICEY GHI 3 Bright;
+		Stop;
+	}
+}

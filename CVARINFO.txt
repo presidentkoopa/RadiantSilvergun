@@ -218,3 +218,6 @@ server int rs_ui_offer_override = 0;
 // Gold Bit weight in the kill-reward ratio pool (currency for card-
 // picker rerolls; SetPieces later).
 server int rs_bits_ratio_gold = 8;
+// The Tell: per-archetype ready-to-fire beep (rs_11). Audio-only by
+// design -- VR 3D models, nothing drawn on weapons.
+user bool rs_tell_enable = true;
