@@ -1,0 +1,217 @@
+================================================================================
+     RS UNIFIED UI SPEC -- Phase 1 draft for owner markup. NO CODE YET.
+================================================================================
+Purpose: the one-shot plan for the mod's whole menu layer. Owner marks this
+doc up in chat; Phase 2 builds it in a single pass; Phase 3 is one boot, one
+punch-list, one fix batch. Nothing here is built until the owner approves.
+
+DESIGN LAW (applies to every screen)
+================================================================================
+L1. FULLSCREEN NATIVE MENUS ONLY. Every screen is a GZDoom OptionMenu
+    descendant -- the MAINMENU/options style the owner likes, VR-proven.
+    No custom Screen-draw framework, no HUD overlays. Concretely: every
+    screen extends TFLV_Menu_GenericMenu (dynamic item building via
+    PushText/PushKeyValueText + tooltips -- already boots in this repo).
+L2. THE HAND LAW. Up/Down navigates/adjusts MAINHAND things; Left/Right
+    navigates/adjusts OFFHAND things. Established by the offhand fork;
+    every new screen obeys it. Where a screen is single-subject (a card
+    pick for one weapon), Up/Down selects and Left/Right is unused.
+L3. ONE CYCLE BIND. The existing GB bind (default I, "gboh-unified-info")
+    remains the single entry point, cycling: OFFHAND sheet -> MAINHAND
+    sheet -> PLAYER sheet -> close. Pending level-ups do NOT auto-open
+    menus (unchanged GB behavior); they glow on the status sheets.
+L4. ONE VISUAL LANGUAGE. Shared header/footer helpers: title line in
+    gold, section rules in white dashes, RS tier colors used EVERYWHERE
+    a tier is shown (one color per EVR_Tier, defined once):
+      Cursed=dark red  Trash=brown  Basic=grey  Common=white
+      Uncommon=green   Advanced=blue  Designer=purple  Prototype=gold
+    Mastery anything = orange, always.
+L5. ESC NEVER PUNISHES. Backing out of any screen just closes it.
+    (CHANGE from stock GB: reject-with-XP-loss is removed -- a banked
+    level-up simply stays banked. Owner veto if the punishment is wanted.)
+
+SCREEN MAP
+================================================================================
+                         [I] cycle bind
+   S1 OFFHAND WEAPON SHEET -> S2 MAINHAND WEAPON SHEET -> S3 PLAYER SHEET -> close
+
+   From S1/S2, when that weapon has banked level-ups:
+        [Confirm on "LEVEL UP!"] -> S4 CARD PICKER (that weapon)
+   From S1/S2, when that weapon is Prototype tier:
+        [Confirm on "PROMOTE"]   -> S5 PROMOTION CONFIRM (stub until
+                                     promotion trigger exists)
+   From S1/S2, when weapon has a cursed/locked stat AND player has bits:
+        [Confirm on that stat]   -> S6 CURSE & REPAIR (stub v1)
+
+S1/S2 -- WEAPON SHEET (offhand and mainhand are the same screen, different
+         subject; title says which hand)
+================================================================================
+  ------------------------------------------------------------------
+                     MAINHAND -- VR REVOLVER                [gold]
+                  Tier: PROTOTYPE          [tier color, L4]
+   ..............................................................
+   LEVEL 7        XP 3410 / 8400            >> LEVEL UP! (2) <<
+                                            [orange glow if banked]
+   ..............................................................
+   ROLLED                          LIVE
+    Damage/Shot     29              29    (ceiling 52)  [dim if capped]
+    Accuracy        84              84
+    Velocity        8200            8200
+    Crit            4.5%            4.5%
+    Capacity        7               5     [-2 Cryo]     [red note]
+    Pellets         1               1
+    Condition       82%                   [band color: green/yel/red]
+   ..............................................................
+   AFFIXES  (sockets 3/5)                   [socket count = tier, L4]
+    > Seeker          Lv 3   [cycles 3 victims]
+    > Cryo            Lv 4   [ice rounds, -2 cap]
+    > Overcharged     Lv 5   [MASTERY NEXT]    [orange, L4]
+   ..............................................................
+   PROMOTION COUNT  2        [ > PROMOTE -- available at Prototype ]
+   ..............................................................
+   [I] next sheet   [Up/Dn] select   [Confirm] open   [Esc] close
+  ------------------------------------------------------------------
+  Notes:
+  * ROLLED vs LIVE split: rolled is the stat as rolled; LIVE folds in
+    curse locks, affix prices (Cryo capacity), promotion cuts. The
+    player finally SEES what their gun actually is.
+  * "LEVEL UP! (n)" row only exists when n>0. Confirm opens S4. Each
+    pick consumes one; row updates in place.
+  * Affix rows: tooltip (L1 machinery) shows the full workshop text for
+    that affix at its current level. "MASTERY NEXT" tag when Lv 5.
+  * Existing GB toggle/tune (left/right arrows on an upgrade row in the
+    stock unified display) is REMOVED from weapon sheets -- it fights
+    the Hand Law. Tuning moves to a tooltip note ("hold Confirm to
+    disable" -- owner call, see OPEN QUESTIONS Q3).
+  * The offhand sheet is identical with OFFHAND in the title. KNOWN BUG
+    to fix in passing: stock OffhandStatusDisplay pushes offhand rows
+    with bag_index 2 but the net handlers treat nonzero as mainhand --
+    toggling an offhand upgrade toggles the mainhand one. Phase 2
+    fixes this regardless of Q3's answer.
+
+S3 -- PLAYER SHEET
+================================================================================
+  Stock GB player status (level/XP/player upgrades), reskinned with the
+  shared header/footer only. No new features v1. Player-scope affixes
+  aren't in the slate yet; this screen just stops looking foreign.
+
+S4 -- CARD PICKER (the big one; per weapon, consumes one banked level-up)
+================================================================================
+  ------------------------------------------------------------------
+                 VR REVOLVER -- CHOOSE UPGRADE  (2 banked)     [gold]
+   ..............................................................
+
+     > SEEKER            Lv 3 -> 4      [affix, white]
+         rounds cycle one more victim (-5% dmg)
+
+     > OVERCHARGED       Lv 5 -> MASTERY: FOCUS   [orange, L4]
+         first shot after a pause fires clean
+
+     > DAMAGE +3         (stat card)     [green]
+         permanent. ceiling 52.
+
+     > CRYO              NEW  Lv 1       [affix, white]
+         rounds become ice. -0 cap at Lv1.
+
+   ..............................................................
+   [Up/Dn] select   [Confirm] take   [Esc] keep for later
+  ------------------------------------------------------------------
+  Notes:
+  * The offer rows are whatever the (future-wired) registry deals: affix
+    cards from the slate, stat cards once they exist as upgrades.
+    The picker RENDERS the offer; it never invents one. v1 ships against
+    the slate's ten + stock GB offer flow (choices=4 cvar).
+  * Every row's tooltip = that affix's workshop sheet text for the level
+    being offered (Mastery rows show the Mastery text).
+  * Mastery rows get the orange treatment + "MASTERY:" prefix. This is
+    the visible "6th pick is special" moment.
+  * Esc = keep for later (L5). The banked count persists; the sheet's
+    LEVEL UP row keeps glowing.
+  * Multi-bank flow: after a pick, if banked remains, the picker
+    REOPENS with a fresh offer (stock GB behavior preserved).
+
+S5 -- PROMOTION CONFIRM (build the screen, wire it DISABLED)
+================================================================================
+  ------------------------------------------------------------------
+                  PROMOTE VR REVOLVER?                    [gold]
+   ..............................................................
+   You will LOSE:                 You will GAIN:
+    all affixes (3)                +1 pellet, permanent
+    -20% all rolled stats          faster re-leveling (XP -15%/promo)
+    tier -> BASIC (0 sockets)      higher damage ceiling
+                                   promotion count 2 -> 3
+   ..............................................................
+   RISK: promotion curse rolls: 3 x 15%          [red, if enabled]
+   ..............................................................
+   [Confirm] PROMOTE     [Esc] not today
+  ------------------------------------------------------------------
+  Promotion has NO in-game trigger yet (Promote() has zero callers --
+  verified). The screen ships rendering real data but its Confirm is
+  disabled with a "not wired yet" footer until the promotion-trigger
+  design lands. Getting the screen in now means the trigger work later
+  is one netevent, not a UI project.
+
+S6 -- CURSE & REPAIR (stub v1)
+================================================================================
+  Lists locked stats (with curse keyword flavor when the curse list
+  exists) and Condition, against the player's Curse/Grey Bit counts.
+  Confirm on a row spends bits (UnlockStat / RepairWithGreyBits -- both
+  already exist and work, they just have no caller). v1 ships the
+  screen fully working for REPAIR (grey bits are real drops today) and
+  stubs curse-lifting behind the same disabled-footer pattern as S5
+  (curse system itself is stubbed off).
+
+IMPLEMENTATION BASES (Phase 2 reads this as its checklist)
+================================================================================
+  All screens:      class extends TFLV_Menu_GenericMenu; declared in
+                    MENUDEF as OptionMenu blocks (pattern: MENUDEF:333-360)
+  Cycle bind:       existing "gboh-unified-info" netevent + KEYCONF bind;
+                    handler's cycle order adjusted to S1->S2->S3
+  S1/S2:            new RS_Menu_WeaponSheet (subject = hand), replacing
+                    TFLV_Menu_UnifiedStatusDisplay in the cycle; reads
+                    RS_Weapon fields directly (tier/condition/promotion/
+                    rolled stats) + TFLV_WeaponInfo (XP/level/upgrades)
+  S4:               new RS_Menu_CardPicker extending the stock
+                    WeaponLevelUpMenu flow (UpgradeGiver/AwaitChoice
+                    netevents unchanged -- ONLY presentation changes).
+                    The <=1-candidate auto-install stays (harmless; with
+                    ten cards registered the menu will exist in practice).
+                    Reject-XP-penalty removed per L5 (owner veto -> keep).
+  S5/S6:            new RS_Menu_PromotionConfirm / RS_Menu_CurseRepair,
+                    opened from sheet rows via new rs_ui_* netevents in
+                    a small RS_UIHandler (EventHandler, registered in
+                    MAPINFO like RS_MonsterDebug -- the proven pattern)
+  LANGUAGE:         all strings in LANGUAGE.rs_ui (new lump); the ten
+                    affix names/descs land in LANGUAGE.rs_affixes at the
+                    same time (they were held with the cards)
+  Tier colors:      one static helper (RS_UIStyle) -- single source for
+                    L4's palette, used by every screen
+  Go-live wiring:   S4 is what finally justifies registering the ten
+                    cards: #include Slate in upgrades/main.zsc + BONSAIRC
+                    entries ship IN THE SAME COMMIT as the picker.
+
+PHASE 3 PROTOCOL (agreed)
+================================================================================
+  One boot. Owner walks S1->S2->S3->S4 (level something up), opens S5/S6
+  stubs, then sends ONE list of everything wrong (screenshots welcome).
+  One fix batch. Done.
+
+OPEN QUESTIONS FOR MARKUP (answer any, ignore the rest)
+================================================================================
+  Q1. Cycle order: OFFHAND first (as specced, matches stock GB) or
+      MAINHAND first?
+  Q2. L5 (Esc never punishes / no XP loss on skipping a pick): confirm
+      or keep stock GB's punishment?
+  Q3. Upgrade disable/tune (stock GB feature): drop it from v1 sheets
+      entirely (my rec -- it fights the Hand Law and promotion-strip
+      makes it niche), or keep it somewhere?
+  Q4. Card picker offer size stays 4 (stock cvar), or widen to 5 now
+      that ten cards exist?
+  Q5. Stat cards ("DAM +3"): v1 ships picker WITHOUT them (offer = the
+      ten affixes only) and stat cards come with the promotion-magnitude
+      work later -- OR I build 3-4 basic stat cards now so the picker
+      always has a safe choice? (My rec: build 4 basic ones now --
+      Damage/Accuracy/Capacity/Crit -- ceiling-capped per rs_01.)
+  Q6. Anything you want ON the sheets that isn't specced? (Keywords
+      line? Palette archetype? GunBonsai XP bar as a bar?)
+================================================================================
