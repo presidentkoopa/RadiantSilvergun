@@ -1,4 +1,10 @@
 #include "zscript/GunBonsai/upgrades/BaseUpgrade.zsc"
+
+// RS-authored, archetype-flavored affixes -- not vendored content. See
+// rs_upgrades/RS_Upgrade_TwinBarrel.zsc's header for why this is a
+// separate folder from everything else in this manifest.
+#include "zscript/GunBonsai/rs_upgrades/RS_Upgrade_TwinBarrel.zsc"
+#include "zscript/GunBonsai/rs_upgrades/RS_Upgrade_Assembled.zsc"
 #include "zscript/GunBonsai/upgrades/Dot.zsc"
 #include "zscript/GunBonsai/upgrades/ElementalUpgrade.zsc"
 #include "zscript/GunBonsai/upgrades/Registry.zsc"

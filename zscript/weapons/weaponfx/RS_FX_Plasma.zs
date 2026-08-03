@@ -151,3 +151,38 @@ class RS_PlasmaRailFlare : RS_BlueFlarePlasmaTrail
 		Stop;
 	}
 }
+
+// Impact splash -- standalone, spawn-and-forget, no damage of its own
+// (the hit is already resolved by whatever spawned it). Read through
+// RS_Catalog.PLASMA_Splash()/PLASMA_SplashAlt(). Sprites (RSP1/RSP5)
+// were already renamed and filed under sprites/combatfx/plasma/ during
+// an earlier combat-FX pass, but nothing referenced them until now.
+class RS_PlasmaSplash : Actor
+{
+	Default
+	{
+		+NOINTERACTION
+		+NOGRAVITY
+		+NOBLOCKMAP
+		+CLIENTSIDEONLY
+		RenderStyle "Add";
+		Alpha 0.9;
+		Scale 0.35;
+	}
+	States
+	{
+	Spawn:
+		RSP1 "ABCDE" 2 Bright;
+		Stop;
+	}
+}
+
+class RS_PlasmaSplashAlt : RS_PlasmaSplash
+{
+	States
+	{
+	Spawn:
+		RSP5 "ABCDEF" 2 Bright;
+		Stop;
+	}
+}

@@ -24,8 +24,95 @@ version "4.14"
 #include "zscript/systems/RS_Catalog.zs"
 #include "zscript/systems/RS_Keywords.zs"
 
+// Predictive-lead-fire utility (ZScript port of the useful half of CH's
+// ACS gold, see RS_MonsterAim.zs's header). Standalone -- not called by
+// anything yet.
+#include "zscript/systems/RS_MonsterAim.zs"
+
+// --- Monsters ---
+// RS_MonsterMaster: the monster-side parallel of RS_Weapon. Owns tier,
+// the per-tier body-sprite/TRNSLATE table, the per-tier attack slot,
+// and the shared behaviour primitives (summon-with-cap, threshold
+// enrage, timed pulse, orbit-attach, morph). Also owns the three
+// per-family base classes (RS_HumanMonster / RS_DemonBase /
+// RS_KnightBase) used below.
+#include "zscript/monsters/RS_MonsterMaster.zs"
+
+// Monster parts bin -- summon rosters, satellites, portals, morph
+// stages, monster projectiles. Same job RS_Catalog.zs does for weapons
+// and the same rule: no monster file names a raw class inline.
+#include "zscript/systems/RS_MonsterCatalog.zs"
+
+// Monster attack components (474 catalogued projectiles, one file per
+// family) -- extracted per docs/catalog_notes.txt so monster attacks
+// can be recombined rather than hardcoded per monster. Sprite refs
+// verified against ART SOURCE/IWAD; three inherited broken references
+// corrected on import (noted in-file).
+#include "zscript/monsters/monsterfx/RS_dk_shared.zs"
+#include "zscript/monsters/monsterfx/RS_human_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_imp_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_demon_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_spectre_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_lostsoul_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_caco_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_pe_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_baron_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_hk_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_rev_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_manc_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_arach_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_archvile_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_spidermind_projectiles.zs"
+#include "zscript/monsters/monsterfx/RS_cyberdemon_projectiles.zs"
+
+// One file per monster (not grouped by family) -- CHP-behaviour work
+// coming next will add real weight per monster (summons, orbiting
+// adds, death chains), and a shared file gets unreadable fast once
+// that lands. Sprites and TRNSLATE names verified against Colourful
+// Hell's own decorate and against ART SOURCE.
+#include "zscript/monsters/RS_Zombieman.zs"
+#include "zscript/monsters/RS_Shotgunner.zs"
+#include "zscript/monsters/RS_Chaingunner.zs"
+#include "zscript/monsters/RS_Imp.zs"
+#include "zscript/monsters/RS_Demon.zs"
+#include "zscript/monsters/RS_Spectre.zs"
+#include "zscript/monsters/RS_LostSoul.zs"
+#include "zscript/monsters/RS_Cacodemon.zs"
+#include "zscript/monsters/RS_PainElemental.zs"
+#include "zscript/monsters/RS_Baron.zs"
+#include "zscript/monsters/RS_HellKnight.zs"
+#include "zscript/monsters/RS_Revenant.zs"
+#include "zscript/monsters/RS_Mancubus.zs"
+#include "zscript/monsters/RS_Arachnotron.zs"
+#include "zscript/monsters/RS_Archvile.zs"
+
+// Summoned monsters. Real RS_MonsterMaster monsters (they carry a tier
+// and can be retiered), deliberately not throwaway actors -- see the
+// file header. Excluded from the level kill count.
+#include "zscript/monsters/RS_Minions.zs"
+
+// Debug: spawn the whole roster as a grid (family x tier) and push live
+// monsters between tiers to watch the staggered transform.
+#include "zscript/systems/RS_MonsterDebug.zs"
+
+// Archetype -> eligible Catalog slice, the fence PACK assembly reads so
+// a Shotgun stays a Shotgun instead of pooling the entire Catalog flat.
+#include "zscript/systems/RS_FamilyPalette.zs"
+
+// Granted-keyword -> live shot multipliers. The generic resolver: an
+// affix's whole job becomes wpn.GrantKeyword(...), A_RS_FireSlot reads
+// this every shot. See the file header for exactly what's real.
+#include "zscript/systems/RS_KeywordEffects.zs"
+
 // Weapon tempaltes moved here for file organization
 #include "zscript/weapons/RS_Weapon.zs"
+
+// The parts bin for AFFIXES (not attacks) plus the generator that
+// assembles them -- picks eligible ingredients, tracks a running power
+// cost, never lets a bundle net positive. Must load after RS_Weapon.zs
+// (RS_AffixIngredient.IsEligible reads wpn.GetPaletteArchetype()).
+#include "zscript/systems/RS_AffixIngredients.zs"
+#include "zscript/systems/RS_AffixGenerator.zs"
 
 // --- RS set (original Dual_Class weapons, basically our main focus for the 'game') ---
 #include "zscript/weapons/rs_weapon/RS_Fist.zs"
@@ -90,6 +177,9 @@ version "4.14"
 #include "zscript/weapons/weaponfx/RS_FX_BFG.zs"
 #include "zscript/weapons/weaponfx/RS_FX_MuzzleLight.zs"
 #include "zscript/weapons/weaponfx/RS_FX_Casings.zs"
+#include "zscript/weapons/weaponfx/RS_FX_Explosions.zs"
+#include "zscript/weapons/weaponfx/RS_FX_Flares.zs"
+#include "zscript/weapons/weaponfx/RS_FX_Fire.zs"
 #include "zscript/weapons/weaponfx/RS_FX_HiFiFX.zs"
 
 // --- GunBonsai (offhand-aware fork) -- weapon leveling/upgrade system.

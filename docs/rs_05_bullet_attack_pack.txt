@@ -1,0 +1,57 @@
+================================================================================
+                    BULLET ATTACK -- PACK INGREDIENT LIST
+================================================================================
+
+Every Bullet-mode attack profile (RS_AttackProfile, RS_ATK_BULLET) is built
+from 8 required ingredients. "Required" means every one of the 8 should be a
+deliberate choice, not a gap -- not that null can't technically occur.
+
+    Bullet       (in-flight visual)   -- ProjectileClass
+    Casing                            -- CasingClass
+    Muzzleflash                       -- BigMuzzle
+    Barrel Smoke                      -- MuzzleSmoke
+    Firing Sound                      -- FireSound
+    Puff         (impact)             -- ImpactPuff
+    ImpactFX     (impact sparks)      -- ImpactSparks
+    FancyVisual  (in-flight trail)    -- Trail
+
+--------------------------------------------------------------------------------
+NULL IS A SAFETY NET, NOT A DESIGN CHOICE
+--------------------------------------------------------------------------------
+
+Four of the eight already can't go truly empty -- the existing fallback chain
+always resolves them to something real:
+    Bullet      -> RS_BallisticType1
+    Puff        -> PUFF_Bullet
+    ImpactFX    -> SPARK_Hit
+    FancyVisual -> TRAIL_Ballistic
+
+The other four CAN currently end up genuinely empty, and that's the real gap:
+    Casing        -- "" today means no casing ejected at all
+    Barrel Smoke  -- null today means no smoke at all
+    Firing Sound  -- unset today means a silent weapon
+    Muzzleflash   -- false is a real "off" state, not just a missing value
+
+Nothing here needs a validator. Null still exists specifically to prevent
+crashes on an incomplete profile. The actual rule is a design one: a
+well-formed attack -- hand-authored or generated -- fills in real, intentional
+values across all 8. Leaning on every default at once produces something
+technically safe but hollow, not a real weapon.
+
+--------------------------------------------------------------------------------
+OTHER MODES, FOR CONTEXT (not the 8-item floor above -- each mode is its own,
+smaller shape)
+--------------------------------------------------------------------------------
+
+Heavy (Rocket/Plasma/BFG)  -- 3 catalog slots: Projectile, Fire Sound,
+                               ExplosionVisual. No puff/spark/smoke/trail/
+                               casing -- "impact IS the explosion," baked into
+                               the projectile class itself, not swappable
+                               per-shot the way Bullet mode is.
+
+Melee                      -- 2 catalog slots: Fire Sound, Melee Puff.
+
+Hitscan                    -- 1 catalog slot: Fire Sound. Puff currently
+                               falls back to the literal vanilla "bulletpuff"
+                               string rather than RS_Catalog.PUFF_Bullet() --
+                               a real, small inconsistency, not fixed here.

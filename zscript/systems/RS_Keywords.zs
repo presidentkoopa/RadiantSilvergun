@@ -60,7 +60,12 @@ class RS_Keywords
 			|| key == "grip" || key == "delivery" || key == "payload"
 			|| key == "behavior" || key == "element" || key == "feed"
 			|| key == "sockets" || key == "reserve" || key == "promotion"
-			|| key == "curse" || key == "characteristic";
+			|| key == "curse" || key == "characteristic"
+			// monster-side keys -- see RS_MonsterKeywordIndex.zs. Shared
+			// parser/validator, not forked, same as "set"/"delivery"/
+			// "payload"/"element" above being reused by both domains.
+			|| key == "species" || key == "role" || key == "mobility"
+			|| key == "trait";
 	}
 
 	// Debug-only typo check, gated on rs_debug_validate_keywords (off by

@@ -52,6 +52,30 @@ class RS_KillRewardsHandler : EventHandler
 		if (!a.bIsMonster || IsBlacklisted(a.GetClassName()))
 			return;
 
+		// --- RS monster payout policy --------------------------------
+		// This gate lives HERE, not on the monster: deciding what pays
+		// out is this system's job, and a monster shouldn't know the
+		// loot system exists. RS_MonsterMaster only reports facts about
+		// itself; the rules below are ours to change.
+		//
+		// Two cases must not pay out today:
+		//   * summoned minions -- a summoner that respawns its pack
+		//     would be an infinite bit farm, and the Pain Elemental's
+		//     escort is explicitly designed to respawn forever;
+		//   * transient boss stages -- a body that morphs into the next
+		//     stage hasn't really died, so the payout waits for the end
+		//     of the chain.
+		//
+		// If either should later pay REDUCED bits rather than none,
+		// that change belongs in this block.
+		//
+		// (Note the check above gates on bIsMonster only and never
+		// looked at bCOUNTKILL, which is why both cases paid out before
+		// this existed.)
+		let rsmon = RS_MonsterMaster(a);
+		if (rsmon && (rsmon.IsSummonedMinion() || rsmon.IsTransientStage()))
+			return;
+
 		int bossMult = CVar.GetCVar("rs_bits_boss_mult", null).GetInt();
 		int mode = CVar.GetCVar("rs_bits_mode", null).GetInt();
 		int mult = a.bBoss ? bossMult : 1;

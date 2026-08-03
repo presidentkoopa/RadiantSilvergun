@@ -44,6 +44,17 @@ const RS_ATK_HEAVY   = 1;   // one explosive/energy round (Rocket/Plasma/BFG)
 const RS_ATK_MELEE   = 2;   // short-range hit, no projectile
 const RS_ATK_HITSCAN = 3;   // instant A_FireBullets trace (chaingun)
 
+// --- Monster-side modes ---------------------------------------------
+// Monsters need verbs weapons don't have. Added to the SAME enum rather
+// than forked into a parallel type because RS_AttackProfile.Clone()
+// hardcodes new("RS_AttackProfile") and PadTo() calls it -- a subclass
+// would silently slice every time an upgrade padded a rotation. The
+// weapon dispatch ignores modes it doesn't handle, so weapons are
+// unaffected by these existing.
+const RS_ATK_SUMMON   = 4;  // spawn minions, capped by live pack size
+const RS_ATK_RADIAL   = 5;  // radius effect -- damage enemies or buff allies
+const RS_ATK_SELFBUFF = 6;  // temporary self stat spike
+
 class RS_AttackProfile : Object
 {
 	// --- What this attack is ---
@@ -99,21 +110,107 @@ class RS_AttackProfile : Object
 	// RS_BallisticFired's Death: state and Tick()) -- every existing
 	// weapon that doesn't set these keeps firing exactly as it does
 	// today. Set one to actually override it. Heavy-mode profiles don't
-	// use these: their impact IS the explosion, already fully catalogued
-	// per projectile class.
+	// use these (their impact damage/splash is already fully catalogued
+	// per projectile class) except ExplosionVisual below, which is
+	// purely cosmetic.
 	Class<Actor> ImpactPuff;
 	Class<Actor> ImpactSparks;
 	Class<Actor> MuzzleSmoke;
 	// In-flight trail piece (bullet-mode only, not hitscan -- hitscan has
 	// no flight to trail). null = RS_Catalog.TRAIL_Ballistic().
 	Class<Actor> Trail;
+	// Heavy-mode only. Cosmetic blast visual spawned alongside a heavy
+	// projectile's own A_Explode -- swaps the LOOK of the detonation,
+	// never its damage/splash radius. null = the projectile class's own
+	// default (see RS_EnhancedRocket.ExplosionVisual). Not every heavy
+	// projectile class reads this yet -- see RS_FX_HeavyProjectiles.zs.
+	Class<Actor> ExplosionVisual;
 
 	// --- Melee only ---
 	double MeleeRange;
 	Class<Actor> MeleePuff;
 
+	// --- Volley shape (monster-side, but deliberately generic) --------
+	// Colourful Hell's signature move is the ring burst: 12, 24, 36
+	// projectiles fired at once in a fan or a full circle. Expressing
+	// that as data rather than as thirty hand-written A_CustomMissile
+	// lines is the whole reason this layer exists.
+	//   VolleyCount 1            -> a single shot (the default)
+	//   VolleyCount 8, Arc 0     -> 8 shots straight ahead (a burst)
+	//   VolleyCount 8, Arc 90    -> 8 shots spread across a 90-degree fan
+	//   VolleyCount 36, Arc 360  -> a full ring
+	// Nothing weapon-side sets these, so weapons keep firing exactly as
+	// they do today.
+	int    VolleyCount;
+	double VolleyArc;
+	double VolleyPitchJitter;   // degrees of vertical scatter, 0 = flat
+
+	// --- Summon mode --------------------------------------------------
+	// Class comes from RS_MonsterCatalog, never named inline.
+	Class<Actor> SummonClass;
+	int SummonCount;        // how many per cast
+	int SummonCap;          // refuse to cast if this many are already live
+	int SummonTierOffset;   // relative to the summoner's own tier
+
+	// --- Radial mode --------------------------------------------------
+	// One shape, two uses: damage enemies, or buff/heal allies. CHP does
+	// both off the same A_RadiusGive idiom, so they share a mode.
+	double RadialRadius;
+	int    RadialDamage;      // 0 with RadialHeal set = pure support
+	int    RadialHeal;        // healed to allies rather than damage
+	bool   RadialHitsAllies;  // false = enemies only (the usual case)
+
+	// --- Self-buff mode -----------------------------------------------
+	double BuffSpeedMult;
+	double BuffDamageMult;
+	int    BuffDuration;      // tics
+	bool   BuffNoPain;
+
 	// Display name for menus/upgrade cards. Optional.
 	string ProfileName;
+
+	// Per-BEAT granted keywords -- same shape and format as
+	// RS_Weapon.GrantedKeywords, but scoped to this one profile instead
+	// of the whole weapon. This is what lets rotation entry 2 behave
+	// differently from entry 4 (e.g. "beat 2 is homing, beat 4 is a
+	// delayed explosive") instead of a grant applying to every shot
+	// regardless of which beat is up. RS_KeywordEffects reads the union
+	// of the weapon's own grants and whichever profile is actually
+	// firing.
+	Array<string> LocalKeywords;
+
+	// Idempotent, same reasoning as RS_Weapon.GrantKeyword -- an affix's
+	// OnActivate can be called more than once without an intervening
+	// OnDeactivate.
+	void GrantLocal(string key, string value)
+	{
+		string entry = key .. ":" .. value;
+		for (int i = 0; i < LocalKeywords.Size(); i++)
+			if (LocalKeywords[i] == entry)
+				return;
+		LocalKeywords.Push(entry);
+	}
+
+	void UngrantLocal(string key, string value)
+	{
+		string entry = key .. ":" .. value;
+		for (int i = 0; i < LocalKeywords.Size(); i++)
+		{
+			if (LocalKeywords[i] == entry)
+			{
+				LocalKeywords.Delete(i);
+				return;
+			}
+		}
+	}
+
+	void GetLocalValues(string key, out Array<string> results)
+	{
+		string prefix = key .. ":";
+		for (int i = 0; i < LocalKeywords.Size(); i++)
+			if (LocalKeywords[i].Left(prefix.Length()) == prefix)
+				results.Push(LocalKeywords[i].Mid(prefix.Length()));
+	}
 
 	// -----------------------------------------------------------------
 	// Factories. Authoring a profile is one call, not eight assignments
@@ -137,6 +234,24 @@ class RS_AttackProfile : Object
 		AmmoCost      = 0;
 		BigMuzzle     = false;
 		MeleeRange    = 64.0;
+		// Monster-side neutral defaults. VolleyCount 1 means every
+		// existing weapon profile keeps firing exactly one shot's worth
+		// of whatever its mode already did -- these fields are inert
+		// unless a monster factory sets them.
+		VolleyCount       = 1;
+		VolleyArc         = 0.0;
+		VolleyPitchJitter = 0.0;
+		SummonCount       = 0;
+		SummonCap         = 0;
+		SummonTierOffset  = -2;
+		RadialRadius      = 0.0;
+		RadialDamage      = 0;
+		RadialHeal        = 0;
+		RadialHitsAllies  = false;
+		BuffSpeedMult     = 1.0;
+		BuffDamageMult    = 1.0;
+		BuffDuration      = 0;
+		BuffNoPain        = false;
 	}
 
 	// Travelling-round volley -- the main-arsenal ballistic path.
@@ -214,7 +329,8 @@ class RS_AttackProfile : Object
 		bool bigMuzzle = true,
 		double spawnHeight = 0.0,
 		double dmgMult = 1.0,
-		string profName = "")
+		string profName = "",
+		Class<Actor> explosionVisual = null)
 	{
 		let p = RS_AttackProfile(new("RS_AttackProfile"));
 		p.InitDefaults();
@@ -227,6 +343,7 @@ class RS_AttackProfile : Object
 		p.SpawnHeight     = spawnHeight;
 		p.DamageMult      = dmgMult;
 		p.ProfileName     = profName;
+		p.ExplosionVisual = explosionVisual;
 		return p;
 	}
 
@@ -247,6 +364,105 @@ class RS_AttackProfile : Object
 		p.BigMuzzle   = bigMuzzle;
 		p.DamageMult  = dmgMult;
 		p.ProfileName = profName;
+		return p;
+	}
+
+	// -----------------------------------------------------------------
+	// MONSTER-SIDE FACTORIES
+	// -----------------------------------------------------------------
+	// Same authoring style as the weapon factories above: one call, and
+	// a half-specified profile still does something safe. These exist so
+	// a monster's attack table reads as data -- "ring of 24 fireballs",
+	// "summon two, cap four" -- instead of a wall of state code.
+	// -----------------------------------------------------------------
+
+	// A projectile volley. The workhorse: covers a single fireball, a
+	// 3-shot spread, and a 36-shot ring with the same three arguments.
+	static RS_AttackProfile MakeVolley(
+		Class<Actor> proj,
+		int count = 1,
+		double arc = 0.0,
+		sound fireSnd = "",
+		double dmgMult = 1.0,
+		double pitchJitter = 0.0,
+		string profName = "")
+	{
+		let p = RS_AttackProfile(new("RS_AttackProfile"));
+		p.InitDefaults();
+		p.Mode              = RS_ATK_HEAVY;   // travels as a real projectile
+		p.ProjectileClass   = proj;
+		p.VolleyCount       = max(1, count);
+		p.VolleyArc         = arc;
+		p.VolleyPitchJitter = pitchJitter;
+		p.FireSound         = fireSnd;
+		p.DamageMult        = dmgMult;
+		p.ProfileName       = profName;
+		return p;
+	}
+
+	// Spawn minions. cap is a LIVE-pack cap, not a lifetime budget --
+	// kill the pack and the summoner can rebuild it, which is what makes
+	// a summoner fight a sustained threat rather than a burst.
+	static RS_AttackProfile MakeSummon(
+		Class<Actor> summonCls,
+		int count = 2,
+		int cap = 4,
+		int tierOffset = -2,
+		sound fireSnd = "",
+		string profName = "")
+	{
+		let p = RS_AttackProfile(new("RS_AttackProfile"));
+		p.InitDefaults();
+		p.Mode             = RS_ATK_SUMMON;
+		p.SummonClass      = summonCls;
+		p.SummonCount      = max(1, count);
+		p.SummonCap        = max(1, cap);
+		p.SummonTierOffset = tierOffset;
+		p.FireSound        = fireSnd;
+		p.ProfileName      = profName;
+		return p;
+	}
+
+	// Radius effect. Damage enemies, or heal/buff allies, or both.
+	static RS_AttackProfile MakeRadial(
+		double radius = 256.0,
+		int damage = 0,
+		int heal = 0,
+		bool hitsAllies = false,
+		sound fireSnd = "",
+		string profName = "")
+	{
+		let p = RS_AttackProfile(new("RS_AttackProfile"));
+		p.InitDefaults();
+		p.Mode             = RS_ATK_RADIAL;
+		p.RadialRadius     = radius;
+		p.RadialDamage     = damage;
+		p.RadialHeal       = heal;
+		p.RadialHitsAllies = hitsAllies;
+		p.FireSound        = fireSnd;
+		p.ProfileName      = profName;
+		return p;
+	}
+
+	// Temporary self stat spike. Reverts itself -- see
+	// RS_MonsterMaster.PulseStats.
+	static RS_AttackProfile MakeSelfBuff(
+		double speedMult = 1.5,
+		double damageMult = 1.0,
+		int duration = 105,
+		bool noPain = false,
+		sound fireSnd = "",
+		string profName = "")
+	{
+		let p = RS_AttackProfile(new("RS_AttackProfile"));
+		p.InitDefaults();
+		p.Mode           = RS_ATK_SELFBUFF;
+		p.BuffSpeedMult  = speedMult;
+		p.BuffDamageMult = damageMult;
+		p.BuffDuration   = duration;
+		p.BuffNoPain     = noPain;
+		p.FireSound      = fireSnd;
+		p.ProfileName    = profName;
 		return p;
 	}
 
@@ -276,9 +492,27 @@ class RS_AttackProfile : Object
 		p.ImpactSparks    = ImpactSparks;
 		p.MuzzleSmoke     = MuzzleSmoke;
 		p.Trail           = Trail;
+		p.ExplosionVisual = ExplosionVisual;
 		p.MeleeRange      = MeleeRange;
 		p.MeleePuff       = MeleePuff;
+		p.VolleyCount     = VolleyCount;
+		p.VolleyArc       = VolleyArc;
+		p.VolleyPitchJitter = VolleyPitchJitter;
+		p.SummonClass     = SummonClass;
+		p.SummonCount     = SummonCount;
+		p.SummonCap       = SummonCap;
+		p.SummonTierOffset = SummonTierOffset;
+		p.RadialRadius    = RadialRadius;
+		p.RadialDamage    = RadialDamage;
+		p.RadialHeal      = RadialHeal;
+		p.RadialHitsAllies = RadialHitsAllies;
+		p.BuffSpeedMult   = BuffSpeedMult;
+		p.BuffDamageMult  = BuffDamageMult;
+		p.BuffDuration    = BuffDuration;
+		p.BuffNoPain      = BuffNoPain;
 		p.ProfileName     = ProfileName;
+		for (int i = 0; i < LocalKeywords.Size(); i++)
+			p.LocalKeywords.Push(LocalKeywords[i]);
 		return p;
 	}
 }

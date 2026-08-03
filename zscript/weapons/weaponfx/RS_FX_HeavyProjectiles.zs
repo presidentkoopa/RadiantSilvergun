@@ -49,10 +49,34 @@ class RS_EnhancedRocket : Rocket replaces Rocket
 	int trailTimer;
 	int RolledDamage;
 	double ShotCritChance;
+	// Cosmetic only -- swaps the blast's look, never its damage/splash
+	// radius (that's still SplashDamage() below via A_Explode). null
+	// until PostBeginPlay fills in the Catalog default, or an
+	// AttackProfile's own ExplosionVisual overrides it in
+	// RS_Weapon.RS_FireProfileHeavy.
+	Class<Actor> ExplosionVisual;
+
+	// Set by RS_Weapon.RS_FireProfileHeavy at spawn time when
+	// RS_ShotKeywordMods.Resolve found "behavior:homing" granted --
+	// same trigger and same A_SeekerMissile call as RS_BallisticFired.
+	// Real difference worth flagging: this class is a plain Rocket, NOT
+	// FastProjectile. A_SeekerMissile doesn't care about that (it just
+	// turns the actor's velocity vector every tic), but the turn math
+	// interacts with travel speed, and Rocket's speed/tic is nothing like
+	// a FastProjectile's -- don't assume the bullet-mode feel carries over
+	// unplaytested.
+	bool Homing;
 
 	// Vanilla Rocket: Damage 20, A_Explode(128, 128) on death.
 	const VANILLA_DIRECT = 20;
 	const VANILLA_SPLASH = 128;
+
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		if (!ExplosionVisual)
+			ExplosionVisual = RS_Catalog.EXPLOSION_Fireball();
+	}
 
 	void SetupStats(int finalDamage, double critChance)
 	{
@@ -74,6 +98,8 @@ class RS_EnhancedRocket : Rocket replaces Rocket
 	override void Tick()
 	{
 		Super.Tick();
+		if (Homing)
+			A_SeekerMissile(6, 10, SMF_LOOK);
 		if (RS_HiFiFX.Tier() == RS_HiFiFX.RSFX_OFF)
 			return;
 		if (++trailTimer >= 3)
@@ -86,9 +112,12 @@ class RS_EnhancedRocket : Rocket replaces Rocket
 	States
 	{
 	Death:
-		MISL B 8 Bright A_Explode(SplashDamage(), VANILLA_SPLASH);
-		MISL C 6 Bright;
-		MISL D 4 Bright;
+		// The rocket itself goes invisible on death -- the fireball is a
+		// separate, independently-swappable actor (ExplosionVisual), not
+		// this class's own sprite. Same 0-tic spawn-frame idiom already
+		// used throughout RS_FX_Plasma.zs/RS_FX_BFG.zs.
+		TNT1 A 0 A_Explode(SplashDamage(), VANILLA_SPLASH);
+		TNT1 A 0 A_SpawnItemEx(ExplosionVisual, 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
 		Stop;
 	}
 }
@@ -98,6 +127,25 @@ class RS_EnhancedPlasmaBall : PlasmaBall replaces PlasmaBall
 	int trailTimer;
 	int RolledDamage;
 	double ShotCritChance;
+	Class<Actor> ExplosionVisual;
+
+	// Set by RS_Weapon.RS_FireProfileHeavy at spawn time when
+	// RS_ShotKeywordMods.Resolve found "behavior:homing" granted --
+	// same trigger and same A_SeekerMissile call as RS_BallisticFired.
+	// Real difference worth flagging: this class is a plain PlasmaBall,
+	// NOT FastProjectile. A_SeekerMissile doesn't care about that (it just
+	// turns the actor's velocity vector every tic), but the turn math
+	// interacts with travel speed, and PlasmaBall's speed/tic is nothing
+	// like a FastProjectile's -- don't assume the bullet-mode feel carries
+	// over unplaytested.
+	bool Homing;
+
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		if (!ExplosionVisual)
+			ExplosionVisual = RS_Catalog.PLASMA_Splash();
+	}
 
 	void SetupStats(int finalDamage, double critChance)
 	{
@@ -109,6 +157,8 @@ class RS_EnhancedPlasmaBall : PlasmaBall replaces PlasmaBall
 	override void Tick()
 	{
 		Super.Tick();
+		if (Homing)
+			A_SeekerMissile(6, 10, SMF_LOOK);
 		if (RS_HiFiFX.Tier() == RS_HiFiFX.RSFX_OFF)
 			return;
 		if (++trailTimer >= 2)
@@ -117,6 +167,17 @@ class RS_EnhancedPlasmaBall : PlasmaBall replaces PlasmaBall
 			Spawn("RS_BlueFlarePlasmaTrail", Pos, NO_REPLACE);
 		}
 	}
+
+	States
+	{
+	Death:
+		// Vanilla PlasmaBall has no splash call to preserve (direct-hit
+		// only), so a full override is safe. DeathSound still plays --
+		// that's the engine's own missile-death handling reading the
+		// Default block, not anything in this state.
+		TNT1 A 0 A_SpawnItemEx(ExplosionVisual, 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		Stop;
+	}
 }
 
 class RS_EnhancedBFGBall : BFGBall replaces BFGBall
@@ -124,6 +185,25 @@ class RS_EnhancedBFGBall : BFGBall replaces BFGBall
 	int trailTimer;
 	int RolledDamage;
 	double ShotCritChance;
+	Class<Actor> ExplosionVisual;
+
+	// Set by RS_Weapon.RS_FireProfileHeavy at spawn time when
+	// RS_ShotKeywordMods.Resolve found "behavior:homing" granted --
+	// same trigger and same A_SeekerMissile call as RS_BallisticFired.
+	// Real difference worth flagging: this class is a plain BFGBall, NOT
+	// FastProjectile. A_SeekerMissile doesn't care about that (it just
+	// turns the actor's velocity vector every tic), but the turn math
+	// interacts with travel speed, and BFGBall's speed/tic is nothing like
+	// a FastProjectile's -- don't assume the bullet-mode feel carries over
+	// unplaytested.
+	bool Homing;
+
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		if (!ExplosionVisual)
+			ExplosionVisual = RS_Catalog.EXPLOSION_FireballAlt();
+	}
 
 	void SetupStats(int finalDamage, double critChance)
 	{
@@ -135,6 +215,8 @@ class RS_EnhancedBFGBall : BFGBall replaces BFGBall
 	override void Tick()
 	{
 		Super.Tick();
+		if (Homing)
+			A_SeekerMissile(6, 10, SMF_LOOK);
 		if (RS_HiFiFX.Tier() == RS_HiFiFX.RSFX_OFF)
 			return;
 		if (++trailTimer >= 2)
@@ -142,5 +224,19 @@ class RS_EnhancedBFGBall : BFGBall replaces BFGBall
 			trailTimer = 0;
 			Spawn("RS_BFGTrail", Pos, NO_REPLACE);
 		}
+	}
+
+	States
+	{
+	Death:
+		// A_BFGSpray is the real damage/ray mechanic -- kept exactly as
+		// vanilla, on its original frame. RS_EnhancedBFGExtra/
+		// RS_BFGRailPuff (RS_FX_BFG.zs) already give each ray hit its own
+		// green-plasma flourish; this only adds a detonation-point visual
+		// alongside the untouched spray.
+		BFE1 A 8 Bright A_BFGSpray;
+		TNT1 A 0 A_SpawnItemEx(ExplosionVisual, 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		BFE1 BCDEF 8 Bright;
+		Stop;
 	}
 }

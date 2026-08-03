@@ -1,4 +1,12 @@
 [en default]
+// RS-authored, archetype-flavored affixes (zscript/GunBonsai/rs_upgrades/).
+TFLV_Upgrade_RS_TwinBarrel_Name = "Twin Barrel";
+TFLV_Upgrade_RS_TwinBarrel_Desc = "Every shot fires as a paired burst -- same total damage, split across two rounds instead of one.";
+TFLV_Upgrade_RS_TwinBarrel_TT = "Pellets per shot @pellet-mult, damage per pellet @dmg-mult. Same total output -- wider coverage against groups, less focused burst against one target.";
+
+TFLV_Upgrade_RS_Assembled_Name = "Assembled Modification";
+TFLV_Upgrade_RS_Assembled_Desc = "A combination of effects assembled specifically for this weapon -- every trade is real, none of it is free. Check the weapon's actual behavior after taking it.";
+
 TFLV_Upgrade_AggressiveDefence_Name = "Aggressive Defence";
 TFLV_Upgrade_AggressiveDefence_Desc = "Attacks destroy enemy projectiles near the target";
 TFLV_Upgrade_AggressiveDefence_TT = "Attacking an enemy destroys all enemy-owned projectiles within @radius of the target, @pct-bonus per point of damage dealt. Killing the target adds +50% radius for that shot.";

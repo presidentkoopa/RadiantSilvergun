@@ -161,45 +161,17 @@ class RS_DebugGive : EventHandler
 		// any category whose toggle is off.
 		let cur = wpn.GetSlot(which) ? wpn.GetSlot(which).PeekAt(0) : null;
 
-		// Only real RS_BallisticFired-derived projectiles -- the Heavy-mode
-		// ones (Rocket/PlasmaBall/BFGBall/GH shots/grenades) used to be
-		// mixed in here, which silently produced a broken profile: cast to
-		// RS_BallisticFired failed in RS_FireProfileBullet, so the pick
-		// would spawn with none of SetupStats' damage/velocity/crit scaling
-		// and no GunBonsai master pointer. They now live in their own pool
-		// -- see RandomHeavyProfile.
-		Array<Class<Actor> > projPool;
-		projPool.Push(RS_Catalog.PROJ_Ballistic());
-		projPool.Push(RS_Catalog.PROJ_RailBolt());
-		projPool.Push(RS_Catalog.PROJ_RailBoltStraight());
-		projPool.Push(RS_Catalog.PROJ_GH_FlameJet());
-
-		Array<sound> sndPool;
-		sndPool.Push(RS_Catalog.SND_Pistol());
-		sndPool.Push(RS_Catalog.SND_Revolver());
-		sndPool.Push(RS_Catalog.SND_Rifle());
-		sndPool.Push(RS_Catalog.SND_Shotgun());
-		sndPool.Push(RS_Catalog.SND_RocketLauncher());
-		sndPool.Push(RS_Catalog.SND_PlasmaRifle());
-		sndPool.Push(RS_Catalog.SND_GH_Railgun());
-		sndPool.Push(RS_Catalog.SND_GH_Unmaker());
-		sndPool.Push(RS_Catalog.SND_GH_BFG9000());
-		sndPool.Push(RS_Catalog.SND_GH_Flamethrower());
-		sndPool.Push(RS_Catalog.SND_GH_Minigun());
-
-		// Player Feedback layer -- same random-assembly treatment as the
-		// Data (via dmgMult) and Audiovisual (proj/fireSnd) layers above.
-		// Only visibly affects picks that actually spawn an
-		// RS_BallisticFired (PROJ_Ballistic/GH_RailBolt/RailBoltStraight/
-		// FlameJet in the pool above) -- the Heavy-class picks mixed into
-		// this pool (Rocket/PlasmaBall/BFGBall/etc.) aren't
-		// RS_BallisticFired and never were; that's a pre-existing quirk
-		// of this debug tool's pool, not something this change fixes.
-		Array<Class<Actor> > puffPool;
-		puffPool.Push(RS_Catalog.PUFF_Bullet());
-		puffPool.Push(RS_Catalog.PUFF_Shot());
-		puffPool.Push(RS_Catalog.PUFF_Chainsaw());
-		puffPool.Push(RS_Catalog.PUFF_Vanilla());
+		// Fenced by RS_FamilyPalette, keyed on this weapon's own archetype
+		// + Tier -- a Shotgun stays shotgun-shaped instead of pooling the
+		// whole Catalog flat. Spark/Trail stay unfenced below: cosmetic
+		// garnish, not archetype-defining, so full variety there doesn't
+		// hurt "family stays family."
+		string archetype = wpn.GetPaletteArchetype();
+		Array<Class<Actor> > projPool = RS_FamilyPalette.BulletProjectiles(archetype, wpn.Tier);
+		Array<sound> sndPool = RS_FamilyPalette.BulletSounds(archetype, wpn.Tier);
+		Array<Class<Actor> > puffPool = RS_FamilyPalette.BulletPuffs(archetype, wpn.Tier);
+		Array<string> casingPool = RS_FamilyPalette.BulletCasings(archetype, wpn.Tier);
+		casingPool.Push(""); // no casing ejected -- always an option regardless of archetype
 
 		Array<Class<Actor> > sparkPool;
 		sparkPool.Push(RS_Catalog.SPARK_Hit());
@@ -212,11 +184,8 @@ class RS_DebugGive : EventHandler
 		Array<Class<Actor> > trailPool;
 		trailPool.Push(RS_Catalog.TRAIL_Ballistic());
 
-		Array<string> casingPool;
-		casingPool.Push(RS_Catalog.CASING_Small());
-		casingPool.Push(RS_Catalog.CASING_Rifle());
-		casingPool.Push(RS_Catalog.CASING_Shell());
-		casingPool.Push(""); // no casing ejected
+		int pelletMin, pelletMax;
+		RS_FamilyPalette.BulletPelletRange(archetype, wpn.Tier, pelletMin, pelletMax);
 
 		Class<Actor> proj = DebugToggle("rs_debugrandom_projectile")
 			? projPool[Random(0, projPool.Size() - 1)]
@@ -285,8 +254,13 @@ class RS_DebugGive : EventHandler
 
 		if (DebugToggle("rs_debugrandom_pellets"))
 		{
-			if (Random(0, 2) == 0)
-				p.PelletOverride = Random(2, 6);
+			// pelletMin==pelletMax==1 for non-pellet archetypes -- leave
+			// PelletOverride at its InitDefaults() value of 0 (0 = "use
+			// the weapon's own real PelletCount") rather than forcing it
+			// to a literal 1, which would freeze out any Condition-driven
+			// pellet bonus.
+			if (pelletMax > pelletMin)
+				p.PelletOverride = Random(pelletMin, pelletMax);
 		}
 		else if (cur)
 		{
@@ -327,27 +301,13 @@ class RS_DebugGive : EventHandler
 
 		let cur = wpn.GetSlot(which) ? wpn.GetSlot(which).PeekAt(0) : null;
 
-		Array<Class<Actor> > projPool;
-		projPool.Push(RS_Catalog.PROJ_Rocket());
-		projPool.Push(RS_Catalog.PROJ_PlasmaBall());
-		projPool.Push(RS_Catalog.PROJ_BFGBall());
-		projPool.Push(RS_Catalog.PROJ_GH_BFGShot());
-		projPool.Push(RS_Catalog.PROJ_GH_PlasmaShot());
-		projPool.Push(RS_Catalog.PROJ_GH_UnmakerShot());
-		projPool.Push(RS_Catalog.PROJ_GrenadeLaunched());
-		projPool.Push(RS_Catalog.PROJ_GrenadeThrown());
-
-		Array<sound> sndPool;
-		sndPool.Push(RS_Catalog.SND_RocketLauncher());
-		sndPool.Push(RS_Catalog.SND_PlasmaRifle());
-		sndPool.Push(RS_Catalog.SND_BFG9000());
-		sndPool.Push(RS_Catalog.SND_GH_RocketLauncher());
-		sndPool.Push(RS_Catalog.SND_GH_Plasma());
-		sndPool.Push(RS_Catalog.SND_GH_BFG9000());
-		sndPool.Push(RS_Catalog.SND_GH_BFG10k());
-		sndPool.Push(RS_Catalog.SND_GH_Unmaker());
-		sndPool.Push(RS_Catalog.SND_GH_GrenadeLauncher());
-		sndPool.Push(RS_Catalog.SND_GH_HandGrenade());
+		// Fenced by RS_FamilyPalette -- a Rocket Launcher (archetype:
+		// launcher) only rolls launcher-shaped projectiles, not a BFG
+		// ball. Unmapped archetypes fall back to the full pool (see the
+		// palette file's own comment).
+		string archetype = wpn.GetPaletteArchetype();
+		Array<Class<Actor> > projPool = RS_FamilyPalette.HeavyProjectiles(archetype, wpn.Tier);
+		Array<sound> sndPool = RS_FamilyPalette.HeavySounds(archetype, wpn.Tier);
 
 		Class<Actor> proj = DebugToggle("rs_debugrandomheavy_projectile")
 			? projPool[Random(0, projPool.Size() - 1)]
@@ -370,6 +330,16 @@ class RS_DebugGive : EventHandler
 		// AmmoClass deliberately not randomized -- same softlock risk as
 		// the Bullet version. Always inherits the weapon's own AmmoType2.
 
+		// Cosmetic-only, also fenced by archetype -- energy weapons stay
+		// plasma-splash colored rather than rolling a fireball. Only
+		// RS_EnhancedRocket/PlasmaBall/BFGBall actually read
+		// ExplosionVisual (RS_Weapon.RS_FireProfileHeavy); the GH heavy
+		// shots just ignore it.
+		Array<Class<Actor> > explosionPool = RS_FamilyPalette.HeavyExplosionVisuals(archetype, wpn.Tier);
+		Class<Actor> explosionVisual = DebugToggle("rs_debugrandomheavy_explosionvisual")
+			? explosionPool[Random(0, explosionPool.Size() - 1)]
+			: null;
+
 		let p = RS_AttackProfile.MakeHeavy(
 			proj: proj,
 			fireSnd: fireSnd,
@@ -377,15 +347,17 @@ class RS_DebugGive : EventHandler
 			bigMuzzle: bigMuzzle,
 			spawnHeight: spawnHeight,
 			dmgMult: dmgMult,
-			profName: "Debug Random Heavy");
+			profName: "Debug Random Heavy",
+			explosionVisual: explosionVisual);
 
 		p.CritBonus = DebugToggle("rs_debugrandomheavy_critbonus")
 			? FRandom(0.0, 0.2)
 			: (cur ? cur.CritBonus : 0.0);
 
 		wpn.ReplaceProfile(which, 0, p);
-		Console.Printf("RS Debug: %s slot %d (heavy) is now [%s / %s].",
-			wpn.GetTag(), which, proj.GetClassName(), fireSnd);
+		string explosionName = explosionVisual ? explosionVisual.GetClassName().."" : "default";
+		Console.Printf("RS Debug: %s slot %d (heavy) is now [%s / %s / blast:%s].",
+			wpn.GetTag(), which, proj.GetClassName(), fireSnd, explosionName);
 	}
 
 	override void NetworkProcess(ConsoleEvent e)
@@ -396,6 +368,8 @@ class RS_DebugGive : EventHandler
 
 		if (e.Name ~== "rs_debug_random_profile") RandomProfile(plr, 0);
 		else if (e.Name ~== "rs_debug_random_profile_secondary") RandomProfile(plr, 1);
+		else if (e.Name ~== "rs_debug_random_heavy_profile") RandomHeavyProfile(plr, 0);
+		else if (e.Name ~== "rs_debug_random_heavy_profile_secondary") RandomHeavyProfile(plr, 1);
 		else if (e.Name ~== "rs_debug_give_pistol") Family(plr, "VR_Pistol");
 		else if (e.Name ~== "rs_debug_give_revolver") Family(plr, "VR_Revolver");
 		else if (e.Name ~== "rs_debug_give_rifle") Family(plr, "VR_Rifle");

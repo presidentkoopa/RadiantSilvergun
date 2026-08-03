@@ -93,6 +93,18 @@ server int bonsai_bonus_ld_effect_slots = 1;
 server bool bonsai_ignore_gun_rarity = false;
 
 // =====================================================================
+// GunBonsai Affix Mode -- gates the vendored stock upgrade pool
+// (Poison/Explosive/Fragmentation/etc, ~50-60 of them) behind an
+// explicit opt-in. Off by default: RS-authored affixes
+// (zscript/GunBonsai/rs_upgrades/, class prefix TFLV_Upgrade_RS_) are
+// the only pool active now. Turn this on for the classic vendored
+// GunBonsai pool instead -- "sometimes you just wanna play doom."
+// Checked in TFLV_Upgrade_Registry.IsRSAllowed(), the one choke point
+// every upgrade passes through before being offered.
+// =====================================================================
+server bool rs_gb_legacy_affixes = false;
+
+// =====================================================================
 // Kill Rewards (Bits) -- zscript/systems/RS_Bits.zs. Ported from
 // "SoM Universal(ish?) Kill Rewards". Health/Armor/Ammo pickups dropped
 // by monsters on death. See MENUDEF.txt's "Kill Rewards" branch.
@@ -186,3 +198,44 @@ user bool rs_debugrandom_ammocost = true;
 // AmmoClass is deliberately NOT randomized -- could point the profile at
 // ammo the player doesn't have, softlocking the very testing loop this
 // tool exists for. Always inherits the weapon's own AmmoType2 (null).
+
+// =====================================================================
+// Debug: Heavy Attack Pattern -- MENUDEF's RS_DebugHeavyMenu, read by
+// RS_DebugGive.RandomHeavyProfile(). Smaller field set than the Bullet
+// version above -- Heavy profiles have no puff/spark/smoke/trail/
+// pellets/spread/choke/casing, "impact IS the explosion." explosionvisual
+// is the one exception: cosmetic-only blast look (RS_Catalog.EXPLOSION_*/
+// PLASMA_*), independent of the damage/splash math. All default ON.
+// =====================================================================
+user bool rs_debugrandomheavy_projectile = true;
+user bool rs_debugrandomheavy_sound = true;
+user bool rs_debugrandomheavy_bigmuzzle = true;
+user bool rs_debugrandomheavy_dmgmult = true;
+user bool rs_debugrandomheavy_spawnheight = true;
+user bool rs_debugrandomheavy_ammocost = true;
+user bool rs_debugrandomheavy_critbonus = true;
+user bool rs_debugrandomheavy_explosionvisual = true;
+// AmmoClass deliberately not randomized here either -- same softlock
+// risk as the Bullet version.
+
+// =====================================================================
+// MONSTERS -- RS_MonsterMaster
+// =====================================================================
+
+// Retiering mid-fight keeps the monster's health FRACTION rather than
+// full-healing it or leaving it on a sliver.
+user bool rs_mon_retier_preserve_fraction = true;
+
+// The staggered transform. On: a retier picks a short random delay per
+// monster and the monster flashes while it waits, so a roomful changes
+// as a ripple instead of snapping in one frame. Off: instant snap.
+user bool rs_mon_transform_tell = true;
+
+// Debug: which tier "rs_mon_tier_set" pushes everything to, and which
+// family index "rs_mon_zoo_family" lines up (0=Zombieman .. 14=Archvile).
+// Debug spawns: passive (hold the line, safe to study) or hostile
+// (normal monsters that shoot back -- turn god mode on first).
+user bool rs_debug_mon_hostile = false;
+
+user int rs_debug_mon_tier = 0;
+user int rs_debug_mon_family = 0;

@@ -20,9 +20,13 @@ OptionMenu "RS_MainOptions"
 
 	Submenu "Weapon Fidelity Options", "RS_FXSettings"
 	Submenu "Weapon Sound Assignment", "RS_WeaponSoundOptions"
+	Submenu "RS Monster Options", "RS_MonsterOptions"
+	Submenu "Debug: Monsters", "RS_DebugMonsterMenu"
 	Submenu "Debug: Give Weapons", "RS_DebugGiveMenu"
 	Submenu "Debug: Ballistic Attack Pattern", "RS_DebugBallisticMenu"
+	Submenu "Debug: Heavy Attack Pattern", "RS_DebugHeavyMenu"
 	Submenu "$TFLV_OPT_TITLE", "GunBonsaiOptions"
+	Option "GunBonsai: Classic Upgrade Pool", "rs_gb_legacy_affixes", "OnOff"
 	Submenu "Kill Rewards", "RS_BitsSettings"
 	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
 }
@@ -258,6 +262,35 @@ OptionMenu "RS_DebugBallisticMenu"
 	Command "Assign Random Attack Pattern to Secondary Fire", "netevent rs_debug_random_profile_secondary"
 }
 
+// ---------------------------------------------------------------------
+// Debug: Heavy Attack Pattern -- the Rocket/Plasma/BFG-shaped equivalent
+// of the menu above. Smaller field set on purpose: Heavy profiles have
+// no puff/spark/smoke/trail/pellets/spread/choke/casing. Blast Visual
+// is cosmetic-only (RS_Catalog.EXPLOSION_*/PLASMA_*) and doesn't touch
+// damage/splash. See RS_DebugGive.zs (RandomHeavyProfile).
+// ---------------------------------------------------------------------
+OptionMenu "RS_DebugHeavyMenu"
+{
+	Title "Debug: Heavy Attack Pattern"
+	StaticText " "
+	StaticText "Randomize which parts? (unchecked = keep current)"
+	Option "Projectile",         "rs_debugrandomheavy_projectile",     "OnOff"
+	Option "Fire Sound",         "rs_debugrandomheavy_sound",          "OnOff"
+	Option "Big Muzzle Flash",   "rs_debugrandomheavy_bigmuzzle",      "OnOff"
+	Option "Damage Multiplier",  "rs_debugrandomheavy_dmgmult",        "OnOff"
+	Option "Spawn Height",       "rs_debugrandomheavy_spawnheight",    "OnOff"
+	Option "Crit Bonus",         "rs_debugrandomheavy_critbonus",      "OnOff"
+	Option "Ammo Cost",          "rs_debugrandomheavy_ammocost",       "OnOff"
+	Option "Blast Visual",       "rs_debugrandomheavy_explosionvisual","OnOff"
+	StaticText " "
+	StaticText "Not randomized on purpose:"
+	StaticText "Ammo Type (could softlock the gun on ammo you lack)"
+	StaticText "Profile Name (label only, no gameplay effect)"
+	StaticText " "
+	Command "Assign Random Attack Pattern to Primary Fire", "netevent rs_debug_random_heavy_profile"
+	Command "Assign Random Attack Pattern to Secondary Fire", "netevent rs_debug_random_heavy_profile_secondary"
+}
+
 OptionValue "RS_HiFiTierOption"
 {
 	0, "Off"
@@ -441,4 +474,62 @@ OptionMenu "GunBonsaiStatusDisplay"
 OptionMenu "GunBonsaiStatusDisplay"
 {
   Class "TFLV_Menu_UnifiedStatusDisplay"
+}
+
+// ---------------------------------------------------------------------
+// RS Monster Options -- behaviour toggles for RS_MonsterMaster.
+// Defaults keep combat Doom-honest; the toggles are what let the tier
+// system be ambitious without wrecking the baseline feel.
+// ---------------------------------------------------------------------
+OptionMenu "RS_MonsterOptions"
+{
+	Title "RS Monster Options"
+	StaticText " "
+
+	StaticText "Tier Changes", 1
+	Option "Keep health fraction on retier", "rs_mon_retier_preserve_fraction", "OnOff"
+	Option "Staggered transform (flash + delay)",  "rs_mon_transform_tell", "OnOff"
+}
+
+// ---------------------------------------------------------------------
+// Debug: Monsters -- line the whole roster up and push it around.
+// ---------------------------------------------------------------------
+OptionMenu "RS_DebugMonsterMenu"
+{
+	Title "Debug: Monsters"
+	StaticText " "
+
+	Command "God Mode (toggle)", "god"
+	Option  "Spawn them hostile (they shoot back)", "rs_debug_mon_hostile", "OnOff"
+	StaticText " "
+
+	StaticText "Line them up", 1
+	Slider     "Tier to spawn at", "rs_debug_mon_tier", 0, 12, 1, 0
+	Command    "SPAWN ROW -- one of every monster", "netevent rs_mon_line"
+	StaticText " "
+
+	StaticText "See their attacks", 1
+	Command "FIRE -- every monster attacks you now", "netevent rs_mon_attack"
+	StaticText "Works whether they are passive or hostile. Spawn a row at", 2
+	StaticText "one tier, hit FIRE, then tier up and hit FIRE again to", 2
+	StaticText "compare the same monster's attack across tiers.", 2
+	StaticText " "
+
+	StaticText "Change their tier (watch the transition)", 1
+	Command "Tier UP   (+1)", "netevent rs_mon_tier_up"
+	Command "Tier DOWN (-1)", "netevent rs_mon_tier_down"
+	Command "Set all to the tier above", "netevent rs_mon_tier_set"
+	Command "Scramble -- every monster a random tier", "netevent rs_mon_tier_roll"
+	StaticText " "
+	StaticText "Each monster picks its own short delay and flashes while", 2
+	StaticText "it waits, so the change ripples down the row instead of", 2
+	StaticText "snapping all at once. Stats, body and colour all move.", 2
+	StaticText " "
+
+	StaticText "Other spawns", 1
+	Command "Grid -- ALL families x ALL tiers", "netevent rs_mon_zoo"
+	Command "Grid -- ONE family x all tiers",   "netevent rs_mon_zoo_family"
+	Slider  "  which family (0=Zombieman .. 14=Archvile)", "rs_debug_mon_family", 0, 14, 1, 0
+	StaticText " "
+	Command "Remove all RS monsters", "netevent rs_mon_clear"
 }

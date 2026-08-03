@@ -22,6 +22,19 @@ class RS_BallisticFired : FastProjectile
 	Class<Actor> ImpactSparkOverride;
 	Class<Actor> TrailOverride;
 
+	// Set by RS_Weapon.RS_FireProfileBullet at spawn time when
+	// RS_ShotKeywordMods.Resolve found "behavior:homing" granted
+	// (weapon-wide or on this specific rotation beat). Real native
+	// GZDoom seeking, not a custom implementation -- SMF_LOOK means it
+	// acquires its own target instead of needing tracer pre-set, which
+	// is what a player-fired round needs (nothing sets tracer for us).
+	// Flagged, not fully verified: this class extends FastProjectile,
+	// and FastProjectile + A_SeekerMissile is a known-working
+	// combination in other GZDoom mods, but hasn't been playtested here
+	// yet -- confirm turn rate/feel in a real playthrough before
+	// trusting the tuning numbers below.
+	bool Homing;
+
 	Default
 	{
 		Radius 2;
@@ -39,6 +52,8 @@ class RS_BallisticFired : FastProjectile
 	override void Tick()
 	{
 		Super.Tick();
+		if (Homing)
+			A_SeekerMissile(6, 10, SMF_LOOK);
 		if (++ghostTimer >= 2)
 		{
 			ghostTimer = 0;

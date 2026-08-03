@@ -1,0 +1,84 @@
+// =====================================================================
+// TFLV_Upgrade_RS_Assembled -- the actual connection between
+// RS_AffixGenerator and a real, in-game GunBonsai upgrade choice. Every
+// other RS-authored affix so far (Twin Barrel) grants one specific,
+// hand-picked keyword. This one calls RS_AffixGenerator.Generate() and
+// grants WHATEVER bundle comes back -- the "affixes build themselves"
+// piece, made reachable at an actual level-up screen.
+//
+// The one real design problem this had to solve: OnActivate MUST BE
+// IDEMPOTENT (BaseUpgrade.zsc's own documented requirement -- can be
+// called again without an intervening OnDeactivate, e.g. on weapon
+// reselect). If it called Generate() fresh every time, the player would
+// get a DIFFERENT random bundle every time they switched weapons. Fixed
+// by generating exactly once and caching the result on this instance --
+// every subsequent OnActivate re-applies the SAME cached bundle.
+// =====================================================================
+
+class TFLV_Upgrade_RS_Assembled : TFLV_Upgrade_BaseUpgrade
+{
+	// Generated once, on first OnActivate, then reused for the life of
+	// this upgrade instance. Empty until then.
+	Array<RS_AffixIngredient> CachedBundle;
+	bool HasGenerated;
+
+	// How many ingredients to try for. Deliberately modest right now --
+	// the real pool (RS_AffixIngredients.zs) only has a handful of
+	// entries as of this writing, so asking for more than that just
+	// means Generate() returns fewer than requested every time (it does
+	// this correctly, never pads with something ineligible). Raise this
+	// as the pool grows, not before.
+	const TARGET_INGREDIENT_COUNT = 3;
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		if (!wpn)
+			return false;
+		// Single-take for now, same as Twin Barrel. Letting a player
+		// take this repeatedly (stacking multiple independently-rolled
+		// bundles on one weapon) is a real, reasonable future extension
+		// -- not attempted here, keeping the first version simple.
+		return info.upgrades.Level("TFLV_Upgrade_RS_Assembled") < 1;
+	}
+
+	void EnsureGenerated(RS_Weapon wpn)
+	{
+		if (HasGenerated)
+			return;
+		CachedBundle = RS_AffixGenerator.Generate(wpn, TARGET_INGREDIENT_COUNT);
+		HasGenerated = true;
+	}
+
+	override void OnActivate(TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		super.OnActivate(stats, info);
+		let wpn = RS_Weapon(info.wpn);
+		if (!wpn)
+			return;
+		EnsureGenerated(wpn);
+		RS_AffixGenerator.Apply(wpn, CachedBundle);
+	}
+
+	override void OnDeactivate(TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		super.OnDeactivate(stats, info);
+		let wpn = RS_Weapon(info.wpn);
+		if (!wpn)
+			return;
+		// Ungrant exactly what was granted -- CachedBundle is the source
+		// of truth for what this instance actually applied, so this
+		// stays correct even if the ingredient pool changes later.
+		for (int i = 0; i < CachedBundle.Size(); i++)
+			wpn.UngrantKeyword(CachedBundle[i].Key, CachedBundle[i].Value);
+	}
+
+	// Known, deliberate limitation, not an oversight: this does NOT show
+	// a preview of the actual generated bundle in its tooltip.
+	// GetTooltipFields has no weapon/info parameter to generate against,
+	// and generating a DIFFERENT bundle just to preview it (then a third
+	// one on actual OnActivate) would defeat the whole idempotency fix
+	// above. Real fix would need GunBonsai's tooltip call path to pass
+	// weapon context through, which isn't confirmed to exist -- flagged
+	// as a follow-up, not guessed at here.
+}

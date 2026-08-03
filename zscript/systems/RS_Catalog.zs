@@ -153,6 +153,32 @@ class RS_Catalog
 	static Class<Actor> TRAIL_Ballistic() { return "RS_BallisticTrail"; }
 
 	// -----------------------------------------------------------------
+	// IMPACT / EXPLOSION ENTRIES -- standalone cosmetic-only visuals,
+	// no damage of their own. Real classes live in RS_FX_Explosions.zs/
+	// RS_FX_Flares.zs/RS_FX_Fire.zs/RS_FX_Plasma.zs. Read via a
+	// projectile's own ExplosionVisual field (see RS_EnhancedRocket in
+	// RS_FX_HeavyProjectiles.zs) so a weapon or future affix can swap
+	// the blast look without touching the projectile's damage/splash
+	// logic at all.
+	// -----------------------------------------------------------------
+	static Class<Actor> EXPLOSION_Fireball()    { return "RS_ExplosionFireball"; }
+	static Class<Actor> EXPLOSION_FireballAlt() { return "RS_ExplosionFireballAlt"; }
+	static Class<Actor> EXPLOSION_Small()       { return "RS_ExplosionSmall"; }
+	static Class<Actor> EXPLOSION_Tiny()        { return "RS_ExplosionTiny"; }
+	static Class<Actor> EXPLOSION_Flash()       { return "RS_ExplosionFlash"; }
+
+	static Class<Actor> FLARE_Lens()     { return "RS_LensFlare"; }
+	static Class<Actor> FLARE_LensAlt1() { return "RS_LensFlareAlt1"; }
+	static Class<Actor> FLARE_LensAlt2() { return "RS_LensFlareAlt2"; }
+	static Class<Actor> FLARE_LensAlt3() { return "RS_LensFlareAlt3"; }
+
+	static Class<Actor> FIRE_Loop()    { return "RS_FireLoop"; }
+	static Class<Actor> FIRE_LoopAlt() { return "RS_FireLoopAlt"; }
+
+	static Class<Actor> PLASMA_Splash()    { return "RS_PlasmaSplash"; }
+	static Class<Actor> PLASMA_SplashAlt() { return "RS_PlasmaSplashAlt"; }
+
+	// -----------------------------------------------------------------
 	// SOUND ENTRIES
 	// Logical names, resolved through SNDINFO. A weapon references the
 	// entry, never a raw lump path, so re-pointing a sound is one edit

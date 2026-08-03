@@ -22,6 +22,19 @@ class TFLV_Upgrade_Registry : Object play {
     return unregistered.find(upgrade) != unregistered.size();
   }
 
+  // RS-authored affixes (zscript/GunBonsai/rs_upgrades/, class prefix
+  // TFLV_Upgrade_RS_) are always eligible. Everything else is the
+  // vendored stock pool -- gated behind rs_gb_legacy_affixes, off by
+  // default. One choke point instead of touching 50+ individual
+  // upgrade files: both generator functions below already loop through
+  // every registered upgrade and check suitability here first.
+  static bool IsRSAllowed(string upgrade_name) {
+    if (upgrade_name.Left(15) == "TFLV_Upgrade_RS")
+      return true;
+    let cv = CVar.FindCVar("rs_gb_legacy_affixes");
+    return cv && cv.GetBool();
+  }
+
   bool Register(string upgrade) {
 //    DEBUG("Register: %s", upgrade);
     if (IsUnregistered(upgrade)) {
@@ -78,7 +91,7 @@ class TFLV_Upgrade_Registry : Object play {
     }
 
     for (uint i = 0; i < upgrades.size(); ++i) {
-      if (upgrades[i].IsSuitableForPlayer(stats))
+      if (IsRSAllowed(upgrade_names[i]) && upgrades[i].IsSuitableForPlayer(stats))
         candidates.push(upgrades[i]);
     }
 
@@ -102,7 +115,7 @@ class TFLV_Upgrade_Registry : Object play {
     }
 
     for (uint i = 0; i < upgrades.size(); ++i) {
-      if (upgrades[i].IsSuitableForWeapon(info) && info.CanAcceptUpgrade(upgrade_names[i]))
+      if (IsRSAllowed(upgrade_names[i]) && upgrades[i].IsSuitableForWeapon(info) && info.CanAcceptUpgrade(upgrade_names[i]))
         candidates.push(upgrades[i]);
     }
 

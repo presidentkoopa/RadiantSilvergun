@@ -60,6 +60,61 @@ class RS_Weapon : Weapon abstract
 	// writing it at runtime changes what launches immediately.
 	Class<Actor> HeavyProjectileClass;
 
+	// "" (default) = use this weapon's own real archetype: keyword for
+	// RS_FamilyPalette lookups. Set by a future GunBonsai affix to make a
+	// weapon draw from a DIFFERENT archetype's palette without touching
+	// its real GetBaseKeywords() identity -- e.g. an affix that makes a
+	// Shotgun temporarily roll from the "energy" palette. Nothing sets
+	// this yet.
+	string PaletteArchetypeOverride;
+
+	string GetPaletteArchetype()
+	{
+		if (PaletteArchetypeOverride != "")
+			return PaletteArchetypeOverride;
+		return GetKeywordValue("archetype");
+	}
+
+	// -----------------------------------------------------------------
+	// AFFIX PART OVERRIDES -- the part-swap layer. Two kinds of affix
+	// exist: math-changers (GrantKeyword, handled by RS_KeywordEffects)
+	// and part-swappers ("your SMG now fires rail bolts") -- these
+	// fields are the second kind's write target. Null/"" = no override.
+	//
+	// PRECEDENCE RULE, decided once, applies everywhere these are read:
+	//   affix override  >  profile (beat-authored)  >  weapon fallback
+	//   >  catalog default.
+	// For FireSound the affix also beats the player's sound-choice cvar
+	// -- an affix that changed WHAT the gun is outranks a cosmetic
+	// preference for how the old gun sounded.
+	//
+	// KNOWN LIMIT, on purpose: one override slot per part, last writer
+	// wins. Two part-swap affixes fighting over the same slot is a
+	// content-design error, not a runtime case worth a stack -- the
+	// affix GENERATOR must simply never deal two projectile-swappers to
+	// one weapon. OnDeactivate should null only the fields it set.
+	// -----------------------------------------------------------------
+	Class<Actor> AffixProjectile;      // bullet path checked-casts this; heavy path fences ballistic classes out
+	sound        AffixFireSound;
+	Class<Actor> AffixImpactPuff;
+	Class<Actor> AffixImpactSparks;
+	Class<Actor> AffixMuzzleSmoke;
+	Class<Actor> AffixTrail;
+	Class<Actor> AffixExplosionVisual;
+	string       AffixCasing;          // "" = no override, "none" = suppress casing entirely
+
+	void ClearAffixParts()
+	{
+		AffixProjectile      = null;
+		AffixFireSound       = "";
+		AffixImpactPuff      = null;
+		AffixImpactSparks    = null;
+		AffixMuzzleSmoke     = null;
+		AffixTrail           = null;
+		AffixExplosionVisual = null;
+		AffixCasing          = "";
+	}
+
 	// --- True semi-auto enforcement ---
 	// A shot marks this true; it only clears once the trigger is
 	// physically released. Fire cannot proceed again until it's false.
@@ -324,6 +379,17 @@ class RS_Weapon : Weapon abstract
 		double dmgMult, pelletMult, backfireChance;
 		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
 
+		// Granted-keyword layer -- composes with Condition, doesn't
+		// replace it. An affix's whole job is wpn.GrantKeyword(...) /
+		// p.GrantLocal(...); this one resolved bundle is what turns that
+		// into a different-feeling shot, every time, without touching the
+		// shared profile object. One container instead of per-axis
+		// out-params so new behavior/drawback values never change this
+		// call site again.
+		let mods = RS_ShotKeywordMods.Resolve(invoker, p);
+		dmgMult *= mods.DmgMult;
+		pelletMult *= mods.PelletMult;
+
 		// Backfire eats the ammo and the shot but does NOT advance the
 		// rotation -- a jam shouldn't cost you your place in the cycle.
 		if (backfireChance > 0 && FRandom(0, 1) < backfireChance)
@@ -358,13 +424,14 @@ class RS_Weapon : Weapon abstract
 		double spread = (100.0 - invoker.Accuracy) * p.SpreadScale * choke + p.SpreadBonus;
 		if (p.UsesCadence)
 			spread += invoker.GetCadenceOvershoot() * 0.15;
+		spread *= mods.SpreadMult;
 
 		// Hitscan and melee run inline because A_FireBullets/A_CustomPunch
 		// are action functions -- they can't be reached from the play-scope
 		// helpers the projectile modes use.
 		if (p.Mode == RS_ATK_HITSCAN)
 		{
-			Class<Actor> hitscanPuff = p.ImpactPuff;
+			Class<Actor> hitscanPuff = invoker.AffixImpactPuff ? invoker.AffixImpactPuff : p.ImpactPuff;
 			if (!hitscanPuff) hitscanPuff = "bulletpuff";
 			A_FireBullets(spread, spread, pellets, int(dmg), hitscanPuff, FBF_NORANDOM);
 		}
@@ -376,18 +443,25 @@ class RS_Weapon : Weapon abstract
 		}
 		else if (p.Mode == RS_ATK_HEAVY)
 		{
-			invoker.RS_FireProfileHeavy(self, p, dmg);
+			invoker.RS_FireProfileHeavy(self, p, dmg, pellets, mods.Homing);
 		}
 		else
 		{
-			invoker.RS_FireProfileBullet(self, p, dmg, pellets, spread);
+			invoker.RS_FireProfileBullet(self, p, dmg, pellets, spread, mods);
 		}
 
 		if (p.FireSound)
 			A_PlaySound(invoker.GetEffectiveFireSound(p.FireSound), CHAN_WEAPON);
-		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle, p.MuzzleSmoke);
-		if (p.CasingClass != "")
-			RS_HiFiFX.CasingEject(self, p.CasingClass);
+		// Affix part-precedence: an affix-installed smoke/casing beats the
+		// profile's authored one; the profile's beats the default. Casing
+		// sentinel: AffixCasing "" = no override, "none" = suppress.
+		Class<Actor> fxSmoke = invoker.AffixMuzzleSmoke ? invoker.AffixMuzzleSmoke : p.MuzzleSmoke;
+		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle, fxSmoke);
+		string fxCasing = p.CasingClass;
+		if (invoker.AffixCasing != "")
+			fxCasing = (invoker.AffixCasing ~== "none") ? "" : invoker.AffixCasing;
+		if (fxCasing != "")
+			RS_HiFiFX.CasingEject(self, fxCasing);
 
 		A_RS_MarkFired();
 		return true;
@@ -407,15 +481,27 @@ class RS_Weapon : Weapon abstract
 	// Bullet volley. Damage/pellets/spread are resolved by the dispatch
 	// above and passed in, so this stays a pure spawn loop -- and so the
 	// same numbers the dispatch computed are the ones that actually fly.
-	void RS_FireProfileBullet(Actor shooter, RS_AttackProfile p, double dmg, int pellets, double spread)
+	void RS_FireProfileBullet(Actor shooter, RS_AttackProfile p, double dmg, int pellets, double spread, RS_ShotKeywordMods mods = null)
 	{
-		Class<Actor> cls = p.ProjectileClass;
+		// Part precedence, highest first: affix-installed projectile ->
+		// this beat's authored class -> the weapon's own -> the default.
+		// The affix override is CHECKED-CAST to the bullet base class:
+		// if a part-swap affix ever installs a non-ballistic class on a
+		// bullet weapon, the override is ignored instead of spawning a
+		// round that silently skips SetupStats -- the exact old debug-
+		// pool bug, fenced at the one place it could re-enter.
+		Class<Actor> cls = (Class<RS_BallisticFired>)(AffixProjectile);
+		if (!cls) cls = p.ProjectileClass;
 		if (!cls) cls = ProjectileClass;
 		if (!cls) cls = "RS_BallisticType1";
 
 		int aimflags = bOffhandWeapon ? ALF_ISOFFHAND : 0;
-		double vel = Velocity * p.VelocityMult;
+		double vel = Velocity * p.VelocityMult * (mods ? mods.VelMult : 1.0);
 		double crit = CritChance + p.CritBonus;
+
+		Class<Actor> fxPuff  = AffixImpactPuff   ? AffixImpactPuff   : p.ImpactPuff;
+		Class<Actor> fxSpark = AffixImpactSparks ? AffixImpactSparks : p.ImpactSparks;
+		Class<Actor> fxTrail = AffixTrail        ? AffixTrail        : p.Trail;
 
 		for (int i = 0; i < pellets; i++)
 		{
@@ -426,7 +512,14 @@ class RS_Weapon : Weapon abstract
 			if (proj)
 			{
 				proj.SetupStats(int(dmg), vel, crit);
-				proj.SetupFeedback(p.ImpactPuff, p.ImpactSparks, p.Trail);
+				proj.SetupFeedback(fxPuff, fxSpark, fxTrail);
+				if (mods)
+				{
+					proj.Homing = mods.Homing;
+					// Native ripper -- the round passes through monsters,
+					// damaging each. Real GZDoom flag, no custom logic.
+					proj.bRIPPER = mods.Piercing;
+				}
 				// THE SACRED POINTER -- GunBonsai reads master to attribute
 				// XP to the hand that actually fired. Never break it.
 				proj.master = self;
@@ -434,37 +527,86 @@ class RS_Weapon : Weapon abstract
 		}
 	}
 
-	// One heavy round. Same per-type SetupStats branching as the bullet
-	// path's projectile-class switch below, for the same reason:
-	// Rocket/PlasmaBall/BFGBall inherit three unrelated vanilla bases
-	// and share no ancestor to cast to.
-	void RS_FireProfileHeavy(Actor shooter, RS_AttackProfile p, double dmg)
+	// Heavy round(s). Same per-type SetupStats branching for the same
+	// reason as before: Rocket/PlasmaBall/BFGBall inherit three unrelated
+	// vanilla bases and share no ancestor to cast to.
+	//
+	// pellets defaults to 1 (every existing weapon's real behavior,
+	// unchanged) but is READ from the exact same generic pellets value
+	// A_RS_FireSlot already computes for Bullet mode -- payload:cluster/
+	// multi granted to a Rocket Launcher now actually fires multiple
+	// rockets instead of silently doing nothing, closing the gap where
+	// payload's damage half leaked into Heavy mode but the pellet half
+	// didn't. dmg is computed once, upstream, same as Bullet -- each
+	// spawned round gets the same already-divided number, not a fresh
+	// roll per round.
+	void RS_FireProfileHeavy(Actor shooter, RS_AttackProfile p, double dmg, int pellets = 1, bool homing = false)
 	{
-		Class<Actor> cls = p.ProjectileClass;
+		// Affix override first, but FENCED: a ballistic (bullet-base)
+		// class is refused here -- the mirror of the checked-cast in
+		// RS_FireProfileBullet, so a part-swap affix pointed at the
+		// wrong mode degrades to "no swap" instead of spawning a round
+		// that skips SetupStats.
+		Class<Actor> cls = AffixProjectile;
+		if (cls && (Class<RS_BallisticFired>)(cls))
+			cls = null;
+		if (!cls) cls = p.ProjectileClass;
 		if (!cls) cls = HeavyProjectileClass;
 		if (!cls) return;
 
 		int aimflags = bOffhandWeapon ? ALF_ISOFFHAND : 0;
-
-		let proj = shooter.SpawnPlayerMissile(cls, shooter.angle, 0, 0, p.SpawnHeight,
-			noautoaim: true, aimflags: aimflags, pitch: shooter.pitch);
-		if (!proj)
-			return;
-		proj.master = self;   // see RS_FireProfileBullet
-
 		double crit = CritChance + p.CritBonus;
-		if (proj is "RS_EnhancedRocket")
-			RS_EnhancedRocket(proj).SetupStats(int(dmg), crit);
-		else if (proj is "RS_EnhancedPlasmaBall")
-			RS_EnhancedPlasmaBall(proj).SetupStats(int(dmg), crit);
-		else if (proj is "RS_EnhancedBFGBall")
-			RS_EnhancedBFGBall(proj).SetupStats(int(dmg), crit);
-		else if (proj is "RS_GH_BFGShot")
-			RS_GH_BFGShot(proj).SetupStats(int(dmg), crit);
-		else if (proj is "RS_GH_PlasmaShot")
-			RS_GH_PlasmaShot(proj).SetupStats(int(dmg), crit);
-		else if (proj is "RS_GH_UnmakerShot")
-			RS_GH_UnmakerShot(proj).SetupStats(int(dmg), crit);
+
+		// Small fixed fan-out so multiple rounds don't spawn perfectly
+		// overlapped -- Heavy mode has no SpreadScale/Accuracy-driven
+		// cone the way Bullet mode does, so this is a flat constant, not
+		// a rolled stat. 4 degrees is a first pass, not a tuned number.
+		double fanStep = 4.0;
+		double fanStart = -fanStep * (pellets - 1) / 2.0;
+
+		for (int i = 0; i < pellets; i++)
+		{
+			double a = shooter.angle + fanStart + fanStep * i;
+			let proj = shooter.SpawnPlayerMissile(cls, a, 0, 0, p.SpawnHeight,
+				noautoaim: true, aimflags: aimflags, pitch: shooter.pitch);
+			if (!proj)
+				continue;
+			proj.master = self;   // see RS_FireProfileBullet
+
+			// Blast-look precedence: affix > this beat's authored visual >
+			// the projectile class's own default (set in its PostBeginPlay).
+			Class<Actor> fxBoom = AffixExplosionVisual ? AffixExplosionVisual : p.ExplosionVisual;
+			if (proj is "RS_EnhancedRocket")
+			{
+				let r = RS_EnhancedRocket(proj);
+				r.SetupStats(int(dmg), crit);
+				r.Homing = homing;
+				if (fxBoom)
+					r.ExplosionVisual = fxBoom;
+			}
+			else if (proj is "RS_EnhancedPlasmaBall")
+			{
+				let pb = RS_EnhancedPlasmaBall(proj);
+				pb.SetupStats(int(dmg), crit);
+				pb.Homing = homing;
+				if (fxBoom)
+					pb.ExplosionVisual = fxBoom;
+			}
+			else if (proj is "RS_EnhancedBFGBall")
+			{
+				let bb = RS_EnhancedBFGBall(proj);
+				bb.SetupStats(int(dmg), crit);
+				bb.Homing = homing;
+				if (fxBoom)
+					bb.ExplosionVisual = fxBoom;
+			}
+			else if (proj is "RS_GH_BFGShot")
+				RS_GH_BFGShot(proj).SetupStats(int(dmg), crit);
+			else if (proj is "RS_GH_PlasmaShot")
+				RS_GH_PlasmaShot(proj).SetupStats(int(dmg), crit);
+			else if (proj is "RS_GH_UnmakerShot")
+				RS_GH_UnmakerShot(proj).SetupStats(int(dmg), crit);
+		}
 	}
 
 	// Each heavy weapon overrides this to declare what it launches. A
@@ -501,6 +643,13 @@ class RS_Weapon : Weapon abstract
 	// -----------------------------------------------------------------
 	sound GetEffectiveFireSound(sound defaultSound)
 	{
+		// Affix beats everything, including the player's sound-choice
+		// cvar -- an affix that changed WHAT this gun is outranks a
+		// cosmetic preference for how the old gun sounded. See the
+		// AFFIX PART OVERRIDES block for the full precedence rule.
+		if (AffixFireSound)
+			return AffixFireSound;
+
 		string archetype = GetKeywordValue("archetype");
 		if (archetype == "")
 			return defaultSound;
@@ -836,9 +985,33 @@ class RS_Weapon : Weapon abstract
 				results.Push(GrantedKeywords[i].Mid(prefix.Length()));
 	}
 
-	// GunBonsai/Promotion-facing write API.
+	// GunBonsai/Promotion-facing write API. Idempotent -- GunBonsai's own
+	// docs require OnActivate to be safely callable multiple times
+	// without an intervening OnDeactivate (reselecting the weapon,
+	// re-leveling, etc.), so a repeat grant must not stack duplicate
+	// entries.
 	void GrantKeyword(string key, string value)
 	{
-		GrantedKeywords.Push(key .. ":" .. value);
+		string entry = key .. ":" .. value;
+		for (int i = 0; i < GrantedKeywords.Size(); i++)
+			if (GrantedKeywords[i] == entry)
+				return;
+		GrantedKeywords.Push(entry);
+	}
+
+	// The OnDeactivate half -- an affix that grants a keyword on
+	// activation must be able to cleanly take it back. Safe to call even
+	// if the entry isn't present (no-op).
+	void UngrantKeyword(string key, string value)
+	{
+		string entry = key .. ":" .. value;
+		for (int i = 0; i < GrantedKeywords.Size(); i++)
+		{
+			if (GrantedKeywords[i] == entry)
+			{
+				GrantedKeywords.Delete(i);
+				return;
+			}
+		}
 	}
 }

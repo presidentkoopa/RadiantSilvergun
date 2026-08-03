@@ -1,0 +1,50 @@
+// =====================================================================
+// TFLV_Upgrade_RS_TwinBarrel -- SMG-flavored, archetype-gated affix.
+// First real proof that the granted-keyword chain actually works end to
+// end: RS_Weapon.GrantKeyword -> RS_ShotKeywordMods.Resolve
+// -> A_RS_FireSlot. Its entire effect is two lines.
+//
+// Lives in rs_upgrades/, not upgrades/, on purpose -- everything in
+// upgrades/ is vendored GunBonsai content, kept untouched. Everything in
+// rs_upgrades/ is RS-authored, archetype-flavored, and references
+// RS_Weapon directly (GrantKeyword/UngrantKeyword/GetPaletteArchetype
+// aren't on the generic Weapon type GunBonsai itself knows about) --
+// that's expected here, unlike the vendored pool.
+// =====================================================================
+
+class TFLV_Upgrade_RS_TwinBarrel : TFLV_Upgrade_BaseUpgrade
+{
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return wpn
+			&& wpn.GetPaletteArchetype() == "smg"
+			&& info.upgrades.Level("TFLV_Upgrade_RS_TwinBarrel") < 1;
+	}
+
+	// Idempotent via RS_Weapon.GrantKeyword's own duplicate guard --
+	// safe if this fires again without an intervening OnDeactivate
+	// (weapon reselect, re-level), matching the interface's own
+	// requirement.
+	override void OnActivate(TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		super.OnActivate(stats, info);
+		let wpn = RS_Weapon(info.wpn);
+		if (wpn)
+			wpn.GrantKeyword("payload", "multi");
+	}
+
+	override void OnDeactivate(TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
+	{
+		super.OnDeactivate(stats, info);
+		let wpn = RS_Weapon(info.wpn);
+		if (wpn)
+			wpn.UngrantKeyword("payload", "multi");
+	}
+
+	override void GetTooltipFields(Dictionary fields, uint level)
+	{
+		fields.insert("pellet-mult", "x2");
+		fields.insert("dmg-mult", "x0.5");
+	}
+}

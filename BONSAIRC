@@ -34,6 +34,14 @@
 # An <upgrades> list is the same but for upgrade names. Wildcards are not
 # supported; exact class names must be used.
 
+# RS-authored, archetype-flavored affixes (zscript/GunBonsai/rs_upgrades/).
+# Separate register block from the vendored list below so this stays easy
+# to find/extend as more get built.
+register
+  TFLV_Upgrade_RS_TwinBarrel
+  TFLV_Upgrade_RS_Assembled
+  ;
+
 # All builtin upgrades that don't require other mods to function are registered
 # here. Mod-specific stanzas below tweak things further.
 register
