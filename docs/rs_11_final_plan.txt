@@ -86,12 +86,19 @@ STAT-STATE VISUAL LADDER (owner directive, build committed)
 
 THE TELL SYSTEM (cadence feedback -- the missing audiovisual language)
 ================================================================================
-  Every archetype gets a READY-TO-FIRE tell: hammer-click (revolver),
-  pump-clunk (shotgun), bolt-snap (rifle), hiss (SMG), beep (plasma --
-  the owner's own prototype), capacitor whine (rail). Sound + small
-  muzzle shimmer at the ready instant. Teaches cadence with zero UI;
-  gives rhythm affixes a beat the player can HEAR; differentiates
-  archetypes on every single trigger pull.
+  HARD CONSTRAINT (owner): VR, 3D weapon models, NO weapon sprites --
+  nothing may be drawn on the weapon or screen. Verified compatible:
+  the whole FX tree is already world-space actors (MuzzleEffects/
+  CasingEject/RS_MuzzleLight -- zero PSprites anywhere). The tell is
+  therefore AUDIO-FIRST: hammer-click (revolver), pump-clunk (shotgun),
+  bolt-snap (rifle), hiss (SMG), beep (plasma -- the owner's own
+  prototype), capacitor whine (rail). Optional second channel: a dim,
+  cool-toned WORLD-SPACE light pulse at the weapon (an RS_MuzzleLight
+  cousin, clearly not a muzzle flash, same performance cap). The ready
+  instant is exactly readable today: NextFireTic + the semi-auto
+  release gate -- a Ready-state watcher fires the tell once per cycle.
+  Teaches cadence with zero UI; gives rhythm affixes a beat the player
+  can HEAR; differentiates archetypes on every single trigger pull.
   Two-stage reload audio where the weapon's action warrants it.
   SOURCE LIBRARY (verified): E:\New folder\li-gnrcwpn\ -- FOLEY1-5,
   HOLSTR set, per-archetype equips (RFLEQUP/SGEQUP/RLEQUP/MGUPSN/
