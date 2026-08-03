@@ -1,5 +1,12 @@
 # Radiant Silvergun (RS_Main) — project rules
 
+## Start here
+
+Before doing anything else, read the most recent `docs/rs_0*_session_handoff*.txt`
+(check all matching files, use the highest number / latest date) for what the
+last session actually built, what's mid-flight, and the ranked next-priority
+list. Don't re-derive project state from scratch — it's already written down.
+
 ## PROTECTED FILES — DO NOT DELETE, MOVE, OR "CLEAN UP"
 
 - **`docs/rs_MASTER_FX_CATALOG.txt`** — the master database of every combat
