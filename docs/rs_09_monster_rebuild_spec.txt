@@ -1,0 +1,140 @@
+RS MONSTER REBUILD SPEC -- rs_09
+Written 2026-08-03, mid-rebuild. This is the working contract for the
+full monster reimport. Any agent working a family file follows this
+exactly. RS_Imp.zs is the living template once it lands -- when this
+doc and that file disagree, the file wins.
+
+=====================================================================
+WHY (one paragraph, so nobody re-litigates it)
+=====================================================================
+The previous architecture kept ONE state machine per family with
+placeholder sprites ("POSS") and overwrote `sprite` at runtime every
+tic (RS_WearBody). The engine re-bakes each state's literal sprite on
+every frame advance, so monsters flickered to zombieman frames, and
+the runtime GetSpriteIndex path is implicated in a hard freeze at the
+first tier whose sprite differs. Worse, most families' per-tier
+ATTACKS were never imported -- a T12 imp fired the same vanilla ball
+as T00. The owner's verdict, correct: "your humanoids just wear skin,
+they aren't actual monsters." The fix is CH's own architecture, which
+the HF files (E:\RadiantSilvergun\zscript\monsters\hf_*.zs) already
+proved on this engine: REAL per-tier state blocks, literal sprites,
+bespoke per-tier attacks, dispatched at runtime by tier.
+
+=====================================================================
+NON-NEGOTIABLES
+=====================================================================
+1. Every tier whose CH color had a bespoke attack GETS that attack.
+   No flattening. The cyan imp fires the 11-shot frost fan. The gray
+   imp fires nail rings. If a color's behavior exists in the HF file
+   or CH decorate, it ships.
+2. Every EXISTING RS mechanic is preserved: attack slots
+   (BuildTierAttacks), summon packs + caps, thresholds, PulseStats,
+   PhaseDodge, satellites, morph chains, charge counters, keywords,
+   TintTable, DeathMorphClass, MinionsDieWithMe. Nothing is lost.
+3. No runtime sprite assignment. No RS_WearBody. No GetSpriteIndex
+   in gameplay code. Sprites are literal tokens in state lines, ever.
+4. Tier stats (HP/speed/painchance/dmgMul) stay on the existing
+   SetTier/ApplyTier ladder in RS_MonsterMaster. Tiers stay NUMERIC.
+
+=====================================================================
+TIER <-> CH COLOR MAP (authoritative)
+=====================================================================
+T00 Neutral/Common   T01 Green    T02 Blue     T03 Cyan
+T04 Purple           T05 Yellow   T06 Abyss    T07 FireBlu
+T08 Brown            T09 Gray     T10 Red      T11 Black
+T12 White
+Each family's existing BodyTable() line documents which sprite each
+tier wears -- keep it as a comment in the rebuilt file, it is the
+map from tier to state cluster.
+
+=====================================================================
+THE DISPATCH PATTERN (base class, already in RS_MonsterMaster)
+=====================================================================
+- string TierLabel(int t) -> "T00".."T12".
+- State TierState(string prefix): FindStateByString(prefix.."."..
+  TierLabel(Tier), true), falling back to prefix..".T00".
+- Entry labels are dispatchers:
+      See:  TNT1 A 0 { return TierState("See"); }  Goto See.T00;
+  Same for Spawn/Missile/Melee/Pain. Death/XDeath may be shared or
+  per-tier as the family needs.
+- On tier change, OnTierApplied sets pendingStateJump ("See.T05" if
+  chasing, "Spawn.T05" if idle); Tick() applies it via SetState.
+  NEVER SetState from a handler/inventory context -- silently fails.
+- A family whose colors share a body (e.g. T00-T02 all TROO) points
+  multiple tiers at one cluster: See.T01: and See.T02: are just
+  labels stacked on See.T00's block, or TierState falls back.
+  PREFER explicit stacked labels -- fallback is for safety, not
+  design.
+
+=====================================================================
+SOURCE MATERIAL
+=====================================================================
+- Behavior + choreography: E:\RadiantSilvergun\zscript\monsters\
+  hf_<family>.zs. These RAN CORRECTLY. Port their per-color blocks.
+  Color suffix -> tier suffix via the map above (See.Cyan -> See.T03).
+- Projectiles: HF_Xyz -> RS_Xyz. The RS_ versions ALREADY EXIST in
+  zscript/monsters/monsterfx/RS_<family>_projectiles.zs. Verify each
+  name with grep before use; if an HF projectile has no RS_ port,
+  port it into that family's monsterfx file (additive).
+- Sprites: sprites/monsters/<Family>/ -- already imported, per-family
+  folders. Verify every frame letter a state block uses exists there
+  (packed names carry TWO frames: CIMPA1C1.png = frames A and C).
+  Vanilla tokens (POSS SPOS CPOS TROO SARG BOSS BOS2 HEAD SKUL PAIN
+  FATT SKEL VILE BSPI SPID CYBR PLAY) come from the IWAD -- no files
+  needed.
+- Sounds: vanilla logical names (imp/sight, grunt/attack...) come
+  from the IWAD. CH color voices (agaures/*, imp2/*, butcher/*, ...)
+  are defined in this repo's SNDINFO monsters section with oggs in
+  sounds/monsters/ (task #2). If a needed voice is missing, add the
+  SNDINFO entry + copy the ogg from E:\New folder\ART SOURCE\CH\
+  sounds -- do not silently drop the sound call.
+
+=====================================================================
+ENGINE TRAPS (all verified on this build -- violating these is a bug)
+=====================================================================
+- `static const TYPE name[] = {...}` in a class body does not resolve.
+  Use switch or comparison chains.
+- Bare action references in { } blocks compile as no-op expressions.
+  ALWAYS parenthesize: A_Chase();  not  A_Chase;
+- A new .zs file not in zscript.txt's include list silently does not
+  exist. Mastermind/Cyberdemon files MUST be added to zscript.txt.
+- GetClassName() returns a Name; concatenate .."" before string use.
+- extend class PlayerPawn fails; irrelevant here but listed.
+- Sprite tokens in state lines are BARE 4-char tokens, quoted only
+  when they collide with keywords ("####" placeholder needs bare
+  #### -- but this rebuild never uses #### at all).
+
+=====================================================================
+PER-FAMILY CHECKLIST (an agent finishing a family must confirm)
+=====================================================================
+[ ] Every tier T00-T12 reaches a real state cluster (stacked labels
+    where bodies are shared).
+[ ] Every CH/HF bespoke attack for every color is present and fires
+    its RS_ projectile.
+[ ] All prior RS mechanics preserved (diff against the old file --
+    git history has it -- and list them in the file header).
+[ ] TintTable kept; translations still applied on tier change (the
+    base does this -- do not call A_SetTranslation per state).
+[ ] Sounds: per-color voices wired where HF had them.
+[ ] Death/XDeath/Raise exist per body where frames exist.
+[ ] No RS_WearBody, no GetSpriteIndex, no #### anywhere.
+[ ] Every sprite frame letter used exists in sprites/monsters/<Fam>/
+    (or is IWAD vanilla).
+[ ] File compiles in isolation logic-wise: no undefined labels, all
+    Goto targets exist.
+
+=====================================================================
+EX / MINIONS / STAGES
+=====================================================================
+EX bosses are TierLocked: ONE hand-authored state set each, real
+sprites, no ladder. Minions and stage bodies get the same per-tier
+treatment as families (they ride the dial). hf_minibosses.zs is the
+EX behavior reference.
+
+=====================================================================
+VERIFICATION (task #10, runs before "import complete")
+=====================================================================
+Static lint: sprite-token existence, projectile-class existence,
+label resolution, trap patterns, zscript.txt includes, zero
+RS_WearBody/GetSpriteIndex survivors. AUDIT netevent upgraded to
+walk TierLabel x family x prefix and print any missing cluster.

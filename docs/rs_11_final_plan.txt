@@ -36,24 +36,32 @@ MODE IS PRESENTATION (the railshot principle)
   catalog + profile system can represent mechanics the engine "lacks."
   This is the license for every exotic affix.
 
-TIER -> OFFER LAW  (owner's rule; ONE FLAG below)
+TIER -> OFFER LAW  (RESOLVED by owner, 2026-08-03)
 ================================================================================
   Cursed/Trash/Basic  2 cards, STAT ONLY. Ranges scale with
                       PromotionCount; ceilings real (Accuracy & Condition
                       cap 100; Damage caps at promotion ceiling).
-  Common              [FLAG for owner: sockets begin here (1) per rs_00,
-                      but owner's latest says affixes begin "uncommon+".
-                      Plan assumes: Common = stats + the SIMPLEST affix
-                      rarity only. One-word veto flips it.]
-  Uncommon            4 cards; general affix pool opens.
-  Advanced/Designer   5 cards; RARE + family-flavored affixes join.
-  Designer/Prototype  6 cards; EXOTIC + Monster Signatures join.
+  Common+             the FULL affix pool + stat boosts, for everyone.
+  Offer counts:       Common/Uncommon 4, Advanced/Designer 5,
+                      Prototype 6.
+  SOCKETS = BREADTH CAP: distinct affixes held may not exceed
+      GunBonaiSockets (1 Common .. 5 Prototype). RE-PICKING a held
+      affix (leveling it) never costs a socket -- sockets gate NEW
+      identities, levels are free depth.
+  PROMOTED PICKS LAND +1: on a promoted weapon (PromotionCount >= 1)
+      every affix pick advances one extra level -- new affixes enter
+      at L2, re-picks jump 2. CAPPED AT L5: the bonus never carries
+      into level 6; Mastery is ALWAYS a deliberate 6th pick. Flat +1
+      regardless of promotion count for now; per-promotion scaling is
+      a tuning dial, deliberately not v1. This mechanic REPLACES the
+      old bundle-card acceleration idea -- same effect, no new
+      machinery.
   All affixes: levels 1-5 + Mastery (6th take, rule-change).
   Gold spends at the picker: reroll (5<<n) and +1 card (12<<n).
 
 AFFIX RARITY LANES
 ================================================================================
-  GENERAL   (Uncommon+)  behavior cards, archetype-agnostic mechanics:
+  GENERAL   (Common+)  behavior cards, archetype-agnostic mechanics:
             Splitter, Slugger, Overcharged, Giant, Seeker, Ghost,
             Echo(reworked), Rifled, Tracker, Hammer, Fork, Overkill,
             Deadeye, Impact Physics, Momentum, Scavenger, Combat
