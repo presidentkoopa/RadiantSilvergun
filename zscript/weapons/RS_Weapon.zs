@@ -178,6 +178,11 @@ class RS_Weapon : Weapon abstract
 		if (owner.player.ReadyWeapon != self && owner.player.OffhandWeapon != self)
 			return;
 		if (NextFireTic == 0 || Level.maptime != NextFireTic) return;
+		// Held-trigger guard (rs_14 survey, F1): a held full-auto weapon
+		// refires the instant its cadence reopens -- a beep every cycle
+		// would be 35/sec noise on the GH Minigun. The tell exists for a
+		// WAITING trigger finger, so a held trigger silences it.
+		if (owner.player.cmd.buttons & BT_ATTACK) return;
 		if (!CVar.GetCVar("rs_tell_enable", owner.player).GetBool()) return;
 
 		double pitch = TellPitch();

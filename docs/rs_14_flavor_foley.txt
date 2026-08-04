@@ -1,0 +1,441 @@
+================================================================================
+      FLAVOR & FOLEY DRAFT (rs_11 Phase B3) -- rs_14, 2026-08-03
+================================================================================
+Survey + data draft ONLY. No code, no design calls -- those stay on the
+main thread per rs_11 Phase B. Everything below was verified against the
+actual files named; no sound name in this document is invented.
+
+SOURCES SURVEYED
+  docs/rs_11_final_plan.txt                       (the law)
+  zscript/weapons/RS_Weapon.zs                    (TellPitch/DoEffect, lines 138-187)
+  zscript/weapons/rs_weapon/*.zs                  (13 files, all read)
+  zscript/weapons/rs_gh_weapon/*.zs               (24 files, all read)
+  zscript/systems/RS_Catalog.zs                   (SND_* entries, lines 280-359)
+  E:\RS_Main\SNDINFO                              (full, 632 lines)
+  E:\New folder\li-gnrcwpn\sndinfo.txt            (full, 431 lines)
+  E:\New folder\li-gnrcwpn\sounds\ (recursive)    (214 files listed)
+
+STATE-OF-BUILD FINDING (read this before starting C2)
+  The Tell core is ALREADY COMMITTED, not pending:
+    - RS_Weapon.TellPitch()  (RS_Weapon.zs:149) -- full per-archetype table
+    - DoEffect() watcher     (RS_Weapon.zs:174) -- fires once per cadence
+      reopen, gated on rs_tell_enable (CVARINFO.txt:223, default true)
+    - SNDINFO entry rs_tell_ready -> Sounds/combatfx/tells/READYBP
+      ($volume 0.65) -- lump EXISTS on disk (5,441 bytes, Ogg Vorbis,
+      byte-identical in size to li-gnrcwpn's PLBEEP; it is that lump)
+  What C2 still owes: two-stage reload audio, the full-auto beep-spam fix
+  (see tell table note F1), and the shotgun-family silent-action gaps
+  (notes F2-F4). Nothing here has been heard in a booted game yet --
+  Phase E owes the boot.
+
+FORMAT NOTE: every li-gnrcwpn sound file is Ogg Vorbis, INCLUDING the
+extensionless lumps (verified by magic bytes on PLBEEP, HOLSTR, MGSPIN,
+CSLOOP -- all "OggS"). Extensionless lumps load fine in GZDoom; if a
+future packaging step wants extensions, rename to .ogg without transcoding.
+
+Referenced-but-ABSENT in the library (li sndinfo.txt names them, no file
+exists anywhere in its sounds/ tree -- do not plan around them):
+  pdry (weapons/pistol/dryf), plasdry (weapons/plasma/dryf),
+  mgempt (weapons/minig/empty)
+
+================================================================================
+SECTION 1 -- TELL TABLE
+================================================================================
+Pitch reference: plasma beep = 1.0 (the unshifted READYBP lump). Higher =
+lighter/faster action; lower = heavier/slower weapon. "Committed" = the
+value already in RS_Weapon.TellPitch(); this table justifies each and
+flags library alternatives for the eventual per-archetype-sound upgrade
+rs_11 names (hammer-click, bolt-snap, capacitor whine...).
+
+ARCHETYPE      WEAPONS (RateOfFire)                 BEEP?  PITCH  JUSTIFICATION / ALTERNATIVE
+-------------  -----------------------------------  -----  -----  ---------------------------
+pistol         VR_Pistol (4), RS_GH_Pistol (5)      YES    1.30   Light sidearm, small fast
+                                                                  action, mid cadence. ALT:
+                                                                  li sounds/weapons/pistol/
+                                                                  PSNAP.ogg -- slide-snap, the
+                                                                  natural "chambered" click.
+revolver       VR_Revolver (2), RS_GH_Revolver (2)  YES    1.15   Heavier frame than pistol,
+                                                                  deliberate RoF 2 -- sits
+                                                                  between pistol and rifle.
+                                                                  ALT (rs_11 names "hammer-
+                                                                  click"): li pistol/PSNAP.ogg
+                                                                  or rifle/RCLCK.ogg -- the
+                                                                  two dry mechanical clicks in
+                                                                  the library. RCLCK is drier.
+rifle          VR_Rifle (3), RS_GH_Rifle (8)        YES    1.00   Mid-weight service weapon,
+                                                                  the kinetic anchor of the
+                                                                  scale. ALT (rs_11 "bolt-
+                                                                  snap"): rifle/RCLCK.ogg --
+                                                                  ALREADY IMPORTED as
+                                                                  rs_vp_arifle_click.
+smg            VR_SMG (10), RS_GH_SMG (11),         YES    1.45   Lightest action + fastest
+               RS_GH_MP40 (8)                                     handheld cadence = top of
+                                                                  the pitch scale. ALT (rs_11
+                                                                  "hiss"): nothing in the
+                                                                  library hisses; nearest is
+                                                                  the FOLEY1-5 rattle set.
+                                                                  Keep the beep.
+shotgun        VR_Shotgun (1, pump-per-shot),       NO     --     Action IS the tell -- but
+               RS_GH_PumpShotgun (2, NO pump!),                   only VR_Shotgun earns it
+               RS_GH_AssaultShotgun (5, FULL-AUTO)                today. See notes F2/F3.
+supershotgun   VR_SuperShotgun (1),                 NO     --     Action IS the tell: both
+               RS_GH_SSG (1, cap 2)                               fire-reload-fire. VR_ uses
+                                                                  engine A_OpenShotgun2 audio;
+                                                                  GH_SSG reload is SILENT
+                                                                  today. See note F4.
+chaingun       VR_Chaingun (17),                    YES    1.35   Chassis is heavy but the
+               RS_GH_Machinegun (11),                             tell tracks the ACTION: tiny
+               RS_GH_Minigun (35)                                 per-shot cycle at the
+                                                                  arsenal's highest cadence.
+                                                                  If mass should win instead,
+                                                                  drop toward 0.9 -- owner
+                                                                  call. ALT: minigun/
+                                                                  MGCHAIN.ogg chain-rattle
+                                                                  (ALREADY IMPORTED as
+                                                                  rs_vp_minigun_chain). See
+                                                                  note F1 (beep spam).
+railgun        RS_GH_Railgun (2)                    YES    0.80   Heavy capital-weapon fantasy
+                                                                  at RoF 2 -- below neutral.
+                                                                  ALT (rs_11 "capacitor
+                                                                  whine"): plasrifle/
+                                                                  PLCHRG.ogg -- ALREADY
+                                                                  IMPORTED as
+                                                                  rs_vp_plasma_chrg. Best
+                                                                  sound-to-fantasy match in
+                                                                  the whole library.
+launcher       VR_RocketLauncher (1),               YES    0.70   Heaviest handling family,
+               RS_GH_RocketLauncher (3),                          RoF 1-3. ALT: rlaunch/
+               RS_GH_GrenadeLauncher (2),                         RLCYCL.ogg "next round
+               RS_GH_HandGrenade (2, feed:none)                   seated" clunk -- ALREADY
+                                                                  IMPORTED as
+                                                                  rs_vp_rocket_cycle.
+energy         VR_PlasmaRifle (9),                  YES    1.00   The original beep, unshifted
+               RS_GH_Plasma (8), RS_GH_Unmaker (8)                -- the owner's own prototype
+                                                                  pattern. Reference point;
+                                                                  no alternative wanted.
+bfg            VR_BFG9000 (1), RS_GH_BFG9000 (1),   YES    0.55   Heaviest weapon in the game,
+               RS_GH_BFG10k (4)                                   RoF 1 -- floor of the scale.
+                                                                  ALT: bfg/BFGCHRG (charge) or
+                                                                  BFGPFR.ogg (prefire ramp) --
+                                                                  ALREADY IMPORTED as
+                                                                  rs_vp_bfg_charge /
+                                                                  rs_vp_bfg_prefire.
+melee          VR_Chainsaw (9), RS_GH_Fist (3),     NO     --     Contact is the feedback; no
+               RS_GH_Chainsaw (7)                                 cadence worth signalling.
+                                                                  (VR_Fist2 is vanilla Fist,
+                                                                  not an RS_Weapon -- outside
+                                                                  the system entirely.)
+flamethrower   RS_GH_Flamethrower (17)              YES    0.90   Heavy tank, but a continuous
+                                                                  stream -- slightly below
+                                                                  neutral. No pilot-light
+                                                                  sound exists in the library;
+                                                                  nothing to substitute.
+(unmapped)     any future archetype                 YES    1.00   Committed fallback: neutral
+                                                                  beep beats silence.
+
+SURVEY NOTES (decisions owed to the main thread, not made here):
+  F1  BEEP SPAM ON FULL-AUTO: DoEffect fires the tell every time maptime
+      reaches NextFireTic -- during HELD full-auto fire that is every
+      cycle (35x/sec on the GH Minigun), a beep stream fighting the fire
+      sound. Suggest: suppress the tell while the trigger is held on
+      trigger:fullauto weapons -- beep only when the gate reopens after a
+      release or an empty-mag pause. That also makes the tell mean
+      something on these guns ("you may resume") instead of narrating.
+  F2  RS_GH_PumpShotgun is archetype:shotgun but has NO pump between
+      shots (Shoot: HBSG B/C/D, no action call) and a SILENT atomic
+      9-shell reload (SSHR A-I, no sound). The archetype exclusion
+      leaves it the one genuinely mute weapon in the arsenal. Fix is
+      audio, not a beep: give its reload the already-imported pump set
+      (rs_vp_shotgun_pump, rs_vp_shotgun_bck/fwd, rs_vp_shotgun_load).
+  F3  RS_GH_AssaultShotgun is archetype:shotgun but trigger:fullauto,
+      RoF 5, atomic 12-shell reload -- no per-shot action exists or is
+      possible. Either it inherits the shotgun NO by archetype (current
+      committed behavior) and gets C2 reload audio only, or it becomes
+      the one shotgun with a beep. Flagged, not decided.
+  F4  Fire-reload-fire weapons confirmed by state-machine read:
+      VR_Shotgun (pump cycle inside Shoot: shotpump + shotcycle +
+      shotload every shot -- action-tell TRUE today), VR_SuperShotgun
+      (Shoot falls through to Reload; engine A_OpenShotgun2/Load/Close
+      play built-in audio -- TRUE today), RS_GH_SSG (Capacity 2, must
+      break open after every discharge, but its SHTZ A-Z reload plays
+      NOTHING -- action-tell only becomes true when C2 wires
+      rs_vp_ssg_opn/load/cls into it). RS_GH_HandGrenade is feed:none
+      (no reload state at all); the launcher beep covers it.
+
+================================================================================
+SECTION 2 -- FOLEY IMPORT LIST
+================================================================================
+ICEY discipline: listen/view, categorize, register. Everything in part A
+is genuinely new to the repo; part B is already imported (listed so
+nobody re-imports it); part C maps which names give each archetype its
+two reload stages.
+
+A. NEW IMPORTS -- not present anywhere in E:\RS_Main today.
+   Destination root: Sounds/combatfx/handling/  (new category, mirrors
+   the foley/ convention; "handling" = deliberate manipulation sounds,
+   distinct from the incidental-rattle foley/ set).
+   All source files are Ogg Vorbis (extensionless ones included).
+
+   SOURCE (under E:\New folder\li-gnrcwpn\)      DEST (under Sounds/combatfx/handling/)   PROPOSED SNDINFO NAME
+   -------------------------------------------   --------------------------------------   ---------------------
+   sounds\weapons\shotgun\RIRON1.ogg             RIRON1.ogg                               rs_foley_shotgun_rattle1  \ $random
+   sounds\weapons\shotgun\RIRON2.ogg             RIRON2.ogg                               rs_foley_shotgun_rattle2  / rs_foley_shotgun_rattle
+   sounds\weapons\rlaunch\RLGCY.ogg              RLGCY.ogg                                rs_foley_launcher_grencycle
+   sounds\weapons\RFLEQUP.ogg                    RFLEQUP.ogg                              rs_foley_rifle_equip
+   sounds\weapons\SGEQUP.ogg                     SGEQUP.ogg                               rs_foley_shotgun_equip
+   sounds\weapons\RLEQUP.ogg                     RLEQUP.ogg                               rs_foley_launcher_equip
+   sounds\weapons\MGUPSN.ogg                     MGUPSN.ogg                               rs_foley_chaingun_equip
+   sounds\weapons\PLSUSND.ogg                    PLSUSND.ogg                              rs_foley_energy_equip
+   sounds\weapons\chainsaw\CSOEQUP.ogg           CSOEQUP.ogg                              rs_foley_melee_equip_off
+   sounds\weapons\knuckle\SWING1  (no ext, Ogg)  SWING1                                   rs_foley_swing1  \
+   sounds\weapons\knuckle\SWING2                 SWING2                                   rs_foley_swing2  |
+   sounds\weapons\knuckle\SWING3                 SWING3                                   rs_foley_swing3  | $random
+   sounds\weapons\knuckle\SWING4                 SWING4                                   rs_foley_swing4  | rs_foley_swing
+   sounds\weapons\knuckle\SWING5                 SWING5                                   rs_foley_swing5  |
+   sounds\weapons\knuckle\SWING6                 SWING6                                   rs_foley_swing6  /
+   sounds\weapons\knuckle\FISTSTR1.ogg           FISTSTR1.ogg                             rs_foley_fist_straight1  \ $random
+   sounds\weapons\knuckle\FISTSTR2.ogg           FISTSTR2.ogg                             rs_foley_fist_straight2  | rs_foley_fist_straight
+   sounds\weapons\knuckle\FISTSTR3.ogg           FISTSTR3.ogg                             rs_foley_fist_straight3  /
+
+   Why these: RIRON1/2 is the only iron-rattle handling pair in the
+   library (Pain Train / movement flavor + shotgun handling feel); RLGCY
+   is the only grenade-launcher cycle sound anywhere (the GH
+   GrenadeLauncher's silent reload wants exactly this); the five equips
+   give select/deselect identity per archetype (the tell's quiet
+   sibling); CSOEQUP is the OFF-HAND chainsaw equip -- dual-wield
+   (QUARANTINE lane) will want the distinct hand cue; SWING1-6 and
+   FISTSTR1-3 are the whoosh vocabulary the melee flavor tables below
+   consume.
+
+   Secondary (extra takes extending EXISTING $random groups -- dest is
+   the existing casings/magdrops category, NOT handling/):
+   sounds\weapons\casings\DSBOUNC4.ogg .. DSBOUNC6.ogg   -> Sounds/combatfx/magdrops/   extend rs_fx_magdrop_small
+   sounds\weapons\casings\DSAOUNC4 .. DSAOUNC6           -> Sounds/combatfx/magdrops/   extend rs_fx_magdrop_large
+   sounds\weapons\casings\DSSHELL4.ogg .. DSSHELL7       -> Sounds/combatfx/casings/    extend rs_fx_casing_shell
+   (RS currently holds takes 1-3 of each; the library has 6/6/7.)
+
+   NOT worth importing: RAIM1-3 / RIAIM1-3 (aimed-fire variants -- fire
+   sounds, out of scope), GNFIRE/GEXP/GBNCE (the GH set already has its
+   own grenade audio: rs_gh/grenade_launch, rs_gh/grenade_bounce,
+   rs_fx_rocket_explode), player/ and items/ trees (not weapon foley).
+
+B. ALREADY IMPORTED -- the li-gnrcwpn handling audio that reached the
+   repo in the GNRC re-import. Registered in SNDINFO under
+   Sounds/combatfx/foley/ (+melee/, altfire/, explosions/). Do not
+   re-import; the two-stage reload build consumes these AS-IS:
+     rs_fx_foley (FOLEY1-5), rs_fx_holster (HOLSTR/2/3), rs_fx_weaponup
+     (WEQUP), rs_fx_weapdraw
+     rs_vp_pistol_cout/cin/slide/snap/equip/holster
+     rs_vp_arifle_cout/cin/slap/click/equip/deselect/foley/pickup/ready
+     rs_vp_shotgun_pump/load(sgs1-3)/bck/fwd/select/deselect
+     rs_vp_ssg_opn/load/cls (+ rs_vp_ssg_single/fire takes)
+     rs_vp_minigun_reload/chain/down/start/spin/stop/equip/pickup
+     rs_vp_rocket_cycle/cin/cout/equip/deselect/pickup
+     rs_vp_plasma_cout/cin/chrg/beep/equip/holster/pickup
+     rs_vp_bfg_prefire/charge/opn/cout/cls/overcharge/up/pickup
+     rs_vp_saw_* (start/idle/loop/stop/off/zip/equip/get/low/cord)
+     rs_vp_fist_punch/swing/bsrk/smash
+     rs_fx_magdrop_small/large/bfg, rs_fx_casing_* , rs_fx_rico*
+
+C. TWO-STAGE RELOAD MAP -- which existing (or Part-A) names give each
+   archetype its stage-1 (mag out / action open) and stage-2 (mag in /
+   action closed / ready snap). One line per archetype; weapons with
+   engine-internal or already-wired audio noted.
+     pistol        stage1 rs_vp_pistol_cout            stage2 rs_vp_pistol_cin + rs_vp_pistol_snap
+                   (VR_Pistol already wired: 9mmclip1 -> 9mmclip2 -> 9mmslide; GH_Pistol silent, wants this map)
+     revolver      stage1 9mmclip1                     stage2 9mmclip2 + 9mmslide (already wired on VR_; GH_ silent)
+     rifle         stage1 rs_vp_arifle_cout            stage2 rs_vp_arifle_cin + rs_vp_arifle_slap
+                   (VR_Rifle currently borrows the 9mm set -- verified in SNDINFO as the honest answer, but the
+                    arifle set IS its native family; GH_Rifle silent)
+     smg           stage1 rs_fx_magdrop_small          stage2 smgclip  (one-call reload today; magdrop is the free stage-1)
+     shotgun       stage1 rs_vp_shotgun_bck            stage2 rs_vp_shotgun_fwd; per-shell rs_vp_shotgun_load
+                   (VR_Shotgun already fully voiced shell-by-shell: shotpump/shotcycle/shotload/shotload2;
+                    this row is for GH_PumpShotgun/GH_AssaultShotgun, silent today -- see F2/F3)
+     supershotgun  stage1 rs_vp_ssg_opn                stage2 rs_vp_ssg_load -> rs_vp_ssg_cls
+                   (VR_ uses engine A_OpenShotgun2 audio; GH_SSG silent -- see F4)
+     chaingun      stage1 rs_vp_minigun_reload         stage2 rs_vp_minigun_chain (+ rs_vp_minigun_down as the settle)
+     energy        stage1 rs_vp_plasma_cout            stage2 rs_vp_plasma_cin (+ rs_vp_plasma_chrg recharge tail)
+     launcher      stage1 rs_vp_rocket_cout            stage2 rs_vp_rocket_cycle -> rs_vp_rocket_cin
+                   (grenade weapons use rs_foley_launcher_grencycle from Part A as their stage-2)
+     bfg           stage1 rs_vp_bfg_opn -> rs_vp_bfg_cout   stage2 rs_vp_bfg_cls
+     railgun       stage1 rs_vp_plasma_cout            stage2 rs_vp_plasma_chrg (cell clack + capacitor recharge)
+     melee         n/a (feed:none)
+     flamethrower  no dedicated tank-swap audio exists anywhere -- use generic rs_fx_foley until a real set is
+                   sourced; do NOT fake a dedicated name
+
+================================================================================
+SECTION 3 -- FLAVOR TABLES (the FAMILY lane's raw material)
+================================================================================
+Per archetype: existing sound family (SNDINFO logical names only), feel
+in three words, then per-affix expression notes for rs_11's GENERAL lane
+-- ONE line each, ONLY where that archetype expresses the shared card
+differently from the generic build. Affixes not listed under an
+archetype express generically there. GENERAL lane roster (rs_11):
+Splitter, Slugger, Overcharged, Giant, Seeker, Ghost, Echo, Rifled,
+Tracker, Hammer, Fork, Overkill, Deadeye, Impact Physics, Momentum,
+Scavenger, Combat Reload, Ghost Load, Quickdraw, Pain Train, Gib
+Standard, Fan the Hammer, Metronome, Opener, Last Rites, Duelist,
+Patience, Wabi-Sabi, Grit, Infighter, Dead Man's Trigger.
+
+--- PISTOL ---------------------------------------------------------------
+Family: 9mmshoot, 9mmclip1/2, 9mmslide, rs_gh/pistol_fire; staged:
+        rs_vp_pistol_* (fire takes + full handling set)
+Feel:   crisp, nimble, workmanlike
+  Overcharged   hotter snap, not bigger boom -- fire pitch up a hair, brighter flash; the kick stays small
+  Slugger       comedy of mass: one absurd boom from a small frame; casing lands heavy (rs_fx_casing_rifle)
+  Fan the Hammer  burst chased by slide-cycling ticks (rs_vp_pistol_slide between shots)
+  Quickdraw     rs_vp_pistol_equip sting compressed -- holster-to-bang is the identity
+  Combat Reload the 9mmclip1/9mmclip2 pair compressed; 9mmslide lands as the reward beat
+  Metronome     the 1.30 beep IS the metronome; on-beat shots read drier and cleaner
+  Echo          thin doubled crack, range-bay slapback -- small gun, small ghost
+
+--- REVOLVER -------------------------------------------------------------
+Family: revolver (REVOFIR1), rs_revolver_alt1-3, rs_gh/revolver_fire;
+        reload borrows the 9mm set (verified genuine, not lazy)
+Feel:   deliberate, heavy, ceremonial
+  Overcharged   boom + kick -- longest-tail alt take (rs_revolver_alt*), muzzle light flares hard
+  Fan the Hammer  home turf: chained fire takes with dry clicks between (PSNAP import or 9mmslide)
+  Metronome     cylinder-clock: the click marks the beat, the shot confirms it
+  Patience      the cock-and-hold -- one early click, then silence IS the sound of waiting
+  Deadeye       a single settling click when aim steadies, before the shot lands
+  Echo          canyon roll -- the big single crack gets the longest echo tail in the arsenal
+  Combat Reload speedloader fantasy: one 9mmclip1, then all-six-at-once 9mmslide finish
+
+--- RIFLE ----------------------------------------------------------------
+Family: m16shoot, rs_gh/rifle_fire; staged: rs_vp_arifle_* (fire takes +
+        the richest handling set in the repo)
+Feel:   measured, precise, military
+  Overcharged   more bark, not more boom -- supersonic crack sharpened, dry and loud
+  Rifled        home archetype -- expression nearly invisible: tighter, quieter, longer tracer
+  Deadeye       bolt-snap (rs_vp_arifle_click) as the aim-settled cue
+  Metronome     drill cadence; on-beat shots gain the rs_vp_arifle_slap accent
+  Seeker        marksman's correction -- thin tracer bend, no added noise at all
+  Combat Reload rs_vp_arifle_cout/cin two-stage, slap as punctuation
+  Echo          distant battlefield report, delayed and low
+
+--- SMG ------------------------------------------------------------------
+Family: smgfire, smgclip, rs_gh/smg_fire, rs_gh/mp40_fire
+Feel:   eager, chattering, disposable
+  Overcharged   heat chatter -- pitch creeps upward across a sustained burst, faint sizzle on casing rain
+  Splitter      spray becomes hose: extra pellets read as noise TEXTURE, not per-shot events
+  Momentum      the gun that loves being held down -- loop swells and rises with sustain
+  Metronome     against its nature: on-beat window shrinks the chatter to a tight three-round voice
+  Pain Train    run-and-gun rattle -- movement layers rs_fx_foley ticks under the burst
+  Combat Reload stage-1 is the magdrop (rs_fx_magdrop_small), stage-2 the smgclip seat
+  Echo          alley slapback -- fast, trashy, gone
+
+--- SHOTGUN --------------------------------------------------------------
+Family: shotgf, shotpump, shotcycle, shotload, shotload2,
+        rs_gh/pumpshotgun_fire, rs_gh/assaultshotgun_fire; staged:
+        rs_vp_shotgun_* + rs_vp_sgs1-3
+Feel:   mechanical, weighty, ritual
+  (No beep -- the pump is this archetype's voice. See F2/F3 for the two GH exceptions.)
+  Overcharged   overpressure makes the ACTION louder, not just the shot -- the pump rings after the boom
+  Slugger       pellet wall to slug: pump unchanged, boom tightens to a thud-crack
+  Hammer        knockback broadcast through a late-timed pump-clunk
+  Opener        first shell of an engagement gets the heavy casing drop (rs_fx_casing_shell)
+  Gib Standard  home turf -- meat plus rs_fx_explode_near blend on the kill
+  Combat Reload feed:incremental means every shotload2 IS a stage; kill-refunds sound like found brass
+  (Spread flavor belongs to the Choke line -- FAMILY lane exclusive; GENERAL cards keep off that axis.)
+
+--- SUPERSHOTGUN ---------------------------------------------------------
+Family: wpn/shotgun2, rs_gh/ssg_fire; staged: rs_vp_ssg_single/fire/
+        opn/load/cls, hq_dsdbopn/dsdbload/dsdbcls
+Feel:   brutal, binary, theatrical
+  (No beep -- break-open reload after every discharge is the tell. GH_SSG needs its audio wired first; F4.)
+  Overcharged   the "kapow" takes (rs_vp_ssg_fire) with a venting hiss on the break-open after
+  Overkill      the archetype living its truth -- excess damage rings out as rs_fx_explode_dist tail
+  Last Rites    final two shells switch to the drier, personal rs_vp_ssg_single takes
+  Duelist       the break-close snap (rs_vp_ssg_cls) as the salute before the exchange
+  Echo          the one gun whose echo should rattle the room
+  Combat Reload opn/load/cls is ALREADY the two-stage -- the affix compresses the ritual, never mutes it
+
+--- CHAINGUN -------------------------------------------------------------
+Family: chngun (hq DSPISTOL), rs_gh/minigun_fire, rs_gh/machinegun_fire
+        (2 takes), rs_fx_casing_chaingun; staged: rs_vp_minigun_* (full
+        spin-up/down set)
+Feel:   industrial, relentless, hungry
+  Overcharged   barrel heat -- MGCHAIN rattle joins the loop, spin-down (rs_vp_minigun_down) sizzles out
+  Momentum      spin-up IS the mechanic: rs_vp_minigun_start/spin/stop as the affix's whole audio arc
+  Pain Train    rolling thunder -- chain-rattle layer while the player moves; the gun sounds better running
+  Metronome     absurd per-shot at RoF 17-35: the beep marks the BAR, expression is bar-length bursts
+  Scavenger     brass rain -- rs_fx_casing_chaingun takes stack into the reward audio
+  Combat Reload belt ritual in three stages: reload, chain, down-settle
+  Echo          factory-hall wash -- continuous, never per-shot
+
+--- ENERGY ---------------------------------------------------------------
+Family: weapons/plasma/fire, rs_gh/plasma_fire, rs_gh/unmaker_fire,
+        rs_fx_plasma_explode; staged: rs_vp_plasma_* (incl. the beep)
+Feel:   humming, sci-fi, overheating
+  Overcharged   capacitor sings -- rs_vp_plasma_chrg under the fire loop; the tell beep itself climbs in pitch
+  Echo          no air echo: a second synthetic pulse, phase-shifted -- the GUN echoes, not the room
+  Metronome     native ground -- the beep prototype was born here; on-beat shots get the cleanest fire take
+  Ghost         the trail hiss lingers past the bolt (velocity-scaled, per the audited rework)
+  Giant         bigger bolt = lower hum -- fire pitch scales inverse to projectile scale
+  Seeker        servo whine bend on the projectile loop as it corrects
+  Combat Reload cell swap cout/cin with the charge whine as stage two
+
+--- LAUNCHER -------------------------------------------------------------
+Family: rocklf, rs_gh/rocketlauncher_fire, rs_gh/grenadelauncher_fire,
+        rs_gh/handgrenade_fire, rs_gh/grenade_launch, rs_gh/grenade_bounce,
+        rs_fx_rocket_explode, rs_fx_explode_near/dist; staged: rs_vp_rocket_*
+Feel:   ponderous, explosive, committed
+  Overcharged   bigger boom is cheap here -- express at the MUZZLE: launch thump deeper, smoke longer
+  Slugger/Giant warhead mass -- the RLCYCL-style seat-clunk plays BEFORE the shot (the heavier round chambered)
+  Seeker        the rocket's own motor whine bends; the tube stays dumb
+  Echo          a delayed second detonation report (rs_fx_explode_dist) -- never a second launch sound
+  Deadeye       the muzzle thump goes drier when planted and still
+  Impact Physics home turf -- expression lives entirely in the explosion family, gun sound untouched
+  Combat Reload the full three-beat tube ritual: cout, cycle, cin
+
+--- BFG ------------------------------------------------------------------
+Family: bfgf, rs_gh/bfg9000_fire, rs_gh/bfg10k_fire, rs_fx_bfg_explode,
+        rs_fx_magdrop_bfg; staged: rs_vp_bfg_* (incl. a real overcharge lump)
+Feel:   apocalyptic, charging, singular
+  Overcharged   the one archetype with a DEDICATED overcharge sound already staged: rs_vp_bfg_overcharge
+  Patience      charge-and-hold -- rs_vp_bfg_charge loop IS the affix
+  Last Rites    the final cell plays the full uncut prefire ramp (rs_vp_bfg_prefire)
+  Echo          the report returns seconds later, world-scale
+  Metronome     meaningless at RoF 1 -- expresses as nothing; the gun is its own bar
+  Combat Reload opn -> cout -> cls, slower than anything else, cathedral-weight
+
+--- MELEE ----------------------------------------------------------------
+Family: sawdraw/sawloop/sawredy/sawstop/sawstrt, rs_gh/fist_fire,
+        rs_gh/chainsaw_fire, rs_vp_fist_*, rs_vp_saw_*, rs_fx_saw_wall
+Feel:   visceral, personal, rhythmless
+  (No beep -- contact is the feedback.)
+  Overcharged   berserk voice: rs_vp_fist_bsrk swing / the loud rs_vp_saw_flesh bite takes
+  Momentum      swing chain accelerates -- rs_foley_swing takes (Part A import) cycle faster per consecutive hit
+  Pain Train    whoosh pitch rides player velocity (rs_foley_swing again -- the import earns its keep)
+  Infighter     home turf -- proximity picks the wetter impact takes
+  Gib Standard  rs_vp_fist_smash as the finishing voice
+  Echo          impossible as sound-in-air -- a phantom second impact thud on the target instead
+
+--- RAILGUN --------------------------------------------------------------
+Family: rs_gh/railgun_fire (RAILF1); staged kin: rs_vp_plasma_chrg
+        (capacitor), rs_vp_plasma_altfire (PLALTF -- the li rail-beam
+        alt-fire sound, already imported, currently unreferenced)
+Feel:   charged, surgical, absolute
+  Overcharged   the whine climbs past its ceiling (rs_vp_plasma_chrg pitched up) -- the shot itself never
+                changes; a rail IS maximum, the charge is where "more" lives
+  Deadeye       the whine steadies to a pure tone when aim settles
+  Metronome     RoF-2 duet -- whine, crack; whine, crack; the charge IS the beat
+  Echo          the segmented-rail principle: a crackling ion afterimage along the beam path, not a report
+  Combat Reload one deep cell clack, then the recharge whine
+  (Pierce / exact-damage specials are FAMILY-lane rail exclusives; GENERAL cards keep out of that identity.)
+
+--- FLAMETHROWER ---------------------------------------------------------
+Family: rs_gh/flamethrower_fire (FLAMER loop)
+Feel:   roaring, smothering, continuous
+  Overcharged   pressure scream -- loop pitch up plus jet hiss; ignition thump on trigger-down
+  Splitter      wider cone reads as broader roar -- stereo width, no new sounds
+  Momentum      the loop swells with sustain; release gives a guttering die-off
+  Echo          no per-shot echo possible -- expresses as a re-ignition flare-up
+  Combat Reload tank swap has NO real audio anywhere yet -- generic rs_fx_foley until sourced; nothing faked
+  (Metronome / Deadeye / Fan the Hammer are near-inert on a stream weapon -- eligibility-gate candidates
+   under the rs_11 audit, flagged for the main thread.)
+
+================================================================================
+END rs_14 -- Phase B3 delivered. Consumed by: C2 (tell polish + two-stage
+reload audio), D3 (family flavor tables applied across the shared pool).
+================================================================================

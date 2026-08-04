@@ -1,0 +1,496 @@
+=======================================================================
+rs_13 -- MONSTER SIGNATURE SHORTLIST (exotic affix lane, rs_11 EXOTIC)
+=======================================================================
+Survey of every projectile class in zscript/monsters/monsterfx/ (all 16
+files read in full), ranked as candidates for "your bullets become a
+monster's own ammunition" signature affixes.
+
+THE PROVEN PATTERN (read these before building anything):
+  * TFLV_Upgrade_RS_Bonecaller  (zscript/gunbonsai/rs_upgrades/RS_Upgrade_Slate.zsc)
+  * RS_AffixBoneTracer          (zscript/weapons/weaponfx/RS_FX_AffixParts.zs)
+An adapter is NEVER the monster class itself. It is a new class that
+extends RS_BallisticFired (rides the whole pipeline: SetupStats exact
+damage, trails, seek/pierce fields, feedback) wearing the monster
+round's sprite + sounds + decal, installed via wpn.AffixProjectile +
+wpn.AffixFireSound. The ONE exception: anything that BOUNCES must be a
+plain Actor extending RS_AffixPartActor -- FastProjectile cannot bounce,
+engine limitation (this is why RS_AffixIceOrb exists). So "base class"
+below tells you which adapter chassis the signature needs, and the
+monster class's baked behaviors tell you what to re-author on it.
+
+AVAILABILITY LEGEND (every sprite/sound below was VERIFIED, not assumed):
+  [IWAD]     vanilla doom2 asset -- zero risk.
+  [REPO]     physically in E:\RS_Main\sprites\ or defined in E:\RS_Main\SNDINFO.
+  [CH-EXT]   ** NOT in repo, NOT vanilla -- resolves ONLY when the
+             Colourful Hell pack is loaded. Sprite = INVISIBLE round
+             without CH; sound = silent. Building a signature on a
+             CH-EXT sprite means re-importing the art first. **
+
+In-repo projectile sprites (complete list, from scanning sprites/):
+  ICEY (frames A,B,C,F,G,H,I ONLY -- NO D/E, see rs_MASTER_FX_CATALOG;
+  every monsterfx "ICEY CDE" death state is broken without CH),
+  RIP1 (A-H), WASP (A,B rot + C,D), FRGO, ETHS, LFX1, AYPE, HFRY.
+Everything else a monster round wears is IWAD or CH-EXT.
+
+DISCREPANCY FLAG: RS_hk_projectiles.zs's Black-arsenal header claims
+"Custom sprites ripped (STRS/FBRS/BAL3/MSLH/MTRL/BBOM)" -- NONE of those
+six are in sprites/. They are CH-EXT. The comment is stale/aspirational.
+
+Repo SNDINFO defines (relevant to these rounds): rs_fx_ice_cast/hit/
+shatter/fly, rs_fx_impact_bullet, hq_dsfirsht, prox/beep, monster/dknmsl,
+monster/dkndrt, butcher/melee, queen/fire, moloch/nailhitbleed,
+fiend/bomb. Everything CH-flavored (ice/Cast, Ice/Hit2, fire/fire*,
+Crack/*, Spell/*, Litn/*, holy*, Bomb/bounce, weapons/hominglaunch,
+weapons/firex*, weapons/hellex, weapons/grenl*, spike/spiked, ...) is
+[CH-EXT]. Standard fix: swap to rs_fx_ice_* / rs_fx_impact_bullet /
+vanilla names in the adapter, exactly as Bonecaller and Cryo did.
+
+DESIGN-COLLISION NOTE (rs_09 exclusion groups): Painter owns FIRE
+identity, Cryo owns ICE identity, Bonecaller owns the FATB revenant
+tracer. Ice/fire candidates below either fold into those affixes as
+higher-level parts (the Cryo-mastery orb precedent) or join the same
+identity exclusion group -- they must not ship as a free second fire/ice
+identity. Flagged per-entry as "collides: Painter/Cryo/Bonecaller".
+
+=======================================================================
+RANKED SHORTLIST
+=======================================================================
+
+-- 01 --------------------------------------------------------------
+RS_ArachnotronPlasma | Arachnotron (neutral) | FastProjectile (no bounce
+  -- fine, it flies straight; adapter = RS_BallisticFired)
+Behaviors: Speed 25, Damage 5, +RANDOMIZE, Add/0.75 -- the pure plasma arc.
+Sprite: APLS flight + APBX death [IWAD].
+Sounds: baby/attack, baby/shotx [IWAD].
+Why fun: THE named "Arach-Plasma" from rs_11's exotic list. Your gun
+  speaks arachnotron -- instantly readable green plasma chatter, zero
+  asset risk, the natural rapid-fire signature (SMG/chaingun gate).
+Hazard: none. Cleanest candidate in the whole survey.
+
+-- 02 --------------------------------------------------------------
+RS_LSCacodemonBall | Lost Soul white-EX (mimic caco form) | Actor
+Behaviors: Speed 18, Damage 30 Fire, +RANDOMIZE, A_Explode(30,64).
+Sprite: BAL2 flight+death [IWAD].
+Sounds: caco/attack, caco/shotx [IWAD].
+Why fun: the "Cacospit" fantasy in its purest form -- every round is a
+  caco lightning-ball with a real (modest) blast. Vanilla-pure.
+Hazard: small splash (30/64) can clip the player point-blank; either
+  shrink it on the adapter or gate to non-melee ranges.
+Collides: fire DamageType brushes Painter -- keep DamageType neutral or
+  join the identity exclusion group.
+
+-- 03 --------------------------------------------------------------
+RS_Cacospit1 | Cacodemon GREEN | Actor
+Behaviors: Speed 17, Damage 27 Plasma, A_Explode(20,48), BaronScorch
+  decal, sheds RS_Trail12 trail (BAL7 [IWAD]) every 4 tics.
+Sprite: BAL7 flight+death [IWAD]. Trail BAL7 [IWAD].
+Sounds: baron/attack [IWAD], baron/shotx [IWAD].
+Why fun: acid-green spit with a visible slime trail and its own scorch
+  decal -- reads as "poisoned rounds" without touching any element affix.
+Hazard: none beyond small splash.
+
+-- 04 --------------------------------------------------------------
+RS_SwooshCBBar1 | Cyberdemon BLACK (BFG-swoosh) | Actor
+Behaviors: Speed 36, Damage 25 Plasma, +RANDOMIZE; impact = A_Explode
+  (17,124) then sprays ~30x RS_PlasmaBallSP4 (Speed 9, Damage 5 plasma
+  beads, PLSS/PLSE [IWAD]) in a full circle. Trail: RS_SwooshCBTR
+  (BFS1 [IWAD]).
+Sprite: BFS1 flight, BFE1 death [IWAD]. All sub-actors IWAD.
+Sounds: Litn/litn3 [CH-EXT -- swap], weapons/bfgx [IWAD].
+Why fun: a mini-BFG round that DETONATES INTO A PLASMA NOVA. The most
+  spectacular fully-vanilla-art candidate found. Swarm-list member.
+Hazard: 30 spawned actors per impact -- cap the spray count on the
+  adapter for autofire weapons; 124-radius blast near the player.
+
+-- 05 --------------------------------------------------------------
+RS_FireBluHKBall1 | Hell Knight FIREBLU | Actor
+Behaviors: Speed 15, Damage 27 Plasma, Mass 600; IN FLIGHT sheds
+  RS_FireBluHKBall3 weavers (BAL1 [IWAD], A_BishopMissileWeave); death =
+  A_Explode(12,128) + 14x RS_FireBluHKBall2 (BAL1 [IWAD], Explode 4/128)
+  sprayed in all directions.
+Sprite: MANF flight, MISL death [IWAD]. Subs BAL1 [IWAD].
+Sounds: Spell/spellCast1, Crack/death [CH-EXT -- swap both].
+Why fun: the mothership round -- a slow heavy shell trailing drunken
+  weavers that bursts into a 14-ball firework. Swarm-list member.
+Hazard: sub-spawn count is heavy (engine load on autofire); overlapping
+  128-radius explode fields; needs a hard cap + cooldown gate.
+
+-- 06 --------------------------------------------------------------
+RS_IceOrbCyanHK | Hell Knight CYAN | Actor
+Behaviors: Speed 42, Damage 30 Ice, Scale 2; flight sheds RS_IceCacoTrail
+  (ICEY [REPO]); death = A_Explode(30,128) + 20x RS_SpikeCyanRev shard
+  spray (RIP1 [REPO], tiny gravity spikes, Explode 1/6 each).
+Sprite: ICEY A,B,C flight / F,G,H,I death -- ALL frames verified [REPO].
+Sounds: ice/Cast, Ice/Hit2 [CH-EXT] -- swap to rs_fx_ice_cast /
+  rs_fx_ice_hit [REPO], the exact Cryo precedent.
+Why fun: a fast heavy ice comet that shatters into a physical shard
+  nova. Entirely buildable from in-repo assets today.
+Hazard: 20 spawned shards/impact; Collides: Cryo owns ice -- ship this
+  as a Cryo high-level/mastery part or Cryo-exclusive signature.
+
+-- 07 --------------------------------------------------------------
+RS_IceHKShot | Hell Knight CYAN (small) | Actor
+Behaviors: Speed 34, Damage 18 Ice; death = 12x RS_SpikeCyanRev spray
+  (RIP1 [REPO]) + ICEY F,G,H,I shatter.
+Sprite: ICEY A,B,C / F,G,H,I -- all [REPO].
+Sounds: Ice/Hit2, spike/spiked [CH-EXT -- swap to rs_fx_ice_*].
+Why fun: the sane-sized version of 06 -- shard-burst rounds that work at
+  autofire rates. The better pick of the two for most guns.
+Hazard: Collides: Cryo (same note as 06).
+
+-- 08 --------------------------------------------------------------
+RS_BEESHOT + RS_BeeMotePE | Pain Elemental BLACK (Overlord) | Actor
+Behaviors: carrier Speed 12, Damage 0, +SEEKERMISSILE(3,3); continuously
+  releases RS_BeeMotePE motes (Speed 14, Damage 6 Plasma, SEEKER(5,5),
+  WASP sprite) in a spread around itself.
+Sprite: carrier LFX1 [REPO]; motes WASP [REPO]. Both verified in-repo.
+Sounds: none defined on either (silent by author choice) -- adapter adds
+  its own via AffixFireSound.
+Why fun: "your bullets are a bee swarm." Fire once, a cloud of angry
+  seeking wasps peels off toward targets. Nothing else in the arsenal
+  looks or plays like it. Swarm-list #1.
+Hazard: carrier does 0 direct damage -- the adapter must move the rolled
+  damage onto the motes or the round is hollow (null-profile trap,
+  rs_05). Mote count needs a cap per trigger pull.
+
+-- 09 --------------------------------------------------------------
+RS_MinesHK | Hell Knight GRAY | Actor  ** bounce -> RS_AffixPartActor **
+Behaviors: Speed 32, Damage 12 Fire, -NOGRAVITY, +BOUNCEONWALLS,
+  Doom bounce x25, BounceFactor 0.95/1.1, random early-death jump; death
+  = 12x RS_CGNail ring (nails: BLAD/6PUF/FBL1 [CH-EXT]).
+Sprite: RIP1 flight [REPO], MISL death [IWAD]. Nail subs [CH-EXT].
+Sounds: monster/dknmsl [REPO/SNDINFO], BounceSound fire/fire3 [CH-EXT],
+  weapons/boom1 [CH-EXT].
+Why fun: a live grenade that ricochets around the room for seconds and
+  then detonates into a nail ring -- the room-control signature.
+Hazard: nail ring sprites are CH-EXT -- swap the ring to RS_SpikeCyanRev
+  (RIP1 [REPO]) or vanilla PUFF tracers; 25 bounces of a damaging round
+  in a corridor will hit the player. Bounce-list #1.
+
+-- 10 --------------------------------------------------------------
+RS_SmashBalls2 | Baron BLUE | Actor  ** bounce -> RS_AffixPartActor **
+Behaviors: Speed 11, Damage 20 Plasma, Gravity 0.1, Hexen bounce x7
+  (BounceFactor 2 -- it bounces HIGHER each time), +USEBOUNCESTATE:
+  every floor bounce sprays 15x RS_STracerBlue floor-crawlers (FTRA
+  [CH-EXT]) and can flip into a seeking "FollowMe" state.
+Sprite: BAL2 [IWAD]. Sub-tracers FTRA [CH-EXT -- invisible without CH].
+Sounds: caco/attack [IWAD], Bomb/bounce [CH-EXT], caco/shotx [IWAD].
+Why fun: a ball that bounces ever higher, carpeting the floor with
+  crawling sparks, then locks on. Mechanically the richest bouncer here.
+Hazard: floor-crawler sub is CH-EXT (cosmetic loss: keep the bounce,
+  drop or re-skin the spray); 15 spawns per bounce x7 bounces = spam cap
+  required. Bounce-list #2.
+
+-- 11 --------------------------------------------------------------
+RS_SGLance1 | Shotgunner (human) | Actor
+Behaviors: Speed 20, Damage 35 Plasma, +SEEKERMISSILE(2,2),
+  A_Explode(35,64).
+Sprite: PLSE flight, PLSS death [IWAD].
+Sounds: weapons/plasmaf, weapons/plasmax [IWAD].
+Why fun: a lazy-homing plasma lance -- the gentlest introduction to
+  seeker rounds, all vanilla. Good low-rarity signature.
+Hazard: seek + splash together crowds Seeker affix territory -- strip
+  the A_Explode or the seek on the adapter (one, not both).
+
+-- 12 --------------------------------------------------------------
+RS_Spspit2 | Baron GREEN | Actor
+Behaviors: Speed 25, Damage 40 Plasma, +SEEKERMISSILE(2,2), sheds
+  RS_Trail12 (BAL7 [IWAD]) trail.
+Sprite: BAL7 [IWAD].
+Sounds: baron/attack, imp/shotx [IWAD].
+Why fun: heavy seeking baron spit with a slime wake -- the "big brother"
+  round for slow guns (revolver/SSG slug lane).
+Hazard: none. Note Seeker-affix overlap: identity comes from the trail
+  + damage, keep seek strength BELOW Seeker L1 so it doesn't invalidate it.
+
+-- 13 --------------------------------------------------------------
+RS_Spspit3 | Baron GREEN (spitter) | Actor
+Behaviors: Speed 12, Damage 36 Plasma, in flight sheds RS_GreeniesBR
+  bouncing poison beads (BAL2 [IWAD], Hexen bounce x3, Damage 1 Poison,
+  tiny) behind itself; death A_Explode(4,32).
+Sprite: BAL1 flight [IWAD]; beads BAL2 [IWAD].
+Sounds: baron/attack, imp/shotx [IWAD]; bead sounds fire/fire1 [CH-EXT],
+  caco/shotx [IWAD].
+Why fun: the round dribbles live bouncing poison beads down its flight
+  path -- area denial as a side effect of just shooting. Swarm-list.
+Hazard: bead count (2/4 tics) needs a cap; poison DamageType is its own
+  mini-identity -- fine, nothing owns poison yet.
+
+-- 14 --------------------------------------------------------------
+RS_StormShot1 | Pain Elemental BLACK (Overlord) | Actor
+Behaviors: Speed 30, Damage 90 Plasma, +THRUGHOST, +NODAMAGETHRUST,
+  A_Explode(90,128).
+Sprite: LFX1 S,T,U,V,W flight / X,Y death -- all verified [REPO].
+Sounds: weapons/devexp [CH-EXT -- swap to rs_fx_explode_near].
+Why fun: the Overlord's storm bolt -- a crackling heavyweight slug with
+  in-repo art. Natural single-shot/slug-lane signature (NODAMAGETHRUST
+  = no ragdoll knock, feels like a beam hit).
+Hazard: 90/128 splash WILL kill the shooter up close -- adapter must
+  shrink or convert splash to the exact-damage direct hit.
+
+-- 15 --------------------------------------------------------------
+RS_FatsoShotYE | Mancubus YELLOW | Actor
+Behaviors: Speed 14, Damage 25 Plasma, +SEEKERMISSILE(3,3),
+  A_Explode(25,48), yellow translation.
+Sprite: MANF [IWAD].
+Sounds: fatso/attack, fatso/shotx [IWAD].
+Why fun: your gun coughs seeking mancubus fireballs -- big, slow,
+  readable, hilarious out of a pistol. GIANT-affix-adjacent comedy that
+  is secretly solid.
+Hazard: none notable. Straight variant exists (RS_Shot2Fatso, also all
+  [IWAD]) for the no-seek version; RS_BlackFatShotLongRange (MANF, Speed
+  42, Damage 50) is the sniper flavor.
+
+-- 16 --------------------------------------------------------------
+RS_BrownOrbDemon | Demon BROWN | Actor
+Behaviors: Speed 28, Damage 22 Fire, ProjectileKickBack 2000 (!),
+  A_Explode(22,48).
+Sprite: BAL1 [IWAD].
+Sounds: imp/attack, imp/shotx [IWAD].
+Why fun: kickback 2000 launches whatever it hits ACROSS THE ROOM. A
+  crowd-shove signature -- pure feel, no numbers inflation. Pairs with
+  Giant's Wrecking Ball mastery fantasy without duplicating it (this is
+  per-hit thrust, that is kickback stat).
+Hazard: Species "Demon1"/+MTHRUSPECIES are inert for a player shooter
+  but strip them anyway; thrust on bosses is a no-op (mass), fine.
+
+-- 17 --------------------------------------------------------------
+RS_WhiteMindshot1 | Spider Mastermind WHITE | Actor  ** bounce **
+Behaviors: Speed 45, Damage 30 Plasma, +BOUNCEONWALLS Doom x2,
+  +USEBOUNCESTATE (flash on bounce).
+Sprite: PLSS flight, PLSE death, PLSS bounce [IWAD].
+Sounds: weapons/plasmaf, weapons/plasmax [IWAD].
+Why fun: the minimum-viable bouncing round: fast plasma that takes two
+  wall ricochets. All vanilla; the cheapest possible bounce signature
+  and the natural L1 of a bounce ladder. Bounce-list #4.
+Hazard: none.
+
+-- 18 --------------------------------------------------------------
+RS_MinesRev | Death Knight (dk_shared) | Actor  ** bounce **
+Behaviors: Speed 24, Damage 25 Fire, -NOGRAVITY (arcs), +BOUNCEONWALLS
+  x4, BounceFactor 0.7, A_Explode(40,96).
+Sprite: MISL flight+death [IWAD].
+Sounds: imp/attack [IWAD], weapons/rocklx [IWAD].
+Why fun: a lobbed mine-rocket that caroms off walls then blows properly.
+  100% vanilla assets, zero import work. Bounce-list #5.
+Hazard: 96-radius splash near the player; +MTHRUSPECIES strip.
+
+-- 19 --------------------------------------------------------------
+RS_AbyssFatsoBomb | Mancubus ABYSS | Actor  ** bounce **
+Behaviors: Speed 28, Damage 50 Ice, +BOUNCEONWALLS Doom x3,
+  BounceFactor 1.1 (accelerating), +USEBOUNCESTATE, A_Explode(50,80).
+Sprite: BAL2 [IWAD] (Ice translation).
+Sounds: ice/Cast, Ice/Hit2 [CH-EXT -- swap to rs_fx_ice_*].
+Why fun: a heavy ice bomb that speeds UP with each ricochet. Bounce-list #3.
+Hazard: Collides: Cryo owns ice -- candidate to BE a Cryo upper-level
+  part alongside the existing orb, not a separate identity.
+
+-- 20 --------------------------------------------------------------
+RS_IceOrbCyanAra1 | Pain Elemental CYAN | Actor  ** bounce **
+Behaviors: Speed 20, Damage 27 Ice, +SEEKERMISSILE(2,2), +BOUNCEONFLOORS
+  Doom x7, BounceFactor 1.25, Gravity 0.5, +USEBOUNCESTATE,
+  A_Explode(27,64).
+Sprite: ICEY A,B [REPO]; ** death "ICEY CDE" -- D/E DO NOT EXIST in repo
+  (broken/invisible frames without CH). Remap death to F,G,H,I exactly
+  as RS_AffixIceOrb already does. **
+Sounds: ice/Cast, Ice/Hit2 [CH-EXT -- swap to rs_fx_ice_*].
+Why fun: this IS the "Pain Orb (the bouncing orb, reframed)" from
+  rs_11's exotic list -- a seeking ice ball that pogo-bounces across the
+  floor hunting things.
+Hazard: seek+bounce+splash stacked = strongest bouncer here, price it;
+  Collides: Cryo (the existing mastery orb is its cousin -- decide ONE home).
+
+-- 21 --------------------------------------------------------------
+RS_HBeastShot | Mancubus RED (Hell Beast) | Actor
+Behaviors: Speed 23, Damage 22 Fire, +FLOORHUGGER (crawls the ground to
+  the target), A_Explode(22,48).
+Sprite: BFS1 flight (A,B [IWAD]), BFS1 C,D,E death -- ** vanilla BFS1
+  has ONLY frames A,B; C-E are missing everywhere (broken death anim
+  even WITH most CH builds -- verify or remap death to BFE1 [IWAD]) **.
+Sounds: horn/attack, horn/shotx [CH-EXT -- swap].
+Why fun: rounds that dive to the floor and SNAKE along the ground under
+  everything -- hits low targets, climbs stairs, ignores height games.
+  No player weapon does anything like it.
+Hazard: floorhugger rounds can't hit fliers -- eligibility gate or pair
+  as an altfire-style beat, not the whole gun's identity.
+
+-- 22 --------------------------------------------------------------
+RS_BVileCloud | Arch-vile BLACK | Actor
+Behaviors: Speed 14, Damage 2 Fire, +SEEKERMISSILE(4,4), +RIPPER,
+  Scale 1.4, dark translation -- a slow seeking flame-ghost that rips
+  through a target repeatedly as it passes.
+Sprite: VILE O,P,Q flight / R death [IWAD].
+Sounds: vile/start, vile/stop [IWAD].
+Why fun: a haunting vile-flame that drifts to a victim and grinds
+  through it -- DoT-as-projectile, completely distinct feel.
+Hazard: RIPPER re-hit cadence makes exact-damage math weird (damage 2
+  x many rips) -- the adapter must re-price; Ghost affix owns pierce,
+  so this needs the ripper framed as "burn-through", price/gate vs Ghost.
+
+-- 23 --------------------------------------------------------------
+RS_SoulBomb | Hell Knight WHITE (Ghost of E1M8) | Actor
+Behaviors: Speed 11, Damage 50 Plasma, death = shrinking explode ladder
+  A_Explode(45,200 / 37,178 / 30,158 / 22,128); flight sheds RS_SoulTrail.
+Sprite: SKUL flight [IWAD] (ghost translation); ** death + trail SPIR
+  [CH-EXT -- death anim and wake invisible without CH; remap death to
+  RSE4/RSE5 in-repo explosions **.
+Sounds: phantom/bomb, phantom/explode [CH-EXT -- swap].
+Why fun: you fire screaming skulls that detonate like a collapsing
+  soul-nova. Apex-rarity fantasy.
+Hazard: 200-radius quadruple explode is a self-kill machine and a
+  DONTHARMCLASS-free monster-clearer -- must be heavily tamed; asset
+  work needed on death.
+
+-- 24 --------------------------------------------------------------
+RS_CyberdemonHomingMissile (+ RS_CyberdemonMissile) | Cyberdemon neutral
+  | Actor
+Behaviors: homing: Speed 15/Fast 30, Damage 30, +SEEKERMISSILE
+  (0,1,PRECISE|CURSPEED -- silky tracking), A_Explode (default 128/128);
+  straight twin: Speed 20, +DEHEXPLOSION +ROCKETTRAIL.
+Sprite: straight MISL [IWAD]; ** homing HMIS [CH-EXT/Babel -- INVISIBLE
+  without the pack; re-skin to MISL for the adapter **.
+Sounds: none baked (straight has DeathSound "").
+Why fun: "your bullets are cyberdemon rockets." The bluntest, most
+  legible power fantasy in the survey; DamageType "Monster" quirk aside,
+  a slow-RoF gate makes it sane.
+Hazard: default A_Explode = full rocket splash incl. shooter; strictly
+  slug/heavy-lane, never autofire.
+
+-- 25 --------------------------------------------------------------
+RS_SpiderStoneRocket | Arachnotron GRAY | FastProjectile
+Behaviors: Speed 83 (!), Damage 75, A_Explode(75,96), sheds
+  RS_StoneRockTrail (PUFI [CH-EXT] -- cosmetic loss only).
+Sprite: MISL [IWAD].
+Sounds: weapons/rocklf, weapons/rocklx [IWAD].
+Why fun: a railgun-velocity rocket. Screen-crossing instant artillery
+  for the single-shot lane.
+Hazard: 96 splash at that velocity means point-blank suicide is one
+  twitch away -- exact-damage direct hit, shrink the blast.
+
+-- 26 --------------------------------------------------------------
+RS_HellionBall | Hell Knight BROWN (Hellion) | Actor
+Behaviors: Speed 19, Damage 32 Fire, +SEEKERMISSILE(7,5) + A_Weave --
+  drunken strong homing; sheds RS_HellionPuff trail.
+Sprite: ** HLBL [CH-EXT -- flight AND trail invisible without CH **.
+Sounds: Monster/hlnatk, Monster/hlnexp [CH-EXT].
+Why fun: the prettiest seeker in CH -- weaving comet with an afterimage
+  wake. Worth an art import if the Seeker-adjacent slot ever wants a
+  showpiece.
+Hazard: asset import required before this is anything.
+
+-- 27 --------------------------------------------------------------
+RS_HadesBolt | Cacodemon BLACK (Hades) | Actor
+Behaviors: Speed 5, Damage 1 + A_Explode(8,48) per flight tic,
+  +FLOORHUGGER +RIPPER +FLOORCLIP, Hexen bounce, YScale 4 (a tall
+  pillar), ReactionTime-limited life.
+Sprite: ** HEFX [CH-EXT] **.
+Sounds: weapons/none (silent), weapons/gntidl [CH-EXT].
+Why fun: a slow grinding pillar of hellfire that crawls the floor
+  chewing everything in a line -- "the wall that walks."
+Hazard: CH-EXT art; ripper+radius tick pricing; too slow for most guns
+  -- special-beat material (Echo-style enhanced beat), not a base round.
+
+RUNNERS-UP (verified, one line each -- worth keeping on the bench):
+  RS_KrakatoaL9 (arach WHITE-EX): APLS [IWAD] giant comet, Speed 80,
+    Explode(90,160), weapons/bfgf [IWAD] -- big dumb fun, brutal splash.
+  RS_SmallIceCaco (caco CYAN): ICEY A,B,C/F,G all [REPO], Speed 42 ice
+    dart, BulletChip decal -- Cryo-lane filler, fully in-repo.
+  RS_IceSeekerBaron (baron CYAN): ICEY all-frames-valid [REPO], PRECISE
+    seeker frandom(3,12) + in-repo ICEY trail -- Cryo seeker part.
+  RS_MiniRKTZombie (zombie): MISL [IWAD] mini-rocket, Explode(40,80).
+  RS_Propane (cyber PURPLE): MISL [IWAD] seeker rocket, Explode(96,128)
+    -- splash way over budget, but vanilla.
+  RS_WVileBolt1 (vile WHITE): FATB+BFE2 [IWAD] seeking white tracer --
+    collides head-on with Bonecaller's FATB identity; only if Bonecaller
+    ever wants a sibling tier.
+  RS_SPMM1 (arach BLACK): MISL [IWAD] seeker missile, DontHurtShooter
+    already baked (!), Explode(40,64) -- the safest swarm missile body.
+  RS_AcidBlast1 (rev GREEN): BAL7 [IWAD] green seeker, Explode(30,48).
+  RS_HKEXFastBeam (HK BLACK-EX): FastProjectile Speed 64 BFS1 [IWAD]
+    beam w/ trail -- rail-flavor tracer, no bounce possible.
+  RS_ZManShot (mastermind neutral): FastProjectile Speed 70 PLSS [IWAD]
+    tracer -- clean but too close to existing bullets to be exotic.
+  RS_DKDart (dk_shared): MISL [IWAD] dart, monster/dkndrt [REPO] --
+    modest but 100%-available audio identity.
+  RS_BSoulHellNo (lostsoul BLACK): WASP [REPO] hornet, SEEKER(10,10,
+    PRECISE) -- single-wasp sibling of BEESHOT, damage 2 needs repricing.
+
+=======================================================================
+5 BEST BOUNCING CANDIDATES (all plain Actor -- RS_AffixPartActor chassis)
+=======================================================================
+ B1. RS_MinesHK        -- 25 wall bounces + death nail-ring; RIP1 [REPO]
+                          flight, ring subs need re-skin (see 09).
+ B2. RS_SmashBalls2    -- Hexen x7 rising bounces, bounce-state spray +
+                          seek-flip; BAL2 [IWAD] (see 10).
+ B3. RS_AbyssFatsoBomb -- Doom x3 accelerating wall bounces, ice bomb;
+                          BAL2 [IWAD] (see 19).
+ B4. RS_WhiteMindshot1 -- fast plasma, 2 clean ricochets, all [IWAD];
+                          the L1 bouncer (see 17).
+ B5. RS_MinesRev       -- arcing wall-bounce mine, all [IWAD] (see 18).
+ (bench: RS_SpitFireCaco -- 8 wall bounces, the best FEEL of the lot,
+  but FLUM sprite + CacoFlame/Attack are [CH-EXT]; RS_IceOrbCyanAra1 is
+  ranked in the main list at 20; RS_IceToMeetWhiteRev bounces 99x at
+  factor 1.0 forever but is +THRUACTORS -- it cannot hit anything, a
+  pinball not a weapon; RS_LavaballPE bounces nicely but BAL3 is
+  [CH-EXT] despite the stale "ripped" comment.)
+
+=======================================================================
+5 BEST SWARM / MULTI-SHOT CANDIDATES
+=======================================================================
+ S1. RS_BEESHOT + RS_BeeMotePE -- seeking wasp swarm, LFX1+WASP [REPO]
+                                  (see 08).
+ S2. RS_SwooshCBBar1           -- 30-ball plasma nova on impact, all
+                                  [IWAD] (see 04).
+ S3. RS_FireBluHKBall1         -- sheds weavers in flight, 14-ball death
+                                  burst, all sprites [IWAD] (see 05).
+ S4. RS_Spspit3                -- dribbles live bouncing poison beads
+                                  along its path, all [IWAD] (see 13).
+ S5. RS_BBSP1 + RS_SPMM1       -- "Macross Missile Spam": carrier
+                                  continuously launches seeking missiles
+                                  (all MISL [IWAD]; SPMM1 already has
+                                  DontHurtShooter). Spawn rate is 1/2
+                                  tics -- MUST be capped hard, splash
+                                  fields overlap. The apex swarm if tamed.
+ (bench: RS_IceHKShot / RS_IceOrbCyanHK shard novas (ranked 06/07);
+  RS_CybieRainMaker rains fire from the ceiling but STRS is [CH-EXT]
+  and the invisible-carrier pattern needs a rework.)
+
+=======================================================================
+HAZARD APPENDIX -- things that looked like candidates but bite
+=======================================================================
+ * RS_PhantomEgg (HK WHITE): PLSS [IWAD], but its death SPAWNS A LIVE
+   HOSTILE Spectre. As a player round it summons enemies at the impact
+   point. Do not adapt as-is; only viable if the hatch is replaced.
+ * RS_DIBigOne (imp BLACK): DropItem "RocketAmmo" (rounds that drop
+   ammo = free economy leak), and its web spawns RS_DeathBreathDI which
+   A_RadiusGive-HEALS nearby RS_Imp monsters. Both disqualifying as-is.
+ * RS_AgauresBall1 / RS_BlackImpEXBall1 (imp BLACK): death drops the
+   same monster-healing smoke. Same disqualifier. (BLVB [CH-EXT] anyway.)
+ * RS_AbyssBaronHandFire3 / RS_BrownBaronSpiral (baron): spawn actual
+   Monster-class actors (RS_AbyssBaronSoul / RS_ReflectorBBaron).
+ * +THRUACTORS rounds (RS_IceToMeetWhiteRev, RS_AbyPECoil, RS_CorpseBreathPE,
+   RS_BlackSpideSpiralShot, RS_ShadowBeast_BallFire): they pass through
+   monsters entirely -- direct damage never lands; some also carry
+   RIPPER, which then never triggers. Strip the flag or skip them.
+ * Species-keyed +THRUSPECIES rounds (RS_AbyssCacoBalls, RS_AbyssCacoHidi
+   Species "Caco"): as player rounds they would fly THROUGH cacodemons.
+   Strip Species/flag on any adapter.
+ * +DONTHARMCLASS appears on ~15 candidates: for a player shooter it
+   only protects other players (co-op courtesy) -- harmless, but strip
+   for clarity.
+ * Splash-over-budget: RS_Propane (96/128), RS_SoulBomb (45/200 ladder),
+   RS_KrakatoaL9 (90/160), RS_StormShot1 (90/128), RS_ShadowBombBigEX
+   (150/160, BDP2 [CH-EXT]), RS_FireBluFatsoBal2 (60/128) -- every one
+   needs the Bonecaller treatment: exact rolled damage on the direct
+   hit, splash shrunk to garnish.
+ * Broken frame references found while verifying (do NOT copy blindly):
+   "ICEY CDE" death states everywhere (ICEY has no D/E in repo);
+   RS_HBeastShot/RS_GenShield "BFS1 CDE" (vanilla BFS1 is A,B only);
+   RS_MineShotgun death "SHOT ABCD" (vanilla SHOT is frame A only);
+   RS_BigBolt2 death "BFS1 CDEFG" (same BFS1 problem).
+
+Survey coverage: RS_arach / RS_archvile / RS_baron / RS_caco /
+RS_cyberdemon / RS_demon / RS_dk_shared / RS_hk / RS_human / RS_imp /
+RS_lostsoul / RS_manc / RS_pe / RS_rev / RS_spectre / RS_spidermind
+projectile files -- all read end-to-end; ~290 projectile classes
+considered, 27 ranked + 12 bench + hazard set documented.
