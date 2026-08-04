@@ -74,7 +74,23 @@ class RS_HBeastSmoke : Actor
 class RS_ZAPFFAT2 : Actor
 {
 	Default { Speed 1; Projectile; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.65; Scale 0.9; Damage 10; Translation "0:255=#[255,255,0]"; }
-	States { Spawn: TNT1 A 0; Fly: LITN ABCDEF 2 Bright A_Explode(8,40); Loop; Death: LITN A 2 Bright; Stop; }
+	// CH Fatsos.txt:245 -- three bursts shedding RS_ZapFFAT sparks, then STOP.
+	// The port had `LITN ABCDEF 2 A_Explode(8,40); Loop;` -- an A_Explode on a
+	// looping state never exits, so it dealt 8 damage in a 40 radius forever
+	// (and once per frame, six times a pass). CH deals random(1,2) at 32.
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
+		LITN ABCD 1 Bright { A_Explode(random(1, 2), 32, 0); }
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
+		LITN EFG 1 Bright { A_Explode(random(1, 2), 32, 0); }
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
+		LITN FEDB 1 Bright { A_Explode(random(1, 2), 32, 0); }
+		Stop;
+	}
 }
 
 // ---------- RED: "Hell Beast" floor-hugging shots + spray (HBST body) ----------

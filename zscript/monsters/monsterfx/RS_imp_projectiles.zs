@@ -552,7 +552,7 @@ class RS_DIBigOne : Actor
 	Default
 	{
 		Radius 12; Height 24; Speed 7;
-		Damage 60; DamageType "Plasma";
+		DamageFunction (random(40, 125)); DamageType "Plasma";
 		Projectile; +NOGRAVITY; RenderStyle "Add"; Scale 2; Alpha 0.75;
 		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4";
 		DropItem "RocketAmmo";
@@ -564,11 +564,14 @@ class RS_DIBigOne : Actor
 		RED9 AA 1 Bright A_SpawnItemEx("RS_SpiralSaw5",0,0,0,0,0,0,0,128);
 		RED9 A 0 A_CustomMissile("RS_GroundRedCyb",0,0);
 		RED9 A 0 A_CustomMissile("RS_AgauresBall1", 7, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		RED9 A 0 A_Explode(7,128);
+		RED9 A 0 A_Explode(random(4, 10), 128);
 		Loop;
 	Death:
 		SPIR AAAA 0 A_SpawnItemEx("RS_DeathBreathDI", random(-178,178), random(-178,178), random(-12,42), 0,0,0,0,128,0);
-		SPIR ABCDEDCBA 5 Bright A_Explode(17,178);
+		// CH Imps.txt:2437 runs A_Explode(random(5,30),178) on NINE frames.
+		// A multi-frame line fires its action once PER FRAME, so this is nine
+		// blasts, not one -- CH's own intent, kept.
+		SPIR ABCDEDCBA 5 Bright A_Explode(random(5, 30), 178);
 		SPIR E 1 A_NoBlocking;
 		Stop;
 	}

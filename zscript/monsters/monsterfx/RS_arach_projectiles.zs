@@ -123,7 +123,6 @@ class RS_RocketShotFatso : Actor
 		DamageFunction (random(10, 40));
 		DamageType "Fire";
 		Projectile;
-		+SEEKERMISSILE
 		Scale 0.7;
 		DeathSound "weapons/rocklx";
 	}
@@ -132,8 +131,10 @@ class RS_RocketShotFatso : Actor
 	Spawn:
 		MSLH A 2 Bright
 		{
+			// No seeker: CH's own DECORATE has neither the flag nor the
+			// call, despite the name and the launch sound. Owner ruling is
+			// match source -- the Incubus fires eight of these a volley.
 			A_SpawnItemEx("RS_HomingRocketTrailFatso", 0, 0, 0, 0, 0, 0, 0, 128);
-			A_SeekerMissile(4, 8, SMF_LOOK);
 		}
 		Loop;
 	Death:
