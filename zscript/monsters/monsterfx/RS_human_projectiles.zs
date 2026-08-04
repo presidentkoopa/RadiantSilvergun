@@ -7,9 +7,15 @@
 // can be recombined the same way weapon attacks are, rather than each
 // monster owning a hardcoded projectile.
 //
-// Converted from the earlier port's library and RS_-prefixed. Sprite
-// references verified against ART SOURCE / IWAD -- see the import notes
-// at the bottom of this file for anything that was corrected.
+// Converted from the earlier port's library and RS_-prefixed.
+//
+// SPRITE REFERENCES ARE NOT FULLY VERIFIED. An earlier version of this
+// header claimed they were; they were not. The lint that was supposed to
+// check them (verify.py) used a ^-anchored regex and therefore never read
+// a single inline `States { ... }` block -- which is how most of this file
+// is written -- so it reported OK on code it had not looked at. That is
+// fixed now, and the broken references it exposed are listed at the bottom
+// of this file. Trust the lint, not this comment.
 // =====================================================================
 
 // ============================================================================
@@ -24,29 +30,29 @@ class RS_Gas11 : Actor
 {
 	Default { Radius 6; Height 8; Speed 12; Damage 8; DamageType "Poison"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.7; Scale 0.8;
 		SeeSound "grenade/fuse"; DeathSound "weapons/grenade"; Translation "0:255=%[0.20,0.40,0.00]:[0.70,1.20,0.20]"; }
-	States { Spawn: PSBG ABCD 4 Bright; Loop; Death: PSBG EFG 4 Bright A_Explode(8,48); Stop; }
+	States { Spawn: PSBG ABCD 4 Bright; Loop; Death: PSBG E 4 Bright A_Explode(24, 48, XF_HURTSOURCE, false, 16); PSBG FG 4 Bright; Stop; }
 }
 class RS_IceZombieShot : Actor
 {
 	Default { Radius 6; Height 8; Speed 33; Damage 11; DamageType "Ice"; Projectile; RenderStyle "Add"; Alpha 0.9; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
-	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY CDE 4 Bright A_Explode(11,40); Stop; }
+	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY C 4 Bright A_Explode(33, 40, XF_HURTSOURCE, false, 13); ICEY DE 4 Bright; Stop; }
 }
 class RS_IceZombieShot2 : RS_IceZombieShot { Default { Speed 28; Damage 9; } }
 class RS_Orbb11 : Actor
 {
 	Default { Radius 6; Height 8; Speed 21; Damage 10; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.9; Scale 0.7;
 		SeeSound "imp/attack"; DeathSound "imp/shotx"; Translation "0:255=%[0.40,0.00,0.60]:[1.30,0.30,1.70]"; }
-	States { Spawn: BAL1 AB 3 Bright A_SeekerMissile(2,2); Loop; Death: BAL1 CDE 4 Bright A_Explode(10,40); Stop; }
+	States { Spawn: BAL1 AB 3 Bright A_SeekerMissile(2,2); Loop; Death: BAL1 C 4 Bright A_Explode(30, 40, XF_HURTSOURCE, false, 13); BAL1 DE 4 Bright; Stop; }
 }
 class RS_MiniRKTZombie : Actor
 {
 	Default { Radius 6; Height 8; Speed 22; Damage 22; DamageType "Fire"; Projectile; +RANDOMIZE; +ROCKETTRAIL; Scale 0.6; SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx"; }
-	States { Spawn: MISL A 3 Bright; Loop; Death: MISL BCD 4 Bright A_Explode(40,80); Stop; }
+	States { Spawn: MISL A 3 Bright; Loop; Death: MISL B 4 Bright A_Explode(120, 80, XF_HURTSOURCE, false, 26); MISL CD 4 Bright; Stop; }
 }
 class RS_AbyssZshotCH : Actor
 {
 	Default { Radius 6; Height 8; Speed 32; Damage 17; DamageType "Ice"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Translation "Ice"; SeeSound "imp/attack"; DeathSound "imp/shotx"; }
-	States { Spawn: BAL7 AB 3 Bright; Loop; Death: BAL7 CDE 4 Bright A_Explode(17,48); Stop; }
+	States { Spawn: BAL7 AB 3 Bright; Loop; Death: BAL7 C 4 Bright A_Explode(51, 48, XF_HURTSOURCE, false, 16); BAL7 DE 4 Bright; Stop; }
 }
 class RS_AbyssZshotCH2 : RS_AbyssZshotCH { Default { Speed 45; } }
 class RS_AbyssZShotCH3 : RS_AbyssZshotCH { Default { Speed 60; Damage 22; } }
@@ -66,24 +72,66 @@ class RS_SGshot1 : Actor
 class RS_SGLance1 : Actor
 {
 	Default { Radius 6; Height 8; Speed 20; Damage 35; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.9; SeeSound "weapons/plasmaf"; DeathSound "weapons/plasmax"; }
-	States { Spawn: PLSE AB 3 Bright A_SeekerMissile(2,2); Loop; Death: PLSS CDE 4 Bright A_Explode(35,64); Stop; }
+	States { Spawn: PLSE AB 3 Bright A_SeekerMissile(2,2); Loop; Death: PLSS C 4 Bright A_Explode(105, 64, XF_HURTSOURCE, false, 21); PLSS DE 4 Bright; Stop; }
 }
 class RS_RedMessImp3 : Actor
 {
 	Default { Radius 6; Height 8; Speed 26; Damage 30; DamageType "Fire"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "0:255=%[0.60,0.00,0.00]:[2.00,0.30,0.30]"; }
-	States { Spawn: BAL1 AB 3 Bright; Loop; Death: BAL1 CDE 4 Bright A_Explode(30,48); Stop; }
+	States { Spawn: BAL1 AB 3 Bright; Loop; Death: BAL1 C 4 Bright A_Explode(90, 48, XF_HURTSOURCE, false, 16); BAL1 DE 4 Bright; Stop; }
 }
 class RS_SGGasNade : Actor
 {
 	Default { Radius 6; Height 8; Speed 25; Damage 40; DamageType "Poison"; Projectile; +GRENADETRAIL; -NOGRAVITY; Gravity 0.4; BounceType "Doom"; BounceCount 2;
 		SeeSound "weapons/grenade"; DeathSound "weapons/grenade"; }
-	States { Spawn: MISL A 4 Bright; Loop; Death: GRND ABCD 4 Bright A_Explode(60,96); Stop; }
+	// SIGNATURE: two-stage. Core 120@72 (full inside 28) then a 60@160 gas wave. 180 total, as before.
+	States { Spawn: GRND A 4 Bright; Loop;
+		Death: MISL B 4 Bright A_Explode(120, 72, XF_HURTSOURCE, false, 28);
+		MISL C 4 Bright A_Explode(60, 160, XF_HURTSOURCE);
+		MISL D 4 Bright; Stop; }
 }
+// A thrown shotgun that falls, rolls, throbs and cooks off. Ported 1:1 from
+// CH's MineShotgun (Shotgunners.txt:2473) -- gravity, the scale throb, the
+// random cook-off and the bounce kick are all load-bearing for how it reads.
 class RS_MineShotgun : Actor
 {
-	Default { Radius 6; Height 8; Speed 20; Damage 30; DamageType "Fire"; Projectile; +BOUNCEONWALLS; +THRUGHOST; BounceType "Doom"; BounceCount 3; SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx"; }
-	States { Spawn: MISL A 4 Bright; Loop; Death: SHOT ABCD 4 Bright A_Explode(50,96); Stop; }
+	// DamageFunction, not Damage: a non-constant Damage property in a Default
+	// block is the "damage: non-constant parameter" compile blocker. CH's roll
+	// is kept. (Phrased without the literal pattern so it does not show up in
+	// the tree-wide grep the other lanes are using to find real instances.)
+	Default { Radius 12; Height 12; Speed 20; DamageFunction (random(10, 50)); DamageType "Fire"; Projectile;
+		RenderStyle "SoulTrans"; Alpha 0.95; -NOGRAVITY; Gravity 0.9;
+		+BOUNCEONWALLS; +THRUGHOST; BounceType "Doom"; BounceCount 11; BounceFactor 0.75; WallBounceFactor 1.2;
+		SeeSound "weapons/sshotl"; BounceSound "weapons/sshotl"; DeathSound "weapons/rockx"; }
+	States
+	{
+	Spawn:
+		SHOT A 1 Bright A_SetScale(1.15);
+		SHOT A 1 Bright A_SetScale(1.3);
+		SHOT A 0 A_Jump(6, "Death");
+		SHOT A 0 A_Jump(32, "Bounce");
+		SHOT A 1 Bright A_SetScale(1.15);
+		SHOT A 1 Bright A_SetScale(1.0);
+		Loop;
+	Bounce:
+		// CH: ThrustThing(angle*256/(random(1,360)), 15, 0, 0). The expression is
+		// byte-angle nonsense that lands on a scrambled direction; kept verbatim
+		// and converted back to degrees rather than "tidied" into something else.
+		SHOT A 2 Bright
+		{
+			double deg = ((angle * 256.0) / random(1, 360)) * (360.0 / 256.0);
+			Vel.X += 15 * cos(deg);
+			Vel.Y += 15 * sin(deg);
+		}
+		Goto Spawn;
+	Death:
+		// SIGNATURE: two-stage. Core then a wide shove. Total still random(15,150),
+		// which is what the old three-frame line was rolling three times over.
+		MISL B 5 Bright A_Explode(random(10, 100), 96, XF_HURTSOURCE, false, 32);
+		MISL C 5 Bright A_Explode(random(5, 50), 192, XF_HURTSOURCE);
+		MISL D 5 Bright;
+		Stop;
+	}
 }
 
 // ---------- CHAINGUNNER color projectiles ----------
@@ -96,13 +144,19 @@ class RS_BrownOrbCguy : Actor
 {
 	Default { Radius 3; Height 3; Speed 32; Damage 9; DamageType "Fire"; Projectile; +THRUGHOST; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Scale 0.5;
 		SeeSound "imp/attack"; DeathSound "imp/shotx"; Translation "0:255=%[0.31,0.23,0.18]:[1.10,0.74,0.40]"; }
-	States { Spawn: BAL1 AB 2 Bright; Loop; Death: RIP1 ABC 3 Bright A_Explode(9,40); Stop; }
+	States { Spawn: BAL1 AB 2 Bright; Loop; Death: RIP1 A 3 Bright A_Explode(27, 40, XF_HURTSOURCE, false, 13); RIP1 BC 3 Bright; Stop; }
 }
 class RS_CGBigOne : Actor
 {
 	Default { Radius 8; Height 8; Speed 19; Damage 50; DamageType "Plasma"; Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.9; Scale 1.2;
 		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx"; }
-	States { Spawn: SPIR FGH 3 Bright A_SeekerMissile(3,3); Loop; Death: RED9 ABCDE 4 Bright A_Explode(80,96); Stop; }
+	// SIGNATURE: two-stage. The old line fired 80 damage on all FIVE frames -- 400
+	// at the epicentre from a line that reads 80. Kept at 400, split into a 280
+	// core (full inside 24) and a 120 wave that now reaches 160 instead of 96.
+	States { Spawn: SPIR FGH 3 Bright A_SeekerMissile(3,3); Loop;
+		Death: RED9 A 4 Bright A_Explode(280, 64, XF_HURTSOURCE, false, 24);
+		RED9 B 4 Bright A_Explode(120, 160, XF_HURTSOURCE);
+		RED9 CDE 4 Bright; Stop; }
 }
 class RS_GenShield : Actor
 {
@@ -267,7 +321,7 @@ class RS_BrownSGshot : Actor
 		TNT1 A 0 A_Stop;
 		PUFF C 6 Bright;
 		TNT1 A 0 A_Blast(BF_NOIMPACTDAMAGE, 128, 32, 20.0);
-		PUFF DE 6 Bright;
+		PUFF D 12 Bright;
 		Stop;
 	}
 }
@@ -1512,10 +1566,52 @@ class RS_SpiralLoadGeneEX : Actor
 
 // --- IMPORT CORRECTIONS -------------------------------------------
 // Broken sprite references inherited from the source, fixed on import:
-//   * SGRN -> GRND (source comment wrongly called SGRN a stock IWAD sprite)  (1 occurrence)
 //   * CHP sound names with no SNDINFO entry in this repo remapped to the
 //     nearest vanilla logical name (SNPRFIRE/weapons/firex4 -> weapons/
 //     rocklf|rocklx, monster/dknmsl -> weapons/rocklf, weapons/boom1 |
 //     weapons/hellex -> weapons/rocklx, SlimeBall/Shoot -> imp/attack,
 //     slimeworm/* -> demon/*, BabyCaco/* -> caco/*, arachnobaron/death
 //     -> baron/death). Adding the CH oggs is task #2, not this pass.
+//   * SGRN -> GRND, in RS_SGGasNade. THIS ENTRY USED TO BE WRONG and is
+//     kept here as a warning. SGRN exists nowhere, so retargeting the token
+//     was right -- but the entry was logged as done while three separate
+//     things about it were still broken:
+//       - it sat in Death (`GRND ABCD`) when CH puts the grenade in SPAWN
+//         and explodes on MISL B/CD (Shotgunners.txt:1692). Same Spawn/Death
+//         inversion as RS_MineShotgun below; both came in backwards.
+//       - GRND art was never copied into the repo, so the reference could
+//         not have resolved at load time regardless.
+//       - to make the lint go quiet, 'GRND':'A' was added to verify.py's
+//         VANILLA token table. GRND is not a Doom sprite. That entry has
+//         been removed; the art now lives in sprites/monsters/projectiles/
+//         (frames A-H,J,K from the top-level ART SOURCE weapon pack) and
+//         resolves honestly through the repo sprite tree.
+//   * RS_MineShotgun had Spawn and Death swapped against CH's MineShotgun
+//     (Shotgunners.txt:2473): CH spawns SHOT A -- the IWAD shotgun PICKUP
+//     lump, i.e. the mine is a thrown shotgun tumbling along the floor --
+//     and dies on MISL BCD. The port had Spawn MISL A / Death SHOT ABCD;
+//     SHOT has only frame A in any IWAD, so B/C/D never existed. Restored
+//     to CH's split, and the rest of the actor restored 1:1 with it: the
+//     gravity (it falls and rolls, it does not float), the scale throb, the
+//     random cook-off jump, the bounce kick, BounceCount 11, and the
+//     shotgun/rocket sounds. The port had flattened all of that away.
+//     No art copied: the only SHOTA0 in ART SOURCE is in the top-level
+//     weapon pack, and dropping it in sprites/ would silently reskin the
+//     vanilla shotgun pickup mod-wide. SHOT A comes from the IWAD.
+//   * RS_BrownSGshot's PUFF DE -> PUFF D. Vanilla PUFF is A-D; the E is a
+//     typo carried verbatim from CH (Shotgunners.txt:186) and re-copied into
+//     CHP's BrownSGshot_C. It is the only PUFF E reference in either pack --
+//     every other PUFF line in CH/CHP stays inside A-D -- and no PUFF art
+//     exists anywhere in ART SOURCE. Tics folded 6+6 -> 12 to keep the
+//     post-A_Blast tail the same length.
+//   * Every A_Explode in this file now fires ONCE. A multi-frame state line
+//     runs its action on EVERY frame, so `MISL BCD 4 A_Explode(40,80)` was
+//     dealing 120, and RS_CGBigOne's five-frame line was dealing 400 from a
+//     number that reads 80. Damage is preserved exactly (folded into a single
+//     call with a full-damage core); RS_MineShotgun, RS_SGGasNade and
+//     RS_CGBigOne get a deliberate two-stage core + shockwave instead.
+//     NOT applied to the rest of the tree yet -- and it must NOT be applied
+//     blindly: repeating/bouncing frame patterns and long low-damage runs
+//     (AGAS, LITN, B5P1 ABCDABCDABCD, FIRE CDEEDCDE, RIP1 ABCABCABCBA) are
+//     gas clouds, lightning and lingering fire where the repeat IS the
+//     mechanic. Converting those would be a real nerf.

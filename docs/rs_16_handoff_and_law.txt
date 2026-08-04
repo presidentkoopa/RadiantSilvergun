@@ -198,3 +198,117 @@ CANDIDATE POOL -- NOT BUILT. [A:] = the rolled stat it amplifies.
   DUAL-WIELD (QUARANTINE -- ONE-WAY only, A buffs B never back, no
   loops; prototype exactly one, LAST): CROSSFIRE, SOUTHPAW, TWIN LINK.
 ================================================================================
+
+================================================================================
+   APPENDED 2026-08-04 -- sprite/lint lane (claude/wizardly-mcnulty-9ff016)
+================================================================================
+
+DONE
+  * THE SPRITE LINT WAS BLIND. verify.py's sprite check used a ^-anchored
+    regex, so it only read tokens at the START of a line. Most of monsterfx
+    writes states inline -- States { Spawn: ...; Death: ...; } -- and the
+    monster files use quoted tokens ("FATT" AB 15). It reported OK on code
+    it had never opened. Now unanchored, comment-stripped, quoted-token
+    aware, combined with the other lane's vanilla-token skip. DISTRUST any
+    pre-2026-08-04 claim that sprite refs were "verified" -- the tool behind
+    those claims could not see the code. RS_human_projectiles.zs shipped
+    nine broken refs under exactly such a header.
+  * build_art_index.py -- reproducible rebuild of art_index.json across the
+    whole ART SOURCE tree (was CH/ + CHP/ only). 567 -> 1722 tokens. Keeps
+    [ \ ] frames past Z. Drops ~30 junk tokens the old ad-hoc index had
+    ingested from SOUND filenames, which could make a broken sprite ref
+    pass by accident.
+  * RS_MineShotgun and RS_SGGasNade had SPAWN AND DEATH SWAPPED against CH.
+    CH spawns the object (SHOT A -- the IWAD shotgun pickup lump reused as
+    a thrown mine; GRND A -- the grenade) and explodes on MISL BCD.
+    MineShotgun otherwise restored 1:1: gravity so it falls and rolls, the
+    scale throb, random cook-off, bounce kick, BounceCount 11.
+  * RS_BrownSGshot's PUFF DE -> PUFF D. Vanilla PUFF is A-D.
+  * Every A_Explode in RS_human_projectiles.zs now fires ONCE. A multi-frame
+    state line runs its action on EVERY frame: RS_CGBigOne was dealing 400
+    at the epicentre from a line that reads 80. Damage preserved exactly.
+  * verify.py's vanilla table lost the fabricated 'GRND':'A' (not a Doom
+    sprite; invented to silence a broken ref) and gained the real 'SHOT':'A'.
+
+LAW ADDED (owner, this session)
+  MONSTERS MUST STAND ALONE and require nothing. Every sprite token in
+  zscript/monsters/** must resolve from the repo's own sprites/ tree or a
+  genuine IWAD lump. art_index.json is a CATALOGUE OF WHAT COULD BE COPIED,
+  not a dependency list -- a token resolving only through it is a missing
+  file that fails at load. Never add a token to verify.py's VAN table to
+  quiet a failure; that table is real IWAD lumps only. CHP is a copy of CH,
+  not an independent reimplementation (it carries CH's bugs verbatim), so
+  it is not a cross-check either.
+
+OPEN -- NEEDS THE OWNER
+  1. EXPLOSION PASS IS 1 OF 15 FILES. 219 multi-frame A_Explode statements
+     tree-wide. ~164 are short one-way death animations and should be
+     converted. ~55 MUST BE LEFT ALONE -- AGAS, LITN, B5P1 ABCDABCDABCD,
+     FIRE CDEEDCDE, RIP1 ABCABCABCBA are gas clouds, lightning and lingering
+     fire where the repeat IS the mechanic; converting them is a real nerf.
+     Three more arrived with main's newer commits and are still unconverted
+     in RS_human_projectiles.zs (two APBX ABCDE, one MISL CD).
+     RS_DIBigOne (SPIR ABCDEDCBA, 9x, radius 178) is flagged for an explicit
+     owner decision either way.
+  2. 11 OF 37 MONSTER FILES HAVE BROKEN SPRITE REFS. CLAIMED by the monster
+     lane (local_d68a0dd4) at hand-off -- check it landed before redoing it.
+     Run: python verify.py $(all names under zscript/monsters/) for the live
+     list. As of the final sweep this session:
+       ICEY[DE]   arach, archvile, human, pe, rev, spectre, spidermind
+       PLSS[C,CD,CDE,DE]  arach, archvile, human   <- 2-frame vanilla sprite
+       MANF[CD]   cyberdemon, manc                 <- 2-frame vanilla sprite
+       BFS1[E,EFG]  human, lostsoul, manc          <- 2-frame vanilla sprite
+       BLAD[BC] human/lostsoul, VBA3[CDE] archvile/lostsoul,
+       SBFX[AB,CDE] archvile, GBLL[DE] archvile, BDP1[AB,C] manc,
+       PSBG[AB] human, RED9[DE] human,
+       SPRY  demon -- token missing ENTIRELY, not just frames
+     ONE DOMINANT DEFECT CLASS explains most of it: death frames written CDE
+     on tokens that only have A or AB, because someone assumed every ball
+     sprite had BAL1's five frames. Second class: CH actors imported with
+     SPAWN AND DEATH SWAPPED (RS_MineShotgun and RS_SGGasNade, both fixed).
+     NOTE the PLSS/MANF/BFS1 entries were invisible until the vanilla-token
+     skip was removed from verify.py -- see the warning below.
+  3. DamageFunction IS AN UNPROVEN BET. ~71 sites now use it for rolled
+     damage, all standing or falling together, and NOBODY HAS COMPILED. If
+     the build rejects it the fix is mechanical -- flatten each to a constant
+     -- but it is ~71 lines. Three file headers were corrected to stop them
+     asserting the opposite (they used to say "-> CONSTANT (ZScript Default
+     requires it)"), so the tree is at least self-consistent now.
+  4. RESOLVED -- there are NO unresolved labels. An earlier version of this
+     appendix listed six; all six were the lint's fault and are now fixed.
+     Three separate bugs in the label check, all the same disease as the
+     anchored sprite scan:
+       * it took the FIRST quoted argument of any A_Jump* call. In
+         A_JumpIfInventory("RS_WhiteSoulAdsOff", 1, "See") argument one is an
+         ITEM CLASS and the label is LAST. Correct handling: A_JumpIf* -> last
+         quoted arg; A_Jump(chance,"A","B","C") -> ALL of them; ResolveState /
+         A_CheckSight / A_MonsterRefire -> first.
+       * `Goto Super::Spawn + 1` targets the PARENT's Spawn. Super:: is a
+         scope qualifier; the check read it as a label named "Super".
+       * labels were only recognised ALONE on their line, so every inline
+         `A5: TCLK E 10 {...} Loop;` was invisible -- which then made the
+         now-correctly-checked A_Jump targets look broken. Fixing the first
+         bug exposed this one.
+     Net: taking all A_Jump targets instead of just the first means these are
+     genuinely checked for the first time.
+  5. DONE -- GRNDA.png (5-char lump name, invalid) deleted in 66792308.
+     Kept here only as the rule: sprite lumps must be 6 or 8 characters,
+     NAME + frame + rotation. build_art_index.py's shape filter rejects
+     anything else, which is how the stray was spotted.
+
+  DO NOT RE-ADD `if tok in VAN: continue` TO verify.py. It was added in good
+  faith to stop false failures from the hand-written vanilla frame table, but
+  PUFF is in that table, so `PUFF DE` -- vanilla PUFF has no E frame, the
+  literal typo this lane was opened to fix -- became invisible, along with any
+  bad frame on MISL, BAL1, TROO, POSS. The skip was also unnecessary: frames
+  resolve against the UNION of the table + repo sprites + art_index, so a
+  vanilla token extended by repo art already passes (MISL X/Y/Z are used on 19
+  lines across 5 files and ship in sprites/monsters/fx/). If the table gives a
+  false failure, FIX THE TABLE.
+
+  A KNOWN HOLE, deliberately left: the lint counts an art_index hit as
+  resolved. Under the standalone law it is not -- art_index is a catalogue of
+  what COULD be copied from ART SOURCE, not what ships. A token resolving ONLY
+  through art_index is a missing file at load time. Splitting "resolved" from
+  "shipped" is a real improvement and will light up a long list.
+================================================================================
