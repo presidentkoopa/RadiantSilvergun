@@ -16,7 +16,11 @@ VAN={'POSS':'ABCDEFGHIJKLMNOPQRSTU','SPOS':'ABCDEFGHIJKLMNOPQRSTU','CPOS':'ABCDE
 'MISL':'ABCDE','BAL1':'ABCDE','BAL2':'ABCDE','BAL7':'ABCDE','FATB':'ABCDE','FBXP':'ABC','MANF':'AB',
 'BOSF':'ABCD',
 'APLS':'AB','APBX':'ABCDE','PUFF':'ABCD','BLUD':'ABC','TFOG':'ABCDEFGHIJ','FIRE':'ABCDEFGH',
-'BFE1':'ABCDEF','BFE2':'ABCDE','BFS1':'ABCD','PLSS':'AB','PLSE':'ABCDE','BAR1':'ABCD','GRND':'A','HMIS':'AB'}
+'BFE1':'ABCDEF','BFE2':'ABCDE','BFS1':'ABCD','PLSS':'AB','PLSE':'ABCDE','BAR1':'ABCD','HMIS':'AB',
+# SHOT = the IWAD shotgun pickup lump (single frame); CH's MineShotgun reuses it as a thrown mine.
+# NOTE: this table is for REAL IWAD lumps only. 'GRND':'A' used to live here and is not a Doom
+# sprite -- it was invented to silence a broken reference. Copy art into sprites/ instead.
+'SHOT':'A'}
 for k,v in VAN.items(): ALL.setdefault(k,set()).update(set(v))
 defined=set()
 for f in glob.glob('zscript/**/*.zs',recursive=True)+glob.glob('zscript/**/*.zsc',recursive=True):
@@ -30,7 +34,11 @@ for name in sys.argv[1:]:
     p=f'zscript/monsters/{name}.zs'
     if not os.path.exists(p): print(name,'MISSING FILE'); bad+=1; continue
     src=io.open(p,encoding='utf-8').read(); probs=[]
-    for tok,fr in re.findall(r'^\s*"?([A-Z0-9]{4})"?\s+([A-Z]+)\s+-?\d',src,re.M):
+    # Sprite scan runs on comment-stripped source and is NOT anchored to line
+    # start: most state blocks here are written inline (States { Spawn: ...; }),
+    # and an ^-anchored scan walked straight past every one of them.
+    code=re.sub(r'/\*.*?\*/','',re.sub(r'//[^\n]*','',src),flags=re.S)
+    for tok,fr in re.findall(r'(?<![A-Za-z0-9_])"?([A-Z0-9]{4})"?\s+([A-Z]+)\s+-?\d',code):
         # Vanilla IWAD tokens: we have no IWAD to read, so asserting frame
         # ranges from memory produced two false failures already (PAIN M,
         # FATT T -- both real vanilla frames). Only existence is checked
