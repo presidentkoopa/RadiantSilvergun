@@ -72,7 +72,12 @@ class RS_RedMessImp : Actor
 // ============================================================================
 // IMP RAINBOW projectiles -- ripped/adapted from Colourful Hell, one per color.
 // All use stock BAL1 sprites + the color's translation (faithful to CH).
-// Damage converted to constants (ZScript Default requires constant Damage).
+// NOTE: earlier passes flattened CH's damage ROLLS to single constants on the
+// false belief that a ZScript Default block requires a constant Damage. It does
+// not -- `DamageFunction (random(a,b))` is the property for exactly this and it
+// PRESERVES the roll. Rolls are restored wherever they were recorded; any bare
+// constant left here is one whose original spread was lost and needs re-reading
+// from CH/CHP.
 // ============================================================================
 
 // GREEN -- seeking plasma ball
@@ -151,7 +156,7 @@ class RS_Bounc11 : Actor
 // ============================================================================
 // IMP RAINBOW Wave 2 -- the custom-sprite colors' projectiles.
 // Ripped faithfully from CH (full parent chains + sub-spawns traced).
-// Damage -> constants (ZScript). Cosmetic ACS-gated markers dropped (no CH ACS).
+// Cosmetic ACS-gated markers dropped (no CH ACS).
 // ============================================================================
 
 // --- CYAN: frost spray (FrostLong -> FrostLong2, KIRC sprites, PUFI death) ---
@@ -414,7 +419,7 @@ class RS_CyanImpBall : Actor
 // (full recursion). DIBigOne is the centerpiece: it spawns SpiralSaw5 + GroundRedCyb
 // + AgauresBall1 and explodes; its death drops DeathBreathDI. DeathBreathDI is the
 // SIGNATURE mechanic -- the "smoking" breath that HEALS nearby Black imps via
-// A_RadiusGive (ally-sustain). Damage -> constants. AGAS/BLVB/BLTR/RED9/RED8/SPIR sprites.
+// A_RadiusGive (ally-sustain). AGAS/BLVB/BLTR/RED9/RED8/SPIR sprites.
 // (Black imp's heaviest sub-spawns are flagged for the efficiency pass.)
 // ============================================================================
 
@@ -426,7 +431,7 @@ class RS_AgauresBallTrail : Actor
 	{
 	Spawn:
 		TNT1 A 1 Bright;
-		BLTR ABCDEFG 2 Bright;
+		BLTR ABCDEF 2 Bright;
 		Stop;
 	}
 }
@@ -692,7 +697,7 @@ class RS_FatsoSpikes2 : Actor
 		Radius 4;
 		Height 4;
 		Speed 5;
-		Damage (random(10, 40));
+		DamageFunction (random(10, 40));
 		Projectile;
 		DamageType "Melee";
 		-NOGRAVITY
@@ -730,7 +735,7 @@ class RS_RedBBallImp : FastProjectile
 		Radius 8;
 		Height 12;
 		Speed 25;
-		Damage (random(10, 50));
+		DamageFunction (random(10, 50));
 		Scale 0.5;
 		Species "Imp";
 		Projectile;
@@ -769,7 +774,7 @@ class RS_GImpNail : FastProjectile
 		Species "Imp";
 		Radius 2;
 		Height 2;
-		Damage (random(1, 5));
+		DamageFunction (random(1, 5));
 		DamageType "Melee";
 		Speed 45;
 		Scale 0.5;
@@ -786,7 +791,7 @@ class RS_GImpNail : FastProjectile
 		BLAD A 2 Bright;
 		Loop;
 	Death:
-		6PUF ABCDEFEFG 1 Bright { A_Explode(random(1, 3), 16); }
+		6PUF ABCDEFEF 1 Bright { A_Explode(random(1, 3), 16); }
 		FBL1 G 1 Bright { A_SpawnItemEx("RS_PuffCybieRed", 0, 0, 2); }
 		Stop;
 	}
@@ -892,7 +897,7 @@ class RS_Hel2 : Actor
 		Radius 8;
 		Height 12;
 		Speed 12;
-		Damage (random(8, 30));
+		DamageFunction (random(8, 30));
 		Projectile;
 		+SEEKERMISSILE +NOGRAVITY
 		RenderStyle "Add";
@@ -986,7 +991,7 @@ class RS_BlackImpBeam2 : Actor
 	Default
 	{
 		Radius 10; Height 18; Speed 1; Scale 1.75;
-		Damage (random(13, 25)); DamageType "Fire";
+		DamageFunction (random(13, 25)); DamageType "Fire";
 		Projectile; +THRUGHOST; +NOCLIP;
 		RenderStyle "Add"; Alpha 0.67;
 		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";

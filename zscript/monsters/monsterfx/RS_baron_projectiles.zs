@@ -18,7 +18,13 @@
 // (Pass 2 adds Cyan/Brown/Abyss/Black/White heavy custom bodies.)
 //
 // Ripped faithfully from Colourful Hell (full dependency trees traced).
-// Damage(random(a,b)) -> CONSTANT. Translations/flags/sub-spawns preserved.
+// NOTE: earlier passes flattened CH's damage ROLLS to single constants on the
+// false belief that a ZScript Default block requires a constant Damage. It does
+// not -- `DamageFunction (random(a,b))` is the property for exactly this and it
+// PRESERVES the roll. Rolls are restored wherever they were recorded; any bare
+// constant left here is one whose original spread was lost and needs re-reading
+// from CH/CHP.
+// Translations/flags/sub-spawns preserved.
 // Stock IWAD sprites (BAL1/BAL2/BAL7/MISL/PLSE/BFE1) used as CH uses them.
 // Shared with imp/HK (reused, not redefined): RS_BaronStar3, RS_RedRevLoad/2,
 // RS_SparkPuff1, RS_RedBBall, RS_BluBBall, RS_CrackoBallTrail.
@@ -582,7 +588,7 @@ class RS_BaronOfDirtCH3 : Actor
 class RS_WDRock1Alias : Actor { Default { +NOINTERACTION; } States { Spawn: TNT1 A 1; Stop; } }
 
 // ============================================================================
-// BARON PASS 2 -- BROWN + CYAN projectiles (ripped faithfully, damage->constants).
+// BARON PASS 2 -- BROWN + CYAN projectiles (ripped faithfully).
 // ============================================================================
 
 // ---------- BROWN: flame/rock/spiral + slam (STYR warlord-baron) ----------
@@ -855,7 +861,7 @@ class RS_IceSeekerBaron : Actor
 
 // ============================================================================
 // BARON PASS 2 -- ABYSS / BLACK / WHITE (the three heavy colors). Full recursive
-// rip; damage->constants; cosmetic AbyssShotIdentifier markers dropped. Drt1/2/3,
+// rip; cosmetic AbyssShotIdentifier markers dropped. Drt1/2/3,
 // SplashAbyss/2, SpiralSaw5 reused from earlier. The deepest sub-actor webs in RS.
 // (All flagged for the efficiency pass -- these are the heaviest spawners.)
 // ============================================================================
@@ -1354,7 +1360,7 @@ class RS_BaronFBomb : FastProjectile
 	Default
 	{
 		Radius 12; Height 12; Speed 19; FastSpeed 38;
-		Damage (random(10, 70)); DamageType "Fire";
+		DamageFunction (random(10, 70)); DamageType "Fire";
 		Projectile; +RANDOMIZE +SEEKERMISSILE +DONTHARMCLASS;
 		Species "BaronOfHell";
 		RenderStyle "Add"; Alpha 1.0; Scale 1.0;
@@ -1425,7 +1431,7 @@ class RS_DeepBeam1 : Actor
 {
 	Default
 	{
-		Radius 25; Height 13; Speed 1; Damage (random(10, 25)); Scale 1.5;
+		Radius 25; Height 13; Speed 1; DamageFunction (random(10, 25)); Scale 1.5;
 		Projectile; +RANDOMIZE; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.9;
 		SeeSound "baron/attack"; DeathSound "baron/shotx";
 	}
@@ -1470,7 +1476,7 @@ class RS_RedBBall2 : FastProjectile
 {
 	Default
 	{
-		Radius 8; Height 12; Speed 25; Damage (random(10, 55)); Scale 0.5;
+		Radius 8; Height 12; Speed 25; DamageFunction (random(10, 55)); Scale 0.5;
 		Projectile; +THRUGHOST +DONTHURTSHOOTER;
 		SeeSound "weapons/firbfi"; DeathSound "weapons/hellex";
 		RenderStyle "Add"; Alpha 0.8; DamageType "Plasma";

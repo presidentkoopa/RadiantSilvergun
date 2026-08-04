@@ -31,6 +31,13 @@
 //                four floor-hugging tornadoes, and a move where it
 //                BECOMES the tornado and sucks you in. Two health gates
 //                (1800, 900) that WIDEN the pool instead of swapping it.
+//   T14   14_WX  CommonWhiteArchEX2 (no parent) LMWX  20800  the MASTER
+//                OF TIME. T12's courage ladder taken further, plus a
+//                clock it can stop: freeze rings that stack a token on
+//                you, planted eyes it detonates as a set, a bouncing
+//                clone seed, and -- below 12500 HP -- a 300-SECOND
+//                countdown after which it goes invulnerable and simply
+//                kills you. Above the EX rung, so MaxTier() is 14.
 //
 // Tier stats come from CHP's own Health/Speed/PainChance per file and
 // are applied through TierData below, replacing the generic ladder.
@@ -77,6 +84,13 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 	private int rsRage;          // 14_R  User_Rage
 	private int rsVoidLimit;     // 14_K  user_limit
 	private int rsExTornado;     // 14_KX TornadoToken -- vortex beat count
+	private int rsCourageMOT;    // 14_WX user_courage
+	private int rsHohoMOT;       // 14_WX user_hoho -- eyes planted, not yet fired
+	private int rsEndOfTimeMOT;  // 14_WX user_endoftime -- the countdown started
+	// 14_WX's TIMESUPMOT latch. CHP sets it from ACS ("WVileEXTimer2_C",
+	// Delay(10500) = exactly 300 seconds) -- the ACS is a stripped
+	// announcer, so the deadline lives here as a level.time stamp.
+	private int rsTimesUpTic;
 	private int rsCourage;       // 14_W  User_courage
 	private int rsHoho;          // 14_W  user_hoho
 
@@ -123,6 +137,13 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 			// TEX -- 14_KX CommonBlackArchEX2, CHP's own numbers. Low HP
 			// for an EX on purpose: the fight is the storm, not the pool.
 			case 13: hp = 2700;  spd = 20; r.painChance = 8;  r.dmgMul = 3.5; break;
+			// T14 -- 14_WX CommonWhiteArchEX2, the Master of Time. Stated
+			// ABSOLUTELY (r.hp / r.speed) rather than as a multiplier off
+			// the T00 default: a tier this far out is a hand-authored
+			// creature, not a point on the family's curve.
+			case 14:
+				r.hp = 20800; r.speed = 60; r.painChance = 10; r.dmgMul = 4.0;
+				return true;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 700.0;
@@ -134,15 +155,22 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 	// verified present in sprites/monsters/Archvile/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
-		return "VILE VILG VILB VLCY VILP VILY DGRD VILF WICK VGRY DIAB VILE LMWZ SILE";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX  T14
+		return "VILE VILG VILB VLCY VILP VILY DGRD VILF WICK VGRY DIAB VILE LMWZ SILE LMWX";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - - -";
+	}
+
+	// This family authors one tier ABOVE the EX rung: 14_WX's Master of
+	// Time. Without this the dial clamps at TEX and T14 is unreachable.
+	override int MaxTier()
+	{
+		return 14;
 	}
 
 	override string GetBaseKeywords()
@@ -1631,6 +1659,11 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 		"SILE" A 0;
 		Goto See;
 	Death.TEX:
+		// IT DOES NOT DIE HERE. CHP spawns three CommonBlackArchEX3 the
+		// instant the body drops -- the storm breaks into three void
+		// phantoms and the fight's second half starts. Verbatim: three,
+		// not one, and not master-linked.
+		"SILE" AAA 0 { A_SpawnItemEx("RS_ArchvilePhantomEX", 0, 0, 0, 0, 0, 0, 0, 32); }
 		"SILE" AAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_BVileEXCloud2", random(-7, 7), random(-7, 7), 1, frandom(-15.0, 15.0), frandom(-15.0, 15.0), frandom(0.0, 15.0), 0, 32); }
 		"SILE" Q 7;
 		"SILE" R 7 { A_Scream(); }
@@ -1640,5 +1673,527 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 		"SILE" XY 5;
 		"SILE" Z -1;
 		Stop;
+
+	// =================================================================
+	// T14 (14_WX -- CommonWhiteArchEX2). LMWX. "Time to die."
+	// THE MASTER OF TIME. 20800 HP, speed 60, NOCLIP, VISIBILITYPULSE.
+	//
+	// It reuses T12's courage machinery and takes it further: a coward
+	// that will not commit until it has worked itself up, except this
+	// one can also STOP THE CLOCK on you.
+	//
+	//   COURAGE LADDER   60 -> Approach (speed 45)
+	//                   100 -> Agro     (speed 45, +MISSILEMORE)
+	//                   160 -> Agro2    (speed 60, +100 courage at once)
+	//                   every attack spends courage back down (-10/-15,
+	//                   -150 for ENDOFTIME), pain pays +5.
+	//
+	//   RANGE SPLIT     beyond 1000: ScreamofTime / RailofTime /
+	//                                StealofTime
+	//                   inside 1000: BoltsofTime / RingsofTime /
+	//                                EyeofTime / CloneofTime
+	//
+	//   HEALTH GATE     12500 -> ShouldI: a 1-in-16 roll into ENDOFTIME.
+	//                   Also the gate on StealofTime and CloneofTime --
+	//                   neither is available while it is above 12500.
+	//
+	//   FREEZE GATE     RingsofTime deals NO damage; it stacks
+	//                   RS_MOTFreezeToken on you. FOUR of them and it
+	//                   cashes them in for a real TimeFreezer.
+	//
+	//   EYE GATE        EyeofTime plants eight RS_WVileEye and sets
+	//                   rsHohoMOT; while that is set its NEXT missile is
+	//                   EyeofTime2, which detonates all of them at once.
+	//
+	//   THE COUNTDOWN   ENDOFTIME starts a 300-SECOND clock (CHP's
+	//                   WVileEXTimer2_C is Delay(10500), read from the
+	//                   ACS source, not guessed). When it expires the
+	//                   boss goes INVULNERABLE and drops into TIMESUP:
+	//                   it freezes you, warps onto you, and machine-guns
+	//                   TimeShock until you are a corpse. Kill it inside
+	//                   five minutes or the fight is simply over.
+	// =================================================================
+	Spawn.T14:
+		"LMWX" E 0 NoDelay
+		{
+			A_SetSize(20, 80, true);
+			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SpawnItemEx("RS_EffectMOT", 4, 4, 80, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+		}
+	Spawn.T14.Idle:
+		"LMWX" A 0 { bNOPAIN = false; rsTimesUpTic = 0; }
+		"LMWX" E 10 { A_Look(); }
+		Loop;
+	See.T14:
+	See.T14.Clippy:
+		"LMWX" E 0 { A_SpawnItemEx("RS_WhiteVileResser"); }
+		"LMWX" E 0
+		{
+			if (rsCourageMOT >= 160) return ResolveState("See.T14.Agro2");
+			if (rsCourageMOT >= 100) return ResolveState("See.T14.Agro");
+			if (rsCourageMOT >= 60)  return ResolveState("See.T14.Approach");
+			return ResolveState(null);
+		}
+		"LMWX" E 1 { A_FastChase(); }
+		"LMWX" E 1 { A_FaceTarget(); }
+		"LMWX" E 1 { A_Chase(); }
+		"LMWX" A 0 { bVISIBILITYPULSE = false; }
+		"LMWX" F 1 { A_SetTranslucent(0.75, 1); }
+		"LMWX" E 1 { A_Chase(); }
+		"LMWX" F 1 { A_SetTranslucent(0.5, 1); }
+		"LMWX" E 1 { A_Chase(); }
+		"LMWX" F 1 { A_SetTranslucent(0.25, 1); }
+		"LMWX" E 3 { A_Stop(); }
+		"LMWX" E 1 { A_Chase(); }
+		"LMWX" F 1 { A_SetTranslucent(0.01, 1); }
+		"LMWX" EE 2 { A_Chase(); }
+		"LMWX" E 0 A_CheckSight("See.T14.NoWander");
+		"LMWX" EEEEEE 10 { A_Wander(); }
+		"LMWX" A 0 A_Jump(8, "Missile.T14.Rings");
+		TNT1 A 0 { return RS_TimesUpMOT(); }
+		"LMWX" A 0 A_JumpIfCloser(500, "See.T14.Maybe");
+	See.T14.Clippy2:
+		"LMWX" EEEEEE 10 { A_Wander(); }
+		"LMWX" EE 2 { A_Chase(); }
+		"LMWX" E 0 { rsCourageMOT++; }
+		"LMWX" A 0
+		{
+			bVISIBILITYPULSE = true;
+			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SpawnItemEx("RS_EffectMOT", 4, 4, 80, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+		}
+		"LMWX" F 1 { A_SetTranslucent(0.25, 1); }
+		"LMWX" E 1 { A_Chase(); }
+		"LMWX" F 1 { A_SetTranslucent(0.5, 1); }
+		"LMWX" E 1 { A_Chase(); }
+		"LMWX" F 1 { A_SetTranslucent(0.75, 1); }
+		"LMWX" E 1 { A_Chase(); }
+		"LMWX" F 1 { A_SetTranslucent(1, 1); }
+		"LMWX" E 15 { A_Stop(); }
+		Goto See.T14.Clippy;
+	See.T14.Maybe:
+		"LMWX" A 0 A_CheckSight("See.T14.Clippy2");
+		Goto Missile.T14;
+	See.T14.NoWander:
+		"LMWX" EE 2 { A_Chase(); }
+		"LMWX" A 0
+		{
+			A_SpawnItemEx("RS_WhiteVileResser");
+			bVISIBILITYPULSE = true;
+			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SpawnItemEx("RS_EffectMOT", 4, 4, 80, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+		}
+		"LMWX" F 1 { A_SetTranslucent(0.25, 1); }
+		"LMWX" E 1 { A_Chase(); }
+		"LMWX" F 1 { A_SetTranslucent(0.5, 1); }
+		"LMWX" E 1 { A_Chase(); }
+		"LMWX" F 1 { A_SetTranslucent(0.75, 1); }
+		"LMWX" E 1 { A_Chase(); }
+		"LMWX" F 1 { A_SetTranslucent(1, 1); }
+		"LMWX" E 0 { rsCourageMOT += 3; }
+		"LMWX" E 15 { A_Stop(); }
+		TNT1 A 0 { return RS_TimesUpMOT(); }
+		Goto See.T14.Clippy;
+	See.T14.Approach:
+		"LMWX" E 0 { A_SetSpeed(45); }
+		"LMWX" A 0 { A_SpawnItemEx("RS_WhiteVileResser"); }
+		"LMWX" EE 6 { A_Chase(); }
+		"LMWX" E 0 { rsCourageMOT += 2; }
+		"LMWX" E 5 { A_FastChase(); }
+		"LMWX" E 3 { A_Stop(); }
+		TNT1 A 0 { return RS_TimesUpMOT(); }
+		Loop;
+	See.T14.Agro:
+		"LMWX" E 0 { A_SetSpeed(45); }
+		"LMWX" A 0 { A_SpawnItemEx("RS_WhiteVileResser"); }
+		"LMWX" E 0 { bMISSILEMORE = true; }
+		"LMWX" EE 6 { A_Chase(); }
+		"LMWX" E 4 { A_FastChase(); }
+		"LMWX" E 1 { A_Stop(); }
+		"LMWX" E 0 { rsCourageMOT += 4; }
+		"LMWX" E 5 { A_Chase(); }
+		"LMWX" E 4 { A_FastChase(); }
+		"LMWX" E 1 { A_Stop(); }
+		TNT1 A 0 { return RS_TimesUpMOT(); }
+		Loop;
+	See.T14.Agro2:
+		"LMWX" E 0 { A_SetSpeed(60); }
+		"LMWX" A 0 { A_SpawnItemEx("RS_WhiteVileResser"); }
+		"LMWX" E 0 { bMISSILEMORE = true; rsCourageMOT += 100; }
+		"LMWX" E 4 { A_Chase(); }
+		"LMWX" E 4 { A_FastChase(); }
+		"LMWX" E 4 { A_Chase(); }
+		TNT1 A 0 { return RS_TimesUpMOT(); }
+		Loop;
+	Missile.T14:
+		"LMWX" A 0 A_JumpIfHealthLower(12500, "Missile.T14.ShouldI");
+	Missile.T14.Pick:
+		"LMWX" A 0
+		{
+			bVISIBILITYPULSE = true;
+			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SpawnItemEx("RS_EffectMOT", 4, 4, 80, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SetTranslucent(1, 1);
+		}
+		"LMWX" E 0 { if (rsHohoMOT >= 1) return ResolveState("Missile.T14.EyeBoom"); return ResolveState(null); }
+		TNT1 A 0 { return RS_TimesUpMOT(); }
+	Missile.T14.Choices:
+		"LMWX" A 0 A_JumpIfCloser(1000, "Missile.T14.Choices2", true);
+		"LMWX" A 0 A_Jump(256, "Missile.T14.Choices1");
+		Goto See.T14.Clippy;
+	Missile.T14.Choices1:
+		"LMWX" A 0 A_Jump(256, "Missile.T14.Scream", "Missile.T14.Rail", "Missile.T14.Steal");
+		Goto See.T14.Clippy;
+	Missile.T14.Choices2:
+		"LMWX" A 0 A_Jump(256, "Missile.T14.Bolts", "Missile.T14.Rings", "Missile.T14.Eye", "Missile.T14.Clone");
+		Goto See.T14.Clippy;
+	Missile.T14.Bolts:
+		"LMWX" EFG 8 Bright { A_FaceTarget(); }
+		"LMWX" G 0 { A_SpawnProjectile("RS_BoltMOT", 42, 0, 6); }
+		"LMWX" G 0 { A_SpawnProjectile("RS_BoltMOT", 42, 0, 0); }
+		"LMWX" G 0 { A_SpawnProjectile("RS_BoltMOT", 42, 0, -6); }
+		"LMWX" G 0 { A_SpawnProjectile("RS_BoltMOT", 42, 0, -12); }
+		"LMWX" G 0 { A_SpawnProjectile("RS_BoltMOT", 42, 0, 12); }
+		"LMWX" HG 10;
+		"LMWX" E 0 A_Jump(128, "Missile.T14.Choices");
+		"LMWX" E 2 { rsCourageMOT -= 15; }
+		Goto See.T14.Clippy;
+	// The room-clearing scream: it roots itself, takes half damage for
+	// the duration, seeds the whole arena with resurrection fields and
+	// quakes the place.
+	Missile.T14.Scream:
+		"LMWX" A 0
+		{
+			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SpawnItemEx("RS_EffectMOT", 4, 4, 80, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SetTranslucent(1, 1);
+			bNOPAIN = true;
+			A_GiveInventory("RS_WVileResist", 1);
+		}
+		"LMWX" Q 8 { A_FaceTarget(); }
+		"LMWX" A 0 { A_StartSound("SPMDING", CHAN_AUTO, 0, 1.0, ATTN_NONE); }
+		"LMWX" A 0 { A_SpawnItemEx("RS_SuperEye01", 4, 8, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"LMWX" A 0 { A_SpawnItemEx("RS_OldTimeyMOT", 0, 0, 16, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"LMWX" QQ 8 { A_FaceTarget(); }
+		"LMWX" A 0 A_CheckSight("See.T14.Clippy");
+		"LMWX" QQQ 8 { A_FaceTarget(); }
+		"LMWX" A 0 A_CheckSight("See.T14.Clippy");
+		"LMWX" R 14 Bright { A_SpawnItemEx("RS_WVileQuake", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERPOINTERS); }
+		"LMWX" R 14 Bright { A_StartSound("Wvile/scream", CHAN_7, 0, 1.0, ATTN_NONE); }
+		"LMWX" AAAAAAAAA 0 { A_SpawnItemEx("RS_WhiteVileResser", random(-728, 728), random(-728, 728), 1, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER); }
+		"LMWX" AAAA 0 { A_SpawnItemEx("RS_BrightUpVile2", random(-128, 128), random(-128, 128), random(1, 12), 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER); }
+		"LMWX" S 12 Bright { A_VileTarget("RS_EyeSpawnerMOT"); }
+		"LMWX" AAAA 0 { A_SpawnItemEx("RS_BrightUpVile2", random(-328, 328), random(-328, 328), random(1, 12), 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER); }
+		"LMWX" TU 10 Bright;
+		"LMWX" AAAAAA 0 { A_SpawnItemEx("RS_WhiteVileResser", random(-128, 128), random(-128, 128), 1, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER); }
+		"LMWX" UTSRQ 5 Bright;
+		"LMWX" E 0 { rsCourageMOT -= 15; bNOPAIN = false; }
+		Goto See.T14.Clippy;
+	// Blinks out, warps behind you, and fires four freeze rings. Four
+	// tokens on you and it cashes them in.
+	Missile.T14.Rings:
+		"LMWX" A 0 { A_TakeInventory("RS_MOTFreezeToken", 0, 0, AAPTR_TARGET); }
+		"LMWX" A 30 Bright { A_StartSound("wizard/sight", CHAN_AUTO, 0, 1.0, ATTN_NONE); }
+		"LMWX" A 0 { bVISIBILITYPULSE = false; }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.75, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.5, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.25, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.25, 1); }
+		"LMWX" A 8 Bright { A_SetTranslucent(0.01, 1); }
+		"LMWX" A 8 Bright { A_Warp(AAPTR_TARGET, -80, 0, 0, random(0, 360), WARPF_NOCHECKPOSITION); }
+		"LMWX" A 0
+		{
+			bVISIBILITYPULSE = true;
+			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SpawnItemEx("RS_EffectMOT", 4, 4, 80, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+		}
+		"LMWX" A 1 Bright { A_SetTranslucent(0.25, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.5, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.75, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(1, 1); }
+		"LMWX" A 0 { A_SpawnItemEx("RS_OldTimeyMOT", 0, 0, 16, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"LMWX" A 0 { A_StartSound("TIME02"); }
+		"LMWX" A 5 Bright { A_FaceTarget(); }
+		"LMWX" A 0 { A_StartSound("PUZSLV"); }
+		"LMWX" AAAA 12 Bright { A_SpawnProjectile("RS_TimeShockMOT", 42, 0, random(-10, 10)); }
+		"LMWX" A 10 Bright { A_FaceTarget(); }
+		TNT1 A 0 { return RS_FreezeReadyMOT(); }
+		"LMWX" E 2 { rsCourageMOT -= 15; }
+		"LMWX" E 0 A_Jump(32, "Missile.T14.Steal");
+		Goto Missile.T14.Bolts;
+	// Cashing in. Every four tokens buys one real TimeFreezer tick.
+	Missile.T14.Freeze:
+		"LMWX" A 0 { A_GiveInventory("RS_TimeSlowMOT", 1); }
+		"LMWX" A 0 { A_TakeInventory("RS_MOTFreezeToken", 4, 0, AAPTR_TARGET); }
+		TNT1 A 0 { return RS_FreezeReadyMOT(); }
+		"LMWX" A 0 { A_StartSound("TIME02"); }
+		"LMWX" A 0 A_Jump(128, "Missile.T14.Bolts");
+		"LMWX" E 2 { rsCourageMOT -= 15; }
+		Goto See.T14.Clippy;
+	Missile.T14.Rail:
+		"LMWX" A 20 Bright { A_StartSound("WVEXACTV", CHAN_AUTO, 0, 1.0, ATTN_NONE); }
+		"LMWX" EFG 10 Bright { A_FaceTarget(); }
+		"LMWX" H 0 { A_StartSound("weapons/railgf", CHAN_WEAPON); }
+		"LMWX" H 15 Bright
+		{
+			A_CustomRailgun(random(40, 90), 0, 0, 0,
+			                RGF_NOPIERCING | RGF_SILENT, 1, 0,
+			                "RS_WhiteFatRB", 0, 0, 0, 0, 0.4, 1.0,
+			                "RS_WhiteFatRB4", 10);
+		}
+		"LMWX" G 15 Bright { A_FaceTarget(); }
+		"LMWX" H 0 { A_StartSound("weapons/railgf", CHAN_WEAPON); }
+		"LMWX" H 15 Bright
+		{
+			A_CustomRailgun(random(40, 90), 0, 0, 0,
+			                RGF_NOPIERCING | RGF_SILENT, 1, 0,
+			                "RS_WhiteFatRB", 0, 0, 0, 0, 0.4, 1.0,
+			                "RS_WhiteFatRB4", 10);
+		}
+		"LMWX" G 15 Bright { A_FaceTarget(); }
+		"LMWX" E 0 { A_SpawnItemEx("RS_WVileSpot", random(-128, 128), random(-128, 128), 1, 0, 0, 0, 0, SXF_TRANSFERPOINTERS | SXF_NOCHECKPOSITION | SXF_SETMASTER); }
+		"LMWX" E 0 A_Jump(128, "Missile.T14.Choices");
+		"LMWX" E 2 { rsCourageMOT -= 15; }
+		Goto See.T14.Clippy;
+	// Plants eight eyes in a fan and remembers it did. They do NOT fire
+	// yet -- the next missile detonates the whole set at once.
+	Missile.T14.Eye:
+		"LMWX" E 1 { A_StartSound("Forgotten/active"); }
+		"LMWX" EFG 8 { A_FaceTarget(); }
+		"LMWX" AAAA 0 { A_SpawnItemEx("RS_BrightUpVile2", random(-328, 328), random(-328, 328), random(1, 12), 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER); }
+		"LMWX" A 0 { A_SpawnProjectile("RS_WVileEye", 78, 0); }
+		"LMWX" A 0 { A_SpawnProjectile("RS_WVileEye", 78, 24); }
+		"LMWX" A 0 { A_SpawnProjectile("RS_WVileEye", 78, -24); }
+		"LMWX" A 0 { A_SpawnProjectile("RS_WVileEye", 64, 12); }
+		"LMWX" A 0 { A_SpawnProjectile("RS_WVileEye", 64, -12); }
+		"LMWX" A 0 { A_SpawnProjectile("RS_WVileEye", 48, 0); }
+		"LMWX" A 0 { A_SpawnProjectile("RS_WVileEye", 48, 24); }
+		"LMWX" A 0 { A_SpawnProjectile("RS_WVileEye", 48, -24); }
+		"LMWX" A 0 { rsHohoMOT++; }
+		"LMWX" HG 10;
+		"LMWX" AAAA 0 { A_SpawnItemEx("RS_BrightUpVile2", random(-328, 328), random(-328, 328), random(1, 12), 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER); }
+		"LMWX" E 2;
+		Goto See.T14.Clippy;
+	Missile.T14.EyeBoom:
+		"LMWX" G 5 Bright { A_FaceTarget(); }
+		"LMWX" A 0 { A_RadiusGive("RS_WVEyeGo", 320, RGF_MISSILES, 10); }
+		"LMWX" E 0 { rsCourageMOT -= 10; rsHohoMOT--; }
+		"LMWX" E 0 { A_SpawnItemEx("RS_WVileSpot", random(-128, 128), random(-128, 128), 1, 0, 0, 0, 0, SXF_TRANSFERPOINTERS | SXF_NOCHECKPOSITION | SXF_SETMASTER); }
+		Goto Missile.T14.Choices;
+	// Only below 12500. CHP finishes this with an ACS script that strips
+	// the player's armour and slows them; the ACS is stripped, so the
+	// two things it actually DID are done here directly.
+	Missile.T14.Steal:
+		"LMWX" A 0 A_JumpIfHealthLower(12500, "Missile.T14.Steal.Do");
+		Goto Missile.T14.Choices;
+	Missile.T14.Steal.Do:
+		"LMWX" A 0 { A_StartSound("TIME02", CHAN_AUTO, 0, 1.0, ATTN_NONE); }
+		"LMWX" QQQQRSTU 10 Bright { A_VileTarget("RS_TIMESTEALMOT"); }
+		"LMWX" U 0 A_CheckSight("See.T14.Clippy");
+		"LMWX" U 40 Bright
+		{
+			A_StartSound("WVEXTAKE", CHAN_AUTO, 0, 1.0, ATTN_NONE);
+			if (target)
+			{
+				target.A_GiveInventory("RS_WVileEXSpeedNerf", 1);
+				target.A_TakeInventory("Armor", 0);
+				target.DamageMobj(self, self, 20, "Normal");
+			}
+		}
+		"LMWX" E 0 A_Jump(128, "Missile.T14.Choices");
+		"LMWX" E 2 { rsCourageMOT -= 15; }
+		Goto See.T14.Clippy;
+	// Only below 12500, and only half the time. Lobs a bouncing seed
+	// that stands up a 500 HP copy of the boss where it lands.
+	Missile.T14.Clone:
+		"LMWX" A 0 A_Jump(128, "Missile.T14.Clone.Do");
+		Goto Missile.T14.Choices;
+	Missile.T14.Clone.Do:
+		"LMWX" A 0 A_JumpIfHealthLower(12500, "Missile.T14.Clone.Throw");
+		Goto Missile.T14.Choices;
+	Missile.T14.Clone.Throw:
+		"LMWX" EFG 8 Bright { A_FaceTarget(); }
+		"LMWX" G 0 { A_SpawnProjectile("RS_CloneSummonMOT", 42, 0, random(0, 360), 2, 12); }
+		"LMWX" HG 10;
+		"LMWX" E 2 { rsCourageMOT -= 15; }
+		Goto See.T14.Clippy;
+	Missile.T14.ShouldI:
+		"LMWX" A 0 { if (rsEndOfTimeMOT > 0) return ResolveState("Missile.T14.Pick"); return ResolveState(null); }
+		"LMWX" A 0 A_Jump(16, "Missile.T14.EndOfTime");
+		Goto Missile.T14.Pick;
+	// THE COUNTDOWN. Fires once. 10500 tics = 300 seconds.
+	Missile.T14.EndOfTime:
+		"LMWX" A 0
+		{
+			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SpawnItemEx("RS_EffectMOT", 4, 4, 80, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SetTranslucent(1, 1);
+			bNOPAIN = true;
+			A_GiveInventory("RS_WVileResist", 1);
+			A_StartSound("WVEXSIGT", CHAN_AUTO, 0, 1.0, ATTN_NONE);
+		}
+		"LMWX" AAAA 0 { A_SpawnItemEx("RS_OldTimeyMOT", 0, 0, 16, frandom(-2, 2), frandom(-2, 2), frandom(0, 4), 0, SXF_NOCHECKPOSITION); }
+		"LMWX" AA 10 Bright { A_VileTarget("RS_TIMESTEALMOT"); }
+		"LMWX" A 0 { A_QuakeEx(180, 180, 180, 180, 0, 57600, ""); }
+		"LMWX" AAA 10 Bright { A_VileTarget("RS_TIMESTEALMOT"); }
+		"LMWX" A 0 { A_StartSound("Wvile/scream", CHAN_AUTO, 0, 1.0, ATTN_NONE); }
+		"LMWX" QRSTUQRSTUQRSTU 4 Bright { A_VileTarget("RS_TIMESTEALMOT"); }
+		"LMWX" U 40 Bright
+		{
+			// CHP: ACS "WVileEXTimer2_C" -> Delay(10500) -> invulnerable
+			// + TIMESUPMOT. The HUD countdown half of that ACS is an
+			// announcer and is stripped; the deadline is real.
+			rsEndOfTimeMOT = 1;
+			rsTimesUpTic = level.time + 10500;
+		}
+		"LMWX" E 2 { rsCourageMOT -= 150; bNOPAIN = false; }
+		Goto Missile.T14.Clone;
+	// Time is up. It cannot be hurt any more; it freezes you, warps onto
+	// you, and does not stop until you are a corpse.
+	Missile.T14.TimesUp:
+		"LMWX" A 0
+		{
+			bINVULNERABLE = true;
+			A_GiveInventory("RS_TimeSlowMOT2", 1);
+			bNOPAIN = true;
+			bVISIBILITYPULSE = false;
+			if (target)
+			{
+				target.A_GiveInventory("RS_TimeSlowMOT3", 1);
+				target.vel = (0, 0, 0);
+			}
+			A_StartSound("Forgotten/Attack", CHAN_AUTO, 0, 1.0, ATTN_NONE);
+		}
+		"LMWX" A 1 Bright { A_SetTranslucent(0.75, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.5, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.25, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.25, 1); }
+		"LMWX" A 10 Bright { A_SetTranslucent(0.01, 1); }
+		"LMWX" A 10 Bright { A_Warp(AAPTR_TARGET, -80, 0, 0, random(0, 360), WARPF_NOCHECKPOSITION); }
+		"LMWX" A 0
+		{
+			bVISIBILITYPULSE = true;
+			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SpawnItemEx("RS_EffectMOT", 4, 4, 80, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+		}
+		"LMWX" A 1 Bright { A_SetTranslucent(0.25, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.5, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(0.75, 1); }
+		"LMWX" A 1 Bright { A_SetTranslucent(1, 1); }
+		"LMWX" A 0 { A_SpawnItemEx("RS_OldTimeyMOT", 0, 0, 16, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"LMWX" A 0 { A_StartSound("TIME02"); }
+		"LMWX" A 5 Bright { A_FaceTarget(); }
+		"LMWX" A 0 { A_StartSound("PUZSLV"); }
+	Missile.T14.TimesUp2:
+		"LMWX" AAAA 2 Bright { A_SpawnProjectile("RS_TimeShockMOT", 42, 0, random(-10, 10)); }
+		"LMWX" A 0
+		{
+			A_GiveInventory("RS_TimeSlowMOT2", 1);
+			if (target)
+				target.A_GiveInventory("RS_TimeSlowMOT3", 1);
+		}
+		"LMWX" A 0 { if (!target || target.health <= 0) return ResolveState("Spawn.T14.Idle"); return ResolveState(null); }
+		Loop;
+	// CHP's TEX/T14 never resurrects by hand -- its fields do it.
+	Heal.T14:
+		"LMWX" E 0 { A_SpawnItemEx("RS_WhiteVileResser"); }
+		"LMWX" EF 6 Bright;
+		Goto See.T14.Clippy;
+	Pain.T14:
+		"LMWX" A 0
+		{
+			bVISIBILITYPULSE = true;
+			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SpawnItemEx("RS_EffectMOT", 4, 4, 80, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+		}
+		"LMWX" I 3 { A_SetTranslucent(1, 1); }
+		"LMWX" E 0 { rsCourageMOT += 5; }
+		"LMWX" I 5 { A_Pain(); }
+		Goto Pain.T14.Whatthe;
+	Pain.T14.Whatthe:
+		"LMWX" F 1 { bVISIBILITYPULSE = false; }
+		"LMWX" F 1 { A_SetTranslucent(0.66, 1); }
+		"LMWX" F 1 { A_SetTranslucent(0.33, 1); }
+		"LMWX" F 1 { A_SetTranslucent(0.01, 1); }
+		"LMWX" EEEEEEEEEEEEEEEEEEEEEEEEEE 2 { A_Wander(); }
+		"LMWX" A 0
+		{
+			bVISIBILITYPULSE = true;
+			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+			A_SpawnItemEx("RS_EffectMOT", 4, 4, 80, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
+		}
+		"LMWX" F 1 { A_SetTranslucent(0.5, 1); }
+		"LMWX" F 1 { A_SetTranslucent(1, 1); }
+		"LMWX" E 0 { rsCourageMOT -= 15; }
+		"LMWX" F 4 { A_Stop(); }
+		Goto See.T14.Clippy;
+	Death.T14:
+		TNT1 A 0 { bVISIBILITYPULSE = false; }
+		"LMWX" A 0 { A_SetTranslucent(1, 1); }
+		"LMWX" A 0 { A_QuakeEx(180, 180, 180, 250, 0, 57600, ""); }
+		"LMWX" I 0 { A_StartSound("WVEXDSCR", CHAN_AUTO, 0, 1.0, ATTN_NONE); }
+		"LMWX" I 0 { bNOGRAVITY = true; }
+		// CHP: ThrustThingZ(0, 10, 0, 0) -- its zthrust unit is 1/4 of a
+		// map unit per tic, so 10 is 2.5.
+		"LMWX" I 12 Bright { vel.z += 2.5; }
+		"LMWX" I 0 { vel = (0, 0, 0); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" I 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" II 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" II 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" II 5 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" II 0 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" I 1 Bright { A_SetAngle(frandom(0, 360)); }
+		"LMWX" III 3 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" I 0 { A_SetAngle(frandom(0, 360)); }
+		"LMWX" IIIII 2 { A_SpawnProjectile("RS_HKRedDeath", random(20, 80), random(-20, 20), random(0, 360), CMF_AIMOFFSET, -10); }
+		"LMWX" I 0 { bNOGRAVITY = false; }
+		"LMWX" J 6 { A_Scream(); }
+		TNT1 A 0 { A_KillChildren("Extreme", KILS_FOILINVUL | KILS_KILLMISSILES); }
+		"LMWX" K 6 { A_NoBlocking(); }
+		"LMWX" LMNO 6;
+		"LMWX" P -1;
+		Stop;
+	}
+
+	// The 300-second deadline. Called from every walk loop where CHP
+	// tests its TIMESUPMOT latch and drops into its TIMESUP state.
+	private State RS_TimesUpMOT()
+	{
+		if (rsTimesUpTic > 0 && level.time >= rsTimesUpTic)
+			return ResolveState("Missile.T14.TimesUp");
+		return ResolveState(null);
+	}
+
+	// Four freeze tokens on the player is what buys one real
+	// TimeFreezer tick. Read off the target rather than through
+	// A_JumpIfInTargetInventory so the label stays a label.
+	private State RS_FreezeReadyMOT()
+	{
+		if (target && target.CountInv("RS_MOTFreezeToken") >= 4)
+			return ResolveState("Missile.T14.Freeze");
+		return ResolveState(null);
 	}
 }

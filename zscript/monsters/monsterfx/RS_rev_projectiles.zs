@@ -823,7 +823,7 @@ class RS_BlackRevShade : Actor
 // is in CH's own block, nothing was inferred from the missing parent.
 class RS_BlackRevHook : Actor
 {
-	Default { Radius 6; Height 6; Speed 42; Damage (random(5, 30)); Projectile;
+	Default { Radius 6; Height 6; Speed 42; DamageFunction (random(5, 30)); Projectile;
 		DamageType "Melee"; +THRUGHOST; +MTHRUSPECIES;
 		SeeSound "monster/dknmsl"; DeathSound "weapons/firex4"; }
 	States
@@ -885,7 +885,7 @@ class RS_RevShieldWalk2 : Actor
 class RS_ShieldBombRev : Actor
 {
 	Default { Radius 4; Height 6; Mass 5; Speed 34; Projectile; Scale 0.55;
-		Damage (random(2, 25)); DamageType "Fire"; SeeSound "imp/attack";
+		DamageFunction (random(2, 25)); DamageType "Fire"; SeeSound "imp/attack";
 		DeathSound "weapons/firex4"; Translation "208:223=176:191", "224:231=176:176"; }
 	States
 	{

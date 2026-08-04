@@ -15,7 +15,13 @@
 // ============================================================================
 // hf_hk_projectiles.zs -- projectiles for the RS_HellKnight color rainbow.
 // Ripped faithfully from Colourful Hell (full dependency trees traced).
-// Damage(random(a,b)) -> CONSTANT (ZScript Default requires it). Translations,
+// NOTE: earlier passes flattened CH's damage ROLLS to single constants on the
+// false belief that a ZScript Default block requires a constant Damage. It does
+// not -- `DamageFunction (random(a,b))` is the property for exactly this and it
+// PRESERVES the roll. Rolls are restored wherever they were recorded; any bare
+// constant left here is one whose original spread was lost and needs re-reading
+// from CH/CHP.
+// Translations,
 // flags, sub-spawns preserved. Stock IWAD sprites (BAL1/BAL2/BAL7/MISL/PUFF/PLSE/
 // BAR1/MANF) used as CH uses them. Cosmetic ACS-only markers dropped.
 // ============================================================================
@@ -416,7 +422,7 @@ class RS_BigHK2 : Actor
 	Spawn:
 		XXBF AB 2 Bright;
 		XXBF C 2 Bright A_Explode(13,100,0);
-		XXBF DEFGHIJKLMNOPQRST 2 Bright;
+		XXBF DEFGHIJKLMNOPQRS 2 Bright;
 		Stop;
 	}
 }
@@ -434,7 +440,7 @@ class RS_BigHK3 : Actor
 	Spawn:
 		XXBF AB 2 Bright;
 		XXBF C 2 Bright A_Explode(13,88,0);
-		XXBF DEFGHIJKLMNOPQRST 2 Bright;
+		XXBF DEFGHIJKLMNOPQRS 2 Bright;
 		Stop;
 	}
 }
@@ -972,7 +978,7 @@ class RS_SoulBomb : Actor
 // ============================================================================
 // BLACK HK EX ("T-800 Baron MK II") projectiles -- CHPLUS miniboss apex (11_KX).
 // Shares MegaRedRev/RedRevLoad/BluCybFX/HKRedDeath/BruiserTrail/HomingRocketTrailFatso
-// with the regular Black HK. New EX-specific ones below. Damage->constants.
+// with the regular Black HK. New EX-specific ones below.
 // ============================================================================
 class RS_ZapDecHKex : Actor
 {
@@ -1246,7 +1252,7 @@ class RS_BlueHKShot : FastProjectile
 		Height 16;
 		Speed 18;
 		FastSpeed 25;
-		Damage (random(10, 45));
+		DamageFunction (random(10, 45));
 		DamageType "Plasma";
 		Projectile;
 		+RANDOMIZE

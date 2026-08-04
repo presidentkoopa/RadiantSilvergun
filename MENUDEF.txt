@@ -403,7 +403,10 @@ OptionMenu "RS_MonsterDebugMenu"
 	StaticText " "
 
 	StaticText "Spawn", 1
-	Slider  "Tier to spawn at", "rs_mon_dbg_tier", 0, 12, 1, 0
+	// 0-12 are CH's colour ladder, 13 is TEX (CHP's EX variant), and
+	// 14+ are further packs. The ladder is open-ended -- raise this
+	// ceiling whenever a family's MaxTier() goes higher.
+	Slider  "Tier to spawn at  (13 = TEX)", "rs_mon_dbg_tier", 0, 15, 1, 0
 	Command "SPAWN ROW -- one of every family", "netevent rs_mon_line"
 	Submenu "Spawn ONE family (T00) -- for bisecting", "RS_MonsterDebugSpawnOneMenu"
 	Command "Remove all RS monsters", "netevent rs_mon_clear"

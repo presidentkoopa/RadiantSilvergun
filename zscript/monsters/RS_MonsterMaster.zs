@@ -406,6 +406,16 @@ class RS_MonsterMaster : Actor abstract
 		rsTablesParsed = true;
 	}
 
+	// Where this monster is HEADING, for diagnostics. A staggered
+	// transform means Tier hasn't moved yet, so a readout taken right
+	// after SetTier would report the old tier and look like the command
+	// did nothing. Returns the destination while transforming, the
+	// current tier otherwise.
+	int RS_DbgTargetTier()
+	{
+		return rsTransforming ? rsPendingTier : Tier;
+	}
+
 	// Read-only views of the parsed tables, for diagnostics. Return "" when
 	// the tier falls off the end of a short table -- which is itself the
 	// answer to "why doesn't this tier change appearance".

@@ -33,6 +33,18 @@ list. Don't re-derive project state from scratch — it's already written down.
 - Destructive shell commands (`rm -rf`, `Remove-Item -Recurse -Force`) are
   blocked by a permission layer regardless of user consent. Single-file `rm`,
   `mv`, and `rmdir` on already-empty dirs work.
+- **ALWAYS `grep -i` against CH/CHP decorate, and against ZScript class
+  names.** Two separate traps, same root cause:
+  1. CH and CHP mix `Actor` and `ACTOR` freely. A search for `^ACTOR Foo`
+     returns nothing for a file that opens `Actor Foo`, and you conclude the
+     actor doesn't exist. This produced four confident false negatives in one
+     session — including "VBtrail is defined nowhere", when it is sitting at
+     `CH/decorate/Archviles.txt:4518`.
+  2. **ZScript itself is case-insensitive.** `RS_FireHand1` and
+     `RS_Firehand1` are the SAME class, and defining both is a fatal
+     redefinition that stops the mod compiling. A case-sensitive grep says
+     they're two different classes. Run `python dedupe_check.py` (repo root)
+     after adding any class — it checks this properly.
 
 ## Design rules that keep getting re-derived — don't re-litigate
 

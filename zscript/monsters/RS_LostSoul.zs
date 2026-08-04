@@ -30,9 +30,29 @@
 //                                             into revenant / baron /
 //                                             arch-vile and fires that
 //                                             monster's full combo.
+//   TEX   05_WX  CommonWhiteL-   ETHS  10500  THE VENGEFUL SOUL -- the
+//                Soul EX2                     shifter with a spendable
+//                                             escort of two orbiting
+//                                             skulls, SIX forms instead of
+//                                             three (hell knight, caco and
+//                                             mancubus unlock below 8000
+//                                             HP), plus a beam and a
+//                                             charged soul bolt of its own.
 //
 // Tier stats are CHP's own Health/Speed/PainChance per file, applied
 // through TierData below as multipliers off this class's defaults.
+//
+// TEX SOURCE: CHP 05_WX.txt, ACTOR CommonWhiteLSoulEX2 (the first actor
+// in the file), parent CH lostsouls.txt WhiteLSoulEX for the properties
+// CHP does not restate. Its escort skulls, order tokens, shade and
+// soul-shot live in RS_lostsoul_projectiles.zs; the hell knight form's
+// RS_BlueHKShot came from CHP 11_B and lives in RS_hk_projectiles.zs.
+//
+// TEX CHP properties with no TierData channel, recorded rather than
+// silently dropped: Height 56 (Default is 56 already), FloatSpeed 4,
+// Mass 400, RenderStyle Add / Alpha 0.95, +BOSS +NOCLIP +NOFEAR
+// +DONTBLAST +NODAMAGETHRUST and the Heroic/ice/playervoid damage
+// factors. The row carries Health / Speed / PainChance / damage only.
 //
 // NOT PORTED (and why):
 //   * NewIcon*/ColorTierIcon* spawns, A_GivetoChildren("GoAway"),
@@ -113,6 +133,8 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 			case 10: hp = 166;  spd = 11; r.painChance = 88;  r.dmgMul = 1.8; break;
 			case 11: hp = 1500; spd = 9;  r.painChance = 128; r.dmgMul = 2.2; break;
 			case 12: hp = 6000; spd = 19; r.painChance = 22;  r.dmgMul = 3.0; break;
+			// TEX -- CHP 05_WX CommonWhiteLSoulEX2's own numbers.
+			case 13: hp = 10500; spd = 19; r.painChance = 32; r.dmgMul = 4.0; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 100.0;
@@ -123,15 +145,17 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 	// Audit data. Every entry is a real, distinct CHP sprite set.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "SKUL SKUG SKUB SKUC PHNT FRGO BST7 SKUF BOSF SKGR SKUR WASP ETHS";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		// TEX wears ETHS too -- CHP's EX soul is the T12 shifter's own body,
+		// not a new sprite set. The same token twice is correct.
+		return "SKUL SKUG SKUB SKUC PHNT FRGO BST7 SKUF BOSF SKGR SKUR WASP ETHS ETHS";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -974,6 +998,406 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 		"BOSS" IJKLMN 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
 		"VILE" Q 0 { A_StartSound("Vile/death", CHAN_VOICE); }
 		"VILE" QRSTUVWXYZ 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" HIJKLMN 6 Bright;
+		"ETHS" O 12 Bright { A_ScreamAndUnblock(); }
+		Stop;
+
+	// ============ TEX WHITE EX -- THE VENGEFUL SOUL (05_WX) ============
+	// The T12 shifter, escorted and unbounded. Three things separate it:
+	//
+	//   1. IT COMES WITH A GUARD. Two RS_SkullWSoulEX1/2 orbit it,
+	//      invulnerable and inert -- and it can spend them. A_RadiusGive
+	//      of an order token detaches a skull, sends it out, and hatches a
+	//      full revenant / hell knight / cacodemon out of it. If both
+	//      escorts are gone the See loop notices (A_CheckProximity against
+	//      its own skulls) and grows a new pair.
+	//   2. SIX FORMS, NOT THREE. T12 shifts into revenant, baron or
+	//      arch-vile. This one adds hell knight, cacodemon and mancubus --
+	//      and the last three unlock only below 8000 HP, so hurting it
+	//      widens the fight rather than narrowing it.
+	//   3. TWO DIRECT ATTACKS OF ITS OWN, outside the forms: a charged
+	//      soul bolt and a beam, either of which can follow a transform.
+	//
+	// It holds NOPAIN through every transform, and on pain has a 25%
+	// chance to Reset -- recall the escorts, wander, and re-form.
+	Spawn.TEX:
+		TNT1 A 0 NoDelay
+		{
+			A_SpawnItemEx("RS_SkullWSoulEX1", 32, 32, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER);
+			A_SpawnItemEx("RS_SkullWSoulEX2", -32, -32, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER);
+		}
+	Spawn.TEX.Idle:
+		"ETHS" ABCD 10 Bright { A_Look(); }
+		Loop;
+	See.TEX:
+		"ETHS" A 0 { bNOPAIN = false; }
+		"ETHS" AA 3 Bright { A_Chase(); }
+		"ETHS" A 0 { A_SpawnItemEx("RS_LSoulEXShade", -2, 0, 1, 1, 0, 1, -180, SXF_NOCHECKPOSITION); }
+		"ETHS" A 0 A_CheckProximity("See.TEX.AddOns", "RS_SkullWSoulEX1", 512, 0, CPXF_EXACT);
+		"ETHS" A 0 A_CheckProximity("See.TEX.AddOns", "RS_SkullWSoulEX2", 512, 0, CPXF_EXACT);
+		"ETHS" BB 3 Bright { A_Chase(); }
+		"ETHS" A 0 { A_SpawnItemEx("RS_LSoulEXShade", -2, 0, 1, 1, 0, 1, -180, SXF_NOCHECKPOSITION); }
+		"ETHS" A 0 A_CheckProximity("See.TEX.AddOns", "RS_SkullWSoulEX1", 512, 0, CPXF_EXACT);
+		"ETHS" A 0 A_CheckProximity("See.TEX.AddOns", "RS_SkullWSoulEX2", 512, 0, CPXF_EXACT);
+		"ETHS" CC 3 Bright { A_Chase(); }
+		"ETHS" A 0 { A_SpawnItemEx("RS_LSoulEXShade", -2, 0, 1, 1, 0, 1, -180, SXF_NOCHECKPOSITION); }
+		"ETHS" A 0 A_CheckProximity("See.TEX.AddOns", "RS_SkullWSoulEX1", 512, 0, CPXF_EXACT);
+		"ETHS" A 0 A_CheckProximity("See.TEX.AddOns", "RS_SkullWSoulEX2", 512, 0, CPXF_EXACT);
+		"ETHS" DD 3 Bright { A_Chase(); }
+		"ETHS" A 0 { A_SpawnItemEx("RS_LSoulEXShade", -2, 0, 1, 1, 0, 1, -180, SXF_NOCHECKPOSITION); }
+		"ETHS" A 0 A_CheckProximity("See.TEX.AddOns", "RS_SkullWSoulEX1", 512, 0, CPXF_EXACT);
+		"ETHS" A 0 A_CheckProximity("See.TEX.AddOns", "RS_SkullWSoulEX2", 512, 0, CPXF_EXACT);
+		Loop;
+	// Regrow the guard. Only reachable when a skull is actually missing.
+	See.TEX.AddOns:
+		"ETHS" CEF 6 Bright;
+		"ETHS" A 0 { A_SpawnItemEx("RS_SkullWSoulEX1", 32, 32, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER); }
+		"ETHS" A 0 { A_SpawnItemEx("RS_SkullWSoulEX2", -32, -32, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER); }
+		"ETHS" FEC 6 Bright;
+		Goto See;
+	Missile.TEX:
+		"ETHS" C 0 Bright { bNOPAIN = true; }
+		"ETHS" C 2 Bright { A_StartSound("WSOUL/form", CHAN_BODY); }
+		"ETHS" E 2 Bright;
+		"ETHS" FFFF 0 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		// One in two: spend an escort before doing anything else.
+		"ETHS" F 0 Bright A_Jump(128, "Missile.TEX.Order1", "Missile.TEX.Order2", "Missile.TEX.Order3");
+	Missile.TEX.Miss2:
+		"ETHS" A 0 A_Jump(128, "Missile.TEX.Transformers");
+		"ETHS" A 0 A_Jump(256, "Missile.TEX.SoulShot", "Missile.TEX.Beam");
+		Goto See;
+	// The three orders. Each detaches an escort and hatches one monster.
+	// CHP broadcasts these with A_RadiusGive because the escorts are
+	// separate actors -- see the token classes in RS_lostsoul_projectiles.
+	Missile.TEX.Order1:
+		"ETHS" GG 0 { A_RadiusGive("RS_WhiteSoulAdsOff2", 700, RGF_MONSTERS); }
+		Goto Missile.TEX.Miss2;
+	Missile.TEX.Order2:
+		"ETHS" GG 0 { A_RadiusGive("RS_WhiteSoulAdsOff3", 700, RGF_MONSTERS); }
+		Goto Missile.TEX.Miss2;
+	Missile.TEX.Order3:
+		"ETHS" GG 0 { A_RadiusGive("RS_WhiteSoulAdsOff4", 700, RGF_MONSTERS); }
+		Goto Missile.TEX.Miss2;
+	// The squeeze-and-burst that precedes a form. Below 8000 HP it rolls
+	// on the full six instead of the opening three.
+	Missile.TEX.Transformers:
+		"ETHS" F 4 Bright { A_SetScale(0.85, 1.2); }
+		"ETHS" F 4 Bright { A_SetScale(0.70, 1.4); }
+		"ETHS" F 4 Bright { A_SetScale(0.55, 1.6); }
+		"ETHS" AAAAAAAAAAAA 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_WSSmore", random(-8, 8), random(-8, 8), 1, random(4, 20), 0, random(1, 15), random(-359, 359), SXF_NOCHECKPOSITION); }
+		"ETHS" A 0 { A_SetScale(1.0, 1.0); }
+		"ETHS" A 0 A_JumpIfHealthLower(8000, "Missile.TEX.RollOut");
+		"ETHS" A 0 A_Jump(255, "Missile.TEX.HK", "Missile.TEX.Rev", "Missile.TEX.Caco");
+		Goto See;
+	Missile.TEX.RollOut:
+		"ETHS" A 0 A_Jump(255, "Missile.TEX.Baron", "Missile.TEX.Vile", "Missile.TEX.Fatso", "Missile.TEX.HK", "Missile.TEX.Rev", "Missile.TEX.Caco");
+		Goto See;
+
+	// ---- FORM: CACODEMON. Every caco ball CHP ever wrote, in order. ----
+	Missile.TEX.Caco:
+		"HEAD" LLLLLLLL 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"HEAD" D 5 { A_StartSound("caco/sight", CHAN_VOICE); }
+		"HEAD" BC 4 { A_FaceTarget(); }
+		"HEAD" D 1 Bright { A_SpawnProjectile("RS_CacodemonBall", 32, 7, -4); }
+		"HEAD" D 1 Bright { A_SpawnProjectile("RS_CacodemonBall", 32, 7, -2); }
+		"HEAD" D 1 Bright { A_SpawnProjectile("RS_CacodemonBall", 32, 7, 0); }
+		"HEAD" D 1 Bright { A_SpawnProjectile("RS_CacodemonBall", 32, 7, 2); }
+		"HEAD" D 1 Bright { A_SpawnProjectile("RS_CacodemonBall", 32, 7, 4); }
+		"HEAD" CBC 3 { A_FaceTarget(); }
+		"HEAD" DDD 2 Bright { A_SpawnProjectile("RS_Cacospit1", 32, 0, random(-7, 7)); }
+		"HEAD" CBC 3 { A_FaceTarget(); }
+		"HEAD" D 4 Bright { A_SpawnProjectile("RS_CacoFire2", 32, 0, random(-1, 1)); }
+		"HEAD" D 4 Bright { A_SpawnProjectile("RS_CacoFire2", 32, 0, random(-3, 3)); }
+		"HEAD" D 4 Bright { A_SpawnProjectile("RS_CacoFire2", 32, 0, random(-5, 5)); }
+		"HEAD" D 4 Bright { A_SpawnProjectile("RS_CacoFire2", 32, 0, random(-4, 4)); }
+		"HEAD" CBC 3 { A_FaceTarget(); }
+		"HEAD" D 0 Bright { A_SpawnProjectile("RS_CacoFire4", 32, 0, 8); }
+		"HEAD" D 0 Bright { A_SpawnProjectile("RS_CacoFire4", 32, 0, -8); }
+		"HEAD" D 0 Bright { A_SpawnProjectile("RS_CacoFire4", 32, 0, 21); }
+		"HEAD" D 0 Bright { A_SpawnProjectile("RS_CacoFire4", 32, 0, -21); }
+		"HEAD" D 6 Bright { A_SpawnProjectile("RS_CacoFire3", 32, 0, random(-1, 1)); }
+		"HEAD" CBC 3 { A_FaceTarget(); }
+		"HEAD" DDDD 2 { A_SpawnProjectile("RS_SpitFireCaco", 32, 0, random(-90, 90)); }
+		"HEAD" CBC 3 { A_FaceTarget(); }
+		"HEAD" D 0 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, 0, CMF_AIMOFFSET); }
+		"HEAD" D 0 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, -8, CMF_AIMOFFSET); }
+		"HEAD" D 5 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, 8, CMF_AIMOFFSET); }
+		"HEAD" CBC 2 { A_FaceTarget(); }
+		"HEAD" D 2 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, 16, CMF_AIMOFFSET); }
+		"HEAD" D 2 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, 12, CMF_AIMOFFSET); }
+		"HEAD" B 0 { A_FaceTarget(); }
+		"HEAD" C 2 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, 8, CMF_AIMOFFSET); }
+		"HEAD" C 2 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, 4, CMF_AIMOFFSET); }
+		"HEAD" B 0 { A_FaceTarget(); }
+		"HEAD" D 2 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, 0, CMF_AIMOFFSET); }
+		"HEAD" D 2 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, -4, CMF_AIMOFFSET); }
+		"HEAD" B 0 { A_FaceTarget(); }
+		"HEAD" C 2 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, -8, CMF_AIMOFFSET); }
+		"HEAD" C 2 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, -12, CMF_AIMOFFSET); }
+		"HEAD" D 0 { A_FaceTarget(); }
+		"HEAD" D 6 Bright { A_SpawnProjectile("RS_CrackodemonBall", 32, 0, -16, CMF_AIMOFFSET); }
+		"HEAD" D 5 Bright { A_SpawnProjectile("RS_SBombCaco", 32, 0, 0, CMF_AIMOFFSET); }
+		"HEAD" LLLLLLLL 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		Goto See;
+
+	// ---- FORM: REVENANT. Drops to the floor for the duration. ----
+	Missile.TEX.Rev:
+		"SKEL" L 0 { bFLOAT = false; bNOGRAVITY = false; bDONTFALL = false; }
+		"SKEL" LLLLLLLL 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"SKEL" L 9 { A_StartSound("skeleton/sight", CHAN_VOICE); }
+		"SKEL" J 6 { A_FaceTarget(); }
+		"SKEL" K 0 { A_SpawnProjectile("RS_RevenantTracer", 50, 7, 5); }
+		"SKEL" K 0 { A_SpawnProjectile("RS_RevenantTracer", 50, -7, -5); }
+		"SKEL" J 4 { A_FaceTarget(); }
+		"SKEL" K 7 { A_SpawnProjectile("RS_AcidBlast1", 50, 7, 12); }
+		"SKEL" K 0 { A_SpawnProjectile("RS_AcidBlast1", 50, -7, -12); }
+		"SKEL" J 4 { A_FaceTarget(); }
+		"SKEL" K 7 { A_SpawnProjectile("RS_Zap7", 50, 7, 1); }
+		"SKEL" K 0 { A_SpawnProjectile("RS_Zap7", 50, -7, -1); }
+		"SKEL" J 4 { A_FaceTarget(); }
+		"SKEL" K 7 { A_SpawnProjectile("RS_Purp1", 50, 7, 9); }
+		"SKEL" K 0 { A_SpawnProjectile("RS_Purp1", 50, -7, -9); }
+		"SKEL" J 4 { A_FaceTarget(); }
+		"SKEL" K 7 { A_SpawnProjectile("RS_Homer1", 50, 7, 15); }
+		"SKEL" K 0 { A_SpawnProjectile("RS_Homer1", 50, -7, -15); }
+		"SKEL" J 4 { A_FaceTarget(); }
+		"SKEL" K 7 { A_SpawnProjectile("RS_RedDeathRev", 50, 0, 0); }
+		"SKEL" L 4;
+		"SKEL" L 0 { bFLOAT = true; bNOGRAVITY = true; bDONTFALL = true; }
+		"SKEL" LLLLLLLL 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		Goto See;
+
+	// ---- FORM: HELL KNIGHT. ----
+	Missile.TEX.HK:
+		"BOS2" H 0 { bFLOAT = false; bNOGRAVITY = false; bDONTFALL = false; }
+		"BOS2" HHHHHHHH 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"BOS2" H 8 { A_StartSound("knight/sight", CHAN_VOICE); }
+		"BOS2" EF 6 { A_FaceTarget(); }
+		"BOS2" G 7 { A_CustomComboAttack("RS_BaronBall", 32, 10 * random(1, 8), "baron/melee"); }
+		"BOS2" PQ 5 { A_FaceTarget(); }
+		// CHP calls ACS_NamedExecuteWithResult("BaronMissile_C") here -- an
+		// ACS lead-prediction wrapper around the same BaronBall. Ported as
+		// the plain projectile, exactly as the T12 cluster does.
+		"BOS2" R 5 { A_SpawnProjectile("RS_BaronBall", 32, 0, 0); }
+		"BOS2" EF 5 { A_FaceTarget(); }
+		"BOS2" GGGGG 1 { A_SpawnProjectile("RS_BlueHKShot", 32, 5, random(-1, 1)); }
+		"BOS2" PQ 5 { A_FaceTarget(); }
+		"BOS2" RRR 1 { A_SpawnProjectile("RS_BlueHKShot", 32, 5, random(-8, 8)); }
+		"BOS2" EF 3 { A_FaceTarget(); }
+		"BOS2" G 3 { A_SpawnProjectile("RS_HKBolt2", 32, 5, random(-8, 8)); }
+		"BOS2" PQ 6 { A_FaceTarget(); }
+		"BOS2" R 6 { A_SpawnProjectile("RS_HKBolt2", 32, 5, random(-1, 1)); }
+		"BOS2" EF 5 { A_FaceTarget(); }
+		"BOS2" G 5 { A_SpawnProjectile("RS_BigHK", 32, 5, 1); }
+		"BOS2" PQ 5 { A_FaceTarget(); }
+		"BOS2" R 5 { A_SpawnProjectile("RS_THEBEEHK", 32, 5, random(-1, 1)); }
+		"BOS2" H 8;
+		"BOS2" H 0 { bFLOAT = true; bNOGRAVITY = true; bDONTFALL = true; }
+		"BOS2" HHHHHHHH 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		Goto See;
+
+	// ---- FORM: BARON. Only live below 8000 HP. ----
+	Missile.TEX.Baron:
+		"BOSS" H 0 { bFLOAT = false; bNOGRAVITY = false; bDONTFALL = false; }
+		"BOSS" HHHHHHHH 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"BOSS" H 8 { A_StartSound("baron/sight", CHAN_VOICE); }
+		"BOSS" EF 6 { A_FaceTarget(); }
+		"BOSS" G 7 { A_CustomComboAttack("RS_BaronBall", 32, 10 * random(1, 8), "baron/melee"); }
+		"BOSS" PQ 5 { A_FaceTarget(); }
+		"BOSS" R 5 { A_SpawnProjectile("RS_BaronBall", 32, 0, 0); }
+		"BOSS" EF 5 { A_FaceTarget(); }
+		"BOSS" G 5 { A_SpawnProjectile("RS_Spspit2", 32, 5, random(-1, 1)); }
+		"BOSS" PQ 5 { A_FaceTarget(); }
+		"BOSS" R 3 { A_SpawnProjectile("RS_Spspit2", 32, 5, random(-8, 8)); }
+		"BOSS" EF 3 { A_FaceTarget(); }
+		"BOSS" G 3 { A_SpawnProjectile("RS_SmashBalls2", 32, 5, random(-8, 8)); }
+		"BOSS" PQ 6 { A_FaceTarget(); }
+		"BOSS" R 6 { A_SpawnProjectile("RS_SmashBalls2", 32, 5, random(-1, 1)); }
+		"BOSS" EF 5 { A_FaceTarget(); }
+		"BOSS" G 0 { A_SpawnProjectile("RS_BaronWave", 32, 5, 1); }
+		"BOSS" G 0 { A_SpawnProjectile("RS_BaronWave", 32, 5, 3); }
+		"BOSS" G 0 { A_SpawnProjectile("RS_BaronWave", 32, 5, -3); }
+		"BOSS" G 0 { A_SpawnProjectile("RS_BaronWave", 32, 5, 6); }
+		"BOSS" G 0 { A_SpawnProjectile("RS_BaronWave", 32, 5, -6); }
+		"BOSS" G 0 { A_SpawnProjectile("RS_BaronWave", 32, 5, 9); }
+		"BOSS" G 5 { A_SpawnProjectile("RS_BaronWave", 32, 5, -9); }
+		"BOSS" PQ 5 { A_FaceTarget(); }
+		"BOSS" R 5 { A_SpawnProjectile("RS_Spear11", 32, 5, random(-1, 1)); }
+		"BOSS" EF 5 { A_FaceTarget(); }
+		"BOSS" H 8 { A_SpawnProjectile("RS_BaronStar", 32, 5, 1); }
+		"BOSS" H 0 { bFLOAT = true; bNOGRAVITY = true; bDONTFALL = true; }
+		"BOSS" HHHHHHHH 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		Goto See;
+
+	// ---- FORM: ARCH-VILE. Only live below 8000 HP. ----
+	Missile.TEX.Vile:
+		"VILE" Q 0 { bFLOAT = false; bNOGRAVITY = false; bDONTFALL = false; }
+		"VILE" QQQQQQQQ 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"VILE" Q 8 { A_StartSound("vile/sight", CHAN_VOICE); }
+		"VILE" G 5 { A_FaceTarget(); }
+		"VILE" H 4 { A_SpawnItemEx("RS_BlueGash", 0, 0, 32); }
+		"VILE" IJKLM 4 Bright { A_FaceTarget(); }
+		"VILE" N 1 Bright { A_SpawnProjectile("RS_BigBolt2", 32, 0); }
+		"VILE" G 0 Bright { A_VileStart(); }
+		"VILE" G 7 Bright { A_FaceTarget(); }
+		"VILE" H 6 Bright { A_VileTarget("RS_ArcRing1"); }
+		"VILE" IJKLM 5 Bright { A_FaceTarget(); }
+		"VILE" N 4 Bright { A_VileTarget("RS_ArcRing1"); }
+		"VILE" O 0 Bright { A_SpawnProjectile("RS_ReAComet", 32, 0); }
+		"VILE" O 0 Bright A_CheckSight("See");
+		"VILE" O 7 Bright { A_VileTarget("RS_ArcRing2"); }
+		"VILE" O 4 Bright { A_SpawnProjectile("RS_ArcRing2", 12, 0, random(-3, 3)); }
+		"VILE" O 2 Bright { A_SpawnProjectile("RS_ArcRing2", 12, 0, random(-3, 3)); }
+		"VILE" P 12 Bright;
+		"VILE" QQ 3 Bright { A_SpawnProjectile("RS_BVileOrb1", 32, 0, random(-19, 19)); }
+		"VILE" QQQ 2 Bright { A_SpawnProjectile("RS_BVileOrb1", 32, 0, random(-19, 19)); }
+		"VILE" QQQQQ 1 Bright { A_SpawnProjectile("RS_BVileOrb1", 32, 0, random(-19, 19)); }
+		"VILE" Q 0 { bFLOAT = true; bNOGRAVITY = true; }
+		"VILE" Q 8 { bDONTFALL = true; }
+		"VILE" QQQQQQQQ 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		Goto See;
+
+	// ---- FORM: MANCUBUS. Only live below 8000 HP. The longest chain in
+	// the whole family: seven complete Fatso weapon sets back to back. ----
+	Missile.TEX.Fatso:
+		"FATT" H 0 { bFLOAT = false; bNOGRAVITY = false; bDONTFALL = false; }
+		"FATT" HHHHHHHH 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"FATT" G 12 { A_StartSound("fatso/sight", CHAN_VOICE); }
+		"FATT" G 5 { A_StartSound("fatso/raiseguns", CHAN_WEAPON); }
+		"FATT" H 0 { A_SpawnProjectile("RS_FatShot2", 32, 0, 11.25); }
+		"FATT" H 4 Bright { A_SpawnProjectile("RS_FatShot2", 32, 0, 0); }
+		"FATT" I 0 { A_FaceTarget(); }
+		"FATT" I 0 { A_SpawnProjectile("RS_FatShot2", 32, 0, -11.25); }
+		"FATT" I 4 Bright { A_SpawnProjectile("RS_FatShot2", 32, 0, 0); }
+		"FATT" G 0 { A_FaceTarget(); }
+		"FATT" G 0 { A_SpawnProjectile("RS_FatShot2", 32, 0, 5.625); }
+		"FATT" G 4 Bright { A_SpawnProjectile("RS_FatShot2", 32, 0, -5.625); }
+		"FATT" H 0 { A_FaceTarget(); }
+		"FATT" H 5 Bright { A_SpawnProjectile("RS_GreenBomb1", 32, 13, random(-5, 5)); }
+		"FATT" H 0 Bright { A_SpawnProjectile("RS_GreenBomb1", 32, -13, random(-5, 5)); }
+		"FATT" I 0 { A_FaceTarget(); }
+		"FATT" I 5 Bright { A_SpawnProjectile("RS_GreenBomb1", 32, 13, random(-5, 5)); }
+		"FATT" I 0 Bright { A_SpawnProjectile("RS_GreenBomb1", 32, -13, random(-5, 5)); }
+		"FATT" G 0 { A_FaceTarget(); }
+		"FATT" G 5 Bright { A_SpawnProjectile("RS_GreenBomb1", 32, 13, random(-5, 5)); }
+		"FATT" G 0 Bright { A_SpawnProjectile("RS_GreenBomb1", 32, -13, random(-5, 5)); }
+		"FATT" H 0 { A_FaceTarget(); }
+		"FATT" H 4 Bright { A_SpawnProjectile("RS_Bluewave1", 32, 13, random(-5, 5)); }
+		"FATT" H 0 Bright { A_SpawnProjectile("RS_Bluewave1", 32, -13, random(-8, 8)); }
+		"FATT" I 0 { A_FaceTarget(); }
+		"FATT" I 4 Bright { A_SpawnProjectile("RS_Bluewave1", 32, 13, random(-5, 5)); }
+		"FATT" I 0 Bright { A_SpawnProjectile("RS_Bluewave1", 32, -13, random(-8, 8)); }
+		"FATT" G 0 { A_FaceTarget(); }
+		"FATT" G 4 Bright { A_SpawnProjectile("RS_Bluewave1", 32, 13, random(-5, 5)); }
+		"FATT" G 0 Bright { A_SpawnProjectile("RS_Bluewave1", 32, -13, random(-8, 8)); }
+		"FATT" H 0 { A_FaceTarget(); }
+		"FATT" H 5 Bright { A_SpawnProjectile("RS_BlueFT", 32, 0); }
+		"FATT" I 0 Bright { A_FaceTarget(); }
+		"FATT" I 4 Bright { A_SpawnProjectile("RS_BlueFT2", 32, 0); }
+		"FATT" I 3 Bright { A_SpawnProjectile("RS_BlueFT2", 32, 0, random(-4, 4)); }
+		"FATT" G 2 Bright { A_SpawnProjectile("RS_BlueFT2", 32, 0, random(-9, 9)); }
+		"FATT" G 2 Bright { A_SpawnProjectile("RS_BlueFT2", 32, 0, random(-16, 16)); }
+		"FATT" H 0 { A_FaceTarget(); }
+		"FATT" H 5 Bright { A_SpawnProjectile("RS_PurpleBomb1", 32, 13, random(-5, 5)); }
+		"FATT" H 0 Bright { A_SpawnProjectile("RS_PurpleBomb1", 32, -13, random(-8, 8)); }
+		"FATT" I 0 { A_FaceTarget(); }
+		"FATT" I 5 Bright { A_SpawnProjectile("RS_PurpleBomb1", 32, 13, random(-5, 5)); }
+		"FATT" I 0 Bright { A_SpawnProjectile("RS_PurpleBomb1", 32, -13, random(-8, 8)); }
+		"FATT" G 0 { A_FaceTarget(); }
+		"FATT" G 5 Bright { A_SpawnProjectile("RS_PurpleBomb1", 32, 13, random(-5, 5)); }
+		"FATT" G 0 Bright { A_SpawnProjectile("RS_PurpleBomb1", 32, -13, random(-8, 8)); }
+		"FATT" H 0 { A_FaceTarget(); }
+		"FATT" H 3 Bright { A_SpawnProjectile("RS_RocketShotFatso", 32, 42, random(-3, 3), 0); }
+		"FATT" H 3 Bright { A_SpawnProjectile("RS_RocketShotFatso", 32, -39, random(-6, 6), 0); }
+		"FATT" I 0 { A_FaceTarget(); }
+		"FATT" I 3 Bright { A_SpawnProjectile("RS_RocketShotFatso", 32, 42, random(-3, 3), 0); }
+		"FATT" I 3 Bright { A_SpawnProjectile("RS_RocketShotFatso", 32, -39, random(-6, 6), 0); }
+		"FATT" G 0 { A_FaceTarget(); }
+		"FATT" G 3 Bright { A_SpawnProjectile("RS_RocketShotFatso", 32, 42, random(-3, 3), 0); }
+		"FATT" G 3 Bright { A_SpawnProjectile("RS_RocketShotFatso", 32, -39, random(-6, 6), 0); }
+		"FATT" H 0 { A_FaceTarget(); }
+		"FATT" H 3 Bright { A_SpawnProjectile("RS_RocketShotFatso", 32, 42, random(-3, 3), 0); }
+		"FATT" H 3 Bright { A_SpawnProjectile("RS_RocketShotFatso", 32, -39, random(-6, 6), 0); }
+		"FATT" I 0 { A_FaceTarget(); }
+		"FATT" I 0 { A_SpawnProjectile("RS_FatsoShotYE", 32, -12, random(-3, 3)); }
+		"FATT" I 3 Bright { A_SpawnProjectile("RS_FatsoShotYE", 32, 12, random(-3, 3)); }
+		"FATT" G 0 { A_FaceTarget(); }
+		"FATT" G 0 { A_SpawnProjectile("RS_FatsoShotYE", 32, -12, random(-3, 3)); }
+		"FATT" G 3 Bright { A_SpawnProjectile("RS_FatsoShotYE", 32, 12, random(-3, 3)); }
+		"FATT" H 0 { A_FaceTarget(); }
+		"FATT" H 0 { A_SpawnProjectile("RS_FatsoShotYE", 32, -12, random(-3, 3)); }
+		"FATT" H 3 Bright { A_SpawnProjectile("RS_FatsoShotYE", 32, 12, random(-3, 3)); }
+		"FATT" I 0 { A_FaceTarget(); }
+		"FATT" I 0 { A_SpawnProjectile("RS_Shot2Fatso", 32, 20, random(-1, 1)); }
+		"FATT" I 6 Bright { A_SpawnProjectile("RS_Shot2Fatso", 32, -20, random(-1, 1)); }
+		"FATT" GB 6;
+		"FATT" H 0 { bFLOAT = true; bNOGRAVITY = true; bDONTFALL = true; }
+		"FATT" HHHHHHHH 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		Goto See;
+
+	// ---- ITS OWN TWO ATTACKS, no form involved. ----
+	Missile.TEX.Beam:
+		"ETHS" FEEFF 4 Bright { A_FaceTarget(); }
+		"ETHS" FFFFFFFFFFFFFFFFFFFFFFFFFFF 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 10 Bright { A_SpawnProjectile("RS_SoulexBeam", 32, 0, 0); }
+		"ETHS" FE 10 Bright;
+		Goto See;
+	Missile.TEX.SoulShot:
+		"ETHS" FEEFF 4 Bright { A_FaceTarget(); }
+		"ETHS" F 1 Bright { A_SetScale(1.15, 1.15); }
+		"ETHS" F 1 Bright { A_SetScale(1.3, 1.3); }
+		"ETHS" F 10 Bright { A_SpawnProjectile("RS_SOULEXSoulCharge", 32, 0, 0); }
+		"ETHS" F 1 Bright { A_SetScale(1.15, 1.15); }
+		"ETHS" F 1 Bright { A_SetScale(1.0, 1.0); }
+		Goto See;
+
+	Pain.TEX:
+		"ETHS" G 3 Bright;
+		"ETHS" G 3 Bright { A_Pain(); }
+		"ETHS" G 3 Bright A_Jump(64, "Pain.TEX.Reset");
+		Goto See;
+	// One in four: recall the escorts to normal duty, blink out on a long
+	// wander, and re-form with a fresh pair.
+	Pain.TEX.Reset:
+		"ETHS" GGGG 0 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" GG 1 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" GG 0 { A_RadiusGive("RS_WhiteSoulAdsOff", 700, RGF_MONSTERS); }
+		"ETHS" GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG 0 { A_Wander(); }
+		"ETHS" A 0 { A_SpawnItemEx("RS_SkullWSoulEX1", 32, 32, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER); }
+		"ETHS" A 0 { A_SpawnItemEx("RS_SkullWSoulEX2", -32, -32, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER); }
+		"ETHS" AB 1 Bright;
+		Goto See;
+	// It dies the way it fought: through every form it ever wore.
+	Death.TEX:
+		"ETHS" F 2 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 2 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 2 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 2 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 2 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 2 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"ETHS" F 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"SKEL" M 0 Bright { A_StartSound("skeleton/death", CHAN_VOICE); }
+		"SKEL" MNOPQ 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"FATT" K 0 Bright { A_StartSound("fatso/death", CHAN_VOICE); }
+		// CHP writes "FATT KLMNOPQRST"; vanilla FATT stops at S.
+		"FATT" KLMNOPQRS 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"BOS2" I 0 Bright { A_StartSound("knight/death", CHAN_VOICE); }
+		"BOS2" IJKLMNO 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"VILE" Q 0 Bright { A_StartSound("vile/death", CHAN_VOICE); }
+		"VILE" QRSTUVWXYZ 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"BOSS" I 0 Bright { A_StartSound("baron/death", CHAN_VOICE); }
+		// CHP writes "BOSS IJKLMNO"; frame O exists in no BOSS set.
+		"BOSS" IJKLMN 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"HEAD" H 0 Bright { A_StartSound("caco/death", CHAN_VOICE); }
+		"HEAD" HIJKL 1 Bright { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
 		"ETHS" HIJKLMN 6 Bright;
 		"ETHS" O 12 Bright { A_ScreamAndUnblock(); }
 		Stop;

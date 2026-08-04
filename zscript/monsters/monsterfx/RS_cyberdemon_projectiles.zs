@@ -39,9 +39,9 @@ class RS_CyberdemonMissile : Actor
 		Loop;
 	Death:
 		TNT1 A 0 A_Explode;
-		MISL B 8 Bright;
-		MISL C 6 Bright;
-		MISL D 4 Bright;
+		HMIS B 8 Bright;
+		HMIS C 6 Bright;
+		HMIS D 4 Bright;
 		Stop;
 	}
 }
@@ -106,9 +106,9 @@ class RS_SplashRocket : Actor
 		Loop;
 	Death:
 		MISL B 8 Bright A_Explode;
-		MISL C 6 Bright;
+		HMIS C 6 Bright;
 		MISL CCCCCCC 0 A_SpawnItemEx("RS_Gas14",random(-8,8),random(-8,8),random(-2,2),random(3,28),0,random(-6,20),random(-359,359),SXF_NOCHECKPOSITION);
-		MISL D 4 Bright;
+		HMIS D 4 Bright;
 		Stop;
 	}
 }
@@ -240,8 +240,8 @@ class RS_Propane : Actor
 		Loop;
 	Death:
 		MISL B 8 Bright A_Explode(96,128);
-		MISL C 6 Bright;
-		MISL D 4 Bright;
+		HMIS C 6 Bright;
+		HMIS D 4 Bright;
 		Stop;
 	}
 }
@@ -566,7 +566,7 @@ class RS_FireBluCybMiss : Actor
 	Death:
 		MISL B 4 A_SetTranslucent(0.35);
 		MISL C 2 A_Explode(27,256);
-		MISL D 4 Bright;
+		HMIS D 4 Bright;
 		Stop;
 	}
 }
@@ -907,7 +907,7 @@ class RS_RomeroCHScatter : Actor
 		SPER B 1 Bright;
 		Loop;
 	Death:
-		SPER CDE 4 Bright A_Explode(40,96);
+		SPER AB 4 Bright A_Explode(40,96);
 		Stop;
 	}
 }
@@ -925,7 +925,7 @@ class RS_RomeroCHSeekBall : Actor
 		SPER B 1 Bright A_SpawnItemEx("RS_TrailSPRomero",0,0,0,0,0,0,0,128);
 		Loop;
 	Death:
-		SPER CDE 4 Bright A_Explode(40,96);
+		SPER AB 4 Bright A_Explode(40,96);
 		Stop;
 	}
 }
@@ -1442,7 +1442,7 @@ class RS_HellBoom : Actor
 }
 class RS_HellShotEX2 : Actor
 {
-	Default { Radius 13; Height 16; Speed 15; Damage (random(20, 50)); DamageType "Supremesmith"; Projectile;
+	Default { DontHurtShooter; Radius 13; Height 16; Speed 15; DamageFunction (random(20, 50)); DamageType "Supremesmith"; Projectile;
 		RenderStyle "Add"; Alpha 0.9; +THRUGHOST; -NOGRAVITY;
 		SeeSound "weapons/firbfi"; DeathSound "weapons/firex3"; }
 	States
@@ -1473,7 +1473,7 @@ class RS_STracerEX : RS_STracer
 // coin-flip chance of firing again before it fades.
 class RS_HellWaverEX : Actor
 {
-	Default { Radius 8; Height 12; Speed 25; Damage (random(40, 120)); Projectile; RenderStyle "Add";
+	Default { DontHurtShooter; Radius 8; Height 12; Speed 25; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex"; +THRUGHOST; Decal "Scorch"; }
 	States
 	{
@@ -1495,7 +1495,7 @@ class RS_HellWaverEX : Actor
 // the BigHell star leaves behind when it detonates.
 class RS_HellWaver2 : Actor
 {
-	Default { Radius 8; Height 12; Speed 25; Damage (random(40, 120)); Projectile; RenderStyle "Add";
+	Default { DontHurtShooter; Radius 8; Height 12; Speed 25; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex"; +THRUGHOST; Decal "Scorch"; }
 	States
 	{
@@ -1521,7 +1521,7 @@ class RS_HellWaver2 : Actor
 }
 class RS_HellShotEX : Actor
 {
-	Default { Radius 8; Height 12; Speed 30; Damage (random(40, 120)); Projectile; RenderStyle "Add";
+	Default { DontHurtShooter; Radius 8; Height 12; Speed 30; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/firbfi"; DeathSound "weapons/hellex";
 		+THRUGHOST; Decal "Scorch"; }
 	States
@@ -1541,7 +1541,7 @@ class RS_HellShotEX : Actor
 }
 class RS_HSHomer : Actor
 {
-	Default { Radius 8; Height 12; Speed 22; Damage (random(20, 80)); Projectile; RenderStyle "Add";
+	Default { DontHurtShooter; Radius 8; Height 12; Speed 22; DamageFunction (random(20, 80)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/hellfi"; DeathSound "weapons/hellex";
 		+THRUGHOST; +SEEKERMISSILE; +EXTREMEDEATH; Decal "Scorch"; }
 	States
@@ -1569,7 +1569,7 @@ class RS_HSFlameBlastTrail : Actor
 }
 class RS_HSFlameBlast : FastProjectile
 {
-	Default { Radius 8; Height 12; Speed 72; Damage (random(20, 40)); Scale 1.5; Projectile; RenderStyle "Add";
+	Default { DontHurtShooter; Radius 8; Height 12; Speed 72; DamageFunction (random(20, 40)); Scale 1.5; Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/hellfi"; DeathSound "weapons/firbfi";
 		+THRUGHOST; Decal "Scorch"; }
 	States
@@ -1589,7 +1589,7 @@ class RS_HSFlameBlast : FastProjectile
 // The thrown lightning: a bouncing seeker that ends in a BFG-sized burst.
 class RS_ZapCybEX : Actor
 {
-	Default { Radius 17; Height 15; Speed 32; Damage (random(20, 50)); Projectile; RenderStyle "Add";
+	Default { DontHurtShooter; Radius 17; Height 15; Speed 32; DamageFunction (random(20, 50)); Projectile; RenderStyle "Add";
 		Alpha 0.85; Scale 1.6; SeeSound "Litn/litn2"; +THRUGHOST; +SEEKERMISSILE;
 		BounceType "Hexen"; BounceCount 5; BounceFactor 2.0; WallBounceFactor 2.0;
 		Translation "192:199=[255,255,255]:[191,0,255]"; Decal "Scorch"; }
@@ -1663,7 +1663,7 @@ class RS_PentaHealCybEX : Actor
 // The afterimage the Tyrant leaves along a charge -- it hits on contact.
 class RS_HSGhostEX : Actor
 {
-	Default { Radius 40; Height 70; Speed 1; Damage (random(12, 34)); DamageType "Melee";
+	Default { Radius 40; Height 70; Speed 1; DamageFunction (random(12, 34)); DamageType "Melee";
 		RenderStyle "Translucent"; Alpha 0.5; Projectile; }
 	States
 	{
@@ -1699,7 +1699,7 @@ class RS_HSHammer : Actor
 // HellWaver on top.
 class RS_BigHellCybEX2 : Actor
 {
-	Default { Species "Cybie"; Radius 32; Height 16; Speed 1; Scale 2.5; Damage (random(200, 400));
+	Default { DontHurtShooter; Species "Cybie"; Radius 32; Height 16; Speed 1; Scale 2.5; DamageFunction (random(200, 400));
 		Projectile; RenderStyle "Add"; DamageType "Supremesmith"; Alpha 0.95; DeathSound "weapons/hellex";
 		+THRUGHOST; +THRUSPECIES; +DONTHARMSPECIES; Decal "Scorch"; }
 	States
@@ -1772,6 +1772,573 @@ class RS_BigHellCybEX : Actor
 		HEPA CCCDDDEEEFFF 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
 		HEPA D 0 A_StartSound("weapons/firbfi", CHAN_VOICE, CHANF_DEFAULT, 1.0, 0.4);
 		TNT1 A 0 A_SpawnItemEx("RS_BigHellCybEX2", 0, 0, 0, 1, 0, 0, 0, SXF_TRANSFERPOINTERS);
+		Stop;
+	}
+}
+
+// ============================================================================
+// WHITE EX (17_WX) -- "It crashes doom II". Romero's glitch. Read straight out
+// of 17_WX.txt. The theme is corruption: nothing here flies straight, several
+// of these actors are SOLID walls rather than damage, and two of them count
+// their own iterations (CHP used a DewzanToken; here a private int).
+// ============================================================================
+
+// The visual noise that clings to the boss and to its glitch-barons.
+class RS_RomeroEXGlitch : Actor
+{
+	Default { +NOBLOCKMAP; +NOGRAVITY; +NOCLIP; RenderStyle "Add"; }
+	States
+	{
+	Spawn:
+		X404 A 0 { A_SetScale(frandom(1.2, 1.8), frandom(1.2, 1.8)); }
+		X404 A 8 Bright A_Warp(AAPTR_TARGET, random(-20, 20), random(-20, 20), random(0, 128), 0, WARPF_NOCHECKPOSITION);
+		Loop;
+	}
+}
+// The bread-and-butter shot: a bouncing block of corrupted texture that
+// jitters in a random direction every tic instead of travelling cleanly.
+class RS_RomeroEXGlitchShot : Actor
+{
+	Default { Radius 13; Height 20; Damage 50; Speed 15; RenderStyle "Add"; DamageType "Melee";
+		Species "Daikatana"; Projectile; DontHurtShooter;
+		BounceType "Hexen"; +BOUNCEONWALLS; +BOUNCEONCEILINGS; +BOUNCEONFLOORS;
+		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		SeeSound "GLITCH"; DeathSound "GLITCH";
+		BounceCount 3; BounceFactor 0.01; WallBounceFactor 0.01; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		X404 A 0 { A_SetScale(frandom(0.8, 1.2), frandom(0.8, 1.2)); }
+		X404 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 Bright { Thrust(2.0, random(0, 360)); }
+		X404 A 0 { A_StartSound("GLITCH", CHAN_5); }
+		Loop;
+	Death:
+		TNT1 A 0 A_StopSound(CHAN_5);
+		Stop;
+	}
+}
+class RS_RomeroEXMegaGlitchShot : RS_RomeroEXGlitchShot
+{
+	Default { Damage 150; Speed 15; Scale 2.0; BounceCount 12;
+		Translation "176:176=231:231", "231:231=200:200"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		X404 A 0 { A_SetScale(frandom(1.6, 2.4), frandom(1.6, 2.4)); }
+		X404 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1 Bright { Thrust(2.0, random(0, 360)); }
+		X404 A 0 { A_StartSound("GLITCH", CHAN_5); }
+		Loop;
+	Death:
+		TNT1 A 0 A_StopSound(CHAN_5);
+		Stop;
+	}
+}
+// A 64x110 seeking slab that hugs the floor. This is the attack that reads as
+// the screen itself coming at you.
+class RS_RomeroEXFourthWall : Actor
+{
+	Default { Radius 64; Height 110; Damage 200; Speed 17; DamageType "Melee"; Species "Daikatana";
+		XScale 3.0; YScale 15.0; Projectile; DontHurtShooter;
+		+FLOORHUGGER; +SEEKERMISSILE; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 { A_StartSound("4THWALL", CHAN_5, 0, 1.0, 0.4); }
+	Fly:
+		IDGA A 3 A_SeekerMissile(5, 5);
+		Loop;
+	Death:
+		TNT1 A 0 A_StopSound(CHAN_5);
+		Stop;
+	}
+}
+class RS_RomeroBeamCHTrail : FastProjectile
+{
+	Default { Radius 20; Height 20; Speed 50; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.85;
+		Scale 2.3; Projectile; Translation "0:255=%[0.00,0.40,0.00]:[2.00,2.00,1.01]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		BRBA ONMLK 1 Bright;
+		Goto Death;
+	Death:
+		BRBA ABCDEFGHIJ 1 Bright;
+		Stop;
+	}
+}
+class RS_RomeroEXBeamCHTrail : RS_RomeroBeamCHTrail
+{
+	Default { Species "Daikatana"; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		Translation "0:75=251:251", "149:219=199:199"; }
+}
+class RS_RomeroEXSpamShotsTrail : RS_RomeroEXBeamCHTrail
+{
+	Default { Translation "208:247=176:176", "168:200=4:4", "0:167=106:234"; Scale 1.45; }
+}
+// The beam. Explodes along its own length as it travels, and its DEATH is a
+// counted loop -- it keeps detonating and growing for 100 iterations before it
+// finally collapses. CHP counted with a DewzanToken; this is the same count.
+class RS_RomeroEXBeamCH : FastProjectile
+{
+	private int rsBeamCount;
+	Default { Radius 13; Height 8; Speed 60; Damage 20; DamageType "Plasma"; Species "Daikatana";
+		Projectile; DontHurtShooter; RenderStyle "Add"; Alpha 0.9; Scale 2.5;
+		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
+		Translation "0:75=251:251", "149:219=199:199"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		BRBA O 1 Bright A_Explode(random(10, 80), 64, 0);
+		TNT1 A 0 { A_SpawnItemEx("RS_RomeroEXBeamCHTrail", cos(pitch), 0, -sin(pitch), cos(pitch), 0, -sin(pitch), 0, SXF_NOCHECKPOSITION); }
+		BRBA N 1 Bright A_Explode(random(10, 80), 64, 0);
+		TNT1 A 0 { A_SpawnItemEx("RS_RomeroEXBeamCHTrail", cos(pitch), 0, -sin(pitch), cos(pitch), 0, -sin(pitch), 0, SXF_NOCHECKPOSITION); }
+		BRBA M 1 Bright A_Explode(random(10, 80), 64, 0);
+		TNT1 A 0 { A_SpawnItemEx("RS_RomeroEXBeamCHTrail", cos(pitch), 0, -sin(pitch), cos(pitch), 0, -sin(pitch), 0, SXF_NOCHECKPOSITION); }
+		BRBA L 1 Bright A_Explode(random(10, 80), 64, 0);
+		TNT1 A 0 { A_SpawnItemEx("RS_RomeroEXBeamCHTrail", cos(pitch), 0, -sin(pitch), cos(pitch), 0, -sin(pitch), 0, SXF_NOCHECKPOSITION); }
+		BRBA K 1 Bright A_Explode(random(10, 80), 64, 0);
+		Loop;
+	Death:
+		TNT1 A 0 { if (rsBeamCount >= 100) return ResolveState("Collapse"); return ResolveState(null); }
+		BRBA O 3 Bright A_SetScale(3.0, 2.5);
+		TNT1 A 0 A_Explode(random(60, 180), 128, 0);
+		TNT1 A 0 { rsBeamCount++; }
+		Loop;
+	Collapse:
+		BRBA N 3 Bright A_SetScale(3.8, 2.15);
+		BRBA M 3 Bright A_SetScale(3.0, 1.85);
+		BRBA L 3 Bright A_SetScale(2.5, 1.75);
+		BRBA K 3 Bright A_SetScale(2.25, 2.25);
+		BRBA ABCDEFGHIJ 3 Bright;
+		Stop;
+	}
+}
+class RS_RomeroEXSeekTrail : RS_TrailSPRomero
+{
+	Default { Species "Daikatana"; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		Translation "0:148=176:176", "160:167=112:112", "224:231=231:231"; }
+}
+// The seeker: weaves as well as homing, so it does not fly a line you can
+// simply sidestep.
+class RS_RomeroEXCHSeekBall : Actor
+{
+	Default { Radius 5; Height 5; Speed 20; DamageFunction (random(20, 90)); DamageType "Plasma"; Projectile;
+		+RANDOMIZE; +SEEKERMISSILE; +DONTHARMCLASS; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		Species "Daikatana"; RenderStyle "Add"; Alpha 0.75; Scale 0.85;
+		SeeSound "ELECTRO8"; DeathSound "Crack/death"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		X404 A 10 Bright { A_StartSound("GLITCH"); }
+	Fly2:
+		X404 A 1 Bright { A_SpawnItemEx("RS_RomeroEXSeekTrail", cos(pitch), 0, -sin(pitch), cos(pitch), 0, -sin(pitch), 0, SXF_NOCHECKPOSITION); }
+		X404 A 0 A_Weave(3, 0, 2, 0);
+		X404 A 1 Bright A_SeekerMissile(3, 6);
+		X404 A 0 A_Weave(3, 0, 2, 0);
+		Loop;
+	Death:
+		TNT1 A 0 { A_StartSound("GLITCH"); }
+		TNT1 AAAAA 0 { A_SpawnItemEx("RS_RomeroEXSeekTrail", 0, 0, 0, random(6, 20), 0, random(-15, 15), random(1, 135), SXF_NOCHECKPOSITION); }
+		TNT1 AAAAA 0 { A_SpawnItemEx("RS_RomeroEXSeekTrail", 0, 0, 0, random(6, 20), 0, random(-15, 15), random(136, 270), SXF_NOCHECKPOSITION); }
+		TNT1 AAAAA 0 { A_SpawnItemEx("RS_RomeroEXSeekTrail", 0, 0, 0, random(6, 20), 0, random(-15, 15), random(271, 359), SXF_NOCHECKPOSITION); }
+		Stop;
+	}
+}
+// The BFG spam. Randomises its own scale every cycle and has a 32/256 chance
+// per cycle of shedding a glitch shot sideways.
+class RS_RomeroEXSpamShots : RS_SpamShotsRomeroCH
+{
+	Default { Speed 30; Projectile; +RANDOMIZE; +SEEKERMISSILE; +DONTHARMCLASS;
+		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES; Species "Daikatana";
+		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
+		Translation "0:148=176:176", "160:167=112:112", "224:231=231:231"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		BFS1 A 0 { A_SetScale(frandom(0.1, 2.0), frandom(0.1, 2.0)); }
+		BFS1 A 2 Bright { A_SpawnItemEx("RS_RomeroEXSpamShotsTrail", cos(pitch), 0, -sin(pitch), cos(pitch), 0, -sin(pitch), 0, SXF_NOCHECKPOSITION); }
+		BFS1 B 2 Bright A_SeekerMissile(6, 7);
+		BFS1 A 0 A_Jump(32, "Shed");
+		Loop;
+	Shed:
+		BFS1 A 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 0, 0, random(0, 360), CMF_AIMOFFSET | CMF_TRACKOWNER, random(0, 360)); }
+		Goto Fly;
+	Death:
+		BFE1 AB 8 Bright { A_SetScale(frandom(0.1, 4.0), frandom(0.1, 4.0)); }
+		BFE1 C 8 Bright A_Explode(random(25, 80), 152);
+		TNT1 A 0 A_ScreamAndUnblock();
+		BFE1 DEF 8 Bright;
+		Stop;
+	}
+}
+class RS_RomeroEXSpamShots2 : RS_SpamShotsCguy
+{
+	Default { Species "Daikatana"; +DONTHARMCLASS; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		Translation "112:117=23:86", "118:127=200:237", "160:227=40:79", "228:234=248:255"; }
+}
+// The floor tiles the Dukie carpet plants -- they detonate, wait 90 tics, and
+// detonate a second time, so standing where one already went off is a trap.
+class RS_RomeroEXGround : Actor
+{
+	Default { Species "Daikatana"; DamageType "Plasma"; RenderStyle "Add"; Alpha 1.0;
+		XScale 2.25; YScale 0.15;
+		+NOINTERACTION; +THRUACTORS; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		+DONTHARMCLASS; +FLOORHUGGER; DeathSound "weapons/rocklx";
+		Translation "0:255=251:251"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 A_ScreamAndUnblock();
+		BRBA ONMLK 3 Bright A_Explode(random(10, 80), 64, 0);
+		BRBA ABCDEFGHIJ 2 Bright;
+		TNT1 A 90;
+		TNT1 A 0 A_ScreamAndUnblock();
+		BRBA ONMLK 3 Bright A_Explode(random(10, 80), 64, 0);
+		BRBA ABCDEFGHIJ 2 Bright;
+		Stop;
+	}
+}
+// SOLID. Not damage -- a wall that grows out of the floor and stays for up to
+// five seconds. The Trap plants sixteen in a ring around you.
+class RS_RomeroEXGlitchBarrier : Actor
+{
+	Default { Radius 24; Height 64; YScale 0.1; XScale 2.0; Species "Daikatana";
+		+SOLID; -NOGRAVITY; +DONTHARMCLASS; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		RenderStyle "Add"; Alpha 0.75; }
+	States
+	{
+	Spawn:
+		X404 B 1 Bright;
+		X404 B 0 { A_StartSound("GLITCH"); }
+	Blockyou:
+		X404 B 1 Bright A_SetScale(2.0, 0.3);
+		X404 B 1 Bright A_SetScale(2.0, 0.9);
+		X404 B 1 Bright A_SetScale(2.0, 1.5);
+		X404 B 1 Bright A_SetScale(2.0, 2.1);
+		X404 B 1 Bright A_SetScale(2.0, 2.7);
+		X404 B 1 Bright A_SetScale(2.0, 3.3);
+		X404 B 1 Bright A_SetScale(2.0, 3.9);
+		X404 B 1 Bright A_SetScale(2.0, 4.5);
+		X404 B random(15, 150) Bright;
+		X404 B 1 Bright A_SetScale(2.0, 4.5);
+		X404 B 1 Bright A_SetScale(2.0, 3.9);
+		X404 B 1 Bright A_SetScale(2.0, 3.3);
+		X404 B 1 Bright A_SetScale(2.0, 2.7);
+		X404 B 1 Bright A_SetScale(2.0, 2.1);
+		X404 B 1 Bright A_SetScale(2.0, 1.5);
+		X404 B 1 Bright A_SetScale(2.0, 0.9);
+		X404 B 1 Bright A_SetScale(2.0, 0.3);
+		Stop;
+	}
+}
+class RS_RomeroEXGlitchTrap : Actor
+{
+	Default { Species "Daikatana"; +NOBLOCKMAP; +NOGRAVITY; +DONTHARMCLASS;
+		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		// Sixteen barriers on a 160-unit circle, cast at the target's feet.
+		TNT1 A 0
+		{
+			for (int i = 0; i < 16; i++)
+				A_SpawnItemEx("RS_RomeroEXGlitchBarrier",
+					160.0 * cos(i * 22.5), 160.0 * sin(i * 22.5), -32767);
+		}
+		Stop;
+	}
+}
+class RS_RomeroEXCode : Actor
+{
+	Default { Radius 6; Height 8; Damage 20; Scale 1.5; Speed 10; RenderStyle "Add";
+		DamageType "Melee"; Species "Daikatana"; Projectile; DontHurtShooter;
+		BounceType "Hexen"; +BOUNCEONWALLS; +BOUNCEONCEILINGS; +BOUNCEONFLOORS;
+		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		BounceCount 9; BounceFactor 1.0; WallBounceFactor 1.0;
+		Translation "0:255=%[0.00,2.00,1.01]:[0.00,2.00,0.00]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 A_ScaleVelocity(frandom(0.5, 1.5));
+	Spawn2:
+		BIN0 A 2 Bright;
+		BIN1 A 2 Bright;
+		Loop;
+	Death:
+		TNT1 A 0;
+		Stop;
+	}
+}
+// The leak: 131 bouncing binary digits sprayed in every direction, one per
+// eight tics. CodeLeakage2 doubles the count.
+class RS_RomeroEXCodeLeakage : Actor
+{
+	protected int rsLeakLimit;
+	private int rsLeaked;
+	Default { Species "Daikatana"; +NOBLOCKMAP; +NOGRAVITY; +DONTHARMCLASS;
+		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES; Scale 2.3;
+		Translation "0:255=%[0.00,2.00,1.01]:[0.00,2.00,0.00]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0 { if (rsLeakLimit <= 0) rsLeakLimit = 131; }
+		TNT1 A 0 { A_StartSound("BINARY", CHAN_5, CHANF_LOOPING); }
+	Spawn2:
+		TNT1 A 0 { if (rsLeaked >= rsLeakLimit) return ResolveState("Nah"); return ResolveState(null); }
+		SPIR DCBADCBA 1;
+		TNT1 A 0 { A_SpawnProjectile("RS_RomeroEXCode", 0, 0, random(0, 360), CMF_AIMDIRECTION, random(-90, 90)); }
+		TNT1 A 0 { rsLeaked++; }
+		Loop;
+	Nah:
+		TNT1 A 0 A_StopSound(CHAN_5);
+		Stop;
+	}
+}
+class RS_RomeroEXCodeLeakage2 : RS_RomeroEXCodeLeakage
+{
+	States
+	{
+	Spawn:
+		TNT1 A 0 { rsLeakLimit = 262; }
+		Goto Super::Spawn + 1;
+	}
+}
+// The orbiting shield. Circles the boss at 128 units for one full rotation
+// (400 tics) and reflects while it lives, then clears the boss's latch so the
+// shield can be cast again -- exactly CHP's RomeroCHProtect2 handshake.
+class RS_RomeroEXShield : Actor
+{
+	private int rsOrbit;
+	Default { Radius 88; Height 110; Speed 18; Species "Daikatana"; Health 999; Monster;
+		+NOTRIGGER; +NOTARGET; +DONTTHRUST; +NOGRAVITY; +INVULNERABLE; +REFLECTIVE;
+		+DEFLECT; +SHIELDREFLECT; +THRUSPECIES; +MTHRUSPECIES; -COUNTKILL;
+		RenderStyle "Add"; Alpha 1.0; Scale 1.5;
+		Translation "0:255=%[0.00,2.00,0.00]:[2.00,0.00,2.00]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		TNT1 A 0 { rsOrbit += 9; }
+		CHSW Z 1 Bright { A_Warp(AAPTR_MASTER, 128, 0, 8, rsOrbit + 9, WARPF_ABSOLUTEANGLE | WARPF_NOCHECKPOSITION | WARPF_INTERPOLATE); }
+		TNT1 A 0 { if (rsOrbit >= 3600) return ResolveState("Death"); return ResolveState(null); }
+		Loop;
+	Death:
+		TNT1 A 0
+		{
+			let m = RS_Cyberdemon(master);
+			if (m) m.RS_ClearGlitchShield();
+		}
+		CHSW Z 2 Bright A_NoBlocking();
+		CHSW Z 2 Bright A_SetScale(1.0);
+		CHSW Z 2 Bright A_SetScale(0.7);
+		CHSW Z 2 Bright A_SetScale(0.4);
+		TNT1 A 0 A_Die();
+		Stop;
+	}
+}
+// The mine: arms itself over a couple of seconds, sits for up to a minute, then
+// stops interacting and shrinks away. Damage on contact while armed.
+class RS_RomeroEXGlitchMine : Actor
+{
+	Default { Radius 32; Height 8; Speed 0; Damage 50; DamageType "Plasma"; Species "Daikatana";
+		Projectile; DontHurtShooter; +DONTHARMCLASS; +THRUSPECIES; +MTHRUSPECIES;
+		+DONTHARMSPECIES; +FLATSPRITE; +FLOORHUGGER; RenderStyle "Add"; Alpha 1.0; Scale 0.1;
+		SeeSound "GLITCH"; DeathSound "GLITCH"; }
+	States
+	{
+	Spawn:
+		X404 A 1;
+		X404 A 2 Bright A_SetScale(0.3, 0.3);
+		X404 A 2 Bright A_SetScale(0.6, 0.6);
+		X404 A 2 Bright A_SetScale(0.9, 0.9);
+		X404 A 2 Bright A_SetScale(1.2, 1.2);
+		X404 A 2 Bright A_SetScale(1.5, 1.5);
+		X404 A 2 Bright A_SetScale(1.8, 1.8);
+		X404 A 2 Bright A_SetScale(2.1, 2.1);
+		X404 A 2 Bright A_SetScale(2.4, 2.4);
+		X404 A random(200, 2000) Bright;
+		X404 A 0 { bNOINTERACTION = true; }
+		X404 A 2 Bright A_SetScale(2.4, 2.4);
+		X404 A 2 Bright A_SetScale(2.1, 2.1);
+		X404 A 2 Bright A_SetScale(1.8, 1.8);
+		X404 A 2 Bright A_SetScale(1.5, 1.5);
+		X404 A 2 Bright A_SetScale(1.2, 1.2);
+		X404 A 2 Bright A_SetScale(0.9, 0.9);
+		X404 A 2 Bright A_SetScale(0.6, 0.6);
+		X404 A 2 Bright A_SetScale(0.3, 0.3);
+		Stop;
+	Death:
+		TNT1 A 1;
+		Stop;
+	}
+}
+class RS_RomeroEXGlitchMineSpawner2 : Actor
+{
+	Default { +NOBLOCKMAP; +NOGRAVITY; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		Species "Daikatana"; Scale 1.25; }
+	States
+	{
+	Spawn:
+		CHTA A 0;
+		CHTA A 0 { A_StartSound("SPMTARG"); }
+		// CHP blinks CHTA A against CHTA X; only frame A exists in the art
+		// source (verified -- the repo's own older CHTA use is A-only too), so
+		// the targeter holds A for the same 28 tics instead of flickering.
+		CHTA AAAAAAAAAAAAAA 2 Bright;
+		CHTA A 0 { A_SpawnItemEx("RS_RomeroEXGlitchMine", 0, 0, -32767, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		CHTA AAAAAAAAAAAAAAAAAAAAAAAA 2 Bright;
+		Stop;
+	}
+}
+class RS_RomeroEXGlitchMineSpawner : Actor
+{
+	Default { Species "Daikatana"; +NOBLOCKMAP; +NOGRAVITY; +DONTHARMCLASS;
+		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 AAAAAAAA random(8, 12) { A_SpawnItemEx("RS_RomeroEXGlitchMineSpawner2", random(-12, 12) * 128, random(-12, 12) * 128, -32767); }
+		Stop;
+	}
+}
+class RS_RomeroEXSkyCH : RS_RomeroSkyCH
+{
+	States
+	{
+	Spawn:
+		TNT1 A 8;
+		Goto Death;
+	Death:
+		BRBA OOOOO 2 Bright { A_SpawnItemEx("RS_RomeroEXSpamShotsTrail", random(-64, 64), random(-64, 64), -24, random(1, 8), 0, random(-33, -1), random(-359, 359), SXF_NOCHECKPOSITION); }
+		BRBA OOONNNMMMLLLKKK 1 Bright { A_SpawnItemEx("RS_RomeroEXBeamCH", random(-64, 64), random(-64, 64), -24, random(1, 8), random(1, 8), random(-45, -15), random(-359, 359), SXF_NOCHECKPOSITION); }
+		BRBA ABCDEFGHIJ 2 Bright;
+		Stop;
+	}
+}
+class RS_RomeroEXBFGHeckShot : Actor
+{
+	Default { Radius 9; Height 8; Speed 40; Scale 0.75; DamageFunction (random(40, 99));
+		DamageType "Plasma"; Species "Daikatana"; Projectile; DontHurtShooter;
+		+RANDOMIZE; +FORCERADIUSDMG; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		RenderStyle "Add"; Alpha 0.85; SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
+		Translation "112:117=23:86", "118:127=200:237", "160:227=40:79", "228:234=248:255"; }
+	States
+	{
+	Spawn:
+		BFS1 AB 5 Bright;
+		Loop;
+	Death:
+		BFE1 ABCDEF 3 Bright A_Explode(random(10, 30), 192, 0);
+		Stop;
+	}
+}
+class RS_RomeroEXBFGHeckFloor : Actor
+{
+	Default { +NOBLOCKMAP; +NOGRAVITY; +FLOORHUGGER; RenderStyle "Add"; Alpha 0.85;
+		XScale 2.85; YScale 0.4;
+		Translation "112:117=23:86", "118:127=200:237", "160:227=40:79", "228:234=248:255"; }
+	States { Spawn: BFS1 A 0; BFS1 A 2 Bright; Stop; }
+}
+class RS_RomeroEXBFGHeckFloor2 : RS_RomeroEXBFGHeckFloor
+{
+	States { Spawn: BFS1 B 0; BFS1 B 2 Bright; Stop; }
+}
+class RS_RomeroEXBFGHeckFloorFade : RS_RomeroEXBFGHeckFloor
+{
+	States { Spawn: BFS1 AAAAAAAAA 4 A_FadeOut(0.1); Stop; }
+}
+class RS_RomeroEXBFGHeckFloorSpawner : Actor
+{
+	Default { Species "Daikatana"; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		+NOBLOCKMAP; +NOGRAVITY; +FLOORHUGGER;
+		Translation "112:117=23:86", "118:127=200:237", "160:227=40:79", "228:234=248:255"; }
+	States
+	{
+	Spawn:
+		BFS1 A 0 Bright;
+		BFS1 A 0 { A_SpawnProjectile("RS_RomeroEXBFGHeckShot", 8, 0, random(0, 360), CMF_AIMDIRECTION, random(80, 100)); }
+		Stop;
+	}
+}
+class RS_RomeroEXBFGHeckCeilingSpawner : RS_RomeroEXBFGHeckFloorSpawner
+{
+	States
+	{
+	Spawn:
+		BFS1 A 0 Bright;
+		BFS1 A 0 { A_SpawnProjectile("RS_RomeroEXBFGHeckShot", -8, 0, random(0, 360), CMF_AIMDIRECTION, random(-100, -80)); }
+		Stop;
+	}
+}
+// BFG HECK: a wanderer that crawls along the ceiling laying a glowing trail and
+// firing BFG shots at floor and ceiling until a 4/256 roll finally ends it.
+class RS_RomeroEXBFGHeckSpawner : Actor
+{
+	Default { Species "Daikatana"; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		+NOBLOCKMAP; +NOGRAVITY; +CEILINGHUGGER; +NOBLOCKMONST; +NOTELEPORT;
+		RenderStyle "Add"; Alpha 0.85; XScale 2.85; YScale 0.4;
+		Translation "112:117=23:86", "118:127=200:237", "160:227=40:79", "228:234=248:255"; }
+	States
+	{
+	Spawn:
+		BFS1 AA 1 Bright { A_SpawnItemEx("RS_RomeroEXBFGHeckFloor", 0, 0, -32767, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		BFS1 A 0 { Thrust(10.0, random(0, 360)); }
+		BFS1 BB 1 Bright { A_SpawnItemEx("RS_RomeroEXBFGHeckFloor2", 0, 0, -32767, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		BFS1 A 0 A_Jump(128, "Flooring", "Ceilg");
+		Loop;
+	Flooring:
+		BFS1 A 0 { A_SpawnItemEx("RS_RomeroEXBFGHeckFloorSpawner", 0, 0, -32767); }
+		BFS1 A 0 A_Jump(4, "Ded");
+		Goto Spawn;
+	Ceilg:
+		BFS1 A 0 { A_SpawnItemEx("RS_RomeroEXBFGHeckCeilingSpawner"); }
+		BFS1 A 0 A_Jump(4, "Ded");
+		Goto Spawn;
+	Ded:
+		BFS1 A 0 { A_SpawnItemEx("RS_RomeroEXBFGHeckFloorFade", 0, 0, -32767, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		BFS1 AAAAAAAAA 4 A_FadeOut(0.1);
+		Stop;
+	}
+}
+
+class RS_RomeroEXRealBFGExtra : BFGExtra
+{
+	Default { Species "Daikatana"; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES; }
+}
+class RS_RomeroEXRealBFG : Actor
+{
+	Default { Radius 13; Height 8; Speed 25; Damage 100; DamageType "Plasma"; Species "Daikatana";
+		Projectile; +RANDOMIZE; +SEEKERMISSILE; +DONTHARMCLASS;
+		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
+		RenderStyle "Add"; Alpha 0.75; SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx"; }
+	States
+	{
+	Spawn:
+		BFS1 AB 4 Bright;
+		Loop;
+	Death:
+		BFE1 AB 8 Bright;
+		BFE1 C 8 Bright A_BFGSpray("RS_RomeroEXRealBFGExtra", 40, 15);
+		BFE1 DEF 8 Bright;
 		Stop;
 	}
 }

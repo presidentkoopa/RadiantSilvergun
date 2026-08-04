@@ -34,6 +34,13 @@
 //                                            lightning call, charge, summons
 //   T12  17_W   WhiteCybie2    MMDR   21000  ROMERO: three phases, beams,
 //                                            chain missiles, nukes, barons
+//   TEX  17_KX  (none)         HSMI   24000  OBSIDIAN TYRANT: the Smith's EX
+//                                            form. Three health phases, a
+//                                            reflective charge, a healing
+//                                            pentagram, and BigHell -- an
+//                                            invulnerable eight-second wind-up
+//                                            into the biggest single hit in
+//                                            the family
 //
 // Tier stats are CHP's own Health/Speed/PainChance per file, applied
 // through TierData below as multipliers off this class's Default.
@@ -67,6 +74,40 @@ class RS_Cyberdemon : RS_MonsterMaster replaces Cyberdemon
 	private int rsOh1;         // T11 User_OH1
 	private int rsPhase;       // T12 user_phase
 	private int rsRomeroShield;// T12 RomeroCHProtect
+	private int rsSupersmith;  // TEX User_Supersmith (the third-phase latch)
+	// CHP's DewzanToken, used by two different tiers for two different
+	// counters -- TEX's BigHell wind-up and T14's OVERDRIVE budget. One
+	// field is safe: a monster is only ever one tier at a time, and both
+	// users zero it on entry.
+	private int rsDewzan;
+	private int rsGlitchShield;// T14 RomeroCHProtect2 (one shield at a time)
+	private int rsGlitchRound; // T14 glitch/winder round counter
+
+	// Called by RS_RomeroEXShield when it expires, so the boss can cast
+	// another one -- CHP does the same thing by taking RomeroCHProtect2
+	// back off its master.
+	void RS_ClearGlitchShield() { rsGlitchShield = 0; }
+
+	// CHP writes T14's BFG volley out six shots at a time, dozens of
+	// times over. Same six shots, one call.
+	private void RS_BFGVolley(int spread)
+	{
+		A_SpawnProjectile("RS_RomeroEXSpamShots",  52,  30, spread);
+		A_SpawnProjectile("RS_RomeroEXSpamShots2", 52,  30, spread);
+		A_SpawnProjectile("RS_RomeroEXSpamShots2", 52,  30, spread);
+		A_SpawnProjectile("RS_RomeroEXSpamShots2", 52, -30, spread);
+		A_SpawnProjectile("RS_RomeroEXSpamShots2", 52, -30, -spread);
+		A_SpawnProjectile("RS_RomeroEXSpamShots",  52, -30, -spread);
+	}
+
+	// The four wide random shots phase 2 prefixes every volley with.
+	private void RS_BFGWide()
+	{
+		A_SpawnProjectile("RS_RomeroEXSpamShots",  52,  30, random(-15, 15));
+		A_SpawnProjectile("RS_RomeroEXSpamShots2", 52,  30, random(-15, 15));
+		A_SpawnProjectile("RS_RomeroEXSpamShots",  52, -30, random(-15, 15));
+		A_SpawnProjectile("RS_RomeroEXSpamShots2", 52, -30, random(-15, 15));
+	}
 
 	Default
 	{
@@ -109,6 +150,12 @@ class RS_Cyberdemon : RS_MonsterMaster replaces Cyberdemon
 			case 10: hp = 10000; spd = 20; r.painChance = 15; r.dmgMul = 2.0; break;
 			case 11: hp = 16500; spd = 17; r.painChance = 16; r.dmgMul = 2.5; break;
 			case 12: hp = 21000; spd = 18; r.painChance = 20; r.dmgMul = 3.0; break;
+			// TEX (13) -- 17_KX's own numbers, not an extrapolation.
+			case 13: hp = 24000; spd = 20; r.painChance = 10; r.dmgMul = 3.5; break;
+			// T14 -- 17_WX, absolute (r.hp / r.speed). 32767 is CHP's real
+			// number: one short of a signed 16-bit overflow, which is the
+			// joke. PainChance 0 -- it does not flinch.
+			case 14: r.hp = 32767; r.speed = 24; r.painChance = 0; r.dmgMul = 4.0; return true;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 4000.0;
@@ -116,16 +163,22 @@ class RS_Cyberdemon : RS_MonsterMaster replaces Cyberdemon
 		return true;
 	}
 
+	// CHP ships two cyberdemons above the thirteen CH colours.
+	override int MaxTier() { return 14; }
+
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "CYBR CYBG CYBB CARD CYBP SUPR TERM ANNI 8CYB CYGY MOLO BSMT MMDR";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX  T14
+		return "CYBR CYBG CYBB CARD CYBP SUPR TERM ANNI 8CYB CYGY MOLO BSMT MMDR HSMI MMDG";
 	}
 
-	// Bespoke artwork per colour -- no palette remap wanted.
+	// Bespoke artwork per colour -- no palette remap wanted. T14 is the
+	// closest thing to an exception (MMDG is a corrupted MMDR), but CHP
+	// ships it as its OWN sprite set rather than a Translation on the T12
+	// body, so "-" is correct here too.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -149,6 +202,33 @@ class RS_Cyberdemon : RS_MonsterMaster replaces Cyberdemon
 	private void RS_GroundStance()
 	{
 		bFLOAT = false; bFLOATBOB = false; bNOGRAVITY = false;
+	}
+
+	// TEX is the only tier in this family that carries its own Scale and
+	// MeleeRange (0.93 / 128, straight out of 17_KX's Default block).
+	// MeleeRange is not cosmetic here -- the charge converts into the
+	// hammer swing via A_JumpIfTargetInsideMeleeRange, so at the engine
+	// default the Tyrant's signature attack would mostly whiff. Applied
+	// from OnTierApplied rather than Spawn so the dial can reach TEX
+	// mid-fight, and read back off the class defaults on the way out.
+	override void OnTierApplied(int t)
+	{
+		let def = GetDefaultByType(GetClass());
+		if (t == 13)   // TEX
+		{
+			A_SetScale(0.93, 0.93);
+			meleerange = 128.0;
+		}
+		else if (t == 14)   // T14 -- 17_WX Scale 1.25, no melee of its own
+		{
+			A_SetScale(1.25, 1.25);
+			meleerange = def.meleerange;
+		}
+		else
+		{
+			A_SetScale(def.scale.x, def.scale.y);
+			meleerange = def.meleerange;
+		}
 	}
 
 	States
@@ -1688,5 +1768,1248 @@ class RS_Cyberdemon : RS_MonsterMaster replaces Cyberdemon
 		TNT1 A 0 { A_BossDeath(); }
 		"MMDR" W -1;
 		Stop;
+
+	// ================= TEX BLACK EX (17_KX) =================
+	// THE OBSIDIAN TYRANT. The Smith's EX form, and the only monster in
+	// the family with three real health phases rather than one gate:
+	//
+	//   >14000  PH1 -- hellshot combo / lightning call / homing hell /
+	//                  flame blast, plus the reflective charge on a budget
+	//   <14000  Phase2 -- opens portals ONCE (rsOh1), then PH2: the pool
+	//                  gains BigHell, Summons and the healing pentagram
+	//   < 4000  Phase3 -- opens portals AGAIN and becomes SUPERSMITH
+	//                  (rsSupersmith): walk speed up, unlimited charging,
+	//                  lightning upgrades to the thrown bolt, and HealUP
+	//                  unlocks
+	//
+	// The charge runs on rsDumDum, a budget that goes UP by 2 per charge
+	// and DOWN by 1 per ranged pick and by 6 per reposition -- so a boss
+	// that keeps closing runs out of charges and has to fight at range.
+	// Supersmith ignores the budget entirely.
+	//
+	// CHP FILL: 17_KX's Charge branches to "NoFire" but never defines it
+	// (CommonBlackCybieEX2 has no parent to inherit it from -- CHP's own
+	// omission). Filled from 17_K's Smith, which is the same state in the
+	// non-EX version: refund 2 budget and re-enter the attack roll.
+	Spawn.TEX:
+		"HSMI" A 0 { A_SetScale(0.93, 0.93); }
+	Spawn.TEX.Look:
+		"HSMI" AB 10 { A_Look(); }
+		Loop;
+	See.TEX:
+		TNT1 A 0 { if (rsSupersmith >= 1) return ResolveState("See.TEX.Fast"); return ResolveState(null); }
+		TNT1 A 0 { RS_GroundStance(); bTHRUACTORS = false; A_UnSetReflectiveInvulnerable(); A_ScaleVelocity(0); A_SetSpeed(20); }
+		"HSMI" A 0 A_CheckBlock("Pain.TEX.Reposition", CBF_NOLINES);
+		"HSMI" A 0 { A_StartSound("cyber/hoof", CHAN_5); }
+		"HSMI" AABB 3 { A_Chase(); }
+		"HSMI" C 0 { A_StartSound("cyber/hoof", CHAN_6); }
+		"HSMI" CCDD 3 { A_Chase(); }
+		"HSMI" D 0 A_Jump(2, "Pain.TEX.Reposition");
+		Loop;
+	// Supersmith walk -- same choreography, one third faster.
+	See.TEX.Fast:
+		TNT1 A 0 { RS_GroundStance(); bTHRUACTORS = false; A_UnSetReflectiveInvulnerable(); A_ScaleVelocity(0); A_SetSpeed(20); }
+		"HSMI" A 0 A_CheckBlock("Pain.TEX.Reposition", CBF_NOLINES);
+		"HSMI" A 0 { A_StartSound("cyber/hoof", CHAN_5); }
+		"HSMI" AABB 2 { A_Chase(); }
+		"HSMI" C 0 { A_StartSound("cyber/hoof", CHAN_6); }
+		"HSMI" CCDD 2 { A_Chase(); }
+		"HSMI" D 0 A_Jump(2, "Pain.TEX.Reposition");
+		Loop;
+	// The blink. Goes invulnerable, fades out, wanders at speed 99, fades
+	// back in -- and refunds 6 charge budget on the way out.
+	Pain.TEX.Reposition:
+		"HSMI" O 0 { bNOPAIN = true; }
+		"HSMI" O 6 { A_Quake(6, 100, 2, 64); }
+		TNT1 A 0 { A_SetInvulnerable(); }
+		"HSMI" O 1 { A_SetTranslucent(0.5); }
+		"HSMI" O 1 { A_SetTranslucent(0.3); }
+		"HSMI" O 1 { A_SetTranslucent(0.1); }
+		"HSMI" O 1 { A_SetTranslucent(0); }
+		"HSMI" O 0 { bFLOAT = true; bTHRUACTORS = true; A_SetFloatSpeed(99); A_SetSpeed(99); }
+		"HSMI" OOOOOOOOOOOO 1 { A_Wander(); }
+		"HSMI" O 0 { bFLOAT = false; bTHRUACTORS = false; A_SetFloatSpeed(20); A_SetSpeed(20); }
+		"HSMI" O 1 { A_SetTranslucent(0.1); }
+		"HSMI" O 1 { A_Quake(6, 100, 2, 64); }
+		"HSMI" O 1 { A_SetTranslucent(0.3); }
+		"HSMI" O 1 { A_SetTranslucent(0.5); }
+		"HSMI" O 1 { A_SetTranslucent(0.7); }
+		TNT1 A 0 { A_UnSetInvulnerable(); }
+		"HSMI" O 1 { A_SetTranslucent(1); }
+		"HSMI" O 4 { rsDumDum = max(0, rsDumDum - 6); }
+		"HSMI" O 0 { bNOPAIN = false; }
+		Goto See;
+	// THE HAMMER. One swing for up to 250, then the pentagram, then a
+	// 35-spoke quake ring and a 17-shot tracer fan along the floor.
+	Melee.TEX:
+		"HSMI" L 0 { A_ScaleVelocity(0.01); A_SetSpeed(20); }
+		"HSMI" L 3 { A_FaceTarget(); }
+		"HSMI" M 0 { A_StartSound("monster/hamswg", CHAN_WEAPON); }
+		"HSMI" M 3 { A_FaceTarget(); }
+		"HSMI" N 3 { A_CustomMeleeAttack(random(100, 250), "monster/hamhit"); }
+		"HSMI" N 0 { A_SetReflectiveInvulnerable(); A_Quake(40, 60, 0, 40); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_PentaLine1", 0, 0, -72, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_PentaLine1", 0, 0, -144, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_PentaLine1", 0, 0, -216, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_PentaLine1", 0, 0, -288, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_PentaLine1", 0, 0, 0, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_StartSound("monster/hamflr", CHAN_WEAPON); }
+		// CHP walks 0..160 then 180..350 in tens -- 170 is genuinely absent
+		// from the source, so the ring has one gap in it. Kept.
+		"HSMI" N 0 { for (int i = 0; i <= 16; i++) A_SpawnProjectile("RS_MolochQuake", 0, -48, i * 10); }
+		"HSMI" N 0 { for (int i = 18; i <= 35; i++) A_SpawnProjectile("RS_MolochQuake", 0, -48, i * 10); }
+		"HSMI" N 0 { for (int i = 0; i <= 8; i++) A_SpawnProjectile("RS_STracerEX", 0, 0, i * 5, 0); }
+		"HSMI" N 0 { for (int i = 1; i <= 8; i++) A_SpawnProjectile("RS_STracerEX", 0, 0, -i * 5, 0); }
+		"HSMI" NN 7;
+		"HSMI" N 0 A_Jump(160, "Missile.TEX.Charge", "Missile.TEX.PH1");
+		"HSMI" NNNNNN 7;
+		Goto See;
+	Missile.TEX:
+		"HSMI" A 0 A_JumpIfHealthLower(4000, "Missile.TEX.Phase3");
+	Missile.TEX.Retry:
+		"HSMI" A 0 A_JumpIfHealthLower(14000, "Missile.TEX.Phase2");
+		"HSMI" A 0 A_Jump(128, "Missile.TEX.Budget");
+		"HSMI" A 0 A_JumpIfCloser(650, "Missile.TEX.Charge");
+	Missile.TEX.Budget:
+		"HSMI" A 0 { rsDumDum = max(0, rsDumDum - 1); }
+	Missile.TEX.PH1:
+		"HSMI" A 0 { A_UnSetReflectiveInvulnerable(); }
+		"HSMI" A 0 { A_StartSound("hellsmith/laugh", CHAN_7, 0, 1.0, 0.6); }
+		"HSMI" A 0 A_Jump(256, "Missile.TEX.HellShotCombo", "Missile.TEX.LightningCall", "Missile.TEX.HomingHell", "Missile.TEX.FlameBlast");
+		Goto See;
+	// Third phase: at knife range it prefers to charge, otherwise it drops
+	// into the second-phase pool.
+	Missile.TEX.PH3:
+		"HSMI" A 0 A_JumpIfCloser(1250, "Missile.TEX.PH3Close");
+		Goto Missile.TEX.PH2;
+	Missile.TEX.PH3Close:
+		"HSMI" N 0 A_Jump(160, "Missile.TEX.Charge");
+		Goto Missile.TEX.PH2;
+	Missile.TEX.PH2:
+		"HSMI" A 0 A_Jump(128, "Missile.TEX.PH2Budget");
+		"HSMI" A 0 A_JumpIfCloser(650, "Missile.TEX.Charge");
+	Missile.TEX.PH2Budget:
+		"HSMI" A 0 { rsDumDum = max(0, rsDumDum - 1); }
+		"HSMI" A 0 { A_UnSetReflectiveInvulnerable(); }
+		"HSMI" A 0 { A_StartSound("hellsmith/laugh", CHAN_7, 0, 1.0, 0.6); }
+		"HSMI" A 0 A_Jump(80, "Missile.TEX.BigHell", "Missile.TEX.Summons", "Missile.TEX.LightningCall");
+		"HSMI" A 0 A_JumpIfCloser(1500, "Missile.TEX.PH2Pool");
+		"HSMI" A 0 A_Jump(112, "Missile.TEX.FlameBlast");
+	Missile.TEX.PH2Pool:
+		"HSMI" A 0 A_Jump(256, "Missile.TEX.HellShotCombo", "Missile.TEX.LightningThrow", "Missile.TEX.HomingHell", "Missile.TEX.FlameBlast", "Missile.TEX.HealUP");
+		Goto See;
+	// GATE 1 -- 14000 of 24000. Fires once, then PH2 forever.
+	Missile.TEX.Phase2:
+		TNT1 A 0 { if (rsOh1 >= 1) return ResolveState("Missile.TEX.PH2"); return ResolveState(null); }
+		"HSMI" L 0 { A_StartSound("hellsmith/laugh", CHAN_VOICE, 0, 1.0, ATTN_NONE); }
+		"HSMI" L 12 { A_FaceTarget(); }
+		"HSMI" LLLLLL 8 { SummonMinion(CybiePortalPick(random(0, 5)), -3, random(64, 178)); }
+		"HSMI" L 2 { rsOh1++; }
+		Goto See;
+	// GATE 2 -- 4000 of 24000, and it will not skip gate 1 to get here.
+	Missile.TEX.Phase3:
+		TNT1 A 0 { if (rsOh1 >= 1) return ResolveState("Missile.TEX.Phase3Go"); return ResolveState(null); }
+		Goto Missile.TEX.Phase2;
+	Missile.TEX.Phase3Go:
+		TNT1 A 0 { if (rsSupersmith >= 1) return ResolveState("Missile.TEX.PH3"); return ResolveState(null); }
+		"HSMI" L 0 { A_StartSound("hellsmith/laugh", CHAN_VOICE, 0, 1.0, ATTN_NONE); }
+		"HSMI" L 12 { A_FaceTarget(); }
+		"HSMI" LLLLLLLL 6 { SummonMinion(CybiePortalPick(random(0, 5)), -3, random(64, 178)); }
+		"HSMI" L 2 { rsSupersmith++; }
+		Goto See;
+	// CHP fill from 17_K -- the budget-exhausted branch 17_KX forgot.
+	Missile.TEX.NoFire:
+		"HSMI" O 0 { rsDumDum = max(0, rsDumDum - 2); }
+		Goto Missile.TEX.Retry;
+	// THE CHARGE. Reflective-invulnerable and THRUACTORS for the ride, so
+	// it cannot be shot out of it and cannot be body-blocked. Costs 2
+	// budget; at 11 it is refused. Supersmith pays nothing.
+	Missile.TEX.Charge:
+		TNT1 A 0 { if (rsSupersmith >= 1) return ResolveState("Missile.TEX.ChargeGo"); return ResolveState(null); }
+		TNT1 A 0 { if (rsDumDum >= 11) return ResolveState("Missile.TEX.NoFire"); return ResolveState(null); }
+		"HSMI" G 0 { rsDumDum += 2; }
+	Missile.TEX.ChargeGo:
+		"HSMI" G 8 { A_FaceTarget(); }
+		"HSMI" G 1 { A_StartSound("weapons/suldth", CHAN_VOICE); }
+		"HSMI" G 2 { A_SetReflectiveInvulnerable(); }
+		"HSMI" G 0 { bTHRUACTORS = true; }
+		"HSMI" H 0 { A_SkullAttack(35); }
+		"HSMI" HHHHHHHH 1 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 1 { A_SpawnItemEx("RS_HSGhostEX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		"HSMI" H 0 A_JumpIfTargetInsideMeleeRange("Melee.TEX");
+		"HSMI" H 0 { A_SetSpeed(0); }
+		"HSMI" H 1 { A_ScaleVelocity(0.01); }
+		"HSMI" H 0 { bTHRUACTORS = false; }
+		TNT1 A 0 { if (rsSupersmith >= 1) return ResolveState("Missile.TEX.Again"); return ResolveState(null); }
+		"HSMI" H 0 A_Jump(96, "Missile.TEX.Charge");
+		Goto Melee.TEX;
+	// Supersmith does not have to finish a charge with the hammer -- it
+	// can simply charge again, or peel off and shoot.
+	Missile.TEX.Again:
+		"HSMI" H 0 A_Jump(192, "Missile.TEX.Charge");
+		Goto Missile.TEX.PH1;
+	// Three hellshots off the left shoulder, then the sprite MIRRORS and
+	// three more off the right. Chains into itself, or ends in melee.
+	Missile.TEX.HellShotCombo:
+		"HSMI" I 12 { A_FaceTarget(); }
+		"HSMI" J 0 { A_SpawnProjectile("RS_HellShotEX", 72, -24, 0); }
+		"HSMI" J 0 { A_SpawnProjectile("RS_HellShotEX", 72, -24, 10); }
+		"HSMI" J 12 Bright { A_SpawnProjectile("RS_HellShotEX", 72, -24, 20); }
+		"HSMI" K 12 { A_FaceTarget(); }
+		"HSMI" K 0 A_CheckSight("See");
+		"HSMI" I 0 { A_SetScale(-0.93, 0.93); }
+		"HSMI" I 12 { A_FaceTarget(); }
+		"HSMI" J 0 { A_SpawnProjectile("RS_HellShotEX", 72, 24, 0); }
+		"HSMI" J 0 { A_SpawnProjectile("RS_HellShotEX", 72, 24, -10); }
+		"HSMI" J 12 Bright { A_SpawnProjectile("RS_HellShotEX", 72, 24, -20); }
+		"HSMI" K 12 { A_FaceTarget(); }
+		"HSMI" K 0 { A_SetScale(0.93, 0.93); }
+		"HSMI" K 0 A_Jump(80, "Missile.TEX.HellShotCombo");
+		"HSMI" K 0 A_CheckSight("Melee.TEX");
+		Goto Melee.TEX;
+	// Four ground zaps walked out to 150 units, then two loose zappers.
+	// Supersmith follows it with the thrown bolt.
+	Missile.TEX.LightningCall:
+		"HSMI" A 0 A_JumpIfCloser(1000, "Missile.TEX.LightningGo");
+		Goto Missile.TEX.PH1;
+	Missile.TEX.LightningGo:
+		"HSMI" A 0 A_Jump(88, "Missile.TEX.PH1");
+		"HSMI" O 8 Bright { A_StartSound("Crack/death", CHAN_VOICE); }
+		"HSMI" L 2 { A_FaceTarget(); }
+		"HSMI" L 3 Bright { A_SpawnProjectile("RS_Zap88", 100, -14, 0); }
+		"HSMI" L 0 { A_StartSound("Crack/death", CHAN_VOICE); }
+		"HSMI" L 2 { A_SpawnProjectile("RS_Zap88", 120, random(-28, 8), 0); }
+		"HSMI" L 1 Bright { A_SpawnProjectile("RS_Zap88", 135, random(-28, 8), 0); }
+		"HSMI" L 0 { A_StartSound("Crack/death", CHAN_VOICE); }
+		"HSMI" L 1 Bright { A_SpawnProjectile("RS_Zap88", 150, random(-28, 8), 0); }
+		"HSMI" LLL 1 { A_SpawnProjectile("RS_ZappersCB", 78, random(-2, 28), random(-180, 180)); }
+		TNT1 A 0 { if (rsSupersmith >= 1) return ResolveState("Missile.TEX.LightningThrow"); return ResolveState(null); }
+		Goto See;
+	Missile.TEX.HomingHell:
+		"HSMI" A 0 A_Jump(44, "Missile.TEX.PH1");
+		"HSMI" I 8 { A_FaceTarget(); }
+		"HSMI" J 8 Bright { A_SpawnProjectile("RS_HSHomer", 72, -24, 0); }
+		"HSMI" J 0 A_CheckSight("See");
+		"HSMI" I 8 { A_FaceTarget(); }
+		"HSMI" J 8 Bright { A_SpawnProjectile("RS_HSHomer", 72, -24, 0); }
+		"HSMI" J 0 A_CheckSight("See");
+		"HSMI" J 0 A_Jump(224, "Missile.TEX.HomingHell");
+		Goto Missile.TEX.Charge;
+	// Long-range only, and it refuses to fire in a low room -- the blast
+	// needs headroom. Loops almost every time, then blinks out.
+	Missile.TEX.FlameBlast:
+		"HSMI" E 0 A_JumpIfCloser(1000, "Missile.TEX.PH1");
+		TNT1 A 0 { if (ceilingz - floorz <= 140) return ResolveState("Missile.TEX.PH1"); return ResolveState(null); }
+		"HSMI" E 10 { A_FaceTarget(); }
+	Missile.TEX.FlameBlast2:
+		"HSMI" E 0 A_JumpIfCloser(1000, "Missile.TEX.PH1");
+		"HSMI" E 4 { A_FaceTarget(); }
+		"HSMI" F 0 { A_SpawnProjectile("RS_HSFlameBlast", 128, 24, 0); }
+		"HSMI" F 4 Bright { A_SpawnProjectile("RS_HSFlameBlast", 128, -24, 0); }
+		"HSMI" E 0 A_CheckSight("See");
+		"HSMI" E 4 { A_FaceTarget(); }
+		"HSMI" F 0 { A_SpawnProjectile("RS_HSFlameBlast", 128, 24, 0); }
+		"HSMI" F 4 Bright { A_SpawnProjectile("RS_HSFlameBlast", 128, -24, 0); }
+		"HSMI" E 0 A_CheckSight("See");
+		"HSMI" E 0 A_Jump(250, "Missile.TEX.FlameBlast2");
+		Goto Pain.TEX.Reposition;
+	Missile.TEX.Summons:
+		"HSMI" L 12 { A_StartSound("cyber/hoof", CHAN_5); }
+		"HSMI" LLLLL 7 { SummonMinion(CybiePortalPick(random(0, 5)), -3, random(64, 178)); }
+		Goto See;
+	// The thrown bolt: a bouncing seeker that detonates like a BFG ball.
+	Missile.TEX.LightningThrow:
+		"HSMI" O 2 Bright { A_StartSound("Crack/death", CHAN_VOICE); }
+		"HSMI" O 3;
+		"HSMI" O 6 Bright;
+		"HSMI" O 4;
+		"HSMI" O 1 Bright;
+		"HSMI" O 2;
+		"HSMI" O 5 Bright;
+		"HSMI" M 4 { A_FaceTarget(); }
+		"HSMI" L 4 Bright { A_FaceTarget(); }
+		"HSMI" M 4 { A_SpawnProjectile("RS_ZapCybEX", 72, random(-28, 28), random(-40, 40)); }
+		Goto Pain.TEX.Reposition;
+	// BIGHELL. Goes flat invulnerable, plants a growing orb, and stomps a
+	// quake ring once a second for twelve seconds while it builds. The orb
+	// becomes RS_BigHellCybEX2 -- the single biggest hit in the family.
+	// Nothing you do to the Tyrant during the wind-up matters; the answer
+	// is to not be in the lane.
+	Missile.TEX.BigHell:
+		"HSMI" A 0 { A_StartSound("hellsmith/laugh", CHAN_7, 0, 1.0, ATTN_NONE); }
+		"HSMI" L 0 { A_SetInvulnerable(); rsDewzan = 0; }
+		"HSMI" LLLLLLLLLL 2 { A_FaceTarget(); }
+		"HSMI" L 0 { A_SpawnItemEx("RS_BigHellCybEX", 64, 0, 40, 0, 0, 0, 0, SXF_SETTARGET); }
+	Missile.TEX.BigHell2:
+		TNT1 A 0 { if (rsDewzan >= 12) return ResolveState("Missile.TEX.BigHellDone"); return ResolveState(null); }
+		"HSMI" LM 4;
+		"HSMI" N 0 { A_SpawnProjectile("RS_MolochQuake", 0, 0, 0, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_MolochQuake", 0, 0, 45, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_MolochQuake", 0, 0, 90, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_MolochQuake", 0, 0, 135, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_MolochQuake", 0, 0, 180, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_MolochQuake", 0, 0, 225, CMF_AIMDIRECTION); }
+		// 280, not 270 -- CHP's own number, kept.
+		"HSMI" N 0 { A_SpawnProjectile("RS_MolochQuake", 0, 0, 280, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_MolochQuake", 0, 0, 315, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_StartSound("monster/hamflr", CHAN_5); }
+		"HSMI" N 4 { A_StartSound("Fire/fire3", CHAN_6); }
+		"HSMI" N 0 { rsDewzan++; }
+		Loop;
+	Missile.TEX.BigHellDone:
+		"HSMI" N 0 { rsDewzan = 0; }
+		"HSMI" N 100 { A_UnSetInvulnerable(); }
+		Goto Pain.TEX.Reposition;
+	// SUPERSMITH ONLY. The hammer swing again, but the pentagram is a
+	// healing one and the stomp restores 1000 health.
+	Missile.TEX.HealUP:
+		TNT1 A 0 { if (rsSupersmith >= 1) return ResolveState("Missile.TEX.HealUPGo"); return ResolveState(null); }
+		Goto Missile.TEX.PH1;
+	Missile.TEX.HealUPGo:
+		"HSMI" L 3 { A_FaceTarget(); }
+		"HSMI" M 0 { A_StartSound("monster/hamswg", CHAN_WEAPON); }
+		"HSMI" MN 3 { A_FaceTarget(); }
+		"HSMI" N 0 { A_SetReflectiveInvulnerable(); A_Quake(40, 60, 0, 40); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_PentaHealCybEX", 0, 0, -72, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_PentaHealCybEX", 0, 0, -144, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_PentaHealCybEX", 0, 0, -216, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_PentaHealCybEX", 0, 0, -288, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_SpawnProjectile("RS_PentaHealCybEX", 0, 0, 0, CMF_AIMDIRECTION); }
+		"HSMI" N 0 { A_StartSound("monster/hamflr", CHAN_WEAPON); }
+		"HSMI" N 0 { for (int i = 0; i <= 16; i++) A_SpawnProjectile("RS_MolochQuake", 0, -48, i * 10); }
+		"HSMI" N 0 { for (int i = 18; i <= 35; i++) A_SpawnProjectile("RS_MolochQuake", 0, -48, i * 10); }
+		// CHP: HealThing(1000,24000). Written against SpawnHealth() so the
+		// cap follows the tier's own maximum instead of a hardcoded 24000.
+		"HSMI" N 0 { A_SetHealth(min(health + 1000, SpawnHealth())); }
+		"HSMI" NNNNNNNNNNNNNN 7;
+		Goto See;
+	Pain.TEX:
+		"HSMI" O 0 { A_SetScale(0.93, 0.93); A_SetSpeed(20); }
+		"HSMI" O 4 { A_ScaleVelocity(0); }
+		"HSMI" O 4 { A_Pain(); }
+		"HSMI" O 0 A_Jump(64, "Pain.TEX.Reposition", "Missile.TEX.PH1");
+		Goto See;
+	Death.TEX:
+		TNT1 A 0 { ReleaseMinions(); }
+		"HSMD" A 0 { A_SpawnProjectile("RS_PentaLine3", 0, 0, -72, CMF_AIMDIRECTION); }
+		"HSMD" A 0 { A_SpawnProjectile("RS_PentaLine3", 0, 0, -144, CMF_AIMDIRECTION); }
+		"HSMD" A 0 { A_SpawnProjectile("RS_PentaLine3", 0, 0, -216, CMF_AIMDIRECTION); }
+		"HSMD" A 0 { A_SpawnProjectile("RS_PentaLine3", 0, 0, -288, CMF_AIMDIRECTION); }
+		"HSMD" A 0 { A_SpawnProjectile("RS_PentaLine3", 0, 0, 0, CMF_AIMDIRECTION); }
+		"HSMD" A 7 Bright { A_SpawnProjectile("RS_SmithDFSpawner", 0, 0, 0, 0); }
+		"HSMD" B 0 { A_Scream(); }
+		"HSMD" B 7 Bright { A_SpawnItemEx("RS_HSHammer", 50, 50, 110, 2, 2, 0, 25); }
+		"HSMD" C 8 Bright;
+		"HSMD" D 9 Bright { A_NoBlocking(); }
+		"HSMD" EFGHIFGHIFGHIFGHJKLMNO 9 Bright;
+		"HSMD" PQRS 9;
+		"HSMD" T -1 { A_BossDeath(); }
+		Stop;
+	XDeath.TEX:
+		Goto Death.TEX;
+
+	// ================= T14 WHITE EX (17_WX) =================
+	// "IT CRASHES DOOM II" -- Romero's glitch, and the largest single actor
+	// in CHP (1601 lines). Two independent axes decide every attack:
+	//
+	//   PHASE (rsPhase, health-gated, one-way):
+	//     1  >24576   the plain kit
+	//     2  <24576   Phase2 fires ONCE: two glitch-barons walk out of
+	//                 teleport fog and the pool roughly doubles
+	//     3  < 8192   Phase3 fires ONCE: See2 turns on NOCLIP and
+	//                 MISSILEMORE -- it stops respecting geometry -- and
+	//                 OVERDRIVE unlocks
+	//
+	//   RANGE BAND (checked first, every time):
+	//     <200   Dukie    -- a carpet of floor detonations centred on ITSELF
+	//     <720   Close    -- glitch shots, BFG spam, the fourth wall
+	//     <1500  Med      -- adds rockets, code leakage, traps, shields
+	//     else   MissileSet -- seizure rockets, winders, lasers, mines
+	//
+	// So the fight is a 3x4 grid of pools, not a ladder. OVERDRIVE is the
+	// exception: a meta-attack that rolls one of seven sub-attacks, then
+	// rolls again, chaining until a 16-count budget (rsDewzan) runs out.
+	//
+	// Health is CHP's literal 32767 -- one short of a signed 16-bit
+	// overflow, which is the joke.
+	Spawn.T14:
+		"MMDG" A 0 { A_SetScale(1.25, 1.25); }
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_RomeroEXGlitch", random(-20, 20), random(-20, 20), random(0, 128), 0, 0, 0, 0, SXF_SETMASTER); }
+	Spawn.T14.Look:
+		"MMDG" E 10 { A_Look(); }
+		Loop;
+	See.T14:
+		TNT1 A 0 { if (rsPhase >= 3) return ResolveState("See.T14.Fast"); return ResolveState(null); }
+		TNT1 A 0 { bTHRUACTORS = false; RS_GroundStance(); A_UnSetReflectiveInvulnerable(); A_ScaleVelocity(1); }
+		TNT1 A 0 { if (rsPhase < 2) A_SetTranslucent(1.0); }
+		"MMDG" A 0 { A_SetSpeed(24); }
+		"MMDG" A 0 A_CheckBlock("Pain.T14.Reposition");
+		"MMDG" AABBCCDD 3 { A_Chase(); }
+		"MMDG" A 0 A_Jump(32, "See.T14.Oops");
+		Loop;
+	// Phase 3 walk: NOCLIP and MISSILEMORE on, slower but unstoppable.
+	See.T14.Fast:
+		"MMDG" O 0 { bNOCLIP = true; bMISSILEMORE = true; }
+		TNT1 A 0 { bTHRUACTORS = false; RS_GroundStance(); A_UnSetReflectiveInvulnerable(); A_ScaleVelocity(1); }
+		"MMDG" A 0 { A_SetSpeed(18); }
+		"MMDG" A 0 A_CheckBlock("Pain.T14.Reposition");
+		"MMDG" AAAA 3 { A_Chase(); }
+		"MMDG" A 0 A_Jump(82, "See.T14.Oi");
+		"MMDG" AAAA 3 { A_Chase(); }
+		"MMDG" A 0 A_Jump(32, "See.T14.Oops");
+		Loop;
+	See.T14.Oops:
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		Goto See;
+	See.T14.Oi:
+		"MMDG" AAAA 3 { A_FastChase(); }
+		Goto See;
+	// The blink. CHP has two copies of this, identical except that the
+	// phase-2+ one fades ADDITIVELY; folded to one label with that check.
+	Pain.T14.Reposition:
+		"MMDG" O 0 { bNOPAIN = true; }
+		"MMDG" E 12 { A_Quake(6, 100, 0, 64); }
+		"MMDG" E 1 { A_SetTranslucent(0.5, rsPhase >= 2 ? 1 : 0); }
+		"MMDG" E 1 { A_SetTranslucent(0.3, rsPhase >= 2 ? 1 : 0); }
+		"MMDG" E 1 { A_SetTranslucent(0.1, rsPhase >= 2 ? 1 : 0); }
+		"MMDG" E 1 { A_SetTranslucent(0); }
+		"MMDG" O 0 { bFLOAT = true; bNOGRAVITY = true; bTHRUACTORS = true; A_SetFloatSpeed(68); A_SetSpeed(68); }
+		"MMDG" EEEEEEEE 3 { A_Wander(); }
+		"MMDG" EEEEEEEE 2 { A_Wander(); }
+		"MMDG" EEEEEEEE 1 { A_Wander(); }
+		"MMDG" O 0 { bFLOAT = false; bNOGRAVITY = false; bTHRUACTORS = false; A_SetFloatSpeed(24); A_SetSpeed(24); }
+		"MMDG" E 1 { A_SetTranslucent(0.1, rsPhase >= 2 ? 1 : 0); }
+		"MMDG" E 1 { A_Quake(6, 100, 0, 64); }
+		"MMDG" E 1 { A_SetTranslucent(0.3, rsPhase >= 2 ? 1 : 0); }
+		"MMDG" E 1 { A_SetTranslucent(0.5, rsPhase >= 2 ? 1 : 0); }
+		"MMDG" E 1 { A_SetTranslucent(0.7, rsPhase >= 2 ? 1 : 0); }
+		"MMDG" E 9 { A_SetTranslucent(1.0, rsPhase >= 2 ? 1 : 0); }
+		"MMDG" O 0 { bNOPAIN = false; }
+		Goto See;
+	// GATE 1 -- 24576 of 32767. Fires once; afterwards this label is just
+	// the door to the phase-2 pool.
+	Missile.T14.Phase2:
+		TNT1 A 0 { if (rsPhase >= 2) return ResolveState("Missile.T14.Set"); return ResolveState(null); }
+		"MMDG" E 0 { A_StartSound("RomeEX/PH2", CHAN_WEAPON, 0, 1.0, ATTN_NONE); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" Z 8 Bright { A_FaceTarget(); }
+		"MMDG" Y 5 Bright { A_FaceTarget(); }
+		"MMDG" Y 0 { A_SpawnItemEx("TeleportFog", 0, 128, 18, 0, 0, 1, 0, SXF_NOCHECKPOSITION); }
+		"MMDG" Y 0 { A_SpawnItemEx("TeleportFog", 0, -128, 18, 0, 0, 1, 0, SXF_NOCHECKPOSITION); }
+		"MMDG" Y 0 { SummonMinion("RS_GlitchBaron", -1, 128.0); }
+		"MMDG" Y 0 { SummonMinion("RS_GlitchBaron", -1, 128.0); }
+		"MMDG" Y 20 Bright { A_FaceTarget(); }
+		"MMDG" Y 0 { A_SetTranslucent(1.0, 1); }
+		"MMDG" E 8 Bright { rsPhase = 2; }
+		Goto Pain.T14.Reposition;
+	// GATE 2 -- 8192 of 32767.
+	Missile.T14.Phase3:
+		TNT1 A 0 { if (rsPhase >= 3) return ResolveState("Missile.T14.Set"); return ResolveState(null); }
+		"MMDG" E 0 { A_StartSound("RomeEX/PH3", CHAN_WEAPON, 0, 1.0, ATTN_NONE); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" G 8 Bright { A_FaceTarget(); }
+		"MMDG" I 5 Bright { A_FaceTarget(); }
+		"MMDG" EIEGGIEGIGEIG 3 Bright { A_FaceTarget(); }
+		"MMDG" E 3 { A_Quake(15, 15, 0, 40); }
+		"MMDG" E 8 Bright { rsPhase = 3; }
+		Goto Pain.T14.Reposition;
+	Missile.T14.FatalBarons:
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" Z 8 Bright { A_FaceTarget(); }
+		"MMDG" Y 5 Bright { A_FaceTarget(); }
+		"MMDG" Y 0 { A_SpawnItemEx("TeleportFog", 0, 128, 18, 0, 0, 1, 0, SXF_NOCHECKPOSITION); }
+		"MMDG" Y 0 { A_SpawnItemEx("TeleportFog", 0, -128, 18, 0, 0, 1, 0, SXF_NOCHECKPOSITION); }
+		"MMDG" Y 0 { SummonMinion("RS_GlitchBaron", -1, 128.0); }
+		"MMDG" Y 0 { SummonMinion("RS_GlitchBaron", -1, 128.0); }
+		TNT1 A 0 { if (rsPhase >= 3) return ResolveState("Missile.T14.BaronMore"); return ResolveState(null); }
+		"MMDG" Y 10 Bright { A_FaceTarget(); }
+		Goto See;
+	Missile.T14.BaronMore:
+		"MMDG" YY 7 Bright { A_FaceTarget(); }
+		"MMDG" Y 0 { A_SpawnItemEx("TeleportFog", 0, 218, 18, 0, 0, 1, 0, SXF_NOCHECKPOSITION); }
+		"MMDG" Y 0 { A_SpawnItemEx("TeleportFog", 0, -218, 18, 0, 0, 1, 0, SXF_NOCHECKPOSITION); }
+		"MMDG" Y 0 { SummonMinion("RS_GlitchBaron", -1, 218.0); }
+		"MMDG" Y 0 { SummonMinion("RS_GlitchBaron", -1, 218.0); }
+		"MMDG" Y 20 Bright { A_FaceTarget(); }
+		Goto See;
+	Missile.T14:
+		"MMDG" O 0 { bNOCLIP = false; }
+		"MMDG" A 0 A_Jump(192, "Missile.T14.Gates");
+		"MMDG" A 0 { A_FaceTarget(); }
+		// CHP: ThrustThingZ(0,30) + ThrustThing(angle,100) -- a lunge onto
+		// the target before it commits to a pattern.
+		"MMDG" A 0 { vel.z = 3.75; }
+		"MMDG" A 0 { Thrust(100.0, angle); }
+	Missile.T14.Gates:
+		"MMDG" A 0 A_JumpIfHealthLower(8192, "Missile.T14.Phase3");
+		"MMDG" A 0 A_JumpIfHealthLower(24576, "Missile.T14.Phase2");
+	// THE RANGE BANDS. Checked before anything else, every time.
+	Missile.T14.Set:
+		"MMDG" A 0 A_JumpIfCloser(200, "Missile.T14.Dukie", true);
+		"MMDG" A 0 A_JumpIfCloser(720, "Missile.T14.Close", true);
+		"MMDG" A 0 A_JumpIfCloser(1500, "Missile.T14.Med", true);
+		TNT1 A 0 { if (rsPhase >= 3) return ResolveState("Missile.T14.Set3"); return ResolveState(null); }
+		TNT1 A 0 { if (rsPhase >= 2) return ResolveState("Missile.T14.Set2"); return ResolveState(null); }
+		"MMDG" E 0 A_Jump(256, "Missile.T14.MissileSeizure", "Missile.T14.GlitchWinder", "Missile.T14.GlitchLaser");
+		Goto See;
+	Missile.T14.Set2:
+		"MMDG" E 0 A_Jump(256, "Missile.T14.GlitchWinder2", "Missile.T14.GlitchLaser2", "Missile.T14.LaserRain", "Pain.T14.Reposition", "Missile.T14.GlitchMines");
+		Goto See;
+	Missile.T14.Set3:
+		"MMDG" E 0 A_Jump(256, "Missile.T14.GlitchWinder3", "Missile.T14.GlitchLaser3", "Missile.T14.LaserRain2", "Missile.T14.GlitchMines2", "Missile.T14.FatalBarons");
+		Goto See;
+	Missile.T14.Med:
+		TNT1 A 0 { if (rsPhase >= 3) return ResolveState("Missile.T14.Med3"); return ResolveState(null); }
+		TNT1 A 0 { if (rsPhase >= 2) return ResolveState("Missile.T14.Med2"); return ResolveState(null); }
+		"MMDG" A 0 A_Jump(64, "Missile.T14.Rush");
+		"MMDG" E 0 A_Jump(256, "Missile.T14.MissileSeizure", "Missile.T14.BFGSpam", "Missile.T14.FourthWall");
+		Goto See;
+	Missile.T14.Med2:
+		"MMDG" E 0 A_Jump(256, "Missile.T14.MissileSeizure2", "Missile.T14.BFGSpam2", "Missile.T14.CodeLeakage", "Missile.T14.FourthWall2", "Missile.T14.GlitchTrap", "Missile.T14.GlitchWinder2", "Missile.T14.GlitchShields", "Missile.T14.GlitchLaser2", "Missile.T14.GlitchMines", "Missile.T14.LaserRain");
+		Goto See;
+	Missile.T14.Med3:
+		"MMDG" A 0 A_Jump(64, "Missile.T14.Rush");
+		"MMDG" E 0 A_Jump(256, "Missile.T14.BFGSpam3", "Missile.T14.CodeLeakage2", "Missile.T14.FourthWall3", "Missile.T14.GlitchTrap2", "Missile.T14.GlitchWinder3", "Missile.T14.GlitchLaser2", "Missile.T14.GlitchMines2", "Missile.T14.FatalBarons", "Missile.T14.BFGHeck", "Missile.T14.Overdrive");
+		Goto See;
+	Missile.T14.Close:
+		"MMDG" A 0 A_JumpIfCloser(200, "Missile.T14.Dukie", true);
+		TNT1 A 0 { if (rsPhase >= 3) return ResolveState("Missile.T14.Close3"); return ResolveState(null); }
+		TNT1 A 0 { if (rsPhase >= 2) return ResolveState("Missile.T14.Close2"); return ResolveState(null); }
+		"MMDG" E 0 A_Jump(256, "Missile.T14.Glitches", "Missile.T14.BFGSpam", "Missile.T14.FourthWall");
+		Goto See;
+	Missile.T14.Close2:
+		"MMDG" E 0 A_Jump(256, "Missile.T14.Glitches2", "Missile.T14.BFGSpam2", "Missile.T14.FourthWall2", "Missile.T14.GlitchTrap", "Missile.T14.CodeLeakage", "Missile.T14.GlitchShields", "Missile.T14.GlitchLaser2");
+		Goto See;
+	Missile.T14.Close3:
+		"MMDG" E 0 A_Jump(256, "Pain.T14.Reposition", "Missile.T14.Glitches3", "Missile.T14.BFGSpam3", "Missile.T14.MissileSeizure3", "Missile.T14.BFGHeck", "Missile.T14.Overdrive");
+		Goto See;
+	// DUKIE -- the knife-range answer. A carpet of twice-detonating floor
+	// tiles in expanding rings centred on ITSELF, not on you.
+	Missile.T14.Dukie:
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" E 3
+		{
+			A_SpawnItemEx("RS_RomeroEXGround", -64, -64, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 64, -64, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -64, 64, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 0, -64, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 0, 64, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -64, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 64, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 64, 64, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		"MMDG" E 3
+		{
+			A_SpawnItemEx("RS_RomeroEXGround", 0, -164, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 0, 164, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -164, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 164, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -164, -164, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 164, -164, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -164, 164, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 164, 164, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		"MMDG" E 3
+		{
+			A_SpawnItemEx("RS_RomeroEXGround", 0, -234, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 0, 234, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -234, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 234, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -234, -234, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 234, -234, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -234, 234, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 234, 234, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		TNT1 A 0 { if (rsPhase >= 2) return ResolveState("Missile.T14.DukieMore"); return ResolveState(null); }
+		Goto See;
+	Missile.T14.DukieMore:
+		"MMDG" E 2
+		{
+			A_SpawnItemEx("RS_RomeroEXGround", 0, -314, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 0, 314, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -314, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 314, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -314, -314, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 314, -314, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -314, 314, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 314, 314, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		"MMDG" E 2
+		{
+			A_SpawnItemEx("RS_RomeroEXGround", 0, -394, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 0, 394, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -394, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 394, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -394, -394, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 394, -394, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -394, 394, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 394, 394, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		"MMDG" E 2
+		{
+			A_SpawnItemEx("RS_RomeroEXGround", 0, -464, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 0, 464, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -464, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 464, 0, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -464, -464, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 464, -464, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -464, 464, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 464, 464, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		Goto See;
+	// A reflective skull-charge that ends in its own three rings of floor
+	// tiles, and can chain straight back into itself.
+	Missile.T14.Rush:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+	Missile.T14.RushGo:
+		"MMDG" E 1 { A_StartSound("weapons/suldth", CHAN_WEAPON); }
+		"MMDG" E 2 { A_SetReflectiveInvulnerable(); }
+		"MMDG" E 0 { bTHRUACTORS = true; }
+		"MMDG" E 20 { A_SkullAttack(48); }
+		"MMDG" E 1 { A_SetSpeed(0); }
+		"MMDG" E 1 { A_ScaleVelocity(0.05); }
+		"MMDG" E 0 { bTHRUACTORS = false; }
+		TNT1 A 0 A_JumpIfCloser(200, "Missile.T14.Dukie", true);
+		"MMDG" E 3
+		{
+			A_SpawnItemEx("RS_RomeroEXGround", -64, -64, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 64, -64, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -64, 64, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 64, 64, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		"MMDG" E 3
+		{
+			A_SpawnItemEx("RS_RomeroEXGround", -164, -164, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 164, -164, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -164, 164, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 164, 164, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		"MMDG" E 3
+		{
+			A_SpawnItemEx("RS_RomeroEXGround", -234, -234, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 234, -234, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", -234, 234, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+			A_SpawnItemEx("RS_RomeroEXGround", 234, 234, 0, 0, 1, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		"MMDG" E 0 A_Jump(128, "Missile.T14.RushGo");
+		Goto See;
+	// GLITCHES -- twelve rounds of six bouncing texture-blocks. Phase 2
+	// widens the burst; phase 3 laces every round with two mega-blocks and
+	// can teleport-wander mid-attack.
+	Missile.T14.Glitches:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); rsGlitchRound = 0; }
+		"MMDG" EE 5 { A_FaceTarget(); }
+	Missile.T14.GlitchesLoop:
+		"MMDG" FF 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, 30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" F 3 Bright { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" EE 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, 30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" E 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" E 3 Bright { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" E 0 { A_FaceTarget(); }
+		"MMDG" E 0 { if (++rsGlitchRound < 12) return ResolveState("Missile.T14.GlitchesLoop"); return ResolveState(null); }
+		"MMDG" GG 3 Bright { A_FaceTarget(); }
+		"MMDG" A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	Missile.T14.Glitches2:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); rsGlitchRound = 0; }
+		"MMDG" EE 5 { A_FaceTarget(); }
+	Missile.T14.Glitches2Loop:
+		"MMDG" FFF 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, 30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" FF 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" F 3 Bright { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" EEE 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, 30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" EE 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" E 3 Bright { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" E 0 { A_FaceTarget(); }
+		"MMDG" E 0 { if (++rsGlitchRound < 12) return ResolveState("Missile.T14.Glitches2Loop"); return ResolveState(null); }
+		"MMDG" GG 3 Bright { A_FaceTarget(); }
+		"MMDG" A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	Missile.T14.Glitches3:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); rsGlitchRound = 0; }
+		"MMDG" EE 5 { A_FaceTarget(); }
+	Missile.T14.Glitches3Loop:
+		"MMDG" FFF 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, 30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXMegaGlitchShot", 52, 30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" FF 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXMegaGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" F 3 Bright { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" EEE 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, 30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" EE 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" E 3 Bright { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" E 0 { A_FaceTarget(); }
+		"MMDG" E 0 { if (++rsGlitchRound < 12) return ResolveState("Missile.T14.Glitches3Loop"); return ResolveState(null); }
+		"MMDG" A 0 A_Jump(128, "Missile.T14.Glitches4");
+		"MMDG" A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	Missile.T14.Glitches4:
+		"MMDG" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		Goto Missile.T14.Glitches3Loop;
+	// THE FOURTH WALL. A 64x110 seeking slab. Phase 3 fires ten of them in
+	// a fan and there is nowhere in the room that is not one of them.
+	Missile.T14.FourthWall:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+		"MMDG" EEEE 3 { A_FaceTarget(); }
+		"MMDG" JKLKJ 2 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		"MMDG" MO 3 Bright;
+		"MMDG" O 12 Bright { A_SpawnProjectile("RS_RomeroEXFourthWall", 52); }
+		TNT1 A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	Missile.T14.FourthWall2:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+		"MMDG" EEEE 3 { A_FaceTarget(); }
+		"MMDG" JKLKJ 2 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		"MMDG" MO 3 Bright;
+		"MMDG" OOO 12 Bright { A_SpawnProjectile("RS_RomeroEXFourthWall", 52); }
+		TNT1 A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	Missile.T14.FourthWall3:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+		"MMDG" EEEE 3 { A_FaceTarget(); }
+		"MMDG" JKLKJ 2 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		"MMDG" MO 3 Bright;
+		"MMDG" O 0 { for (int i = 0; i < 9; i++) A_SpawnProjectile("RS_RomeroEXFourthWall", 52, 0, -90 + i * 20); }
+		"MMDG" O 12 Bright { A_SpawnProjectile("RS_RomeroEXFourthWall", 52, 0, 90); }
+		TNT1 A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	// MISSILE SEIZURE -- rocket volleys that re-fire out of a blink-wander.
+	// Phase 2 rolls two patterns, phase 3 rolls four (adding the two
+	// sweeping fans) and fires them faster.
+	Missile.T14.MissileSeizure:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+	Missile.T14.MissileSeizureGo:
+		"MMDG" E 10 { A_FaceTarget(); }
+		"MMDG" HI 4 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20); }
+		"MMDG" HI 4 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, random(-3, 3)); }
+		"MMDG" HI 4 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20); }
+		"MMDG" HI 4 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, random(-3, 3)); }
+		"MMDG" HI 4 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20); }
+		"MMDG" E 10 { A_FaceTarget(); }
+		"MMDG" A 0 A_Jump(128, "Missile.T14.SeizureRefire");
+		TNT1 A 0 A_CheckSight("See");
+		TNT1 A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	Missile.T14.SeizureRefire:
+		"MMDG" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		Goto Missile.T14.MissileSeizureGo;
+	Missile.T14.MissileSeizure2:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+	Missile.T14.MissileSeizure2Go:
+		"MMDG" E 8 { A_FaceTarget(); }
+		"MMDG" H 0 A_Jump(256, "Missile.T14.Pattern1", "Missile.T14.Pattern2");
+	Missile.T14.Pattern1:
+		"MMDG" HI 3 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20); }
+		"MMDG" HI 3 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, random(-3, 3)); }
+		"MMDG" HI 3 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20); }
+		"MMDG" HI 3 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, random(-3, 3)); }
+		"MMDG" HI 3 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20); }
+		Goto Missile.T14.Seizure2Check;
+	Missile.T14.Pattern2:
+		"MMDG" HIHIHIHIHI 3 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, random(-64, 64)); }
+		Goto Missile.T14.Seizure2Check;
+	Missile.T14.Seizure2Check:
+		"MMDG" E 8 { A_FaceTarget(); }
+		"MMDG" A 0 A_Jump(160, "Missile.T14.Seizure2Refire");
+		TNT1 A 0 A_CheckSight("See");
+		TNT1 A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	Missile.T14.Seizure2Refire:
+		"MMDG" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		Goto Missile.T14.MissileSeizure2Go;
+	Missile.T14.MissileSeizure3:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+	Missile.T14.MissileSeizure3Go:
+		"MMDG" E 6 { A_FaceTarget(); }
+		"MMDG" H 0 A_Jump(256, "Missile.T14.Pattern3", "Missile.T14.Pattern4", "Missile.T14.Pattern5", "Missile.T14.Pattern6");
+	Missile.T14.Pattern3:
+		"MMDG" HI 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20); }
+		"MMDG" HI 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, random(-3, 3)); }
+		"MMDG" HI 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20); }
+		"MMDG" HI 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, random(-3, 3)); }
+		"MMDG" HI 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20); }
+		Goto Missile.T14.Seizure3Check;
+	Missile.T14.Pattern4:
+		"MMDG" HIHIHIHIHI 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, random(-64, 64)); }
+		Goto Missile.T14.Seizure3Check;
+	// The two sweeping fans -- left-to-right and back again.
+	Missile.T14.Pattern5:
+		"MMDG" H 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, -54); }
+		"MMDG" I 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, -42); }
+		"MMDG" H 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, -30); }
+		"MMDG" I 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, -18); }
+		"MMDG" H 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, -6); }
+		"MMDG" I 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, 6); }
+		"MMDG" H 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, 18); }
+		"MMDG" I 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, 30); }
+		"MMDG" H 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, 42); }
+		"MMDG" I 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, 54); }
+		Goto Missile.T14.Seizure3Check;
+	Missile.T14.Pattern6:
+		"MMDG" H 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, 54); }
+		"MMDG" I 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, 42); }
+		"MMDG" H 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, 30); }
+		"MMDG" I 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, 18); }
+		"MMDG" H 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, 6); }
+		"MMDG" I 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, -6); }
+		"MMDG" H 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, -18); }
+		"MMDG" I 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, -30); }
+		"MMDG" H 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, -42); }
+		"MMDG" I 2 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, -54); }
+		Goto Missile.T14.Seizure3Check;
+	Missile.T14.Seizure3Check:
+		"MMDG" E 6 { A_FaceTarget(); }
+		"MMDG" A 0 A_Jump(192, "Missile.T14.Seizure3Refire");
+		TNT1 A 0 A_CheckSight("See");
+		TNT1 A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	Missile.T14.Seizure3Refire:
+		"MMDG" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		Goto Missile.T14.MissileSeizure3Go;
+	// THE LASER. Inside 1000 units it aims DOWNWARD (pitch -4) instead --
+	// the sweep variant -- so backing off does not make it safer, it just
+	// changes which half of you it hits.
+	Missile.T14.GlitchLaser:
+		"MMDG" EEEE 3 { A_FaceTarget(); }
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK2", CHAN_WEAPON, 0, 1.0, ATTN_NONE); }
+		"MMDG" JKLKJ 3 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 2 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		TNT1 A 0 A_JumpIfCloser(1000, "Missile.T14.SweepBeam", true);
+		"MMDG" MNOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0); }
+		Goto See;
+	Missile.T14.SweepBeam:
+		"MMDG" MNOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0, 0, -4); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0, 0, -4); }
+		Goto See;
+	Missile.T14.GlitchLaser2:
+		"MMDG" EEEE 3 { A_FaceTarget(); }
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK2", CHAN_WEAPON, 0, 1.0, ATTN_NONE); }
+		"MMDG" JKLKJ 3 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 2 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		TNT1 A 0 A_JumpIfCloser(1000, "Missile.T14.SweepBeam2", true);
+		"MMDG" MNOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0); }
+		Goto See;
+	Missile.T14.SweepBeam2:
+		"MMDG" MNOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0, 0, -4); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0, 0, -4); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0, 0, -4); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0, 0, -4); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0, 0, -4); }
+		Goto See;
+	// Phase 3: the beam no longer points -- it SWEEPS, five times, each
+	// sweep walking the angle out to +-10 and back.
+	Missile.T14.GlitchLaser3:
+		"MMDG" EEEE 3 { A_FaceTarget(); }
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK2", CHAN_WEAPON, 0, 1.0, ATTN_NONE); }
+		"MMDG" JKLKJ 3 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 2 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		TNT1 A 0 A_JumpIfCloser(1000, "Missile.T14.SweepBeam3", true);
+		"MMDG" MN 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, -10); }
+		"MMDG" OOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, random(-8, 8)); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, random(-10, 10)); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, random(-10, 10)); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, random(-10, 10)); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, random(-10, 10)); }
+		Goto See;
+	Missile.T14.SweepBeam3:
+		"MMDG" MN 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, -10, 0, -4); }
+		"MMDG" OOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, random(-8, 8), 0, -4); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, random(-10, 10), 0, -4); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, random(-10, 10), 0, -4); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, random(-10, 10), 0, -4); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, random(-10, 10), 0, -4); }
+		Goto See;
+	// THE WINDER. Lifts off, unloads eight weaving seekers plus two BFG
+	// balls, lands. Phase 2 adds a long overhead rain of seekers; phase 3
+	// adds a second rain and can chain into BFGSpam3.
+	Missile.T14.GlitchWinder:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" E 8 Bright { vel.z = 12.5; }
+		"MMDG" E 0 { bFLOAT = true; bNOGRAVITY = true; }
+		"MMDG" E 8 Bright { A_FaceTarget(); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 33, 1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 33, -1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 3); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -3); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 5); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -5); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXSpamShots", 52, 30, 1); }
+		"MMDG" F 10 Bright { A_SpawnProjectile("RS_RomeroEXSpamShots", 52, -30, -1); }
+		"MMDG" E 0 { bFLOAT = false; bNOGRAVITY = false; }
+		"MMDG" E 5 { A_FaceTarget(); }
+		"MMDG" A 0 A_Jump(32, "Missile.T14");
+		Goto Pain.T14.Reposition;
+	Missile.T14.GlitchWinder2:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); rsGlitchRound = 0; }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" E 8 Bright { vel.z = 12.5; }
+		"MMDG" E 0 { bFLOAT = true; bNOGRAVITY = true; }
+		"MMDG" E 8 Bright { A_FaceTarget(); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 33, 1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 33, -1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 3); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -3); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 5); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -5); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXSpamShots", 52, 30, 1); }
+		"MMDG" F 10 Bright { A_SpawnProjectile("RS_RomeroEXSpamShots", 52, -30, -1); }
+		"MMDG" E 0 { bFLOAT = false; bNOGRAVITY = false; }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" Z 8 Bright { A_FaceTarget(); }
+	Missile.T14.WinderRain:
+		"MMDG" Z 1 Bright { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 60, 50, random(20, 50), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-3, 3)); }
+		"MMDG" Y 1 Bright { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 60, -50, random(-50, -20), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-3, 3)); }
+		"MMDG" Y 1 Bright { A_FaceTarget(); }
+		"MMDG" Y 0 { if (++rsGlitchRound < 12) return ResolveState("Missile.T14.WinderRain"); return ResolveState(null); }
+		"MMDG" YZE 10 Bright { A_FaceTarget(); }
+		TNT1 A 0 A_Jump(128, "Missile.T14.BFGSpam2");
+		"MMDG" A 0 A_Jump(32, "Missile.T14");
+		Goto Pain.T14.Reposition;
+	Missile.T14.GlitchWinder3:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); rsGlitchRound = 0; }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" E 8 Bright { vel.z = 12.5; }
+		"MMDG" E 0 { bFLOAT = true; bNOGRAVITY = true; }
+		"MMDG" E 8 Bright { A_FaceTarget(); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 33, 1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 33, -1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -1); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 3); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -3); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 5); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -5); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXSpamShots", 52, 30, 1); }
+		"MMDG" F 10 Bright { A_SpawnProjectile("RS_RomeroEXSpamShots", 52, -30, -1); }
+		"MMDG" E 0 { bFLOAT = false; bNOGRAVITY = false; }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" Z 8 Bright { A_FaceTarget(); }
+	Missile.T14.WinderRain3:
+		"MMDG" Z 1 Bright { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 60, 50, random(20, 50), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-3, 3)); }
+		"MMDG" Y 1 Bright { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 60, -50, random(-50, -20), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-3, 3)); }
+		"MMDG" Y 1 Bright { A_FaceTarget(); }
+		"MMDG" Y 0 { if (++rsGlitchRound < 12) return ResolveState("Missile.T14.WinderRain3"); return ResolveState(null); }
+		"MMDG" YZE 10 Bright { A_FaceTarget(); }
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		"MMDG" E 8 Bright { A_FaceTarget(); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 33, 4); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 33, -4); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 4); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -4); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 12); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -12); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 20); }
+		"MMDG" F 10 Bright { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -20); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		TNT1 A 0 A_Jump(128, "Missile.T14.BFGSpam3");
+		"MMDG" A 0 A_Jump(32, "Missile.T14");
+		Goto Pain.T14.Reposition;
+	// BFG SPAM -- five volleys that ACCELERATE (10, 8, 6, 4, 2 tics), so
+	// the wall of green arrives faster the longer it goes on.
+	Missile.T14.BFGSpam:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+		"MMDG" EEEE 5 { A_FaceTarget(); }
+		"MMDG" F 10 Bright { RS_BFGVolley(1); }
+		"MMDG" E 5 { A_FaceTarget(); }
+		"MMDG" F 8 Bright { RS_BFGVolley(2); }
+		"MMDG" E 4 { A_FaceTarget(); }
+		"MMDG" F 6 Bright { RS_BFGVolley(1); }
+		"MMDG" E 3 { A_FaceTarget(); }
+		"MMDG" F 4 Bright { RS_BFGVolley(0); }
+		"MMDG" E 2 { A_FaceTarget(); }
+		"MMDG" F 2 Bright { RS_BFGVolley(0); }
+		"MMDG" GG 3 Bright { A_FaceTarget(); }
+		TNT1 A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	// Phase 2: eight volleys, each prefixed with four wide random shots.
+	Missile.T14.BFGSpam2:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+		"MMDG" EEEE 5 { A_FaceTarget(); }
+		"MMDG" F 10 Bright { RS_BFGWide(); RS_BFGVolley(1); }
+		"MMDG" E 5 { A_FaceTarget(); }
+		"MMDG" F 8 Bright { RS_BFGWide(); RS_BFGVolley(2); }
+		"MMDG" E 4 { A_FaceTarget(); }
+		"MMDG" F 6 Bright { RS_BFGWide(); RS_BFGVolley(1); }
+		"MMDG" E 3 { A_FaceTarget(); }
+		"MMDG" F 4 Bright { RS_BFGWide(); RS_BFGVolley(0); }
+		"MMDG" E 2 { A_FaceTarget(); }
+		"MMDG" F 2 Bright { RS_BFGWide(); RS_BFGVolley(0); }
+		"MMDG" E 2 { A_FaceTarget(); }
+		"MMDG" F 2 Bright { RS_BFGWide(); RS_BFGVolley(0); }
+		"MMDG" E 2 { A_FaceTarget(); }
+		"MMDG" F 2 Bright { RS_BFGWide(); RS_BFGVolley(0); }
+		"MMDG" E 2 { A_FaceTarget(); }
+		"MMDG" F 2 Bright { RS_BFGWide(); RS_BFGVolley(0); }
+		"MMDG" GG 3 Bright { A_FaceTarget(); }
+		TNT1 A 0 A_Jump(32, "Missile.T14");
+		Goto See;
+	// CHP's BFGSpam3 is a two-line stub that FALLS THROUGH into GlitchTrap
+	// -- the wind-up sound and a face-target, then the ring of walls. Kept
+	// exactly, fall-through and all.
+	Missile.T14.BFGSpam3:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+		"MMDG" EEEE 5 { A_FaceTarget(); }
+	// THE TRAP: sixteen solid walls in a ring around you. Not damage --
+	// a cage, cast while everything else is still in the air.
+	Missile.T14.GlitchTrap:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK2", CHAN_WEAPON, 0, 1.0, ATTN_NONE); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" I 5 Bright { A_FaceTarget(); }
+		"MMDG" EIEGGI 7 Bright { A_FaceTarget(); }
+		"MMDG" E 8 Bright { A_VileTarget("RS_RomeroEXGlitchTrap"); }
+		Goto See;
+	Missile.T14.GlitchTrap2:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK2", CHAN_WEAPON, 0, 1.0, ATTN_NONE); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" I 5 Bright { A_FaceTarget(); }
+		"MMDG" EIEGGI 7 Bright { A_FaceTarget(); }
+		"MMDG" E 8 Bright { A_VileTarget("RS_RomeroEXGlitchTrap"); }
+		Goto Missile.T14;
+	// CODE LEAKAGE: 131 bouncing binary digits (262 in phase 3) sprayed out
+	// of a single point above it. Nothing aimed -- just fill.
+	Missile.T14.CodeLeakage:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" Z 6 Bright { A_FaceTarget(); }
+		"MMDG" Y 8 Bright { A_FaceTarget(); }
+		"MMDG" Y 0 { A_SpawnItemEx("RS_RomeroEXCodeLeakage", 0, 0, 64, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"MMDG" Y 8 Bright { A_FaceTarget(); }
+		"MMDG" Z 6 Bright { A_FaceTarget(); }
+		Goto See;
+	Missile.T14.CodeLeakage2:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK1", CHAN_VOICE); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" Z 6 Bright { A_FaceTarget(); }
+		"MMDG" Y 8 Bright { A_FaceTarget(); }
+		"MMDG" Y 0 { A_SpawnItemEx("RS_RomeroEXCodeLeakage2", 0, 0, 64, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"MMDG" Y 8 Bright { A_FaceTarget(); }
+		"MMDG" Z 6 Bright { A_FaceTarget(); }
+		Goto See;
+	// The orbiting reflector. One at a time -- rsGlitchShield is the latch,
+	// and the shield itself clears it when it expires.
+	Missile.T14.GlitchShields:
+		TNT1 A 0 { if (rsGlitchShield >= 1) return ResolveState("Missile.T14"); return ResolveState(null); }
+		"MMDG" E 5 Bright { rsGlitchShield = 1; }
+		"MMDG" EEEE 10 Bright { A_SpawnItemEx("RS_RomeroEXShield", 0, 4, 64, 0, 0, 0, 0, SXF_SETMASTER | SXF_NOCHECKPOSITION); }
+		"MMDG" A 0 A_Jump(128, "Missile.T14.FatalBarons", "Missile.T14");
+		Goto See;
+	// MINES: eight delayed proximity mines scattered across a 12x128 grid.
+	// They arm slowly and sit for up to a minute, so they outlive the
+	// attack that placed them.
+	Missile.T14.GlitchMines:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK2", CHAN_VOICE); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" EEEEEEEEE 2 Bright { A_SetScale(1.25, frandom(1.0, 1.5)); }
+		"MMDG" EE 6 Bright { A_VileTarget("RS_RomeroEXGlitchMineSpawner"); }
+		"MMDG" E 0 { A_SetScale(1.25, 1.25); }
+		"MMDG" A 10 A_Jump(128, "Missile.T14");
+		Goto See;
+	Missile.T14.GlitchMines2:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK2", CHAN_VOICE); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" EEEEEEEEE 2 Bright { A_SetScale(1.25, frandom(1.0, 1.5)); }
+		"MMDG" EEE 4 Bright { A_VileTarget("RS_RomeroEXGlitchMineSpawner"); }
+		"MMDG" E 0 { A_SetScale(1.25, 1.25); }
+		"MMDG" A 10 A_Jump(192, "Missile.T14");
+		Goto See;
+	// LASER RAIN: drops the beam on you from the sky rather than firing it.
+	Missile.T14.LaserRain:
+		"MMDG" EEEE 3 { A_FaceTarget(); }
+		"MMDG" JKLKJ 2 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		"MMDG" MO 3 Bright;
+		"MMDG" O 2 Bright { A_VileTarget("RS_RomeroEXSkyCH"); }
+		Goto Missile.T14;
+	Missile.T14.LaserRain2:
+		"MMDG" EEEE 3 { A_FaceTarget(); }
+		"MMDG" JKLKJ 2 Bright { A_FaceTarget(); }
+		"MMDG" JKLKJ 1 Bright { A_FaceTarget(); }
+		"MMDG" MO 3 Bright;
+		"MMDG" OO 1 Bright { A_VileTarget("RS_RomeroEXSkyCH"); }
+		Goto Missile.T14;
+	// BFG HECK: eight crawlers that wander the ceiling firing BFG balls at
+	// the floor and ceiling until they roll their own deaths.
+	Missile.T14.BFGHeck:
+		"MMDG" E 0 { A_StartSound("RomeEX/ATK2", CHAN_WEAPON, 0, 1.0, ATTN_NONE); }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+		"MMDG" Z 6 Bright { A_FaceTarget(); }
+		"MMDG" Y 8 Bright { A_FaceTarget(); }
+		"MMDG" YYYYYYYY 0 { A_SpawnItemEx("RS_RomeroEXBFGHeckSpawner"); }
+		"MMDG" Y 8 Bright { A_FaceTarget(); }
+		"MMDG" Z 6 Bright { A_FaceTarget(); }
+		Goto See;
+	// ======================= OVERDRIVE (phase 3) =======================
+	// The meta-attack. Rolls one of seven sub-attacks, fires it, and then
+	// ROLLS AGAIN -- chaining without ever returning to See -- until the
+	// 16-count budget runs out and it blinks away. Each branch has a
+	// 192/256 chance to skip its own blink-wander and fire immediately.
+	Missile.T14.Overdrive:
+		"MMDG" E 0 { A_StartSound("RomeEX/PH3", CHAN_WEAPON, 0, 1.0, ATTN_NONE); rsDewzan = 0; }
+		"MMDG" E 10 Bright { A_FaceTarget(); }
+	Missile.T14.OverdriveRoll:
+		"MMDG" E 0 A_Jump(256, "Missile.T14.ODMissiles", "Missile.T14.ODGlitches", "Missile.T14.ODWall", "Missile.T14.ODLaser", "Missile.T14.ODWinder", "Missile.T14.ODBFG", "Missile.T14.ODTrap");
+		Goto See;
+	Missile.T14.ODMissiles:
+		"MMDG" A 0 A_Jump(192, "Missile.T14.ODMissilesGo");
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+	Missile.T14.ODMissilesGo:
+		TNT1 A 0 { if (rsDewzan >= 16) return ResolveState("Pain.T14.Reposition"); rsDewzan++; return ResolveState(null); }
+		"MMDG" E 10 { A_FaceTarget(); }
+		"MMDG" HIHIHIHIHI 1 Bright { A_SpawnProjectile("RS_RomeroRocketCH", 120, -20, random(-64, 64)); }
+		Goto Missile.T14.OverdriveRoll;
+	Missile.T14.ODGlitches:
+		"MMDG" A 0 A_Jump(192, "Missile.T14.ODGlitchesGo");
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+	Missile.T14.ODGlitchesGo:
+		TNT1 A 0 { if (rsDewzan >= 16) return ResolveState("Pain.T14.Reposition"); rsDewzan++; return ResolveState(null); }
+		"MMDG" E 10 { A_FaceTarget(); }
+		"MMDG" FFFFFF 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, 30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXMegaGlitchShot", 52, 30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" FFFFF 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXMegaGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" F 3 Bright { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" EEEEEE 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, 30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" EEEEE 0 { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		"MMDG" E 3 Bright { A_SpawnProjectile("RS_RomeroEXGlitchShot", 52, -30, random(-64, 64), CMF_AIMOFFSET, random(-5, 5)); }
+		Goto Missile.T14.OverdriveRoll;
+	Missile.T14.ODWall:
+		"MMDG" A 0 A_Jump(192, "Missile.T14.ODWallGo");
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+	Missile.T14.ODWallGo:
+		TNT1 A 0 { if (rsDewzan >= 16) return ResolveState("Pain.T14.Reposition"); rsDewzan++; return ResolveState(null); }
+		"MMDG" E 10 { A_FaceTarget(); }
+		"MMDG" O 0 { for (int i = 0; i < 9; i++) A_SpawnProjectile("RS_RomeroEXFourthWall", 52, 0, -90 + i * 20); }
+		"MMDG" O 12 Bright { A_SpawnProjectile("RS_RomeroEXFourthWall", 52, 0, 90); }
+		Goto Missile.T14.OverdriveRoll;
+	Missile.T14.ODLaser:
+		"MMDG" A 0 A_Jump(192, "Missile.T14.ODLaserGo");
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+	Missile.T14.ODLaserGo:
+		TNT1 A 0 { if (rsDewzan >= 16) return ResolveState("Pain.T14.Reposition"); rsDewzan++; return ResolveState(null); }
+		"MMDG" E 10 { A_FaceTarget(); }
+		"MMDG" MNOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0); }
+		"MMDG" O 0 { A_FaceTarget(); }
+		"MMDG" OOOOOOOOOO 1 Bright { A_SpawnProjectile("RS_RomeroEXBeamCH", 60, 0, 0); }
+		Goto Missile.T14.OverdriveRoll;
+	Missile.T14.ODWinder:
+		"MMDG" A 0 A_Jump(192, "Missile.T14.ODWinderGo");
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+	Missile.T14.ODWinderGo:
+		TNT1 A 0 { if (rsDewzan >= 16) return ResolveState("Pain.T14.Reposition"); rsDewzan++; return ResolveState(null); }
+		"MMDG" E 10 { A_FaceTarget(); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 33, 4); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 33, -4); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 4); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -4); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 12); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -12); }
+		"MMDG" F 0 { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, 20); }
+		"MMDG" F 10 Bright { A_SpawnProjectile("RS_RomeroEXCHSeekBall", 52, 27, -20); }
+		Goto Missile.T14.OverdriveRoll;
+	Missile.T14.ODBFG:
+		"MMDG" A 0 A_Jump(192, "Missile.T14.ODBFGGo");
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+	Missile.T14.ODBFGGo:
+		TNT1 A 0 { if (rsDewzan >= 16) return ResolveState("Pain.T14.Reposition"); rsDewzan++; return ResolveState(null); }
+		"MMDG" E 10 { A_FaceTarget(); }
+		"MMDG" F 2 Bright { RS_BFGWide(); RS_BFGVolley(0); }
+		"MMDG" E 2 { A_FaceTarget(); }
+		"MMDG" F 2 Bright { RS_BFGWide(); RS_BFGVolley(0); }
+		"MMDG" E 2 { A_FaceTarget(); }
+		"MMDG" F 2 Bright { RS_BFGWide(); RS_BFGVolley(0); }
+		"MMDG" E 2 { A_FaceTarget(); }
+		Goto Missile.T14.OverdriveRoll;
+	Missile.T14.ODTrap:
+		"MMDG" A 0 A_Jump(192, "Missile.T14.ODTrapGo");
+		"MMDG" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+	Missile.T14.ODTrapGo:
+		TNT1 A 0 { if (rsDewzan >= 16) return ResolveState("Pain.T14.Reposition"); rsDewzan++; return ResolveState(null); }
+		"MMDG" E 10 { A_FaceTarget(); }
+		"MMDG" EEEEEEEEEEEEEEE 0 { A_SpawnItemEx("RS_RomeroEXGlitchBarrier", random(-12, 12) * 128, random(-12, 12) * 128); }
+		"MMDG" E 8 Bright { A_SpawnItemEx("RS_RomeroEXGlitchBarrier", random(-12, 12) * 128, random(-12, 12) * 128); }
+		Goto Missile.T14.OverdriveRoll;
+	// PainChance 0 -- this never fires from damage. It is here because
+	// RS's own systems can force a Pain state.
+	Pain.T14:
+		"MMDG" E 3;
+		"MMDG" E 3 { A_Pain(); }
+		Goto See;
+	Death.T14:
+		TNT1 A 0 { ReleaseMinions(); A_SetTranslucent(1.0, 1); }
+		"MMDG" LMDLHDHNYFIEACKGZJNLBYIFBAFZB 6 Bright { A_SpawnProjectile("RS_HKRedDeath", random(20, 100), random(-30, 30), 0, CMF_AIMOFFSET, -10); }
+		"MMDG" LMDLHDHNYFIEACKGZJNLBYIFBAFZB 3 Bright { A_SpawnProjectile("RS_HKRedDeath", random(20, 100), random(-30, 30), 0, CMF_AIMOFFSET, -10); }
+		"MMDG" LMDLHDHNYFIEACKGZJNLBYIFBAFZB 1 Bright { A_SpawnProjectile("RS_HKRedDeath", random(20, 100), random(-30, 30), 0, CMF_AIMOFFSET, -10); }
+		"MMDG" P 4 Bright { A_Scream(); }
+		"MMDG" QRS 4 Bright { A_SpawnProjectile("RS_HKRedDeath", random(20, 100), random(-30, 30), 0, CMF_AIMOFFSET, -10); }
+		"MMDG" T 4 Bright { A_NoBlocking(); }
+		"MMDG" UV 4 Bright;
+		TNT1 A 0 { A_BossDeath(); }
+		// It does not end -- "the one behind it all" steps out of the wreck.
+		"MMDG" W 0 { A_SpawnItemEx("RS_CyberdemonRomeroStage2", 0, 0, 0, 0, 0, 20, 0, SXF_NOCHECKPOSITION); }
+		"MMDG" W -1;
+		Stop;
+	XDeath.T14:
+		Goto Death.T14;
 	}
 }

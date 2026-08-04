@@ -109,11 +109,39 @@ class RS_RedBombSP : FastProjectile
 		SeeSound "weapons/hominglaunch"; DeathSound "weapons/firex4"; Translation "208:223=176:191","224:231=176:176"; }
 	States { Spawn: APLS AB 3 Bright A_SeekerMissile(4,4); Loop; Death: APBX ABCDE 4 Bright A_Explode(40,80); Stop; }
 }
-class RS_RocketShotFatso : FastProjectile
+// CH Fatsos.txt:2176 -- the canonical RocketShotFatso is an MSLH HOMING
+// rocket that sheds a trail, not a MISL dumbfire. CHP 12_R has the red
+// arachnotron firing RocketShotFatso_C and CHP 13_Y has the Incubus
+// firing the same actor, so ONE definition serves both families.
+class RS_RocketShotFatso : Actor
 {
-	Default { Radius 8; Height 8; Speed 30; Damage 35; Projectile; RenderStyle "Add"; SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx";
-		Translation "208:223=176:191"; }
-	States { Spawn: MISL A 3 Bright; Loop; Death: MISL BCD 4 Bright A_Explode(50,96); Stop; }
+	Default
+	{
+		Radius 11;
+		Height 8;
+		Speed 28;
+		DamageFunction (random(10, 40));
+		DamageType "Fire";
+		Projectile;
+		+SEEKERMISSILE
+		Scale 0.7;
+		DeathSound "weapons/rocklx";
+	}
+	States
+	{
+	Spawn:
+		MSLH A 2 Bright
+		{
+			A_SpawnItemEx("RS_HomingRocketTrailFatso", 0, 0, 0, 0, 0, 0, 0, 128);
+			A_SeekerMissile(4, 8, SMF_LOOK);
+		}
+		Loop;
+	Death:
+		MISL B 4 Bright { A_Explode(random(5, 35), 88); }
+		MISL C 5 Bright;
+		MISL D 6 Bright;
+		Stop;
+	}
 }
 
 // ---------- BLACK: "Macross Missile Spam" -- big ball + missile swarm + rockets (MSPI) ----------
@@ -337,7 +365,7 @@ class RS_PsychicAbyssSP : Actor
 	Default
 	{
 		Radius 13; Height 9; Speed 0;
-		Damage (random(2, 15));
+		DamageFunction (random(2, 15));
 		Projectile;
 		+RANDOMIZE +MTHRUSPECIES +DONTHARMCLASS
 		RenderStyle "Stencil"; StencilColor "Black";
@@ -550,6 +578,149 @@ class RS_CH_Cirno : Actor
 		Stop;
 	Death:
 		CIRN A -1;
+		Stop;
+	}
+}
+
+// ---------- WHITE EX / WHITE-3 extras (12_WX, 12_W3) ----------
+// The trail of fire the White Hot Spider drags behind it as it walks. CH's
+// ArchvileFire with a hotter palette and a wider, flatter footprint.
+class RS_FlaminFireAL9 : ArchvileFire
+{
+	Default { +NOCLIP; +NOBLOCKMAP; +NOGRAVITY; RenderStyle "Add"; Alpha 0.4; XScale 2.4; YScale 1.2;
+		Translation "160:167=%[0.22,0.00,0.00]:[2.00,0.95,0.17]"; }
+	States
+	{
+	Spawn:
+		FIRE A 2 Bright A_StartFire;
+		FIRE BAB 2 Bright A_Fire;
+		FIRE C 0 A_StartSound("vile/firecrkl", CHAN_BODY, 0, 1.0, 2.0);
+		FIRE C 2 Bright A_Fire;
+		FIRE BCBCDCDCDEDED 2 Bright A_Fire;
+		FIRE E 0 A_StartSound("vile/firecrkl", CHAN_BODY, 0, 1.0, 2.0);
+		FIRE E 2 Bright A_Fire;
+		FIRE FEFEFGHGHGH 2 Bright A_Fire;
+		Stop;
+	}
+}
+// The KRAKATOA tell: two orange eyes flare open above the spider and shrink
+// away. Purely a read -- but it is the only warning the wind-up gives.
+class RS_SuperEye02 : Actor
+{
+	Default { +NOBLOCKMAP; +NOGRAVITY; +NOCLIP; +BRIGHT; RenderStyle "Stencil"; StencilColor "FF 66 00";
+		Alpha 0.25; Scale 0.25; }
+	States
+	{
+	Spawn:
+		KIRC C 2;
+		KIRC C 0 A_FadeIn(0.25);
+		KIRC B 2 A_SetScale(0.75);
+		KIRC B 0 A_FadeIn(0.25);
+		KIRC A 2 A_SetScale(1.5);
+		KIRC A 0 A_FadeOut(0.05);
+		KIRC D 2 A_SetScale(0.9);
+		KIRC D 0 A_FadeOut(0.05);
+		KIRC C 2 A_SetScale(0.6);
+		KIRC C 0 A_FadeOut(0.05);
+		KIRC B 2 A_SetScale(0.45);
+		KIRC B 0 A_FadeOut(0.05);
+		KIRC A 2 A_SetScale(0.33);
+		KIRC A 0 A_FadeOut(0.05);
+		KIRC D 2 A_SetScale(0.246);
+		KIRC D 0 A_FadeOut(0.05);
+		KIRC C 2 A_SetScale(0.197);
+		KIRC C 0 A_FadeOut(0.05);
+		KIRC B 2 A_SetScale(0.157);
+		KIRC B 0 A_FadeOut(0.05);
+		KIRC A 2 A_SetScale(0.126);
+		KIRC A 0 A_FadeOut(0.05);
+		KIRC D 2 A_SetScale(0.101);
+		KIRC D 0 A_FadeOut(0.05);
+		KIRC C 2 A_SetScale(0.081);
+		KIRC C 0 A_FadeOut(0.05);
+		KIRC B 2 A_SetScale(0.064);
+		KIRC B 0 A_FadeOut(0.05);
+		KIRC A 2 A_SetScale(0.052);
+		KIRC A 0 A_FadeOut(0.05);
+		KIRC D 2 A_SetScale(0.101);
+		KIRC D 0 A_FadeOut(0.05);
+		KIRC C 2 A_SetScale(0.081);
+		KIRC C 0 A_FadeOut(0.05);
+		Stop;
+	}
+}
+// CH's tiny white spider. Not a projectile -- SPWHI4 hatches one wherever it
+// lands, so the White Spider 3's spider-shot is really a delivery system for
+// a swarm. -COUNTKILL so the swarm cannot hold up a kill-percentage exit.
+class RS_MiniSP1 : Actor
+{
+	Default
+	{
+		Health 15;
+		Radius 16; Height 25;
+		Mass 100;
+		Speed 28;
+		PainChance 128;
+		Scale 0.20;
+		Monster;
+		Species "WhiteSP";
+		+FLOORCLIP +DONTHARMSPECIES +MISSILEMORE +MISSILEEVENMORE +THRUSPECIES
+		-COUNTKILL
+		BloodColor "White";
+		SeeSound "kawai/sight";   PainSound "kawai/pain";
+		DeathSound "kawai/death"; ActiveSound "none";
+		HitObituary "%o was eaten by a tiny white spider";
+		Tag "Tiny White Spider";
+	}
+	States
+	{
+	Spawn:
+		TRIT AB 10 A_Look();
+		Loop;
+	See:
+		TRIT A 20;
+	See.Walk:
+		TRIT AABB 3 A_Chase("Melee", "", CHF_STOPIFBLOCKED);
+		TRIT E 0 { bNOCLIP = false; }
+		TRIT A 0 A_CheckBlock("IStuck", CBF_DROPOFF);
+		TRIT CCDD 3 A_Chase("Melee", "", CHF_STOPIFBLOCKED);
+		TRIT A 0 A_CheckBlock("IStuck", CBF_DROPOFF);
+		Goto See.Walk;
+	IStuck:
+		TRIT A 1;
+		TRIT A 1 { bNOCLIP = true; }
+		TRIT ABC 1 A_Wander();
+		Goto See.Walk;
+	Melee:
+		TRIT E 4 Bright A_FaceTarget();
+		TRIT F 2 Bright A_CustomMeleeAttack(random(3, 12), "bite/bite4", "None");
+		Goto See.Walk;
+	Pain:
+		TRIT F 3;
+		TRIT F 3 A_Pain();
+		Goto See.Walk;
+	Death.Ice:
+	Death:
+		TRIT J 20 A_ScreamAndUnblock();
+		MISL XYZ 10 A_Explode(random(1, 9), 32);
+		Stop;
+	}
+}
+class RS_SPWHI4 : FastProjectile
+{
+	Default { Radius 8; Height 8; Speed 29; DamageFunction (random(10, 75)); Scale 0.75; Projectile; +SEEKERMISSILE;
+		DamageType "Melee"; SeeSound "phantom/bomb"; DeathSound "phantom/explode";
+		Translation "192:207=80:95"; }
+	States
+	{
+	Spawn:
+		PLSE A 1 Bright A_SetScale(1.0);
+		PLSE A 1 Bright A_SeekerMissile(1, 2);
+		PLSE A 1 Bright A_SetScale(0.75);
+		Loop;
+	Death:
+		PLSE BCDE 8 Bright A_Explode(random(5, 20), 128);
+		PLSE EE 0 A_SpawnItemEx("RS_MiniSP1", random(-16, 16), random(-16, 16), random(8, 56), random(0, 3), random(0, 3), random(0, 3), random(0, 64));
 		Stop;
 	}
 }

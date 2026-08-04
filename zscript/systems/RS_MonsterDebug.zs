@@ -168,8 +168,14 @@ class RS_MonsterDebug : EventHandler
 			int before = m.Tier;
 			m.SetTier(want, false);
 			touched++;
+			// Report the label the monster ACTUALLY landed on. Clamping to
+			// a hardcoded 12 here used to lie about TEX and anything above
+			// it -- SetTier clamps to that family's own MaxTier(), so read
+			// the result back instead of re-deriving it.
 			if (touched <= 4)
-				Console.Printf("\cc  %s: T%02d -> T%02d", m.GetClassName(), before, clamp(want, 0, 12));
+				Console.Printf("\cc  %s: %s -> %s", m.GetClassName(),
+				               RS_MonsterMaster.TierLabel(before),
+				               RS_MonsterMaster.TierLabel(m.RS_DbgTargetTier()));
 		}
 
 		Console.Printf("\ccRS Retier: %d retiering, %d tier-locked.", touched, locked);
@@ -228,8 +234,11 @@ class RS_MonsterDebug : EventHandler
 			string body = m.RS_DbgBodyToken(m.Tier);
 			string tint = m.RS_DbgTintToken(m.Tier);
 
-			Console.Printf("\cw%s \ccT%02d  body=%s tint=%s  spr=%d frm=%d",
-				m.GetClassName(), m.Tier,
+			// TierLabel, not a raw %02d -- tier 13 must read "TEX", and
+			// anything above it reads T14/T15 without this needing to know
+			// how high the ladder currently goes.
+			Console.Printf("\cw%s \cc%s  body=%s tint=%s  spr=%d frm=%d",
+				m.GetClassName(), RS_MonsterMaster.TierLabel(m.Tier),
 				body.Length() > 0 ? body : "(none)",
 				tint.Length() > 0 ? tint : "(none)",
 				int(m.sprite), int(m.frame));

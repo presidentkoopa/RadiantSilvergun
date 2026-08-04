@@ -261,7 +261,7 @@ class RS_FatsoSpikes : Actor
 		Radius 12;
 		Height 12;
 		Speed 32;
-		Damage (random(28, 85));
+		DamageFunction (random(28, 85));
 		Projectile;
 		DamageType "Melee";
 		+NOGRAVITY
@@ -326,7 +326,7 @@ class RS_FatsoArmed3 : RS_FatsoArmed
 // ---------- T01 GREEN: the acid bomb ----------
 class RS_GreenBomb1 : Actor
 {
-	Default { Radius 8; Height 10; Speed 14; FastSpeed 16; Damage (random(20, 75)); DamageType "Plasma"; Projectile; +RANDOMIZE;
+	Default { Radius 8; Height 10; Speed 14; FastSpeed 16; DamageFunction (random(20, 75)); DamageType "Plasma"; Projectile; +RANDOMIZE;
 		RenderStyle "Add"; Alpha 1; Scale 1.6; SeeSound "spit/spit"; DeathSound "spit/spit2";
 		Translation "168:191=112:127","208:223=112:118","250:254=112:118","32:47=120:127","144:151=125:127"; }
 	States
@@ -349,7 +349,7 @@ class RS_Bluewave2 : Actor
 }
 class RS_Bluewave1 : Actor
 {
-	Default { Radius 16; Height 8; Speed 14; Damage (random(10, 69)); DamageType "Plasma"; Projectile; +RANDOMIZE;
+	Default { Radius 16; Height 8; Speed 14; DamageFunction (random(10, 69)); DamageType "Plasma"; Projectile; +RANDOMIZE;
 		RenderStyle "Add"; Alpha 0.65; Scale 0.75; YScale 0.4; SeeSound "fatso/attack"; DeathSound "weapons/bfgx";
 		Translation "112:127=192:207"; }
 	States
@@ -413,7 +413,7 @@ class RS_BlueFT3 : Actor
 }
 class RS_BlueFT2 : Actor
 {
-	Default { Radius 13; Height 8; Speed 50; Damage (random(10, 70)); DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 1.0; Scale 0.5;
+	Default { Radius 13; Height 8; Speed 50; DamageFunction (random(10, 70)); DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 1.0; Scale 0.5;
 		SeeSound "fatso/attack"; DeathSound "weapons/bfgx"; Translation "112:127=192:207"; }
 	States
 	{
@@ -436,7 +436,7 @@ class RS_BlueFT2 : Actor
 // ---------- T04 PURPLE: bouncing hex-bomb + its shrapnel ----------
 class RS_MiniFatsoPurpleBomb : Actor
 {
-	Default { Radius 4; Height 4; Speed 18; Scale 0.5; Damage (random(5, 20)); DamageType "Fire"; Projectile; +BOUNCEONWALLS;
+	Default { Radius 4; Height 4; Speed 18; Scale 0.5; DamageFunction (random(5, 20)); DamageType "Fire"; Projectile; +BOUNCEONWALLS;
 		RenderStyle "Add"; Alpha 0.75; BounceType "Hexen"; WallBounceFactor 0.7; BounceFactor 0.7; BounceCount 4;
 		BounceSound "Bomb/bounce"; SeeSound "imp/attack"; DeathSound "weapons/plasmax";
 		Translation "168:191=250:254","208:223=250:254"; }
@@ -453,7 +453,7 @@ class RS_MiniFatsoPurpleBomb : Actor
 }
 class RS_PurpleBomb1 : Actor
 {
-	Default { Radius 7; Height 7; Speed 18; FastSpeed 32; Mass 23; Gravity 0.3; Damage (random(10, 65)); DamageType "Fire";
+	Default { Radius 7; Height 7; Speed 18; FastSpeed 32; Mass 23; Gravity 0.3; DamageFunction (random(10, 65)); DamageType "Fire";
 		Projectile; -NOGRAVITY; +RANDOMIZE; +BOUNCEONFLOORS; +USEBOUNCESTATE; +EXPLODEONWATER;
 		RenderStyle "Add"; Alpha 0.88; BounceType "Hexen"; BounceCount 8; BounceFactor 1.25; WallBounceFactor 1.1; Scale 1;
 		SeeSound "caco/attack"; BounceSound "Bomb/bounce"; DeathSound "Bomb/boom"; Translation "168:191=250:254"; }
@@ -487,7 +487,7 @@ class RS_FatsoPuff3 : Actor
 // ---------- T07 FIREBLU: the fast little fireblu ball (CHP-only actor) ----------
 class RS_FireBluFatsoBall : FastProjectile
 {
-	Default { Radius 3; Height 3; Speed 45; Damage (random(10, 20)); DamageType "Plasma"; Projectile;
+	Default { Radius 3; Height 3; Speed 45; DamageFunction (random(10, 20)); DamageType "Plasma"; Projectile;
 		RenderStyle "Add"; Alpha 0.95; Scale 0.33; SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "208:223=195:207","225:231=192:195"; }
 	States { Spawn: BAL1 AB 4 Bright; Loop; Death: BAL1 CDE 6 Bright A_Explode(random(1, 7), 32); Stop; }
@@ -496,7 +496,7 @@ class RS_FireBluFatsoBall : FastProjectile
 // ---------- T08 BROWN: the bass soundwave and its afterimage ----------
 class RS_FatsoSoundWaveTrail : Actor
 {
-	Default { ProjectileKickBack 500; Radius 12; Height 6; Speed 56; Damage (random(10, 55)); DamageType "Plasma"; Projectile;
+	Default { ProjectileKickBack 500; Radius 12; Height 6; Speed 56; DamageFunction (random(10, 55)); DamageType "Plasma"; Projectile;
 		+MTHRUSPECIES; RenderStyle "Add"; Alpha 0.15; XScale 2.0; YScale 0.55; DeathSound "spit/spit2";
 		Translation "0:255=#[255,255,0]"; }
 	States
@@ -518,7 +518,7 @@ class RS_FatsoSoundWaveTrail : Actor
 }
 class RS_FatsoSoundWave : Actor
 {
-	Default { ProjectileKickBack 9001; Radius 12; Height 6; Speed 56; Damage (random(10, 55)); DamageType "Plasma"; Projectile;
+	Default { ProjectileKickBack 9001; Radius 12; Height 6; Speed 56; DamageFunction (random(10, 55)); DamageType "Plasma"; Projectile;
 		+MTHRUSPECIES; +DONTTHRUST; +DONTBLAST; RenderStyle "Add"; Alpha 0.33; XScale 2.1; YScale 0.65;
 		SeeSound "fatso/attack"; DeathSound "weapons/bfgx"; Translation "0:255=#[255,255,0]"; }
 	States
@@ -540,7 +540,7 @@ class RS_FatsoSoundWave : Actor
 // ---------- T12 WHITE: the railgun pair, the ground/air zaps, the nuke ----------
 class RS_WhiteFatRB : Actor
 {
-	Default { Radius 20; Height 20; Speed 1; Damage (random(30, 95)); DamageType "Plasma"; Projectile; +ALWAYSPUFF;
+	Default { Radius 20; Height 20; Speed 1; DamageFunction (random(30, 95)); DamageType "Plasma"; Projectile; +ALWAYSPUFF;
 		RenderStyle "Add"; Alpha 0.75; Scale 2.25; DeathSound "NETHERDE";
 		Translation "112:120=80:88","120:127=192:199","160:167=4:4","224:235=192:192","64:79=192:199","144:151=4:4","128:143=4:4"; }
 	States
@@ -558,7 +558,7 @@ class RS_WhiteFatRB : Actor
 }
 class RS_WhiteFatRB3 : Actor
 {
-	Default { Radius 20; Height 20; Speed 1; Damage (random(30, 95)); DamageType "Plasma"; Projectile; +ALWAYSPUFF;
+	Default { Radius 20; Height 20; Speed 1; DamageFunction (random(30, 95)); DamageType "Plasma"; Projectile; +ALWAYSPUFF;
 		RenderStyle "Add"; Alpha 0.75; Scale 1.33; DeathSound "NETHERDE";
 		Translation "112:120=80:88","120:127=192:199","160:167=4:4","224:235=192:192","64:79=192:199","144:151=4:4","128:143=4:4"; }
 	States
@@ -576,7 +576,7 @@ class RS_WhiteFatRB3 : Actor
 }
 class RS_WhiteFatRB2 : Actor
 {
-	Default { Radius 20; Height 20; Speed 11; Damage (random(30, 50)); DamageType "Plasma"; Projectile; Scale 2;
+	Default { Radius 20; Height 20; Speed 11; DamageFunction (random(30, 50)); DamageType "Plasma"; Projectile; Scale 2;
 		RenderStyle "Add"; Alpha 0.95; SeeSound "Spell/spellCast1"; DeathSound "Crack/death";
 		Translation "231:231=4:4","208:223=80:86","168:191=192:196","32:47=4:4","250:254=4:4"; }
 	States
@@ -597,7 +597,7 @@ class RS_WhiteFatRB2 : Actor
 }
 class RS_WhiteFatRB4 : Actor
 {
-	Default { Radius 20; Height 20; Speed 11; Damage (random(15, 30)); DamageType "Plasma"; Projectile; Scale 1.33;
+	Default { Radius 20; Height 20; Speed 11; DamageFunction (random(15, 30)); DamageType "Plasma"; Projectile; Scale 1.33;
 		RenderStyle "Add"; Alpha 0.95; SeeSound "Spell/spellCast1"; DeathSound "Crack/death";
 		Translation "231:231=4:4","208:223=80:86","168:191=192:196","32:47=4:4","250:254=4:4"; }
 	States
@@ -618,7 +618,7 @@ class RS_WhiteFatRB4 : Actor
 }
 class RS_WhiteFatsoGroundZap : Actor
 {
-	Default { Radius 12; Species "Fatso"; Height 16; Speed 18; Damage (random(10, 30)); DamageType "Plasma"; Projectile;
+	Default { Radius 12; Species "Fatso"; Height 16; Speed 18; DamageFunction (random(10, 30)); DamageType "Plasma"; Projectile;
 		+DONTHURTSPECIES; +DONTHARMCLASS; +THRUSPECIES; +FLOORHUGGER; RenderStyle "Add"; Alpha 1.0; Translation "Ice"; }
 	States
 	{
@@ -631,7 +631,7 @@ class RS_WhiteFatsoGroundZap : Actor
 }
 class RS_WhiteFatsoAirZap : Actor
 {
-	Default { Radius 8; Species "Fatso"; Height 8; Speed 17; Damage (random(1, 2)); DamageType "Plasma"; Projectile;
+	Default { Radius 8; Species "Fatso"; Height 8; Speed 17; DamageFunction (random(1, 2)); DamageType "Plasma"; Projectile;
 		+DONTHURTSPECIES; +DONTHARMCLASS; +SEEKERMISSILE; +THRUSPECIES; +RIPPER; RenderStyle "Add"; Alpha 1.0; Translation "Ice"; }
 	States
 	{

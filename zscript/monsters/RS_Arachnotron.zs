@@ -45,6 +45,19 @@
 //                                                     7000 HP the pool does not
 //                                                     widen -- it SWAPS to five
 //                                                     different ones
+//   T14   12_WX   CommonWhiteSpiderEX2   WSPX   9500  WHITE HOT SPIDER: range
+//                                                     bands pick the pattern,
+//                                                     lifts off to unload, and
+//                                                     below 5000 HP unlocks
+//                                                     KRAKATOA
+//   T15   12_W3   CommonWhiteSpider3     TRIT   4000  WHITE SPIDER OF TERROR:
+//                                                     the T12 body's next
+//                                                     stage; four patterns,
+//                                                     six below 2500 HP
+//
+// THE LADDER IS OPEN-ENDED (see RS_MonsterMaster): TEX/T14/T15 are simply
+// three more kinds of arachnotron above the thirteen CH colours, so
+// MaxTier() is raised to 15 rather than the base's 13.
 //
 // Tier stats are CHP's own Health/Speed/PainChance per file, applied
 // through TierData() as multipliers off the Default block.
@@ -108,6 +121,13 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 			case 12: hp = 10000; spd = 28; r.painChance = 32;  r.dmgMul = 3.0; break;
 			// TEX (13) -- 12_KX's own numbers, not an extrapolation.
 			case 13: hp = 12000; spd = 20; r.painChance = 24;  r.dmgMul = 3.5; break;
+			// T14/T15 -- absolute hand-assigned rows (r.hp / r.speed), which
+			// ApplyTier prefers over the multiplier path. CHP's numbers:
+			// 12_WX Health 9500 / Speed 22 / PainChance 32, and 12_W3
+			// Health 4000 with Speed 28 / PainChance 32 inherited from
+			// CommonWhiteSpider2 (the T12 body it is the next stage of).
+			case 14: r.hp = 9500; r.speed = 22; r.painChance = 32; r.dmgMul = 4.0; return true;
+			case 15: r.hp = 4000; r.speed = 28; r.painChance = 32; r.dmgMul = 4.5; return true;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 500.0;
@@ -115,19 +135,26 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 		return true;
 	}
 
+	// CHP ships three arachnotrons above the thirteen CH colours.
+	override int MaxTier() { return 15; }
+
 	// Audit data. Every entry is a real, distinct CHP sprite set --
 	// verified present in sprites/monsters/Arachnotron/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
-		return "BSPI BSPG BSPB BSCY CSPI ACNB ABSP BSPF ARAC CSPG BSP2 MSPI TRIT KSPX";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX  T14  T15
+		return "BSPI BSPG BSPB BSCY CSPI ACNB ABSP BSPF ARAC CSPG BSP2 MSPI TRIT KSPX WSPX TRIT";
 	}
 
 	// CHP gives every colour its own ARTWORK, so no palette remap is
-	// wanted -- a tint on top of bespoke art would corrupt it.
+	// wanted -- a tint on top of bespoke art would corrupt it. T15 re-wears
+	// T12's TRIT body and is the only tier that could have wanted a tint,
+	// but CHP distinguishes CommonWhiteSpider3 with Translation "0:0=0:0"
+	// -- an identity remap, i.e. no recolour at all. So "-" is correct, not
+	// a placeholder: T15 is deliberately the same white spider, one stage on.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -177,6 +204,14 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 		bFLOAT     = flies;
 		bNOGRAVITY = flies;
 		bFLOATBOB  = flies;
+
+		// TEX/T14/T15 all wear CHP's 56-unit chassis (Radius 56 in 12_KX,
+		// 12_WX and 12_W3). Their Spawn clusters set it too, for the same
+		// reason Spawn.T12 does; doing it here as well means a monster the
+		// dial pushes into one of them mid-fight gets the right hitbox
+		// without having to re-enter Spawn.
+		if (t >= 13)
+			A_SetSize(56, 64, true);
 	}
 
 	States
@@ -1453,5 +1488,490 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 		TNT1 A 3 { A_NoBlocking(); }
 		"ARA7" A -1 { A_BossDeath(); }
 		Stop;
+
+	// =================================================================
+	// T14 WHITE EX (12_WX) -- WSPX, 9500 HP. THE WHITE HOT SPIDER.
+	// The only arachnotron whose pattern is chosen by RANGE rather than
+	// by a flat roll: inside 250 it leans on webs, inside 2000 it opens
+	// the full midrange pool, beyond that it only has the long shots.
+	// It walks in a trail of fire, dodges and hops between attacks, and
+	// most patterns begin by LIFTING OFF (the RS hover-barrage) and end
+	// by landing again through Getdown.
+	//
+	// THE GATE: KRAKATOA is in the midrange roll from the start but
+	// refuses to fire above 5000 HP -- it bounces straight back into
+	// Basic. So the second half of the fight is not a wider roll, it is
+	// the same roll finally being allowed to land its biggest attack.
+	// =================================================================
+	Spawn.T14:
+		"WSPX" A 0 { A_SetSize(56, 64, true); }
+	Spawn.T14.Look:
+		"WSPX" AB 10 { A_Look(); }
+		Loop;
+	See.T14:
+		"WSPX" A 0 { A_SpawnItemEx("RS_FlaminFireAL9", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" ABCD 2 { A_Chase(); }
+		"WSPX" A 0 A_Jump(25, "See.T14.Dodger");
+		Loop;
+	See.T14.Dodger:
+		"WSPX" A 0 { A_SpawnItemEx("RS_FlaminFireAL9", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" ABCD 2 { A_FastChase(); }
+		"WSPX" A 0 { A_SpawnItemEx("RS_FlaminFireAL9", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" ABCD 2 { A_FastChase(); }
+		"WSPX" A 0 { A_SpawnItemEx("RS_FlaminFireAL9", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" ABCD 2 { A_FastChase(); }
+		"WSPX" A 0 { A_SpawnItemEx("RS_FlaminFireAL9", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" ABCD 2 { A_FastChase(); }
+		"WSPX" A 0 A_Jump(100, "See.T14.Jumpy");
+		Goto See;
+	// The hop: a backwards leap at a randomised angle, then a forward one.
+	See.T14.Jumpy:
+		"WSPX" A 0 { A_SpawnItemEx("RS_FlaminFireAL9", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" A 2 { A_FastChase(); }
+		"WSPX" B 1 { vel.z = 10.0; }
+		"WSPX" B 1 { Thrust(40.0, angle - randompick(130, 180, 230)); }
+		"WSPX" C 2;
+		"WSPX" D 1 { vel.z = 5.0; }
+		"WSPX" D 1 { Thrust(40.0, angle); }
+		Goto See;
+	Melee.T14:
+	Missile.T14:
+		"WSPX" C 0 { A_StartSound("WSPEXATK"); }
+		"WSPX" C 0 A_JumpIfCloser(250, "Missile.T14.CloseShot");
+		"WSPX" C 0 A_JumpIfCloser(2000, "Missile.T14.Midrange");
+		Goto Missile.T14.FarShot;
+	Missile.T14.Midrange:
+		"WSPX" C 0 A_Jump(96, "Missile.T14.Basic");
+		"WSPX" C 0 A_Jump(64, "Missile.T14.Spiders");
+		"WSPX" C 0 A_Jump(256, "Missile.T14.Flares", "Missile.T14.FireBombs", "Missile.T14.FlameBlast", "Missile.T14.Spiders", "Missile.T14.Webs", "Missile.T14.Krakatoa");
+		Goto See;
+	Missile.T14.CloseShot:
+		"WSPX" C 0 A_Jump(150, "Missile.T14.Webs");
+		Goto Missile.T14.Midrange;
+	Missile.T14.FarShot:
+		"WSPX" C 0 A_Jump(150, "Missile.T14.FlameBlast", "Missile.T14.Flares");
+		"WSPX" C 0 A_Jump(256, "Missile.T14.Spiders", "Missile.T14.Krakatoa");
+	// Landing. Every lift-off pattern comes back through here.
+	Missile.T14.Getdown:
+		"WSPX" C 0 { bFLOAT = false; bNOGRAVITY = false; }
+		"WSPX" C 12 Bright { bNOPAIN = false; }
+		"WSPX" C 0 A_Jump(96, "Missile.T14.Spiders");
+		Goto See;
+	Missile.T14.Basic:
+		"WSPX" C 2 Bright { A_FaceTarget(); }
+		// CHP lifts off here (FLOAT/NOGRAVITY/NOPAIN + ThrustThingZ 40 and a
+		// forward shove) -- the RS hover-barrage, spelled out.
+		"WSPX" C 0 { RS_HoverBarrage(); }
+		"WSPX" C 0 { bNOPAIN = true; }
+		"WSPX" C 1 Bright { vel.z = 5.0; }
+		"WSPX" C 1 Bright { Thrust(32.0, angle); }
+		"WSPX" CF 8 Bright { A_FaceTarget(); }
+		"WSPX" F 0 A_Jump(256, "Missile.T14.Basic1", "Missile.T14.Basic2", "Missile.T14.Basic4");
+	Missile.T14.Basic1:
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(-1, 1)); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(-12, 12)); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(3, 12)); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(-3, 3)); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(-12, -3)); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(-3, 3)); }
+		"WSPX" CC 8 Bright { A_FaceTarget(); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(-1, 1)); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(-12, 12)); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(3, 12)); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(-3, 3)); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(-12, -3)); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, random(-3, 3)); }
+		"WSPX" F 0 A_Jump(160, "Missile.T14.Basic2", "Missile.T14.Basic3", "Missile.T14.Basic4");
+		Goto Missile.T14.Getdown;
+	// Twenty bolts in one frame: three stacked rows at pitch +2 / -2 / 0.
+	Missile.T14.Basic2:
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 23, CMF_AIMOFFSET, 2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -23, CMF_AIMOFFSET, 2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 12, CMF_AIMOFFSET, 2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -12, CMF_AIMOFFSET, 2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 5, CMF_AIMOFFSET, 2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -5, CMF_AIMOFFSET, 2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 0, CMF_AIMOFFSET, 2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 23, CMF_AIMOFFSET, -2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -23, CMF_AIMOFFSET, -2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 12, CMF_AIMOFFSET, -2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -12, CMF_AIMOFFSET, -2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 5, CMF_AIMOFFSET, -2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -5, CMF_AIMOFFSET, -2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 0, CMF_AIMOFFSET, -2); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 29); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -29); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 15); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -15); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 6); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -6); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 0); }
+		"WSPX" F 0 A_Jump(160, "Missile.T14.Basic3");
+		Goto Missile.T14.Getdown;
+	Missile.T14.Basic3:
+		"WSPX" CC 8 Bright { A_FaceTarget(); }
+		"WSPX" F 0 A_CheckSight("Missile.T14.Getdown");
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 22, 10, 0); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 22, -10, 0); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 62, 10, 0); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 62, -10, 0); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, 20, 0); }
+		"WSPX" F 0 { A_SpawnProjectile("RS_BoilBoltL9", 42, -20, 0); }
+		"WSPX" F 2 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 0); }
+		Goto Missile.T14.Getdown;
+	Missile.T14.Basic4B:
+		"WSPX" AA 8 Bright { A_FaceTarget(); }
+	// The sweep, left to right; Basic5 is the same thing backwards and the
+	// two can chain into each other indefinitely.
+	Missile.T14.Basic4:
+		"WSPX" F 0 A_CheckSight("Missile.T14.Getdown");
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -15); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -11); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -7); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -3); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -1); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 1); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 3); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 7); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 11); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 15); }
+		"WSPX" F 0 A_Jump(160, "Missile.T14.Basic5");
+		Goto Missile.T14.Getdown;
+	Missile.T14.Basic5:
+		"WSPX" CC 8 Bright { A_FaceTarget(); }
+		"WSPX" F 0 A_CheckSight("Missile.T14.Getdown");
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 15); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 11); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 7); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 3); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, 1); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -1); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -3); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -7); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -11); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_BoilBoltL9", 42, 0, -15); }
+		"WSPX" F 0 A_Jump(96, "Missile.T14.Basic4B");
+		Goto Missile.T14.Getdown;
+	// Flares: scattered from the shoulders, re-firing on A_SpidRefire, so it
+	// keeps going for as long as it can see you.
+	Missile.T14.Flares:
+		"WSPX" C 8 Bright { A_FaceTarget(); }
+	Missile.T14.FlaresLoop:
+		"WSPX" E 2 Bright { A_SpawnProjectile("RS_WhiteHotFlareL9", 42, random(-24, 24), random(-1, 1)); }
+		"WSPX" EE 1 Bright { A_SpawnProjectile("RS_WhiteHotFlareL9", 42, random(-24, 24), random(-8, 8)); }
+		"WSPX" C 4 Bright { A_FaceTarget(); }
+		"WSPX" EE 1 Bright { A_SpawnProjectile("RS_WhiteHotFlareL9", 42, random(-24, 24), random(-20, 20)); }
+		"WSPX" E 2 Bright { A_SpawnProjectile("RS_WhiteHotFlareL9", 42, random(-24, 24), random(-1, 1)); }
+		"WSPX" EE 1 Bright { A_SpawnProjectile("RS_WhiteHotFlareL9", 42, random(-24, 24), random(-8, 8)); }
+		"WSPX" EE 1 Bright { A_SpawnProjectile("RS_WhiteHotFlareL9", 42, random(-24, 24), random(-20, 20)); }
+		"WSPX" C 4 Bright { A_FaceTarget(); }
+		"WSPX" E 2 Bright { A_SpawnProjectile("RS_WhiteHotFlareL9", 42, random(-24, 24), random(-1, 1)); }
+		"WSPX" EE 1 Bright { A_SpawnProjectile("RS_WhiteHotFlareL9", 42, random(-24, 24), random(-20, 20)); }
+		"WSPX" C 8 Bright { A_FaceTarget(); }
+		"WSPX" C 0 A_Jump(32, "Missile.T14.Webs");
+		"WSPX" C 0 { A_SpidRefire(); }
+		Goto Missile.T14.FlaresLoop;
+	// Firebombs: lobbed with pitch, so they arc over cover.
+	Missile.T14.FireBombs:
+		"WSPX" C 8 Bright { A_FaceTarget(); }
+	Missile.T14.FireBombsLoop:
+		"WSPX" EEE 0 { A_SpawnProjectile("RS_FireBombL9", random(32, 52), random(-24, 24), random(-9, 9), CMF_AIMOFFSET, random(-4, 28)); }
+		"WSPX" EE 2 Bright { A_SpawnProjectile("RS_FireBombL9", random(32, 52), random(-24, 24), random(-30, 30), CMF_AIMOFFSET, random(-4, 28)); }
+		"WSPX" C 4 Bright { A_FaceTarget(); }
+		"WSPX" EEE 0 { A_SpawnProjectile("RS_FireBombL9", random(32, 52), random(-24, 24), random(-9, 9), CMF_AIMOFFSET, random(-4, 28)); }
+		"WSPX" EE 2 Bright { A_SpawnProjectile("RS_FireBombL9", random(32, 52), random(-24, 24), random(-30, 30), CMF_AIMOFFSET, random(-4, 28)); }
+		"WSPX" EEE 0 { A_SpawnProjectile("RS_FireBombL9", random(32, 52), random(-24, 24), random(-9, 9), CMF_AIMOFFSET, random(-4, 28)); }
+		"WSPX" EE 2 Bright { A_SpawnProjectile("RS_FireBombL9", random(32, 52), random(-24, 24), random(-30, 30), CMF_AIMOFFSET, random(-4, 28)); }
+		"WSPX" C 4 Bright { A_FaceTarget(); }
+		"WSPX" EEE 0 { A_SpawnProjectile("RS_FireBombL9", random(32, 52), random(-24, 24), random(-9, 9), CMF_AIMOFFSET, random(-4, 28)); }
+		"WSPX" EE 2 Bright { A_SpawnProjectile("RS_FireBombL9", random(32, 52), random(-24, 24), random(-30, 30), CMF_AIMOFFSET, random(-4, 28)); }
+		"WSPX" C 8 Bright { A_FaceTarget(); }
+		"WSPX" C 0 A_JumpIfCloser(2000, "Missile.T14.FireBombsAgain");
+		Goto Missile.T14.FarShot;
+	Missile.T14.FireBombsAgain:
+		"WSPX" C 0 A_Jump(32, "Missile.T14.Webs");
+		"WSPX" C 0 { A_SpidRefire(); }
+		Goto Missile.T14.FireBombsLoop;
+	Missile.T14.FlameBlast:
+		"WSPX" C 8 Bright { A_FaceTarget(); }
+		"WSPX" EEEEEEEE 2 Bright { A_SpawnProjectile("RS_HSFlameBlast", 42, 0, frandom(-2.0, 2.0)); }
+		Goto See;
+	Missile.T14.Spiders:
+		"WSPX" C 8 Bright { A_FaceTarget(); }
+		"WSPX" E 1 Bright { A_FaceTarget(); }
+		"WSPX" E 5 Bright { A_SpawnProjectile("RS_SPWHIL9", 42, 0, random(-1, 1)); }
+		"WSPX" E 0 { A_SpawnProjectile("RS_SPWHIL9", 42, 0, random(3, 12)); }
+		"WSPX" E 0 { A_SpawnProjectile("RS_SPWHIL9", 42, 0, random(-12, -3)); }
+		"WSPX" F 1 Bright { A_FaceTarget(); }
+		"WSPX" F 5 Bright { A_SpawnProjectile("RS_SPWHIL9", 42, 0, random(-7, 7)); }
+		"WSPX" F 3 Bright { A_SpawnProjectile("RS_SPWHIL9", 42, 0, random(-17, 17)); }
+		"WSPX" F 1 Bright { A_SpawnProjectile("RS_SPWHIL9", 42, 0, random(-12, 12)); }
+		"WSPX" F 0 A_Jump(96, "Missile.T14.Webs");
+		Goto See;
+	Missile.T14.Webs:
+		"WSPX" C 2 Bright { A_FaceTarget(); }
+		"WSPX" E 5 Bright { A_FaceTarget(); }
+		"WSPX" EEE 2 Bright { A_SpawnProjectile("RS_WhiteSpiderWebShot", 42, 0, random(-1, 1)); }
+		"WSPX" E 5 Bright { A_FaceTarget(); }
+		"WSPX" EEE 2 Bright { A_SpawnProjectile("RS_WhiteSpiderWebShot", 42, 0, random(-20, 20)); }
+		"WSPX" E 5 Bright { A_FaceTarget(); }
+		"WSPX" EEE 2 Bright { A_SpawnProjectile("RS_WhiteSpiderWebShot", 42, 0, randompick(-18, -12, 12, 18)); }
+		"WSPX" FC 6 Bright;
+		"WSPX" C 0 A_Jump(192, "Missile.T14.Midrange");
+		Goto See;
+	// THE GATE -- 5000 of 9500. Above it, KRAKATOA refuses and falls back
+	// to Basic; below it, the spider goes NOPAIN, opens two burning eyes as
+	// the tell, and pours twenty krakatoa rounds downrange.
+	Missile.T14.Krakatoa:
+		"WSPX" C 0 A_JumpIfHealthLower(5000, "Missile.T14.KrakatoaGo");
+		Goto Missile.T14.Basic;
+	Missile.T14.KrakatoaGo:
+		"WSPX" C 0 { bNOPAIN = true; }
+		"WSPX" C 0 { A_StartSound("WSPEXATK", CHAN_BODY, 0, 1.0, ATTN_NONE); }
+		"WSPX" C 10 { A_FaceTarget(); }
+		TNT1 A 0 { A_StartSound("SPMDING", CHAN_5, 0, 1.0, ATTN_NONE); }
+		TNT1 A 0 { A_SpawnItemEx("RS_SuperEye02", 4, 0, 28, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 0 { A_SpawnItemEx("RS_SuperEye02", 4, -8, 28, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" CCCF 10 { A_FaceTarget(); }
+		"WSPX" FFFFF 2 Bright { A_SpawnProjectile("RS_KrakatoaL9", 42, 0, 0); }
+		"WSPX" F 0 { A_FaceTarget(); }
+		"WSPX" FFFFF 2 Bright { A_SpawnProjectile("RS_KrakatoaL9", 42, 0, 0); }
+		"WSPX" F 0 { A_FaceTarget(); }
+		"WSPX" FFFFF 2 Bright { A_SpawnProjectile("RS_KrakatoaL9", 42, 0, 0); }
+		"WSPX" F 0 { A_FaceTarget(); }
+		"WSPX" FFFFF 2 Bright { A_SpawnProjectile("RS_KrakatoaL9", 42, 0, 0); }
+		"WSPX" FC 10 { A_FaceTarget(); }
+		"WSPX" C 0 { bNOPAIN = false; }
+		Goto See;
+	Pain.T14:
+		"WSPX" C 3;
+		"WSPX" C 3 { A_Pain(); }
+		"WSPX" C 0 A_Jump(88, "Pain.T14.Woa");
+		Goto See;
+	// Fire barely registers on something made of it.
+	Pain.T14.Fire:
+		"WSPX" C 3 { A_StartSound("ResistCH", 7); }
+		Goto See;
+	// The flinch that turns into a retreat, and can end in a hop.
+	Pain.T14.Woa:
+		"WSPX" A 0 { A_SpawnItemEx("RS_FlaminFireAL9", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" ABCDABCD 1 { A_Wander(); }
+		"WSPX" A 0 { A_SpawnItemEx("RS_FlaminFireAL9", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" ABCDABCD 1 { A_Wander(); }
+		"WSPX" A 0 { A_SpawnItemEx("RS_FlaminFireAL9", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" ABCDABCD 1 { A_Wander(); }
+		"WSPX" A 0 { A_SpawnItemEx("RS_FlaminFireAL9", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"WSPX" ABCDABCD 1 { A_Wander(); }
+		"WSPX" A 0 A_Jump(100, "See.T14.Jumpy");
+		Goto See;
+	Death.T14:
+		TNT1 A 0 { A_SetScale(1.62, 1.125); }
+		"WSPX" G 20 Bright { A_Scream(); }
+		"WSPX" H 5 { A_Explode(50, 200); }
+		"WSPX" IJKL 5 Bright { A_Explode(50, 200); }
+		"WSPX" MN 5 { A_NoBlocking(false); }
+		"WSPX" OOOO 8 { A_SpawnItemEx("RS_BigBadFire1", random(-120, 120), random(-120, 120)); }
+		"WSPX" O 0 { A_NoBlocking(); }
+		"WSPX" O -1;
+		Stop;
+	XDeath.T14:
+		Goto Death.T14;
+
+	// =================================================================
+	// T15 WHITE 3 (12_W3) -- TRIT, 4000 HP. THE WHITE SPIDER OF TERROR.
+	// CHP's CommonWhiteSpider3 is literally the next stage of T12's
+	// CommonWhiteSpider2: same body, 4000 HP instead of 10000, and a
+	// tightened kit. Four patterns while healthy.
+	//
+	// THE GATE: below 2500 HP it turns on MISSILEEVENMORE -- it stops
+	// pausing between attacks entirely -- and the roll widens from four
+	// to six, adding the charged railgun and the egg-laying run.
+	// =================================================================
+	Spawn.T15:
+		"TRIT" A 0 { A_SetSize(56, 64, true); }
+	Spawn.T15.Look:
+		"TRIT" AB 10 { A_Look(); }
+		Loop;
+	See.T15:
+		TNT1 A 0 { bFLOAT = false; bNOGRAVITY = false; bNOPAIN = false; }
+		"TRIT" AABBCCDD 3 { A_Chase(); }
+		Loop;
+	Missile.T15:
+		"TRIT" A 0 A_JumpIfHealthLower(2500, "Missile.T15.Set2");
+		"TRIT" A 0 A_Jump(256, "Missile.T15.Atk1", "Missile.T15.Web", "Missile.T15.Atk567", "Missile.T15.Atk8");
+		Goto See;
+	Missile.T15.Set2:
+		"TRIT" A 0 { bMISSILEEVENMORE = true; }
+		"TRIT" A 0 A_Jump(256, "Missile.T15.Atk1", "Missile.T15.Atk2", "Missile.T15.Atk3", "Missile.T15.Web", "Missile.T15.Atk567", "Missile.T15.Atk8");
+		Goto See;
+	Missile.T15.Web:
+		"TRIT" A 2 Bright;
+		"TRIT" E 6 Bright { A_FaceTarget(); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderWebShot", 42, 0, random(-1, 1)); }
+		"TRIT" E 6 Bright { A_FaceTarget(); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderWebShot", 42, 0, randompick(-18, -12, 12, 18)); }
+		"TRIT" F 6 Bright { A_FaceTarget(); }
+		"TRIT" A 6 Bright;
+		TNT1 A 0 A_Jump(96, "Missile.T15.Atk8");
+		Goto See;
+	// The hover storm: twelve plasma bolts in two bursts while airborne.
+	Missile.T15.Atk1:
+		"TRIT" A 2 Bright { A_FaceTarget(); }
+		"TRIT" I 0 { RS_HoverBarrage(); }
+		"TRIT" I 0 { bNOPAIN = true; }
+		"TRIT" A 1 Bright { vel.z = 5.0; }
+		"TRIT" A 1 Bright { Thrust(32.0, angle); }
+		"TRIT" EF 8 Bright;
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-1, 1)); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-12, 12)); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(3, 12)); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-3, 3)); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-12, -3)); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-3, 3)); }
+		"TRIT" F 20 Bright { A_FaceTarget(); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-1, 1)); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-12, 12)); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(3, 12)); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-3, 3)); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-12, -3)); }
+		"TRIT" E 3 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-3, 3)); }
+		"TRIT" I 0 { bFLOAT = false; bNOGRAVITY = false; }
+		"TRIT" F 18 Bright { bNOPAIN = false; }
+		TNT1 A 0 A_Jump(96, "Missile.T15.Web", "Missile.T15.Atk8");
+		Goto See;
+	// SET2 ONLY. Three aiming lasers, then the charged shot. At knife range
+	// it abandons the wind-up and vents slime instead.
+	Missile.T15.Atk2:
+		TNT1 A 0 A_JumpIfCloser(400, "Missile.T15.Atk4", true);
+		"TRIT" A 2 Bright;
+		"TRIT" E 12 Bright { A_FaceTarget(); }
+		"TRIT" E 6 Bright { A_CustomRailgun(0, 0, 0, Color(255, 255, 255), RGF_FULLBRIGHT | RGF_SILENT, 0, 0, "RS_RedDotSGPuff", 0, 0, 0, 15, 0.5, 0.5, "RS_NothinPuff", -12); }
+		"TRIT" E 12 Bright { A_StartSound("SHARPST1", 7, 0, 2.0, ATTN_NONE); }
+		"TRIT" E 12 Bright { A_FaceTarget(); }
+		"TRIT" E 6 Bright { A_CustomRailgun(0, 0, 0, Color(255, 255, 255), RGF_FULLBRIGHT | RGF_SILENT, 0, 0, "RS_RedDotSGPuff", 0, 0, 0, 15, 0.5, 0.5, "RS_NothinPuff", -12); }
+		"TRIT" E 12 Bright { A_CustomRailgun(0, 0, 0, Color(255, 255, 255), RGF_FULLBRIGHT | RGF_SILENT, 0, 0, "RS_RedDotSGPuff", 0, 0, 0, 15, 0.5, 0.5, "RS_NothinPuff", -12); }
+		"TRIT" E 0 { A_StartSound("weapons/railgf"); }
+		"TRIT" E 12 Bright { A_CustomRailgun(random(40, 90), 0, Color(255, 255, 255), Color(255, 255, 255), RGF_NOPIERCING | RGF_SILENT, 1, 0, "RS_WhiteFatRB", 0, 0, 0, 0, 0.4, 1.0, "RS_WhiteFatRB2", 0); }
+		TNT1 A 0 { A_SpawnItemEx("RS_AbyssSPShoot", 12, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"TRIT" EE 16 Bright;
+		"TRIT" A 2 Bright { A_StartSound("kawai/sight", 0); }
+		Goto See;
+	// SET2 ONLY. The egg run: NOPAIN, speed 60, wander, lay, repeat.
+	Missile.T15.Atk3:
+		TNT1 A 0 { bNOPAIN = true; }
+		TNT1 A 0 { A_SetSpeed(60); }
+		"TRIT" AAA 3 Bright { A_Wander(); }
+		"TRIT" AAAAAAAAAA 1 Bright { A_Wander(); }
+		"TRIT" E 1 Bright { A_FaceTarget(); }
+		"TRIT" EEE 2 Bright { A_PainAttack("RS_WhiteSpidegg"); }
+		"TRIT" AAA 3 Bright { A_Wander(); }
+		"TRIT" AAAAAAAAAA 1 Bright { A_Wander(); }
+		"TRIT" F 1 Bright { A_FaceTarget(); }
+		"TRIT" EEE 2 Bright { A_PainAttack("RS_WhiteSpidegg"); }
+		"TRIT" F 3 Bright;
+		"TRIT" FFF 1 Bright { A_PainAttack("RS_WhiteSpidegg"); }
+		"TRIT" AAA 3 Bright { A_Wander(); }
+		"TRIT" AAAAAAAAAA 1 Bright { A_Wander(); }
+		TNT1 A 0 { A_SetSpeed(28); }
+		TNT1 A 0 { bNOPAIN = false; }
+		TNT1 A 0 A_Jump(96, "Missile.T15.Web", "Missile.T15.Atk8");
+		Goto See;
+	// Point-blank slime vent -- ten arcing balls, only reachable from Atk2.
+	Missile.T15.Atk4:
+		"TRIT" A 2 Bright;
+		"TRIT" E 8 Bright { A_FaceTarget(); }
+		"TRIT" F 0 { A_SpawnProjectile("RS_SlimeBall1", 40, 0, random(-10, 10), CMF_AIMDIRECTION, random(10, 20)); }
+		"TRIT" F 0 { A_SpawnProjectile("RS_SlimeBall2", 40, 0, random(-10, 10), CMF_AIMDIRECTION, random(10, 20)); }
+		"TRIT" F 0 { A_SpawnProjectile("RS_SlimeBall3", 40, 0, random(-10, 10), CMF_AIMDIRECTION, random(10, 20)); }
+		"TRIT" F 0 { A_SpawnProjectile("RS_SlimeBall4", 40, 0, random(-10, 10), CMF_AIMDIRECTION, random(10, 20)); }
+		"TRIT" F 0 { A_SpawnProjectile("RS_SlimeBall5", 40, 0, random(-10, 10), CMF_AIMDIRECTION, random(10, 20)); }
+		"TRIT" F 0 { A_SpawnProjectile("RS_SlimeBall1", 40, 0, random(-12, -10), CMF_AIMDIRECTION, random(13, 30)); }
+		"TRIT" F 0 { A_SpawnProjectile("RS_SlimeBall2", 40, 0, random(-10, -8), CMF_AIMDIRECTION, random(13, 30)); }
+		"TRIT" F 0 { A_SpawnProjectile("RS_SlimeBall3", 40, 0, random(-10, 10), CMF_AIMDIRECTION, random(13, 30)); }
+		"TRIT" F 0 { A_SpawnProjectile("RS_SlimeBall4", 40, 0, random(8, 10), CMF_AIMDIRECTION, random(13, 30)); }
+		"TRIT" F 0 { A_SpawnProjectile("RS_SlimeBall5", 40, 0, random(10, 12), CMF_AIMDIRECTION, random(13, 30)); }
+		"TRIT" F 6 Bright { A_FaceTarget(); }
+		"TRIT" A 6 Bright;
+		TNT1 A 0 A_Jump(96, "Missile.T15.Web", "Missile.T15.Atk8");
+		Goto See;
+	Missile.T15.Atk567:
+		"TRIT" A 0 A_Jump(256, "Missile.T15.Atk5", "Missile.T15.Atk6", "Missile.T15.Atk7");
+		Goto See;
+	Missile.T15.Atk5:
+		"TRIT" E 4 Bright;
+		"TRIT" F 4 Bright { A_FaceTarget(); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-1, 1)); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-3, 3)); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-5, 5)); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-7, 7)); }
+		TNT1 A 0 A_Jump(96, "Missile.T15.Web", "Missile.T15.Atk8");
+		"TRIT" F 20 Bright { A_FaceTarget(); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-1, 1)); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-2, 2)); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-3, 3)); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-1, 1)); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-2, 2)); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, random(-3, 3)); }
+		TNT1 A 0 A_Jump(96, "Missile.T15.Web", "Missile.T15.Atk8");
+		Goto See;
+	Missile.T15.Atk6:
+		"TRIT" E 4 Bright;
+		"TRIT" F 6 Bright { A_FaceTarget(); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, -15); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, -11); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, -7); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, -3); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, -1); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, 1); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, 3); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, 7); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, 11); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, 15); }
+		TNT1 A 0 A_Jump(160, "Missile.T15.Atk7");
+		TNT1 A 0 A_Jump(96, "Missile.T15.Web", "Missile.T15.Atk8");
+		Goto See;
+	Missile.T15.Atk7:
+		"TRIT" E 4 Bright;
+		"TRIT" F 6 Bright { A_FaceTarget(); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, 15); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, 11); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, 7); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, 3); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, 1); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, -1); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, -3); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, -7); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, -11); }
+		"TRIT" E 2 Bright { A_SpawnProjectile("RS_WhiteSpiderPBolt", 42, 0, -15); }
+		TNT1 A 0 A_Jump(160, "Missile.T15.Atk6");
+		TNT1 A 0 A_Jump(96, "Missile.T15.Web", "Missile.T15.Atk8");
+		Goto See;
+	// The spider-shot: seven seeking rounds, each of which hatches a tiny
+	// white spider wherever it lands.
+	Missile.T15.Atk8:
+		"TRIT" A 8 Bright { A_FaceTarget(); }
+		"TRIT" E 1 Bright { A_FaceTarget(); }
+		"TRIT" E 5 Bright { A_SpawnProjectile("RS_SPWHI4", 42, 0, random(-1, 1)); }
+		"TRIT" E 0 { A_SpawnProjectile("RS_SPWHI4", 42, 0, random(3, 12)); }
+		"TRIT" E 0 { A_SpawnProjectile("RS_SPWHI4", 42, 0, random(-12, -3)); }
+		"TRIT" F 1 Bright { A_FaceTarget(); }
+		"TRIT" F 5 Bright { A_SpawnProjectile("RS_SPWHI4", 42, 0, random(-7, 7)); }
+		"TRIT" F 3 Bright { A_SpawnProjectile("RS_SPWHI4", 42, 0, random(-17, 17)); }
+		"TRIT" F 1 Bright { A_SpawnProjectile("RS_SPWHI4", 42, 0, random(-12, 12)); }
+		TNT1 A 0 A_Jump(96, "Missile.T15.Web");
+		Goto See;
+	Pain.T15:
+		"TRIT" F 3;
+		"TRIT" F 6 { A_Pain(); }
+		Goto See;
+	Death.T15:
+		"TRIT" G 12 { A_ScreamAndUnblock(); }
+		"TRIT" HIJ 10;
+		"TRIT" H 0 { A_BossDeath(); }
+		MISL XYZ 10;
+		TNT1 A -1;
+		Stop;
+	XDeath.T15:
+		Goto Death.T15;
 	}
 }

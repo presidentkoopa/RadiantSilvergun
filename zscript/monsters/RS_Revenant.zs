@@ -32,9 +32,24 @@
 //                            the first time (see the chain below)
 //   T12   08_W  REVW  8866   THE LICH: death coils, ice bolts, frost
 //                            mines, ground channels, and it summons
+//   TEX   08_KX DKNT  7500   THE BLACK KNIGHT UNLEASHED: the T11 knight
+//                            with a range-split roster -- a nine-dart
+//                            cleave, four looping mines, a 32-shot shield
+//                            blast, a grapple hook, and a pain answer that
+//                            raises BOTH shield discs. Dies into the same
+//                            shade chain, at CHP's EX3/EX4 numbers.
 //
 // Tier stats come from CHP's own Health/Speed/PainChance per file and are
 // applied through TierData below, replacing the generic ladder.
+//
+// TEX SOURCE: CHP 08_KX.txt, ACTOR CommonBlackRevenantEX2 (the first
+// actor in the file), parent CH Revenants.txt BlackRevenantEX for the
+// properties CHP does not restate.
+//
+// TEX CHP properties with no TierData channel, recorded rather than
+// silently dropped: MeleeRange 80, Mass 3000, Scale 1.2,
+// RadiusDamageFactor 0.33 and the Fire/Poison/Ice damage factors.
+// The row carries Health / Speed / PainChance / damage only.
 //
 // Where CHP left something undefined it came from the CH parent:
 //   T09 PainChance <- CH Revenants.txt GrayRevenant2, which sets no
@@ -115,6 +130,8 @@ class RS_Revenant : RS_MonsterMaster replaces Revenant
 			case 10: hp = 830;  spd = 14; r.painChance = 22;  r.dmgMul = 1.9; break;
 			case 11: hp = 4500; spd = 10; r.painChance = 64;  r.dmgMul = 2.6; break;
 			case 12: hp = 8866; spd = 23; r.painChance = 255; r.dmgMul = 3.2; break;
+			// TEX -- CHP 08_KX CommonBlackRevenantEX2's own numbers.
+			case 13: hp = 7500; spd = 14; r.painChance = 32;  r.dmgMul = 4.0; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 300.0;
@@ -125,14 +142,16 @@ class RS_Revenant : RS_MonsterMaster replaces Revenant
 	// Audit data. Every entry is a real, distinct CHP sprite set.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "SKEL REVG SKEB SREV REVP REVN REVA REVF INCA ZKEL RASK DKNT REVW";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		// TEX wears DKNT too -- CHP's EX knight is the T11 knight, not a
+		// new sprite set. The same token twice is correct.
+		return "SKEL REVG SKEB SREV REVP REVN REVA REVF INCA ZKEL RASK DKNT REVW DKNT";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -1232,6 +1251,159 @@ class RS_Revenant : RS_MonsterMaster replaces Revenant
 		"REVW" M 3 { A_SetFloorClip(); }
 		"REVW" MMMM 3 { A_FadeOut(0.25); }
 		Stop;
+
+	// ============ TEX BLACK EX -- THE BLACK KNIGHT UNLEASHED (08_KX) ============
+	// The T11 knight with everything it was holding back. Same DKNT body,
+	// same three openers, but the roster splits on range: outside 1000 it
+	// picks dart cleave / shield blast / dash, inside 1000 it picks dart
+	// cleave / mines / dash / GRAPPLE. Both mine and melee chains can
+	// re-enter themselves, so a bad read compounds.
+	//
+	// What is genuinely new over T11:
+	//   * the GRAPPLE (RS_BlackRevHook) -- a 42-speed melee-typed hook,
+	//     and Melee itself has a 50% chance of ending in a second one;
+	//   * ShieldBlast -- thirty-two RS_ShieldBombRev before the blast;
+	//   * a NINE-dart cleave instead of five;
+	//   * FOUR mines instead of two, on a re-entry loop;
+	//   * the standing shield answer on pain now raises BOTH discs
+	//     (RS_RevShieldWalk on master, RS_RevShieldWalk2 orbiting target);
+	//   * a black smear on every stride so you are always shooting where
+	//     it was.
+	//
+	// Its death is a phase change, not an end: DeathMorphClass already
+	// carries any Tier >= 11 knight into RS_RevenantShade, which brings
+	// RS_RevenantShadow with it. That is CHP's own EX3 -> EX4 chain
+	// (08_KX CommonBlackRevenantEX3 spawns CommonBlackRevenantEX4), so
+	// the two inline A_SpawnItemEx calls in CHP's Death are not repeated
+	// here -- see the TEX rows on those two classes at the bottom of this
+	// file, which carry EX3's and EX4's real numbers.
+	Spawn.TEX:
+		"DKNT" AB 10 { A_Look(); }
+		Loop;
+	See.TEX:
+		"DKNT" AA 3 { A_Chase(); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BlackRevShade", -2, 0, 12, 1, 0, -0.5, 0, SXF_NOCHECKPOSITION); }
+		"DKNT" BB 3 { A_Chase(); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BlackRevShade", -2, 0, 12, 1, 0, -0.5, 0, SXF_NOCHECKPOSITION); }
+		"DKNT" CC 3 { A_Chase(); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BlackRevShade", -2, 0, 12, 0, 0, -0.5, 0, SXF_NOCHECKPOSITION); }
+		"DKNT" DD 3 { A_Chase(); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BlackRevShade", -2, 0, 12, 1, 0, -0.5, 0, SXF_NOCHECKPOSITION); }
+		Loop;
+	See.TEX.Shielded:
+		TNT1 A 0 { A_SpawnItemEx("RS_RevShieldWalk2", 0, 4, 8, 0, 0, 0, 0, SXF_SETTARGET); }
+		TNT1 A 0 { A_SpawnItemEx("RS_RevShieldWalk", 0, 4, 8, 0, 0, 0, 0, SXF_SETMASTER); }
+		"DKNT" PPQQRRSS 3 { A_Chase(); }
+		Goto See;
+	Melee.TEX:
+		"DKNT" E 3 { A_FaceTarget(); }
+		"DKNT" F 1 { A_StartSound("monster/dknswg", CHAN_WEAPON); }
+		"DKNT" F 4 { A_FaceTarget(); }
+		"DKNT" G 4 { A_CustomMeleeAttack(random(50, 140)); }
+		TNT1 A 0 { A_StartSound("BKFuKINV", CHAN_BODY, 0, 4.0); }
+		"DKNT" G 4;
+		"DKNT" U 0 A_Jump(128, "Missile.TEX.Grap2");
+		Goto See;
+	Missile.TEX:
+		TNT1 A 0 { A_KillChildren("Extreme", KILS_FOILINVUL); }
+		"DKNT" A 0 { A_StartSound("BK/invi", CHAN_BODY, 0, 4.0); }
+		TNT1 A 0 A_JumpIfCloser(1000, "Missile.TEX.Choice2");
+		"DKNT" A 0 A_Jump(256, "Missile.TEX.DartCleave", "Missile.TEX.ShieldBlast", "Missile.TEX.Dash");
+		Goto See;
+	// The close-range roster. Note the swap: no shield blast, but the
+	// grapple is on the table.
+	Missile.TEX.Choice2:
+		"DKNT" A 0 A_Jump(256, "Missile.TEX.DartCleave", "Missile.TEX.Mines", "Missile.TEX.Dash", "Missile.TEX.Grap");
+		Goto See;
+	Missile.TEX.ShieldBlast:
+		"DKNT" PT 10 Bright { A_FaceTarget(); }
+		"DKNT" U 2 Bright;
+		TNT1 AAAAAAAA 0 { A_SpawnProjectile("RS_ShieldBombRev", random(32, 56), 0, random(-7, 7), 0); }
+		"DKNT" UUUUUUUU 1 { A_SpawnProjectile("RS_ShieldBombRev", random(32, 56), 0, random(-7, 7), 0); }
+		TNT1 AAAAAAAA 0 { A_SpawnProjectile("RS_ShieldBombRev", random(32, 56), 0, random(-7, 7), 0); }
+		"DKNT" UUUUUUUU 1 { A_SpawnProjectile("RS_ShieldBombRev", random(32, 56), 0, random(-7, 7), 0); }
+		"DKNT" U 8 Bright { A_SpawnProjectile("RS_ShieldBlastRev", 44, 0, 0, 0); }
+		Goto See;
+	Missile.TEX.Grap:
+		"DKNT" PTU 3 Bright { A_FaceTarget(); }
+		"DKNT" U 3 Bright { A_SpawnProjectile("RS_BlackRevHook", 44, 0, 0, 0); }
+		"DKNT" T 3;
+		"DKNT" P 2;
+		Goto See;
+	// The follow-up hook, thrown off-axis so it cannot be walked straight
+	// out of. Reached from Melee and from the mine loop.
+	Missile.TEX.Grap2:
+		"DKNT" PTU 3 Bright { A_FaceTarget(); }
+		"DKNT" U 3 Bright { A_SpawnProjectile("RS_BlackRevHook", 44, 0, random(-13, 13), 0); }
+		"DKNT" T 3;
+		"DKNT" P 2;
+		Goto See;
+	Missile.TEX.DartCleave:
+		"DKNT" E 9 Bright { A_FaceTarget(); }
+		"DKNT" F 8 Bright { A_StartSound("monster/kntswg", CHAN_WEAPON); }
+		"DKNT" G 0 { A_SpawnProjectile("RS_DKDart", 32, 0, random(-6, -2), 0); }
+		"DKNT" G 0 { A_SpawnProjectile("RS_DKDart", 32, 0, random(-3, -1), 0); }
+		"DKNT" G 0 { A_SpawnProjectile("RS_DKDart", 32, 0, random(-12, -7), 0); }
+		"DKNT" G 0 { A_SpawnProjectile("RS_DKDart", 32, 0, random(-18, 9), 0); }
+		"DKNT" G 0 { A_SpawnProjectile("RS_DKDart", 32, 0, 0, 0); }
+		"DKNT" G 0 { A_SpawnProjectile("RS_DKDart", 32, 0, random(9, 18), 0); }
+		"DKNT" G 0 { A_SpawnProjectile("RS_DKDart", 32, 0, random(7, 12), 0); }
+		"DKNT" G 0 { A_SpawnProjectile("RS_DKDart", 32, 0, random(1, 3), 0); }
+		"DKNT" G 0 { A_SpawnProjectile("RS_DKDart", 32, 0, random(2, 6), 0); }
+		"DKNT" G 5 Bright;
+		TNT1 A 0 { A_StartSound("BKFuKINV", CHAN_BODY, 0, 4.0); }
+		Goto See;
+	Missile.TEX.Mines:
+		"DKNT" T 8 Bright { A_FaceTarget(); }
+		"DKNT" U 2 Bright { A_FaceTarget(); }
+		"DKNT" U 0 { A_SpawnProjectile("RS_MinesRev", 44, -4, -12, 0); }
+		"DKNT" U 0 { A_SpawnProjectile("RS_MinesRev", 44, -4, -24, 0); }
+		"DKNT" U 0 { A_SpawnProjectile("RS_MinesRev", 44, -4, 24, 0); }
+		"DKNT" U 6 Bright { A_SpawnProjectile("RS_MinesRev", 44, -4, 12, 0); }
+		"DKNT" U 0 { A_UnSetReflectiveInvulnerable(); }
+		"DKNT" U 0 A_Jump(64, "Missile.TEX.Mines");
+		"DKNT" U 0 A_Jump(106, "Missile.TEX.Grap2");
+		Goto See;
+	Missile.TEX.Dash:
+		"DKNT" E 8 Bright { A_UnSetReflectiveInvulnerable(); }
+		"DKNT" FFFFF 8 Bright { A_SkullAttack(42); }
+		"DKNT" G 4 Bright { A_Stop(); }
+		"DKNT" U 0 A_Jump(64, "Missile.TEX.Grap", "Missile.TEX.Grap2");
+		TNT1 A 0 { A_StartSound("BKFuKINV", CHAN_BODY, 0, 4.0); }
+		Goto Melee;
+	Pain.TEX:
+		"DKNT" H 2;
+		"DKNT" H 2 { A_Pain(); }
+		"DKNT" P 0 A_Jump(178, "Pain.TEX.Shield");
+		Goto See;
+	// A 70% answer to being hurt: fifty tics of standing still behind a
+	// reflective disc, then the disc is thrown at you and two more spawn.
+	Pain.TEX.Shield:
+		TNT1 A 0 { bNOPAIN = true; }
+		TNT1 A 0 { A_SpawnItemEx("RS_RevShieldWalk", 0, 4, 8, 0, 0, 0, 0, SXF_SETMASTER); }
+		"DKNT" P 50;
+		"DKNT" T 10 Bright { A_KillChildren("Extreme", KILS_FOILINVUL); }
+		"DKNT" U 10 Bright { A_SpawnProjectile("RS_ShieldBlastRev", 44, 0, 0, 0); }
+		"DKNT" UUU 9 Bright { A_SpawnItemEx("RS_RevShieldWalk2", 0, 4, 8, 0, 0, 0, 0, SXF_SETTARGET); }
+		TNT1 A 0 { bNOPAIN = false; }
+		TNT1 A 0 { A_StartSound("BKFuKINV", CHAN_BODY, 0, 4.0); }
+		Goto See;
+	Death.TEX:
+		"DKNT" I 12 Bright { A_KillChildren("Extreme", KILS_FOILINVUL); }
+		"DKNT" I 0 { A_SpawnProjectile("RS_DKSword", 44, 32, -90, 0); }
+		"DKNT" I 8 Bright { A_SpawnProjectile("RS_DKShield", 44, -32, 90, 0); }
+		"DKNT" J 8 Bright;
+		"DKNT" J 8 Bright { A_Scream(); }
+		"DKNT" J 8 Bright { A_NoBlocking(); }
+		// CHP spawns CommonBlackRevenantEX3 here and CommonBlackRevenantEX4
+		// four seconds later; RS does both through DeathMorphClass ->
+		// RS_RevenantShade, which brings RS_RevenantShadow itself.
+		"DKNT" K 8 Bright;
+		"DKNT" LMN 8 Bright;
+		"DKNT" O 240;
+		"DKNT" OOOO 10 { A_SpawnItemEx("RS_BlackRevShade", 0, 0, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"DKNT" O -1;
+		Stop;
 	}
 }
 
@@ -1267,21 +1439,32 @@ class RS_RevenantShade : RS_MonsterMaster
 	override bool TierData(int t, out RS_MonsterTierRow r)
 	{
 		r.hpMul = 1.0; r.spdMul = 1.0; r.painChance = 12; r.dmgMul = 1.0;
-		if (t < 0 || t > 12) return false;
+		if (t < 0 || t > RS_TIER_EX) return false;
 		// CHP has one BlackRev2 per colour but they are the same creature
 		// at the same numbers; the tier only scales damage.
+		//
+		// TEX is the exception and is not a scaled T00: a knight that died
+		// at TEX leaves CHP's OWN second stage, 08_KX
+		// CommonBlackRevenantEX3 -- 6666 HP, speed 18, painchance 12
+		// against this class's 2800 / 16 / 12 Default.
+		if (t == RS_TIER_EX)
+		{
+			r.hpMul = 6666.0 / 2800.0; r.spdMul = 18.0 / 16.0;
+			r.painChance = 12; r.dmgMul = 2.5;
+			return true;
+		}
 		r.dmgMul = 1.0 + 0.1 * t;
 		return true;
 	}
 
 	override string BodyTable()
 	{
-		return "WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH";
+		return "WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH WRTH";
 	}
 
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -1387,14 +1570,30 @@ class RS_RevenantShadow : RS_MonsterMaster
 		Tag "Revenant Shadow";
 	}
 
+	// The base ladder covers T00-T12. TEX is the one rung with a real
+	// CHP counterpart: 08_KX CommonBlackRevenantEX4, the Black Knight's
+	// shadow -- 12000 HP, speed 5, painchance 12, non-shootable and
+	// melee-only, which is exactly this creature. Its numbers are used
+	// rather than a scaled guess.
+	override bool TierData(int t, out RS_MonsterTierRow r)
+	{
+		if (t == RS_TIER_EX)
+		{
+			r.hpMul = 12000.0 / 200.0; r.spdMul = 5.0 / 18.0;
+			r.painChance = 12; r.dmgMul = 3.0;
+			return true;
+		}
+		return Super.TierData(t, r);
+	}
+
 	override string BodyTable()
 	{
-		return "DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT";
+		return "DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT DKNT";
 	}
 
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()

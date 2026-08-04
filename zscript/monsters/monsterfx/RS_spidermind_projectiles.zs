@@ -119,7 +119,7 @@ class RS_SpiderCyanBomb : Actor
 		RED9 A 3 Bright;
 		Loop;
 	Death:
-		RED9 CDE 4 Bright A_Explode(27,64);
+		RED9 ABC 4 Bright A_Explode(27,64);
 		Stop;
 	}
 }
@@ -423,7 +423,7 @@ class RS_SpiralSawMind1 : Actor
 		RED9 ABC 2 Bright A_Weave(5,1,7,1);
 		Loop;
 	Death:
-		RED9 CDE 4 Bright A_Explode(35,96);
+		RED9 ABC 4 Bright A_Explode(35,96);
 		Stop;
 	}
 }
@@ -441,7 +441,7 @@ class RS_RedMindRingNew : Actor
 		RED9 A 2 Bright;
 		Goto Spawn;
 	Death:
-		RED9 CDE 4 Bright A_Explode(45,64);
+		RED9 ABC 4 Bright A_Explode(45,64);
 		Stop;
 	}
 }
@@ -473,7 +473,7 @@ class RS_AbyssMindWave2 : Actor
 {
 	Default { Radius 18; Height 18; Speed 20; Damage 25; DamageType "Melee"; Projectile; +DONTHARMCLASS; RenderStyle "Add"; Alpha 0.25; Scale 0.6;
 		DeathSound "holy2/holy2"; }
-	States { Spawn: ZPWV D 6 Bright; Death: ZPWV E 8 Bright; Stop; }
+	States { Spawn: ZPWV D 6 Bright; Death: ZPWV D 8 Bright; Stop; }
 }
 class RS_AbyssMindWave : Actor
 {
@@ -487,7 +487,7 @@ class RS_AbyssMindWave : Actor
 		ZPWV D 5 Bright A_SpawnItemEx("RS_AbyssMindWave2",0,0,3,0,0,0,0);
 		Loop;
 	Death:
-		ZPWV E 8 Bright;
+		ZPWV D 8 Bright;
 		Stop;
 	}
 }
@@ -636,7 +636,7 @@ class RS_WhiteMindCrackleOrb : Actor
 		RED9 AB 3 Bright A_SeekerMissile(2,3);
 		Loop;
 	Death:
-		RED9 CDE 5 Bright A_Explode(80,160);
+		RED9 ABC 5 Bright A_Explode(80,160);
 		Stop;
 	}
 }
@@ -651,7 +651,7 @@ class RS_WhiteMindCrackleOrb2 : Actor
 		RED9 A 2 Bright;
 		Loop;
 	Death:
-		RED9 CDE 5 Bright A_Explode(80,128);
+		RED9 ABC 5 Bright A_Explode(80,128);
 		Stop;
 	}
 }
@@ -683,7 +683,7 @@ class RS_WhiteSpidWinder : Actor
 		SPER AB 2 Bright A_SeekerMissile(3,4);
 		Loop;
 	Death:
-		SPER CDE 4 Bright A_Explode(40,96);
+		SPER AB 4 Bright A_Explode(40,96);
 		Stop;
 	}
 }
