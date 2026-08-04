@@ -986,7 +986,7 @@ class RS_BVileEXCloud : Actor
 	Default
 	{
 		Radius 20; Height 56; Speed 4;
-		Damage (random(5, 15));
+		DamageFunction (random(5, 15));
 		DamageType "Melee";
 		+FLOATBOB
 		RenderStyle "Stencil"; Alpha 0.9;
@@ -1177,7 +1177,7 @@ class RS_BVileEXWAVE : Actor
 		SeeSound "queen/fire";
 		Projectile;
 		+NOCLIP +RIPPER
-		Damage (random(1, 3));
+		DamageFunction (random(1, 3));
 		DamageType "Plasma";
 		RenderStyle "Stencil";
 		StencilColor "00 00 00";
@@ -1250,7 +1250,7 @@ class RS_BVileEXMindWave : FastProjectile
 	Default
 	{
 		Radius 8; Height 8; Speed 12;
-		Damage (random(30, 80));
+		DamageFunction (random(30, 80));
 		Projectile;
 		+SEEKERMISSILE
 		DamageType "Plasma";

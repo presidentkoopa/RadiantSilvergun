@@ -990,7 +990,7 @@ class RS_BlackImpBeam2 : Actor
 	Default
 	{
 		Radius 10; Height 18; Speed 1; Scale 1.75;
-		Damage (random(13, 25)); DamageType "Fire";
+		DamageFunction (random(13, 25)); DamageType "Fire";
 		Projectile; +THRUGHOST; +NOCLIP;
 		RenderStyle "Add"; Alpha 0.67;
 		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";

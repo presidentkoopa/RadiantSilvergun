@@ -1057,7 +1057,7 @@ class RS_PlayerEXBFG : FastProjectile
 	Default
 	{
 		Radius 12; Height 12; Speed 25;
-		Damage (random(100, 200)); DamageType "Plasma";
+		DamageFunction (random(100, 200)); DamageType "Plasma";
 		Projectile; +DONTHARMCLASS;
 		RenderStyle "Add"; Alpha 1.25; Scale 1.0;
 		DeathSound "weapons/bfgx";
@@ -1085,7 +1085,7 @@ class RS_PlayerEXBFG2 : Actor
 	Default
 	{
 		Radius 6; Height 6; Speed 10;
-		Damage (random(20, 80)); DamageType "Plasma";
+		DamageFunction (random(20, 80)); DamageType "Plasma";
 		Projectile; +DONTHARMCLASS;
 		RenderStyle "Add"; Alpha 1.25; Scale 0.55;
 		Translation "0:255=%[0.00,0.17,0.00]:[0.81,1.35,0.28]";
@@ -1281,7 +1281,7 @@ class RS_SparkFireBen : FastProjectile
 	Default
 	{
 		Radius 2; Height 2; Speed 68; FastSpeed 100;
-		Damage (random(8, 15));
+		DamageFunction (random(8, 15));
 		Projectile; +MTHRUSPECIES;
 		RenderStyle "Add"; Alpha 0.85; Scale 0.15;
 		DeathSound "imp/shotx";
@@ -1308,7 +1308,7 @@ class RS_YellowBombCGuyEX : Actor
 	Default
 	{
 		Radius 6; Height 6; Speed 48;
-		Damage (random(25, 100)); DamageType "Fire";
+		DamageFunction (random(25, 100)); DamageType "Fire";
 		Projectile; +RANDOMIZE; +DONTHARMCLASS;
 		RenderStyle "Add"; Alpha 1.0; Scale 1.25;
 		DeathSound "weapons/rocklx";
@@ -1356,7 +1356,7 @@ class RS_SpamShotsCGuyEX : FastProjectile
 	Default
 	{
 		Radius 12; Height 9; Speed 35;
-		Damage (random(13, 150)); DamageType "Plasma";
+		DamageFunction (random(13, 150)); DamageType "Plasma";
 		Projectile; +DONTHARMCLASS;
 		RenderStyle "Add"; Alpha 0.95; Scale 0.25;
 		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
@@ -1388,7 +1388,7 @@ class RS_ExplosionsCGuyEX : FastProjectile
 	Default
 	{
 		Radius 12; Height 9; Speed 35;
-		Damage (random(25, 75)); DamageType "Fire";
+		DamageFunction (random(25, 75)); DamageType "Fire";
 		Projectile; +DONTHARMCLASS;
 		RenderStyle "Add"; Alpha 0.95; Scale 0.42;
 		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
@@ -1414,7 +1414,7 @@ class RS_ExplosionsCGuyEXDelayed : FastProjectile
 	Default
 	{
 		Radius 3; Height 3; Speed 63;
-		Damage (random(25, 75)); DamageType "Fire";
+		DamageFunction (random(25, 75)); DamageType "Fire";
 		Projectile; +DONTHARMCLASS;
 		RenderStyle "Add"; Alpha 0.95; Scale 0.42;
 		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
@@ -1442,7 +1442,7 @@ class RS_CGBigEX : FastProjectile
 	Default
 	{
 		Radius 8; Height 8; Speed 26;
-		Damage (random(38, 100)); DamageType "Plasma";
+		DamageFunction (random(38, 100)); DamageType "Plasma";
 		Projectile; +NOGRAVITY; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 0.75; Scale 0.75;
 		SeeSound "spell/spellcast1"; DeathSound "fire/fire4";

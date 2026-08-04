@@ -1249,7 +1249,7 @@ class RS_BlueHKShot : FastProjectile
 		Height 16;
 		Speed 18;
 		FastSpeed 25;
-		Damage (random(10, 45));
+		DamageFunction (random(10, 45));
 		DamageType "Plasma";
 		Projectile;
 		+RANDOMIZE

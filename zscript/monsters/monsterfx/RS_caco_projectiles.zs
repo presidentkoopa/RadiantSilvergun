@@ -494,7 +494,7 @@ class RS_HadesBallEX3 : RS_CacodemonBall
 {
 	Default
 	{
-		Damage (random(15, 60));
+		DamageFunction (random(15, 60));
 		Speed 10;
 		Radius 12;
 		Height 8;
@@ -563,7 +563,7 @@ class RS_HadesBallEX2 : RS_CacodemonBall
 
 	Default
 	{
-		Damage (random(25, 75));
+		DamageFunction (random(25, 75));
 		Speed 18;
 		Alpha 0.80;
 		DamageType "Plasma";
@@ -618,7 +618,7 @@ class RS_BlackCacoBeam1 : Actor
 }
 class RS_BlackCacoBeam2 : Actor
 {
-	Default { Radius 10; Height 18; Speed 1; Scale 1.25; DamageType "Fire"; Damage (random(10, 20));
+	Default { Radius 10; Height 18; Speed 1; Scale 1.25; DamageType "Fire"; DamageFunction (random(10, 20));
 		RenderStyle "Add"; Alpha 0.67; Projectile; +THRUGHOST; +NOCLIP; }
 	States
 	{
@@ -729,7 +729,7 @@ class RS_RedSpikeCacoEX : Actor
 // CH CacoNail -- the shrapnel the spikes burst into.
 class RS_CacoNail : Actor
 {
-	Default { Radius 2; Height 4; Damage (random(5, 15)); DamageType "Melee"; RenderStyle "Add";
+	Default { Radius 2; Height 4; DamageFunction (random(5, 15)); DamageType "Melee"; RenderStyle "Add";
 		Speed 55; Scale 0.95; Decal "BulletChip"; AttackSound "moloch/nailhitbleed";
 		DeathSound "weapons/firex4"; Projectile;
 		+SPAWNSOUNDSOURCE +MTHRUSPECIES +EXTREMEDEATH +BLOODSPLATTER

@@ -329,7 +329,7 @@ class RS_ShadowBallEX1 : Actor
 		Speed 20;
 		XScale 1.5;
 		YScale 0.5;
-		Damage (random(20, 55));
+		DamageFunction (random(20, 55));
 		Projectile;
 		+RANDOMIZE +BOUNCEONWALLS
 		BounceCount 2;
@@ -374,7 +374,7 @@ class RS_ShadowBallEX3 : Actor
 		Radius 6;
 		Height 8;
 		Speed 18;
-		Damage (random(20, 55));
+		DamageFunction (random(20, 55));
 		Projectile;
 		+RANDOMIZE +BOUNCEONWALLS +BOUNCEONFLOORS +BOUNCEONCEILINGS
 		BounceCount 6;
@@ -417,7 +417,7 @@ class RS_ShadowSpiralEX : Actor
 		Speed 8;
 		XScale 2.0;
 		YScale 0.4;
-		Damage (random(100, 200));
+		DamageFunction (random(100, 200));
 		Projectile;
 		DamageType "Plasma";
 		RenderStyle "Add";

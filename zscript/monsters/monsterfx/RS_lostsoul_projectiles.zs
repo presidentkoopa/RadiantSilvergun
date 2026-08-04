@@ -492,7 +492,7 @@ class RS_LSoulEXShade : Actor
 // What the escort skulls shoot once they are let off the leash.
 class RS_SoulShotWEX : Actor
 {
-	Default { Radius 6; Height 6; Speed 24; Damage (random(5, 33)); DamageType "Melee";
+	Default { Radius 6; Height 6; Speed 24; DamageFunction (random(5, 33)); DamageType "Melee";
 		Projectile; RenderStyle "Subtract"; Alpha 0.8; Scale 0.75;
 		SeeSound "skull/melee"; DeathSound "skull/melee";
 		Translation "176:191=0:0", "208:223=0:0", "160:167=0:0", "48:63=0:0"; }

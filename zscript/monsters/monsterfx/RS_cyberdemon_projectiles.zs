@@ -1442,7 +1442,7 @@ class RS_HellBoom : Actor
 }
 class RS_HellShotEX2 : Actor
 {
-	Default { Radius 13; Height 16; Speed 15; Damage (random(20, 50)); DamageType "Supremesmith"; Projectile;
+	Default { Radius 13; Height 16; Speed 15; DamageFunction (random(20, 50)); DamageType "Supremesmith"; Projectile;
 		RenderStyle "Add"; Alpha 0.9; +THRUGHOST; -NOGRAVITY;
 		SeeSound "weapons/firbfi"; DeathSound "weapons/firex3"; }
 	States
@@ -1473,7 +1473,7 @@ class RS_STracerEX : RS_STracer
 // coin-flip chance of firing again before it fades.
 class RS_HellWaverEX : Actor
 {
-	Default { Radius 8; Height 12; Speed 25; Damage (random(40, 120)); Projectile; RenderStyle "Add";
+	Default { Radius 8; Height 12; Speed 25; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex"; +THRUGHOST; Decal "Scorch"; }
 	States
 	{
@@ -1495,7 +1495,7 @@ class RS_HellWaverEX : Actor
 // the BigHell star leaves behind when it detonates.
 class RS_HellWaver2 : Actor
 {
-	Default { Radius 8; Height 12; Speed 25; Damage (random(40, 120)); Projectile; RenderStyle "Add";
+	Default { Radius 8; Height 12; Speed 25; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex"; +THRUGHOST; Decal "Scorch"; }
 	States
 	{
@@ -1521,7 +1521,7 @@ class RS_HellWaver2 : Actor
 }
 class RS_HellShotEX : Actor
 {
-	Default { Radius 8; Height 12; Speed 30; Damage (random(40, 120)); Projectile; RenderStyle "Add";
+	Default { Radius 8; Height 12; Speed 30; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/firbfi"; DeathSound "weapons/hellex";
 		+THRUGHOST; Decal "Scorch"; }
 	States
@@ -1541,7 +1541,7 @@ class RS_HellShotEX : Actor
 }
 class RS_HSHomer : Actor
 {
-	Default { Radius 8; Height 12; Speed 22; Damage (random(20, 80)); Projectile; RenderStyle "Add";
+	Default { Radius 8; Height 12; Speed 22; DamageFunction (random(20, 80)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/hellfi"; DeathSound "weapons/hellex";
 		+THRUGHOST; +SEEKERMISSILE; +EXTREMEDEATH; Decal "Scorch"; }
 	States
@@ -1569,7 +1569,7 @@ class RS_HSFlameBlastTrail : Actor
 }
 class RS_HSFlameBlast : FastProjectile
 {
-	Default { Radius 8; Height 12; Speed 72; Damage (random(20, 40)); Scale 1.5; Projectile; RenderStyle "Add";
+	Default { Radius 8; Height 12; Speed 72; DamageFunction (random(20, 40)); Scale 1.5; Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/hellfi"; DeathSound "weapons/firbfi";
 		+THRUGHOST; Decal "Scorch"; }
 	States
@@ -1589,7 +1589,7 @@ class RS_HSFlameBlast : FastProjectile
 // The thrown lightning: a bouncing seeker that ends in a BFG-sized burst.
 class RS_ZapCybEX : Actor
 {
-	Default { Radius 17; Height 15; Speed 32; Damage (random(20, 50)); Projectile; RenderStyle "Add";
+	Default { Radius 17; Height 15; Speed 32; DamageFunction (random(20, 50)); Projectile; RenderStyle "Add";
 		Alpha 0.85; Scale 1.6; SeeSound "Litn/litn2"; +THRUGHOST; +SEEKERMISSILE;
 		BounceType "Hexen"; BounceCount 5; BounceFactor 2.0; WallBounceFactor 2.0;
 		Translation "192:199=[255,255,255]:[191,0,255]"; Decal "Scorch"; }
@@ -1663,7 +1663,7 @@ class RS_PentaHealCybEX : Actor
 // The afterimage the Tyrant leaves along a charge -- it hits on contact.
 class RS_HSGhostEX : Actor
 {
-	Default { Radius 40; Height 70; Speed 1; Damage (random(12, 34)); DamageType "Melee";
+	Default { Radius 40; Height 70; Speed 1; DamageFunction (random(12, 34)); DamageType "Melee";
 		RenderStyle "Translucent"; Alpha 0.5; Projectile; }
 	States
 	{
@@ -1699,7 +1699,7 @@ class RS_HSHammer : Actor
 // HellWaver on top.
 class RS_BigHellCybEX2 : Actor
 {
-	Default { Species "Cybie"; Radius 32; Height 16; Speed 1; Scale 2.5; Damage (random(200, 400));
+	Default { Species "Cybie"; Radius 32; Height 16; Speed 1; Scale 2.5; DamageFunction (random(200, 400));
 		Projectile; RenderStyle "Add"; DamageType "Supremesmith"; Alpha 0.95; DeathSound "weapons/hellex";
 		+THRUGHOST; +THRUSPECIES; +DONTHARMSPECIES; Decal "Scorch"; }
 	States
