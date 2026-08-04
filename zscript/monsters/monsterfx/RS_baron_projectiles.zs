@@ -18,9 +18,11 @@
 // (Pass 2 adds Cyan/Brown/Abyss/Black/White heavy custom bodies.)
 //
 // Ripped faithfully from Colourful Hell (full dependency trees traced).
-// CH's rolled damage was flattened to constants here. That was unnecessary:
-// the `Damage` property needs a constant, but the roll survives as
-// `DamageFunction (random(a,b))`, which is what new work should use.
+// DAMAGE: an early pass flattened CH's random(a,b) rolls to constants and wrote
+// "ZScript Default requires it" into this header. That was wrong -- `Damage`
+// does need a constant, but `DamageFunction (random(a,b))` keeps the roll and
+// compiles. Every roll still present is now DamageFunction; the ones flattened
+// back then are still flat, and restoring those is a separate job.
 // Translations/flags/sub-spawns preserved.
 // Stock IWAD sprites (BAL1/BAL2/BAL7/MISL/PLSE/BFE1) used as CH uses them.
 // Shared with imp/HK (reused, not redefined): RS_BaronStar3, RS_RedRevLoad/2,

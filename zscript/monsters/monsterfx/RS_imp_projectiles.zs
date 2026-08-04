@@ -72,8 +72,10 @@ class RS_RedMessImp : Actor
 // ============================================================================
 // IMP RAINBOW projectiles -- ripped/adapted from Colourful Hell, one per color.
 // All use stock BAL1 sprites + the color's translation (faithful to CH).
-// Damage converted to constants. (`Damage` needs a constant, but the roll can
-// be kept with `DamageFunction (random(a,b))` -- preferred for new work.)
+// DAMAGE: the rolls in this section were flattened to constants by an early
+// pass and are still flat. `Damage` does need a constant, but the roll survives
+// as `DamageFunction (random(a,b))` -- every roll still present in this file now
+// uses that, and restoring the flattened ones is a separate job.
 // ============================================================================
 
 // GREEN -- seeking plasma ball
