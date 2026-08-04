@@ -250,7 +250,8 @@ OPEN -- NEEDS THE OWNER
      in RS_human_projectiles.zs (two APBX ABCDE, one MISL CD).
      RS_DIBigOne (SPIR ABCDEDCBA, 9x, radius 178) is flagged for an explicit
      owner decision either way.
-  2. 11 OF 37 MONSTER FILES HAVE BROKEN SPRITE REFS. Nobody has triaged any.
+  2. 11 OF 37 MONSTER FILES HAVE BROKEN SPRITE REFS. CLAIMED by the monster
+     lane (local_d68a0dd4) at hand-off -- check it landed before redoing it.
      Run: python verify.py $(all names under zscript/monsters/) for the live
      list. As of the final sweep this session:
        ICEY[DE]   arach, archvile, human, pe, rev, spectre, spidermind
@@ -290,9 +291,10 @@ OPEN -- NEEDS THE OWNER
          bug exposed this one.
      Net: taking all A_Jump targets instead of just the first means these are
      genuinely checked for the first time.
-  5. sprites/monsters/projectiles/GRNDA.png is a stray -- 5 characters, no
-     rotation digit. Sprite lumps must be 6 or 8 chars (NAME+frame+rot).
-     GRNDA0.png is the real frame A. Delete the short one.
+  5. DONE -- GRNDA.png (5-char lump name, invalid) deleted in 66792308.
+     Kept here only as the rule: sprite lumps must be 6 or 8 characters,
+     NAME + frame + rotation. build_art_index.py's shape filter rejects
+     anything else, which is how the stray was spotted.
 
   DO NOT RE-ADD `if tok in VAN: continue` TO verify.py. It was added in good
   faith to stop false failures from the hand-written vanilla frame table, but
