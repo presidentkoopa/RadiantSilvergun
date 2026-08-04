@@ -1182,6 +1182,8 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 	Melee.TEX:
 	Missile.TEX:
 		TNT1 A 0 A_JumpIfHealthLower(5000, "Missile.TEX.Phase2");
+	// CHP's "Nah" branch is a Goto Missile+1 -- this label IS that line.
+	Missile.TEX.Pick:
 		"KKEX" E 8 { A_FaceTarget(); }
 		"KKEX" E 0 A_JumpIfCloser(500, "Missile.TEX.Mode2");
 		"KKEX" E 0 A_JumpIfCloser(1500, "Missile.TEX.Mode1");
@@ -1193,7 +1195,7 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 		TNT1 A 0
 		{
 			if (rsExRage >= 1)
-				return ResolveState("Missile.TEX+1");
+				return ResolveState("Missile.TEX.Pick");
 			return ResolveState(null);
 		}
 		TNT1 A 0 { A_SetSpeed(18); bMISSILEEVENMORE = true; }

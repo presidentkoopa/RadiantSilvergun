@@ -845,7 +845,15 @@ class TFLV_Upgrade_RS_Overkill : TFLV_Upgrade_RS_SlateBase
 		int dmg = clamp(int(excess * frac), 0, cap);
 		if (dmg <= 0) return;
 
+		// Re-point the corpse at the player BEFORE detonating: A_Explode
+		// spares its caller's `target` when XF_HURTSOURCE is unset, so
+		// this is what guarantees your own overkill never blows you up.
+		// (A corpse's target is usually the player already -- usually is
+		// not a safety guarantee.)
+		Actor prev = target.target;
+		target.target = pawn;
 		target.A_Explode(dmg, 96 + 8 * int(level), 0, false);
+		target.target = prev;
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)

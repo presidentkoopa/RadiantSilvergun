@@ -1,11 +1,13 @@
 ================================================================================
         THE DESIGNED AFFIX SLATE -- DRAFT, revisit before cards go live
 ================================================================================
-Status: LIVE as of the UI build (2026-08-03, same day). The ten cards are
-now #included (upgrades/main.zsc) and registered (BONSAIRC) -- the card
-picker UI exists (docs/rs_10_ui_spec.txt), so the go-live step this header
-used to gate on has happened. NOT YET COMPILED OR BOOTED. The systematic
-code-review pass is still owed, ON HOLD until the owner calls for it.
+Status: LIVE and extended. All cards are #included (upgrades/main.zsc)
+and registered (BONSAIRC); the card-picker UI exists (rs_10). This doc's
+original TEN have since been joined by wave D1 (monster signatures) and
+wave D2 (general lane) -- see LATER WAVES below. Two of the original ten
+were REFRAMED when rs_11 killed elementals as a concept: Painter became
+Cacospit, Cryo became Pain Orb. NOT YET COMPILED OR BOOTED -- that
+remains the one real gate.
 
 WHERE EVERYTHING LIVES
 ================================================================================
@@ -19,10 +21,10 @@ WHERE EVERYTHING LIVES
   Projectile part bodies            zscript/weapons/weaponfx/RS_FX_AffixParts.zs
                                       (INCLUDED in zscript.txt -- engine-side,
                                        inert until something installs them)
-  The ten cards (DORMANT)           zscript/gunbonsai/rs_upgrades/RS_Upgrade_Slate.zsc
-                                      (NOT included in upgrades/main.zsc, NOT
-                                       in BONSAIRC -- that wiring is the "go
-                                       live" step, do it only with the UI)
+  All cards (LIVE)                  zscript/gunbonsai/rs_upgrades/RS_Upgrade_Slate.zsc
+                                      (slate + waves D1/D2) and
+                                      RS_Upgrade_Cards.zsc (stat/combo).
+                                      Included and registered.
   Generator pool (now 7)            zscript/systems/RS_AffixIngredients.zs
   Ice assets (imported+viewed)      sprites/combatfx/ice/ + sounds/combatfx/ice/
                                       + SNDINFO rs_fx_ice_* entries
@@ -38,10 +40,11 @@ GLOBAL POWER RULES (tuned against the monster ladder + rs_01 promotion math)
   * OnActivate idempotent by reconstruction; OnDeactivate a complete undo
     (Promotion's affix strip depends on it -- RS_GunBonsaiBridge).
   * Exclusion groups: shape (Splitter<->Slugger), projectile identity
-    (Painter<->Bonecaller<->Cryo). Everything else stacks across groups.
+    (Cacospit<->Bonecaller<->PainOrb<->Arach-Plasma<->Swarm<->Nova).
+    Everything else stacks across groups -- that's where builds live.
   * Wardrobe rule (owner-picked): part identities roll their look-FAMILY
     once at take-time (permanent for that gun), escalate WITHIN the family
-    by level. First use: Painter's Wisp/Ember roll.
+    by level. First use: Cacospit's bile-ball/hell-wisp roll.
 
 THE TEN (condensed sheets -- L1..L5 / MASTERY / gate)
 ================================================================================
@@ -73,31 +76,87 @@ THE TEN (condensed sheets -- L1..L5 / MASTERY / gate)
    Punch through 1/2/3/4/all victims @ 70->90% damage retention per punch
    (DoSpecialDamage). MASTERY (stitch): a rip-kill flips the round into an
    unlimited precise seeker mid-flight. Gate: bullet only.
-07 PAINTER    element:fire1..5, firemaster  [identity group]
-   Part-swap: rounds BECOME fire -- wardrobe roll at take: Wisp (in-repo
-   RSI1 living flame) or Ember (vanilla BAL2 + spark shed). +3% dmg/lvl.
-   MASTERY: impacts ignite the ground (RS_AffixGroundFire via the new
-   ImpactSpawnExtra hook -- the impact-spawn hook rs_06 flagged as the
-   missing piece now EXISTS, this is its first consumer).
+07 CACOSPIT   element:fire1..5, firemaster  [identity group]
+   REFRAMED from the dead "Painter" elemental -- rs_11 killed elementals
+   as a concept (stock GunBonsai already owns fire/ice/poison/acid, and
+   this mod's identity is Doom's own guts). Same plumbing, new subject:
+   rounds become the CACODEMON'S BILE -- wardrobe roll at take: the
+   classic caco ball (vanilla BAL2 + caco/attack) or the hell-wisp
+   (in-repo RSI1 living flame). +3% dmg/lvl. MASTERY: impacts leave
+   burning bile (RS_AffixGroundFire via the ImpactSpawnExtra hook --
+   the hook rs_06 flagged as missing now EXISTS, this is its first
+   consumer). Keyword values still read "fire*": the axis is plumbing,
+   not flavor.
 08 BONECALLER behavior:bonechance25/50/75/100, bonemaster [identity group]
    Part-swap: Revenant bone tracers (vanilla FATB + skeleton audio -- zero
    asset risk). L1 pure identity; L2-4 per-PELLET hunt chance 25/50/75%;
    L5 all rounds hunt (chance 1.0 -- deliberately NOT plain "homing" so
    ungranting can never strip someone else's homing). MASTERY twin-fire:
    every round doubles into straight+seeker pair @ half damage. Exact wash.
-09 CRYO       element:ice1..5, icemaster  [identity group]
-   Part-swap: imported CH ice shards (VIEWED before import; ICEY has no
-   D/E frames -- death anim is F..I, do not "fix" it to CDE). +6% dmg/lvl;
-   price -1 Capacity per 2 levels (restore-then-apply, drift-proof).
-   MASTERY: the BOUNCING ice orb -- plain-Actor part (RS_AffixPartActor
-   branch; FastProjectile cannot bounce, which is why that branch exists).
-   First bouncing player round in the project.
+09 PAIN ORB   element:ice1..5, icemaster  [identity group]
+   REFRAMED from the dead "Cryo" elemental, same reasoning as 07. Now
+   the PAIN ELEMENTAL'S OWN bouncing orb -- and it bounces from LEVEL 1,
+   because the bounce IS the identity, not a reward for reaching six.
+   Imported CH ice art (VIEWED before import; ICEY has no D/E frames --
+   death anim is F..I, do not "fix" it to CDE). +6% dmg/lvl; price -1
+   Capacity per 2 levels (restore-then-apply, drift-proof). Plain-Actor
+   part (RS_AffixPartActor branch; FastProjectile cannot bounce, which
+   is why that branch exists) -- the first bouncing player round in the
+   project. MASTERY: bigger, six bounces, shatters into a shard spray.
+   Keyword values still read "ice*" -- plumbing, not flavor.
 10 ECHO       no keywords -- pure rotation
    First real consumer of the beat machinery (PadTo/Replace, built and
-   never used). Every Nth pull is a free enhanced beat: 0 ammo, cluster
-   round. N: 7/6/5/4/3 by level. MASTERY: every 2nd. Adopts only
-   single-beat primaries (true of all 32 weapons today); restores the
-   exact original profile object on removal.
+   never used). REWORKED under rs_11's audit: the original was a FREE
+   fixed cluster beat, which ignored the Capacity roll and played
+   identically on every gun -- an identity-test failure. The echo is now
+   YOUR OWN SHOT DOUBLED at DOUBLE ammo cost: your roll amplified, paid
+   for out of your magazine. N: 7/6/5/4/3 by level. MASTERY: every 2nd.
+   Adopts only single-beat primaries (true of all 32 weapons today);
+   restores the exact original profile object on removal.
+
+--------------------------------------------------------------------------------
+LATER WAVES (built after this slate -- rs_11 is the law, rs_13 the survey)
+--------------------------------------------------------------------------------
+WAVE D1 -- MONSTER SIGNATURES (the exotic lane the elementals vacated).
+  ARACH-PLASMA  element:arach1..5/master. The Arachnotron's bolt
+      (APLS/APBX + baby/*, pure IWAD). The RATE signature: smallest
+      damage ramp (+2%/lvl) because its identity is how fast it speaks.
+      MASTERY: burns through two bodies @ 85% retention.
+  SWARM         element:swarm1..5/master. The Overlord's bee carrier
+      (LFX1 + WASP motes, both in-repo). Levels buy MOTES (2->6), not
+      damage -- the carrier still lands the weapon's full rolled damage,
+      closing the hollow-carrier trap rs_13 flagged. MASTERY: eight
+      motes, hunting. Gated to <=3 pellets (engine load).
+  NOVA          element:nova1..5/master. The Cyberdemon's swoosh shell
+      (BFS1/BFE1/PLSS, all IWAD) detonating into a plasma bead ring.
+      Levels buy weight (+4%/lvl) and beads (4->12). MASTERY: sixteen
+      seeking beads. Gated to <=2 pellets; bead count hard-capped at 16
+      in the part itself regardless of what the resolver asks for.
+
+WAVE D2 -- GENERAL LANE (each amplifies a DIFFERENT rolled stat).
+  PAIN TRAIN    behavior:flinch1..5/master. Per-pellet flinch chance
+      15%->75%, guaranteed at Mastery. Plays against the monster
+      ladder's painChance, which collapses at high tier (T12 = 16).
+  MOMENTUM      payload:momentum1..5/master. Consecutive crits chain,
+      up to 4 links (8 at Mastery). CritChance amplifier; the streak
+      lives on RS_Weapon so each hand keeps its own rhythm.
+  OVERKILL      no keyword -- OnKill hook. Damage wasted past a kill
+      detonates on the corpse (20%/lvl, full excess at Mastery). Damage
+      amplifier. The corpse is re-pointed at the player before
+      detonating, so your own overkill can never hurt you.
+  SCAVENGER     no keyword -- OnKill hook. Kills on a bottom-quarter
+      magazine refund 10% of capacity per level, full mag at Mastery.
+      Capacity amplifier.
+
+  HOOK DISCIPLINE (rs_14's offhand findings -- binding on all future
+  cards): use the resolver, OnKill, or OnDamageDealt. ModifyDamageDealt
+  and Tick reach the MAINHAND bag ONLY, so a card built on them
+  silently does nothing in the off hand.
+
+  PROJECTILE IDENTITY EXCLUSION GROUP now spans all six: Cacospit,
+  Bonecaller, PainOrb, Arach-Plasma, Swarm, Nova. One shared
+  IdentityFree gate on the slate base -- a comparison chain, not an
+  array (this engine does not resolve array literals in class bodies).
 
 GENERATOR POOL (gap #1 from rs_06 -- CLOSED)
 ================================================================================
