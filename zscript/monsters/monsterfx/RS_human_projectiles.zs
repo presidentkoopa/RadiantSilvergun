@@ -125,6 +125,220 @@ class RS_Puddle1 : Actor
 }
 
 
+// =====================================================================
+// REBUILD ADDITIONS (rs_09 per-tier state port). These are CH attacks
+// the earlier HF port never imported; ported from CH decorate
+// (Zombies.txt / Shotgunners.txt / Chaingunners.txt) per the spec's
+// "no RS_ port -> add it here" rule. Damage -> constants, house style.
+// =====================================================================
+
+// ---------- UNDERTAKER (white zombieman) bone kit ----------
+// BBBN / RNGG sprites copied from ART SOURCE (CH sprites/theride, fx)
+// into sprites/monsters/projectiles/.
+class RS_BoneProjZM : Actor
+{
+	Default { Radius 8; Height 8; Speed 32; Damage 10; Projectile; +BLOODLESSIMPACT; +SKYEXPLODE; +FORCEPAIN; Scale 0.75;
+		SeeSound "skeleton/attack"; DeathSound "skeleton/melee"; Translation "0:255=[129,129,129]:[255,255,255]"; }
+	States
+	{
+	Spawn:
+		BBBN ABCD 4;
+		Loop;
+	Death:
+		MISL B 0 A_SetScale(0.3);
+		MISL BCD 3;
+		Stop;
+	}
+}
+class RS_BoneProjZM2 : RS_BoneProjZM { Default { Speed 36; Damage 14; } }
+class RS_BoneProjZM3 : RS_BoneProjZM { Default { Speed 40; Damage 19; } }
+
+// The shovel: a big blade fan. CH ShoveZM sprays ShoveZM2/3 side
+// blades both forward and backward; kept, at reduced count.
+class RS_ShoveZM2 : Actor
+{
+	Default { Radius 6; Height 8; Speed 25; Damage 3; DamageType "Melee"; Alpha 0.75; Scale 1.8; Decal "BulletChip";
+		Projectile; +SPAWNSOUNDSOURCE; +EXTREMEDEATH; +BLOODSPLATTER; DeathSound ""; }
+	States
+	{
+	Spawn:
+		BLAD AAAA 3 Bright;
+	Death:
+		BLAD AA 1 Bright A_FadeOut(0.15);
+		BLAD AAAA 1 Bright A_FadeOut(0.15);
+		Stop;
+	}
+}
+class RS_ShoveZM3 : RS_ShoveZM2 { Default { Speed 27; Damage 7; Scale 1.55; } }
+class RS_ShoveZM : Actor
+{
+	Default { Radius 6; Height 8; Speed 25; Damage 20; DamageType "Melee"; Scale 2.0; Decal "BulletChip";
+		Projectile; +SPAWNSOUNDSOURCE; +EXTREMEDEATH; +BLOODSPLATTER;
+		AttackSound "skeleton/swing"; DeathSound "moloch/nailhitbleed"; }
+	States
+	{
+	Spawn:
+		BLAD AA 2 Bright A_SpawnProjectile("RS_ShoveZM2", 0, 0);
+		BLAD AAA 0 A_SpawnProjectile("RS_ShoveZM3", 0, 0);
+		BLAD A 2 Bright A_SpawnProjectile("RS_ShoveZM2", 0, 0);
+		BLAD A 3 Bright A_SpawnProjectile("RS_ShoveZM2", 0, 0);
+		BLAD AA 0 A_SpawnProjectile("RS_ShoveZM3", 0, 3, -180);
+		BLAD AA 0 A_SpawnProjectile("RS_ShoveZM3", 0, -3, -180);
+		BLAD A 3 Bright A_SpawnProjectile("RS_ShoveZM2", 0, 0);
+	Death:
+		BLAD A 1 Bright;
+		6PUF ABCDEF 1 Bright;
+		TNT1 A 0 A_Explode(12, 64);
+		Stop;
+	}
+}
+
+// Orbiting bone satellite for the tornado. One class with a
+// randomized orbit replaces CH's seven near-identical BoneStormer1-7.
+class RS_BoneStormer : Actor
+{
+	double OrbR;
+	double OrbH;
+	double OrbA;
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		OrbR = frandom(12, 80);
+		OrbH = frandom(10, 128);
+		OrbA = frandom(0, 359);
+	}
+	Default { Radius 8; Height 8; Speed 120; Damage 2; Projectile; +BLOODLESSIMPACT; +RIPPER; +FORCEPAIN; Scale 0.75;
+		Translation "0:255=[129,129,129]:[255,255,255]"; DeathSound "skeleton/melee"; }
+	States
+	{
+	Spawn:
+		BBBN A 1 Bright NoDelay
+		{
+			A_Warp(AAPTR_MASTER, OrbR, 0, OrbH, OrbA,
+			       WARPF_ABSOLUTEANGLE | WARPF_NOCHECKPOSITION | WARPF_INTERPOLATE);
+			OrbA += 8;
+		}
+		TNT1 A 0 A_Jump(6, "Death");
+		Loop;
+	Death:
+		MISL B 0 A_SetScale(0.3);
+		MISL BCD 3;
+		Stop;
+	}
+}
+
+// The wandering bone tornado (RNGG). Floorhugging bouncer that drags
+// an orbiting bone storm with it and spits bones as it goes.
+class RS_BoneTorn2 : Actor
+{
+	Default { Radius 6; Height 8; Speed 18; Mass 25; Projectile; +FLOORHUGGER; +THRUACTORS; +DONTBLAST; +DONTTHRUST;
+		+BOUNCEONWALLS; BounceType "Doom"; BounceCount 999; BounceFactor 1; WallBounceFactor 1.1;
+		RenderStyle "Add"; Alpha 0.75; SeeSound "skeleton/attack"; }
+	States
+	{
+	Spawn:
+		RNGG AB 1 Bright A_Wander;
+		RNGG CCCCCCC 1 Bright A_SpawnItemEx("RS_BoneStormer", 0, 0, 4, 0, 0, 0, 0, SXF_SETMASTER | SXF_ORIGINATOR);
+		RNGG CCCCCCC 1 Bright A_SpawnItemEx("RS_BoneStormer", 0, 0, 4, 0, 0, 0, 0, SXF_SETMASTER | SXF_ORIGINATOR);
+		RNGG CCDD 1 Bright A_SpawnProjectile("RS_BoneProjZM3", 4, random(-20, 20), random(0, 359), CMF_AIMDIRECTION | CMF_OFFSETPITCH, random(-20, 5));
+		RNGG AB 1 Bright A_Wander;
+		RNGG CCCCCCC 1 Bright A_SpawnItemEx("RS_BoneStormer", 0, 0, 4, 0, 0, 0, 0, SXF_SETMASTER | SXF_ORIGINATOR);
+		RNGG CCDD 1 Bright A_SpawnProjectile("RS_BoneProjZM3", 4, random(-20, 20), random(0, 359), CMF_AIMDIRECTION | CMF_OFFSETPITCH, random(-20, 5));
+		RNGG D 0 A_Jump(8, "Death");
+		Loop;
+	Death:
+		RNGG ABCD 4 Bright;
+		Stop;
+	}
+}
+
+// ---------- SHOTGUNNER rebuild additions ----------
+// Brown SG mud pellet: fast, near-invisible, knocks the target around.
+class RS_BrownSGshot : Actor
+{
+	Default { Radius 2; Height 2; Speed 64; Damage 3; Projectile; +DONTBLAST; +DONTTHRUST; RenderStyle "Add"; Alpha 0.85;
+		DeathSound "imp/shotx"; }
+	States
+	{
+	Spawn:
+		TNT1 A 5 Bright;
+		Goto Death;
+	Death:
+		TNT1 A 0 A_Stop;
+		PUFF C 6 Bright;
+		TNT1 A 0 A_Blast(BF_NOIMPACTDAMAGE, 128, 32, 20.0);
+		PUFF DE 6 Bright;
+		Stop;
+	}
+}
+// Gray SG sniper laser-dot puff (the telegraph).
+class RS_RedDotSGPuff : BulletPuff
+{
+	Default { +NOBLOOD; +PAINLESS; +ALWAYSPUFF; Translation "0:255=175:191"; Scale 0.5; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Melee:
+	Death:
+		PUFF A 6 Bright;
+		Stop;
+	}
+}
+
+// ---------- CHAINGUNNER rebuild additions ----------
+// Gray chaingunner's exploding tracer puff.
+class RS_GrayCGuff : Actor
+{
+	Default { Projectile; +NOGRAVITY; +ALLOWPARTICLES; +PUFFONACTORS; +ALWAYSPUFF; RenderStyle "Add"; Alpha 0.85; Scale 0.25;
+		Mass 5; DamageType "Fire"; DeathSound "imp/shotx"; }
+	States
+	{
+	Spawn:
+		MISL BC 2 Bright;
+	Melee:
+	Death:
+		MISL D 4 Bright A_Explode(6, 64);
+		MISL E 4 Bright;
+		Stop;
+	}
+}
+// Red chaingunner's detonating puffs, three range grades.
+class RS_DetoPuffCG : Actor
+{
+	Default { Projectile; +NOGRAVITY; +ALLOWPARTICLES; +RANDOMIZE; +PUFFONACTORS; +ALWAYSPUFF; RenderStyle "Add"; Alpha 0.85; Scale 0.35;
+		Mass 5; DamageType "Fire"; DeathSound "imp/shotx"; }
+	States
+	{
+	Spawn:
+		MISL BC 4 Bright;
+	Melee:
+	Death:
+		MISL D 4 Bright A_Explode(4, 42);
+		MISL E 4 Bright;
+		Stop;
+	}
+}
+class RS_DetoPuff2 : RS_DetoPuffCG { Default { Scale 0.30; } }
+class RS_DetoPuff3 : RS_DetoPuffCG { Default { Scale 0.25; } }
+// The General's seeking plasma bombs (BFS1/BFE1 are IWAD BFG sprites).
+class RS_SpamShotsCguy : Actor
+{
+	Default { Radius 14; Height 9; Speed 25; Damage 25; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE;
+		RenderStyle "Add"; Alpha 0.75; Scale 0.55; SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx"; }
+	States
+	{
+	Spawn:
+		BFS1 AB 2 Bright A_SeekerMissile(2, 3);
+		Loop;
+	Death:
+		BFE1 AB 8 Bright A_SetScale(1.15);
+		BFE1 C 8 Bright A_Explode(25, 128);
+		BFE1 DEF 8 Bright;
+		Stop;
+	}
+}
+
 // --- IMPORT CORRECTIONS -------------------------------------------
 // Broken sprite references inherited from the source, fixed on import:
 //   * SGRN -> GRND (source comment wrongly called SGRN a stock IWAD sprite)  (1 occurrence)

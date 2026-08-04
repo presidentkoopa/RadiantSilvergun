@@ -1,0 +1,115 @@
+================================================================================
+   SESSION HANDOFF -- the affix system + unified UI + content constitution
+   2026-08-03. READ THIS FIRST, then rs_11 (the law).
+================================================================================
+
+WHAT THIS SESSION BUILT (all committed and pushed, main @ 3f4db73+)
+================================================================================
+Started with a tree that had never compiled. Ended with the whole
+progression loop implemented: roll -> level -> pick cards -> master ->
+promote -> repeat, plus the UI to drive it.
+
+  COMPILE FIXES (the first hours): Archvile bracket sprite frames,
+    Array<T> return types (illegal here -- out-params instead), missing
+    `play` scope on helpers touching Actor members, switch-on-string,
+    a local named `out`, bMISSILEMORE deprecation, signed/unsigned in
+    the vendored tooltip menu. Tree compiled clean for the first time.
+
+  TWO REAL BUGS FOUND AND FIXED:
+    * every shotgun was silently firing DOUBLE pellets at half damage
+      (payload:multi sat in their BASE keywords and the resolver read
+      BASE + granted). BASE keywords are now identity-only.
+    * bullet damage was being multiplied by the engine's random(1,8)
+      while hitscan dealt exact ints. Now exact both ways
+      (DoSpecialDamage override -- GetMissileDamage is native
+      non-virtual and CANNOT be overridden; don't try again).
+
+  THE AFFIX ENGINE: RS_KeywordEffects carries level tables for every
+    designed affix; RS_FX_BallisticFired gained seeker retarget
+    cycling, the pierce economy, and the impact-spawn hook rs_06 had
+    flagged as missing. RS_Weapon's fire path gained the deterministic
+    fan, per-pellet homing rolls, kickback, and the plain-Actor branch
+    that makes BOUNCING player rounds possible at all.
+
+  THE CARDS (21): ten behavior/signature affixes (Splitter, Slugger,
+    Overcharged, Giant, Seeker, Ghost, Cacospit, Bonecaller, PainOrb,
+    Echo), six stat cards, five combo cards. Each affix takes 6 levels;
+    the 6th is a Mastery rule-change.
+
+  THE UI (rs_10): weapon sheets per hand, player sheet, card picker,
+    promotion confirm, service/repair screen -- one dynamic renderer,
+    all fullscreen native menus, VR-legal (audio + world-space only).
+
+  THE ECONOMY: Gold Bits now exist and drop; they buy rerolls
+    (5<<n) and extra cards (12<<n) at the picker. Grey Bits repair.
+
+  PROMOTION IS REACHABLE FOR THE FIRST TIME: Promote() had zero
+    callers in the entire codebase. The picker's gold PROMOTE card is
+    now its trigger.
+
+  SOCKETS ARE READ FOR THE FIRST TIME: rolled per tier since day one,
+    read by nothing until now. They are the BREADTH cap -- distinct
+    affixes held <= sockets; re-picking to level up is always free.
+
+  THE TELL: one imported beep (li-gnrcwpn PLBEEP), pitched per
+    archetype, fired at the exact tic cadence reopens. Silenced by a
+    held trigger. Shotgun family + melee excluded (their action IS the
+    tell). This is the cadence language the mod never had.
+
+  THE STATE LADDER: the default round's BODY now reflects the gun --
+    Hot/Peak as damage climbs its ceiling, Worn/Failing as condition
+    drops, muzzle smoke on every shot when worn. Never overrides an
+    affix part: state never erases identity.
+
+THE ONE THING NOT DONE: NOTHING SINCE THE UI BUILD HAS COMPILED
+================================================================================
+Everything above is written, wired, registered, and reviewed by
+READING only. The owner's compile is the gate. A by-inspection sweep
+for this project's known ZScript traps (array returns, string switch,
+static fields, duplicate overrides, missing includes, GetClassName
+typing) came back clean, but that is not a compiler.
+
+  PHASE 3 PROTOCOL (agreed, still owed): one boot -> walk the cycle
+  bind through all three sheets -> level something -> take a card ->
+  reroll (Right) -> buy a card (Left) -> Esc -> listen for the beep
+  -> ONE punch-list -> ONE fix batch.
+
+ALSO STILL OWED
+================================================================================
+  * The deferred systematic code-review pass (owner's call, never ran).
+  * Owner strikes on the ~50-card candidate pool at the bottom of
+    rs_11 -- anything unstruck is approved to build.
+  * Wave D1: more Monster Signatures, buildable straight from rs_13's
+    ranked shortlist (main thread; the survey was the expensive part
+    and it's banked).
+  * The foley import pass -- rs_14 lists 18 files with exact source
+    paths and destination names.
+  * rs_12/13/14 tails may be slightly short: two survey agents were
+    killed by a usage-limit mid-run AFTER writing their files.
+
+THE DOCS THAT MATTER NOW
+================================================================================
+  rs_11  THE LAW. Two layers (12 stats = soul, 8 PACK axes = body),
+         the 5-test audit, tier->offer table, sockets law, promoted
+         picks +1, rarity lanes, dual-wield quarantine, candidate pool.
+  rs_10  UI spec, built.
+  rs_09  the affix slate's workshop record (note: Painter/Cryo were
+         killed as elemental concepts and reframed into Cacospit and
+         PainOrb -- the doc's header says LIVE, its body predates the
+         reframe in places).
+  rs_12/13/14  catalog index / signature shortlist / flavor+foley.
+  rs_01  promotion math. rs_00 the original vision.
+
+THE DESIGN CORRECTION THAT DEFINED THE BACK HALF
+================================================================================
+The first slate shipped ten cards, two of them generic elementals --
+in a mod whose identity is Doom's own guts. The owner's correction
+became law: monster signatures instead of elementals; every card must
+pass the audit (does it make a rolled stat MEANINGLESS? -> dead; does
+it make one matter MORE? -> best); and ask similar/opposite/
+synergistic/antagonistic before writing a line. Echo, Seeker and Ghost
+were all reworked under that law -- Echo now fires YOUR gun's own
+round doubled at double ammo cost, Seeker's tracking scales with
+rolled Accuracy, Ghost's punch-through scales with rolled Velocity.
+Velocity's first real job in the entire project.
+================================================================================

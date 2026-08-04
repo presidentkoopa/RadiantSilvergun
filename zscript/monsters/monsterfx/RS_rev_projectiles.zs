@@ -228,6 +228,91 @@ class RS_IceToMeetWhiteRev : Actor
 }
 // (RS_CyanCybieGunFlare already defined in hf_cyberdemon_projectiles.zs -- shared)
 
+// ---------- YELLOW (REVN body): spitfire embers + hell-flame ----------
+// Added by the rs_09 per-tier rebuild: the HF port had flattened the
+// Yellow Revenant to a bare skull-charge; CH's real kit (CH decorate/
+// Revenants.txt YellowRevenant) is spit embers, a Homer1 seeker pair
+// (RS_Homer1 lives in RS_lostsoul_projectiles.zs, shared) and a
+// vile-target hell-flame. CH's "Fire/fire*" sounds have no RS lumps ->
+// vanilla vile fire sounds, per the alias policy in SNDINFO.
+class RS_Firespe2 : Actor
+{
+	Default { Radius 1; Height 1; Speed 12; Mass 2; Gravity 0.4; BounceType "Heretic"; Damage 5; DamageType "Fire"; RenderStyle "Add"; Alpha 0.8;
+		SeeSound "vile/firestrt"; }
+	States
+	{
+	Spawn:
+		FLUM ABCDE 4 Bright A_Jump(96, "Death");
+		Loop;
+	Death:
+		MISL B 5 Bright;
+		MISL C 5 Bright A_Explode(5, 40);
+		MISL D 5 Bright;
+		Stop;
+	}
+}
+class RS_Firespe1 : Actor
+{
+	Default { Radius 1; Height 1; Speed 20; Mass 2; Gravity 0.4; BounceType "Heretic"; Damage 7; DamageType "Fire"; RenderStyle "Add"; Alpha 0.8;
+		SeeSound "vile/firestrt"; }
+	States
+	{
+	Spawn:
+		FLUM ABCDE 4 Bright A_Jump(84, "Death");
+		Loop;
+	Death:
+		MISL B 5 Bright;
+		MISL C 5 Bright A_Explode(7, 64);
+		MISL D 4 Bright
+		{
+			for (int i = 0; i < 6; i++)
+				A_SpawnItemEx("RS_Firespe2", random(-32, 32), random(-32, 32), 2, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		Stop;
+	}
+}
+class RS_FirespeNewYel : Actor
+{
+	Default { Radius 4; Height 4; Speed 24; Mass 2; Damage 16; DamageType "Fire"; Projectile; RenderStyle "Add"; Alpha 0.8;
+		SeeSound "vile/firestrt"; }
+	States
+	{
+	Spawn:
+		FLUM ABCDE 3 Bright;
+		TNT1 A 0 { vel.z += random(2, 5); }
+		FLUM ABCDE 3 Bright;
+		Goto Death;
+	Death:
+		MISL B 5 Bright;
+		MISL C 5 Bright A_Explode(7, 64);
+		MISL D 5 Bright { A_SpawnItemEx("RS_Firespe2", 0, 0, 0, random(3, 9), 0, 0, random(0, 359), SXF_NOCHECKPOSITION); }
+		Stop;
+	}
+}
+class RS_BigBadFire1 : Actor
+{
+	// Vile-target ground fire (A_VileTarget spawns it on the player).
+	Default { Radius 1; Height 1; Speed 0; Mass 2; DamageType "Fire"; RenderStyle "Add"; Alpha 0.8; Scale 1.5;
+		DeathSound "vile/firecrkl"; }
+	States
+	{
+	Spawn:
+		FLUM AB 3 Bright A_Explode(5, 25);
+		FLUM CD 3 Bright A_Explode(5, 25);
+		FLUM E 3 Bright A_Jump(104, "Death");
+		Loop;
+	Death:
+		MISL B 5 Bright;
+		MISL C 5 Bright A_Explode(random(4, 10), 64);
+		MISL D 5 Bright
+		{
+			for (int i = 0; i < 5; i++)
+				A_SpawnItemEx("RS_Firespe1", random(-32, 32), random(-32, 32), 2, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		}
+		Stop;
+	}
+}
+
 
 // --- IMPORT CORRECTIONS -------------------------------------------
 // Broken sprite references inherited from the source, fixed on import:

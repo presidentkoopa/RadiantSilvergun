@@ -138,22 +138,25 @@ class RS_EX_Archvile : RS_MonsterMaster
 			AttachSatellite(RS_MonsterCatalog.SAT_VileEye(), 120, 46, 52);
 			AttachSatellite(RS_MonsterCatalog.SAT_VileEye(), 240, 46, 52);
 		}
-		"LMWZ" AB 10  { RS_WearBody(); A_Look(); }
+		// LMWZ ships frames A and E-P ONLY (verified on disk; CH's own
+		// decorate never touches B-D or Q-Z). Choreography follows CH:
+		// walk EF, cast E/F/G/H, pain I, death J-P.
+		"LMWZ" EF 10  { A_Look(); }
 		Loop;
 	See:
-		"LMWZ" AABBCCDDEEFF 2  { RS_WearBody(); A_VileChase(); }
+		"LMWZ" EEFFGG 2  { A_VileChase(); }
 		Loop;
 	Missile:
-		"LMWZ" G 0  Bright { RS_WearBody(); A_VileStart(); }
-		"LMWZ" G 8  Bright { RS_WearBody(); A_FaceTarget(); }
-		"LMWZ" H 8  Bright { RS_WearBody(); A_RS_MonsterFire(); }
-		"LMWZ" IJ 6  Bright { RS_WearBody(); A_FaceTarget(); }
-		"LMWZ" K 8  Bright { RS_WearBody(); A_RS_MonsterFire(); }
-		"LMWZ" P 14  Bright { RS_WearBody(); }
+		"LMWZ" E 0  Bright { A_VileStart(); }
+		"LMWZ" E 8  Bright { A_FaceTarget(); }
+		"LMWZ" F 8  Bright { A_RS_MonsterFire(); }
+		"LMWZ" GH 6  Bright { A_FaceTarget(); }
+		"LMWZ" G 8  Bright { A_RS_MonsterFire(); }
+		"LMWZ" E 14  Bright;
 		Goto See;
 	Pain:
-		"LMWZ" Q 4 { RS_WearBody(); }
-		"LMWZ" Q 4  { RS_WearBody(); A_Pain(); }
+		"LMWZ" I 4;
+		"LMWZ" I 4  { A_Pain(); }
 		TNT1 A 0
 		{
 			RS_Gate();
@@ -162,11 +165,11 @@ class RS_EX_Archvile : RS_MonsterMaster
 		}
 		Goto See;
 	Death:
-		"LMWZ" Q 7 { RS_WearBody(); }
-		"LMWZ" R 7  { RS_WearBody(); A_Scream(); }
-		"LMWZ" S 7  { RS_WearBody(); A_NoBlocking(); }
-		"LMWZ" TUVWXY 7 { RS_WearBody(); }
-		"LMWZ" Z -1 { RS_WearBody(); }
+		"LMWZ" J 7;
+		"LMWZ" K 7  { A_Scream(); }
+		"LMWZ" L 7  { A_NoBlocking(); }
+		"LMWZ" MNO 7;
+		"LMWZ" P -1;
 		Stop;
 	}
 }
@@ -249,27 +252,27 @@ class RS_EX_ArchvilePhantom : RS_MonsterMaster
 	{
 	Spawn:
 		TNT1 A 0 NoDelay A_StartSound("vile/sight", CHAN_VOICE);
-		"LMWZ" AB 8  { RS_WearBody(); A_Look(); }
+		"LMWZ" EF 8  { A_Look(); }
 		Loop;
 	See:
-		"LMWZ" AABBCCDDEEFF 2  { RS_WearBody(); A_Chase(); }
+		"LMWZ" EEFFGG 2  { A_Chase(); }
 		Loop;
 	Missile:
-		"LMWZ" G 6  Bright { RS_WearBody(); A_FaceTarget(); }
-		"LMWZ" H 10  Bright { RS_WearBody(); A_RS_MonsterFire(); }
-		"LMWZ" P 10  Bright { RS_WearBody(); }
+		"LMWZ" G 6  Bright { A_FaceTarget(); }
+		"LMWZ" H 10  Bright { A_RS_MonsterFire(); }
+		"LMWZ" E 10  Bright;
 		Goto See;
 	Pain:
-		"LMWZ" Q 3 { RS_WearBody(); }
-		"LMWZ" Q 3  { RS_WearBody(); A_Pain(); }
+		"LMWZ" I 3;
+		"LMWZ" I 3  { A_Pain(); }
 		TNT1 A 0 { RS_CountHit(); }
 		Goto See;
 	Death:
-		"LMWZ" Q 6 { RS_WearBody(); }
-		"LMWZ" R 6  { RS_WearBody(); A_Scream(); }
-		"LMWZ" S 6  { RS_WearBody(); A_NoBlocking(); }
-		"LMWZ" TUVWXY 6 { RS_WearBody(); }
-		"LMWZ" Z -1 { RS_WearBody(); }
+		"LMWZ" J 6;
+		"LMWZ" K 6  { A_Scream(); }
+		"LMWZ" L 6  { A_NoBlocking(); }
+		"LMWZ" MNO 6;
+		"LMWZ" P -1;
 		Stop;
 	}
 }
@@ -374,22 +377,22 @@ class RS_EX_Baron : RS_MonsterMaster
 	States
 	{
 	Spawn:
-		"VSTL" AB 10  { RS_WearBody(); A_Look(); }
+		"VSTL" AB 10  { A_Look(); }
 		Loop;
 	See:
-		"VSTL" AABBCCDD 3  { RS_WearBody(); A_Chase(); }
+		"VSTL" AABBCCDD 3  { A_Chase(); }
 		Loop;
 	Melee:
-		"VSTL" EF 6  { RS_WearBody(); A_FaceTarget(); }
-		"VSTL" G 6  { RS_WearBody(); A_BruisAttack(); }
+		"VSTL" EF 6  { A_FaceTarget(); }
+		"VSTL" G 6  { A_BruisAttack(); }
 		Goto See;
 	Missile:
-		"VSTL" EF 6  { RS_WearBody(); A_FaceTarget(); }
-		"VSTL" G 10  Bright { RS_WearBody(); A_RS_MonsterFire(); }
+		"VSTL" EF 6  { A_FaceTarget(); }
+		"VSTL" G 10  Bright { A_RS_MonsterFire(); }
 		Goto See;
 	Pain:
-		"VSTL" H 2 { RS_WearBody(); }
-		"VSTL" H 2  { RS_WearBody(); A_Pain(); }
+		"VSTL" H 2;
+		"VSTL" H 2  { A_Pain(); }
 		TNT1 A 0
 		{
 			if (CheckThreshold(RS_EXB_GATE1, 0.66) || CheckThreshold(RS_EXB_GATE2, 0.33))
@@ -401,12 +404,12 @@ class RS_EX_Baron : RS_MonsterMaster
 		}
 		Goto See;
 	Death:
-		"VSTL" I 8 { RS_WearBody(); }
-		"VSTL" J 8  { RS_WearBody(); A_Scream(); }
-		"VSTL" K 8 { RS_WearBody(); }
-		"VSTL" L 8  { RS_WearBody(); A_NoBlocking(); }
-		"VSTL" MN 8 { RS_WearBody(); }
-		"VSTL" N -1  { RS_WearBody(); A_BossDeath(); }
+		"VSTL" I 8;
+		"VSTL" J 8  { A_Scream(); }
+		"VSTL" K 8;
+		"VSTL" L 8  { A_NoBlocking(); }
+		"VSTL" MN 8;
+		"VSTL" N -1  { A_BossDeath(); }
 		Stop;
 	}
 }

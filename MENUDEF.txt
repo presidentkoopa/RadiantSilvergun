@@ -455,6 +455,8 @@ OptionMenu "RS_MonsterDebugSpawnOneMenu"
 	Command "Mancubus",      "netevent rs_mon_spawn_mancubus"
 	Command "Arachnotron",   "netevent rs_mon_spawn_arachnotron"
 	Command "Archvile",      "netevent rs_mon_spawn_archvile"
+	Command "Mastermind",    "netevent rs_mon_spawn_mastermind"
+	Command "Cyberdemon",    "netevent rs_mon_spawn_cyberdemon"
 	StaticText " "
 	Command "Remove all RS monsters", "netevent rs_mon_clear"
 }

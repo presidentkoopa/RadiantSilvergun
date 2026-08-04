@@ -172,3 +172,38 @@ class RS_ShadowBombBigEX : Actor
 		SeeSound "shadowbeast/pr2sit"; DeathSound "shadowbeast/pr2death"; Translation "0:255=%[0.30,0.00,0.40]:[1.20,0.40,1.60]"; }
 	States { Spawn: BDP2 AB 4 Bright; Loop; Death: BDP2 CDE 5 Bright A_Explode(150,160); Stop; }
 }
+
+// ---------- CYAN: ice fat-ball (FATT body, cyan tint) ----------
+// Added by the rs_09 per-tier rebuild: the HF port had flattened the
+// Cyan Mancubus to the stock triple volley; CH's real attack (CH
+// decorate/Fatsos.txt CyanFatso2) is paired ice fat-balls that burst
+// into a RS_FrostLong2 shard ring (shared, RS_imp_projectiles.zs).
+// CH "Ice/Hit2" death sound has no RS lump -> rs_fx_ice_hit.
+class RS_IceFattTrail : Actor
+{
+	Default { Radius 2; Height 2; Speed 0; Alpha 0.4; RenderStyle "Add"; +NOBLOCKMAP; +NOGRAVITY; +NOINTERACTION; }
+	States
+	{
+	Spawn:
+		CHCY ABCDFG 3 Bright A_Jump(32, "Death");
+		Loop;
+	Death:
+		TNT1 A 1;
+		Stop;
+	}
+}
+class RS_CyanFatBall : Actor
+{
+	Default { Radius 8; Height 8; Speed 32; Scale 1.1; Damage 25; DamageType "Ice"; Projectile; +DONTHARMCLASS;
+		SeeSound "imp/attack"; DeathSound "rs_fx_ice_hit"; }
+	States
+	{
+	Spawn:
+		CHCY ABCDFG 2 Bright { A_SpawnItemEx("RS_IceFattTrail", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		Loop;
+	Death:
+		TNT1 A 0 { A_Scream(); }
+		TNT1 AAAAAAA 0 { A_SpawnProjectile("RS_FrostLong2", 0, 0, random(0, 359), CMF_OFFSETPITCH, random(-25, -5)); }
+		Stop;
+	}
+}

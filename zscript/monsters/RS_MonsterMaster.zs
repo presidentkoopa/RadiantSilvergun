@@ -435,6 +435,36 @@ class RS_MonsterMaster : Actor abstract
 		return FindStateByString(prefix .. ".T00", true);
 	}
 
+	// AUDIT support (RS_MonsterDebug). Reports tier clusters this class
+	// is missing where the BodyTable says the tier wears a body DIFFERENT
+	// from T00's -- those are the tiers where the T00 fallback would show
+	// the wrong creature. Same-body tiers legitimately share clusters and
+	// are not flagged. Missile and Melee count as one slot (melee-only
+	// bodies are legal).
+	string RS_AuditClusters()
+	{
+		string missing = "";
+		string base = RS_DbgBodyToken(0);
+		for (int t = 1; t <= 12; t++)
+		{
+			if (RS_DbgBodyToken(t) == base)
+				continue;
+			string lbl = TierLabel(t);
+			if (!FindStateByString("See." .. lbl, true))
+				missing = missing .. "See." .. lbl .. " ";
+			if (!FindStateByString("Spawn." .. lbl, true))
+				missing = missing .. "Spawn." .. lbl .. " ";
+			if (!FindStateByString("Pain." .. lbl, true))
+				missing = missing .. "Pain." .. lbl .. " ";
+			if (!FindStateByString("Death." .. lbl, true))
+				missing = missing .. "Death." .. lbl .. " ";
+			if (!FindStateByString("Missile." .. lbl, true)
+			    && !FindStateByString("Melee." .. lbl, true))
+				missing = missing .. "Attack." .. lbl .. " ";
+		}
+		return missing;
+	}
+
 	// =================================================================
 	// ATTACKS -- the same RS_AttackSlot the guns use.
 	// =================================================================

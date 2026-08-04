@@ -45,11 +45,13 @@ class RS_MonsterDebug : EventHandler
 			case 12: return "RS_Mancubus";
 			case 13: return "RS_Arachnotron";
 			case 14: return "RS_Archvile";
+			case 15: return "RS_Mastermind";
+			case 16: return "RS_Cyberdemon";
 			default: return "";
 		}
 	}
 
-	static int DbgCount() { return 15; }
+	static int DbgCount() { return 17; }
 
 	private static int GI(string name, int def)
 	{
@@ -121,7 +123,7 @@ class RS_MonsterDebug : EventHandler
 		}
 
 		Console.Printf("\ccRS Lineup: %d spawned, %d failed, tier %02d.", spawned, failed, tier);
-		Console.Printf("\ccOrder: Zombie Shotgun Chaingun Imp Demon Spectre Soul Caco Pain Baron Knight Revenant Mancubus Arach Vile");
+		Console.Printf("\ccOrder: Zombie Shotgun Chaingun Imp Demon Spectre Soul Caco Pain Baron Knight Revenant Mancubus Arach Vile Mastermind Cyber");
 	}
 
 	// -----------------------------------------------------------------
@@ -316,7 +318,36 @@ class RS_MonsterDebug : EventHandler
 			}
 		}
 
-		Console.Printf("\cc--- audit done: %d families with problems ---", problems);
+		// STATE CLUSTER AUDIT -- the rebuilt body system's real check.
+		// Walks LIVE monsters (spawn a row first) and asks each class
+		// which per-tier clusters it is missing where its BodyTable says
+		// the body differs from T00's. A clean rebuild prints nothing
+		// here; anything listed would show the WRONG BODY at that tier.
+		ThinkerIterator it = ThinkerIterator.Create("RS_MonsterMaster");
+		RS_MonsterMaster m;
+		int audited = 0;
+		Array<string> seen;
+		while (m = RS_MonsterMaster(it.Next()))
+		{
+			string cn = m.GetClassName() .. "";
+			bool dup = false;
+			for (int k = 0; k < seen.Size(); k++)
+				if (seen[k] == cn) { dup = true; break; }
+			if (dup) continue;
+			seen.Push(cn);
+			audited++;
+
+			string miss = m.RS_AuditClusters();
+			if (miss.Length() > 0)
+			{
+				Console.Printf("\cg%-18s missing clusters: %s", cn, miss);
+				problems++;
+			}
+		}
+		if (audited == 0)
+			Console.Printf("\ccCluster audit skipped: no live RS monsters. Spawn a row, then AUDIT again.");
+
+		Console.Printf("\cc--- audit done: %d problems ---", problems);
 	}
 
 	private void ClearMonsters()
@@ -373,6 +404,10 @@ class RS_MonsterDebug : EventHandler
 			SpawnOne(pmo, 13);
 		else if (e.Name ~== "rs_mon_spawn_archvile")
 			SpawnOne(pmo, 14);
+		else if (e.Name ~== "rs_mon_spawn_mastermind")
+			SpawnOne(pmo, 15);
+		else if (e.Name ~== "rs_mon_spawn_cyberdemon")
+			SpawnOne(pmo, 16);
 		else if (e.Name ~== "rs_mon_tier_up")
 			Retier(1, 1);
 		else if (e.Name ~== "rs_mon_tier_down")

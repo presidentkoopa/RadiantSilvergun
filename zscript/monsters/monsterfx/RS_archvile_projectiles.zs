@@ -120,3 +120,61 @@ class RS_FireSGguy2 : Actor
 // --- IMPORT CORRECTIONS -------------------------------------------
 // Broken sprite references inherited from the source, fixed on import:
 //   * FBXP -> BFE2 (FBXP exists nowhere; BFE2 is the vanilla BFG blast)  (2 occurrences)
+
+// ---------------------------------------------------------------------
+// RS_WVileEye -- the White Archvile's floating eyes. Ported from CH
+// Archviles.txt (WVileEye1). They hover in a ring around the summoner,
+// then commit: drop the noclip, accelerate, and home in weaving.
+//
+// CH gated the charge on an inventory token handed out by an ACS chain
+// (WVEyeGo). Rebuilt as a plain tic countdown instead -- same read for
+// the player (a beat of menace, then they come at you), no ACS.
+// Sprites WVEY (imported) + SSUL burst.
+// ---------------------------------------------------------------------
+class RS_WVileEye : Actor
+{
+	Default
+	{
+		Height 6;
+		Radius 6;
+		Damage (random(10, 40));
+		Speed 0;
+		Projectile;
+		+SEEKERMISSILE
+		+NOCLIP
+		+SCREENSEEKER
+		Scale 0.5;
+		RenderStyle "Add";
+		DeathSound "vile/firecrkl";
+	}
+	States
+	{
+	Spawn:
+		WVEY FGO 7 Bright;
+		WVEY P 2 Bright { A_SetScale(0.3, 0.5); }
+	Orbit:
+		// Hold station on the summoner. ~2.3s of hovering before the
+		// commit, so the player sees them arrive and has a moment.
+		WVEY P 1 Bright
+		{
+			A_Warp(AAPTR_TARGET, 2, random(-24, 24), random(42, 78), 0,
+			       WARPF_NOCHECKPOSITION | WARPF_COPYVELOCITY);
+		}
+		WVEY P 3 Bright;
+		WVEY P 1 Bright A_JumpIf(GetAge() > 80, "Charge");
+		Loop;
+	Charge:
+		WVEY P 1 Bright { A_FaceTarget(); }
+		WVEY P 1 Bright { bNOCLIP = false; }
+		WVEY P 2 Bright { A_SetSpeed(21); }
+	Fly:
+		WVEY P 1 Bright { A_StartSound("fire/fire1", CHAN_BODY); }
+		WVEY P 2 Bright { A_SeekerMissile(21, 30, SMF_LOOK); }
+		WVEY P 2 Bright { A_Weave(1, 1, 1, 1); }
+		Loop;
+	Death:
+		TNT1 A 0 { A_SetScale(1.0, 1.0); }
+		SSUL ABCD 4 Bright;
+		Stop;
+	}
+}

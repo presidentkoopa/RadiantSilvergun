@@ -1,10 +1,15 @@
 // =====================================================================
 // RS_MonsterStages -- multi-stage boss bodies and pack minions that
-// don't belong to a single family file.
+// don't belong to a single family file. Per-tier state architecture
+// (docs/rs_09_monster_rebuild_spec.txt).
 //
 // The shrink chain (Arachnotron) and the Butcher's dogs live here
 // rather than padding their parent's file, since both are referenced
 // through RS_MonsterCatalog and neither is a "family" in its own right.
+//
+// SUBSTITUTION: DemonDog T08 was IFN2, a 2-frame effect sprite that
+// cannot carry a walker's state set -- HDOG stands in (same call as
+// RS_Minions' tendril).
 // =====================================================================
 
 // ---------------------------------------------------------------------
@@ -68,31 +73,149 @@ class RS_ArachnotronStage2 : RS_MonsterMaster
 
 	States
 	{
-	Spawn:
-		"BSP2" AB 8  { RS_WearBody(); A_Look(); }
+	// --- BSP2 body: T00 T01 T02 T04 T08 T09 T10 T11 (mini spider) ---
+	Spawn.T00:
+	Spawn.T01:
+	Spawn.T02:
+	Spawn.T04:
+	Spawn.T08:
+	Spawn.T09:
+	Spawn.T10:
+	Spawn.T11:
+		"BSP2" AB 8 { A_Look(); }
 		Loop;
-	See:
-		"BSP2" AABBCCDDEEFF 3  { RS_WearBody(); A_BabyMetal(); }
+	See.T00:
+	See.T01:
+	See.T02:
+	See.T04:
+	See.T08:
+	See.T09:
+	See.T10:
+	See.T11:
+		"BSP2" AABBCCDDEEFF 3 { A_BabyMetal(); }
 		Loop;
-	Missile:
-		"BSP2" A 12  Bright { RS_WearBody(); A_FaceTarget(); }
-		"BSP2" G 8  Bright { RS_WearBody(); A_RS_MonsterFire(); }
-		"BSP2" H 8  Bright { RS_WearBody(); }
+	Missile.T00:
+	Missile.T01:
+	Missile.T02:
+	Missile.T04:
+	Missile.T08:
+	Missile.T09:
+	Missile.T10:
+	Missile.T11:
+		"BSP2" A 12 Bright { A_FaceTarget(); }
+		"BSP2" G 8 Bright { A_RS_MonsterFire(); }
+		"BSP2" H 8 Bright;
 		Goto See;
-	Pain:
-		"BSP2" I 3 { RS_WearBody(); }
-		"BSP2" I 3  { RS_WearBody(); A_Pain(); }
+	Pain.T00:
+	Pain.T01:
+	Pain.T02:
+	Pain.T04:
+	Pain.T08:
+	Pain.T09:
+	Pain.T10:
+	Pain.T11:
+		"BSP2" I 3;
+		"BSP2" I 3 { A_Pain(); }
 		Goto See;
-	Death:
-		"BSP2" J 12  { RS_WearBody(); A_Scream(); }
-		"BSP2" K 6  { RS_WearBody(); A_NoBlocking(); }
-		"BSP2" LMNO 6 { RS_WearBody(); }
-		"BSP2" P -1 { RS_WearBody(); }
+	Death.T00:
+	Death.T01:
+	Death.T02:
+	Death.T04:
+	Death.T08:
+	Death.T09:
+	Death.T10:
+	Death.T11:
+		"BSP2" J 12 { A_Scream(); }
+		"BSP2" K 6 { A_NoBlocking(); }
+		"BSP2" LMNO 6;
+		"BSP2" P -1;
+		Stop;
+
+	// --- ACNB body: T03 T05 T07 (small spider, 8 frames: walk ABCD,
+	// lunge EFG, death curls back down the sheet) ---
+	Spawn.T03:
+	Spawn.T05:
+	Spawn.T07:
+		"ACNB" AB 8 { A_Look(); }
+		Loop;
+	See.T03:
+	See.T05:
+	See.T07:
+		"ACNB" AABBCCDD 3 { A_Chase(); }
+		Loop;
+	Missile.T03:
+	Missile.T05:
+	Missile.T07:
+		"ACNB" E 10 Bright { A_FaceTarget(); }
+		"ACNB" F 8 Bright { A_RS_MonsterFire(); }
+		"ACNB" G 8 Bright;
+		Goto See;
+	Pain.T03:
+	Pain.T05:
+	Pain.T07:
+		"ACNB" A 3;
+		"ACNB" A 3 { A_Pain(); }
+		Goto See;
+	Death.T03:
+	Death.T05:
+	Death.T07:
+		"ACNB" H 8 { A_Scream(); }
+		"ACNB" G 6 { A_NoBlocking(); }
+		"ACNB" FEDA 5;
+		"ACNB" A -1;
+		Stop;
+
+	// --- ABSP body: T06 (abyss eye-spider, 10 frames) ---
+	Spawn.T06:
+		"ABSP" AB 8 { A_Look(); }
+		Loop;
+	See.T06:
+		"ABSP" ABCDDDCB 3 { A_Chase(); }
+		Loop;
+	Missile.T06:
+		"ABSP" E 10 Bright { A_FaceTarget(); }
+		"ABSP" F 8 Bright { A_RS_MonsterFire(); }
+		"ABSP" G 8 Bright;
+		Goto See;
+	Pain.T06:
+		"ABSP" H 3;
+		"ABSP" H 3 { A_Pain(); }
+		Goto See;
+	Death.T06:
+		"ABSP" I 8 { A_Scream(); }
+		"ABSP" J 8 { A_NoBlocking(); }
+		"ABSP" J -1;
+		Stop;
+
+	// --- TRIT body: T12 (trite, 11 frames) ---
+	Spawn.T12:
+		"TRIT" AB 8 { A_Look(); }
+		Loop;
+	See.T12:
+		"TRIT" AABBCC 3 { A_Chase(); }
+		Loop;
+	Missile.T12:
+		"TRIT" D 10 Bright { A_FaceTarget(); }
+		"TRIT" E 8 Bright { A_RS_MonsterFire(); }
+		Goto See;
+	Pain.T12:
+		"TRIT" F 3;
+		"TRIT" F 3 { A_Pain(); }
+		Goto See;
+	Death.T12:
+		"TRIT" G 8 { A_Scream(); }
+		"TRIT" H 6 { A_NoBlocking(); }
+		"TRIT" IJ 6;
+		"TRIT" K -1;
 		Stop;
 	}
 }
 
 // Final stage. Small, fast, and it bursts rather than falling over.
+// Inherits every tier cluster from Stage2; only the death differs --
+// the ENTRY-label override below fires for every tier, keeps whatever
+// body the tier dressed us in (bare ####, frame A exists on all four
+// bodies), and shatters.
 class RS_ArachnotronStage3 : RS_ArachnotronStage2
 {
 	Default
@@ -120,11 +243,10 @@ class RS_ArachnotronStage3 : RS_ArachnotronStage2
 	States
 	{
 	Death:
-		"POSS" J 8  { RS_WearBody(); A_Scream(); }
-		"POSS" K 6  { RS_WearBody(); A_NoBlocking(); }
+		#### A 8 { A_Scream(); }
 		// Shatters instead of leaving a corpse -- the visual full stop
 		// on the chain.
-		"POSS" L 6  { RS_WearBody(); A_Burst("RS_ArachShard"); }
+		#### A 6 { A_NoBlocking(); A_Burst("RS_ArachShard"); }
 		Stop;
 	}
 }
@@ -186,7 +308,7 @@ class RS_DemonDog : RS_MonsterMaster
 	override string BodyTable()
 	{
 		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "HDOG HDOG HDOG WORM HDOG SRG2 HDOG HDOG IFN2 WORM SRG2 BCHR JUGG";
+		return "HDOG HDOG HDOG WORM HDOG SRG2 HDOG HDOG HDOG WORM SRG2 BCHR JUGG";
 	}
 
 	override string TintTable()
@@ -202,26 +324,159 @@ class RS_DemonDog : RS_MonsterMaster
 
 	States
 	{
-	Spawn:
-		"HDOG" AB 8  { RS_WearBody(); A_Look(); }
+	// --- HDOG body: T00 T01 T02 T04 T06 T07 T08 (T08 = IFN2 sub) ---
+	Spawn.T00:
+	Spawn.T01:
+	Spawn.T02:
+	Spawn.T04:
+	Spawn.T06:
+	Spawn.T07:
+	Spawn.T08:
+		"HDOG" AB 8 { A_Look(); }
 		Loop;
-	See:
-		"HDOG" AABBCCDD 2  { RS_WearBody(); A_Chase(); }
+	See.T00:
+	See.T01:
+	See.T02:
+	See.T04:
+	See.T06:
+	See.T07:
+	See.T08:
+		"HDOG" AABBCCDD 2 { A_Chase(); }
 		Loop;
-	Melee:
-		"HDOG" EF 6  { RS_WearBody(); A_FaceTarget(); }
-		"HDOG" G 6  { RS_WearBody(); A_SargAttack(); }
+	Melee.T00:
+	Melee.T01:
+	Melee.T02:
+	Melee.T04:
+	Melee.T06:
+	Melee.T07:
+	Melee.T08:
+		"HDOG" EF 6 { A_FaceTarget(); }
+		"HDOG" G 6 { A_SargAttack(); }
 		Goto See;
-	Pain:
-		"HDOG" H 2 { RS_WearBody(); }
-		"HDOG" H 2  { RS_WearBody(); A_Pain(); }
+	Pain.T00:
+	Pain.T01:
+	Pain.T02:
+	Pain.T04:
+	Pain.T06:
+	Pain.T07:
+	Pain.T08:
+		"HDOG" H 2;
+		"HDOG" H 2 { A_Pain(); }
 		Goto See;
-	Death:
-		"HDOG" I 6 { RS_WearBody(); }
-		"HDOG" J 6  { RS_WearBody(); A_Scream(); }
-		"HDOG" K 4 { RS_WearBody(); }
-		"HDOG" L 4  { RS_WearBody(); A_NoBlocking(); }
-		"HDOG" MN 4 { RS_WearBody(); }
+	Death.T00:
+	Death.T01:
+	Death.T02:
+	Death.T04:
+	Death.T06:
+	Death.T07:
+	Death.T08:
+		"HDOG" I 6;
+		"HDOG" J 6 { A_Scream(); }
+		"HDOG" K 4;
+		"HDOG" L 4 { A_NoBlocking(); }
+		"HDOG" MN 4;
+		Stop;
+
+	// --- WORM body: T03 T09 ---
+	Spawn.T03:
+	Spawn.T09:
+		"WORM" AB 8 { A_Look(); }
+		Loop;
+	See.T03:
+	See.T09:
+		"WORM" AABBCCDD 2 { A_Chase(); }
+		Loop;
+	Melee.T03:
+	Melee.T09:
+		"WORM" EF 6 { A_FaceTarget(); }
+		"WORM" G 6 { A_SargAttack(); }
+		Goto See;
+	Pain.T03:
+	Pain.T09:
+		"WORM" H 2;
+		"WORM" H 2 { A_Pain(); }
+		Goto See;
+	Death.T03:
+	Death.T09:
+		"WORM" I 6;
+		"WORM" J 6 { A_Scream(); }
+		"WORM" K 4;
+		"WORM" L 4 { A_NoBlocking(); }
+		"WORM" MN 4;
+		Stop;
+
+	// --- SRG2 body: T05 T10 ---
+	Spawn.T05:
+	Spawn.T10:
+		"SRG2" AB 8 { A_Look(); }
+		Loop;
+	See.T05:
+	See.T10:
+		"SRG2" AABBCCDD 2 { A_Chase(); }
+		Loop;
+	Melee.T05:
+	Melee.T10:
+		"SRG2" EF 6 { A_FaceTarget(); }
+		"SRG2" G 6 { A_SargAttack(); }
+		Goto See;
+	Pain.T05:
+	Pain.T10:
+		"SRG2" H 2;
+		"SRG2" H 2 { A_Pain(); }
+		Goto See;
+	Death.T05:
+	Death.T10:
+		"SRG2" I 6;
+		"SRG2" J 6 { A_Scream(); }
+		"SRG2" K 4;
+		"SRG2" L 4 { A_NoBlocking(); }
+		"SRG2" MN 4;
+		Stop;
+
+	// --- BCHR body: T11 ---
+	Spawn.T11:
+		"BCHR" AB 8 { A_Look(); }
+		Loop;
+	See.T11:
+		"BCHR" AABBCCDD 2 { A_Chase(); }
+		Loop;
+	Melee.T11:
+		"BCHR" EF 6 { A_FaceTarget(); }
+		"BCHR" G 6 { A_SargAttack(); }
+		Goto See;
+	Pain.T11:
+		"BCHR" H 2;
+		"BCHR" H 2 { A_Pain(); }
+		Goto See;
+	Death.T11:
+		"BCHR" I 6;
+		"BCHR" J 6 { A_Scream(); }
+		"BCHR" K 4;
+		"BCHR" L 4 { A_NoBlocking(); }
+		"BCHR" MN 4;
+		Stop;
+
+	// --- JUGG body: T12 ---
+	Spawn.T12:
+		"JUGG" AB 8 { A_Look(); }
+		Loop;
+	See.T12:
+		"JUGG" AABBCCDD 2 { A_Chase(); }
+		Loop;
+	Melee.T12:
+		"JUGG" EF 6 { A_FaceTarget(); }
+		"JUGG" G 6 { A_SargAttack(); }
+		Goto See;
+	Pain.T12:
+		"JUGG" H 2;
+		"JUGG" H 2 { A_Pain(); }
+		Goto See;
+	Death.T12:
+		"JUGG" I 6;
+		"JUGG" J 6 { A_Scream(); }
+		"JUGG" K 4;
+		"JUGG" L 4 { A_NoBlocking(); }
+		"JUGG" MN 4;
 		Stop;
 	}
 }
