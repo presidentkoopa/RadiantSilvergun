@@ -10,13 +10,70 @@ WORKING WITH THE OWNER
 
 STATE
   The full loop is BUILT: roll -> level -> pick cards -> master ->
-  promote. UI built. 32 cards.
-  THE GATE: hasn't compiled since the UI build. Last errors were
-  `damage: non-constant parameter` in two monsterfx files (a Default
-  block needs a constant) -- those belong to a PARALLEL monster
-  session, not the affix work.
+  promote. UI built. 32 cards. The weapons/affix lane is DONE and
+  pushed.
   AFTER IT COMPILES: one boot -> owner sends ONE punch-list -> you fix
   in ONE pass. Agreed protocol. Don't iterate blind on UI.
+
+THE GATE -- 69 ERRORS, NOT 2 (corrected 2026-08-04)
+  `damage: non-constant parameter` = `Damage (random(x,y))` in a
+  Default block. The compiler STOPS AT THE FIRST ONE each pass, which
+  is why it reads as two errors. There are 69, across 12 monsterfx
+  files: manc 15, archvile 13, cyber 11, human 8, imp 5, caco 5,
+  spectre 3, baron 3, rev 2, arach 2, lostsoul 1, hk 1.
+      git grep -c "Damage (random(" -- 'zscript/**'
+  Fixing them one at a time just moves the error. Do all 69 in one
+  pass.
+
+  THE FIX IS `DamageFunction (random(x,y))` -- a real ZScript property
+  that takes an expression and PRESERVES the roll. Do NOT flatten to
+  constants: three files carry a comment falsely asserting ZScript
+  requires a constant here (RS_hk_projectiles.zs:18,
+  RS_baron_projectiles.zs:21, RS_imp_projectiles.zs:75). That wrong
+  comment is why earlier passes destroyed CH's damage spreads.
+  CAVEAT: DamageFunction has ZERO precedent in this repo. Nobody has
+  compiled it. Test ONE line before sweeping 69 -- if the form is
+  wrong they all fail together.
+  This is MONSTER-LANE code, not the affix lane's.
+
+LANES (as of 2026-08-04) -- three besides weapons/affix
+  MONSTER LANE ("rs_08 problem", main tree, RUNNING) owns 64
+    uncommitted files: 50 sprites/monsters, 11 zscript/monsters,
+    RS_MonsterDebug.zs, rs_monsternotes.txt, MENUDEF.txt. Owns the 69.
+    OPEN UNKNOWN: ~60 RS_ classes exist in main's HEAD but are GONE
+    from the working copy while monster files still call them
+    (RS_BVileEX*, RS_BlackRevHook/Shade, RS_LSoulEXShade, RS_Leaves1/2,
+    RS_RevShieldWalk2, RS_Rocket, RS_BlackSpideEXShade, ...). Either a
+    mid-rewrite or real breakage -- unresolved, blocks a clean push.
+  SHOTGUNNER FX (claude/wizardly-mcnulty-9ff016, 76184bd0) REBASED onto
+    main and MERGE-READY -- verified sitting exactly on main HEAD.
+    Touches verify.py, art_index.json, build_art_index.py, 10 GRND
+    sprites, RS_human_projectiles.zs. Nothing in weapons/GunBonsai/UI.
+  DEDUPE (claude/friendly-brattain-5a47d3, 08949ca1) NOT merge-ready:
+    still forked at 3e6a9c46, FIVE commits behind. Its file copies are
+    far smaller than main's (archvile 989 vs 1310, human 1043 vs 1521,
+    cyber 1414 vs 1777) -- merging as-is REVERTS ~1,100 lines of
+    monster work and drops five commits. MUST rebase first; then
+    cherry-pick its 15 duplicate-class removals.
+
+  TREE HYGIENE: three lanes share E:\RS_Main. `git add -A` from the
+  shared tree sweeps other lanes' in-flight edits into your commits
+  (this already happened -- 3e6a9c46 is a checkpoint of monster work,
+  and git blame on monsterfx wrongly points at the affix lane). ALWAYS
+  stage explicit paths.
+
+TWO FINDINGS FROM OTHER LANES WORTH KNOWING
+  * verify.py's sprite check was ^-ANCHORED -- it only read tokens at
+    the start of a line, so it skipped every inline `States { ... }`
+    block and every quoted token. It reported OK on files it never
+    opened. Fixed in the shotgunner branch; post-fix, 13 of 37 monster
+    files still have broken sprite refs. Nobody has started that.
+  * Multi-frame A_Explode fires ONCE PER FRAME: `MISL BCD 4
+    A_Explode(40,80)` deals 120, not 40. RS_CGBigOne was dealing 400
+    at the epicentre from a line reading 80. 219 statements tree-wide;
+    ~164 safe to convert, ~55 must be LEFT ALONE (AGAS, LITN, B5P1,
+    FIRE CDEEDCDE, RIP1 ABCABCABCBA -- gas, lightning, lingering fire,
+    where the repeat IS the mechanic). Needs owner sign-off.
 
 THE TWO LAYERS
   12 weapon stats = the gun's SOUL. Affixes amplify, never erase.
