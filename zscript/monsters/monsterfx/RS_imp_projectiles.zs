@@ -72,7 +72,8 @@ class RS_RedMessImp : Actor
 // ============================================================================
 // IMP RAINBOW projectiles -- ripped/adapted from Colourful Hell, one per color.
 // All use stock BAL1 sprites + the color's translation (faithful to CH).
-// Damage converted to constants (ZScript Default requires constant Damage).
+// Damage converted to constants. (`Damage` needs a constant, but the roll can
+// be kept with `DamageFunction (random(a,b))` -- preferred for new work.)
 // ============================================================================
 
 // GREEN -- seeking plasma ball
@@ -547,7 +548,7 @@ class RS_DIBigOne : Actor
 	Default
 	{
 		Radius 12; Height 24; Speed 7;
-		Damage (random(40,125)); DamageType "Plasma";
+		DamageFunction (random(40,125)); DamageType "Plasma";
 		Projectile; +NOGRAVITY; RenderStyle "Add"; Scale 2; Alpha 0.75;
 		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4";
 		DropItem "RocketAmmo";
@@ -692,7 +693,7 @@ class RS_FatsoSpikes2 : Actor
 		Radius 4;
 		Height 4;
 		Speed 5;
-		Damage (random(10, 40));
+		DamageFunction (random(10, 40));
 		Projectile;
 		DamageType "Melee";
 		-NOGRAVITY
@@ -730,7 +731,7 @@ class RS_RedBBallImp : FastProjectile
 		Radius 8;
 		Height 12;
 		Speed 25;
-		Damage (random(10, 50));
+		DamageFunction (random(10, 50));
 		Scale 0.5;
 		Species "Imp";
 		Projectile;
@@ -769,7 +770,7 @@ class RS_GImpNail : FastProjectile
 		Species "Imp";
 		Radius 2;
 		Height 2;
-		Damage (random(1, 5));
+		DamageFunction (random(1, 5));
 		DamageType "Melee";
 		Speed 45;
 		Scale 0.5;
@@ -895,7 +896,7 @@ class RS_Hel2 : Actor
 		Radius 8;
 		Height 12;
 		Speed 12;
-		Damage (random(8, 30));
+		DamageFunction (random(8, 30));
 		Projectile;
 		+SEEKERMISSILE +NOGRAVITY
 		RenderStyle "Add";

@@ -15,7 +15,9 @@
 // ============================================================================
 // hf_hk_projectiles.zs -- projectiles for the RS_HellKnight color rainbow.
 // Ripped faithfully from Colourful Hell (full dependency trees traced).
-// Damage(random(a,b)) -> CONSTANT (ZScript Default requires it). Translations,
+// Damage(random(a,b)) -> CONSTANT here. NOTE: ZScript does NOT require that --
+// `Damage` takes a constant, but `DamageFunction (random(a,b))` keeps the roll
+// and compiles. Prefer DamageFunction for new work; these stay flat. Translations,
 // flags, sub-spawns preserved. Stock IWAD sprites (BAL1/BAL2/BAL7/MISL/PUFF/PLSE/
 // BAR1/MANF) used as CH uses them. Cosmetic ACS-only markers dropped.
 // ============================================================================

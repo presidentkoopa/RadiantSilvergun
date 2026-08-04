@@ -18,7 +18,8 @@
 // (Pass 2 adds Cyan/Brown/Abyss/Black/White heavy custom bodies.)
 //
 // Ripped faithfully from Colourful Hell (full dependency trees traced).
-// Damage(random(a,b)) -> CONSTANT. Translations/flags/sub-spawns preserved.
+// Damage(random(a,b)) -> CONSTANT here; `DamageFunction (random(a,b))` keeps the
+// roll and compiles, and is preferred for new work. Translations/flags/sub-spawns preserved.
 // Stock IWAD sprites (BAL1/BAL2/BAL7/MISL/PLSE/BFE1) used as CH uses them.
 // Shared with imp/HK (reused, not redefined): RS_BaronStar3, RS_RedRevLoad/2,
 // RS_SparkPuff1, RS_RedBBall, RS_BluBBall, RS_CrackoBallTrail.
@@ -1356,7 +1357,7 @@ class RS_BaronFBomb : FastProjectile
 	Default
 	{
 		Radius 12; Height 12; Speed 19; FastSpeed 38;
-		Damage (random(10, 70)); DamageType "Fire";
+		DamageFunction (random(10, 70)); DamageType "Fire";
 		Projectile; +RANDOMIZE +SEEKERMISSILE +DONTHARMCLASS;
 		Species "BaronOfHell";
 		RenderStyle "Add"; Alpha 1.0; Scale 1.0;

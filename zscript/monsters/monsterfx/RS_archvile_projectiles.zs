@@ -137,7 +137,7 @@ class RS_WVileEye : Actor
 	{
 		Height 6;
 		Radius 6;
-		Damage (random(10, 40));
+		DamageFunction (random(10, 40));
 		Speed 0;
 		Projectile;
 		+SEEKERMISSILE
@@ -437,7 +437,7 @@ class RS_PsychicTangleAbyVile : Actor
 	{
 		Projectile; +NOBLOCKMAP +NOGRAVITY
 		RenderStyle "Stencil"; StencilColor "Black"; Alpha 0.95; Scale 0.4;
-		Damage (random(1, 10)); Mass 50; Speed 20;
+		DamageFunction (random(1, 10)); Mass 50; Speed 20;
 		DeathSound "vile/stop";
 	}
 	States
@@ -598,7 +598,7 @@ class RS_BrownBoiVile : Actor
 	Default
 	{
 		Radius 12; Height 12; Speed 25; Mass 200; Health 50;
-		Damage (random(10, 55)); DamageType "Melee";
+		DamageFunction (random(10, 55)); DamageType "Melee";
 		Monster;
 		-COUNTKILL
 		+FLOAT +FLOATBOB +NOTARGETSWITCH +NOGRAVITY +LOOKALLAROUND
@@ -938,7 +938,7 @@ class RS_BrightUpVile2 : Actor
 {
 	Default { Projectile; +NOBLOCKMAP +NOGRAVITY +ALLOWPARTICLES;
 		RenderStyle "Stencil"; StencilColor "White"; Alpha 0.95;
-		Damage (random(5, 30)); Scale 1.0; Speed 2; Mass 50; DeathSound "vile/stop"; }
+		DamageFunction (random(5, 30)); Scale 1.0; Speed 2; Mass 50; DeathSound "vile/stop"; }
 	States
 	{
 	Spawn:

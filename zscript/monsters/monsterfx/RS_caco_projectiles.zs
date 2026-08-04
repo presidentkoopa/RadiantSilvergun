@@ -385,7 +385,7 @@ class RS_HadeExpl : Actor
 		Height 8;
 		Speed 3;
 		FastSpeed 9;
-		Damage (random(5, 10));
+		DamageFunction (random(5, 10));
 		DamageType "Fire";
 		Projectile;
 		+RANDOMIZE +SEEKERMISSILE

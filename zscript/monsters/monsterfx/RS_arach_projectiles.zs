@@ -326,7 +326,7 @@ class RS_PsychicAbyssSP : Actor
 	Default
 	{
 		Radius 13; Height 9; Speed 0;
-		Damage (random(2, 15));
+		DamageFunction (random(2, 15));
 		Projectile;
 		+RANDOMIZE +MTHRUSPECIES +DONTHARMCLASS
 		RenderStyle "Stencil"; StencilColor "Black";

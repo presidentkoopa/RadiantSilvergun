@@ -285,7 +285,7 @@ class RS_FatsoSpikes : Actor
 		Radius 12;
 		Height 12;
 		Speed 32;
-		Damage (random(28, 85));
+		DamageFunction (random(28, 85));
 		Projectile;
 		DamageType "Melee";
 		+NOGRAVITY
@@ -334,7 +334,7 @@ class RS_RocketShotFatso : Actor
 		Radius 11;
 		Height 8;
 		Speed 28;
-		Damage (random(10, 40));
+		DamageFunction (random(10, 40));
 		DamageType "Fire";
 		Projectile;
 		Scale 0.7;
