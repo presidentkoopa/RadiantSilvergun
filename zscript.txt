@@ -5,6 +5,7 @@ version "4.14"
 //#include "zscript/systems/RS_OffhandSeat.zs" // disabled -- see plan history, offhand system needs rebuilding
 #include "zscript/systems/RS_Roll.zs"
 #include "zscript/systems/RS_Bits.zs"
+#include "zscript/systems/RS_Score.zs"
 
 // Must load after RS_Weapon.zs and VR_PlayerClasses.zs (needs GetFamily()
 // on both) -- ZScript compiles as one unit so include order doesn't
