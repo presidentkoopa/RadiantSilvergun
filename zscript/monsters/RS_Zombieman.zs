@@ -37,6 +37,13 @@
 //                                     bone shotgun mid, rapid bones far;
 //                                     the ladder upgrades bone grade and
 //                                     finally unlocks the bone tornado
+//   TEX   01_KX  ZMKX  5000  28   16  PLAYER X: the EX tier. A marine with
+//                                     the whole arsenal on a range ladder
+//                                     (SSG / plasma / chaingun+rockets),
+//                                     a real SSG reload window, a rocket
+//                                     barrage answer to pain, a BFG that
+//                                     any branch can escalate into -- and
+//                                     it stops to taunt over corpses
 //
 // Tier stats come from CHP's own Health/Speed/PainChance per file and
 // are applied through TierData below, replacing the generic ladder.
@@ -119,6 +126,8 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 			case 10: hp = 115;  spd = 8;  r.painChance = 100; r.dmgMul = 1.8; break;
 			case 11: hp = 2000; spd = 26; r.painChance = 16;  r.dmgMul = 2.5; break;
 			case 12: hp = 3500; spd = 10; r.painChance = 16;  r.dmgMul = 3.0; break;
+			// TEX -- CHP 01_KX CommonBlackZombieEX2, verbatim.
+			case 13: hp = 5000; spd = 28; r.painChance = 16;  r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 20.0;
@@ -130,20 +139,32 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 	// verified present in sprites/monsters/Zombieman/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "POSS ZOMG ZOMB CYNT BPOS CZOW ABTR ZOMF SGAR SHDT ZUNM ZOMK MAGE";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		return "POSS ZOMG ZOMB CYNT BPOS CZOW ABTR ZOMF SGAR SHDT ZUNM ZOMK MAGE ZMKX";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
 	{
 		return "species:zombieman role:fodder delivery:bullet element:kinetic mobility:ground";
+	}
+
+	// CH's ThrustThing/ThrustThingZ hops, as plain velocity -- same two
+	// helpers RS_Shotgunner uses. The DECORATE specials take Z thrust in
+	// quarter-units, hence the /4 already folded into the call sites.
+	private void RS_HopZ(double amount)
+	{
+		vel.z += amount;
+	}
+	private void RS_HopDir(double deg, double force)
+	{
+		vel.xy += (cos(deg), sin(deg)) * force;
 	}
 
 	void RS_ClimbLadder()
@@ -224,6 +245,7 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 				AttackSound = "zombie/unmaker";
 				break;
 			case 11:
+			case 13:   // TEX -- Player X wears the player's own voice too
 				PainSound = "*pain50";    DeathSound = "*death";
 				break;
 			case 12:
@@ -1041,6 +1063,201 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		TNT1 A 0 { A_SetTranslucent(1.0); }
 		TNT1 A 0 { A_SpawnProjectile("RS_CH_BoneGib", 0, 12, random(-180, 180), 0, random(0, 90)); }
 		"MAGE" X -1;
+		Stop;
+
+	// ================= TEX PLAYER X (01_KX) =================
+	// The EX tier: CHP's CommonBlackZombieEX2. Not a zombie at all -- a
+	// black-silhouetted PLAYER carrying the whole arsenal, and the fight
+	// is a duel against a marine who dodges, reloads, and taunts you.
+	//
+	// Its structure is a RANGE LADDER, not a rotation:
+	//   under 300  -> super shotgun (one shell, then a real reload)
+	//   under 840  -> plasma spam, which can escalate into the BFG
+	//   beyond     -> chaingun taps with a rocket mixed in
+	// and every branch can roll into the rocket barrage or the BFG, so no
+	// distance is ever safe for long.
+	//
+	// The reload is the fight's real window: after the SSG shell it must
+	// stand still, rack the gun, and eject a shell -- and CHP makes it
+	// COMMIT by jumping straight from there into a barrage. rsShellUsed
+	// is CH's ShotgunWhere token; the same field T11 already uses, which
+	// is the same mechanic.
+	//
+	// It also TAUNTS. Every attack ends in A_CheckFlag("CORPSE", ...) on
+	// its target: kill a teammate in front of it and it stops shooting to
+	// laugh at you. That is content, not cruft, so it is ported whole.
+	Spawn.TEX:
+		"ZMKX" A 4 { A_Look(); }
+		Loop;
+	See.TEX:
+		"ZMKX" ABCD 4 { A_Chase(); }
+		"ZMKX" A 0 A_Jump(128, "See.TEX.Fast");
+		Loop;
+	See.TEX.Fast:
+		"ZMKX" ABCD 4 { A_FastChase(); }
+		"ZMKX" A 0 A_Jump(128, "See.TEX");
+		Loop;
+	Melee.TEX:
+		"ZMKX" E 4 { A_FaceTarget(); }
+		"ZMKX" E 4 { A_CustomMeleeAttack(random(60, 120), "*fist", ""); }
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		Goto Missile.TEX.Shotgun;
+	Missile.TEX:
+		"ZMKX" E 0 A_JumpIfCloser(300, "Missile.TEX.Shotgun");
+		"ZMKX" E 0 A_JumpIfCloser(840, "Missile.TEX.PlasmaSpam");
+		"ZMKX" E 0 A_Jump(256, "Missile.TEX.Chaingun");
+		Goto See;
+	// Pure showboating -- and it is the only time the fight pauses.
+	Missile.TEX.Taunt:
+		"ZMKX" A 4;
+		"ZMKX" G 4;
+		"ZMKX" A 4;
+		"ZMKX" G 4;
+		"ZMKX" A 4;
+		"ZMKX" G 4;
+		"ZMKX" A 4;
+		"ZMKX" G 4;
+		"ZMKX" A 4;
+		"ZMKX" G 4;
+		"ZMKX" A 3;
+		"ZMKX" G 3;
+		"ZMKX" A 3;
+		"ZMKX" G 3;
+		"ZMKX" A 3;
+		"ZMKX" G 3;
+		"ZMKX" GAG 4;
+		"ZMKX" AGA 3;
+		"ZMKX" GAG 2;
+		Goto See;
+	// Closes the last of the gap with a hop before it fires.
+	Missile.TEX.Shotgun:
+		"ZMKX" E 3 { A_FaceTarget(); }
+		"ZMKX" E 1 A_JumpIfCloser(300, "Missile.TEX.ShotgunFire");
+		"ZMKX" E 1 { RS_HopZ(16); }
+		"ZMKX" E 1 { RS_HopDir(angle, 12); }
+		"ZMKX" E 10 { A_FaceTarget(); }
+	Missile.TEX.ShotgunFire:
+		"ZMKX" F 0 { if (rsShellUsed) return ResolveState("Missile.TEX.Reload"); return ResolveState(null); }
+		"ZMKX" F 0 { A_StartSound("weapons/sshotf", CHAN_WEAPON); }
+		"ZMKX" F 13 Bright { A_CustomBulletAttack(22.5, 5, 8, 6, "BulletPuff", 0); }
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		"ZMKX" F 0 { rsShellUsed = true; }
+		Goto See;
+	// THE WINDOW. Racks the gun, throws the shell, and then commits to a
+	// barrage or the BFG rather than going back to neutral.
+	Missile.TEX.Reload:
+		"ZMKX" E 8 Bright;
+		"ZMKX" A 2 { A_StartSound("weapons/sshotl", CHAN_WEAPON); }
+		"ZMKX" A 8 { rsShellUsed = false; }
+		"ZMKX" E 2 { A_SpawnItemEx("Shell", 8, 4, 32, 3, 3, 1, angle + 5); }
+		"ZMKX" E 0 A_Jump(84, "Missile.TEX.Barrage");
+		"ZMKX" E 0 A_Jump(64, "Missile.TEX.BFG");
+		Goto Missile.TEX;
+	// Backpedals, strafes, and puts three rockets downrange from the side
+	// you did not expect -- the strafe direction is itself a coin flip.
+	Missile.TEX.Barrage:
+		"ZMKX" E 1 { RS_HopZ(16); }
+		"ZMKX" E 1 { RS_HopDir(angle - 180, 12); }
+		"ZMKX" E 6 { A_FaceTarget(); }
+		TNT1 A 0 A_Jump(128, "Missile.TEX.BarrageAlt");
+		"ZMKX" E 1 { RS_HopZ(16); }
+		"ZMKX" E 3 { RS_HopDir(angle + 90, 12); }
+		"ZMKX" F 4 Bright { A_SpawnProjectile("RS_Rocket", 32, 0, random(-1, 1)); }
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		"ZMKX" F 4 Bright { A_SpawnProjectile("RS_Rocket", 32, 0, random(-1, 1)); }
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		"ZMKX" F 4 Bright { A_SpawnProjectile("RS_Rocket", 32, 0, random(-1, 1)); }
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		Goto See;
+	Missile.TEX.BarrageAlt:
+		"ZMKX" E 1 { RS_HopZ(16); }
+		"ZMKX" E 3 { RS_HopDir(angle - 90, 12); }
+		"ZMKX" F 4 Bright { A_SpawnProjectile("RS_Rocket", 32, 0, random(-1, 1)); }
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		"ZMKX" F 4 Bright { A_SpawnProjectile("RS_Rocket", 32, 0, random(-1, 1)); }
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		"ZMKX" F 4 Bright { A_SpawnProjectile("RS_Rocket", 32, 0, random(-1, 1)); }
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		Goto See;
+	// A long, loud, deliberately readable wind-up -- twenty-four tics of
+	// standing still telling you exactly what is about to happen.
+	Missile.TEX.BFG:
+		"ZMKX" E 1;
+		"ZMKX" E 1 { A_StartSound("weapons/bfgf", CHAN_WEAPON); }
+		"ZMKX" E 10 Bright;
+		"ZMKX" E 8 Bright { A_FaceTarget(); }
+		"ZMKX" E 6 Bright { A_FaceTarget(); }
+		"ZMKX" F 4 Bright { A_SpawnProjectile("RS_PlayerEXBFG", 32, 0, 0); }
+		"ZMKX" E 12;
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		Goto See;
+	// Mid-range: four plasma bolts that WIDEN as the burst goes, so the
+	// safe lane closes while you are standing in it.
+	Missile.TEX.PlasmaSpam:
+		"ZMKX" E 0 A_Jump(84, "Missile.TEX.Barrage");
+		"ZMKX" E 2 { A_FaceTarget(); }
+		"ZMKX" E 0 { A_FaceTarget(); }
+		"ZMKX" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-5, 5)); }
+		"ZMKX" E 1 { A_FaceTarget(); }
+		"ZMKX" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-15, 15)); }
+		"ZMKX" E 1 { A_FaceTarget(); }
+		"ZMKX" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-25, 25)); }
+		"ZMKX" E 1 { A_FaceTarget(); }
+		"ZMKX" E 0 A_Jump(34, "Missile.TEX.BFG");
+		"ZMKX" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-35, 35)); }
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		"ZMKX" A 0 A_MonsterRefire(128, "Missile.TEX.CellEject");
+		Goto Missile.TEX;
+	Missile.TEX.CellEject:
+		"ZMKX" A 8;
+		"ZMKX" GG 3 { A_SpawnItemEx("Cell", 8, 4, 32, 3, 3, 1, angle + 5); }
+		"ZMKX" A 3;
+		Goto See;
+	// Long range: single chaingun taps on a refire loop, with a small
+	// chance each tap of becoming a rocket instead.
+	Missile.TEX.Chaingun:
+		"ZMKX" E 2 { A_FaceTarget(); }
+		"ZMKX" F 2 Bright { A_CustomBulletAttack(5.6, 0, 1, 5, "BulletPuff"); }
+		"ZMKX" E 2 A_Jump(32, "Missile.TEX.Rocket");
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		"ZMKX" E 0 A_Jump(8, "Missile.TEX.BFG");
+		"ZMKX" A 0 A_CPosRefire();
+		Goto Missile.TEX;
+	Missile.TEX.Rocket:
+		"ZMKX" E 2 { A_FaceTarget(); }
+		"ZMKX" F 2 Bright { A_SpawnProjectile("RS_Rocket", 32, 0, random(-1, 1)); }
+		"ZMKX" E 0 { A_CheckFlag("CORPSE", "Missile.TEX.Taunt", AAPTR_TARGET); }
+		"ZMKX" E 2 A_Jump(34, "Missile.TEX.BFG");
+		Goto Missile.TEX;
+	// Answers pain with rockets a third of the time. Being hurt makes it
+	// MORE dangerous, not less.
+	Pain.TEX:
+		"ZMKX" G 4;
+		"ZMKX" G 4 { A_Pain(); }
+		"ZMKX" E 0 A_Jump(84, "Missile.TEX.Barrage");
+		Goto See;
+	// The long death -- it screams four separate times on the way down.
+	Death.TEX:
+		"ZMKX" H 10;
+		"ZMKX" I 10 { A_Scream(); }
+		"ZMKX" J 10 { A_NoBlocking(); }
+		"ZMKX" I 10 { A_StartSound("*death", CHAN_VOICE); }
+		"ZMKX" J 10;
+		"ZMKX" I 10 { A_StartSound("*death", CHAN_VOICE); }
+		"ZMKX" J 10;
+		"ZMKX" I 10 { A_StartSound("*death", CHAN_VOICE); }
+		"ZMKX" J 10;
+		"ZMKX" KLM 10;
+		"ZMKX" M -1;
+		Stop;
+	XDeath.TEX:
+		"ZMKX" H 5;
+		"ZMKX" H 20 { A_StartSound("*xdeath", CHAN_VOICE, 0, 1.0, ATTN_NONE); }
+		"ZMKX" O 5 { A_StartSound("misc/gibbed/c", CHAN_BODY); }
+		"ZMKX" P 5 { A_XScream(); }
+		"ZMKX" Q 5 { A_NoBlocking(); }
+		"ZMKX" RSTUV 5;
+		"ZMKX" W -1;
 		Stop;
 	}
 }

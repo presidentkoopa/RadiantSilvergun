@@ -29,6 +29,11 @@
 //                             phase-2 below 5500 HP
 //   T12   13_W  QUEE   15000  WHITE "Angry Mama": railgun, ball barrage,
 //                             ground nuke, spread shot, point-blank zap
+//   TEX   13_KX BDEM   18000  BLACK-EX "the thing from the bog": the
+//                             Shadow Beast rebuilt bigger (XScale 1.88).
+//                             Range-banded pool; below 11000 HP the two
+//                             weave walls are swapped out for the ground
+//                             splashes and the burp (CommonBlackFatsoEX2)
 //
 // Tier stats come from CHP's own Health/Speed/PainChance per file and
 // are applied through TierData below, replacing the generic ladder.
@@ -85,6 +90,8 @@ class RS_Mancubus : RS_MonsterMaster replaces Fatso
 			case 10: hp = 1600;  spd = 10; r.painChance = 34; r.dmgMul = 1.8; break;
 			case 11: hp = 9001;  spd = 14; r.painChance = 24; r.dmgMul = 2.5; break;
 			case 12: hp = 15000; spd = 18; r.painChance = 20; r.dmgMul = 3.0; break;
+			// TEX -- 13_KX CommonBlackFatsoEX2, CHP's own numbers.
+			case 13: hp = 18000; spd = 16; r.painChance = 20; r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 600.0;
@@ -96,15 +103,17 @@ class RS_Mancubus : RS_MonsterMaster replaces Fatso
 	// verified present in sprites/monsters/Mancubus/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "FATT FATG FTSB FATC HECT INCB UNMB FATF FFAT FTGR HBST BDEM QUEE";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		// TEX deliberately reuses T11's BDEM -- CHP's BlackEX fatso is a
+		// rebuild of the Shadow Beast on the same artwork, not new art.
+		return "FATT FATG FTSB FATC HECT INCB UNMB FATF FFAT FTGR HBST BDEM QUEE BDEM";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -1167,6 +1176,167 @@ class RS_Mancubus : RS_MonsterMaster replaces Fatso
 		"QUEE" J 6 { A_Fall(); }
 		"QUEE" KLMNOP 6;
 		"QUEE" Q -1;
+		Stop;
+
+	// ================= TEX BLACK-EX -- THE THING FROM THE BOG (13_KX) ===
+	// CHP's BlackEX fatso wears the SAME body as T11's Shadow Beast but
+	// is a bigger, angrier build of it: 18000 HP, XScale 1.88, and a
+	// pattern pool that is re-cut rather than extended at the gate.
+	//   above 11000 HP: inside 300 Breath, inside 2000 one of
+	//     BigBombs / Weave1 / Weave2, beyond that the single BiggerBomb;
+	//   below 11000 HP (Phase2, speed 21): inside 2000 the pool becomes
+	//     GroundSplashes / BiggerBomb / Weave1 / Burp -- the two weave
+	//     walls give way to the ground game and the burp.
+	Spawn.TEX:
+		"BDEM" A 0 NoDelay { A_SetScale(1.88, 1.33); }
+		"BDEM" AB 10 { A_Look(); }
+		Loop;
+	See.TEX:
+		"BDEM" ABC 3 { A_Chase(); }
+		"BDEM" DD 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76), 1, 0, 1, random(0, 359)); }
+		"BDEM" DEF 3 { A_Chase(); }
+		"BDEM" AA 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76), 1, 0, 1, random(0, 359)); }
+		Loop;
+	Missile.TEX:
+		TNT1 A 0 A_JumpIfHealthLower(11000, "Missile.TEX.Phase2");
+		TNT1 A 0 A_JumpIfCloser(300, "Missile.TEX.Breath");
+		TNT1 A 0 A_JumpIfCloser(2000, "Missile.TEX.Choose");
+		TNT1 A 0 A_Jump(256, "Missile.TEX.BiggerBomb");
+		Goto See;
+	Missile.TEX.Choose:
+		TNT1 A 0 A_Jump(256, "Missile.TEX.BigBombs", "Missile.TEX.Weave1", "Missile.TEX.Weave2");
+		Goto See;
+	Missile.TEX.Phase2:
+		TNT1 A 0 { A_SetSpeed(21); }
+		TNT1 A 0 A_JumpIfCloser(300, "Missile.TEX.Breath");
+		TNT1 A 0 A_JumpIfCloser(2000, "Missile.TEX.Choose2");
+		TNT1 A 0 A_Jump(256, "Missile.TEX.BiggerBomb");
+		Goto See;
+	Missile.TEX.Choose2:
+		TNT1 A 0 A_Jump(256, "Missile.TEX.Ground", "Missile.TEX.BiggerBomb", "Missile.TEX.Weave1", "Missile.TEX.Burp");
+		Goto See;
+	// CHP defines LongRange on this actor but nothing jumps into it --
+	// only its own refire does. Ported for completeness; unreachable in
+	// CHP too, so this is not a behaviour change.
+	Missile.TEX.LongRange:
+		TNT1 A 0 A_JumpIfCloser(1000, "Missile.TEX");
+		"BDEM" H 12 { A_FaceTarget(); }
+		"BDEM" HHH 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" I 8 { A_SpawnProjectile("RS_BlackFatShotLongRange", 56, 0, 0); }
+		"BDEM" H 6 { A_FaceTarget(); }
+		"BDEM" II 3 { A_SpawnProjectile("RS_BlackFatShotLongRange", 56, 0, randompick(-3, 3, 1, -1, 0, -5, 5)); }
+		"BDEM" I 0 A_CheckSight("See");
+		"BDEM" I 2 A_Jump(212, "Missile.TEX.LongRange");
+		Goto See;
+	Missile.TEX.Ground:
+		"BDEM" G 12 { A_StartSound("shadowbeast/sight", CHAN_VOICE); }
+		"BDEM" HH 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" HI 6 { A_FaceTarget(); }
+		"BDEM" IIII 1 { A_SpawnProjectile("RS_ShadowSplash", 12, 0, random(-60, 60)); }
+		"BDEM" A 6 A_Jump(88, "Missile.TEX.Weave1");
+		Goto See;
+	Missile.TEX.BiggerBomb:
+		"BDEM" H 12 { A_FaceTarget(); }
+		"BDEM" HHH 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" I 8 { A_SpawnProjectile("RS_ShadowBombBigEX", 56, 0, 0); }
+		"BDEM" I 0 A_CheckSight("See");
+		"BDEM" I 2 A_Jump(174, "Missile.TEX.BigBombs");
+		Goto Missile.TEX.BigBombs;
+	Missile.TEX.BigBombs:
+		"BDEM" H 6 { A_FaceTarget(); }
+		"BDEM" HHH 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex1", 56, 0, -8); }
+		"BDEM" I 6 { A_SpawnProjectile("RS_ShadowBeast_Ballex1", 56, 0, 8); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex1", 56, 0, 0); }
+		"BDEM" H 1 A_CheckSight("See");
+		"BDEM" H 8 { A_FaceTarget(); }
+		"BDEM" HH 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex1", 56, 0, random(-14, -7)); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex1", 56, 0, random(-14, -7)); }
+		"BDEM" I 5 { A_SpawnProjectile("RS_ShadowBeast_Ballex1", 56, 0, random(7, 14)); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex1", 56, 0, random(7, 14)); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex1", 56, 0, random(-26, 26)); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex1", 56, 0, random(-26, 26)); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex1", 56, 0, random(-26, 26)); }
+		Goto See;
+	Missile.TEX.Weave1:
+		"BDEM" H 4 { A_FaceTarget(); }
+		"BDEM" HHH 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" I 4 { A_SpawnProjectile("RS_ShadowBeast_Ballex2", 56, 0, -16); }
+		"BDEM" I 0 { A_FaceTarget(); }
+		"BDEM" I 4 { A_SpawnProjectile("RS_ShadowBeast_Ballex2", 56, 0, -8); }
+		"BDEM" I 0 { A_FaceTarget(); }
+		"BDEM" I 4 { A_SpawnProjectile("RS_ShadowBeast_Ballex2", 56, 0, 0); }
+		"BDEM" II 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" I 0 { A_FaceTarget(); }
+		"BDEM" I 4 { A_SpawnProjectile("RS_ShadowBeast_Ballex2", 56, 0, 8); }
+		"BDEM" I 0 { A_FaceTarget(); }
+		"BDEM" I 4 { A_SpawnProjectile("RS_ShadowBeast_Ballex2", 56, 0, 16); }
+		"BDEM" III 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" I 0 { A_FaceTarget(); }
+		"BDEM" I 4 { A_SpawnProjectile("RS_ShadowBeast_Ballex2", 56, 0, 32); }
+		"BDEM" I 0 A_Jump(128, "Missile.TEX.Weave2");
+		Goto See;
+	Missile.TEX.Burp:
+		"BDEM" GGG 4 { A_Pain(); }
+		"BDEM" H 12 { A_FaceTarget(); }
+		"BDEM" I 2 Bright;
+		"BDEM" IIIIIIIII 3 Bright { A_SpawnProjectile("RS_BlackFatsoBurp", 56, 0, random(-30, 30)); }
+		"BDEM" I 12;
+		Goto See;
+	Missile.TEX.Breath:
+		"BDEM" H 6 { A_FaceTarget(); }
+		"BDEM" HHH 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-8, 8)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-8, 8)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-8, 8)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-12, 12)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-12, 12)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-15, 15)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-25, 25)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-15, 15)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-12, 12)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-12, 12)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-8, 8)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-8, 8)); }
+		"BDEM" I 2 { A_SpawnProjectile("RS_ShadowBeast_BallFireEX", 56, 0, random(-8, 8)); }
+		"BDEM" I 0 A_Jump(128, "Missile.TEX.Weave1");
+		Goto See;
+	Missile.TEX.Weave2:
+		"BDEM" H 16 { A_FaceTarget(); }
+		"BDEM" HHH 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, -64); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, 64); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, -56); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, 56); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, -48); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, 48); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, -40); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, 40); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, -32); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, 32); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, -24); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, 24); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, -16); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, 16); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, -8); }
+		"BDEM" I 0 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, 8); }
+		"BDEM" I 6 { A_SpawnProjectile("RS_ShadowBeast_Ballex3", 56, 0, 0); }
+		"BDEM" I 0 A_Jump(64, "Missile.TEX.BigBombs");
+		"BDEM" I 0 A_Jump(128, "Missile.TEX.Weave1");
+		Goto See;
+	Pain.TEX:
+		TNT1 A 0 A_Jump(16, "Missile.TEX.Weave2");
+		"BDEM" GG 0 { A_SpawnItemEx("RS_Splash11", random(-20, 20), random(-20, 20), random(5, 76)); }
+		"BDEM" G 4 { A_Pain(); }
+		Goto See;
+	Death.TEX:
+		"BDEM" R 8;
+		"BDEM" S 8 { A_Scream(); }
+		"BDEM" TUVWX 6;
+		"BDEM" Y 6 { A_NoBlocking(); }
+		"BDEM" Z 1;
+		"BDEM" Z -1 { A_BossDeath(); }
 		Stop;
 	}
 }

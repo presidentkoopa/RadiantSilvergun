@@ -71,6 +71,29 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 		return DistinctAffixCount(info) < wpn.GunBonaiSockets;
 	}
 
+	// PROJECTILE IDENTITY EXCLUSION GROUP. A gun's rounds are ONE thing:
+	// caco bile, bone tracers, pain orbs, arach plasma, a bee swarm, or
+	// a nova shell -- never two at once. Returns true only if no OTHER
+	// identity is currently held.
+	//
+	// Comparison chain, not an array: this engine build does not resolve
+	// array literals in class bodies (CLAUDE.md, three real bugs).
+	static bool IdentityHeld(TFLV_WeaponInfo info, string cls, string mine)
+	{
+		return cls != mine && info.upgrades.Level(cls) > 0;
+	}
+
+	static bool IdentityFree(TFLV_WeaponInfo info, string mine)
+	{
+		if (IdentityHeld(info, "TFLV_Upgrade_RS_Cacospit",    mine)) return false;
+		if (IdentityHeld(info, "TFLV_Upgrade_RS_Bonecaller",  mine)) return false;
+		if (IdentityHeld(info, "TFLV_Upgrade_RS_PainOrb",     mine)) return false;
+		if (IdentityHeld(info, "TFLV_Upgrade_RS_ArachPlasma", mine)) return false;
+		if (IdentityHeld(info, "TFLV_Upgrade_RS_Swarm",       mine)) return false;
+		if (IdentityHeld(info, "TFLV_Upgrade_RS_Nova",        mine)) return false;
+		return true;
+	}
+
 	void ApplyLeveled(RS_Weapon wpn)
 	{
 		// Reconstruct, don't accumulate: strip every value this family
@@ -359,8 +382,7 @@ class TFLV_Upgrade_RS_Cacospit : TFLV_Upgrade_RS_SlateBase
 		let wpn = RS_Weapon(info.wpn);
 		return CanTake(wpn, info, "TFLV_Upgrade_RS_Cacospit")
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
-			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") == 0
-			&& info.upgrades.Level("TFLV_Upgrade_RS_PainOrb") == 0
+			&& IdentityFree(info, "TFLV_Upgrade_RS_Cacospit")
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Cacospit") < 6;
 	}
 
@@ -415,8 +437,7 @@ class TFLV_Upgrade_RS_Bonecaller : TFLV_Upgrade_RS_SlateBase
 		let wpn = RS_Weapon(info.wpn);
 		return CanTake(wpn, info, "TFLV_Upgrade_RS_Bonecaller")
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
-			&& info.upgrades.Level("TFLV_Upgrade_RS_Cacospit") == 0
-			&& info.upgrades.Level("TFLV_Upgrade_RS_PainOrb") == 0
+			&& IdentityFree(info, "TFLV_Upgrade_RS_Bonecaller")
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") < 6;
 	}
 }
@@ -484,8 +505,7 @@ class TFLV_Upgrade_RS_PainOrb : TFLV_Upgrade_RS_SlateBase
 		let wpn = RS_Weapon(info.wpn);
 		return CanTake(wpn, info, "TFLV_Upgrade_RS_PainOrb")
 			&& wpn.HasBeatMode(RS_ATK_BULLET)
-			&& info.upgrades.Level("TFLV_Upgrade_RS_Cacospit") == 0
-			&& info.upgrades.Level("TFLV_Upgrade_RS_Bonecaller") == 0
+			&& IdentityFree(info, "TFLV_Upgrade_RS_PainOrb")
 			&& info.upgrades.Level("TFLV_Upgrade_RS_PainOrb") < 6;
 	}
 }
@@ -569,5 +589,320 @@ class TFLV_Upgrade_RS_Echo : TFLV_Upgrade_RS_SlateBase
 			|| info.upgrades.Level("TFLV_Upgrade_RS_Echo") > 0;
 		return modeOK && shapeOK
 			&& info.upgrades.Level("TFLV_Upgrade_RS_Echo") < 6;
+	}
+}
+
+// =====================================================================
+// WAVE D1 -- MONSTER SIGNATURES (docs/rs_13). "Your bullets become a
+// monster's own ammunition." All three join the PROJECTILE IDENTITY
+// exclusion group with Cacospit/Bonecaller/PainOrb: a gun's rounds are
+// one thing, never three at once.
+//
+// Shared identity gate -- every identity affix asks the same question,
+// so it lives here instead of being copy-pasted six times.
+// =====================================================================
+class TFLV_Upgrade_RS_SignatureBase : TFLV_Upgrade_RS_SlateBase abstract
+{
+	override string KeyAxis() { return "element"; }
+}
+
+// ---------------------------------------------------------------------
+// D1-01 ARACH-PLASMA -- the Arachnotron's relentless bolt. The RATE
+// signature: smallest damage ramp of the three because its identity is
+// how FAST it speaks, not how hard. Mastery: plasma burns through two
+// bodies.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_ArachPlasma : TFLV_Upgrade_RS_SignatureBase
+{
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "arach1";
+			case 2: return "arach2";
+			case 3: return "arach3";
+			case 4: return "arach4";
+			case 5: return "arach5";
+		}
+		return "arachmaster";
+	}
+
+	override void ExtraActivate(RS_Weapon wpn)
+	{
+		wpn.AffixProjectile = "RS_AffixArachPlasma";
+		wpn.AffixFireSound = "baby/attack";
+	}
+
+	override void ExtraDeactivate(RS_Weapon wpn)
+	{
+		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixArachPlasma"))
+			wpn.AffixProjectile = null;
+		if (wpn.AffixFireSound == "baby/attack")
+			wpn.AffixFireSound = "";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_ArachPlasma")
+			&& wpn.HasBeatMode(RS_ATK_BULLET)
+			&& IdentityFree(info, "TFLV_Upgrade_RS_ArachPlasma")
+			&& info.upgrades.Level("TFLV_Upgrade_RS_ArachPlasma") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// D1-08 SWARM -- the Overlord's bee carrier. Levels buy MOTES, not
+// damage: the carrier still lands the weapon's own rolled damage, and
+// the swarm is what grows. Mastery: the motes hunt.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Swarm : TFLV_Upgrade_RS_SignatureBase
+{
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "swarm1";
+			case 2: return "swarm2";
+			case 3: return "swarm3";
+			case 4: return "swarm4";
+			case 5: return "swarm5";
+		}
+		return "swarmmaster";
+	}
+
+	override void ExtraActivate(RS_Weapon wpn)
+	{
+		wpn.AffixProjectile = "RS_AffixSwarmCarrier";
+		wpn.AffixFireSound = "rs_fx_impact_bullet";
+	}
+
+	override void ExtraDeactivate(RS_Weapon wpn)
+	{
+		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixSwarmCarrier"))
+			wpn.AffixProjectile = null;
+		if (wpn.AffixFireSound == "rs_fx_impact_bullet")
+			wpn.AffixFireSound = "";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		// Pellet-heavy guns would shed a mote cloud per pellet -- the
+		// carrier is a single-round identity. Shotgun family excluded on
+		// engine-load grounds, not flavor.
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Swarm")
+			&& wpn.HasBeatMode(RS_ATK_BULLET)
+			&& wpn.PelletCount <= 3
+			&& IdentityFree(info, "TFLV_Upgrade_RS_Swarm")
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Swarm") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// D1-04 NOVA -- the Cyberdemon's swoosh shell. The heavy signature:
+// every impact detonates into a ring of plasma beads. Levels buy beads
+// AND weight. Mastery: the beads seek.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Nova : TFLV_Upgrade_RS_SignatureBase
+{
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "nova1";
+			case 2: return "nova2";
+			case 3: return "nova3";
+			case 4: return "nova4";
+			case 5: return "nova5";
+		}
+		return "novamaster";
+	}
+
+	override void ExtraActivate(RS_Weapon wpn)
+	{
+		wpn.AffixProjectile = "RS_AffixNovaShell";
+		wpn.AffixFireSound = "weapons/bfgf";
+	}
+
+	override void ExtraDeactivate(RS_Weapon wpn)
+	{
+		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixNovaShell"))
+			wpn.AffixProjectile = null;
+		if (wpn.AffixFireSound == "weapons/bfgf")
+			wpn.AffixFireSound = "";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		// Same engine-load fence as Swarm, tighter: a 20-pellet SSG
+		// firing bead novas per pellet is a framerate event.
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Nova")
+			&& wpn.HasBeatMode(RS_ATK_BULLET)
+			&& wpn.PelletCount <= 2
+			&& IdentityFree(info, "TFLV_Upgrade_RS_Nova")
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Nova") < 6;
+	}
+}
+
+// =====================================================================
+// WAVE D2 -- GENERAL LANE (docs/rs_11 candidate pool). Archetype-
+// agnostic behavior cards. Every one passes the audit: each AMPLIFIES a
+// different rolled stat rather than replacing one, and none converge
+// (two guns with the same card play differently because their rolls
+// differ).
+//
+// Hook discipline (rs_14 offhand findings): these use the resolver and
+// OnKill only. ModifyDamageDealt and Tick reach the MAINHAND bag only,
+// so an affix built on them would silently do nothing in the off hand.
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// D2-01 PAIN TRAIN -- rounds always force a flinch. Amplifies nothing
+// numerically; it plays AGAINST the monster ladder's painChance stat,
+// which drops hard at high tiers (T12 = 16). Very Doom: stunlock as a
+// build, not a stat.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_PainTrain : TFLV_Upgrade_RS_SlateBase
+{
+	override string KeyAxis() { return "behavior"; }
+
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "flinch1";
+			case 2: return "flinch2";
+			case 3: return "flinch3";
+			case 4: return "flinch4";
+			case 5: return "flinch5";
+		}
+		return "flinchmaster";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_PainTrain")
+			&& wpn.HasBeatMode(RS_ATK_BULLET)
+			&& info.upgrades.Level("TFLV_Upgrade_RS_PainTrain") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// D2-02 MOMENTUM -- crits chain. Pure CritChance amplifier: a gun that
+// rolled high crit chains constantly, a low-crit gun almost never does.
+// The streak lives on the weapon (RS_Weapon.RS_CritStreak), so each
+// hand keeps its own rhythm.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Momentum : TFLV_Upgrade_RS_SlateBase
+{
+	override string ValueForLevel(int lvl)
+	{
+		switch (lvl)
+		{
+			case 1: return "momentum1";
+			case 2: return "momentum2";
+			case 3: return "momentum3";
+			case 4: return "momentum4";
+			case 5: return "momentum5";
+		}
+		return "momentummaster";
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		// A gun that can never crit can never chain -- don't sell it.
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Momentum")
+			&& wpn.CritChance > 0
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Momentum") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// D2-03 OVERKILL -- damage past a kill isn't wasted; it detonates on
+// the corpse. Damage-roll amplifier: the harder the gun hits, the more
+// overkill there is to spend. OnKill is hand-correct in both hands.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Overkill : TFLV_Upgrade_RS_SlateBase
+{
+	// No keyword -- this one is pure hook.
+	override string ValueForLevel(int lvl) { return ""; }
+
+	override void OnKill(PlayerPawn pawn, Actor shot, Actor target)
+	{
+		if (!target) return;
+		// health is negative past death: that IS the overkill.
+		int excess = -target.health;
+		if (excess <= 0) return;
+
+		// Fraction of the waste that carries, and a cap so a BFG corpse
+		// doesn't level the room. Mastery converts the full excess.
+		double frac = (level >= 6) ? 1.0 : 0.20 * level;
+		int cap = (level >= 6) ? 400 : 60 * int(level);
+		int dmg = clamp(int(excess * frac), 0, cap);
+		if (dmg <= 0) return;
+
+		// Re-point the corpse at the player BEFORE detonating: A_Explode
+		// spares its caller's `target` when XF_HURTSOURCE is unset, so
+		// this is what guarantees your own overkill never blows you up.
+		// (A corpse's target is usually the player already -- usually is
+		// not a safety guarantee.)
+		Actor prev = target.target;
+		target.target = pawn;
+		target.A_Explode(dmg, 96 + 8 * int(level), 0, false);
+		target.target = prev;
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Overkill")
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Overkill") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// D2-04 SCAVENGER -- a kill on a nearly-dry magazine gives rounds back.
+// Capacity-roll amplifier in the honest direction: a big magazine makes
+// the "nearly dry" window rarer but the refund bigger, a small one
+// triggers constantly for a little. Mastery: a full reload.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Scavenger : TFLV_Upgrade_RS_SlateBase
+{
+	// OnKill hands us no weapon reference, so remember ours at activate.
+	RS_Weapon wpnRef;
+
+	override string ValueForLevel(int lvl) { return ""; }
+
+	override void OnKill(PlayerPawn pawn, Actor shot, Actor target)
+	{
+		let wpn = wpnRef;
+		if (!wpn || !wpn.AmmoType2 || !pawn) return;
+
+		int have = pawn.CountInv(wpn.AmmoType2);
+		int cap = max(1, wpn.Capacity);
+		// Only when the magazine is genuinely low -- bottom quarter.
+		if (have > cap / 4) return;
+
+		int give = (level >= 6) ? cap : max(1, int(cap * 0.10 * level));
+		give = min(give, cap - have);
+		if (give > 0)
+			pawn.GiveInventory(wpn.AmmoType2, give);
+	}
+
+	override void ExtraActivate(RS_Weapon wpn) { wpnRef = wpn; }
+	override void ExtraDeactivate(RS_Weapon wpn) { wpnRef = null; }
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		// Needs a real magazine to refill.
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Scavenger")
+			&& wpn.AmmoType2 != null
+			&& wpn.Capacity > 1
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Scavenger") < 6;
 	}
 }

@@ -1412,3 +1412,366 @@ class RS_SpamShotsRomeroCH : Actor
 		Stop;
 	}
 }
+
+// ============================================================================
+// BLACK EX (17_KX) -- "Obsidian Tyrant". The Smith taken to its EX form.
+// Everything here is a straight read of 17_KX.txt; where CHP writes the same
+// A_CustomMissile line 24 or 36 times to draw a ring, this file uses the
+// for-loop form already used by RS_Cyberdemon's T11 melee -- same shots,
+// same angles, same order.
+// ============================================================================
+
+class RS_HellFX : Actor
+{
+	Default { Radius 5; Height 5; Speed 0; Damage 0; Projectile; RenderStyle "Add"; DamageType "Fire"; Alpha 0.8;
+		SeeSound "weapons/firex3"; }
+	States
+	{
+	Spawn:
+		HELX A 3 Bright;
+		HELX B 3 Bright A_Explode(random(5, 40), 96, 0);
+		HELX CDEFGHIJ 3 Bright;
+		Stop;
+	}
+}
+class RS_HellBoom : Actor
+{
+	Default { Radius 8; Height 8; Speed 6; Damage 0; Projectile; RenderStyle "Add"; Alpha 0.8;
+		+RIPPER; +THRUGHOST; +BLOODLESSIMPACT; SeeSound "weapons/firex3"; }
+	States { Spawn: TNT1 AAAAA 6 A_SpawnItem("RS_HellFX", 0, 0); Stop; }
+}
+class RS_HellShotEX2 : Actor
+{
+	Default { Radius 13; Height 16; Speed 15; Damage (random(20, 50)); DamageType "Supremesmith"; Projectile;
+		RenderStyle "Add"; Alpha 0.9; +THRUGHOST; -NOGRAVITY;
+		SeeSound "weapons/firbfi"; DeathSound "weapons/firex3"; }
+	States
+	{
+	Spawn:
+		BAL3 AB 2 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, 0, 0, 0, 0, 2);
+		Loop;
+	Death:
+		BAL3 CDE 4 Bright A_Explode(random(20, 50), 96, 0);
+		Stop;
+	}
+}
+class RS_STracerEX : RS_STracer
+{
+	Default { Speed 20; }
+	States
+	{
+	XDeath:
+		FTRA KKKKKKKKKKKKKKKK 0 A_SpawnItemEx("RS_Firespe2", 0, 0, 0, random(-16, 16), random(-16, 16));
+	Death:
+		FTRA K 4 Bright;
+		FTRA L 4 Bright A_Explode(random(5, 15), 64);
+		FTRA MNO 3 Bright;
+		Stop;
+	}
+}
+// The rolling shockwave a hellshot leaves behind: a 24-tracer ring with a
+// coin-flip chance of firing again before it fades.
+class RS_HellWaverEX : Actor
+{
+	Default { Radius 8; Height 12; Speed 25; Damage (random(40, 120)); Projectile; RenderStyle "Add";
+		DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex"; +THRUGHOST; Decal "Scorch"; }
+	States
+	{
+	Spawn:
+		HADE LKJI 6;
+		Goto WaveIt;
+	WaveIt:
+		HEPA ABCDE 2;
+		HEPA F 0 { for (int i = 0; i < 24; i++) A_SpawnProjectile("RS_STracerEX", 0, 0, i * 15, 0); }
+		HEPA F 0 A_Jump(128, "WaveIt");
+		HEPA F 5;
+		Goto Death;
+	Death:
+		HADE IJKL 8;
+		Stop;
+	}
+}
+// CH HellWaver2 carrying 17_K's speed/damage: the slower three-pulse version
+// the BigHell star leaves behind when it detonates.
+class RS_HellWaver2 : Actor
+{
+	Default { Radius 8; Height 12; Speed 25; Damage (random(40, 120)); Projectile; RenderStyle "Add";
+		DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex"; +THRUGHOST; Decal "Scorch"; }
+	States
+	{
+	Spawn:
+		HADE LKJI 6;
+		Goto WaveIt;
+	WaveIt:
+		HEPA ABCDE 7;
+		HEPA F 0 { for (int i = 0; i < 24; i++) A_SpawnProjectile("RS_STracer", 0, 0, i * 15, 0); }
+		HEPA F 5;
+		HEPA ABCDE 7;
+		HEPA F 0 { for (int i = 0; i < 24; i++) A_SpawnProjectile("RS_STracer", 0, 0, i * 15, 0); }
+		HEPA F 5;
+		HEPA ABCDE 7;
+		HEPA F 0 { for (int i = 0; i < 24; i++) A_SpawnProjectile("RS_STracer", 0, 0, i * 15, 0); }
+		HEPA F 0 A_Jump(128, "WaveIt");
+		HEPA F 5;
+		Goto Death;
+	Death:
+		HADE IJKL 8;
+		Stop;
+	}
+}
+class RS_HellShotEX : Actor
+{
+	Default { Radius 8; Height 12; Speed 30; Damage (random(40, 120)); Projectile; RenderStyle "Add";
+		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/firbfi"; DeathSound "weapons/hellex";
+		+THRUGHOST; Decal "Scorch"; }
+	States
+	{
+	Spawn:
+		HEPA ABCDEF 3 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, 0, 0, 0, 0, 8);
+		Loop;
+	Death:
+		HELX A 3 Bright;
+		HELX B 0 { for (int i = 0; i < 8; i++) A_SpawnProjectile("RS_HellBoom", 0, 0, i * 45, CMF_AIMDIRECTION | CMF_TRACKOWNER); }
+		HELX BBB 0 A_SpawnProjectile("RS_HellShotEX2", 0, 0, random(0, 360), CMF_AIMDIRECTION, random(50, 75));
+		HELX B 3 Bright A_Explode(random(20, 80), 128);
+		HELX CDEFGHIJ 3 Bright;
+		HELX J 0 A_SpawnItemEx("RS_HellWaverEX", 0, 0, 0);
+		Stop;
+	}
+}
+class RS_HSHomer : Actor
+{
+	Default { Radius 8; Height 12; Speed 22; Damage (random(20, 80)); Projectile; RenderStyle "Add";
+		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/hellfi"; DeathSound "weapons/hellex";
+		+THRUGHOST; +SEEKERMISSILE; +EXTREMEDEATH; Decal "Scorch"; }
+	States
+	{
+	Spawn:
+		MSP2 A 2 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, 0, 0, 0, 0, 8);
+		MSP2 A 0 A_SeekerMissile(25, 25, SMF_PRECISE);
+		MSP2 B 2 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, 0, 0, 0, 0, 8);
+		MSP2 B 0 A_SeekerMissile(25, 25, SMF_PRECISE);
+		MSP2 C 2 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, 0, 0, 0, 0, 8);
+		MSP2 C 0 A_SeekerMissile(25, 25, SMF_PRECISE);
+		MSP2 D 2 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, 0, 0, 0, 0, 8);
+		MSP2 D 0 A_SeekerMissile(25, 25, SMF_PRECISE);
+		Loop;
+	Death:
+		MSP2 EFGHI 4 Bright A_Explode(random(5, 15), 64);
+		Stop;
+	}
+}
+class RS_BigHellCybEX3 : RS_HSHomer { Default { -SEEKERMISSILE; } }
+class RS_HSFlameBlastTrail : Actor
+{
+	Default { RenderStyle "Add"; Alpha 0.5; +NOBLOCKMAP; +NOGRAVITY; }
+	States { Spawn: CFFX NOP 2; Stop; }
+}
+class RS_HSFlameBlast : FastProjectile
+{
+	Default { Radius 8; Height 12; Speed 72; Damage (random(20, 40)); Scale 1.5; Projectile; RenderStyle "Add";
+		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/hellfi"; DeathSound "weapons/firbfi";
+		+THRUGHOST; Decal "Scorch"; }
+	States
+	{
+	Spawn:
+		CFFX N 1 Bright A_SpawnItemEx("RS_HSFlameBlastTrail", -10, 0, 0, 0, 0, 0, 0, 128);
+		Loop;
+	Death:
+		CFFX A 0 { for (int i = 0; i < 8; i++) A_SpawnProjectile("RS_DFlare", 8, 0, i * 45, CMF_AIMDIRECTION, 0); }
+	XDeath:
+		CFFX A 3 Bright;
+		CFFX BCDEFGHIJK 3 Bright A_Explode(random(5, 15), 32, 0);
+		CFFX LM 3 Bright;
+		Stop;
+	}
+}
+// The thrown lightning: a bouncing seeker that ends in a BFG-sized burst.
+class RS_ZapCybEX : Actor
+{
+	Default { Radius 17; Height 15; Speed 32; Damage (random(20, 50)); Projectile; RenderStyle "Add";
+		Alpha 0.85; Scale 1.6; SeeSound "Litn/litn2"; +THRUGHOST; +SEEKERMISSILE;
+		BounceType "Hexen"; BounceCount 5; BounceFactor 2.0; WallBounceFactor 2.0;
+		Translation "192:199=[255,255,255]:[191,0,255]"; Decal "Scorch"; }
+	States
+	{
+	Spawn:
+		LITN B 0 A_SeekerMissile(5, 10, SMF_PRECISE);
+		LITN B 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+		LITN C 0 A_SeekerMissile(5, 10, SMF_PRECISE);
+		LITN C 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+		LITN D 0 A_SeekerMissile(5, 10, SMF_PRECISE);
+		LITN D 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+		LITN E 0 A_SeekerMissile(5, 10, SMF_PRECISE);
+		LITN E 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+		LITN F 0 A_SeekerMissile(5, 10, SMF_PRECISE);
+		LITN F 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+		LITN G 0 A_SeekerMissile(5, 10, SMF_PRECISE);
+		LITN G 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+		LITN O 0 A_SeekerMissile(5, 10, SMF_PRECISE);
+		LITN O 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+		LITN P 0 A_SeekerMissile(5, 10, SMF_PRECISE);
+		LITN P 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+		Loop;
+	Death:
+		PLSE B 0 A_StartSound("weapons/bfgx");
+		PLSE B 0 A_SetScale(3.5, 3.5);
+		PLSE BBBBBBBBBBBBBBBBBBBBBBBB 0 A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, random(-20, 20), random(-20, 20), random(-20, 20), 0, SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION);
+		PLSE BCD 5 Bright A_Explode(random(10, 30), 192, 0);
+		PLSE E 5 Bright;
+		Stop;
+	}
+}
+// The healing pentagram: five arms, each drawing a green fire line. Unlike
+// the damaging PentaLine the arms carry no damage -- the heal is on the boss.
+class RS_PentaHealFire : Actor
+{
+	Default { Radius 0; Height 32; Speed 0; Alpha 0.85; ReactionTime 2; Projectile;
+		+FLOORHUGGER; +DONTSPLASH; -NOGRAVITY; RenderStyle "Add";
+		Translation "0:255=%[0.00,0.00,0.00]:[0.00,2.00,0.00]"; }
+	States
+	{
+	Spawn:
+		CFCF A 1 Bright;
+		CFCF A 2 Bright A_StartSound("weapons/onfire");
+		CFCF BCDEFGHIJKLM 3 Bright;
+		CFCF A 0 A_CountDown();
+		Loop;
+	Death:
+		CFCF NOP 3 Bright;
+		Stop;
+	}
+}
+class RS_PentaHealCybEX2 : Actor
+{
+	Default { Radius 0; Height 32; Speed 16; Alpha 0.85; Projectile; +FLOORHUGGER; +NOCLIP; }
+	States { Spawn: TNT1 AAAAAAAAAAAAAAAA 1 A_SpawnItem("RS_PentaHealFire", 0, 0); Stop; }
+}
+class RS_PentaHealCybEX : Actor
+{
+	Default { Radius 0; Height 32; Speed 200; Alpha 0.85; Projectile; +FLOORHUGGER; +NOCLIP; }
+	States
+	{
+	Spawn:
+		TNT1 A 1;
+		TNT1 A 0 A_StartSound("Ice/Cast");
+		TNT1 A 0 A_SpawnProjectile("RS_PentaHealCybEX2", 0, 0, -198, CMF_AIMDIRECTION);
+		TNT1 A 0 A_SpawnProjectile("RS_PentaHealCybEX2", 0, 0, 198, CMF_AIMDIRECTION);
+		Stop;
+	}
+}
+// The afterimage the Tyrant leaves along a charge -- it hits on contact.
+class RS_HSGhostEX : Actor
+{
+	Default { Radius 40; Height 70; Speed 1; Damage (random(12, 34)); DamageType "Melee";
+		RenderStyle "Translucent"; Alpha 0.5; Projectile; }
+	States
+	{
+	Spawn:
+		HSMI H 35;
+	Fade:
+		HSMI H 2 A_FadeOut(0.10);
+		Loop;
+	}
+}
+// The hammer it throws away as it dies: no thrust, just gravity and RIP.
+class RS_HSHammer : Actor
+{
+	Default { Radius 6; Height 8; Damage 10; Speed 0; Projectile; +RANDOMIZE; +RIPPER; -NOGRAVITY;
+		RenderStyle "Normal"; DeathSound "hellsmith/miss"; }
+	States
+	{
+	Spawn:
+		HAMM ABC 3;
+	Fall:
+		HAMM D 3;
+		Loop;
+	Death:
+	Crash:
+		HAMM EFG 3;
+		HAMM G -1;
+		Stop;
+	}
+}
+// BIGHELL, stage 3: the star itself. Rips forward shedding side-missiles and
+// a 24-tracer ring every cycle, and its death is the single biggest event in
+// the family -- a 256/512 blast, a 36-way boom ring, eight hellshots, then a
+// HellWaver on top.
+class RS_BigHellCybEX2 : Actor
+{
+	Default { Species "Cybie"; Radius 32; Height 16; Speed 1; Scale 2.5; Damage (random(200, 400));
+		Projectile; RenderStyle "Add"; DamageType "Supremesmith"; Alpha 0.95; DeathSound "weapons/hellex";
+		+THRUGHOST; +THRUSPECIES; +DONTHARMSPECIES; Decal "Scorch"; }
+	States
+	{
+	Spawn:
+		HEPA A 0 NoDelay A_ScaleVelocity(4);
+	Fly:
+		HEPA AAAABBBB 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA A 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, 90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA A 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, -90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA CCCCDDDD 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA D 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, 90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA D 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, -90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA EEEEFFFF 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA F 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, 90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA F 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, -90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA AAAABBBB 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA A 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, 90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA A 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, -90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA CCCCDDDD 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA D 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, 90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA D 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, -90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA EEEEFFFF 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA F 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, 90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA F 0 A_SpawnProjectile("RS_BigHellCybEX3", 0, 0, -90, CMF_AIMDIRECTION | CMF_TRACKOWNER, 0);
+		HEPA F 0 { for (int i = 0; i < 24; i++) A_SpawnProjectile("RS_STracerEX", 0, 0, i * 15, CMF_AIMDIRECTION | CMF_TRACKOWNER); }
+		Loop;
+	Death:
+		HELX A 0 A_Explode(256, 512, 0);
+		HELX A 6 Bright A_SetScale(4.0);
+		HELX A 0 { for (int i = 0; i < 36; i++) A_SpawnProjectile("RS_HellBoom", 0, 0, i * 10, CMF_AIMDIRECTION | CMF_TRACKOWNER); }
+		HELX A 0 { for (int i = 0; i < 8; i++) A_SpawnProjectile("RS_HellShotEX", 0, 0, i * 45, CMF_AIMDIRECTION | CMF_TRACKOWNER); }
+		HELX BCDEFGHIJ 6 Bright A_Explode(random(50, 100), 256);
+		HELX J 0 A_SpawnItemEx("RS_HellWaver2", 0, 0, 0);
+		Stop;
+	}
+}
+// BIGHELL, stages 1-2: an orb that swells from scale 0.85 to 2.5 over roughly
+// eight seconds -- the tell that the Tyrant has gone invulnerable and is
+// building the star. The window is the thing to punish, not the orb.
+class RS_BigHellCybEX : Actor
+{
+	Default { Species "Cybie"; RenderStyle "Add"; Alpha 0.95; Scale 0.85;
+		+NOBLOCKMAP; +NOGRAVITY; +THRUSPECIES; }
+	States
+	{
+	Spawn:
+		HEPA AAABBBCCCDDD 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA D 0 A_SetScale(1.0);
+		HEPA EEEFFFAAABBB 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA B 0 A_SetScale(1.15);
+		HEPA CCCDDDEEEFFF 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA F 0 A_SetScale(1.3);
+		HEPA AAABBBCCCDDD 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA D 0 A_SetScale(1.45);
+		HEPA EEEFFFAAABBB 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA B 0 A_SetScale(1.6);
+		HEPA CCCDDDEEEFFF 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA F 0 A_SetScale(1.75);
+		HEPA AAABBBCCCDDD 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA D 0 A_SetScale(1.9);
+		HEPA EEEFFFAAABBB 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA B 0 A_SetScale(2.05);
+		HEPA CCCDDDEEEFFF 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA F 0 A_SetScale(2.2);
+		HEPA AAABBBCCCDDD 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA D 0 A_SetScale(2.35);
+		HEPA EEEFFFAAABBB 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA B 0 A_SetScale(2.5);
+		HEPA CCCDDDEEEFFF 1 Bright A_SpawnItemEx("RS_RedPuff2", 0, 0, 0, random(-6, 6), random(-6, 6), random(-6, 6));
+		HEPA D 0 A_StartSound("weapons/firbfi", CHAN_VOICE, CHANF_DEFAULT, 1.0, 0.4);
+		TNT1 A 0 A_SpawnItemEx("RS_BigHellCybEX2", 0, 0, 0, 1, 0, 0, 0, SXF_TRANSFERPOINTERS);
+		Stop;
+	}
+}

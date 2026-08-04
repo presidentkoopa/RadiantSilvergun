@@ -1233,3 +1233,39 @@ class RS_HKSplashDed : Actor
 		Stop;
 	}
 }
+
+// =====================================================================
+// CHP 11_B BlueHKShot -- the blue hell knight's plasma bolt.
+// ---------------------------------------------------------------------
+// Ported here because the EX lost soul (RS_LostSoul TEX, CHP 05_WX) wears
+// a hell knight form and fires this as part of that form's chain. It is a
+// hell knight projectile, so it lives in the hell knight's library.
+// =====================================================================
+class RS_BlueHKShot : FastProjectile
+{
+	Default
+	{
+		Radius 6;
+		Height 16;
+		Speed 18;
+		FastSpeed 25;
+		Damage (random(10, 45));
+		DamageType "Plasma";
+		Projectile;
+		+RANDOMIZE
+		RenderStyle "Add";
+		Alpha 0.85;
+		SeeSound "baron/attack";
+		DeathSound "weapons/plasmax";
+		Translation "112:127=192:207";
+	}
+	States
+	{
+	Spawn:
+		BAL7 AB 4 Bright;
+		Loop;
+	Death:
+		PLSE CDE 3 Bright;
+		Stop;
+	}
+}

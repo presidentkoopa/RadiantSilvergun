@@ -801,3 +801,101 @@ class RS_PortalSummons : RandomSpawner
 		DropItem "RS_Cacodemon", 255, 50;
 	}
 }
+
+// =====================================================================
+// CHP 08_KX -- BLACK REVENANT EX / THE BLACK KNIGHT UNLEASHED
+// (the TEX rung of RS_Revenant).
+// ---------------------------------------------------------------------
+// The four pieces the TEX cluster needs that the T11 knight did not.
+// Bodies from CH decorate/Revenants.txt; call sites from CHP 08_KX.txt.
+// =====================================================================
+
+// The black smear the EX knight leaves on every stride. CH BlackRevShade.
+class RS_BlackRevShade : Actor
+{
+	Default { Radius 6; Height 6; Speed 1; Projectile; +NOCLIP; +NOINTERACTION;
+		RenderStyle "Stencil"; StencilColor "black"; SeeSound "Imp/Attack";
+		DeathSound "Fire/fire5"; Alpha 0.55; YScale 3.25; XScale 1.95; }
+	States { Spawn: FLUM ACDBE 3 Bright; Stop; }
+}
+
+// The grapple. CH BlackRevHook inherits Loreshot, which lives in neither
+// the CH nor the CHP decorate tree (it is a DoomRL Arsenal actor), so the
+// properties CH sets on top of it are declared outright here -- PROJECTILE
+// is in CH's own block, nothing was inferred from the missing parent.
+class RS_BlackRevHook : Actor
+{
+	Default { Radius 6; Height 6; Speed 42; Damage (random(5, 30)); Projectile;
+		DamageType "Melee"; +THRUGHOST; +MTHRUSPECIES;
+		SeeSound "monster/dknmsl"; DeathSound "weapons/firex4"; }
+	States
+	{
+	Spawn:
+		BLAD A 1 Bright { A_SpawnItemEx("RS_FatsoSpikes2", 0, 0, 1, 0, 0, 0, 0, SXF_NOPOINTERS|SXF_NOCHECKPOSITION); }
+		Loop;
+	Death:
+		BLAD A 10;
+		BLAD A 10;
+		BLAD AAA 10 { A_FadeOut(0.33); }
+		Stop;
+	}
+}
+
+// The second shield disc. RS_RevShieldWalk (already in this file) hangs off
+// the master; this one hangs off TARGET and orbits, so the pair sweep the
+// knight from two sides at once. CHP's user_angle is the private field.
+class RS_RevShieldWalk2 : Actor
+{
+	private int rsOrbitAngle;
+
+	Default
+	{
+		Radius 64;
+		Height 56;
+		Speed 16;
+		Health 999;
+		Monster;
+		+NOTRIGGER +NOTARGET +DONTTHRUST +NOGRAVITY +INVULNERABLE
+		+MTHRUSPECIES +REFLECTIVE +DEFLECT +SHIELDREFLECT +THRUSPECIES
+		-COUNTKILL
+		Species "MontyP";
+		RenderStyle "Add";
+		Alpha 1.0;
+		Scale 1.25;
+	}
+
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		TNT1 A 0 { rsOrbitAngle += 8; }
+		DKNT Z 1 Bright { A_Warp(AAPTR_TARGET, 64, 0, 64, rsOrbitAngle + 8, WARPF_ABSOLUTEANGLE|WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		TNT1 A 0 A_Jump(2, "Death");
+		Loop;
+	Death:
+		DKNT Z 2 Bright { A_NoBlocking(); }
+		DKNT Z 2 Bright { A_SetScale(1.0); }
+		DKNT Z 2 Bright { A_SetScale(0.7); }
+		DKNT Z 2 Bright { A_SetScale(0.4); }
+		Stop;
+	}
+}
+
+// The thirty-two-shot cluster the EX shield blast throws before the blast
+// itself lands. CH ShieldBombRev.
+class RS_ShieldBombRev : Actor
+{
+	Default { Radius 4; Height 6; Mass 5; Speed 34; Projectile; Scale 0.55;
+		Damage (random(2, 25)); DamageType "Fire"; SeeSound "imp/attack";
+		DeathSound "weapons/firex4"; Translation "208:223=176:191", "224:231=176:176"; }
+	States
+	{
+	Spawn:
+		BAL1 ABA 1;
+		Loop;
+	Death:
+		BAL1 CDE 1 { A_SetTranslucent(0.35); }
+		Stop;
+	}
+}

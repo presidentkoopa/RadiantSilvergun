@@ -32,11 +32,27 @@
 
 class RS_MonsterTierRow
 {
+	// ABSOLUTE, HAND-ASSIGNED STATS -- the preferred way to state a tier.
+	//
+	// A tier is not a point on a curve. Colourful Hell and CHP hand-tuned
+	// every colour's health and speed individually, and every tier we add
+	// from here (TEX and whatever packs follow) is authored the same way:
+	// somebody decides this creature has 5000 HP because that is what it
+	// should have, not because 5000 is what the formula produced.
+	//
+	// Set hp/speed > 0 and they are used verbatim. Leave them 0 and the
+	// multipliers below apply instead, recomputed from the actor's
+	// Defaults. Writing the real number is clearer and cannot drift, so
+	// prefer it -- the multiplier path exists for the generic base ladder
+	// and for anything that genuinely wants to scale off a default.
+	int    hp;
+	int    speed;
+
 	double hpMul;
 	double spdMul;
 	int    painChance;
 
-	// Stored, NOT auto-applied. hpMul/spdMul/painChance are plain Actor
+	// Stored, NOT auto-applied. hp/speed/painChance are plain Actor
 	// properties we can safely rescale here. Outgoing damage is not --
 	// scaling it would mean reaching into every vanilla attack action on
 	// every monster. It is data the monster's own attack code reads and
@@ -212,7 +228,7 @@ class RS_MonsterMaster : Actor abstract
 		if (TierLocked())
 			return;
 
-		int want = clamp(t, 0, 12);
+		int want = clamp(t, 0, MaxTier());
 		if (want == Tier && rsAttacksBuiltFor == Tier)
 			return;
 
@@ -326,14 +342,17 @@ class RS_MonsterMaster : Actor abstract
 			frac = clamp(double(health) / double(TierMaxHealth), 0.0, 1.0);
 		}
 
-		int newMax = max(1, int(rsBaseHealth * r.hpMul));
+		// Absolute hand-assigned health wins; the multiplier is the
+		// fallback for rows that did not state one.
+		int newMax = (r.hp > 0) ? r.hp : max(1, int(rsBaseHealth * r.hpMul));
+		newMax = max(1, newMax);
 		TierMaxHealth = newMax;
 		// Direct assignment rather than A_SetHealth: that's an action
 		// function, and calling one from a plain method (or on another
 		// actor, as the heal path does) is a ZScript wrinkle not worth
 		// gambling on. Equivalent here.
 		health = max(1, int(newMax * frac));
-		Speed         = rsBaseSpeed * r.spdMul;
+		Speed         = (r.speed > 0) ? double(r.speed) : rsBaseSpeed * r.spdMul;
 		PainChance    = r.painChance;
 		TierDamageMul = r.dmgMul;
 
@@ -427,24 +446,34 @@ class RS_MonsterMaster : Actor abstract
 	// Hell and the proven HF port use. These helpers route into it.
 	// =================================================================
 
+	// THE LADDER IS OPEN-ENDED. T00..T12 are Colourful Hell's thirteen
+	// colours and TEX (13) is CHP's EX variant, but nothing here caps at
+	// thirteen: a higher tier is simply ANOTHER KIND OF MONSTER. Import a
+	// new monster pack and it becomes T14, T15, ... with no base-class
+	// change -- author the cluster, add the TierData row, raise the
+	// family's MaxTier(). The main game mode runs T00 -> TEX; the rest of
+	// the ladder is headroom that costs nothing until it is used.
+	//
+	// Labels are generated, not enumerated, so a new tier can never be
+	// "missing" from a switch someone forgot to extend.
 	static string TierLabel(int t)
 	{
-		switch (t)
-		{
-			case 1:  return "T01";
-			case 2:  return "T02";
-			case 3:  return "T03";
-			case 4:  return "T04";
-			case 5:  return "T05";
-			case 6:  return "T06";
-			case 7:  return "T07";
-			case 8:  return "T08";
-			case 9:  return "T09";
-			case 10: return "T10";
-			case 11: return "T11";
-			case 12: return "T12";
-		}
-		return "T00";
+		if (t <= 0)  return "T00";
+		if (t == RS_TIER_EX) return "TEX";
+		return String.Format("T%02d", t);
+	}
+
+	// TEX sits directly above T12. Named so nothing has to hardcode 13.
+	const RS_TIER_EX = 13;
+
+	// Highest tier THIS family actually authors clusters for. The base
+	// ships the CH ladder plus TEX; a family that imports further packs
+	// overrides this and the dial reaches them automatically. SetTier
+	// clamps to it, and ApplyTier still bails if TierData has no row --
+	// two independent guards, so an unauthored tier can never half-apply.
+	virtual int MaxTier()
+	{
+		return RS_TIER_EX;
 	}
 
 	// Resolve "prefix.<current tier>", falling back to "prefix.T00" for

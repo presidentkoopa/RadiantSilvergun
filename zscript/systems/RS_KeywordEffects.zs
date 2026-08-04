@@ -87,6 +87,25 @@ class RS_ShotKeywordMods : Object
 	bool MasteryKick;     // Giant: rounds carry real kickback
 	bool MasteryIgnite;   // Painter: impact leaves burning ground
 
+	// Monster-signature spray economy (wave D1, docs/rs_13). How many
+	// sub-projectiles a signature round releases -- beads on impact
+	// (Nova), motes in flight (Swarm) -- and whether they seek. Capped
+	// hard in the parts themselves: these numbers ride autofire weapons.
+	int  SprayCount;
+	bool SpraySeek;
+
+	// Pain Train (wave D2): rounds force a flinch. ForcePain is the
+	// +FORCEPAIN flag on the spawned round; FlinchChance is the
+	// per-pellet odds below Mastery (a guaranteed stunlock at level 1
+	// would trivialize the whole monster ladder).
+	bool   ForcePain;
+	double FlinchChance;
+
+	// Momentum (wave D2): additive crit chance from the weapon's live
+	// crit streak. Added to the weapon's rolled CritChance at dispatch,
+	// never replacing it -- the roll stays king (rs_11 amplifier rule).
+	double CritAdd;
+
 	// Leveled-value tables for the designed affixes. Switch, not static
 	// const arrays -- this engine build does not reliably resolve
 	// `static const TYPE name[]` in class bodies (three separate real
@@ -348,6 +367,85 @@ class RS_ShotKeywordMods : Object
 				string tail = vals[i].Mid(3);
 				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
 				m.DmgMult *= 1.0 + 0.06 * lvl;
+			}
+			// --- WAVE D1 MONSTER SIGNATURES (docs/rs_13) ---------------
+			// Arach-Plasma: the arachnotron's relentless bolt. Cheap, fast,
+			// clean -- the smallest damage ramp of the three because its
+			// identity is RATE, not weight. Mastery: plasma burns through
+			// two bodies (the Slugger-mastery precedent for pierce as a
+			// signature flavor, not a Ghost duplicate -- no level ladder,
+			// no retention scaling, just the burn-through).
+			else if (vals[i].Left(5) == "arach")
+			{
+				string tail = vals[i].Mid(5);
+				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
+				m.DmgMult *= 1.0 + 0.02 * lvl;
+				if (tail == "master")
+				{
+					m.Piercing = true;
+					m.PierceLevel = 2;
+					m.PierceRetention = 0.85;
+				}
+			}
+			// Swarm: the Overlord's bee carrier. Levels buy MOTES, not
+			// damage -- the round's rolled damage still lands on the
+			// direct hit (rs_05's null-profile trap: a carrier that deals
+			// nothing is hollow). Mastery: the motes hunt precisely.
+			else if (vals[i].Left(5) == "swarm")
+			{
+				string tail = vals[i].Mid(5);
+				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
+				m.SprayCount = 1 + lvl;          // 2..6 motes
+				if (tail == "master")
+				{
+					m.SprayCount = 8;
+					m.SpraySeek = true;
+				}
+			}
+			// Nova: the cyberdemon's swoosh round -- a heavy shell that
+			// detonates into a plasma bead nova. Levels buy beads AND a
+			// real damage ramp (it's the heaviest of the three).
+			// Mastery: the beads seek.
+			// Pain Train: the flinch ladder. Levels buy the ODDS, Mastery
+			// buys certainty -- against the monster ladder's own
+			// painChance, which collapses at high tier (T12 = 16).
+			else if (vals[i].Left(6) == "flinch")
+			{
+				string tail = vals[i].Mid(6);
+				if (tail == "master")
+				{
+					m.ForcePain = true;
+					m.FlinchChance = 1.0;
+				}
+				else
+				{
+					int lvl = clamp(tail.ToInt(), 1, 5);
+					m.FlinchChance = 0.15 * lvl;   // 15% .. 75%
+				}
+			}
+			// Momentum: each consecutive crit makes the next one likelier.
+			// Reads the streak the weapon itself tracks; the ladder buys
+			// how much each link in the chain is worth. Pure Crit-roll
+			// amplifier -- a high-crit gun chains far more often.
+			else if (vals[i].Left(8) == "momentum")
+			{
+				string tail = vals[i].Mid(8);
+				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
+				double perLink = 0.02 * lvl;
+				int cap = (tail == "master") ? 8 : 4;
+				m.CritAdd += perLink * min(wpn.RS_CritStreak, cap);
+			}
+			else if (vals[i].Left(4) == "nova")
+			{
+				string tail = vals[i].Mid(4);
+				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
+				m.DmgMult *= 1.0 + 0.04 * lvl;
+				m.SprayCount = 2 + lvl * 2;      // 4..12 beads
+				if (tail == "master")
+				{
+					m.SprayCount = 16;
+					m.SpraySeek = true;
+				}
 			}
 		}
 

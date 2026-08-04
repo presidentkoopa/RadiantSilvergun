@@ -40,6 +40,11 @@
 //   T12   12_W    CommonWhiteSpider2     TRIT  10000  WHITE SPIDER: nine
 //                                                     patterns, webs, egg-layer
 //                                                     below 4000 HP
+//   TEX   12_KX   CommonBlackSpiderEX2   KSPX  12000  MACROSS MISSILE SPAM EX:
+//                                                     four patterns, and below
+//                                                     7000 HP the pool does not
+//                                                     widen -- it SWAPS to five
+//                                                     different ones
 //
 // Tier stats are CHP's own Health/Speed/PainChance per file, applied
 // through TierData() as multipliers off the Default block.
@@ -101,6 +106,8 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 			case 10: hp = 1444;  spd = 16; r.painChance = 68;  r.dmgMul = 1.8; break;
 			case 11: hp = 5342;  spd = 21; r.painChance = 24;  r.dmgMul = 2.5; break;
 			case 12: hp = 10000; spd = 28; r.painChance = 32;  r.dmgMul = 3.0; break;
+			// TEX (13) -- 12_KX's own numbers, not an extrapolation.
+			case 13: hp = 12000; spd = 20; r.painChance = 24;  r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 500.0;
@@ -112,15 +119,15 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 	// verified present in sprites/monsters/Arachnotron/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "BSPI BSPG BSPB BSCY CSPI ACNB ABSP BSPF ARAC CSPG BSP2 MSPI TRIT";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		return "BSPI BSPG BSPB BSCY CSPI ACNB ABSP BSPF ARAC CSPG BSP2 MSPI TRIT KSPX";
 	}
 
 	// CHP gives every colour its own ARTWORK, so no palette remap is
 	// wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -1232,5 +1239,219 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 		Stop;
 	XDeath.T12:
 		Goto Death.T12;
+
+	// =================================================================
+	// TEX BLACK EX (12_KX) -- KSPX, 12000 HP. "MACROSS MISSILE SPAM EX".
+	// Four patterns while healthy. Below 7000 HP the pool does not widen
+	// the way the other bosses' do -- it SWAPS. Miss2/3/4 leave the roll
+	// entirely and Miss6/7/8/9 take their place, so the second half is a
+	// different fight rather than the same fight with extras. Miss1 is
+	// the only pattern present in both halves, and it is the one that can
+	// bail into the hover dump at either stage.
+	// =================================================================
+	Spawn.TEX:
+		"KSPX" A 0 { A_SetSize(56, 64, true); }
+	Spawn.TEX.Look:
+		"KSPX" AB 10 { A_Look(); }
+		Loop;
+	See.TEX:
+		"KSPX" A 20;
+	See.TEX.Walk:
+		"KSPX" A 0 { A_Chase(); }
+		"KSPX" A 2 { A_StartSound("baby/walk"); }
+		"KSPX" ABBCC 2 { A_Chase(); }
+		"KSPX" A 0 { A_Chase(); }
+		"KSPX" D 2 { A_StartSound("baby/walk"); }
+		"KSPX" DEEFF 2 { A_Chase(); }
+		Goto See.TEX.Walk;
+	Missile.TEX:
+		"KSPX" A 0 A_JumpIfHealthLower(7000, "Missile.TEX.ChoicesMore");
+		"KSPX" A 0 A_Jump(256, "Missile.TEX.Miss1", "Missile.TEX.Miss2", "Missile.TEX.Miss3", "Missile.TEX.Miss4");
+		Goto See;
+	// THE GATE. 7000 of 12000 -- a hair under 60%, so it flips early.
+	Missile.TEX.ChoicesMore:
+		"KSPX" A 0 A_Jump(256, "Missile.TEX.Miss1", "Missile.TEX.Miss6", "Missile.TEX.Miss7", "Missile.TEX.Miss8", "Missile.TEX.Miss9");
+		Goto See;
+	// Miss1 -- the laser duel. Sheds an afterimage, alternates shoulders,
+	// and re-rolls on A_MonsterRefire; a 12/256 chance per cycle to break
+	// off into the hover dump.
+	Missile.TEX.Miss1:
+		"KSPX" A 20 Bright { A_FaceTarget(); }
+	Missile.TEX.Miss1Loop:
+		TNT1 A 0 { A_SpawnItemEx("RS_BlackSpideEXShade", 0, 0, random(12, 24), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_ExSpideLaser1", 24, -12, random(-5, 5)); }
+		"KSPX" R 1 Bright { A_FaceTarget(); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_ExSpideLaser1", 24, 12, random(-5, 5)); }
+		"KSPX" R 1 Bright A_MonsterRefire(128, "See");
+		"KSPX" Q 0 A_Jump(12, "Missile.TEX.Miss3");
+		Goto Missile.TEX.Miss1Loop;
+	// Miss2 -- the broadside. Eleven dumb rockets walked out to +-86
+	// degrees, then six seekers straight down the middle.
+	Missile.TEX.Miss2:
+		"KSPX" A 6 Bright { A_FaceTarget(); }
+		"KSPX" Q 2 Bright { A_FaceTarget(); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 60, -34, random(-6, 6)); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 80, -14, random(-6, 6)); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 90, 0, random(-6, 6)); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 80, 14, random(-6, 6)); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 60, 34, random(-6, 6)); }
+		"KSPX" Q 4 Bright { A_FaceTarget(); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 60, -58, random(-3, 9)); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 60, -78, random(-3, 9)); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 60, -86, random(-3, 9)); }
+		"KSPX" Q 4 Bright { A_FaceTarget(); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 60, 58, random(-9, 3)); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 60, 78, random(-9, 3)); }
+		"KSPX" Q 2 Bright { A_SpawnProjectile("RS_SpRocket4", 60, 86, random(-9, 3)); }
+		"KSPX" QQ 6 Bright { A_FaceTarget(); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SpRocket4EX", 80, -24, random(-2, 2)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SpRocket4EX", 80, 24, random(-2, 2)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SpRocket4EX", 60, -24, random(-2, 2)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SpRocket4EX", 60, 24, random(-2, 2)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SpRocket4EX", 70, -20, random(-2, 2)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SpRocket4EX", 70, 20, random(-2, 2)); }
+		"KSPX" Q 12;
+		Goto See;
+	// Miss3 -- THE HOVER DUMP, and the reason this thing is called Macross
+	// Missile Spam. Lifts off, stops flinching, and empties thirty-four
+	// missiles in about two and a half seconds. Same RS hover-barrage the
+	// T11 spider uses, at nearly double the payload.
+	Missile.TEX.Miss3:
+		"KSPX" A 10 Bright { A_FaceTarget(); }
+		// CHP: ThrustThingZ(0,100,0,0) -- set vertical velocity to 12.5.
+		"KSPX" I 8 Bright { vel.z = 12.5; }
+		"KSPX" I 0 { RS_HoverBarrage(); }
+		"KSPX" I 0 { bNOPAIN = true; }
+		"KSPX" G 1 Bright { A_SpawnProjectile("RS_SPMM1", 19, -12, random(-23, 23)); }
+		"KSPX" R 1 Bright { A_SpawnProjectile("RS_SPMM2", 25, -25, random(-41, 41)); }
+		"KSPX" H 1 Bright { A_SpawnProjectile("RS_SPMM3", 19, 12, random(-16, 16)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SPMM4", 19, 12, random(-9, 9)); }
+		"KSPX" G 1 Bright { A_SpawnProjectile("RS_SPMM1", 19, -12, random(-22, 22)); }
+		"KSPX" R 1 Bright { A_SpawnProjectile("RS_SPMM5", 49, 32, random(-9, 41)); }
+		"KSPX" H 1 Bright { A_SpawnProjectile("RS_SPMM3", 19, 12, random(-61, 6)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SPMM4", 19, 12, random(-9, 9)); }
+		"KSPX" G 1 Bright { A_SpawnProjectile("RS_SPMM3", 39, -32, random(-22, 22)); }
+		"KSPX" R 1 Bright { A_SpawnProjectile("RS_SPMM2", 19, -12, random(-34, 34)); }
+		"KSPX" H 1 Bright { A_SpawnProjectile("RS_SPMM4", 29, 12, random(-16, 16)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SPMM4", 19, 12, random(-9, 9)); }
+		"KSPX" G 1 Bright { A_SpawnProjectile("RS_SPMM2", 19, -12, random(-22, 22)); }
+		"KSPX" R 1 Bright { A_SpawnProjectile("RS_SPMM5", 59, -12, random(-14, 14)); }
+		"KSPX" H 1 Bright { A_SpawnProjectile("RS_SPMM1", 19, 32, random(-61, 61)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SPMM3", 19, 22, random(-39, 39)); }
+		"KSPX" G 1 Bright { A_SpawnProjectile("RS_SPMM1", 19, -12, random(-12, 12)); }
+		"KSPX" R 1 Bright { A_SpawnProjectile("RS_SPMM2", 26, -52, random(-4, 9)); }
+		"KSPX" H 1 Bright { A_SpawnProjectile("RS_SPMM3", 1, 12, random(-16, 16)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SPMM2", 9, -42, random(-19, 19)); }
+		"KSPX" G 1 Bright { A_SpawnProjectile("RS_SPMM1", 19, -12, random(-23, 23)); }
+		"KSPX" R 1 Bright { A_SpawnProjectile("RS_SPMM2", 25, -25, random(-41, 41)); }
+		"KSPX" H 1 Bright { A_SpawnProjectile("RS_SPMM3", 19, 12, random(-16, 16)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SPMM4", 19, 12, random(-9, 9)); }
+		"KSPX" G 1 Bright { A_SpawnProjectile("RS_SPMM1", 19, -12, random(-22, 22)); }
+		"KSPX" R 1 Bright { A_SpawnProjectile("RS_SPMM5", 49, 32, random(-9, 41)); }
+		"KSPX" H 1 Bright { A_SpawnProjectile("RS_SPMM3", 19, 12, random(-61, 6)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SPMM4", 19, 12, random(-9, 9)); }
+		"KSPX" G 1 Bright { A_SpawnProjectile("RS_SPMM3", 39, -32, random(-22, 22)); }
+		"KSPX" R 1 Bright { A_SpawnProjectile("RS_SPMM2", 19, -12, random(-34, 34)); }
+		"KSPX" H 1 Bright { A_SpawnProjectile("RS_SPMM4", 29, 12, random(-16, 16)); }
+		"KSPX" Q 0 { A_SpawnProjectile("RS_SPMM4", 19, 12, random(-9, 9)); }
+		"KSPX" G 1 Bright { A_SpawnProjectile("RS_SPMM2", 19, -12, random(-22, 22)); }
+		"KSPX" R 1 Bright { A_SpawnProjectile("RS_SPMM5", 59, -12, random(-14, 14)); }
+		"KSPX" A 0 { bFLOAT = false; }
+		"KSPX" A 0 { bNOPAIN = false; }
+		"KSPX" I 0 { bNOGRAVITY = false; }
+		Goto See;
+	// Miss4 -- three bubblegum cluster bombs, thrown high, mid and low.
+	Missile.TEX.Miss4:
+		"KSPX" AG 9 { A_FaceTarget(); }
+		"KSPX" I 8 { A_SpawnProjectile("RS_BubblegumBombEXSpidie", random(34, 50), random(-40, 40), random(-18, -4)); }
+		"KSPX" I 8 { A_SpawnProjectile("RS_BubblegumBombEXSpidie", random(34, 50), random(-40, 40), 0); }
+		"KSPX" I 8 { A_SpawnProjectile("RS_BubblegumBombEXSpidie", random(34, 50), random(-40, 40), random(4, 18)); }
+		Goto See;
+	// Miss6 -- second-half seeker duel: three seekers per shoulder, over
+	// and over, with a 15/256 bail into the hover dump after each triple.
+	Missile.TEX.Miss6:
+		"KSPX" A 20 Bright { A_FaceTarget(); }
+	Missile.TEX.Miss6Loop:
+		"KSPX" G 2 Bright { A_FaceTarget(); }
+		"KSPX" G 0 { A_SpawnProjectile("RS_SpRocket4EX", 80, -14, random(-2, 2)); }
+		"KSPX" G 0 { A_SpawnProjectile("RS_SpRocket4EX", 60, -14, random(-2, 2)); }
+		"KSPX" G 0 { A_SpawnProjectile("RS_SpRocket4EX", 70, -10, random(-2, 2)); }
+		"KSPX" G 2 Bright A_Jump(15, "Missile.TEX.Miss3");
+		"KSPX" HG 4 Bright { A_FaceTarget(); }
+		"KSPX" H 0 { A_SpawnProjectile("RS_SpRocket4EX", 80, 14, random(-2, 2)); }
+		"KSPX" H 0 { A_SpawnProjectile("RS_SpRocket4EX", 60, 14, random(-2, 2)); }
+		"KSPX" H 0 { A_SpawnProjectile("RS_SpRocket4EX", 70, 10, random(-2, 2)); }
+		"KSPX" H 2 Bright A_Jump(15, "Missile.TEX.Miss3");
+		"KSPX" H 2 Bright A_MonsterRefire(128, "See");
+		Goto Missile.TEX.Miss6Loop;
+	// Miss7 -- the spiral shot. One projectile, but it corkscrews.
+	Missile.TEX.Miss7:
+		"KSPX" A 10 Bright { A_FaceTarget(); }
+		"KSPX" G 6 Bright { A_FaceTarget(); }
+		"KSPX" R 6 Bright { A_SpawnProjectile("RS_BlackSpideSpiralShot", 32, 0, 0); }
+		"KSPX" HQ 6 Bright;
+		"KSPX" Q 0 A_Jump(128, "Missile.TEX.Miss3");
+		Goto See;
+	// Miss8 -- the sweep. Six magenta rails, then twelve bombs at close
+	// spread. CHP gives the rails damage 0 on purpose: they are the tell
+	// that tracks you across the room, and the bombs are the payload.
+	// Half the time it does not commit and re-rolls the first-half pool.
+	Missile.TEX.Miss8:
+		"KSPX" A 0 A_Jump(128, "Missile.TEX.Miss1", "Missile.TEX.Miss2", "Missile.TEX.Miss3", "Missile.TEX.Miss4");
+		"KSPX" A 10 Bright { A_FaceTarget(); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BlackSpideEXShade", 0, 0, random(12, 24), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"KSPX" G 2 Bright { A_FaceTarget(); }
+		"KSPX" R 6 Bright { A_CustomRailgun(0, 0, 0, Color(255, 0, 255), RGF_NOPIERCING | RGF_SILENT); }
+		"KSPX" A 0 { A_FaceTarget(); }
+		"KSPX" H 6 Bright { A_CustomRailgun(0, 0, 0, Color(255, 0, 255), RGF_NOPIERCING | RGF_SILENT); }
+		"KSPX" A 0 { A_FaceTarget(); }
+		"KSPX" Q 6 Bright { A_CustomRailgun(0, 0, 0, Color(255, 0, 255), RGF_NOPIERCING | RGF_SILENT); }
+		"KSPX" A 0 { A_FaceTarget(); }
+		"KSPX" R 6 Bright { A_CustomRailgun(0, 0, 0, Color(255, 0, 255), RGF_NOPIERCING | RGF_SILENT); }
+		"KSPX" A 0 { A_FaceTarget(); }
+		"KSPX" H 6 Bright { A_CustomRailgun(0, 0, 0, Color(255, 0, 255), RGF_NOPIERCING | RGF_SILENT); }
+		"KSPX" A 0 { A_FaceTarget(); }
+		"KSPX" Q 6 Bright { A_CustomRailgun(0, 0, 0, Color(255, 0, 255), RGF_NOPIERCING | RGF_SILENT); }
+		"KSPX" GGGGGGGGGGGG 2 Bright { A_SpawnProjectile("RS_BubblegumBombEXSpidie", random(34, 50), random(-10, 10), random(-3, 3)); }
+		Goto See;
+	// Miss9 -- the wall. Eight seekers and sixteen lasers in one frame,
+	// fanned +-40 degrees. No aiming, just volume.
+	Missile.TEX.Miss9:
+		"KSPX" A 10 Bright { A_FaceTarget(); }
+		"KSPX" G 2 Bright;
+		"KSPX" GGGG 0 { A_SpawnProjectile("RS_SpRocket4EX", 60, 15, random(-40, 40)); }
+		"KSPX" GGGG 0 { A_SpawnProjectile("RS_SpRocket4EX", 60, -15, random(-40, 40)); }
+		"KSPX" GGGGGGGG 0 { A_SpawnProjectile("RS_ExSpideLaser1", 24, 12, random(-40, 40)); }
+		"KSPX" GGGGGGGG 0 { A_SpawnProjectile("RS_ExSpideLaser1", 24, -12, random(-40, 40)); }
+		"KSPX" G 8 Bright { A_FaceTarget(); }
+		"KSPX" R 4 Bright { A_FaceTarget(); }
+		"KSPX" H 2 Bright;
+		Goto See;
+	// Pain re-rolls straight back into an attack half the time -- flinching
+	// it is not a free window.
+	Pain.TEX:
+		"KSPX" I 3;
+		"KSPX" I 3 { A_Pain(); }
+		"KSPX" I 0 A_Jump(128, "Missile.TEX");
+		Goto See.TEX.Walk;
+	Death.TEX:
+		"KSPX" J 20 { A_Scream(); }
+		"KSPX" K 9 { A_NoBlocking(); }
+		"KSPX" LMN 8;
+		"KSPX" O 9 { A_BossDeath(); }
+		"KSPX" P -1;
+		Stop;
+	XDeath.TEX:
+		"KSPX" J 1 { A_SpawnItemEx("RS_AraBoom3", 0, 12, 26, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 AAAAAAAAAAA 0 { A_SpawnItemEx("RS_HomingRocketTrailFatso", random(-32, 32), random(-32, 32), random(10, 64)); }
+		"KSPX" J 20 { A_Scream(); }
+		"KSPX" JJIIJI 2 { A_SpawnItemEx("RS_HKRedDeath", random(-5, 5), random(-32, 32), random(2, 42), 0, 0, 0, 0, SXF_NOPOINTERS | SXF_NOCHECKPOSITION); }
+		"KSPX" I 4 { A_SpawnItemEx("RS_AraBoom3", 0, -12, 24, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"KSPX" JJIIJI 2 { A_SpawnItemEx("RS_HKRedDeath", random(-5, 5), random(-32, 32), random(2, 42), 0, 0, 0, 0, SXF_NOPOINTERS | SXF_NOCHECKPOSITION); }
+		TNT1 A 8 { A_SpawnItemEx("RS_AraBoom1", 0, 0, 30, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_USEBLOODCOLOR); }
+		TNT1 AAAAAAAAAAA 0 { A_SpawnItemEx("RS_HomingRocketTrailFatso", random(-32, 32), random(-32, 32), random(10, 64)); }
+		TNT1 A 3 { A_NoBlocking(); }
+		"ARA7" A -1 { A_BossDeath(); }
+		Stop;
 	}
 }

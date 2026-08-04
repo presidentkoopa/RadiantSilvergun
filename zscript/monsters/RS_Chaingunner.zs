@@ -32,6 +32,12 @@
 //   T12   04_W  FSZS   6666  the crazy lady scientist: puddles, dart
 //                            storms, three live experiments, and a
 //                            phase-2 at 4444 HP
+//   TEX   04_KX HCPO  11249  GREEN WARFACE: the EX tier. Four heavy
+//                            options (nine-stage bomb, seeking mega-
+//                            bomb, detonating rapid fire, spam volley),
+//                            each behind its own range gate, and a
+//                            phase-2 at 6250 HP that turns MISSILEEVEN-
+//                            MORE and ALWAYSFAST on permanently
 //
 // Tier stats come from CHP's own Health/Speed/PainChance per file and
 // are applied through TierData below, replacing the generic ladder.
@@ -112,6 +118,8 @@ class RS_Chaingunner : RS_HumanMonster replaces ChaingunGuy
 			case 10: hp = 250;  spd = 10; r.painChance = 88;  r.dmgMul = 1.8; break;
 			case 11: hp = 4500; spd = 10; r.painChance = 25;  r.dmgMul = 2.5; break;
 			case 12: hp = 6666; spd = 14; r.painChance = 20;  r.dmgMul = 3.0; break;
+			// TEX -- CHP 04_KX GreenBlackCGuyEX2, verbatim.
+			case 13: hp = 11249; spd = 25; r.painChance = 10; r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		// Default Health is 70, Default Speed 8 -- express CHP's absolute
@@ -126,15 +134,19 @@ class RS_Chaingunner : RS_HumanMonster replaces ChaingunGuy
 	// verified present in sprites/monsters/Chaingunner/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "CPOS CGUG CGUB CGCY UCHA PZOW MPOS CGUF CZV1 UCH2 CPS2 BFGZ FSZS";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		return "CPOS CGUG CGUB CGCY UCHA PZOW MPOS CGUF CZV1 UCH2 CPS2 BFGZ FSZS HCPO";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
+	// TEX is the exception: CH's HCPO set is BLACK (it is CH BlackCGuyEX's
+	// body) and CHP's EX variants recolour it per colour, so the green EX
+	// carries a real translation. Recipe in TRNSLATE.txt as rs_cgun_tex.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		//      T00 T01 T02 T03 T04 T05 T06 T07 T08 T09 T10 T11 T12 TEX
+		return "- - - - - - - - - - - - - rs_cgun_tex";
 	}
 
 	override string GetBaseKeywords()
@@ -234,6 +246,14 @@ class RS_Chaingunner : RS_HumanMonster replaces ChaingunGuy
 	CallHelp.T12:
 		"FSZS" E 10 { A_FaceTarget(); }
 		"FSZS" F 12 Bright
+		{
+			if (SummonPack("RS_Imp", 2, 4, -2, 96.0) > 0)
+				A_StartSound(RS_MonsterCatalog.SND_Summon(), CHAN_BODY);
+		}
+		Goto See;
+	CallHelp.TEX:
+		"HCPO" E 10 { A_FaceTarget(); }
+		"HCPO" F 12 Bright
 		{
 			if (SummonPack("RS_Imp", 2, 4, -2, 96.0) > 0)
 				A_StartSound(RS_MonsterCatalog.SND_Summon(), CHAN_BODY);
@@ -1128,5 +1148,123 @@ class RS_Chaingunner : RS_HumanMonster replaces ChaingunGuy
 	Raise.T12:
 		"FSZS" NMLKJIH 5;
 		Goto See;
+
+	// ================= TEX GREEN WARFACE (04_KX) =================
+	// The EX tier: CHP's GreenBlackCGuyEX2, "LET ME SEE YOUR GREEN
+	// WARFACE". 11249 HP on CH's black HCPO body with a green remap, and
+	// unlike the rest of the family it is NOT a bullet skirmisher at all
+	// -- every one of its four options is artillery:
+	//
+	//   YELLOWBOMB  the nine-stage escalating blast, gated under 1200
+	//   BIGBOMB     two visible loads, then a SEEKING megabomb that
+	//               detonates into a 386-radius field
+	//   RAPIDFIRE   detonating rounds on a refire loop, gated under 2000,
+	//               and each loop can roll into one of the heavies
+	//   REDSPAM     two loads then twelve alternating plasma/fire rounds
+	//
+	// Three of the four end with A_Quake and clear NOPAIN on the firing
+	// frame: it goes stagger-proof while winding up and drops that guard
+	// exactly when it commits. Pain sets NOPAIN back on, so hitting it
+	// mid-swing does not interrupt the shot -- only the recovery.
+	//
+	// PHASE 2 at 6250 HP (CHP's A_JumpIfHealthLower) turns MISSILEEVEN-
+	// MORE and ALWAYSFAST on permanently. It does not heal, it does not
+	// change bodies -- it just stops pausing.
+	Spawn.TEX:
+		"HCPO" AB 10 { A_Look(); }
+		Loop;
+	See.TEX:
+		"HCPO" AABBCCDD 3 { A_Chase(); }
+		Loop;
+	See.TEX.Fast:
+		"HCPO" AABBCCDD 3 { A_FastChase(); }
+		Goto See;
+	Missile.TEX:
+		"HCPO" A 0 A_JumpIfHealthLower(6250, "Missile.TEX.Phase2");
+		"HCPO" A 0 A_Jump(255, "Missile.TEX.RedSpam", "Missile.TEX.YellowBomb", "Missile.TEX.BigBomb", "Missile.TEX.RapidFire");
+		Goto See;
+	// Not a transformation -- just the brakes coming off, for good.
+	Missile.TEX.Phase2:
+		"HCPO" A 0 { bMISSILEEVENMORE = true; bALWAYSFAST = true; }
+		Goto Missile.TEX+1;
+	// Range gates. Out of band, it re-rolls rather than firing blind.
+	Missile.TEX.YellowBomb:
+		"HCPO" A 0 A_JumpIfCloser(1200, "Missile.TEX.YellowBombFire");
+		Goto Missile.TEX;
+	Missile.TEX.YellowBombFire:
+		"HCPO" E 1 { A_FaceTarget(); }
+		"HCPO" AA 0 { A_SpawnProjectile("RS_SparkPuff1", 40, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"HCPO" E 3 Bright { A_FaceTarget(); }
+		"HCPO" EEEEEEE 1 Bright { A_SpawnProjectile("RS_SparkPuff1", 40, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		"HCPO" E 2 Bright { A_FaceTarget(); }
+		"HCPO" F 0 { A_Quake(2, 12, 0, 128); }
+		"HCPO" A 0 { bNOPAIN = false; }
+		"HCPO" F 3 Bright { A_SpawnProjectile("RS_YellowBombCGuyEX", 40, 0, 0); }
+		"HCPO" E 9 Bright;
+		Goto See;
+	// Two loads, twenty tics apart, in full view. Then the seeker.
+	Missile.TEX.BigBomb:
+		"HCPO" E 1 { A_FaceTarget(); }
+		"HCPO" F 0 Bright { A_SpawnProjectile("RS_RedRevLoad", 40, 0, 0); }
+		"HCPO" E 20 Fast { A_FaceTarget(); }
+		"HCPO" F 0 Bright { A_SpawnProjectile("RS_SpiralLoadGeneEX", 40, 0, 0); }
+		"HCPO" E 20 Fast { A_FaceTarget(); }
+		"HCPO" F 0 { A_Quake(2, 12, 0, 128); }
+		"HCPO" A 0 { bNOPAIN = false; }
+		"HCPO" F 3 Bright { A_SpawnProjectile("RS_CGBigEX", 40, 0, 0); }
+		"HCPO" E 9 Bright;
+		Goto See;
+	Missile.TEX.RapidFire:
+		"HCPO" A 0 A_JumpIfCloser(2000, "Missile.TEX.RapidFire2");
+		Goto Missile.TEX;
+	Missile.TEX.RapidFire2:
+		"HCPO" E 20 Fast { A_FaceTarget(); }
+	// The loop re-checks range every pass, so backing off past 2000
+	// genuinely breaks it out instead of eating the whole magazine.
+	Missile.TEX.RapidCheck:
+		"HCPO" A 0 A_JumpIfCloser(2000, "Missile.TEX.RapidLoop");
+		Goto Missile.TEX;
+	Missile.TEX.RapidLoop:
+		"HCPO" A 0 { A_StartSound("prox/beep", CHAN_WEAPON); }
+		"HCPO" E 3 Fast { A_FaceTarget(); }
+		"HCPO" F 0 { A_Quake(2, 12, 0, 128); }
+		"HCPO" A 0 { bNOPAIN = false; }
+		"HCPO" FE 3 Fast Bright { A_CustomBulletAttack(6, 5, random(1, 3), random(1, 5), "RS_DetoPuffCG"); }
+		"HCPO" E 2 A_MonsterRefire(188, "See");
+		"HCPO" A 0 A_Jump(25, "Missile.TEX.RedSpam", "Missile.TEX.YellowBomb", "Missile.TEX.BigBomb");
+		Goto Missile.TEX.RapidCheck;
+	// Twelve rounds alternating plasma and fire on a widening spread --
+	// the resistance you brought only covers half of it.
+	Missile.TEX.RedSpam:
+		"HCPO" E 1 { A_FaceTarget(); }
+		"HCPO" F 0 Bright { A_SpawnProjectile("RS_SpiralLoadGeneEX", 40, 0, 0); }
+		"HCPO" E 15 Fast { A_FaceTarget(); }
+		"HCPO" F 0 Bright { A_SpawnProjectile("RS_SpiralLoadGeneEX", 40, 0, 0); }
+		"HCPO" E 15 Fast { A_FaceTarget(); }
+		"HCPO" F 0 { A_Quake(2, 12, 0, 128); }
+		"HCPO" A 0 { bNOPAIN = false; }
+		"HCPO" FEFE 3 Bright { A_SpawnProjectile("RS_SpamShotsCGuyEX", 40, 0, random(-5, 5), 0, random(-4, 4)); }
+		"HCPO" E 1 { A_FaceTarget(); }
+		"HCPO" FEFE 3 Bright { A_SpawnProjectile("RS_SpamShotsCGuyEX2", 40, 0, random(-9, 9), 0, random(-4, 4)); }
+		"HCPO" E 1 { A_FaceTarget(); }
+		"HCPO" FE 3 Bright { A_SpawnProjectile("RS_SpamShotsCGuyEX", 40, 0, random(-11, 11), 0, random(-4, 4)); }
+		"HCPO" E 1 { A_FaceTarget(); }
+		"HCPO" FE 3 Bright { A_SpawnProjectile("RS_SpamShotsCGuyEX2", 40, 0, random(-13, 13), 0, random(-4, 4)); }
+		Goto See;
+	// Pain re-arms the stagger guard and half the time it breaks into a
+	// sprint, so punishing it is a one-shot window, not a stunlock.
+	Pain.TEX:
+		"HCPO" G 3;
+		"HCPO" G 3 { A_Pain(); }
+		"HCPO" A 0 { bNOPAIN = true; }
+		"HCPO" G 3 A_Jump(128, "See.TEX.Fast");
+		Goto See;
+	Death.TEX:
+		"HCPO" HHHHHHH 5 { A_SpawnProjectile("RS_HKRedDeath", random(20, 100), random(-30, 30), CMF_AIMOFFSET, 2, -10); }
+		"HCPO" I 5 { A_Scream(); }
+		"HCPO" J 5 { A_NoBlocking(); }
+		"HCPO" KL 5;
+		"HCPO" L -1;
+		Stop;
 	}
 }

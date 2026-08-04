@@ -29,9 +29,26 @@
 //                            stalks unseen then warps in and backstabs
 //   T12   07_W  SLGM  5600   SLIME GOLEM: invulnerable while submerged,
 //                            three slime volleys, spawns a Wakawaka
+//   TEX   07_KX GKEX  7250   THE BACKSTABBER UNSILENCED: the rogue with
+//                            two walk modes it flips between (solid, or
+//                            a NOCLIP ghost that walks through geometry),
+//                            bouncing shadow balls, a 100-200 spiral that
+//                            scatters seventy-two bouncers when it dies, a
+//                            beam that BLINDS instead of hurting, and a
+//                            stalk counter that ends in a flank warp
 //
 // Tier stats come from CHP's own Health/Speed/PainChance per file and are
 // applied through TierData below, replacing the generic ladder.
+//
+// TEX SOURCE: CHP 07_KX.txt, ACTOR CommonBlackSpectreEX2 (the first
+// actor in the file). It declares no parent -- every property it has is
+// its own, so nothing was inherited in.
+//
+// TEX CHP properties with no TierData channel, recorded rather than
+// silently dropped: XScale 1.2 / YScale 0.85, Mass 500, Radius 20,
+// RadiusDamageFactor 0.5, DamageFactor Melee 2.5, MeleeThreshold 200,
+// and the +LOOKALLAROUND / +QUICKTORETALIATE / +NOFEAR / +BOSS flag set.
+// The row carries Health / Speed / PainChance / damage only.
 //
 // Where CHP left a state undefined it was taken from the CHP parent:
 //   T06 stats  <- CHP 06_A CommonAbyssDemon (07_A overrides only Alpha)
@@ -65,6 +82,8 @@ class RS_Spectre : RS_DemonBase replaces Spectre
 	private int rsCalm;      // 07_Y  User_Calm
 	private int rsHidden;    // 07_A  user_hidd
 	private int rsRisen;     // 07_W  RiseCheck inventory
+	private int rsExMode;    // 07_KX DewzanToken -- solid vs ghost walk
+	private int rsExStalk;   // 07_KX user_hm -- the flank-warp counter
 
 	Default
 	{
@@ -109,6 +128,8 @@ class RS_Spectre : RS_DemonBase replaces Spectre
 			case 10: hp = 394;  spd = 16; r.painChance = 30;  r.dmgMul = 1.9; break;
 			case 11: hp = 3000; spd = 15; r.painChance = 40;  r.dmgMul = 2.5; break;
 			case 12: hp = 5600; spd = 8;  r.painChance = 32;  r.dmgMul = 3.0; break;
+			// TEX -- CHP 07_KX CommonBlackSpectreEX2's own numbers.
+			case 13: hp = 7250; spd = 20; r.painChance = 30;  r.dmgMul = 4.0; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 150.0;
@@ -119,15 +140,15 @@ class RS_Spectre : RS_DemonBase replaces Spectre
 	// Audit data. Every entry is a real, distinct CHP sprite set.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "SARG SRGG SRGB WRM2 SAR2 SRG2 DOGA SRGF BPWA SRGY SRGR SHDW SLGM";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		return "SARG SRGG SRGB WRM2 SAR2 SRG2 DOGA SRGF BPWA SRGY SRGR SHDW SLGM GKEX";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -905,6 +926,184 @@ class RS_Spectre : RS_DemonBase replaces Spectre
 		"SLGM" QRST 5;
 		"SLGM" U 5 { A_NoBlocking(); }
 		"SLGM" U -1;
+		Stop;
+
+	// ============ TEX BLACK EX -- THE BACKSTABBER UNSILENCED (07_KX) ============
+	// The T11 rogue, promoted. Two walk modes it flips between on its own:
+	// mode 1 is solid at alpha 0.45 and speed 20 and answers with Missile;
+	// mode 2 is a NOCLIP ghost at alpha 0.12 and speed 12 that answers with
+	// Charge instead -- it walks through the geometry to reach you.
+	//
+	// THE STALK COUNTER (CHP user_hm, rsExStalk here) is the fight. Every
+	// tick of distance you keep adds to it; at 10 it stops shooting, warps
+	// to a point 38 units off your flank, and opens with two 40-99 melee
+	// hits. Backstabbing costs it 6 more on the counter, so the punish is
+	// self-limiting -- but running away is what loads it.
+	//
+	// Every stride drops a ghost of that stride's frame, so the silhouette
+	// you are tracking is four frames behind the thing that is actually
+	// there. Its dark beam blinds on impact rather than hurting.
+	Spawn.TEX:
+		"GKEX" AA 1 { A_Look(); }
+		Loop;
+	See.TEX:
+		"GKEX" E 0
+		{
+			if (rsExMode != 0)
+				return ResolveState("See.TEX.Mode2");
+			return ResolveState(null);
+		}
+		Goto See.TEX.Mode1;
+	// The mode flip. CHP latches this on a DewzanToken; rsExMode is the
+	// same latch as a field.
+	See.TEX.Switch:
+		TNT1 A 0
+		{
+			if (rsExMode != 0)
+			{
+				rsExMode = 0;
+				return ResolveState("See.TEX.Mode1");
+			}
+			rsExMode = 1;
+			return ResolveState("See.TEX.Mode2");
+		}
+		Goto See;
+	See.TEX.Mode1:
+		"GKEX" A 0 { A_SetTranslucent(0.45); }
+		"GKEX" A 0 { A_SetSpeed(20); }
+		"GKEX" A 8 { bNOCLIP = false; }
+	See.TEX.Mode1B:
+		"GKEX" BBB 1 { A_Chase("Melee", "Missile", CHF_NOPLAYACTIVE); }
+		"GKEX" B 0 { A_SpawnItemEx("RS_ShadowGhostEXB", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"GKEX" CCC 1 { A_Chase("Melee", "Missile", CHF_NOPLAYACTIVE); }
+		"GKEX" C 0 { A_SpawnItemEx("RS_ShadowGhostEXC", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"GKEX" DDD 1 { A_Chase("Melee", "Missile", CHF_NOPLAYACTIVE); }
+		"GKEX" D 0 { A_SpawnItemEx("RS_ShadowGhostEXD", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"GKEX" EEE 1 { A_Chase("Melee", "Missile"); }
+		"GKEX" E 0 { A_SpawnItemEx("RS_ShadowGhostEXE", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"GKEX" E 0 A_Jump(8, "See.TEX.Stalk");
+		"GKEX" E 0 A_Jump(3, "See.TEX.Switch");
+		Loop;
+	See.TEX.Mode2:
+		"GKEX" A 0 { A_SetTranslucent(0.12); }
+		"GKEX" A 0 { A_SetSpeed(12); }
+		"GKEX" A 8 { bNOCLIP = true; }
+	See.TEX.Mode2B:
+		"GKEX" BBBCCCDDD 2 { A_Chase("Melee", "Missile.TEX.Charge", CHF_NOPLAYACTIVE); }
+		"GKEX" EEE 2 { A_Chase("Melee", "Missile.TEX.Charge"); }
+		"GKEX" E 0 A_Jump(16, "See.TEX.Stalk");
+		"GKEX" E 0 A_Jump(6, "See.TEX.Switch");
+		Loop;
+	// Distance is what loads the counter -- inside 1000 it never ticks.
+	See.TEX.Stalk:
+		"GKEX" A 0 A_JumpIfCloser(1000, "See");
+		TNT1 A 0
+		{
+			if (rsExStalk >= 10)
+				return ResolveState("See.TEX.Getto");
+			rsExStalk += 2;
+			return ResolveState(null);
+		}
+		Goto See;
+	// Three flank offsets tried in order; the fourth is the bail-out that
+	// just drops it into ghost mode wherever it lands.
+	See.TEX.Getto:
+		"GKEX" A 20 { A_StartSound("Shadow/pain", CHAN_7, 0, 2.0, ATTN_NONE); }
+		"GKEX" A 0 { A_Warp(AAPTR_TARGET, -38, 0, 16, 0, WARPF_INTERPOLATE, "Melee.TEX.Backstab"); }
+		"GKEX" A 0 { A_Warp(AAPTR_TARGET, 0, -38, 16, 0, WARPF_INTERPOLATE, "Melee.TEX.Backstab"); }
+		"GKEX" A 0 { A_Warp(AAPTR_TARGET, 0, 38, 16, 0, WARPF_INTERPOLATE, "Melee.TEX.Backstab"); }
+		"GKEX" A 0 { A_Warp(AAPTR_TARGET, -38, 0, 16, 0, WARPF_INTERPOLATE|WARPF_NOCHECKPOSITION, "See.TEX.Mode2"); }
+		Goto See;
+	Melee.TEX.Backstab:
+		"GKEX" A 5 Bright { A_FaceTarget(); }
+		"GKEX" F 15 Bright { A_FaceTarget(); }
+		"GKEX" G 5 { A_CustomMeleeAttack(random(40, 99), "Butcher/Melee", "none"); }
+		"GKEX" F 5 Bright { A_FaceTarget(); }
+		"GKEX" G 5 { A_CustomMeleeAttack(random(40, 99), "Butcher/Melee", "none"); }
+		"GKEX" G 0 { rsExStalk += 6; }
+		Goto Melee.TEX.GetBackHere;
+	// The blink. NOPAIN for the duration, speed 99, and it leaves a
+	// fading copy of itself standing where it was.
+	Missile.TEX.Warp:
+		"GKEX" A 8 { bNOPAIN = true; }
+		"GKEX" A 0 { bNOCLIP = false; }
+		"GKEX" A 0 { A_SpawnItemEx("RS_ShadowWarpGhostEX", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_TRANSFERALPHA); }
+		"GKEX" A 0 { rsExStalk += 3; }
+		TNT1 A 1 { A_SetSpeed(99); }
+		TNT1 AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		TNT1 A 1 { bNOPAIN = false; }
+		TNT1 A 0 A_Jump(128, "See.TEX.Switch");
+		Goto See;
+	// Ghost mode's answer: kill its own momentum, then rocket in.
+	Missile.TEX.Charge:
+		"GKEX" A 0 A_JumpIfCloser(800, "Missile.TEX.Charge.Go");
+		Goto Missile;
+	Missile.TEX.Charge.Go:
+		"GKEX" AA 8 { A_FaceTarget(); }
+		"GKEX" A 6 { A_FaceTarget(); }
+		"GKEX" A 2 { A_ScaleVelocity(0.01); }
+		"GKEX" A 0 { A_StartSound("Ice/Fly", CHAN_BODY); }
+		"GKEX" A 0 { A_Recoil(-48); }
+		"GKEX" A 0 ThrustThingZ(0, 30, 0, 0);
+		Goto Melee;
+	Melee.TEX:
+		"GKEX" A 0 { A_SetTranslucent(0.45); }
+		"GKEX" FG 3 { A_FaceTarget(); }
+		"GKEX" H 2 { A_CustomMeleeAttack(random(40, 99), "Obsidian/Melee", "none"); }
+	Melee.TEX.GetBackHere:
+		"GKEX" H 0 A_Jump(64, "Melee.TEX.GetBackHere.Chase");
+		Goto See;
+	Melee.TEX.GetBackHere.Chase:
+		"GKEX" H 0 A_JumpIfCloser(200, "Missile");
+		"GKEX" H 0 A_JumpIfCloser(500, "Missile.TEX.Charge");
+		Goto Missile;
+	Missile.TEX:
+		SHDW A 0 A_Jump(200, "Missile.TEX.Standard", "Missile.TEX.Charge");
+		Goto Missile.TEX.DarkBeam;
+	Missile.TEX.Standard:
+		"GKEX" A 6 { A_FaceTarget(); }
+		"GKEX" F 4 { A_FaceTarget(); }
+		"GKEX" GGGGGGGG 2 Bright { A_SpawnProjectile("RS_ShadowBallEX1", 32, 0, random(-30, 30)); }
+		"GKEX" F 4 { A_FaceTarget(); }
+		"GKEX" A 0 A_Jump(82, "Missile.TEX.BigOne");
+		"GKEX" A 0 A_Jump(64, "Missile.TEX.Warp");
+		Goto See;
+	Missile.TEX.BigOne:
+		"GKEX" A 6 { A_FaceTarget(); }
+		"GKEX" F 4 { A_FaceTarget(); }
+		"GKEX" G 8 Bright { A_SpawnProjectile("RS_ShadowSpiralEX", 32, 0, random(-30, 30)); }
+		"GKEX" F 8 { A_FaceTarget(); }
+		"GKEX" A 0 A_Jump(64, "Missile.TEX.Warp");
+		Goto See;
+	Missile.TEX.DarkBeam:
+		"GKEX" A 6 { A_FaceTarget(); }
+		"GKEX" F 4 { A_FaceTarget(); }
+		"GKEX" GGGGGGGG 1 Bright { A_SpawnProjectile("RS_ShadowDarkBeamEX", 32); }
+		"GKEX" G 0 { A_FaceTarget(); }
+		"GKEX" GGGGGGGG 1 Bright { A_SpawnProjectile("RS_ShadowDarkBeamEX", 32); }
+		"GKEX" G 0 { A_FaceTarget(); }
+		"GKEX" GGGGGGGG 1 Bright { A_SpawnProjectile("RS_ShadowDarkBeamEX", 32); }
+		"GKEX" G 0 { A_FaceTarget(); }
+		"GKEX" GGGGGGGG 1 Bright { A_SpawnProjectile("RS_ShadowDarkBeamEX", 32); }
+		"GKEX" F 8 { A_FaceTarget(); }
+		"GKEX" A 0 A_Jump(64, "Missile.TEX.Warp");
+		Goto See;
+	Pain.TEX:
+		"GKEX" H 4;
+		"GKEX" H 4 { A_Pain(); }
+		"GKEX" H 0 A_Jump(88, "Missile.TEX.Warp");
+		Goto See;
+	Death.TEX:
+		"GKEX" NNNNNNNNNNNNNNNN 0 { A_SpawnItemEx("RS_ShadowDeathGhostEX", 0, 0, 4, frandom(-3, 3), frandom(-3, 3), 1, 0, SXF_NOCHECKPOSITION); }
+		"GKEX" N 12;
+		"GKEX" O 12 { A_Scream(); }
+		"GKEX" P 13;
+		"GKEX" Q 13 { A_Fall(); }
+		"GKEX" RS 13;
+		"GKEX" T -1;
+		Stop;
+	// CHP defines Raise as a bare Stop: the EX rogue cannot be resurrected.
+	Raise.TEX:
 		Stop;
 	}
 }

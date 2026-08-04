@@ -704,3 +704,40 @@ $alias misc/gibbed/c       misc/gibbed
 // (RS_Weapon.AllClearPitch), not from separate sounds.
 rs_allclear_ready  Sounds/combatfx/tells/READYBP
 $volume rs_allclear_ready 0.65
+
+// --- Handling foley (rs_14 section 2A) --------------------------------
+// Deliberate manipulation sounds -- equips, cycles, swings -- as
+// distinct from the incidental rattle in combatfx/foley/. Imported from
+// the li-gnrcwpn library per the ICEY discipline: verified present,
+// categorized, registered. AllClear's quiet siblings.
+rs_foley_shotgun_rattle1     Sounds/combatfx/handling/RIRON1.ogg
+rs_foley_shotgun_rattle2     Sounds/combatfx/handling/RIRON2.ogg
+$random rs_foley_shotgun_rattle { rs_foley_shotgun_rattle1 rs_foley_shotgun_rattle2 }
+
+rs_foley_launcher_grencycle  Sounds/combatfx/handling/RLGCY.ogg
+
+// Per-archetype equip identity.
+rs_foley_rifle_equip         Sounds/combatfx/handling/RFLEQUP.ogg
+rs_foley_shotgun_equip       Sounds/combatfx/handling/SGEQUP.ogg
+rs_foley_launcher_equip      Sounds/combatfx/handling/RLEQUP.ogg
+rs_foley_chaingun_equip      Sounds/combatfx/handling/MGUPSN.ogg
+rs_foley_energy_equip        Sounds/combatfx/handling/PLSUSND.ogg
+// Off-hand chainsaw equip -- the dual-wield hand cue.
+rs_foley_melee_equip_off     Sounds/combatfx/handling/CSOEQUP.ogg
+
+// Melee whoosh vocabulary.
+rs_foley_swing1              Sounds/combatfx/handling/SWING1
+rs_foley_swing2              Sounds/combatfx/handling/SWING2
+rs_foley_swing3              Sounds/combatfx/handling/SWING3
+rs_foley_swing4              Sounds/combatfx/handling/SWING4
+rs_foley_swing5              Sounds/combatfx/handling/SWING5
+rs_foley_swing6              Sounds/combatfx/handling/SWING6
+$random rs_foley_swing { rs_foley_swing1 rs_foley_swing2 rs_foley_swing3 rs_foley_swing4 rs_foley_swing5 rs_foley_swing6 }
+
+rs_foley_fist_straight1      Sounds/combatfx/handling/FISTSTR1.ogg
+rs_foley_fist_straight2      Sounds/combatfx/handling/FISTSTR2.ogg
+rs_foley_fist_straight3      Sounds/combatfx/handling/FISTSTR3.ogg
+$random rs_foley_fist_straight { rs_foley_fist_straight1 rs_foley_fist_straight2 rs_foley_fist_straight3 }
+
+$volume rs_foley_shotgun_rattle 0.7
+$volume rs_foley_swing 0.8

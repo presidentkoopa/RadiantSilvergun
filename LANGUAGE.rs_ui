@@ -96,3 +96,35 @@ TFLV_Upgrade_RS_ComboWinterKit_TT = "Deepens a held Pain Orb one level and offse
 TFLV_Upgrade_RS_ComboTwinDiscipline_Name = "Twin Discipline";
 TFLV_Upgrade_RS_ComboTwinDiscipline_Desc = "Splitter +1 level AND +2 accuracy";
 TFLV_Upgrade_RS_ComboTwinDiscipline_TT = "Deepens a held Splitter affix one level and steadies the spray. Never grants the Mastery -- that pick is always yours to make.";
+
+// --- Wave D1: monster signatures (docs/rs_13) ------------------------
+
+TFLV_Upgrade_RS_ArachPlasma_Name = "Arach-Plasma";
+TFLV_Upgrade_RS_ArachPlasma_Desc = "your rounds become the Arachnotron's bolt";
+TFLV_Upgrade_RS_ArachPlasma_TT = "The spider's own relentless plasma in your gun. A light, fast round -- its identity is how quickly it speaks, so the damage ramp is small (+2% per level). Mastery: the plasma burns through two bodies.";
+
+TFLV_Upgrade_RS_Swarm_Name = "Swarm";
+TFLV_Upgrade_RS_Swarm_Desc = "your rounds shed a cloud of hunting motes";
+TFLV_Upgrade_RS_Swarm_TT = "The Overlord's bee carrier. Your round still lands its own full damage -- what levels buy is the SWARM, 2 to 6 motes peeling off in flight to find their own targets. Mastery: eight motes, and they hunt precisely.";
+
+TFLV_Upgrade_RS_Nova_Name = "Nova";
+TFLV_Upgrade_RS_Nova_Desc = "your rounds detonate into a plasma ring";
+TFLV_Upgrade_RS_Nova_TT = "The Cyberdemon's swoosh shell -- a heavy round that bursts into a ring of plasma beads on impact. Levels buy both weight (+4% damage) and beads (4 to 12). Mastery: sixteen beads, and they seek.";
+
+// --- Wave D2: general lane (docs/rs_11 candidate pool) ---------------
+
+TFLV_Upgrade_RS_PainTrain_Name = "Pain Train";
+TFLV_Upgrade_RS_PainTrain_Desc = "your rounds stagger what they hit";
+TFLV_Upgrade_RS_PainTrain_TT = "Each pellet has a growing chance (15% to 75%) to force a flinch regardless of how tough the target is -- and high-tier monsters are exactly the ones that stop flinching on their own. Mastery: every round, every time.";
+
+TFLV_Upgrade_RS_Momentum_Name = "Momentum";
+TFLV_Upgrade_RS_Momentum_Desc = "crits chain -- each one makes the next likelier";
+TFLV_Upgrade_RS_Momentum_TT = "Every consecutive critical raises the odds of the next, up to four links (eight at Mastery). Built on this gun's own rolled Crit Chance, so a high-crit weapon chains constantly and a low-crit one rarely does. The streak breaks the moment a shot doesn't crit.";
+
+TFLV_Upgrade_RS_Overkill_Name = "Overkill";
+TFLV_Upgrade_RS_Overkill_Desc = "damage past a kill detonates on the corpse";
+TFLV_Upgrade_RS_Overkill_TT = "Whatever damage was wasted killing something comes back as a blast on the body -- 20% of it per level, in a growing radius. The harder this gun hits, the more waste there is to spend. Mastery: the full excess, uncapped by level.";
+
+TFLV_Upgrade_RS_Scavenger_Name = "Scavenger";
+TFLV_Upgrade_RS_Scavenger_Desc = "kills on a dry magazine give rounds back";
+TFLV_Upgrade_RS_Scavenger_TT = "Kill something while your magazine is in its bottom quarter and you recover rounds -- 10% of capacity per level. A big magazine makes the window rarer but the refund larger. Mastery: the whole magazine, instantly.";

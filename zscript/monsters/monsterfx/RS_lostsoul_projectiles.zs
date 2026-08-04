@@ -459,3 +459,234 @@ class RS_HKEgg : RS_RevEgg
 //   * RS_ArchSpawnerOrb drops CH's "RandomizerArc" drop-spawner line (a
 //     RandomSpawner over ~40 CH-named monster classes that do not exist
 //     here). The ArchvileFire it fires alongside is kept.
+
+// =====================================================================
+// CHP 05_WX -- WHITE LOST SOUL EX / THE VENGEFUL SOUL
+// (the TEX rung of RS_LostSoul).
+// ---------------------------------------------------------------------
+// The EX soul is the T12 shifter with an escort. Everything below is the
+// escort and its ammunition. Bodies from CH decorate/lostsouls.txt; call
+// sites from CHP 05_WX.txt.
+// =====================================================================
+
+// The black after-image it drags on every stride. CH LSoulEXShade.
+class RS_LSoulEXShade : Actor
+{
+	Default { Radius 6; Height 6; Speed 1; Projectile; +NOCLIP; +NOINTERACTION;
+		RenderStyle "Stencil"; StencilColor "black"; Alpha 0.75; Scale 1.25; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		ETHS A 2 Bright { A_SetScale(1.33, 1.33); }
+		ETHS A 2 Bright { A_FadeOut(0.25); }
+		ETHS A 2 Bright { A_SetScale(1.5, 1.5); }
+		ETHS A 2 Bright { A_FadeOut(0.25); }
+		ETHS A 2 Bright { A_SetScale(1.67, 1.67); }
+		ETHS A 2 Bright { A_FadeOut(0.15); }
+		Stop;
+	}
+}
+
+// What the escort skulls shoot once they are let off the leash.
+class RS_SoulShotWEX : Actor
+{
+	Default { Radius 6; Height 6; Speed 24; Damage (random(5, 33)); DamageType "Melee";
+		Projectile; RenderStyle "Subtract"; Alpha 0.8; Scale 0.75;
+		SeeSound "skull/melee"; DeathSound "skull/melee";
+		Translation "176:191=0:0", "208:223=0:0", "160:167=0:0", "48:63=0:0"; }
+	States
+	{
+	Spawn:
+		SKUL CD 1 Bright;
+		Loop;
+	Death:
+		SKUL ABAB 1 { A_FadeOut(0.33); }
+		Stop;
+	}
+}
+
+// ---------------------------------------------------------------------
+// THE ORDER TOKENS.
+// These stay real inventory items rather than becoming private fields:
+// the soul does not read them, it BROADCASTS them with A_RadiusGive to
+// whichever escort skulls happen to be alive. That is cross-actor
+// signalling, so a field on the soul could not carry it.
+//
+//   ...AdsOff   -- break orbit and fight normally
+//   ...AdsOff2  -- break orbit, fly out, and hatch a revenant
+//   ...AdsOff3  -- ...a hell knight
+//   ...AdsOff4  -- ...a cacodemon
+// ---------------------------------------------------------------------
+class RS_WhiteSoulAdsOff  : Inventory { Default { Inventory.MaxAmount 1; } }
+class RS_WhiteSoulAdsOff2 : Inventory { Default { Inventory.MaxAmount 1; } }
+class RS_WhiteSoulAdsOff3 : Inventory { Default { Inventory.MaxAmount 1; } }
+class RS_WhiteSoulAdsOff4 : Inventory { Default { Inventory.MaxAmount 1; } }
+
+// ---------------------------------------------------------------------
+// RS_SkullWSoulEX1 -- the escort.
+// Two of these orbit the EX soul on a fixed figure-eight, invulnerable
+// and untargetable, doing nothing at all until the soul gives an order.
+// Each order detaches them permanently: they drop invulnerability, wander,
+// lunge, swell, and hatch a full monster before dying. Killing the soul's
+// escort is not an option -- spending it is the soul's choice, not yours.
+//
+// CHP's A2/A3/A4 each pick between four CH colour variants of the same
+// monster (CommonRevenant/GreenRevenant/PurpleRevenant/RedRevenant, and so
+// on). In RS the colour IS the tier, so all four collapse to the one
+// family class and the ambient dial decides which colour shows up.
+// ---------------------------------------------------------------------
+class RS_SkullWSoulEX1 : Actor
+{
+	// Which order was received. Set by the Hatch.* entry labels, read at
+	// the end of the shared swell run -- so the run itself stays one copy.
+	private int rsHatchKind;
+
+	Default
+	{
+		Radius 16;
+		Height 32;
+		Mass 50;
+		Speed 12;
+		Health 80;
+		Monster;
+		+FLOAT +NOGRAVITY +NOBLOOD +INVULNERABLE +NOCLIP
+		+NOTARGET +NOINFIGHTING +DONTHARMSPECIES +MISSILEMORE
+		+MISSILEEVENMORE +DONTFALL +THRUSPECIES +NOICEDEATH
+		-COUNTKILL
+		RenderStyle "Subtract";
+		Alpha 1.0;
+		Species "whitelsoul";
+		BloodColor "Black";
+		Scale 0.65;
+		Obituary "%o was tagged by a skull";
+		Translation "176:191=0:0", "208:223=0:0", "160:167=0:0", "48:63=0:0";
+	}
+
+	States
+	{
+	Spawn:
+		SKUL AB 1;
+	Fly:
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff", 1, "See");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff2", 1, "Hatch.Revenant");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff3", 1, "Hatch.Knight");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff4", 1, "Hatch.Caco");
+		SKUL A 2 Bright { A_Warp(AAPTR_MASTER, 16, 0, 64, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL B 2 Bright { A_Warp(AAPTR_MASTER, 16, 12, 52, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 2 Bright { A_Warp(AAPTR_MASTER, 16, 24, 40, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL B 2 Bright { A_Warp(AAPTR_MASTER, 16, 36, 28, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 2 Bright { A_Warp(AAPTR_MASTER, 16, 24, 16, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL B 2 Bright { A_Warp(AAPTR_MASTER, 16, 12, 2, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 2 Bright { A_Warp(AAPTR_MASTER, 16, 0, -10, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff", 1, "See");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff2", 1, "Hatch.Revenant");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff3", 1, "Hatch.Knight");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff4", 1, "Hatch.Caco");
+		SKUL B 2 Bright { A_Warp(AAPTR_MASTER, 16, -12, -6, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 2 Bright { A_Warp(AAPTR_MASTER, 16, -24, 2, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL B 2 Bright { A_Warp(AAPTR_MASTER, 16, -36, 16, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 2 Bright { A_Warp(AAPTR_MASTER, 16, -24, 28, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL B 2 Bright { A_Warp(AAPTR_MASTER, 16, -12, 40, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 2 Bright { A_Warp(AAPTR_MASTER, 16, -6, 52, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		Loop;
+
+	// The three orders. Each records what it wants and drops into the one
+	// shared run below -- CHP repeats that run verbatim three times.
+	Hatch.Revenant:
+		TNT1 A 0 { rsHatchKind = 1; }
+		Goto Hatch;
+	Hatch.Knight:
+		TNT1 A 0 { rsHatchKind = 2; }
+		Goto Hatch;
+	Hatch.Caco:
+		TNT1 A 0 { rsHatchKind = 3; }
+		Goto Hatch;
+
+	// The shared detach-and-swell run.
+	Hatch:
+		TNT1 A 0 { bINVULNERABLE = false; bNOPAIN = true; }
+		SKUL ABC 6 Bright { A_Wander(); }
+		SKUL C 1 { A_FaceTarget(); }
+		// CHP writes thrustthing(angle,13,0,0) -- degrees into a
+		// byte-angle slot. A_Recoil(-13) is the same forward lunge.
+		SKUL C 4 { A_Recoil(-13); }
+		SKUL C 32 Bright;
+		TNT1 A 0 { bNOCLIP = false; }
+		SKUL C 6 Bright { A_Stop(); }
+		SKUL C 10 Bright { A_SetScale(1.0, 1.0); }
+		SKUL DDDDDDDDDDDDDDDDD 1 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		SKUL D 10 Bright { A_SetScale(1.25, 1.25); }
+		SKUL DDDDDDDDDDDDDDDDD 1 { A_SpawnProjectile("RS_WSSmore", 16, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		SKUL D 10 Bright { A_SetScale(1.5, 1.5); }
+		SKUL EFGH 10 Bright;
+		TNT1 A 0
+		{
+			if (rsHatchKind == 1)
+				A_SpawnItemEx("RS_Revenant", -2, 0, 3, 0, 0, 1, 0, SXF_NOCHECKPOSITION);
+			else if (rsHatchKind == 2)
+				A_SpawnItemEx("RS_HellKnight", -2, 0, 3, 0, 0, 1, 0, SXF_NOCHECKPOSITION);
+			else if (rsHatchKind == 3)
+				A_SpawnItemEx("RS_Cacodemon", -2, 0, 3, 0, 0, 1, 0, SXF_NOCHECKPOSITION);
+		}
+		SKUL IJK 5;
+		Stop;
+
+	See:
+		TNT1 A 0 { bINVULNERABLE = false; bNOBLOOD = false; }
+		SKUL AB 6 Bright { A_Chase(); }
+		Loop;
+	Missile:
+		TNT1 A 0 { bNOCLIP = false; }
+		SKUL C 10 Bright { A_FaceTarget(); }
+		SKUL D 4 Bright { A_SpawnProjectile("RS_SoulShotWEX", 5, 0); }
+		SKUL CD 4 Bright;
+		Goto See;
+	Pain:
+		SKUL E 3 Bright;
+		SKUL E 3 Bright { A_Pain(); }
+		Goto See;
+	Death:
+		SKUL F 6 Bright;
+		SKUL G 6 Bright { A_Scream(); }
+		SKUL H 6 Bright;
+		SKUL I 6 Bright { A_NoBlocking(); }
+		SKUL JK 6;
+		Stop;
+	}
+}
+
+// The mirror escort: same creature, opposite figure-eight, so the two of
+// them cross in front of the soul instead of shadowing each other.
+class RS_SkullWSoulEX2 : RS_SkullWSoulEX1
+{
+	States
+	{
+	Spawn:
+		SKUL AB 1;
+	Fly:
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff", 1, "See");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff2", 1, "Hatch.Revenant");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff3", 1, "Hatch.Knight");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff4", 1, "Hatch.Caco");
+		SKUL A 5 Bright { A_Warp(AAPTR_MASTER, 16, 0, 54, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL B 2 Bright { A_Warp(AAPTR_MASTER, 16, -12, 42, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 1 Bright { A_Warp(AAPTR_MASTER, 16, -24, 30, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL B 1 Bright { A_Warp(AAPTR_MASTER, 16, -36, 18, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 2 Bright { A_Warp(AAPTR_MASTER, 16, -24, 6, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL B 2 Bright { A_Warp(AAPTR_MASTER, 16, -12, -12, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 3 Bright { A_Warp(AAPTR_MASTER, 16, 0, -20, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff", 1, "See");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff2", 1, "Hatch.Revenant");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff3", 1, "Hatch.Knight");
+		TNT1 A 0 A_JumpIfInventory("RS_WhiteSoulAdsOff4", 1, "Hatch.Caco");
+		SKUL B 3 Bright { A_Warp(AAPTR_MASTER, 16, 12, -16, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 2 Bright { A_Warp(AAPTR_MASTER, 16, 24, -2, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL B 1 Bright { A_Warp(AAPTR_MASTER, 16, 36, 6, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 1 Bright { A_Warp(AAPTR_MASTER, 16, 24, 18, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL B 2 Bright { A_Warp(AAPTR_MASTER, 16, 12, 30, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		SKUL A 2 Bright { A_Warp(AAPTR_MASTER, 16, 6, 42, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		Loop;
+	}
+}
