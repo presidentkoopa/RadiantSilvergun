@@ -54,11 +54,30 @@ for name in sys.argv[1:]:
         if m: probs.append(f'{tok} missing {"".join(m)}')
     for c in set(re.findall(r'"([A-Z]\w+)"',src)):
         if (c.startswith('RS_') or c in STOCK) and c.lower() not in defined: probs.append(f'class {c} UNDEFINED')
-    labels=set(re.findall(r'^\s*([A-Za-z][\w.]*):\s*$',src,re.M))
-    tg=set(re.findall(r'Goto\s+([A-Za-z][\w.]*)',src))|set(re.findall(r'(?:ResolveState|A_Jump\w*|A_CheckSight|A_MonsterRefire)\([^)]*?"([A-Za-z][\w.]*)"',src))
+    # Labels are NOT always alone on their line -- `A5: TCLK E 10 {...} Loop;`
+    # is common. Requiring end-of-line missed every inline one. (?!:) keeps the
+    # Super:: scope qualifier from registering as a label named Super.
+    labels=set(re.findall(r'^\s*([A-Za-z][\w.]*):(?!:)',src,re.M))
+    tg=set()
+    # `Goto Super::Spawn + 1` targets the PARENT's Spawn. Super:: is a scope
+    # qualifier, not a label -- strip it or every such line reads as broken.
+    for t in re.findall(r'Goto\s+((?:\w+::)?[A-Za-z][\w.]*)',src): tg.add(t.split('::')[-1])
+    # The label is NOT always the first quoted argument, and assuming so made
+    # every A_JumpIfInventory in the project look broken:
+    #   A_JumpIfInventory("RS_WhiteSoulAdsOff", 1, "See")  <- arg 1 is an ITEM
+    #                                                         CLASS; the label
+    #                                                         is the LAST arg.
+    #   A_Jump(chance, "A", "B", "C")                      <- ALL are labels.
+    #   ResolveState / A_CheckSight / A_MonsterRefire      <- first is right.
+    for fn,args in re.findall(r'\b(ResolveState|A_Jump\w*|A_CheckSight|A_MonsterRefire)\s*\(([^)]*)\)',src):
+        q=re.findall(r'"([A-Za-z][\w.:]*)"',args)
+        if not q: continue
+        if fn=='A_Jump': tg|=set(q)
+        elif fn.startswith('A_JumpIf'): tg.add(q[-1])
+        else: tg.add(q[0])
     for t in tg:
-        b=t.split('+')[0].strip()
-        if b not in labels and b not in BASE: probs.append(f'label {t} UNRESOLVED')
+        b=t.split('+')[0].split('::')[-1].strip()
+        if b and b not in labels and b not in BASE: probs.append(f'label {t} UNRESOLVED')
     if 'RS_WearBody()' in src: probs.append('RS_WearBody callsite')
     if re.search(r'\{\s*A_[A-Za-z]\w*\s*;',src): probs.append('bare action call')
     if 'GetSpriteIndex' in src: probs.append('runtime GetSpriteIndex')

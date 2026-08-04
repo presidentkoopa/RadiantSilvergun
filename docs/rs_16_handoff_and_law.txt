@@ -273,9 +273,23 @@ OPEN -- NEEDS THE OWNER
      -- but it is ~71 lines. Three file headers were corrected to stop them
      asserting the opposite (they used to say "-> CONSTANT (ZScript Default
      requires it)"), so the tree is at least self-consistent now.
-  4. Unresolved Goto targets with no matching state label, from the CHP
-     rebuild, not this lane: RS_WhiteSoulAdsOff / ...Off2 / ...Off3 /
-     ...Off4 (lostsoul), RS_ByeWhiteRevCast (rev), "Super" (cyberdemon).
+  4. RESOLVED -- there are NO unresolved labels. An earlier version of this
+     appendix listed six; all six were the lint's fault and are now fixed.
+     Three separate bugs in the label check, all the same disease as the
+     anchored sprite scan:
+       * it took the FIRST quoted argument of any A_Jump* call. In
+         A_JumpIfInventory("RS_WhiteSoulAdsOff", 1, "See") argument one is an
+         ITEM CLASS and the label is LAST. Correct handling: A_JumpIf* -> last
+         quoted arg; A_Jump(chance,"A","B","C") -> ALL of them; ResolveState /
+         A_CheckSight / A_MonsterRefire -> first.
+       * `Goto Super::Spawn + 1` targets the PARENT's Spawn. Super:: is a
+         scope qualifier; the check read it as a label named "Super".
+       * labels were only recognised ALONE on their line, so every inline
+         `A5: TCLK E 10 {...} Loop;` was invisible -- which then made the
+         now-correctly-checked A_Jump targets look broken. Fixing the first
+         bug exposed this one.
+     Net: taking all A_Jump targets instead of just the first means these are
+     genuinely checked for the first time.
   5. sprites/monsters/projectiles/GRNDA.png is a stray -- 5 characters, no
      rotation digit. Sprite lumps must be 6 or 8 chars (NAME+frame+rot).
      GRNDA0.png is the real frame A. Delete the short one.
