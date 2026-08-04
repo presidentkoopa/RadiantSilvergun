@@ -73,7 +73,9 @@ class RS_HBeastSmoke : Actor
 // ---------- BROWN: yellow zap orb (FFAT body) ----------
 class RS_ZAPFFAT2 : Actor
 {
-	Default { Speed 1; Projectile; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.65; Scale 0.9; Damage 10; Translation "0:255=#[255,255,0]"; }
+	// No Damage property: CH Fatsos.txt:245 has none. All of this actor's
+	// damage is the A_Explode(random(1,2),32,0) in Fly.
+	Default { Speed 1; Projectile; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.65; Scale 0.9; Translation "0:255=#[255,255,0]"; }
 	// CH Fatsos.txt:245 -- three bursts shedding RS_ZapFFAT sparks, then STOP.
 	// The port had `LITN ABCDEF 2 A_Explode(8,40); Loop;` -- an A_Explode on a
 	// looping state never exits, so it dealt 8 damage in a 40 radius forever
