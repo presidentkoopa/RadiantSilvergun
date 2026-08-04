@@ -17,6 +17,21 @@ class TFLV_Debug : Object play {
       service.GetInt("add-p-upgrade", upgrade, player, arg);
     } else if (argv[1] == "w-xp") {
       service.GetDouble("add-w-xp", "", player, arg, null);
+    } else if (argv[1] == "w-xp-both") {
+      // RS GRAFT: one shot for both hands -- the stock w-xp command only
+      // ever reaches the current (mainhand) weapon; there's no way to
+      // pass an offhand reference through a netevent's string args.
+      // Testing convenience: `netevent bonsai-debug,w-xp-both,1000`.
+      let pawn = players[player].mo;
+      let stats = pawn ? TFLV_PerPlayerStats.GetStatsFor(pawn) : null;
+      if (stats) {
+        let mh = stats.GetInfoForCurrentWeapon();
+        if (mh) mh.AddXP(arg);
+        if (pawn.player.OffhandWeapon) {
+          let oh = stats.GetInfoFor(pawn.player.OffhandWeapon);
+          if (oh) oh.AddXP(arg);
+        }
+      }
     } else if (argv[1] == "p-xp") {
       service.GetDouble("add-p-xp", "", player, arg);
     } else if (argv[1] == "allupgrades") {

@@ -1,3 +1,38 @@
+RS MONSTER REBUILD SPEC -- rs_09  [AMENDED]
+
+=====================================================================
+!!! ABSOLUTE RULE -- READ FIRST, NO EXCEPTIONS !!!
+=====================================================================
+NEVER USE HF_ ANYTHING. Do not open, read, reference, or port from any
+HF_ file or the E:\RadiantSilvergun tree. It is dead, wrong, and the
+owner has deleted it. Every earlier version of this document told you
+to use it as a source -- that instruction was WRONG and produced 15
+bad monster files in one night.
+
+THE ONLY SOURCES OF TRUTH:
+  E:\New folder\ART SOURCE\CHP\DECORATE\NN\NN_<code>.txt   <- the monster
+  E:\New folder\ART SOURCE\CHP\sprites\                    <- its art
+  E:\New folder\ART SOURCE\CH\                             <- fallback ONLY
+                                                where CHP ships no file
+
+CHP family numbers:  01 Zombieman  02 Shotgunner  03 Imp  04 Chaingunner
+  05 LostSoul  06 Demon  07 Spectre  08 Revenant  09 Cacodemon
+  10 PainElemental  11 HellKnight  12 Arachnotron  13 Mancubus
+  14 Archvile  15 Baron  16 Mastermind  17 Cyberdemon
+
+Colour code -> tier:
+  C=T00  G=T01  B=T02  CY=T03  P=T04  Y=T05  A=T06  F=T07
+  BR=T08  GY=T09  R=T10  K=T11  W=T12      KX/WX = EX variants
+
+REFERENCE IMPLEMENTATION: zscript/monsters/RS_Cacodemon.zs (CHP 09).
+Copy its shape exactly. If this document and that file disagree, the
+file wins.
+
+Every tier is a DIFFERENT CREATURE with its own sprite set, its own
+stats, and its own attack. Nothing is tinted vanilla. Nothing is
+shared unless CHP itself shares it.
+=====================================================================
+
 RS MONSTER REBUILD SPEC -- rs_09
 Written 2026-08-03, mid-rebuild. This is the working contract for the
 full monster reimport. Any agent working a family file follows this

@@ -136,17 +136,17 @@ class RS_Weapon : Weapon abstract
 	int RS_LastShotTic;
 
 	// -----------------------------------------------------------------
-	// THE TELL (rs_11) -- the ready-to-fire beep. ONE imported sound
-	// (rs_tell_ready, the li-gnrcwpn plasma beep -- the owner's own
+	// ALLCLEAR (rs_11) -- the ready-to-fire beep. ONE imported sound
+	// (rs_allclear_ready, the li-gnrcwpn plasma beep -- the owner's own
 	// prototype pattern), given per-archetype identity purely through
 	// pitch. Audio-only ON PURPOSE: VR, 3D weapon models, nothing is
 	// ever drawn on the weapon or screen.
 	//
-	// Pitch <= 0 means NO tell for that archetype: the shotgun family's
+	// Pitch <= 0 means NO AllClear for that archetype: the shotgun family's
 	// pump/break action IS its tell (you physically can't fire early),
 	// and melee has no cadence worth signalling.
 	// -----------------------------------------------------------------
-	double TellPitch()
+	double AllClearPitch()
 	{
 		string arch = GetPaletteArchetype();
 		if (arch == "shotgun")       return 0;
@@ -165,7 +165,7 @@ class RS_Weapon : Weapon abstract
 		return 1.0;   // unmapped archetype: neutral beep beats silence
 	}
 
-	// Fires the tell at the exact tic the weapon's cadence reopens --
+	// Fires AllClear at the exact tic the weapon's cadence reopens --
 	// once per fire cycle, only while this weapon is in a hand. DoEffect
 	// ticks on the owner every game tic while the weapon is possessed;
 	// NextFireTic is stamped by A_RS_MarkFired on every committed shot,
@@ -183,11 +183,11 @@ class RS_Weapon : Weapon abstract
 		// would be 35/sec noise on the GH Minigun. The tell exists for a
 		// WAITING trigger finger, so a held trigger silences it.
 		if (owner.player.cmd.buttons & BT_ATTACK) return;
-		if (!CVar.GetCVar("rs_tell_enable", owner.player).GetBool()) return;
+		if (!CVar.GetCVar("rs_allclear_enable", owner.player).GetBool()) return;
 
-		double pitch = TellPitch();
+		double pitch = AllClearPitch();
 		if (pitch <= 0) return;
-		owner.A_StartSound("rs_tell_ready", CHAN_AUTO, CHANF_DEFAULT, 0.65,
+		owner.A_StartSound("rs_allclear_ready", CHAN_AUTO, CHANF_DEFAULT, 0.65,
 			ATTN_NORM, pitch);
 	}
 

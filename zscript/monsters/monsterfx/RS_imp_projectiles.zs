@@ -713,3 +713,262 @@ class RS_FatsoSpikes2 : Actor
 		Stop;
 	}
 }
+
+// =====================================================================
+// Ported from CHP DECORATE/03 (imp). These had no RS_ equivalent --
+// without them the FireBlu, Gray, Brown and White imps lose real
+// attacks or death effects.
+// =====================================================================
+
+// T07 FIREBLU -- the paired red/blue bomb balls. FastProjectile, sheds
+// a spiralling trail. Blue is the same round with a different palette,
+// exactly as CHP defines it.
+class RS_RedBBallImp : FastProjectile
+{
+	Default
+	{
+		Radius 8;
+		Height 12;
+		Speed 25;
+		Damage (random(10, 50));
+		Scale 0.5;
+		Species "Imp";
+		Projectile;
+		+THRUGHOST +DONTHARMCLASS +DONTHARMSPECIES
+		SeeSound "weapons/firbfi";
+		DeathSound "weapons/hellex";
+		RenderStyle "Add";
+		Alpha 0.8;
+		Translation "112:127=176:191";
+		DamageType "Plasma";
+	}
+	States
+	{
+	Spawn:
+		RED9 A 3 Bright { A_SetScale(0.5); }
+		RED9 B 3 Bright { A_SpawnProjectile("RS_CrackoBallTrail", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		RED9 C 3 Bright { A_SetScale(0.4); }
+		Loop;
+	Death:
+		RED9 ABC 4 Bright { A_Explode(random(5, 20), 64); }
+		Stop;
+	}
+}
+
+class RS_BluBBallImp : RS_RedBBallImp
+{
+	Default { Translation "0:255=196:207"; }
+}
+
+// T09 GRAY -- the nailgun round, and the corpse-burst that fires a full
+// ring of them when the gray imp dies.
+class RS_GImpNail : FastProjectile
+{
+	Default
+	{
+		Species "Imp";
+		Radius 2;
+		Height 2;
+		Damage (random(1, 5));
+		DamageType "Melee";
+		Speed 45;
+		Scale 0.5;
+		Decal "BulletChip";
+		AttackSound "moloch/nailhitbleed";
+		DeathSound "weapons/firex4";
+		Projectile;
+		+SPAWNSOUNDSOURCE +EXTREMEDEATH +BLOODSPLATTER
+		+THRUSPECIES +MTHRUSPECIES
+	}
+	States
+	{
+	Spawn:
+		BLAD A 2 Bright;
+		Loop;
+	Death:
+		6PUF ABCDEFEFG 1 Bright { A_Explode(random(1, 3), 16); }
+		FBL1 G 1 Bright { A_SpawnItemEx("RS_PuffCybieRed", 0, 0, 2); }
+		Stop;
+	}
+}
+
+class RS_Impthing3 : Actor
+{
+	Default
+	{
+		Species "Imp";
+		Projectile;
+		+THRUSPECIES +MTHRUSPECIES +NOGRAVITY
+		Radius 2;
+		Height 2;
+		Speed 0;
+		Damage 0;
+	}
+	States
+	{
+	Spawn:
+	Death:
+		TNT1 A 0;
+		MISL D 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 15,  CMF_AIMDIRECTION); }
+		MISL D 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 45,  CMF_AIMDIRECTION); }
+		MISL D 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 75,  CMF_AIMDIRECTION); }
+		MISL D 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 105, CMF_AIMDIRECTION); }
+		MISL D 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 135, CMF_AIMDIRECTION); }
+		MISL D 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 165, CMF_AIMDIRECTION); }
+		MISL D 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 195, CMF_AIMDIRECTION); }
+		MISL D 1 { A_SpawnProjectile("RS_GImpNail", 0, 0, 225, CMF_AIMDIRECTION); }
+		Stop;
+	}
+}
+
+// T08 BROWN (Warlord) -- the parry shield pulse, and the mace/shield
+// that clatter off the corpse when it dies.
+class RS_BrownImpShieldMini : Actor
+{
+	Default
+	{
+		Radius 64;
+		Height 56;
+		Speed 1;
+		Species "Imp";
+		Health 100;
+		Monster;
+		+NOTRIGGER +NOTARGET +NOPAIN +DONTTHRUST +NOGRAVITY
+		+NOICEDEATH +MTHRUSPECIES +THRUSPECIES
+		-COUNTKILL
+		RenderStyle "Add";
+		Alpha 0.85;
+		Scale 0.5;
+		Translation "0:255=#[240,247,9]";
+	}
+	States
+	{
+	Spawn:
+		DKNT Z 1 Bright { A_SetScale(0.4, 0.4); }
+		DKNT Z 1 Bright { A_SetScale(0.6, 0.6); }
+		DKNT Z 1 Bright { A_SetScale(0.7, 0.5); }
+		DKNT Z 1 Bright { A_SetScale(0.5, 0.5); }
+		DKNT Z 1 Bright { A_FaceTarget(); A_SetScale(0.95, 0.75); }
+		DKNT Z 24 Bright;
+		Goto Death;
+	Death:
+		DKNT Z 1 Bright A_FadeOut(0.2);
+		Wait;
+	}
+}
+
+class RS_WarlordMace : Actor
+{
+	Default { +DOOMBOUNCE Speed 4; }
+	States
+	{
+	Spawn:
+		WLI2 ABCDEF 5;
+		WLI2 G -1;
+		Stop;
+	}
+}
+
+class RS_WarlordShield : Actor
+{
+	Default { +DOOMBOUNCE Speed 5; }
+	States
+	{
+	Spawn:
+		WLI1 ABCDEF 5;
+		WLI1 G -1;
+		Stop;
+	}
+}
+
+// T11 BLACK -- the Agaures artillery shell.
+class RS_DIBigOne : Actor
+{
+	Default
+	{
+		Radius 12;
+		Height 24;
+		Speed 7;
+		Projectile;
+		+NOGRAVITY
+		RenderStyle "Add";
+		Scale 2.0;
+		Damage (random(40, 125));
+		DamageType "Plasma";
+		Alpha 0.75;
+		DeathSound "weapons/rocklx";
+	}
+	States
+	{
+	Spawn:
+		RED9 B 1 Bright;
+		RED9 AA 1 Bright { A_SpawnItemEx("RS_SpiralSaw5", 0, 0, 0, 0, 0, 0, 0, 128); }
+		RED9 A 0 { A_SpawnProjectile("RS_GroundRedCyb", 0, 0); }
+		RED9 A 0 { A_SpawnProjectile("RS_AgauresBall1", 7, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		RED9 A 0 { A_Explode(random(4, 10), 128); }
+		Loop;
+	Death:
+		SPIR AAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", random(-178, 178), random(-178, 178), random(-12, 42), 0, 0, 0, 0, 128); }
+		SPIR ABCDEDCBA 5 Bright { A_Explode(random(5, 30), 178); }
+		Stop;
+	}
+}
+
+// T12 WHITE -- the seeking hellion round it rains during nopenopeno.
+class RS_Hel2 : Actor
+{
+	Default
+	{
+		Radius 8;
+		Height 12;
+		Speed 12;
+		Damage (random(8, 30));
+		Projectile;
+		+SEEKERMISSILE +NOGRAVITY
+		RenderStyle "Add";
+		Alpha 0.9;
+		Scale 0.8;
+		DeathSound "weapons/rocklx";
+	}
+	States
+	{
+	Spawn:
+		HLBL A 1 Bright { A_SeekerMissile(5, 7); }
+		HLBL B 1 Bright;
+		HLBL A 1 Bright { A_Weave(1, 1, 1.0, 1.0); }
+		HLBL B 1 Bright;
+		Loop;
+	Death:
+		HLBL CDEFG 4 Bright { A_Explode(random(4, 16), 64); }
+		Stop;
+	}
+}
+
+// Vanilla-shaped imp fireball, as an RS_ class so T00's combo attack
+// resolves inside this library.
+class RS_DoomImpBall : Actor
+{
+	Default
+	{
+		Radius 6;
+		Height 8;
+		Speed 10;
+		FastSpeed 20;
+		Damage 3;
+		Projectile;
+		+RANDOMIZE
+		RenderStyle "Add";
+		Alpha 1.0;
+		SeeSound "imp/attack";
+		DeathSound "imp/shotx";
+	}
+	States
+	{
+	Spawn:
+		BAL1 AB 4 Bright;
+		Loop;
+	Death:
+		BAL1 CDE 6 Bright;
+		Stop;
+	}
+}

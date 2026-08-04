@@ -207,3 +207,140 @@ class RS_CyanFatBall : Actor
 		Stop;
 	}
 }
+
+// ---------------------------------------------------------------------
+// Ported from CH decorate/Fatsos.txt. These four had no RS_ equivalent
+// and their attacks would otherwise have been silently dropped.
+// ---------------------------------------------------------------------
+
+// The Brown (Fleshy) Fatso's lightning arc -- a stationary crackle that
+// paints the air between it and you. Cosmetic-fast, tiny splash.
+class RS_ZapFFAT : Actor
+{
+	Default
+	{
+		Speed 1;
+		Projectile;
+		RenderStyle "Add";
+		Alpha 0.65;
+		Scale 0.65;
+		Translation "0:255=#[255,255,0]";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		TNT1 A 0 A_Jump(128, "FlyAlt");
+		LITN ABCD 1 Bright;
+		TNT1 A 0 { A_SetScale(0.85, 0.4); }
+		LITN EFG 1 Bright;
+		TNT1 A 0 { A_SetScale(0.4, 0.85); }
+		LITN FEDB 1 Bright;
+		Stop;
+	FlyAlt:
+		LITN ABCD 1 Bright;
+		TNT1 A 0 { A_SetScale(0.4, 0.85); }
+		LITN EFG 1 Bright;
+		TNT1 A 0 { A_SetScale(0.85, 0.4); }
+		LITN FEDB 1 Bright;
+		Stop;
+	}
+}
+
+// The heavier arc: sheds RS_ZapFFAT sparks around itself and does real
+// (if small) repeated splash -- CH's "walk into it and regret it" zone.
+class RS_ZapFFAT2 : Actor
+{
+	Default
+	{
+		Speed 1;
+		Projectile;
+		RenderStyle "Add";
+		DamageType "Plasma";
+		Alpha 0.65;
+		Scale 0.9;
+		Translation "0:255=#[255,255,0]";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
+		LITN ABCD 1 Bright { A_Explode(random(1, 2), 32, 0); }
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
+		LITN EFG 1 Bright { A_Explode(random(1, 2), 32, 0); }
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
+		LITN FEDB 1 Bright { A_Explode(random(1, 2), 32, 0); }
+		Stop;
+	}
+}
+
+// The Gray Fatso's spike bomb. Sheds small gravity spikes in flight and
+// bursts into a six-way nail ring on impact.
+class RS_FatsoSpikes : Actor
+{
+	Default
+	{
+		Radius 12;
+		Height 12;
+		Speed 32;
+		Damage (random(28, 85));
+		Projectile;
+		DamageType "Melee";
+		+NOGRAVITY
+		+THRUGHOST
+		SeeSound "monster/dknmsl";
+		DeathSound "weapons/rocklx";
+		Translation "144:151=90:95", "64:79=96:109", "236:239=104:111", "1:2=111:111";
+	}
+	States
+	{
+	Spawn:
+		RIP1 ABC 3 Bright { A_SpawnItemEx("RS_FatsoSpikes2", 0, 0, 1, 0, 0, 0, 0, SXF_NOPOINTERS | SXF_NOCHECKPOSITION); }
+		Loop;
+	Death:
+		RIP1 A 0 { bNOGRAVITY = false; }
+		RIP1 ABCABC 8 { A_Explode(random(1, 8), 16); }
+		MISL D 0 { A_SpawnProjectile("RS_CGNail", 0, 0, 45); }
+		MISL D 0 { A_SpawnProjectile("RS_CGNail", 0, 0, 105); }
+		MISL D 0 { A_SpawnProjectile("RS_CGNail", 0, 0, 165); }
+		MISL D 0 { A_SpawnProjectile("RS_CGNail", 0, 0, 225); }
+		MISL D 0 { A_SpawnProjectile("RS_CGNail", 0, 0, 285); }
+		MISL D 1 { A_SpawnProjectile("RS_CGNail", 0, 0, 345); }
+		Stop;
+	}
+}
+
+// The Incubus (T05) homing rocket.
+class RS_RocketShotFatso : Actor
+{
+	Default
+	{
+		Radius 11;
+		Height 8;
+		Speed 28;
+		Damage (random(10, 40));
+		DamageType "Fire";
+		Projectile;
+		+SEEKERMISSILE
+		Scale 0.7;
+		DeathSound "weapons/rocklx";
+	}
+	States
+	{
+	Spawn:
+		MSLH A 2 Bright
+		{
+			A_SpawnItemEx("RS_HomingRocketTrailFatso", 0, 0, 0, 0, 0, 0, 0, 128);
+			A_SeekerMissile(4, 8, SMF_LOOK);
+		}
+		Loop;
+	Death:
+		MISL B 4 Bright { A_Explode(random(5, 35), 88); }
+		MISL C 5 Bright;
+		MISL D 6 Bright;
+		Stop;
+	}
+}

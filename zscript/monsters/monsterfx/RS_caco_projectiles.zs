@@ -275,3 +275,188 @@ class RS_ArmSpawnerCACO : Actor
 	Default { Radius 32; Height 16; Speed 1; FloatSpeed 1; +NOGRAVITY; +FLOAT; RenderStyle "Stencil"; StencilColor "White"; }
 	States { Spawn: GBLL A 0; Fly: GBLL AB 3 Bright A_SetScale(4.5,4.5); GBLL C 3 Bright A_FadeOut(0.1); Goto Fly; }
 }
+
+// =====================================================================
+// Ported verbatim from CHP DECORATE/09 (cacodemon) and its shared
+// dependencies. These five had no RS_ equivalent; without them the
+// Yellow, Abyss, Red and Black cacodemons lose real attacks.
+// =====================================================================
+
+// T05 YELLOW -- the Void Field. A stationary damaging zone the caco
+// scatters around the arena; pulses scale and splash, then fades.
+// Not a projectile: an invulnerable, non-solid hazard actor.
+class RS_VoidField : Actor
+{
+	Default
+	{
+		Radius 46;
+		Height 46;
+		Health 6666;
+		Species "Caco";
+		Speed 0;
+		Damage 0;
+		Monster;
+		+INVULNERABLE +DONTHARMSPECIES +DONTHARMCLASS +REFLECTIVE
+		+NOTARGET +NOGRAVITY +DONTTHRUST
+		-COUNTKILL -SOLID -CANPUSHWALLS -CANUSEWALLS -ACTIVATEMCROSS
+		RenderStyle "Add";
+		DamageType "Fire";
+		Alpha 0.75;
+		Scale 1.5;
+		DeathSound "caco/death";
+	}
+	States
+	{
+	Spawn:
+		BBOM B 1 Bright { A_SetScale(1.5); }
+	Pulse:
+		BBOM B 1 Bright { A_SetScale(1.3); }
+		BBOM B 1 Bright { A_Explode(5, 64); }
+		BBOM B 1 Bright { A_SetScale(1.0); }
+		BBOM B 1 Bright A_Jump(2, "Death");
+		Goto Pulse;
+	Death:
+		BBOM B 3 Bright { A_SetScale(1.3); }
+		BBOM B 3 Bright { A_SetScale(1.0); }
+		BBOM B 3 Bright { A_SetScale(0.7); }
+		BBOM B 3 Bright { A_SetScale(0.3); }
+		Stop;
+	}
+}
+
+// T06 ABYSS -- the charge-up crackle that plays before the Hideous
+// attack lands. Cosmetic only, no collision.
+class RS_ESZapZap : Actor
+{
+	Default
+	{
+		+NOCLIP +NOBLOCKMAP +NOGRAVITY +THRUSPECIES +DONTHARMSPECIES
+		Species "Caco";
+		RenderStyle "Add";
+		Alpha 0.90;
+		Translation "0:255=%[0.21,0.29,0.68]:[1.07,2.00,2.00]";
+	}
+	States
+	{
+	Spawn:
+		LITN BCDEFGOP 2 Bright;
+		Stop;
+	}
+}
+
+// T10 RED -- the sludge droplets that drip off the caco while it winds
+// up the Sludgebomb. Gravity-bound spatter, tiny, cosmetic.
+class RS_RedThingsLS : Actor
+{
+	Default
+	{
+		Radius 1;
+		Height 1;
+		Mass 8;
+		Speed 9;
+		Projectile;
+		+THRUACTORS
+		-NOGRAVITY
+		Scale 0.15;
+		Gravity 2;
+		RenderStyle "Add";
+		Alpha 0.8;
+		Translation "208:223=176:191", "224:231=176:176";
+	}
+	States
+	{
+	Spawn:
+		BAL1 AB 12;
+		BAL1 A 2 A_Jump(32, "Death");
+		Loop;
+	Death:
+		BAL1 A 1 { A_SetTranslucent(0.35); }
+		Stop;
+	}
+}
+
+// T11 BLACK (Hades) -- the seeking blast its bullet-attack leaves
+// behind, and the aura ring that scatters those blasts.
+class RS_HadeExpl : Actor
+{
+	Default
+	{
+		Radius 6;
+		Height 8;
+		Speed 3;
+		FastSpeed 9;
+		Damage (random(5, 10));
+		DamageType "Fire";
+		Projectile;
+		+RANDOMIZE +SEEKERMISSILE
+		RenderStyle "Add";
+		Alpha 1.0;
+		Scale 1.15;
+		SeeSound "caco/attack";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		Goto Death;
+	Death:
+		HADE M 4 Bright { A_Explode(random(2, 10), 108); }
+		HADE N 5 Bright { A_Explode(random(2, 12), 124); }
+		HADE OP 5 Bright { A_Explode(random(2, 10), 138); }
+		HADE Q 6 Bright { A_Explode(random(5, 25), 128); }
+		Stop;
+	}
+}
+
+class RS_HadeAra : Actor
+{
+	Default
+	{
+		+NOBLOCKMAP +NOGRAVITY +ALLOWPARTICLES +RANDOMIZE +PUFFONACTORS
+		Projectile;
+		RenderStyle "Add";
+		DamageType "Melee";
+		Alpha 0.95;
+		VSpeed 1;
+		Scale 2.0;
+		SeeSound "vile/active";
+		Mass 5;
+	}
+	States
+	{
+	Spawn:
+		HADE ABCDEGH 3 Bright { A_Explode(random(2, 26), 64); }
+	Melee:
+		HADE AHGEDCBA 3 Bright { A_SpawnItemEx("RS_HadeExpl", random(-128, 128), random(-128, 128), random(-88, 88)); }
+		Stop;
+	}
+}
+
+// Vanilla-shaped caco fireball, kept as an RS_ class so every tier's
+// projectile reference resolves inside this library.
+class RS_CacodemonBall : Actor
+{
+	Default
+	{
+		Radius 6;
+		Height 8;
+		Speed 10;
+		FastSpeed 20;
+		Damage 5;
+		Projectile;
+		+RANDOMIZE
+		RenderStyle "Add";
+		Alpha 1.0;
+		SeeSound "caco/attack";
+		DeathSound "caco/shotx";
+	}
+	States
+	{
+	Spawn:
+		BAL2 AB 4 Bright;
+		Loop;
+	Death:
+		BAL2 CDE 6 Bright;
+		Stop;
+	}
+}

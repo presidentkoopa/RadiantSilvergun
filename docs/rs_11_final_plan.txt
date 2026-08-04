@@ -92,7 +92,7 @@ STAT-STATE VISUAL LADDER (owner directive, build committed)
   Sprites verified in-repo: RSB0, RSP0-6 plasma, RSL0 lightning, RSK0
   smoke, RSS spark motes.
 
-THE TELL SYSTEM (cadence feedback -- the missing audiovisual language)
+ALLCLEAR SYSTEM (cadence feedback -- the missing audiovisual language)
 ================================================================================
   HARD CONSTRAINT (owner): VR, 3D weapon models, NO weapon sprites --
   nothing may be drawn on the weapon or screen. Verified compatible:
@@ -104,7 +104,7 @@ THE TELL SYSTEM (cadence feedback -- the missing audiovisual language)
   cool-toned WORLD-SPACE light pulse at the weapon (an RS_MuzzleLight
   cousin, clearly not a muzzle flash, same performance cap). The ready
   instant is exactly readable today: NextFireTic + the semi-auto
-  release gate -- a Ready-state watcher fires the tell once per cycle.
+  release gate -- a Ready-state watcher fires AllClear once per cycle.
   Teaches cadence with zero UI; gives rhythm affixes a beat the player
   can HEAR; differentiates archetypes on every single trigger pull.
   Two-stage reload audio where the weapon's action warrants it.
@@ -133,7 +133,7 @@ THE PHASES
   C  CORE CODE (main thread):
        C1 tier-gated offers + stat-card promotion-scaled ranges and
           ceilings (acc/cnd 100)          [replaces current flat cards]
-       C2 the Tell system + two-stage reload audio
+       C2 AllClear system + two-stage reload audio
        C3 the stat-state visual ladder    [half-staged, sprites verified]
        C4 Echo/Seeker/Ghost audit fixes; kill Painter/Cryo, re-aim
           their plumbing; fix Winter Kit combo
@@ -167,7 +167,7 @@ audit's identity/amplifier tests pre-applied, four-point on demand)
   GRUDGE           your hits mark; your later shots +5% vs marked [A: RoF -- fast guns stack focus faster]
   COUP DE GRACE    point-blank shots vs pained enemies auto-crit [A: crit + painchance interplay]
   DEEP POCKETS     +reserve ammo capacity                  [neutral; economy]
-  SCATTERSONG      (shotgun-family) choke oscillates with cadence -- fire on the beat for the tight cone [A: choke + RoF; needs the Tell to be learnable]
+  SCATTERSONG      (shotgun-family) choke oscillates with cadence -- fire on the beat for the tight cone [A: choke + RoF; needs AllClear to be learnable]
   DEAD AIR         the second shot of any pair is cleaner: fire-pause-fire-fire, shot 3 +acc [A: accuracy + cadence rhythm]
   QUARTERTIME      every 4th consecutive on-beat shot: free crit [A: crit + cadence; Metronome's big sibling -- maybe merge]
   IRONCLAD ROUNDS  rounds can't be deflected/reflected (future-proofs vs REFLECTIVE monsters -- they exist in the bin) [neutral defense]

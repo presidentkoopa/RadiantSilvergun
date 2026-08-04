@@ -623,9 +623,9 @@ queen/fire          QBFGFIRE
 $alias hellhound/melee     demon/melee
 $alias hellsmith/laugh     vile/sight
 
-// --- The Tell (rs_11): ready-to-fire cadence beep ---------------------
+// --- AllClear (rs_11): ready-to-fire cadence beep ---------------------
 // Source: li-gnrcwpn plasma altfire beep (PLBEEP), imported. ONE lump;
 // per-archetype identity comes from pitch at play time
-// (RS_Weapon.TellPitch), not from separate sounds.
-rs_tell_ready  Sounds/combatfx/tells/READYBP
-$volume rs_tell_ready 0.65
+// (RS_Weapon.AllClearPitch), not from separate sounds.
+rs_allclear_ready  Sounds/combatfx/tells/READYBP
+$volume rs_allclear_ready 0.65

@@ -89,7 +89,9 @@ class RS_MonsterMaster : Actor abstract
 	private int    rsPendingTier;
 	private int    rsPendingTic;
 	private int    rsTransformStart;   // when the tell began (for the accelerating flash)
-	private bool   rsFlashGold;        // current flicker phase
+	private int    rsXfOldTier;        // body we're transforming FROM (display only)
+	private int    rsFlashPhase;       // beat counter: even=gold, odd=a real body
+	private int    rsNextBeat;         // next flicker beat, shrinks as the snap nears
 
 	// --- Attacks ---
 	RS_AttackSlot CurrentAttacks;
@@ -230,19 +232,41 @@ class RS_MonsterMaster : Actor abstract
 		if (!rsTransforming)
 		{
 			rsTransforming   = true;
+			rsXfOldTier      = Tier;
 			rsTransformStart = level.time;
-			rsPendingTic     = level.time + random(10, 30);
-			rsFlashGold      = false;
+			// Random length, never longer than 3 seconds (105 tics).
+			rsPendingTic     = level.time + random(45, 105);
+			rsFlashPhase     = -1;
+			rsNextBeat       = level.time;
 		}
+	}
+
+	// Show a specific tier's BODY without committing to that tier --
+	// display only, no stat recompute. Used by the transform tell to
+	// flick between the old and new creature mid-telegraph.
+	private void RS_ShowBody(int t)
+	{
+		State st = FindStateByString("See." .. TierLabel(t), true);
+		if (!st) st = FindStateByString("Spawn." .. TierLabel(t), true);
+		if (!st) st = FindStateByString("See.T00", true);
+		if (st) SetState(st);
 	}
 
 	// Runs the staggered transform. Called from Tick.
 	//
-	// THE TELL: the monster flickers between its current tint and gold,
-	// faster and faster as the snap approaches -- a 90s beat-em-up boss
-	// telegraph. Flicker period starts at ~6 tics and tightens to 1 as
-	// the remaining wait shrinks, so the acceleration is the signal.
-	// Owner-specified; do not swap back to a renderstyle flash.
+	// THE TELL, owner-specified: the monster alternates between the body
+	// it IS and the body it is BECOMING, with a gold flash on every
+	// beat between --
+	//
+	//     old -> GOLD -> new -> GOLD -> old -> GOLD -> new -> ...
+	//
+	// slow at first and accelerating into the snap. Total length is
+	// random per monster and never exceeds 3 seconds (105 tics), so a
+	// retiered room ripples instead of snapping, and each monster reads
+	// as a 90s beat-em-up boss winding up.
+	//
+	// Beat length shrinks from ~10 tics to 1 as the deadline nears; the
+	// acceleration IS the signal that something is about to change.
 	private void RS_TickTransform()
 	{
 		if (!rsTransforming)
@@ -250,20 +274,25 @@ class RS_MonsterMaster : Actor abstract
 
 		if (level.time < rsPendingTic)
 		{
+			if (level.time < rsNextBeat)
+				return;
+
 			int remain = rsPendingTic - level.time;
-			int period = clamp(remain / 4, 1, 6);
-			if (((level.time - rsTransformStart) % (period * 2)) < period)
+			// 10 tics per beat at the start, tightening to 1 at the end.
+			int beat = clamp(remain / 8, 1, 10);
+			rsNextBeat = level.time + beat;
+
+			rsFlashPhase++;
+			// Even phases are gold; odd phases show a real body,
+			// alternating old / new / old / new.
+			if ((rsFlashPhase & 1) == 0)
 			{
-				if (!rsFlashGold)
-				{
-					A_SetTranslation("rs_gold_flash");
-					rsFlashGold = true;
-				}
+				A_SetTranslation("rs_gold_flash");
 			}
-			else if (rsFlashGold)
+			else
 			{
-				RS_ApplyTint();   // back to the CURRENT tier's real tint
-				rsFlashGold = false;
+				A_SetTranslation("");
+				RS_ShowBody(((rsFlashPhase >> 1) & 1) == 0 ? rsXfOldTier : rsPendingTier);
 			}
 			return;
 		}
@@ -271,8 +300,8 @@ class RS_MonsterMaster : Actor abstract
 		int old = Tier;
 		Tier = rsPendingTier;
 		rsTransforming = false;
-		rsFlashGold    = false;
-		ApplyTier(false);   // applies the NEW tier's tint, ending the flicker
+		rsFlashPhase   = -1;
+		ApplyTier(false);   // commits stats, tint, attacks and the real body
 
 		if (old != Tier)
 			OnRetier(old, Tier);

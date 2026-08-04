@@ -51,7 +51,7 @@ promote -> repeat, plus the UI to drive it.
     read by nothing until now. They are the BREADTH cap -- distinct
     affixes held <= sockets; re-picking to level up is always free.
 
-  THE TELL: one imported beep (li-gnrcwpn PLBEEP), pitched per
+  ALLCLEAR: one imported beep (li-gnrcwpn PLBEEP), pitched per
     archetype, fired at the exact tic cadence reopens. Silenced by a
     held trigger. Shotgun family + melee excluded (their action IS the
     tell). This is the cadence language the mod never had.

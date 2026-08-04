@@ -7,7 +7,7 @@ actual files named; no sound name in this document is invented.
 
 SOURCES SURVEYED
   docs/rs_11_final_plan.txt                       (the law)
-  zscript/weapons/RS_Weapon.zs                    (TellPitch/DoEffect, lines 138-187)
+  zscript/weapons/RS_Weapon.zs                    (AllClearPitch/DoEffect, lines 138-187)
   zscript/weapons/rs_weapon/*.zs                  (13 files, all read)
   zscript/weapons/rs_gh_weapon/*.zs               (24 files, all read)
   zscript/systems/RS_Catalog.zs                   (SND_* entries, lines 280-359)
@@ -16,11 +16,11 @@ SOURCES SURVEYED
   E:\New folder\li-gnrcwpn\sounds\ (recursive)    (214 files listed)
 
 STATE-OF-BUILD FINDING (read this before starting C2)
-  The Tell core is ALREADY COMMITTED, not pending:
-    - RS_Weapon.TellPitch()  (RS_Weapon.zs:149) -- full per-archetype table
+  AllClear core is ALREADY COMMITTED, not pending:
+    - RS_Weapon.AllClearPitch()  (RS_Weapon.zs:149) -- full per-archetype table
     - DoEffect() watcher     (RS_Weapon.zs:174) -- fires once per cadence
-      reopen, gated on rs_tell_enable (CVARINFO.txt:223, default true)
-    - SNDINFO entry rs_tell_ready -> Sounds/combatfx/tells/READYBP
+      reopen, gated on rs_allclear_enable (CVARINFO.txt:223, default true)
+    - SNDINFO entry rs_allclear_ready -> Sounds/combatfx/tells/READYBP
       ($volume 0.65) -- lump EXISTS on disk (5,441 bytes, Ogg Vorbis,
       byte-identical in size to li-gnrcwpn's PLBEEP; it is that lump)
   What C2 still owes: two-stage reload audio, the full-auto beep-spam fix
@@ -43,7 +43,7 @@ SECTION 1 -- TELL TABLE
 ================================================================================
 Pitch reference: plasma beep = 1.0 (the unshifted READYBP lump). Higher =
 lighter/faster action; lower = heavier/slower weapon. "Committed" = the
-value already in RS_Weapon.TellPitch(); this table justifies each and
+value already in RS_Weapon.AllClearPitch(); this table justifies each and
 flags library alternatives for the eventual per-archetype-sound upgrade
 rs_11 names (hammer-click, bolt-snap, capacitor whine...).
 
@@ -75,10 +75,10 @@ smg            VR_SMG (10), RS_GH_SMG (11),         YES    1.45   Lightest actio
                                                                   library hisses; nearest is
                                                                   the FOLEY1-5 rattle set.
                                                                   Keep the beep.
-shotgun        VR_Shotgun (1, pump-per-shot),       NO     --     Action IS the tell -- but
+shotgun        VR_Shotgun (1, pump-per-shot),       NO     --     Action IS AllClear -- but
                RS_GH_PumpShotgun (2, NO pump!),                   only VR_Shotgun earns it
                RS_GH_AssaultShotgun (5, FULL-AUTO)                today. See notes F2/F3.
-supershotgun   VR_SuperShotgun (1),                 NO     --     Action IS the tell: both
+supershotgun   VR_SuperShotgun (1),                 NO     --     Action IS AllClear: both
                RS_GH_SSG (1, cap 2)                               fire-reload-fire. VR_ uses
                                                                   engine A_OpenShotgun2 audio;
                                                                   GH_SSG reload is SILENT
@@ -134,12 +134,12 @@ flamethrower   RS_GH_Flamethrower (17)              YES    0.90   Heavy tank, bu
                                                                   beep beats silence.
 
 SURVEY NOTES (decisions owed to the main thread, not made here):
-  F1  BEEP SPAM ON FULL-AUTO: DoEffect fires the tell every time maptime
+  F1  BEEP SPAM ON FULL-AUTO: DoEffect fires AllClear every time maptime
       reaches NextFireTic -- during HELD full-auto fire that is every
       cycle (35x/sec on the GH Minigun), a beep stream fighting the fire
-      sound. Suggest: suppress the tell while the trigger is held on
+      sound. Suggest: suppress AllClear while the trigger is held on
       trigger:fullauto weapons -- beep only when the gate reopens after a
-      release or an empty-mag pause. That also makes the tell mean
+      release or an empty-mag pause. That also makes AllClear mean
       something on these guns ("you may resume") instead of narrating.
   F2  RS_GH_PumpShotgun is archetype:shotgun but has NO pump between
       shots (Shoot: HBSG B/C/D, no action call) and a SILENT atomic
@@ -201,7 +201,7 @@ A. NEW IMPORTS -- not present anywhere in E:\RS_Main today.
    library (Pain Train / movement flavor + shotgun handling feel); RLGCY
    is the only grenade-launcher cycle sound anywhere (the GH
    GrenadeLauncher's silent reload wants exactly this); the five equips
-   give select/deselect identity per archetype (the tell's quiet
+   give select/deselect identity per archetype (AllClear's quiet
    sibling); CSOEQUP is the OFF-HAND chainsaw equip -- dual-wield
    (QUARANTINE lane) will want the distinct hand cue; SWING1-6 and
    FISTSTR1-3 are the whoosh vocabulary the melee flavor tables below
@@ -342,7 +342,7 @@ Feel:   mechanical, weighty, ritual
 Family: wpn/shotgun2, rs_gh/ssg_fire; staged: rs_vp_ssg_single/fire/
         opn/load/cls, hq_dsdbopn/dsdbload/dsdbcls
 Feel:   brutal, binary, theatrical
-  (No beep -- break-open reload after every discharge is the tell. GH_SSG needs its audio wired first; F4.)
+  (No beep -- break-open reload after every discharge is AllClear. GH_SSG needs its audio wired first; F4.)
   Overcharged   the "kapow" takes (rs_vp_ssg_fire) with a venting hiss on the break-open after
   Overkill      the archetype living its truth -- excess damage rings out as rs_fx_explode_dist tail
   Last Rites    final two shells switch to the drier, personal rs_vp_ssg_single takes
@@ -367,7 +367,7 @@ Feel:   industrial, relentless, hungry
 Family: weapons/plasma/fire, rs_gh/plasma_fire, rs_gh/unmaker_fire,
         rs_fx_plasma_explode; staged: rs_vp_plasma_* (incl. the beep)
 Feel:   humming, sci-fi, overheating
-  Overcharged   capacitor sings -- rs_vp_plasma_chrg under the fire loop; the tell beep itself climbs in pitch
+  Overcharged   capacitor sings -- rs_vp_plasma_chrg under the fire loop; AllClear beep itself climbs in pitch
   Echo          no air echo: a second synthetic pulse, phase-shifted -- the GUN echoes, not the room
   Metronome     native ground -- the beep prototype was born here; on-beat shots get the cleanest fire take
   Ghost         the trail hiss lingers past the bolt (velocity-scaled, per the audited rework)
