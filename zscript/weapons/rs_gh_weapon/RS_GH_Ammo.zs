@@ -1,7 +1,7 @@
 // =====================================================================
 // RS_GH_ magazines -- one chambered-ammo class per weapon per identity,
 // same convention as the main arsenal (AmmoType2 = rounds in the gun).
-// Capacities taken from the source pack's own HF_HB_*Mag classes.
+// Capacities taken from the source pack's own magazine classes.
 // =====================================================================
 class RS_GH_PistolLoaded : Ammo { Default { Inventory.Amount 1; Inventory.MaxAmount 16; Ammo.BackpackMaxAmount 16; +INVENTORY.IGNORESKILL } }
 class RS_GH_PistolLoaded2 : RS_GH_PistolLoaded { Default { Inventory.Amount 1; Inventory.MaxAmount 16; Ammo.BackpackMaxAmount 16; +INVENTORY.IGNORESKILL } }

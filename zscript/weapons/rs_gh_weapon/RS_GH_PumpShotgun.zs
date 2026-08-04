@@ -1,4 +1,4 @@
-// RS_GH_PumpShotgun -- GunstarHeroes set, imported from HF_HB_PumpShotgun.
+// RS_GH_PumpShotgun -- GunstarHeroes set, imported from the source arsenal pack.
 // ---------------------------------------------------------------------
 // Taken from the source: sprites (HBSG + SSHR), the model and its real frame
 // indices (see MODELDEF -- copied verbatim from the pack's own
@@ -6,7 +6,7 @@
 // weapon's SHAPE: slot 3, ballistic, 14 pellet(s), 6.0 degree cone,
 // fireDelay 14 (~2 shots/sec).
 //
-// NOT taken: HF_Weapon's firing machinery and its parallel loot /
+// NOT taken: the source pack's firing machinery and its parallel loot /
 // rarity / Condition / Divinity systems -- RS_Weapon already owns tier,
 // rolled stats, Condition, XP and sockets.
 //

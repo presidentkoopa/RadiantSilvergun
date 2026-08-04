@@ -1,4 +1,4 @@
-// RS_GH_BFG9000 -- GunstarHeroes set, imported from HF_HB_BFG9000.
+// RS_GH_BFG9000 -- GunstarHeroes set, imported from the source arsenal pack.
 // ---------------------------------------------------------------------
 // Taken from the source: sprites (HBBF), the model and its real frame
 // indices (see MODELDEF -- copied verbatim from the pack's own
@@ -6,7 +6,7 @@
 // weapon's SHAPE: slot 7, projectile, 1 pellet(s), 1.0 degree cone,
 // fireDelay 30 (~1 shots/sec).
 //
-// NOT taken: HF_Weapon's firing machinery and its parallel loot /
+// NOT taken: the source pack's firing machinery and its parallel loot /
 // rarity / Condition / Divinity systems -- RS_Weapon already owns tier,
 // rolled stats, Condition, XP and sockets.
 //

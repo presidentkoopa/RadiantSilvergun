@@ -13,7 +13,7 @@
 // =====================================================================
 
 // -----------------------------------------------------------------
-// BFG9000 / BFG10k -- source: HF_HB_BFGShot. Real green BFG ball +
+// BFG9000 / BFG10k -- source: the pack's BFG shot. Real green BFG ball +
 // A_BFGSpray + shockwave, "New folder" art -- visually distinct from
 // the vanilla-based RS_EnhancedBFGBall the broken import fell back to.
 // Damage unchanged in spirit from vanilla (A_BFGSpray 40/15 + 100
@@ -76,7 +76,7 @@ class RS_GH_BFGShock : Actor
 }
 
 // -----------------------------------------------------------------
-// Plasma Rifle -- source: HF_HB_PlasmaShot. Same damage/speed shape as
+// Plasma Rifle -- source: the pack's plasma shot. Same damage/speed shape as
 // vanilla PlasmaBall (no override in the source either), the real
 // difference is purely the PBAL art -- rounder, distinct from the
 // vanilla-based RS_EnhancedPlasmaBall the broken import fell back to.
@@ -107,7 +107,7 @@ class RS_GH_PlasmaShot : PlasmaBall
 }
 
 // -----------------------------------------------------------------
-// Unmaker -- source: HF_UnmakerShot. Real red MELT bolt (DamageType
+// Unmaker -- source: the pack's unmaker shot. Real red MELT bolt (DamageType
 // "Melt"), distinct from the vanilla-based RS_EnhancedPlasmaBall skin
 // the broken import fell back to. Trail + burst FX ported from the same
 // "New folder" art the source used (EXPL -> RSI4, FRFX -> RSI5/RSI6,
@@ -137,7 +137,7 @@ class RS_GH_UnmakerTrail : Actor
 
 // -----------------------------------------------------------------
 // Flamethrower -- no source class exists for this anywhere in this
-// project (HF_FTFire was referenced by the source master file but never
+// project (the source master file referenced a flame class that was never
 // actually ported here). This is a genuine new build, not a
 // wrong-fallback fix: real DamageType "Fire" and the fire-category art
 // this weapon never had (RSI0, "long fire plume" -- already catalogued,

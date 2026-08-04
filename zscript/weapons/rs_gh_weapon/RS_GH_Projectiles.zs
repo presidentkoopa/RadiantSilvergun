@@ -9,8 +9,8 @@
 //
 // Built on RS_Weapon's heavy-projectile contract (SetupStats, scaled
 // splash) exactly like RS_EnhancedRocket -- NOT ported from the source's
-// HF_ThrownGrenade, which lives in the HF_Weapon base and drags in that
-// whole parallel system. Only the BEHAVIOUR was taken from the source:
+// own thrown-grenade class, which lives in its weapon base and drags in
+// that whole parallel system. Only the BEHAVIOUR was taken from the source:
 // arcing lob, bounces, two-stage detonation at 70% damage / 50% radius
 // of a hand grenade.
 // =====================================================================
@@ -20,7 +20,7 @@ class RS_GH_GrenadeLaunched : Actor
 	int RolledDamage;
 	double ShotCritChance;
 
-	// Source anchors (HF_HB_GrenadeLaunched): A_Explode(60,100) then
+	// Source anchors (launched grenade): A_Explode(60,100) then
 	// A_Explode(84,64). Those are the vanilla-equivalent baseline the
 	// rolled damage scales against, same approach RS_EnhancedRocket
 	// takes -- a better gun makes a bigger crater proportionally,
@@ -56,7 +56,7 @@ class RS_GH_GrenadeLaunched : Actor
 		ShotCritChance = critChance;
 	}
 
-	// Real toss speed for the hand-thrown grenade (source: HF_HB_GrenadeProj,
+	// Real toss speed for the hand-thrown grenade (source thrown-grenade,
 	// Speed 10) -- a slow, high arc, distinct from the launcher's faster
 	// punch-out. Was sharing this class's own Speed 33 (the LAUNCHER's
 	// speed) with no distinction at all; that's fixed by subclassing below
@@ -93,7 +93,7 @@ class RS_GH_GrenadeLaunched : Actor
 }
 
 // Hand-thrown variant -- same real arc/bounce/two-stage blast, just the
-// real slower toss speed (source: HF_HB_GrenadeProj, Speed 10) instead of
+// real slower toss speed (source thrown-grenade, Speed 10) instead of
 // the launcher's faster punch-out. Everything else (damage scaling,
 // bounce, death FX) is identical, inherited as-is.
 class RS_GH_GrenadeThrown : RS_GH_GrenadeLaunched

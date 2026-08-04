@@ -1,4 +1,4 @@
-// RS_GH_Machinegun -- GunstarHeroes set, imported from HF_HB_Machinegun.
+// RS_GH_Machinegun -- GunstarHeroes set, imported from the source arsenal pack.
 // ---------------------------------------------------------------------
 // Taken from the source: sprites (HBMG), the model and its real frame
 // indices (see MODELDEF -- copied verbatim from the pack's own
@@ -6,7 +6,7 @@
 // weapon's SHAPE: slot 4, ballistic, 1 pellet(s), 4.0 degree cone,
 // fireDelay 3 (~11 shots/sec).
 //
-// NOT taken: HF_Weapon's firing machinery and its parallel loot /
+// NOT taken: the source pack's firing machinery and its parallel loot /
 // rarity / Condition / Divinity systems -- RS_Weapon already owns tier,
 // rolled stats, Condition, XP and sockets.
 //
