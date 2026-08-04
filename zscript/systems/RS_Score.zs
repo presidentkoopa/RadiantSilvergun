@@ -891,6 +891,13 @@ class RS_ScoreHandler : EventHandler
 			TickDisplay(sp);
 			TickRegen(i, sp, pmo);
 			ExpireBonuses(sp, now);
+
+			// The flash is a one-tic event: set on a kill, consumed by
+			// the next tick. Clearing it here rather than in the HUD
+			// keeps RenderOverlay read-only, which matters because it
+			// runs at frame rate, not tic rate, and would otherwise
+			// clear the flag before it was ever drawn.
+			sp.flashPulse = false;
 		}
 	}
 
@@ -1089,6 +1096,43 @@ class RS_ScoreHandler : EventHandler
 		if (CVBool("rs_score_regen_secondary", true) && pi.ReadyWeapon.Ammo2)
 			pi.ReadyWeapon.Ammo2.Amount =
 				min(pi.ReadyWeapon.Ammo2.MaxAmount, pi.ReadyWeapon.Ammo2.Amount + amount);
+	}
+
+	// -----------------------------------------------------------------
+	// HUD. Same shape GunBonsai's handler uses (EventHandler.zsc:123):
+	// RenderOverlay lives on the handler and delegates to a drawing
+	// class, so all the ui-scope work sits in one object.
+	// -----------------------------------------------------------------
+	RS_ScoreHUD hud;
+
+	ui bool ShouldDrawHUD() const
+	{
+		if (!CVBool("rs_score_enable", true))
+			return false;
+		if (!CVBool("rs_score_hud_enable", true))
+			return false;
+		if (!playeringame[consoleplayer])
+			return false;
+		if (automapactive && !CVBool("rs_score_hud_onautomap", false))
+			return false;
+
+		// Match the engine's own HUD-hiding convention.
+		return screenblocks <= 11;
+	}
+
+	override void RenderOverlay(RenderEvent e)
+	{
+		if (!ShouldDrawHUD())
+			return;
+
+		let sp = Get(consoleplayer);
+		if (!sp)
+			return;
+
+		if (!hud)
+			hud = new("RS_ScoreHUD");
+
+		hud.Draw(sp, fullRewardScore, level.maptime);
 	}
 
 	// -----------------------------------------------------------------

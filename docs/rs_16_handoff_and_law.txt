@@ -296,6 +296,23 @@ OPEN -- NEEDS THE OWNER
      NAME + frame + rotation. build_art_index.py's shape filter rejects
      anything else, which is how the stray was spotted.
 
+  6. RS_Score.zs IS IN THE COMPILE PATH FOR THE FIRST TIME, AND UNPROVEN.
+     1166 lines (RS_ScoreDefs, RS_ScorePlayer, RS_ScoreHandler) sat
+     UNTRACKED in the main worktree all session -- never committed, and
+     missing from zscript.txt, so it silently did not exist. Committed in
+     7d725b62, included in 9716f909, deliberately as two commits: revert
+     the include alone if the build rejects the file, without losing it.
+     It is self-contained (no class-name collisions case-insensitively;
+     its RS_SB_* symbols are its own consts).
+     NOT FULLY WIRED ON PURPOSE: RS_ScoreHandler is an EventHandler and is
+     NOT registered in MAPINFO, so it compiles but does not run. Turning
+     the scoring system on is a design decision for whoever wrote it.
+
+  FIRST THING TO DO ON THE NEXT BUILD: two unproven bets are now in the
+  compile path and both revert independently --
+     * DamageFunction across ~71 sites (all stand or fall together)
+     * RS_Score.zs (revert 9716f909 to drop it back out)
+
   DO NOT RE-ADD `if tok in VAN: continue` TO verify.py. It was added in good
   faith to stop false failures from the hand-written vanilla frame table, but
   PUFF is in that table, so `PUFF DE` -- vanilla PUFF has no E frame, the
