@@ -32,6 +32,12 @@
 //   T12   04_W  FSZS   6666  the crazy lady scientist: puddles, dart
 //                            storms, three live experiments, and a
 //                            phase-2 at 4444 HP
+//   TEX   04_KX HCPO  11249  GREEN WARFACE: the EX tier. Four heavy
+//                            options (nine-stage bomb, seeking mega-
+//                            bomb, detonating rapid fire, spam volley),
+//                            each behind its own range gate, and a
+//                            phase-2 at 6250 HP that turns MISSILEEVEN-
+//                            MORE and ALWAYSFAST on permanently
 //
 // Tier stats come from CHP's own Health/Speed/PainChance per file and
 // are applied through TierData below, replacing the generic ladder.
@@ -112,6 +118,8 @@ class RS_Chaingunner : RS_HumanMonster replaces ChaingunGuy
 			case 10: hp = 250;  spd = 10; r.painChance = 88;  r.dmgMul = 1.8; break;
 			case 11: hp = 4500; spd = 10; r.painChance = 25;  r.dmgMul = 2.5; break;
 			case 12: hp = 6666; spd = 14; r.painChance = 20;  r.dmgMul = 3.0; break;
+			// TEX -- CHP 04_KX GreenBlackCGuyEX2, verbatim.
+			case 13: hp = 11249; spd = 25; r.painChance = 10; r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		// Default Health is 70, Default Speed 8 -- express CHP's absolute
@@ -126,15 +134,19 @@ class RS_Chaingunner : RS_HumanMonster replaces ChaingunGuy
 	// verified present in sprites/monsters/Chaingunner/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "CPOS CGUG CGUB CGCY UCHA PZOW MPOS CGUF CZV1 UCH2 CPS2 BFGZ FSZS";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		return "CPOS CGUG CGUB CGCY UCHA PZOW MPOS CGUF CZV1 UCH2 CPS2 BFGZ FSZS HCPO";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
+	// TEX is the exception: CH's HCPO set is BLACK (it is CH BlackCGuyEX's
+	// body) and CHP's EX variants recolour it per colour, so the green EX
+	// carries a real translation. Recipe in TRNSLATE.txt as rs_cgun_tex.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		//      T00 T01 T02 T03 T04 T05 T06 T07 T08 T09 T10 T11 T12 TEX
+		return "- - - - - - - - - - - - - rs_cgun_tex";
 	}
 
 	override string GetBaseKeywords()

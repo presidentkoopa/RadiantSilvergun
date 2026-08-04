@@ -55,6 +55,11 @@ register
   TFLV_Upgrade_RS_ArachPlasma
   TFLV_Upgrade_RS_Swarm
   TFLV_Upgrade_RS_Nova
+  # Wave D2 general lane (docs/rs_11 candidate pool)
+  TFLV_Upgrade_RS_PainTrain
+  TFLV_Upgrade_RS_Momentum
+  TFLV_Upgrade_RS_Overkill
+  TFLV_Upgrade_RS_Scavenger
   # Stat cards (green) and combo cards (purple) -- docs/rs_10_ui_spec.txt
   TFLV_Upgrade_RS_CardDamage
   TFLV_Upgrade_RS_CardAccuracy

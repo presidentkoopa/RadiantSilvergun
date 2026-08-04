@@ -23,6 +23,14 @@
 //   T10   14_R   CommonRedArch3  :RedArch3    DIAB    3200  Grand Redfirevile
 //   T11   14_K   CommonBlackArch2:BlackVile   VILE    7750  the Void Gazes Back
 //   T12   14_W   CommonWhiteArch2:WhiteVile   LMWZ   12000  Here I Am
+//   TEX   14_KX  CommonBlackArchEX2 (no parent) SILE   2700  the tornado
+//                vile, "AHH HELP!!!". Not a caster at all -- it sheds a
+//                damaging dust cloud on every step and its whole roster
+//                is wind: a leaf storm behind a RadiusThrust shove, a
+//                wall of blinding shadow waves, one seeking mind-wave,
+//                four floor-hugging tornadoes, and a move where it
+//                BECOMES the tornado and sucks you in. Two health gates
+//                (1800, 900) that WIDEN the pool instead of swapping it.
 //
 // Tier stats come from CHP's own Health/Speed/PainChance per file and
 // are applied through TierData below, replacing the generic ladder.
@@ -68,6 +76,7 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 	private int rsOrbCount;      // 14_Y  User_Summon2
 	private int rsRage;          // 14_R  User_Rage
 	private int rsVoidLimit;     // 14_K  user_limit
+	private int rsExTornado;     // 14_KX TornadoToken -- vortex beat count
 	private int rsCourage;       // 14_W  User_courage
 	private int rsHoho;          // 14_W  user_hoho
 
@@ -111,6 +120,9 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 			case 10: hp = 3200;  spd = 15; r.painChance = 3;  r.dmgMul = 2.0; break;
 			case 11: hp = 7750;  spd = 17; r.painChance = 8;  r.dmgMul = 2.5; break;
 			case 12: hp = 12000; spd = 40; r.painChance = 64; r.dmgMul = 3.0; break;
+			// TEX -- 14_KX CommonBlackArchEX2, CHP's own numbers. Low HP
+			// for an EX on purpose: the fight is the storm, not the pool.
+			case 13: hp = 2700;  spd = 20; r.painChance = 8;  r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 700.0;
@@ -122,15 +134,15 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 	// verified present in sprites/monsters/Archvile/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "VILE VILG VILB VLCY VILP VILY DGRD VILF WICK VGRY DIAB VILE LMWZ";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		return "VILE VILG VILB VLCY VILP VILY DGRD VILF WICK VGRY DIAB VILE LMWZ SILE";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -1343,6 +1355,290 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 		"LMWZ" K 6 { A_NoBlocking(); }
 		"LMWZ" LMNO 6;
 		"LMWZ" P -1;
+		Stop;
+
+	// =================================================================
+	// TEX BLACK-EX (14_KX -- CommonBlackArchEX2). SILE + SPIN + FX07.
+	// "AHH HELP!!!" -- the tornado vile. It is not a caster at all: it
+	// is a WEATHER SYSTEM. It sheds a damaging dust cloud on every
+	// single step, and its whole roster is wind:
+	//   Leaves    -- a RadiusThrust shove plus sheets of leaf shrapnel
+	//   Shadowing -- a wall of blinding shadow waves
+	//   KABAM     -- one seeking mind-wave that trails ripping shadow
+	//   Wooosh    -- four floor-hugging tornadoes
+	//   Woahoahoahoah -- it BECOMES the tornado: NOPAIN, wanders,
+	//                    sucks you in (negative RadiusThrust) for up to
+	//                    40 beats, then reforms
+	// TWO health gates, and unlike every other vile here they widen the
+	// roster instead of replacing it: below 1800 it drops the leaf
+	// storm for Shadowing/KABAM and speeds to 24; below 900 it runs all
+	// five and speeds to 30.
+	// =================================================================
+	Spawn.TEX:
+		"SILE" A 0 NoDelay { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" A 5 { A_Look(); }
+		"SILE" A 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" A 5 { A_Look(); }
+		"SILE" A 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" B 5 { A_Look(); }
+		"SILE" A 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" B 5 { A_Look(); }
+		Loop;
+	See.TEX:
+		"SILE" A 0 { A_StartSound("Bvile/Air6", CHAN_AUTO, 0, 1.0, ATTN_NONE); }
+		Goto See.TEX.Walk;
+	See.TEX.Walk:
+		"SILE" A 0 A_JumpIfHealthLower(900, "See.TEX.Phase3");
+		"SILE" A 0 A_JumpIfHealthLower(1800, "See.TEX.Phase2");
+	See.TEX.Walk.Loop:
+		"SILE" A 2 { A_Chase(); }
+		"SILE" A 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" A 2 { A_Chase(); }
+		"SILE" A 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" B 2 { A_Chase(); }
+		"SILE" B 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" B 2 { A_Chase(); }
+		"SILE" B 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" C 2 { A_Chase(); }
+		"SILE" C 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" C 2 { A_Chase(); }
+		"SILE" C 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" D 2 { A_Chase(); }
+		"SILE" D 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" D 2 { A_Chase(); }
+		"SILE" D 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" E 2 { A_Chase(); }
+		"SILE" E 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" E 2 { A_Chase(); }
+		"SILE" E 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" F 2 { A_Chase(); }
+		"SILE" F 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" F 2 { A_Chase(); }
+		"SILE" F 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" F 0 A_Jump(128, "See.TEX.Moveit");
+		Goto See.TEX.Walk;
+	See.TEX.Moveit:
+		"SILE" F 0 A_Jump(128, "See.TEX.Moveit.Long");
+		"SILE" AAAA 0 { A_Wander(); }
+		Goto See.TEX.Walk;
+	See.TEX.Moveit.Long:
+		"SILE" AAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		Goto See.TEX.Walk;
+	See.TEX.Phase2:
+		"SILE" A 0 { A_SetSpeed(24); }
+		Goto See.TEX.Walk.Loop;
+	See.TEX.Phase3:
+		"SILE" A 0 { A_SetSpeed(30); }
+		Goto See.TEX.Walk.Loop;
+	Missile.TEX:
+		"SILE" AAAA 0 { A_SpawnItemEx("RS_BVileEXCloud2", random(-7, 7), random(-7, 7), 1, frandom(-15.0, 15.0), frandom(-15.0, 15.0), frandom(0.0, 15.0), 0, 32); }
+		"SILE" A 0 A_JumpIfHealthLower(900, "Missile.TEX.Phase3Jumps");
+		"SILE" A 0 A_JumpIfHealthLower(1800, "Missile.TEX.Phase2Jumps");
+		"SILE" A 0 A_Jump(192, "Missile.TEX.Leaves");
+		Goto Missile.TEX.Vortex;
+	Missile.TEX.Phase2Jumps:
+		"SILE" A 0 A_Jump(256, "Missile.TEX.Shadowing", "Missile.TEX.Kabam");
+		Goto See;
+	Missile.TEX.Phase3Jumps:
+		"SILE" A 0 A_Jump(32, "Missile.TEX.Vortex");
+		"SILE" A 0 A_Jump(256, "Missile.TEX.Shadowing", "Missile.TEX.Kabam", "Missile.TEX.Leaves", "Missile.TEX.Wooosh");
+		Goto See;
+	Missile.TEX.Leaves:
+		"SILE" G 0 { A_StartSound("tornado/form"); }
+		"SILE" G 0 { A_FaceTarget(); }
+		"SILE" GH 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" H 0 { A_FaceTarget(); }
+		"SILE" IJK 3 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" K 0 { A_FaceTarget(); }
+		"SILE" LMN 3 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 0 { A_FaceTarget(); }
+		"SILE" N 0 { A_StartSound("wind/away"); }
+		"SILE" O 0 { A_RadiusThrust(3000, 400, RTF_NOTMISSILE); }
+		"SILE" NNNNNN 0 { A_SpawnProjectile("RS_Leaves1", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_Leaves1", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" N 0 { A_RadiusThrust(3000, 400, RTF_NOTMISSILE); }
+		"SILE" NNNNNN 0 { A_SpawnProjectile("RS_Leaves2", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_Leaves2", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" N 0 { A_FaceTarget(); }
+		"SILE" N 0 { A_RadiusThrust(3000, 400, RTF_NOTMISSILE); }
+		"SILE" NNNNNN 0 { A_SpawnProjectile("RS_Leaves1", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_Leaves1", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" O 0 { A_RadiusThrust(3000, 400, RTF_NOTMISSILE); }
+		"SILE" OOOOOO 0 { A_SpawnProjectile("RS_Leaves2", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" O 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" O 4 { A_SpawnProjectile("RS_Leaves2", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" PPP 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		Goto See;
+	// "Woahoahoahoah" -- it stops being a body and becomes the storm.
+	// NOPAIN for the whole move; the spin loop runs up to 40 beats
+	// (CHP's TornadoToken counter, an int here) and PULLS you inward.
+	Missile.TEX.Vortex:
+		SPIN A 0 { bNOPAIN = true; rsExTornado = 0; }
+		SPIN ABCD 1;
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN EFGH 1;
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN ABCD 1;
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN EFGH 1;
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		FX07 ABC 2;
+	Missile.TEX.Vortex.Spin:
+		FX07 A 0 { A_StartSound("tornado/form"); }
+		FX07 A 0 { A_RadiusThrust(-1000, 400, RTF_NOTMISSILE); }
+		FX07 A 0 { A_SpawnItemEx("RS_BVileEXCloud5", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		FX07 AAA 0 { A_SpawnProjectile("RS_Leaves1", random(16, 64), random(-32, 32), random(0, 360), 0, random(-5, 5)); }
+		FX07 A 2 { A_Wander(); }
+		FX07 B 0 { A_RadiusThrust(-1000, 400, RTF_NOTMISSILE); }
+		FX07 A 0 { A_SpawnItemEx("RS_BVileEXCloud5", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		FX07 BBB 0 { A_SpawnProjectile("RS_Leaves2", random(16, 64), random(-32, 32), random(0, 360), 0, random(-5, 5)); }
+		FX07 B 2 { A_Wander(); }
+		FX07 C 0 { A_RadiusThrust(-1000, 400, RTF_NOTMISSILE); }
+		FX07 A 0 { A_SpawnItemEx("RS_BVileEXCloud5", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		FX07 CCC 0 { A_SpawnProjectile("RS_Leaves1", random(16, 64), random(-32, 32), random(0, 360), 0, random(-5, 5)); }
+		FX07 C 2 { A_Wander(); }
+		FX07 A 0
+		{
+			if (rsExTornado >= 40)
+				return ResolveState("Missile.TEX.Vortex.End");
+			rsExTornado++;
+			return ResolveState(null);
+		}
+		Goto Missile.TEX.Vortex.Spin;
+	Missile.TEX.Vortex.End:
+		SPIN A 0 { rsExTornado = 0; }
+		SPIN ABCD 1;
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN EFGH 1;
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN ABCD 1;
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN EFGH 1;
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN A 0 { bNOPAIN = false; }
+		Goto See;
+	Missile.TEX.Shadowing:
+		"SILE" A 0 { A_StartSound("Bvile/Air1", CHAN_7, 0, 1.0, ATTN_NONE); }
+		"SILE" G 0 { A_FaceTarget(); }
+		"SILE" GH 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" H 0 { A_FaceTarget(); }
+		"SILE" IJK 3 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" K 0 { A_FaceTarget(); }
+		"SILE" LMN 3 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 0 { A_FaceTarget(); }
+		"SILE" N 3 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-5, 5)); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-5, 5)); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-5, 35)); }
+		"SILE" N 0 { A_FaceTarget(); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-5, 35)); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-35, 5)); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-35, 5)); }
+		"SILE" N 0 { A_FaceTarget(); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-50, 50)); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-50, 50)); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-50, 50)); }
+		"SILE" N 0 { A_FaceTarget(); }
+		"SILE" N 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-50, 50)); }
+		"SILE" O 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" O 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-50, 50)); }
+		"SILE" O 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" O 4 { A_SpawnProjectile("RS_BVileEXWAVE3", random(16, 64), random(-64, 64), random(-50, 50)); }
+		"SILE" PPP 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		Goto See;
+	Missile.TEX.Kabam:
+		"SILE" A 0 { A_StartSound("Bvile/Air2", CHAN_7, 0, 1.0, ATTN_NONE); }
+		SPIN ABCD 1 { A_FaceTarget(); }
+		"SILE" D 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN EFGH 1 { A_FaceTarget(); }
+		"SILE" H 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN ABCD 1 { A_FaceTarget(); }
+		"SILE" D 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN EFGH 1 { A_FaceTarget(); }
+		"SILE" H 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" H 0 { A_FaceTarget(); }
+		"SILE" LM 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 0 { A_FaceTarget(); }
+		"SILE" N 4 { A_SpawnProjectile("RS_BVileEXMindWave", 32, 0, 0); }
+		"SILE" OPPP 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		Goto See;
+	Missile.TEX.Wooosh:
+		"SILE" G 0 { A_StartSound("tornado/form"); }
+		SPIN ABCD 1 { A_FaceTarget(); }
+		"SILE" D 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN EFGH 1 { A_FaceTarget(); }
+		"SILE" H 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN ABCD 1 { A_FaceTarget(); }
+		"SILE" D 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		SPIN EFGH 1 { A_FaceTarget(); }
+		"SILE" H 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" H 0 { A_FaceTarget(); }
+		"SILE" LM 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 0 { A_FaceTarget(); }
+		"SILE" N 0 { A_StartSound("wind/away"); }
+		"SILE" N 0 { A_SpawnProjectile("RS_BVileEXTornado", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" O 0 { A_RadiusThrust(3000, 400, RTF_NOTMISSILE); }
+		"SILE" NN 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 0 { A_SpawnProjectile("RS_BVileEXTornado", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" N 0 { A_RadiusThrust(3000, 400, RTF_NOTMISSILE); }
+		"SILE" NN 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 0 { A_SpawnProjectile("RS_BVileEXTornado", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" N 0 { A_FaceTarget(); }
+		"SILE" N 0 { A_RadiusThrust(3000, 400, RTF_NOTMISSILE); }
+		"SILE" NN 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" N 0 { A_SpawnProjectile("RS_BVileEXTornado", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" O 0 { A_RadiusThrust(3000, 400, RTF_NOTMISSILE); }
+		"SILE" OO 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" O 0 { A_SpawnProjectile("RS_BVileEXTornado", random(16, 64), random(-64, 64), random(-64, 64), 0, random(-5, 5)); }
+		"SILE" PPP 4 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		Goto See;
+	Pain.TEX:
+		"SILE" AAAA 0 { A_SpawnItemEx("RS_BVileEXCloud2", random(-7, 7), random(-7, 7), 1, frandom(-15.0, 15.0), frandom(-15.0, 15.0), frandom(0.0, 15.0), 0, 32); }
+		"SILE" Q 3;
+		"SILE" Q 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" A 0 { A_StartSound("Bvile/Air6"); }
+		"SILE" Q 3 { A_Pain(); }
+		"SILE" Q 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" Q 3 A_Jump(156, "Pain.TEX.Wee");
+		"SILE" A 0 { A_SpawnItemEx("RS_MrBones", random(-24, 24), random(-24, 24), 6, 0, 0, 0, 0, SXF_TRANSFERRENDERSTYLE | SXF_TRANSFERSTENCILCOL | SXF_SETMASTER | SXF_NOCHECKPOSITION); }
+		Goto See;
+	Pain.TEX.Wee:
+		"SILE" Q 1 { A_SetSpeed(99); }
+		"SILE" Q 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" ABC 1 { A_Wander(); }
+		"SILE" Q 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" DEF 1 { A_Wander(); }
+		"SILE" Q 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" Q 1 { A_SetSpeed(20); }
+		"SILE" A 0 { A_SpawnItemEx("RS_MrBones", random(-24, 24), random(-24, 24), 6, 0, 0, 0, 0, SXF_TRANSFERRENDERSTYLE | SXF_TRANSFERSTENCILCOL | SXF_SETMASTER | SXF_NOCHECKPOSITION); }
+		Goto See;
+	// CHP's TEX has no Heal of its own -- A_VileChase is never in its
+	// state set, so it never resurrects. Routed to See so the family
+	// Heal dispatcher cannot dead-end on it.
+	Heal.TEX:
+		"SILE" A 0;
+		Goto See;
+	Death.TEX:
+		"SILE" AAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_BVileEXCloud2", random(-7, 7), random(-7, 7), 1, frandom(-15.0, 15.0), frandom(-15.0, 15.0), frandom(0.0, 15.0), 0, 32); }
+		"SILE" Q 7;
+		"SILE" R 7 { A_Scream(); }
+		"SILE" S 7 { A_NoBlocking(); }
+		"SILE" T 7 { A_KillChildren("Extreme", KILS_FOILINVUL | KILS_KILLMISSILES); }
+		"SILE" UVW 7;
+		"SILE" XY 5;
+		"SILE" Z -1;
 		Stop;
 	}
 }

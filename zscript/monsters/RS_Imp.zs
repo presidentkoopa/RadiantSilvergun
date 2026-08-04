@@ -29,6 +29,18 @@
 //                             ally-healing death breath
 //   T12   03_W   HELN   6666  WHITE apex: colour-ball storm, megaball
 //                             spark barrage, or a summon
+//   TEX   03_KX  AGUR  10750  GREEN SMOKING IMP EX: the EX tier. Five
+//                             modes -- a charged RAILGUN kamehameha, a
+//                             homing smoke-cloud hunter, a 30-shot
+//                             tightening fan, a charged megaball, and a
+//                             40-round rain -- and it WARPS out of pain
+//
+// TEX re-wears T11's AGUR body: CHP ships no separate EX imp sprite set
+// and distinguishes the EX with a green palette remap, so TEX is the one
+// tier in this family carrying a TintTable entry (rs_imp_tex). CHP's
+// XScale 1.15 is a Default-only property with no per-tier setter in this
+// template and is not reproduced -- the same simplification T11 already
+// ships for CH's yScale 1.4 / XScale 1.05.
 // =====================================================================
 
 class RS_Imp : RS_MonsterMaster replaces DoomImp
@@ -72,6 +84,8 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 			case 10: hp = 215;  spd = 10; r.painChance = 100; r.dmgMul = 1.8; break;
 			case 11: hp = 3800; spd = 12; r.painChance = 28;  r.dmgMul = 2.5; break;
 			case 12: hp = 6666; spd = 18; r.painChance = 24;  r.dmgMul = 3.0; break;
+			// TEX -- CHP 03_KX GreenBlackImpEX2, verbatim.
+			case 13: hp = 10750; spd = 18; r.painChance = 22; r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 60.0;
@@ -82,15 +96,19 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 	// Audit data. Every entry is a real, distinct CHP sprite set.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "TROO IMPG IMPB CIMP TRO3 TRO4 IMPA IMPF WARI GIMP PRIM AGUR HELN";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		return "TROO IMPG IMPB CIMP TRO3 TRO4 IMPA IMPF WARI GIMP PRIM AGUR HELN AGUR";
 	}
 
 	// CHP ships real artwork per colour -- a palette remap on top would
-	// corrupt it.
+	// corrupt it. TEX is the exception: it re-wears T11's AGUR body
+	// (CHP ships no separate EX imp sprite set) and is distinguished by a
+	// green remap instead, so it is the one tier here with a real entry.
+	// Recipe lives in TRNSLATE.txt as rs_imp_tex.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		//      T00 T01 T02 T03 T04 T05 T06 T07 T08 T09 T10 T11 T12 TEX
+		return "- - - - - - - - - - - - - rs_imp_tex";
 	}
 
 	override string GetBaseKeywords()
@@ -106,8 +124,9 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 			SeeSound = "imp2/see";      PainSound = "imp2/hurt";
 			DeathSound = "imp2/die";    ActiveSound = "imp2/active";
 		}
-		else if (t == 11)
+		else if (t == 11 || t == 13)
 		{
+			// T11 black Agaures and TEX green Agaures share the voice.
 			SeeSound = "agaures/sight"; PainSound = "agaures/pain";
 			DeathSound = "agaures/death"; ActiveSound = "agaures/active";
 		}
@@ -751,6 +770,171 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 		"HELN" PQR 6;
 		"HELN" S 6 { A_NoBlocking(); }
 		"HELN" T -1;
+		Stop;
+
+	// ================= TEX GREEN AGAURES (03_KX) =================
+	// The EX tier: CHP's GreenBlackImpEX2, "Smoking Green Imp EX". T11's
+	// body, nearly three times the health, and a five-way roster that is
+	// the widest in the family:
+	//
+	//   KAMEHAMEHA  a charged RAILGUN -- two charge orbs, a wind-up, then
+	//               a hitscan beam that leaves a burning corridor behind
+	//   SMOKEOUT    marks you with A_VileTarget, then plants a homing
+	//               floor-hugging smoke cloud ON your position
+	//   ONESHOT     thirty balls in a fan that TIGHTENS as it goes -- it
+	//               starts wide and walks onto you
+	//   BIGSHOT     charged megaball with a visible three-stage tell
+	//   SPAMRAIN    forty arcing rounds lobbed from above
+	//
+	// The whole thing is wrapped in permanent DeathBreath smoke: it leaks
+	// on every walk cycle, every melee, every volley and both deaths, so
+	// the arena fills up and sightlines close as the fight goes on.
+	//
+	// WARP is the reason it is hard: on pain it can go NOPAIN, sprint at
+	// speed 124 for about half a second, and reappear somewhere else.
+	Spawn.TEX:
+		"AGUR" AB 10 { A_Look(); }
+		Loop;
+	See.TEX:
+		"AGUR" AA 3 { A_Chase(); }
+		"AGUR" YYY 0 { A_SpawnItemEx("RS_DeathBreathDI", -1, random(-18, 18), random(2, 32), random(1, 5), 0, 1, random(90, 270)); }
+		"AGUR" BB 3 { A_Chase(); }
+		"AGUR" YYY 0 { A_SpawnItemEx("RS_DeathBreathDI", -2, random(-18, 18), random(2, 32), random(1, 5), 0, 2, random(90, 270)); }
+		"AGUR" CC 3 { A_Chase(); }
+		"AGUR" YYY 0 { A_SpawnItemEx("RS_DeathBreathDI", -3, random(-18, 18), random(2, 32), random(1, 5), 0, 3, random(90, 270)); }
+		"AGUR" DD 3 { A_Chase(); }
+		"AGUR" YYY 0 { A_SpawnItemEx("RS_DeathBreathDI", -4, random(-18, 18), random(2, 32), random(1, 5), 0, 4, random(90, 270)); }
+		Loop;
+	// Melee that can roll STRAIGHT into a volley -- closing on it is not
+	// a way to shut the ranged game down.
+	Melee.TEX:
+		"AGUR" W 6 { A_FaceTarget(); }
+		"AGUR" X 6 { A_FaceTarget(); }
+		"AGUR" Y 6 { A_CustomMeleeAttack(random(25, 119), "agaures/swing", ""); }
+		"AGUR" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, 0, random(1, 6), random(3, 15), 0, random(1, 12), random(-359, 359)); }
+		"AGUR" YYY 0 { A_SpawnItemEx("RS_DeathBreathDI", random(-118, 118), random(-118, 118), random(-6, 32), 0, 0, 0, 0, 128, 0); }
+		"AGUR" Y 0 A_Jump(88, "Missile");
+		Goto See;
+	// Beyond 1300 only the two long-range options; inside it, all five.
+	Missile.TEX:
+		"AGUR" AAA 0 { A_SpawnItemEx("RS_DeathBreathDI", random(-88, 88), random(-88, 88), random(-6, 27), random(1, 9), 0, 1, random(-359, 359)); }
+		"AGUR" A 0 A_JumpIfCloser(1300, "Missile.TEX.Choice");
+		"AGUR" A 0 A_Jump(256, "Missile.TEX.Kamehameha", "Missile.TEX.SmokeOut");
+		Goto See;
+	Missile.TEX.Choice:
+		TNT1 A 0 A_Jump(256, "Missile.TEX.Kamehameha", "Missile.TEX.SmokeOut", "Missile.TEX.OneShot", "Missile.TEX.BigShot", "Missile.TEX.SpamRain");
+	// The railgun. Two charge orbs at shoulder height, an eighteen-tic
+	// hold, and then a beam that keeps burning where it passed.
+	Missile.TEX.Kamehameha:
+		"AGUR" W 2 { A_StartSound("agaures/sight", CHAN_VOICE, 0, 1.0, ATTN_NONE); }
+		"AGUR" W 2 Bright { A_FaceTarget(); }
+		"AGUR" A 0 { A_SpawnItemEx("RS_BlackImpEXCharge", 1, 32, 42); }
+		"AGUR" A 0 { A_SpawnItemEx("RS_BlackImpEXCharge", 1, -32, 42); }
+		"AGUR" W 18 Bright;
+		"AGUR" X 8 { A_FaceTarget(); }
+		"AGUR" Y 0 { A_StartSound("weapons/railgf", CHAN_WEAPON); }
+		"AGUR" Y 9 Bright
+		{
+			A_CustomRailgun(random(25, 100), 0, Color(255, 255, 255), Color(255, 255, 255),
+			                RGF_NOPIERCING | RGF_SILENT, 1, 0, "RS_BlackImpBeam1",
+			                0, 0, 0, 0, 0.4, 1.0, "RS_BlackImpBeam2", 1);
+		}
+		"AGUR" Y 16;
+		"AGUR" YYY 0 { A_SpawnItemEx("RS_DeathBreathDI", random(-118, 118), random(-118, 118), random(-6, 32), random(1, 9), 0, 1, random(-359, 359)); }
+		Goto See;
+	// Marks you, then drops a floor-hugging smoke hunter on the mark.
+	// You cannot outrun it by breaking line of sight -- that is the point.
+	Missile.TEX.SmokeOut:
+		"AGUR" Y 2;
+		"AGUR" Y 2 { A_FaceTarget(); }
+		"AGUR" A 0 { A_SpawnItemEx("RS_BlackImpEXCharge", 16, 3, 32); }
+		"AGUR" A 0 { A_SpawnItemEx("RS_BlackImpEXCharge", 16, -3, 32); }
+		"AGUR" Y 1 { A_VileTarget("RS_CHBSTarget"); }
+		"AGUR" YYY 2 Bright { A_SpawnItemEx("RS_DeathBreathDI", -4, random(-18, 18), random(2, 32), random(1, 5), 0, 1, random(90, 270)); }
+		"AGUR" YYYYYYYY 1 Bright { A_SpawnItemEx("RS_DeathBreathDI", -4, random(-18, 18), random(2, 32), random(1, 5), 0, 1, random(90, 270)); }
+		"AGUR" YYYYY 0 Bright { A_SpawnItemEx("RS_DeathBreathDI", -4, random(-18, 18), random(2, 32), random(1, 5), 0, 1, random(90, 270)); }
+		"AGUR" Y 3 Bright A_CheckSight("See");
+		"AGUR" Y 9 Bright { A_FaceTarget(); }
+		"AGUR" Y 4 Bright { A_VileTarget("RS_BlackImpSmokeOut"); }
+		"AGUR" XW 6;
+		Goto See;
+	// Thirty balls whose spread narrows from +-30 to +-1 across the
+	// burst, so the last shots land exactly where you dodged to.
+	Missile.TEX.OneShot:
+		"AGUR" EF 12 { A_FaceTarget(); }
+		"AGUR" GGGGGGGGGGGG 1 Bright { A_SpawnProjectile("RS_BlackImpEXBall1", 42, 0, random(-30, 30)); }
+		"AGUR" G 0 { A_FaceTarget(); }
+		"AGUR" GGGGGGGGG 2 Bright { A_SpawnProjectile("RS_BlackImpEXBall1", 42, 0, random(-15, 15)); }
+		"AGUR" G 0 { A_FaceTarget(); }
+		"AGUR" GGGGGG 3 Bright { A_SpawnProjectile("RS_BlackImpEXBall1", 42, 0, random(-7, 7)); }
+		"AGUR" G 0 { A_FaceTarget(); }
+		"AGUR" GGG 4 Bright { A_SpawnProjectile("RS_BlackImpEXBall1", 42, 0, random(-1, 1)); }
+		"AGUR" GF 6 A_Jump(24, "Missile.TEX.BigShot");
+		Goto See;
+	// The megaball. Two charge pairs and three rising sparks -- nearly a
+	// second of unambiguous "move now".
+	Missile.TEX.BigShot:
+		"AGUR" E 12 Bright { A_FaceTarget(); }
+		"AGUR" A 0 { A_SpawnItemEx("RS_BlackImpEXCharge", 1, 32, 38); }
+		"AGUR" A 0 { A_SpawnItemEx("RS_BlackImpEXCharge", 1, -32, 38); }
+		"AGUR" F 12 Bright { A_FaceTarget(); }
+		"AGUR" A 0 { A_SpawnItemEx("RS_BlackImpEXCharge", 1, 32, 38); }
+		"AGUR" A 0 { A_SpawnItemEx("RS_BlackImpEXCharge", 1, -32, 38); }
+		"AGUR" F 2 Bright { A_SpawnProjectile("RS_EffectHK", 28, 0); }
+		"AGUR" F 2 Bright { A_SpawnProjectile("RS_EffectHK", 32, 0); }
+		"AGUR" F 2 Bright { A_SpawnProjectile("RS_EffectHK", 36, 0); }
+		"AGUR" G 1 Bright { A_FaceTarget(); }
+		"AGUR" G 8 Bright { A_SpawnProjectile("RS_BlackImpEXBigOne", 64, 0, 0); }
+		"AGUR" G 4;
+		"AGUR" A 10;
+		Goto See;
+	// Forty rounds lobbed from 70-90 units up -- area saturation rather
+	// than aimed fire.
+	Missile.TEX.SpamRain:
+		"AGUR" EF 8 { A_FaceTarget(); }
+		"AGUR" GGGGG 1 { A_SpawnProjectile("RS_BlackImpEXBall2", random(70, 90), 0, random(-15, 15)); }
+		"AGUR" GGGGGGG 0 { A_SpawnProjectile("RS_BlackImpEXBall2", random(70, 90), 0, random(-15, 15)); }
+		"AGUR" G 1 { A_FaceTarget(); }
+		"AGUR" GGGG 2 { A_SpawnProjectile("RS_BlackImpEXBall2", random(70, 90), 0, random(-10, 10)); }
+		"AGUR" GGGGGGGGGGG 0 { A_SpawnProjectile("RS_BlackImpEXBall2", random(70, 90), 0, random(-15, 15)); }
+		"AGUR" G 1 { A_FaceTarget(); }
+		"AGUR" GGG 3 { A_SpawnProjectile("RS_BlackImpEXBall2", random(70, 90), 0, random(-5, 5)); }
+		"AGUR" GGGGGGGGGGGGGG 0 { A_SpawnProjectile("RS_BlackImpEXBall2", random(70, 90), 0, random(-15, 15)); }
+		"AGUR" GF 6 A_Jump(24, "Missile.TEX.BigShot");
+		Goto See;
+	Pain.TEX:
+		"AGUR" H 2;
+		"AGUR" YYYYYYYYY 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, random(-18, 18), random(2, 32), random(3, 8), 0, 1, random(-359, 359)); }
+		"AGUR" H 2 { A_Pain(); }
+		"AGUR" A 0 A_Jump(64, "See.TEX.Warp");
+		Goto See;
+	// THE WARP. Speed 124, NOPAIN, ten tics of wandering, then back to
+	// normal -- it is gone before the pain animation would have finished.
+	See.TEX.Warp:
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, 0, random(1, 6), random(3, 15), 0, random(1, 12), random(-359, 359)); }
+		TNT1 A 0 { bNOPAIN = true; A_SetSpeed(124); }
+		TNT1 AAAA 0 { A_Wander(); }
+		TNT1 AA 3 { A_Wander(); }
+		TNT1 AAAA 1 { A_Wander(); }
+		TNT1 A 0 { A_SetSpeed(18); bNOPAIN = false; }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, 0, random(1, 6), random(3, 15), 0, random(1, 12), random(-359, 359)); }
+		Goto See;
+	Death.TEX:
+		"AGUR" I 12;
+		"AGUR" J 12 { A_Scream(); }
+		"AGUR" KL 12;
+		"AGUR" M 12 { A_NoBlocking(); }
+		"AGUR" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, 0, random(1, 6), random(3, 15), 0, random(1, 12), random(-359, 359)); }
+		"AGUR" N -1;
+		Stop;
+	XDeath.TEX:
+		TNT1 A 0 { A_StartSound("misc/gibbed", CHAN_BODY); }
+		"AGUR" O 5 { A_XScream(); }
+		"AGUR" P 5;
+		"AGUR" Q 5 { A_NoBlocking(); }
+		"AGUR" RSTU 5;
+		"AGUR" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, 0, random(1, 6), random(3, 15), 0, random(1, 12), random(-359, 359)); }
+		"AGUR" V -1;
 		Stop;
 	}
 }

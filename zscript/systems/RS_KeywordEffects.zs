@@ -94,6 +94,18 @@ class RS_ShotKeywordMods : Object
 	int  SprayCount;
 	bool SpraySeek;
 
+	// Pain Train (wave D2): rounds force a flinch. ForcePain is the
+	// +FORCEPAIN flag on the spawned round; FlinchChance is the
+	// per-pellet odds below Mastery (a guaranteed stunlock at level 1
+	// would trivialize the whole monster ladder).
+	bool   ForcePain;
+	double FlinchChance;
+
+	// Momentum (wave D2): additive crit chance from the weapon's live
+	// crit streak. Added to the weapon's rolled CritChance at dispatch,
+	// never replacing it -- the roll stays king (rs_11 amplifier rule).
+	double CritAdd;
+
 	// Leveled-value tables for the designed affixes. Switch, not static
 	// const arrays -- this engine build does not reliably resolve
 	// `static const TYPE name[]` in class bodies (three separate real
@@ -394,6 +406,35 @@ class RS_ShotKeywordMods : Object
 			// detonates into a plasma bead nova. Levels buy beads AND a
 			// real damage ramp (it's the heaviest of the three).
 			// Mastery: the beads seek.
+			// Pain Train: the flinch ladder. Levels buy the ODDS, Mastery
+			// buys certainty -- against the monster ladder's own
+			// painChance, which collapses at high tier (T12 = 16).
+			else if (vals[i].Left(6) == "flinch")
+			{
+				string tail = vals[i].Mid(6);
+				if (tail == "master")
+				{
+					m.ForcePain = true;
+					m.FlinchChance = 1.0;
+				}
+				else
+				{
+					int lvl = clamp(tail.ToInt(), 1, 5);
+					m.FlinchChance = 0.15 * lvl;   // 15% .. 75%
+				}
+			}
+			// Momentum: each consecutive crit makes the next one likelier.
+			// Reads the streak the weapon itself tracks; the ladder buys
+			// how much each link in the chain is worth. Pure Crit-roll
+			// amplifier -- a high-crit gun chains far more often.
+			else if (vals[i].Left(8) == "momentum")
+			{
+				string tail = vals[i].Mid(8);
+				int lvl = (tail == "master") ? 5 : clamp(tail.ToInt(), 1, 5);
+				double perLink = 0.02 * lvl;
+				int cap = (tail == "master") ? 8 : 4;
+				m.CritAdd += perLink * min(wpn.RS_CritStreak, cap);
+			}
 			else if (vals[i].Left(4) == "nova")
 			{
 				string tail = vals[i].Mid(4);

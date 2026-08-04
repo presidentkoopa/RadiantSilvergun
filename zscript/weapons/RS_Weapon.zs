@@ -135,6 +135,12 @@ class RS_Weapon : Weapon abstract
 	// pays no spread penalty"); stamped by A_RS_FireSlot.
 	int RS_LastShotTic;
 
+	// Momentum (wave D2): consecutive crits landed. Incremented on a
+	// crit, reset the moment a shot doesn't crit -- read by the resolver
+	// to build the chain bonus. Lives on the weapon so each hand keeps
+	// its own streak.
+	int RS_CritStreak;
+
 	// -----------------------------------------------------------------
 	// ALLCLEAR (rs_11) -- the ready-to-fire beep. ONE imported sound
 	// (rs_allclear_ready, the li-gnrcwpn plasma beep -- the owner's own
@@ -496,8 +502,16 @@ class RS_Weapon : Weapon abstract
 		RS_GunBonsaiBridge.NotifyFired(self, invoker);
 
 		double dmg = invoker.DamagePerShot * dmgMult * p.DamageMult;
-		if (FRandom(0, 1) < (invoker.CritChance + p.CritBonus))
+		// Crit, plus whatever Momentum's chain has built up. The streak
+		// is tracked here because this is the one place that knows
+		// whether a pull actually critted.
+		if (FRandom(0, 1) < (invoker.CritChance + p.CritBonus + mods.CritAdd))
+		{
 			dmg *= 2.0;
+			invoker.RS_CritStreak++;
+		}
+		else
+			invoker.RS_CritStreak = 0;
 
 		int pellets = (p.PelletOverride > 0) ? p.PelletOverride : invoker.PelletCount;
 		pellets = max(1, int(pellets * pelletMult));
@@ -675,6 +689,12 @@ class RS_Weapon : Weapon abstract
 					proj.SeekTurn    = mods.SeekTurn;
 					proj.SprayCount  = mods.SprayCount;
 					proj.SpraySeek   = mods.SpraySeek;
+					// Pain Train: rolled PER PELLET, so a shotgun's spread
+					// staggers a crowd probabilistically rather than
+					// all-or-nothing.
+					if (mods.ForcePain
+						|| (mods.FlinchChance > 0 && FRandom(0, 1) < mods.FlinchChance))
+						proj.bFORCEPAIN = true;
 					// Native ripper -- the round passes through monsters,
 					// damaging each. Real GZDoom flag, no custom logic.
 					proj.bRIPPER = mods.Piercing;

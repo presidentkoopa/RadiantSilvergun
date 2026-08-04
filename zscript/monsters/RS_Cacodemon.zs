@@ -624,5 +624,187 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 		"CACX" E 5 { A_NoBlocking(); }
 		"CACX" F -1 { A_SetFloorClip(); }
 		Stop;
+
+	// ============ TEX BLACK EX -- HADES UNBOUND (09_KX) ============
+	// The T11 shockmaster with the brakes off. Everything the black caco
+	// had, plus: Electro2 (a bolt trio fired from behind a screen of spike
+	// drones), Electro4 (three EX4 spinners that chain straight into
+	// Electro1), a BonusDucks tag-on that follows ANY pattern with the EX2
+	// punish ball once it is under its health gate, a railgun fired down
+	// its own eye beam -- and a fade-out teleport it can take out of See
+	// OR out of pain, so pressure does not pin it.
+	//
+	// Phase two does not summon adds like T11 does: it hangs SEVEN
+	// RS_RedSpikeCacoEX drones on itself, holds NOPAIN through the
+	// wind-up, turns MISSILEMORE on and sets speed to 53. Once only
+	// (rsExPhase2), and it unlocks the wider Nah roster permanently.
+	Spawn.TEX:
+		"HELE" A 10 { A_Look(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		Loop;
+	See.TEX:
+		"HELE" A 0 { bSHOOTABLE = true; bNONSHOOTABLE = false; }
+	See.TEX.Loop:
+		"HELE" AAAAAA 3 { A_Chase(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" AAAAAA 3 { A_Chase(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" AAAAAA 3 { A_Chase(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" A 0 A_Jump(128, "See.TEX.Phase");
+		Goto See.TEX.Loop;
+	See.TEX.Phase:
+		"HELE" A 1 { A_StartSound("monster/heltel", CHAN_VOICE); }
+		"HELE" A 1 { A_SetTranslucent(0.90); }
+		"HELE" A 1 { A_SetTranslucent(0.80); }
+		"HELE" A 1 { A_SetTranslucent(0.70); }
+		"HELE" A 1 { A_SetTranslucent(0.60); }
+		"HELE" A 1 { A_SetTranslucent(0.50); }
+		"HELE" A 1 { A_SetTranslucent(0.40); }
+		"HELE" A 1 { A_SetTranslucent(0.30); }
+		"HELE" A 1 { A_SetTranslucent(0.20); }
+		"HELE" A 1 { A_SetTranslucent(0.10); }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_Wander(); }
+		"HELE" A 1 { A_StartSound("monster/heltel", CHAN_VOICE); }
+		"HELE" A 1 { A_SetTranslucent(0.10); }
+		"HELE" A 1 { A_SetTranslucent(0.20); }
+		"HELE" A 1 { A_SetTranslucent(0.30); }
+		"HELE" A 1 { A_SetTranslucent(0.40); }
+		"HELE" A 1 { A_SetTranslucent(0.50); }
+		"HELE" A 1 { A_SetTranslucent(0.60); }
+		"HELE" A 1 { A_SetTranslucent(0.70); }
+		"HELE" A 1 { A_SetTranslucent(0.80); }
+		"HELE" A 1 { A_SetTranslucent(0.90); }
+		"HELE" A 1 { A_SetTranslucent(1.0); }
+		Goto See;
+	// CHP declares Melee and Missile as the same label -- the EX caco has
+	// no bite at all, it just shoots at any range.
+	Melee.TEX:
+	Missile.TEX:
+		TNT1 AAA 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" A 0 A_JumpIfHealthLower(7500, "Missile.TEX.Phase2");
+		"HELE" A 0 A_Jump(256, "Missile.TEX.Electro1", "Missile.TEX.Electro5", "Missile.TEX.Electro3");
+		Goto See;
+	// The widened roster, live only after phase two.
+	Missile.TEX.Nah:
+		"HELE" A 0 A_Jump(256, "Missile.TEX.Electro2", "Missile.TEX.Electro3", "Missile.TEX.Electro4", "Missile.TEX.Electro5");
+		Goto See;
+	Missile.TEX.Phase2:
+		TNT1 A 0
+		{
+			if (rsExPhase2 >= 1)
+				return ResolveState("Missile.TEX.Nah");
+			return ResolveState(null);
+		}
+		"HELE" A 0 { bNOPAIN = true; }
+		"HELE" BC 8;
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" D 8 { A_StartSound("monster/helsit", CHAN_VOICE); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" DDD 12 { A_SpawnItemEx("RS_RedSpikeCacoEX", 12, 100, 32, 0, 0, 0, 0, SXF_SETMASTER|SXF_NOCHECKPOSITION); }
+		"HELE" DDDD 12 { A_SpawnItemEx("RS_RedSpikeCacoEX", 12, 100, 32, 0, 0, 0, 0, SXF_SETMASTER|SXF_NOCHECKPOSITION); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" C 8 { bMISSILEMORE = true; }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" C 4 { rsExPhase2++; }
+		"HELE" B 4 { bNOPAIN = false; }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" A 8 { A_SetSpeed(53); }
+		Goto See;
+	Missile.TEX.Electro1:
+		"HELE" EF 5 Bright { A_FaceTarget(); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, -14, 0, 0); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, -7, 0, 0); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, 0, 0, 0); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, 7, 0, 0); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, -14, 32, -4); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, -7, 32, -4); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, 0, 32, -4); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, 7, 32, -4); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, 14, 32, -4); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, -14, 32, 4); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, -7, 32, 4); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, 0, 32, 4); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, 7, 32, 4); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, 14, 32, 4); }
+		"HELE" G 5 Bright { A_SpawnProjectile("RS_HadesBall", 24, 0, 14, 0, 0); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		TNT1 A 0 A_JumpIfHealthLower(7500, "Missile.TEX.BonusDucks");
+		Goto See.TEX.Loop;
+	Missile.TEX.Electro2:
+		"HELE" E 0 { A_SpawnProjectile("RS_HadeLoad1", 32, 0, 0, 0, 0); }
+		"HELE" EF 12 Bright { A_FaceTarget(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" DDD 12 { A_SpawnItemEx("RS_RedSpikeCacoEX", 12, 100, 32, 0, 0, 0, 0, SXF_SETMASTER|SXF_NOCHECKPOSITION); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" DDD 12 { A_SpawnItemEx("RS_RedSpikeCacoEX", 12, 100, 32, 0, 0, 0, 0, SXF_SETMASTER|SXF_NOCHECKPOSITION); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBolt", 32, 0, -16, 0, 0); }
+		"HELE" G 0 { A_SpawnProjectile("RS_HadesBolt", 32, 0, 0, 0, 0); }
+		"HELE" G 5 Bright { A_SpawnProjectile("RS_HadesBolt", 32, 0, 16, 0, 0); }
+		TNT1 A 0 A_JumpIfHealthLower(7500, "Missile.TEX.BonusDucks");
+		Goto See.TEX.Loop;
+	Missile.TEX.Electro3:
+		"HELE" BC 8 Bright { A_FaceTarget(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" G 8 Bright { A_SpawnProjectile("RS_HadeLoad1", 32, 0, 0, 0, 0); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" D 8 Bright { A_FaceTarget(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" G 8 Bright { A_SpawnProjectile("RS_HadeLoad1", 32, 0, 0, 0, 0); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" D 8 Bright { A_FaceTarget(); }
+		"HELE" G 0 { A_SpawnProjectile("RS_EyeBeamCaco", 32, 0, 0, 0, 0); }
+		// The eye beam is the tell; the railgun rides it a tic later.
+		// CHP passes "none" for both rail colours -- Color(0,0,0) is what
+		// that actually parses to, and RGF_SILENT hides the report anyway.
+		TNT1 A 0 { A_CustomRailgun(random(25, 100), -20, Color(0, 0, 0), Color(0, 0, 0), RGF_NOPIERCING|RGF_SILENT, 1, 0, "RS_BlackCacoBeam1", 0, 0, 0, 0, 0.4, 1.0, "RS_BlackCacoBeam2", 1); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" G 8 Bright { A_CustomBulletAttack(0, 0, 1, random(1, 6), "RS_HadeAra"); }
+		"HELE" CB 5;
+		TNT1 A 0 A_JumpIfHealthLower(7500, "Missile.TEX.BonusDucks");
+		Goto See.TEX.Loop;
+	Missile.TEX.Electro4:
+		"HELE" EF 8 Bright { A_FaceTarget(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" G 3 Bright { A_SpawnProjectile("RS_HadesBallEX4", 24, 0, 0, 0, 0); }
+		"HELE" G 3 Bright { A_SpawnProjectile("RS_HadesBallEX4", 24, 0, -25, 0, 0); }
+		"HELE" G 3 Bright { A_SpawnProjectile("RS_HadesBallEX4", 24, 0, 25, 0, 0); }
+		"HELE" FE 8 Bright;
+		Goto Missile.TEX.Electro1;
+	Missile.TEX.Electro5:
+		"HELE" BC 5 Bright { A_FaceTarget(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" G 5 Bright { A_SpawnProjectile("RS_HadeLoad1", 32, 0, 0, 0, 0); }
+		"HELE" D 5 Bright { A_FaceTarget(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" G 3 Bright { A_SpawnProjectile("RS_HadesBallEX3", 18, 0, 0, 0, 0); }
+		"HELE" G 3 Bright { A_SpawnProjectile("RS_HadesBallEX3", 18, 0, 25, 0, 0); }
+		"HELE" G 3 Bright { A_SpawnProjectile("RS_HadesBallEX3", 18, 0, -25, 0, 0); }
+		"HELE" CB 5;
+		TNT1 A 0 A_JumpIfHealthLower(7500, "Missile.TEX.BonusDucks");
+		Goto See.TEX.Loop;
+	// The tax on letting it get low: a one-in-four chance that ANY
+	// pattern is followed by the EX2 punish ball.
+	Missile.TEX.BonusDucks:
+		"HELE" E 0 A_Jump(192, "See");
+		"HELE" EF 3 Bright { A_FaceTarget(); }
+		"HELE" G 3 Bright { A_SpawnProjectile("RS_HadesBallEX2", 18, 0, 0, 0, 0); }
+		Goto See.TEX.Loop;
+	Pain.TEX:
+		"HELE" H 3 { A_SetTranslucent(1.0); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" H 3 { A_Pain(); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		"HELE" H 6 A_Jump(88, "See.TEX.Phase");
+		Goto See;
+	Death.TEX:
+		"HELE" I 8 Bright { A_Scream(); }
+		"HELE" JKL 8 Bright { A_SpawnItemEx("RS_HadeExpl", random(-128, 128), random(-128, 128), random(-88, 88)); }
+		"HELE" M 8 Bright { A_NoBlocking(); }
+		"HELE" MMMMMMMMMMMM 0 { A_SpawnItemEx("RS_HadeExpl", random(-128, 128), random(-128, 128), random(-88, 88)); }
+		"HELE" NO 8 Bright { A_SetTranslucent(0.90); }
+		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
+		Stop;
 	}
 }
