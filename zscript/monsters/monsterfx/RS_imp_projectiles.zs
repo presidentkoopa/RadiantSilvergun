@@ -72,10 +72,12 @@ class RS_RedMessImp : Actor
 // ============================================================================
 // IMP RAINBOW projectiles -- ripped/adapted from Colourful Hell, one per color.
 // All use stock BAL1 sprites + the color's translation (faithful to CH).
-// DAMAGE: the rolls in this section were flattened to constants by an early
-// pass and are still flat. `Damage` does need a constant, but the roll survives
-// as `DamageFunction (random(a,b))` -- every roll still present in this file now
-// uses that, and restoring the flattened ones is a separate job.
+// NOTE: earlier passes flattened CH's damage ROLLS to single constants on the
+// false belief that a ZScript Default block requires a constant Damage. It does
+// not -- `DamageFunction (random(a,b))` is the property for exactly this and it
+// PRESERVES the roll. Rolls are restored wherever they were recorded; any bare
+// constant left here is one whose original spread was lost and needs re-reading
+// from CH/CHP.
 // ============================================================================
 
 // GREEN -- seeking plasma ball
@@ -154,7 +156,7 @@ class RS_Bounc11 : Actor
 // ============================================================================
 // IMP RAINBOW Wave 2 -- the custom-sprite colors' projectiles.
 // Ripped faithfully from CH (full parent chains + sub-spawns traced).
-// Damage -> constants (ZScript). Cosmetic ACS-gated markers dropped (no CH ACS).
+// Cosmetic ACS-gated markers dropped (no CH ACS).
 // ============================================================================
 
 // --- CYAN: frost spray (FrostLong -> FrostLong2, KIRC sprites, PUFI death) ---
@@ -417,7 +419,7 @@ class RS_CyanImpBall : Actor
 // (full recursion). DIBigOne is the centerpiece: it spawns SpiralSaw5 + GroundRedCyb
 // + AgauresBall1 and explodes; its death drops DeathBreathDI. DeathBreathDI is the
 // SIGNATURE mechanic -- the "smoking" breath that HEALS nearby Black imps via
-// A_RadiusGive (ally-sustain). Damage -> constants. AGAS/BLVB/BLTR/RED9/RED8/SPIR sprites.
+// A_RadiusGive (ally-sustain). AGAS/BLVB/BLTR/RED9/RED8/SPIR sprites.
 // (Black imp's heaviest sub-spawns are flagged for the efficiency pass.)
 // ============================================================================
 
@@ -429,7 +431,7 @@ class RS_AgauresBallTrail : Actor
 	{
 	Spawn:
 		TNT1 A 1 Bright;
-		BLTR ABCDEFG 2 Bright;
+		BLTR ABCDEF 2 Bright;
 		Stop;
 	}
 }
@@ -550,7 +552,7 @@ class RS_DIBigOne : Actor
 	Default
 	{
 		Radius 12; Height 24; Speed 7;
-		DamageFunction (random(40,125)); DamageType "Plasma";
+		DamageFunction (random(40, 125)); DamageType "Plasma";
 		Projectile; +NOGRAVITY; RenderStyle "Add"; Scale 2; Alpha 0.75;
 		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4";
 		DropItem "RocketAmmo";
@@ -562,11 +564,14 @@ class RS_DIBigOne : Actor
 		RED9 AA 1 Bright A_SpawnItemEx("RS_SpiralSaw5",0,0,0,0,0,0,0,128);
 		RED9 A 0 A_CustomMissile("RS_GroundRedCyb",0,0);
 		RED9 A 0 A_CustomMissile("RS_AgauresBall1", 7, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		RED9 A 0 A_Explode(random(4,10),128);
+		RED9 A 0 A_Explode(random(4, 10), 128);
 		Loop;
 	Death:
 		SPIR AAAA 0 A_SpawnItemEx("RS_DeathBreathDI", random(-178,178), random(-178,178), random(-12,42), 0,0,0,0,128,0);
-		SPIR ABCDEDCBA 5 Bright A_Explode(random(5,30),178);
+		// CH Imps.txt:2437 runs A_Explode(random(5,30),178) on NINE frames.
+		// A multi-frame line fires its action once PER FRAME, so this is nine
+		// blasts, not one -- CH's own intent, kept.
+		SPIR ABCDEDCBA 5 Bright A_Explode(random(5, 30), 178);
 		SPIR E 1 A_NoBlocking;
 		Stop;
 	}
@@ -789,7 +794,7 @@ class RS_GImpNail : FastProjectile
 		BLAD A 2 Bright;
 		Loop;
 	Death:
-		6PUF ABCDEFEFG 1 Bright { A_Explode(random(1, 3), 16); }
+		6PUF ABCDEFEF 1 Bright { A_Explode(random(1, 3), 16); }
 		FBL1 G 1 Bright { A_SpawnItemEx("RS_PuffCybieRed", 0, 0, 2); }
 		Stop;
 	}
@@ -885,10 +890,7 @@ class RS_WarlordShield : Actor
 }
 
 // T11 BLACK -- the Agaures artillery shell.
-// RS_DIBigOne is defined earlier in this file. The copy that stood here had the
-// CH Imps.txt random() damage and explode rolls but was missing the sounds, the
-// rocket-ammo drop and the A_NoBlocking; the surviving one now carries both
-// halves, so it is a full match for the source actor.
+// [dedupe] duplicate class RS_DIBigOne removed -- defined earlier in the load order.
 
 // T12 WHITE -- the seeking hellion round it rains during nopenopeno.
 class RS_Hel2 : Actor

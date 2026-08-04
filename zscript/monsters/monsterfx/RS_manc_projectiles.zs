@@ -15,8 +15,7 @@
 // ============================================================================
 // hf_manc_projectiles.zs -- Mancubus projectiles (color ladder).
 // Neutral + many colors use stock A_FatAttack (dual-fireball volley) -> no custom projectile.
-// Heavier colors have real shots below. Owns RS_RocketShotFatso, which the
-// Arachnotron's BSP2 tier also fires (same actor in CH/CHP -- see below).
+// Heavier colors have real shots below. Shares RS_RocketShotFatso (from Arachnotron).
 // SlowChunks gib-cosmetic dropped -> cosmetic pass. Damage->constants.
 // ============================================================================
 
@@ -72,9 +71,27 @@ class RS_HBeastSmoke : Actor
 }
 
 // ---------- BROWN: yellow zap orb (FFAT body) ----------
-// RS_ZapFFAT2 lives further down with the rest of the zap arc -- that copy is
-// the CH Fatsos.txt one. The earlier sketch here looped its Fly state forever
-// on A_Explode, which CH's version does not do.
+class RS_ZAPFFAT2 : Actor
+{
+	Default { Speed 1; Projectile; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.65; Scale 0.9; Damage 10; Translation "0:255=#[255,255,0]"; }
+	// CH Fatsos.txt:245 -- three bursts shedding RS_ZapFFAT sparks, then STOP.
+	// The port had `LITN ABCDEF 2 A_Explode(8,40); Loop;` -- an A_Explode on a
+	// looping state never exits, so it dealt 8 damage in a 40 radius forever
+	// (and once per frame, six times a pass). CH deals random(1,2) at 32.
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
+		LITN ABCD 1 Bright { A_Explode(random(1, 2), 32, 0); }
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
+		LITN EFG 1 Bright { A_Explode(random(1, 2), 32, 0); }
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
+		LITN FEDB 1 Bright { A_Explode(random(1, 2), 32, 0); }
+		Stop;
+	}
+}
 
 // ---------- RED: "Hell Beast" floor-hugging shots + spray (HBST body) ----------
 class RS_HBeastShot : Actor
@@ -249,32 +266,7 @@ class RS_ZapFFAT : Actor
 
 // The heavier arc: sheds RS_ZapFFAT sparks around itself and does real
 // (if small) repeated splash -- CH's "walk into it and regret it" zone.
-class RS_ZapFFAT2 : Actor
-{
-	Default
-	{
-		Speed 1;
-		Projectile;
-		RenderStyle "Add";
-		DamageType "Plasma";
-		Alpha 0.65;
-		Scale 0.9;
-		Translation "0:255=#[255,255,0]";
-	}
-	States
-	{
-	Spawn:
-		TNT1 A 0;
-	Fly:
-		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
-		LITN ABCD 1 Bright { A_Explode(random(1, 2), 32, 0); }
-		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
-		LITN EFG 1 Bright { A_Explode(random(1, 2), 32, 0); }
-		TNT1 AAAA 0 { A_SpawnItemEx("RS_ZapFFAT", random(-24, 24), random(-24, 24), random(-2, 32)); }
-		LITN FEDB 1 Bright { A_Explode(random(1, 2), 32, 0); }
-		Stop;
-	}
-}
+// [dedupe] duplicate class RS_ZapFFAT2 removed -- defined earlier in the load order.
 
 // The Gray Fatso's spike bomb. Sheds small gravity spikes in flight and
 // bursts into a six-way nail ring on impact.
@@ -312,47 +304,8 @@ class RS_FatsoSpikes : Actor
 	}
 }
 
-// The Incubus (T05) rocket. This is the CH/CHP actor: CH Fatsos.txt
-// RocketShotFatso and CHP 13_Y.txt RocketShotFatso_C are the same shot (MSLH
-// sprite, HomingRocketTrailFatso trail, Radius 11 / Speed 28 / Fire), and the
-// CHP arachnotron (12_R.txt, BSP2 frames) fires it too -- so RS_Arachnotron
-// T10 and RS_Mancubus T05 both correctly resolve to this one class.
-//
-// It does NOT home, despite the trail's name and CH's "hominglaunch" see-sound:
-// neither source actor has +SEEKERMISSILE or A_SeekerMissile. An RS copy of this
-// class did add a per-tic A_SeekerMissile(4, 8, SMF_LOOK); that is dropped here
-// to match source. Eight tracking rockets per Incubus volley is a difficulty
-// change, and it would have silently landed on the Arachnotron too.
-//
-// Sounds stay on "weapons/rocklx" rather than CH's "weapons/homingexplode" /
-// "weapons/hominglaunch" -- neither lump is defined in this project's SNDINFO,
-// so matching source there would just make the rocket silent.
-class RS_RocketShotFatso : Actor
-{
-	Default
-	{
-		Radius 11;
-		Height 8;
-		Speed 28;
-		DamageFunction (random(10, 40));
-		DamageType "Fire";
-		Projectile;
-		Scale 0.7;
-		DeathSound "weapons/rocklx";
-	}
-	States
-	{
-	Spawn:
-		MSLH A 2 Bright { A_SpawnItemEx("RS_HomingRocketTrailFatso", 0, 0, 0, 0, 0, 0, 0, 128); }
-		Loop;
-	Death:
-		MISL B 0 { A_SetTranslucent(0.8, 1); }
-		MISL B 4 Bright { A_Explode(random(5, 35), 88); }
-		MISL C 5 Bright;
-		MISL D 6 Bright;
-		Stop;
-	}
-}
+// The Incubus (T05) homing rocket.
+// [dedupe] duplicate class RS_RocketShotFatso removed -- defined earlier in the load order.
 
 // =====================================================================
 // CHP 13 REBUILD ADDITIONS

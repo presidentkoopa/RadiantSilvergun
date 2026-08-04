@@ -18,11 +18,12 @@
 // (Pass 2 adds Cyan/Brown/Abyss/Black/White heavy custom bodies.)
 //
 // Ripped faithfully from Colourful Hell (full dependency trees traced).
-// DAMAGE: an early pass flattened CH's random(a,b) rolls to constants and wrote
-// "ZScript Default requires it" into this header. That was wrong -- `Damage`
-// does need a constant, but `DamageFunction (random(a,b))` keeps the roll and
-// compiles. Every roll still present is now DamageFunction; the ones flattened
-// back then are still flat, and restoring those is a separate job.
+// NOTE: earlier passes flattened CH's damage ROLLS to single constants on the
+// false belief that a ZScript Default block requires a constant Damage. It does
+// not -- `DamageFunction (random(a,b))` is the property for exactly this and it
+// PRESERVES the roll. Rolls are restored wherever they were recorded; any bare
+// constant left here is one whose original spread was lost and needs re-reading
+// from CH/CHP.
 // Translations/flags/sub-spawns preserved.
 // Stock IWAD sprites (BAL1/BAL2/BAL7/MISL/PLSE/BFE1) used as CH uses them.
 // Shared with imp/HK (reused, not redefined): RS_BaronStar3, RS_RedRevLoad/2,
@@ -331,11 +332,10 @@ class RS_BaronStar2 : Actor
 		Stop;
 	}
 }
-// RS_FireHand1 and RS_BaronFBomb are defined later in this file. Both had an
-// older near-copy here (ZScript is case-insensitive, so RS_Firehand1 and
-// RS_FireHand1 are one class); the later pair is the one that matches source --
-// CH Revenants.txt Firehand1 and CH Barons.txt BaronFbomb, the latter keeping
-// the random() damage and explode rolls the older copy had flattened.
+// [dedupe] older duplicate of RS_Firehand1 removed -- ZScript is case-insensitive,
+// so the CHP-sourced definition later in this file serves every caller.
+// [dedupe] older duplicate of RS_BaronFbomb removed -- ZScript is case-insensitive,
+// so the CHP-sourced definition later in this file serves every caller.
 
 // ---------- FIREBLU: RedBBall/BluBBall (shared w/ imp) + BluPowerBomb + RedPower/Bomb ----------
 class RS_BluPowerBomb : Actor
@@ -588,7 +588,7 @@ class RS_BaronOfDirtCH3 : Actor
 class RS_WDRock1Alias : Actor { Default { +NOINTERACTION; } States { Spawn: TNT1 A 1; Stop; } }
 
 // ============================================================================
-// BARON PASS 2 -- BROWN + CYAN projectiles (ripped faithfully, damage->constants).
+// BARON PASS 2 -- BROWN + CYAN projectiles (ripped faithfully).
 // ============================================================================
 
 // ---------- BROWN: flame/rock/spiral + slam (STYR warlord-baron) ----------
@@ -721,8 +721,7 @@ class RS_BrownBaronSpiral : Actor
 		Stop;
 	}
 }
-// RS_BrownVileGas is defined in RS_archvile_projectiles.zs -- CH sources it from
-// Archviles.txt, so it lives with the rest of the vile gas there.
+// [dedupe] duplicate class RS_BrownVileGas removed -- defined earlier in the load order.
 
 // ---------- CYAN: ice bombs/stars/seekers + frost wings (LOHS ice-baron) ----------
 class RS_IceSeekerTrailBaron : Actor
@@ -862,7 +861,7 @@ class RS_IceSeekerBaron : Actor
 
 // ============================================================================
 // BARON PASS 2 -- ABYSS / BLACK / WHITE (the three heavy colors). Full recursive
-// rip; damage->constants; cosmetic AbyssShotIdentifier markers dropped. Drt1/2/3,
+// rip; cosmetic AbyssShotIdentifier markers dropped. Drt1/2/3,
 // SplashAbyss/2, SpiralSaw5 reused from earlier. The deepest sub-actor webs in RS.
 // (All flagged for the efficiency pass -- these are the heaviest spawners.)
 // ============================================================================

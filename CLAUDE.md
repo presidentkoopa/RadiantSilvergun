@@ -33,6 +33,26 @@ list. Don't re-derive project state from scratch — it's already written down.
 - Destructive shell commands (`rm -rf`, `Remove-Item -Recurse -Force`) are
   blocked by a permission layer regardless of user consent. Single-file `rm`,
   `mv`, and `rmdir` on already-empty dirs work.
+- **ALWAYS `grep -i` against CH/CHP decorate, and against ZScript class
+  names.** Two separate traps, same root cause:
+  1. CH and CHP mix `Actor` and `ACTOR` freely. A search for `^ACTOR Foo`
+     returns nothing for a file that opens `Actor Foo`, and you conclude the
+     actor doesn't exist. This produced four confident false negatives in one
+     session — including "VBtrail is defined nowhere", when it is sitting at
+     `CH/decorate/Archviles.txt:4518`.
+  2. **ZScript itself is case-insensitive.** `RS_FireHand1` and
+     `RS_Firehand1` are the SAME class, and defining both is a fatal
+     redefinition that stops the mod compiling. A case-sensitive grep says
+     they're two different classes. Run `python dedupe_check.py` (repo root)
+     after adding any class — it checks this properly.
+- **`dedupe_check.py` passing does not mean the dedupe was CORRECT.** It proves
+  no name is defined twice. It cannot tell you the surviving copy is the right
+  actor. A mechanical pass that kept whichever definition came first in the load
+  order got 5 of 15 wrong, and every one of them passed every check in the repo
+  — including an `RS_ZapFFAT2` whose `Fly` state looped `A_Explode` forever with
+  no exit. When you resolve a duplicate, diff both copies against the CH/CHP
+  source actor and keep the one that matches; don't keep the one that happens to
+  load first.
 - **`Damage (random(a,b))` in a `Default` block does not compile** — that is the
   `damage: non-constant parameter` error. `Damage` takes a constant; a roll goes
   through **`DamageFunction (random(a,b))`**, which compiles and keeps the

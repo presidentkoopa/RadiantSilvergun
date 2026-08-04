@@ -1302,6 +1302,718 @@ class RS_BVileEXMindWave : FastProjectile
 	}
 }
 
+// =====================================================================
+// TEX PHASE 2 -- the void phantom's kit (CHP 14_KX, CommonBlackArchEX3).
+// ---------------------------------------------------------------------
+// The three phantoms the TEX vile leaves behind cycle four "VoidMode"
+// attacks; these are the parts the other three modes need on top of the
+// cloud/wave set above.
+// =====================================================================
+
+// The long-lived screen-blackener the phantom hands its target when its
+// eye counter maxes. CHP duration is -99999999 (permanent until the
+// phantom dies and takes it back) -- kept verbatim.
+class RS_BVileEXDarknessToken : Powerup
+{
+	Default
+	{
+		Powerup.Color "00 00 00", 0.5;
+		Powerup.Duration -99999999;
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.ALWAYSPICKUP
+		+INVENTORY.ADDITIVETIME
+		+INVENTORY.NOSCREENBLINK
+	}
+}
+
+// Death-burst cloud (SILE R-Z) and shockwave cloud (VILE glow frames).
+class RS_BVileEXCloud3 : RS_BVileEXCloud
+{
+	States
+	{
+	Spawn:
+	Death:
+		"SILE" R 1;
+		"SILE" S 1 { A_FadeOut(0.15); }
+		"SILE" T 1;
+		"SILE" U 1 { A_FadeOut(0.15); }
+		"SILE" V 1;
+		"SILE" W 1 { A_FadeOut(0.15); }
+		"SILE" X 1;
+		"SILE" Y 1 { A_FadeOut(0.15); }
+		"SILE" Z 1 { A_SpawnItemEx("RS_ArchRingHelp", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION, 224); }
+		Stop;
+	}
+}
+
+// CHP writes this one on the VILE bracket glow frames ("[", "]"). Those
+// tokens broke the parse in this project once already -- the file header
+// records the standing substitution to VILE N/O/P, and it applies here.
+class RS_BVileEXCloud4 : RS_BVileEXCloud
+{
+	States
+	{
+	Spawn:
+	Death:
+		VILE N 1;
+		VILE O 1 { A_FadeOut(0.15); }
+		VILE N 1;
+		VILE O 1 { A_FadeOut(0.15); }
+		VILE N 1;
+		VILE O 1 { A_FadeOut(0.15); }
+		VILE N 1;
+		VILE O 1 { A_FadeOut(0.15); }
+		VILE P 1 { A_SpawnItemEx("RS_ArchRingHelp", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION, 224); }
+		Stop;
+	}
+}
+
+// A floor-hugging melee wave that ACCELERATES as it travels.
+class RS_BVileEXShockwave : Actor
+{
+	Default
+	{
+		Radius 20; Height 56; Speed 10;
+		DamageFunction (random(10, 40));
+		DamageType "Melee";
+		+FLOATBOB +FLOORHUGGER
+		RenderStyle "Stencil"; Alpha 0.9;
+		Projectile;
+	}
+	States
+	{
+	Spawn:
+		TNT1 A random(1, 3) { A_SpawnItemEx("RS_BVileEXCloud4", -4, random(-7, 7), 1, frandom(-15.0, 15.0), frandom(-15.0, 15.0), frandom(0, 5.0), 0, 16416); }
+		TNT1 A random(0, 3) { A_ScaleVelocity(frandom(1.0, 1.17)); }
+		Loop;
+	Death:
+		"SILE" AA 0 { A_SpawnItemEx("RS_BVileEXCloud4", random(-7, 7), random(-7, 7), 1, frandom(-15.0, 15.0), frandom(-15.0, 15.0), frandom(0.0, 15.0), 0, 32); }
+		TNT1 A 1;
+		Stop;
+	}
+}
+
+// The short ripper the black hole sheds along its path.
+class RS_BVileEXWAVE2 : Actor
+{
+	Default
+	{
+		Radius 10; Height 10;
+		+NOCLIP +RIPPER
+		Projectile;
+		DamageFunction (random(1, 3));
+		DamageType "Plasma";
+		RenderStyle "Stencil"; Alpha 0.5;
+	}
+	States
+	{
+	Spawn:
+		BLST CDEFCDEFCDEFCDEF 1 Bright;
+		Stop;
+	}
+}
+
+// The singularity the black hole leaves where it dies: a 15-tic
+// countdown of inward pull plus repeated radius damage.
+class RS_BVileEXBlackHole2 : Actor
+{
+	Default
+	{
+		Radius 20; Height 20; Scale 2;
+		Projectile;
+		+NOCLIP +NODAMAGETHRUST +FORCEXYBILLBOARD +FORCERADIUSDMG
+		DamageType "Plasma";
+		RenderStyle "Stencil";
+		ReactionTime 15;
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0 { A_CountDown(); }
+		TNT1 A 0 { A_StartSound("tornado/form", CHAN_5, CHANF_LOOPING); }
+		VORX A 0 { A_SpawnItemEx("RS_BVileEXWAVE3", 0, 0, 0, frandom(-30.0, 30.0), frandom(-30.0, 30.0), 0, 0, 32); }
+		BHOL A 3 Bright { A_RadiusThrust(-600, 400); }
+		TNT1 A 0 { A_Explode(random(5, 15), 170, 0); }
+		BHOL B 3 Bright { A_RadiusThrust(-600, 400); }
+		TNT1 A 0 { A_Explode(random(5, 15), 170, 0); }
+		BHOL C 3 Bright { A_RadiusThrust(-600, 400); }
+		TNT1 A 0 { A_Explode(random(5, 15), 170, 0); }
+		VORX A 0 { A_SpawnItemEx("RS_BVileEXWAVE3", 0, 0, 0, frandom(-30.0, 30.0), frandom(-30.0, 30.0), 0, 0, 32); }
+		BHOL D 3 Bright { A_RadiusThrust(-600, 400); }
+		TNT1 A 0 { A_Explode(random(5, 15), 170, 0); }
+		BHOL E 3 Bright { A_RadiusThrust(-600, 400); }
+		TNT1 A 0 { A_Explode(random(5, 15), 170, 0); }
+		BHOL F 3 Bright { A_RadiusThrust(-600, 400); }
+		TNT1 A 0 { A_Explode(random(5, 15), 170, 0); }
+		VORX A 0 { A_SpawnItemEx("RS_BVileEXWAVE3", 0, 0, 0, frandom(-30.0, 30.0), frandom(-30.0, 30.0), 0, 0, 32); }
+		BHOL G 3 Bright { A_RadiusThrust(-600, 400); }
+		TNT1 A 0 { A_Explode(random(5, 15), 170, 0); }
+		BHOL H 3 Bright { A_RadiusThrust(-600, 400); }
+		TNT1 A 0 { A_Explode(random(5, 15), 170, 0); }
+		BHOL I 3 Bright { A_RadiusThrust(-600, 400); }
+		TNT1 A 0 { A_Explode(random(5, 15), 170, 0); }
+		Loop;
+	Death:
+		TNT1 A 0 { A_StopSound(CHAN_5); }
+		BHOL ABCDEFGHI 3 { A_FadeOut(0.2); }
+		Stop;
+	}
+}
+
+// The black hole itself. Pulls inward the whole way in, then collapses
+// into RS_BVileEXBlackHole2.
+//
+// SPRITE NOTE: CHP's Death animation runs VORX A-P, but VORX ships only
+// A-H -- I-P exist nowhere in ART SOURCE (checked the whole tree, not
+// just CHP/sprites). CHP evidently copy-pasted the BLST collapse without
+// the art following. Every A_Explode / A_SetScale beat below is
+// preserved in CHP's order and values; only the frame letters are
+// clamped to art that exists. Nothing is substituted from another set.
+class RS_BVileEXBlackHole : FastProjectile
+{
+	Default
+	{
+		Radius 16; Height 20; Speed 10;
+		Projectile;
+		+THRUACTORS
+		DamageType "Plasma";
+		RenderStyle "Stencil"; Alpha 0.75;
+		SeeSound "weapons/bfgf";
+		DeathSound "queen/hit";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 { A_StartSound("tornado/form", CHAN_5, CHANF_LOOPING); }
+	Fly:
+		VOIP ABCDEF 2 Bright { A_SpawnItemEx("RS_BVileEXWAVE2", 0, 0, 0); }
+	Fly.Pull:
+		VOIP AA 1 Bright { A_RadiusThrust(-220, 130); }
+		VOIP A 0 { A_Explode(10, 90, 0); }
+		VOIP A 0 { A_SpawnItemEx("RS_BVileEXWAVE2", 0, 0, 0, 0, 0, 0, 0, 32); }
+		VOIP BB 1 Bright { A_RadiusThrust(-220, 130); }
+		VOIP B 0 { A_Explode(10, 90, 0); }
+		VOIP B 0 { A_SpawnItemEx("RS_BVileEXWAVE2", 0, 0, 0, 0, 0, 0, 0, 32); }
+		VOIP CC 1 Bright { A_RadiusThrust(-220, 130); }
+		VOIP C 0 { A_Explode(10, 90, 0); }
+		VOIP C 0 { A_SpawnItemEx("RS_BVileEXWAVE2", 0, 0, 0, 0, 0, 0, 0, 32); }
+		VOIP DD 1 Bright { A_RadiusThrust(-220, 130); }
+		VOIP D 0 { A_Explode(10, 90, 0); }
+		VOIP D 0 { A_SpawnItemEx("RS_BVileEXWAVE2", 0, 0, 0, 0, 0, 0, 0, 32); }
+		VOIP EE 1 Bright { A_RadiusThrust(-220, 130); }
+		VOIP E 0 { A_Explode(10, 90, 0); }
+		VOIP E 0 { A_SpawnItemEx("RS_BVileEXWAVE2", 0, 0, 0, 0, 0, 0, 0, 32); }
+		VOIP FF 1 Bright { A_RadiusThrust(-220, 130); }
+		VOIP F 0 { A_Explode(10, 90, 0); }
+		VOIP F 0 { A_SpawnItemEx("RS_BVileEXWAVE2", 0, 0, 0, 0, 0, 0, 0, 32); }
+		Goto Fly.Pull;
+	Death:
+		VORX A 0 { A_SpawnItemEx("RS_BVileEXBlackHole2", 0, 0, 0, 0, 0, 0, 0, 32); }
+		VORX AAAAAAAAAAAA 0 { A_SpawnItemEx("RS_BVileEXWAVE3", 0, 0, 0, frandom(-30.0, 30.0), frandom(-30.0, 30.0), frandom(0.0, 10.0), 0, 32); }
+		VORX A 1 Bright { A_SetScale(1.2, 1.2); }
+		VORX B 1 Bright { A_Explode(random(11, 50), 110); }
+		VORX CDEF 1 Bright { A_SetScale(1.4, 1.4); }
+		VORX F 0 { A_Explode(random(9, 40), 130); }
+		VORX FGH 1 Bright { A_SetScale(1.7, 1.7); }
+		VORX H 0 { A_Explode(random(7, 30), 150); }
+		VORX GH 1 Bright { A_SetScale(2, 2); }
+		VORX GH 1 Bright { A_Explode(random(5, 20), 170); }
+		TNT1 A 0 { A_StopSound(CHAN_5); }
+		Stop;
+	}
+}
+
+// =====================================================================
+// T14 -- THE MASTER OF TIME's kit (CHP 14_WX, CommonWhiteArchEX2).
+// ---------------------------------------------------------------------
+// Every piece of the white-EX vile's arsenal. The through-line is that
+// it does not do damage so much as it does TIME: clocks, freezes, a
+// countdown, and a finisher that stops the world.
+//
+// SATELLITE LIFETIME NOTE: CHP's orbiters end themselves on a "GoAway"
+// token the boss hands its children. That token is stripped cruft here,
+// so each satellite instead ends when its master is gone -- same effect,
+// one fewer actor, and it cannot leak if the boss dies unexpectedly.
+// =====================================================================
+
+// ---------- powerups and latches ----------
+
+// Stacks on the player from every TimeShock hit. Four of them is what
+// opens the FREEZE branch.
+class RS_MOTFreezeToken : Inventory
+{
+	Default { Inventory.MaxAmount 99999; }
+}
+
+// The boss's own time-stop. TimeFreezer on a monster freezes everything
+// EXCEPT the owner -- this is the finisher, not a status effect.
+class RS_TimeSlowMOT : PowerupGiver
+{
+	Default
+	{
+		Powerup.Type "TimeFreezer";
+		Powerup.Duration -2;
+		+INVENTORY.ADDITIVETIME
+		+INVENTORY.AUTOACTIVATE
+	}
+	States { Spawn: TNT1 A 0; Stop; }
+}
+
+// The 60-second version, used by TIMESUP.
+class RS_TimeSlowMOT2 : RS_TimeSlowMOT
+{
+	Default { Powerup.Duration -60; }
+}
+
+// Given to the PLAYER during TIMESUP -- speed 0 for ten seconds.
+class RS_TimeSlowMOT3 : PowerSpeed
+{
+	Default { Speed 0; Powerup.Duration -10; }
+}
+
+// Half damage for eight seconds; the boss gives itself one before the
+// Scream and before ENDOFTIME, both of which lock it in place.
+class RS_WVileResist : PowerProtection
+{
+	Default { DamageFactor 0.5; Powerup.Duration -8; }
+}
+
+// The armour-steal aftershock: quarter speed for ten seconds.
+class RS_WVileEXSpeedNerf : PowerSpeed
+{
+	Default { Speed 0.25; Powerup.Duration -10; }
+}
+
+// Detonation order for planted eyes (A_RadiusGive to missiles).
+class RS_WVEyeGo : Inventory
+{
+	Default { Inventory.MaxAmount 1; }
+}
+
+// ---------- the clocks ----------
+// Ambient falling clock faces. Nine random dials so a cloud of them
+// never reads as a repeated sprite.
+class RS_ClockMOT : Actor
+{
+	Default
+	{
+		+NOBLOCKMAP +NOGRAVITY +NOCLIP +NOTIMEFREEZE +BRIGHT
+		Alpha 0.5;
+		RenderStyle "Stencil";
+		StencilColor "90 90 00";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0 NoDelay { A_SetScale(frandom(0.0125, 0.2)); }
+		TNT1 A 0 { A_StartSound("TIME01", CHAN_AUTO, 0, 0.3, 3); }
+		TNT1 A 0 A_Jump(256, "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9");
+		Stop;
+	A1: TCLK A 10 { A_FadeOut(0.05); } Loop;
+	A2: TCLK B 10 { A_FadeOut(0.05); } Loop;
+	A3: TCLK C 10 { A_FadeOut(0.05); } Loop;
+	A4: TCLK D 10 { A_FadeOut(0.05); } Loop;
+	A5: TCLK E 10 { A_FadeOut(0.05); } Loop;
+	A6: TCLK F 10 { A_FadeOut(0.05); } Loop;
+	A7: TCLK G 10 { A_FadeOut(0.05); } Loop;
+	A8: TCLK H 10 { A_FadeOut(0.05); } Loop;
+	A9: TCLK I 10 { A_FadeOut(0.05); } Loop;
+	}
+}
+
+// The big slow dial it plants under itself on the heavy moves.
+class RS_OldTimeyMOT : Actor
+{
+	Default
+	{
+		+NOBLOCKMAP +NOGRAVITY +NOCLIP +NOTIMEFREEZE +BRIGHT
+		Alpha 1.0;
+		RenderStyle "Stencil";
+		StencilColor "90 90 00";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 A_Jump(256, "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9");
+		Stop;
+	A1: TCLK A 15 { A_FadeOut(0.05); } Loop;
+	A2: TCLK B 15 { A_FadeOut(0.05); } Loop;
+	A3: TCLK C 15 { A_FadeOut(0.05); } Loop;
+	A4: TCLK D 15 { A_FadeOut(0.05); } Loop;
+	A5: TCLK E 15 { A_FadeOut(0.05); } Loop;
+	A6: TCLK F 15 { A_FadeOut(0.05); } Loop;
+	A7: TCLK G 15 { A_FadeOut(0.05); } Loop;
+	A8: TCLK H 15 { A_FadeOut(0.05); } Loop;
+	A9: TCLK I 15 { A_FadeOut(0.05); } Loop;
+	}
+}
+
+// ---------- the satellites ----------
+
+// The face that rides its shoulder. Warps to the master every tic.
+class RS_FaceMOT : Actor
+{
+	Default
+	{
+		+NOBLOCKMAP +NOGRAVITY +NOCLIP +NOTIMEFREEZE
+		RenderStyle "Translucent";
+		XScale 0.09;
+		YScale 0.07;
+	}
+	States
+	{
+	Spawn:
+		SCPF A 1 Bright { A_Warp(AAPTR_MASTER, 4, 4, 84, 0, WARPF_NOCHECKPOSITION); }
+		SCPF A 0 { if (!master) return ResolveState("Nope"); return ResolveState(null); }
+		Loop;
+	Nope:
+		TNT1 A 0;
+		Stop;
+	}
+}
+
+// The clock-sower that orbits it -- one in twenty tics drops a clock.
+class RS_EffectMOT : Actor
+{
+	Default { +NOBLOCKMAP +NOGRAVITY +NOCLIP +NOTIMEFREEZE }
+	States
+	{
+	Spawn:
+		TNT1 A 1 { A_Warp(AAPTR_MASTER, 0, 0, 32, 0, WARPF_NOCHECKPOSITION); }
+		TNT1 A 0 { if (!master) return ResolveState("Nope"); return ResolveState(null); }
+		TNT1 A 0 A_Jump(12, "DoIt");
+		Loop;
+	DoIt:
+		TNT1 A 0 { A_SpawnItemEx("RS_ClockMOT", random(-80, 80), random(-80, 80), random(-32, 32), frandom(-0.1, 0.1), frandom(-0.1, 0.1), frandom(0, 0.7), 0, SXF_NOCHECKPOSITION); }
+		Goto Spawn;
+	Nope:
+		TNT1 A 0;
+		Stop;
+	}
+}
+
+// The eye that flares open during the Scream.
+class RS_SuperEye01 : Actor
+{
+	Default
+	{
+		+NOBLOCKMAP +NOGRAVITY +NOCLIP +NOTIMEFREEZE +BRIGHT
+		RenderStyle "Stencil";
+		StencilColor "FF D0 00";
+		Alpha 0.25;
+		Scale 0.25;
+	}
+	States
+	{
+	Spawn:
+		KIRC C 2;
+		KIRC C 0 { A_FadeIn(0.25); }
+		KIRC B 2 { A_SetScale(0.75); }
+		KIRC B 0 { A_FadeIn(0.25); }
+		KIRC A 2 { A_SetScale(1.5); }
+		KIRC A 0 { A_FadeOut(0.05); }
+		KIRC D 2 { A_SetScale(0.9); }
+		KIRC D 0 { A_FadeOut(0.05); }
+		KIRC C 2 { A_SetScale(0.6); }
+		KIRC C 0 { A_FadeOut(0.05); }
+		KIRC B 2 { A_SetScale(0.45); }
+		KIRC B 0 { A_FadeOut(0.05); }
+		KIRC A 2 { A_SetScale(0.33); }
+		KIRC A 0 { A_FadeOut(0.05); }
+		KIRC D 2 { A_SetScale(0.246); }
+		KIRC D 0 { A_FadeOut(0.05); }
+		KIRC C 2 { A_SetScale(0.197); }
+		KIRC C 0 { A_FadeOut(0.05); }
+		KIRC B 2 { A_SetScale(0.157); }
+		KIRC B 0 { A_FadeOut(0.05); }
+		KIRC A 2 { A_SetScale(0.126); }
+		KIRC A 0 { A_FadeOut(0.05); }
+		KIRC D 2 { A_SetScale(0.101); }
+		KIRC D 0 { A_FadeOut(0.05); }
+		KIRC C 2 { A_SetScale(0.081); }
+		KIRC C 0 { A_FadeOut(0.05); }
+		KIRC B 2 { A_SetScale(0.064); }
+		KIRC B 0 { A_FadeOut(0.05); }
+		KIRC A 2 { A_SetScale(0.052); }
+		Stop;
+	}
+}
+
+// What A_VileTarget drops at your feet during the Scream: a slow,
+// widening seed-bed of resurrection fields and spots.
+class RS_EyeSpawnerMOT : Actor
+{
+	Default { +NOBLOCKMAP +NOGRAVITY +NOCLIP +NOTIMEFREEZE +BRIGHT }
+	States
+	{
+	Spawn:
+		TNT1 A 0 NoDelay { A_SpawnItemEx("RS_OldTimeyMOT", 0, 0, 16, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_BrightUpVile2", random(-320, 320), random(-320, 320), random(1, 12), 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_WhiteVileResser", random(-320, 320), random(-320, 320), 1, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AA 0 { A_SpawnItemEx("RS_WVileSpot", random(-320, 320), random(-320, 320), 1, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_BrightUpVile2", random(-320, 320), random(-320, 320), random(1, 12), 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_WhiteVileResser", random(-320, 320), random(-320, 320), 1, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_BrightUpVile2", random(-320, 320), random(-320, 320), random(1, 12), 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_WhiteVileResser", random(-320, 320), random(-320, 320), 1, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_BrightUpVile2", random(-768, 768), random(-768, 768), random(1, 12), 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_WhiteVileResser", random(-768, 768), random(-768, 768), 1, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AA 0 { A_SpawnItemEx("RS_WVileSpot", random(-768, 768), random(-768, 768), 1, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_BrightUpVile2", random(-768, 768), random(-768, 768), random(1, 12), 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_WhiteVileResser", random(-768, 768), random(-768, 768), 1, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 8;
+		Stop;
+	}
+}
+
+// The clock-burst A_VileTarget drops for StealofTime / ENDOFTIME.
+class RS_TIMESTEALMOT : Actor
+{
+	Default { +NOBLOCKMAP +NOGRAVITY +NOCLIP +NOTIMEFREEZE }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 AAAA 2 { A_SpawnItemEx("RS_ClockMOT", random(-256, 256), random(-256, 256), random(-32, 128), frandom(-0.1, 0.1), frandom(-0.1, 0.1), frandom(0, 0.7), 0, SXF_NOCHECKPOSITION); }
+		Stop;
+	}
+}
+
+// ---------- BoltsofTime ----------
+
+// CH's plain VBtrail, which CHP's VBtrailMOT only adds NOTIMEFREEZE to.
+class RS_VBtrail : Actor
+{
+	Default
+	{
+		Radius 6; Height 16; Speed 18;
+		Projectile;
+		+NOINTERACTION
+		RenderStyle "Add"; Scale 0.75; Alpha 0.6;
+	}
+	States
+	{
+	Spawn:
+		FBXP ABC 3 Bright;
+		Goto Death;
+	Death:
+		FBXP CBA 3 Bright;
+		Stop;
+	}
+}
+
+class RS_VBtrailMOT : RS_VBtrail
+{
+	Default { +NOTIMEFREEZE }
+}
+
+// The laser the planted eye fires when it opens.
+class RS_EyeShotMOT : FastProjectile
+{
+	Default
+	{
+		Radius 13; Height 16; Speed 40; Damage 4;
+		DamageType "Plasma";
+		Species "MasterofTime";
+		Scale 0.1; Alpha 1.0;
+		Projectile;
+		+NOTIMEFREEZE +DONTHARMSPECIES +THRUSPECIES +MTHRUSPECIES
+		SeeSound "SPMLASER";
+		DeathSound "baron/shotx";
+		RenderStyle "Stencil";
+		StencilColor "FF 00 00";
+	}
+	States
+	{
+	Spawn:
+		SSBL K 4 Bright;
+		Loop;
+	Death:
+		PLSE ABCDE 2 Bright { A_SetScale(0.65); }
+		Stop;
+	}
+}
+
+// A planted eye. It is a real (uncounted) monster: it waits, opens,
+// fires once, closes and kills itself -- so it can be shot down before
+// it ever gets its shot off.
+class RS_BoltEyeMOT : Actor
+{
+	Default
+	{
+		Radius 12; Height 20; Health 60;
+		Species "MasterofTime";
+		RenderStyle "SoulTrans"; Alpha 0.75; Scale 0.8;
+		Monster;
+		+LOOKALLAROUND +FLOAT +NOGRAVITY +NOTRIGGER +NOTELEPORT +NOCLIP
+		-COUNTKILL
+		+DONTHARMSPECIES +THRUSPECIES +MTHRUSPECIES +NOTIMEFREEZE
+		BloodColor "Black";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 20;
+		WVEY ABCD 8 Bright;
+		WVEY E 8 Bright { A_FaceTarget(); }
+		WVEY E 0 { A_StartSound("SPMLASER", CHAN_AUTO); }
+		WVEY E 8 Bright { A_SpawnProjectile("RS_EyeShotMOT", 0); }
+		WVEY E 8 Bright { A_FaceTarget(); }
+		WVEY DCBA 8 Bright;
+		TNT1 A 0 { A_Die(); }
+		Stop;
+	Death:
+		TNT1 A 0;
+		Stop;
+	}
+}
+
+// The bolt itself -- it plants an eye behind it as it flies.
+class RS_BoltMOT : FastProjectile
+{
+	Default
+	{
+		Radius 6; Height 16; Speed 25;
+		DamageFunction (random(10, 50));
+		Species "MasterofTime";
+		DamageType "Plasma";
+		Projectile;
+		+DONTHARMSPECIES +THRUSPECIES +MTHRUSPECIES +NOTIMEFREEZE
+		RenderStyle "Add"; Alpha 1;
+		SeeSound "baron/attack";
+		DeathSound "baron/shotx";
+	}
+	States
+	{
+	Spawn:
+		FATB ABABABAB 2 Bright { A_SpawnItemEx("RS_VBtrailMOT", 0, 0, -1); }
+		FATB B 0 { A_SpawnItemEx("RS_BoltEyeMOT", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		Loop;
+	Death:
+		TNT1 A 0 { A_Explode(random(10, 50), 32); }
+		FBXP ABC 6 Bright;
+		TNT1 AAAAAA 0 { A_SpawnItemEx("RS_ClockMOT", 0, 0, 0, frandom(-6, 6), frandom(-6, 6), frandom(-6, 6), 0, SXF_NOCHECKPOSITION); }
+		Stop;
+	}
+}
+
+// ---------- RingsofTime ----------
+// Deals NO damage. Its entire job is to stack RS_MOTFreezeToken on you
+// -- four of those and the boss earns its FREEZE.
+class RS_TimeShockMOT : FastProjectile
+{
+	Default
+	{
+		Radius 32; Height 64; Speed 12; Damage 0;
+		Species "MasterofTime";
+		RenderStyle "Translucent"; Alpha 0.60;
+		Projectile;
+		-CANBLAST
+		+NOTIMEFREEZE +DONTHARMSPECIES +THRUSPECIES +MTHRUSPECIES
+		+NOCLIP +NODAMAGETHRUST +SEEKERMISSILE
+	}
+	States
+	{
+	Spawn:
+		BLST A 0;
+		BLST A 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST A 0 { A_Explode(6, 100); }
+		BLST B 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST B 0 { A_Explode(6, 100); }
+		BLST C 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST C 0 { A_Explode(6, 100); }
+		BLST D 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST D 0 { A_Explode(6, 100); }
+		BLST E 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST E 0 { A_Explode(6, 100); }
+		BLST F 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST F 0 { A_Explode(6, 100); }
+		BLST G 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST G 0 { A_Explode(6, 100); }
+		BLST H 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST H 0 { A_Explode(6, 100); }
+		BLST I 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST I 0 { A_Explode(6, 100); }
+		BLST J 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST J 0 { A_Explode(6, 100); }
+		BLST K 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST K 0 { A_Explode(6, 100); }
+		BLST L 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST L 0 { A_Explode(6, 100); }
+		BLST M 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST M 0 { A_Explode(6, 100); }
+		BLST N 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST N 0 { A_Explode(6, 100); }
+		BLST O 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST O 0 { A_Explode(6, 100); }
+		BLST P 2 Bright { A_RadiusGive("RS_MOTFreezeToken", 210, RGF_PLAYERS, 1); }
+		BLST P 0 { A_Explode(6, 100); }
+		Stop;
+	}
+}
+
+// ---------- CloneofTime ----------
+// A bouncing grenade that never stops bouncing; where it dies, a clone
+// of the boss stands up.
+class RS_CloneTrailMOT : Actor
+{
+	Default
+	{
+		RenderStyle "Stencil"; Alpha 1.0; Scale 1.5;
+		+NOBLOCKMAP +NOGRAVITY +NOCLIP +NOTIMEFREEZE
+		StencilColor "E6 D7 73";
+	}
+	States
+	{
+	Spawn:
+		SBS4 ABC 1 { A_FadeOut(0.05); }
+		Loop;
+	}
+}
+
+class RS_CloneSummonMOT : Actor
+{
+	Default
+	{
+		Radius 13; Height 16; Speed 20;
+		Species "MasterofTime";
+		RenderStyle "Add"; Alpha 1.0; Scale 1.5;
+		Gravity 0.6;
+		Projectile;
+		+NOTIMEFREEZE +DONTHARMSPECIES +THRUSPECIES +MTHRUSPECIES
+		-NOGRAVITY
+		+BOUNCEONWALLS +BOUNCEONCEILINGS
+		BounceCount 99999;
+		BounceFactor 1;
+		WallBounceFactor 1;
+		SeeSound "Crack/see";
+		DeathSound "Crack/death";
+	}
+	States
+	{
+	Spawn:
+		SBS4 ABC 1 Bright { A_SpawnItemEx("RS_CloneTrailMOT", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		Loop;
+	Death:
+		MISL BCD 3 Bright { A_SetScale(1.0); }
+		TNT1 AAAAAAAAAAAAAAAA 2 { A_SpawnItemEx("RS_ClockMOT", 0, 0, 0, 0, 0, 6, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 0 { A_SpawnItemEx("RS_ArchvileCloneMOT", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		Stop;
+	}
+}
+
 // --- CHP-14 IMPORT CORRECTIONS ------------------------------------
 //   * RS_ArchRingHelp drops the CH +INVISIBLE flag -- with it, the ring
 //     sprite the actor exists to draw never appears. Rest is verbatim.
