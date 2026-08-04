@@ -1,39 +1,84 @@
 // =====================================================================
-// RS_Zombieman -- per-tier state rebuild (docs/rs_09 spec, RS_Imp.zs
-// is the template). Replaces Zombieman. THIRTEEN REAL CREATURES:
+// RS_Zombieman -- rebuilt from Colourful Hell Plus, verbatim.
+// ---------------------------------------------------------------------
+// SOURCE OF TRUTH: E:\New folder\ART SOURCE\CHP\DECORATE\01\01_<code>.txt
+// One CHP file per colour; the FIRST ACTOR in each file is the monster.
+// CH (ART SOURCE\CH\decorate\Zombies.txt) was consulted ONLY to fill
+// state blocks CHP leaves undefined -- where both define a block, CHP
+// wins. Nothing here is inferred, tinted, or shared.
 //
-//   T00 POSS vanilla bullet        T01 POSS+tint bullet + poison gas
-//   T02 POSS+tint heavy bullet     T03 CYNT frost shot, ice-shatter death
-//   T04 POSS+tint bullet + seeker  T05 CZOW Orange Zombiewoman: burst
-//        orb                            guns / mini-rockets that JAM
-//   T06 ABTR Abyss Infected: twin  T07 POSS+tint FireBlu KAMIKAZE:
-//        abyss bolts, splash pain       fire shots, blows up in melee
-//   T08 SGAR Bodyguard: heavy      T09 SHDT Gray: rock volley, shatters
-//        bullet + leaping charge        into a rock ring when gibbed
-//   T10 ZUNM Red ZombieUnman: Unmaker rail barrage or heavy slug
-//   T11 PLAY "Player 9": SSG (one shell then reload) / plasma spam /
-//        rockets by range, real melee punch
-//   T12 MAGE THE UNDERTAKER: shovel blades close, bone shotgun mid,
-//        rapid bones far; the charge ladder upgrades the bones and
-//        finally unlocks the bone tornado
+//   tier  CHP    body  HP    spd pain  what it actually is
+//   T00   01_C   POSS    20   7  200  vanilla grunt, one aimed bullet
+//   T01   01_G   ZOMG    30   9  180  green: two bullet cycles, trails
+//                                     poison gas on walk / pain / death
+//   T02   01_B   ZOMB    40   9  140  blue: 3-round burst, alternates
+//                                     chase with fastchase
+//   T03   01_CY  CYNT    30   9   40  cyan: translucent, ice shot,
+//                                     SHATTERS on death (A_Burst)
+//   T04   01_P   BPOS    65  10  120  purple: hitscan inside 800, else a
+//                                     three-orb seeker volley
+//   T05   01_Y   CZOW    90  13  100  orange zombiewoman: 3-shot burst or
+//                                     mini-rockets that JAM after three
+//   T06   01_A   ABTR   200  14   18  abyss infected: twin abyss bolts,
+//                                     sows splash on walk, bursts on pain
+//   T07   01_F   ZOMF    50  12  255  fireblu KAMIKAZE: NO ranged attack
+//                                     at all -- trails fire and detonates
+//   T08   01_BR  SGAR   100   4  128  bodyguard: sniper bullet, front-leap,
+//                                     and the GET DOWN roll that heals
+//                                     nearby demons
+//   T09   01_GY  SHDT    80   4   40  gray: three-rock volley, gibs into a
+//                                     13-rock ring
+//   T10   01_R   ZUNM   115   8  100  red zombieunman: slug, or the
+//                                     five-beam Unmaker rail barrage
+//   T11   01_K   ZOMK  2000  26   16  PLAYER 9: SSG (one shell then a
+//                                     reload), plasma spam, rockets by
+//                                     range, real fist in melee
+//   T12   01_W   MAGE  3500  10   16  THE UNDERTAKER: shovel blades close,
+//                                     bone shotgun mid, rapid bones far;
+//                                     the ladder upgrades bone grade and
+//                                     finally unlocks the bone tornado
 //
-// RS mechanics preserved from the previous file: the Undertaker charge
-// ladder (RS_ClimbLadder on the charge counter, steps at 5/9/12,
-// tier-gated T06+) still rolls in the Pain DISPATCHER, still pays off
-// in stats AND in attack output (extra rounds in every bullet tier's
-// burst via rsStep; bone-grade upgrades + tornado unlock at T12).
-// Consts, keywords, TintTable, BodyTable (audit data) all kept.
-// RS_WearBody is gone -- bodies are literal sprites per cluster.
+// Tier stats come from CHP's own Health/Speed/PainChance per file and
+// are applied through TierData below, replacing the generic ladder.
 //
-// HONEST OMISSIONS (vs CH decorate): the Brown bodyguard's GETDOWN
-// warp-to-master escort move (needs a master-of-class chain) and the
-// CH gib-generator/particle dressing. Cyan/Green/Blue/Purple tinted
-// accessory-gib XDeaths (ZOMG/ZOMB/ZOMP sprites) are not in the
-// sprite import; those tiers gib with translated POSS frames instead.
+// RS mechanics preserved: the Undertaker charge ladder (RS_ClimbLadder,
+// consts RS_ZM_TIER_LADDER / STEP1-3), rolled in the Pain DISPATCHER;
+// GetBaseKeywords(); BodyTable() audit data; TintTable(). CH's
+// user_skel1 / BoneUp staircase IS that ladder: CH buffs at BoneUp
+// 5 / 9 / 12 -> user_skel1 2 / 3 / 4, which maps exactly onto rsStep
+// 1 / 2 / 3, so T12's `user_skel1==3` gates become `rsStep >= 2` and
+// `user_skel1==4` becomes `rsStep >= 3`.
+//
+// CHP cruft stripped per spec: NewIconCHP*/ColorTierIcon spawns,
+// CHRandom_GibGenerator, A_SpawnParticle dressing, A_GivetoChildren,
+// the CHBoner / CHWhitePlan / GrowRaisin inventory jumps, the
+// CHAbyssMark/Grow/AbyssGrow colour-promotion chain (RS owns tiering),
+// RandomLetterSpawner, and ACS_NamedExecuteAlways boss announcements.
+// User vars became private int fields: RocketCounter -> rsRockets,
+// ShotgunWhere -> rsShellUsed, BoneUp/user_skel1 -> ChargeCounter/rsStep.
+//
+// HONEST OMISSIONS (detail in the rebuild report):
+//   * ZOMG frame U does not exist in CH or CHP; T01's XDeath tail uses
+//     ZOMG T, the last real gib frame.
+//   * No Raise for T03 / T11 / T12 -- neither CHP nor CH defines one.
+//   * Per-tier BloodColor and GibHealth are CH/CHP actor properties with
+//     no safe runtime setter here; not ported.
 // =====================================================================
 
-class RS_Zombieman : RS_HumanMonster replaces Zombieman
+class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 {
+	// ---- The Undertaker's ladder (CH BoneUp -> user_skel1 staircase) ----
+	// Charge rises on every hit it takes. Steps at 5 / 9 / 12, exactly
+	// CH's BoneUp thresholds. Tier-gated so only the heavy tiers climb.
+	const RS_ZM_TIER_LADDER = 6;
+	const RS_ZM_STEP1 = 5;
+	const RS_ZM_STEP2 = 9;
+	const RS_ZM_STEP3 = 12;
+
+	private int rsStep;       // T12 bone grade  (CH user_skel1 - 1)
+	private int rsRockets;    // T05 rocket jam  (CH RocketCounter)
+	private bool rsShellUsed; // T11 SSG shell   (CH ShotgunWhere)
+
 	Default
 	{
 		Health 20;
@@ -51,40 +96,55 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 		Tag "Zombieman";
 	}
 
+	// CHP's real per-colour numbers, read from 01_*.txt. Health and Speed
+	// are absolute in CHP -- expressed here as multipliers of the Default
+	// (Health 20, Speed 8) so the base class's recompute-from-defaults
+	// contract still holds.
+	override bool TierData(int t, out RS_MonsterTierRow r)
+	{
+		r.hpMul = 1.0; r.spdMul = 1.0; r.painChance = 200; r.dmgMul = 1.0;
+		int hp = 20; int spd = 7;
+		switch (t)
+		{
+			case 0:  hp = 20;   spd = 7;  r.painChance = 200; r.dmgMul = 1.0; break;
+			case 1:  hp = 30;   spd = 9;  r.painChance = 180; r.dmgMul = 1.1; break;
+			case 2:  hp = 40;   spd = 9;  r.painChance = 140; r.dmgMul = 1.2; break;
+			case 3:  hp = 30;   spd = 9;  r.painChance = 40;  r.dmgMul = 1.3; break;
+			case 4:  hp = 65;   spd = 10; r.painChance = 120; r.dmgMul = 1.4; break;
+			case 5:  hp = 90;   spd = 13; r.painChance = 100; r.dmgMul = 1.5; break;
+			case 6:  hp = 200;  spd = 14; r.painChance = 18;  r.dmgMul = 1.7; break;
+			case 7:  hp = 50;   spd = 12; r.painChance = 255; r.dmgMul = 1.5; break;
+			case 8:  hp = 100;  spd = 4;  r.painChance = 128; r.dmgMul = 1.6; break;
+			case 9:  hp = 80;   spd = 4;  r.painChance = 40;  r.dmgMul = 1.5; break;
+			case 10: hp = 115;  spd = 8;  r.painChance = 100; r.dmgMul = 1.8; break;
+			case 11: hp = 2000; spd = 26; r.painChance = 16;  r.dmgMul = 2.5; break;
+			case 12: hp = 3500; spd = 10; r.painChance = 16;  r.dmgMul = 3.0; break;
+			default: return false;
+		}
+		r.hpMul  = double(hp) / 20.0;
+		r.spdMul = double(spd) / 8.0;
+		return true;
+	}
+
+	// Audit data. Every entry is a real, distinct CHP sprite set --
+	// verified present in sprites/monsters/Zombieman/T<nn>/.
 	override string BodyTable()
 	{
 		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "POSS POSS POSS CYNT POSS CZOW ABTR POSS SGAR SHDT ZUNM PLAY MAGE";
+		return "POSS ZOMG ZOMB CYNT BPOS CZOW ABTR ZOMF SGAR SHDT ZUNM ZOMK MAGE";
 	}
 
+	// CHP gives each colour its own ARTWORK, so no palette remap is
+	// needed or wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- rs_zombie_t01 rs_zombie_t02 rs_zombie_t03 rs_zombie_t04 "
-		       "rs_zombie_t05 rs_zombie_t06 rs_zombie_t07 - rs_zombie_t09 "
-		       "- rs_zombie_t11 rs_zombie_t12";
+		return "- - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
 	{
 		return "species:zombieman role:fodder delivery:bullet element:kinetic mobility:ground";
 	}
-
-	// -----------------------------------------------------------------
-	// THE UNDERTAKER'S LADDER. CHP's white zombieman tracks a counter and
-	// steps permanently harder at fixed marks -- not a single enrage but
-	// a staircase, so a zombieman that survives a long fight becomes a
-	// genuinely different problem. Rebuilt on the charge counter.
-	//
-	// Charge rises on every hit it takes. Steps at 5 / 9 / 12.
-	// -----------------------------------------------------------------
-	const RS_ZM_TIER_LADDER = 6;
-	const RS_ZM_STEP1 = 5;
-	const RS_ZM_STEP2 = 9;
-	const RS_ZM_STEP3 = 12;
-
-	private int rsStep;
-	private int rsRockets;    // T05 rocket-jam counter (CH RocketCounter)
-	private bool rsShellUsed; // T11 SSG one-shell jam (CH ShotgunWhere)
 
 	void RS_ClimbLadder()
 	{
@@ -95,48 +155,68 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 
 		if (rsStep < 1 && ChargeCounter >= RS_ZM_STEP1)
 		{
+			// CH Buff1: MISSILEEVENMORE, speed up, grow.
 			rsStep = 1;
 			Speed *= 1.3;
 			MissileChanceMult *= 2.0;
 			A_SetScale(Scale.X * 1.08);
-			A_StartSound("grunt/sight", CHAN_VOICE);
+			A_StartSound("under/goodie", CHAN_VOICE);
 		}
 		else if (rsStep < 2 && ChargeCounter >= RS_ZM_STEP2)
 		{
+			// CH Buff2: user_skel1 == 3 -- bone grade 2 unlocks.
 			rsStep = 2;
 			Speed *= 1.25;
 			A_SetScale(Scale.X * 1.10);
-			A_StartSound("grunt/sight", CHAN_VOICE);
+			A_StartSound("under/goodie", CHAN_VOICE);
 		}
 		else if (rsStep < 3 && ChargeCounter >= RS_ZM_STEP3)
 		{
-			// Final form: stops flinching entirely.
+			// CH Buff3: user_skel1 == 4 -- final form, stops flinching,
+			// bone grade 3 and the tornado unlock.
 			rsStep = 3;
 			bNOPAIN = true;
 			Speed *= 1.2;
 			A_SetScale(Scale.X * 1.12);
-			A_StartSound(RS_MonsterCatalog.SND_Enrage(), CHAN_VOICE);
+			A_StartSound("under/goodie", CHAN_VOICE);
 		}
 	}
 
-	// Per-tier voices, straight from CH's own sound assignments
-	// (SNDINFO monsters section carries the lumps).
+	// Per-tier voices, plus the handful of per-tier actor properties CHP
+	// sets that the tier row cannot carry. Sound names are CHP's own,
+	// falling back to CH's parent actor where CHP declares none.
 	override void OnTierApplied(int t)
 	{
-		SeeSound = "grunt/sight";  PainSound = "grunt/pain";
+		SeeSound = "grunt/sight";   PainSound = "grunt/pain";
 		DeathSound = "grunt/death"; ActiveSound = "grunt/active";
 		AttackSound = "grunt/attack";
+		Mass = 100;
+		bROLLSPRITE = false;
+		A_SetRenderStyle(1.0, STYLE_Normal);
+
 		switch (t)
 		{
+			case 2:
+			case 3:
+			case 4:
+			case 9:
+				SeeSound = "zom2/see";    PainSound = "form2/hurt";
+				DeathSound = "zom2/die";  ActiveSound = "form2/active";
+				break;
 			case 5:
 				SeeSound = "lady/aggro";  PainSound = "lady/hurt";
 				DeathSound = "lady/die";  ActiveSound = "lady/active";
 				break;
 			case 6:
+				SeeSound = "zom2/see";    PainSound = "form2/hurt";
+				DeathSound = "imp2/die";  ActiveSound = "form2/active";
+				break;
 			case 8:
-			case 9:
 				SeeSound = "zom2/see";    PainSound = "form2/hurt";
 				DeathSound = "zom2/die";  ActiveSound = "form2/active";
+				AttackSound = "snprfire";
+				Mass = 1000;
+				bROLLSPRITE = true;   // CH BrownZombie2 +ROLLSPRITE
 				break;
 			case 10:
 				SeeSound = "zom2/see";    PainSound = "form2/hurt";
@@ -144,20 +224,28 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 				AttackSound = "zombie/unmaker";
 				break;
 			case 11:
-				PainSound = "player9/pain"; DeathSound = "player9/death";
+				PainSound = "*pain50";    DeathSound = "*death";
 				break;
 			case 12:
-				SeeSound = "under/see";   PainSound = "skeleton/pain";
+				SeeSound = "under/see";   PainSound = "skelpai";
 				DeathSound = "under/die"; ActiveSound = "grunt/active";
+				Mass = 400;
 				break;
 			default:
 				break;
 		}
+
+		// CHP's cyan zombie is Renderstyle Translucent / Alpha 0.75.
+		if (t == 3)
+			A_SetRenderStyle(0.75, STYLE_Translucent);
+		// CHP gives the gray zombie Mass 400.
+		if (t == 9)
+			Mass = 400;
 	}
 
 	States
 	{
-	// ===== dispatcher overrides: family-wide mechanics roll here =====
+	// ===== dispatcher overrides: family-wide rolls happen here =====
 	Missile:
 		TNT1 A 0 { return TierState("Missile"); }
 		Goto See;
@@ -169,43 +257,25 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 		}
 		Goto See;
 
-	// =========================================================
-	// T00 -- vanilla zombieman. T01/T02/T04 share the POSS body:
-	// walk/pain/death stack here, bespoke attacks in their own
-	// Missile. T07 (kamikaze) shares Spawn/Death only -- its See
-	// trails fire and its XDeath is an explosion.
-	// =========================================================
+	// ================= T00 COMMON (01_C) =================
+	// Pain comes from CH CommonZombie's own parent (vanilla ZombieMan);
+	// CHP's Common block does not redefine it.
 	Spawn.T00:
-	Spawn.T01:
-	Spawn.T02:
-	Spawn.T04:
-	Spawn.T07:
 		"POSS" AB 10 { A_Look(); }
 		Loop;
 	See.T00:
-	See.T01:
-	See.T02:
-	See.T04:
 		"POSS" AABBCCDD 4 { A_Chase(); }
 		Loop;
 	Missile.T00:
-		"POSS" E 10 { A_FaceTarget(); A_StartSound("grunt/attack", CHAN_WEAPON); }
-		"POSS" F 8 Bright { RS_TierBullets(1 + rsStep, 5.6, 3, 15); }
+		"POSS" E 10 { A_FaceTarget(); }
+		"POSS" F 8 { A_CustomBulletAttack(22.5, 0, 1, random(1, 5) * 3, "BulletPuff", 0, CBAF_NORANDOM); }
 		"POSS" E 8;
 		Goto See;
 	Pain.T00:
-	Pain.T01:
-	Pain.T02:
-	Pain.T04:
-	Pain.T07:
 		"POSS" G 3;
 		"POSS" G 3 { A_Pain(); }
 		Goto See;
 	Death.T00:
-	Death.T01:
-	Death.T02:
-	Death.T04:
-	Death.T07:
 		"POSS" H 5;
 		"POSS" I 5 { A_Scream(); }
 		"POSS" J 5 { A_NoBlocking(); }
@@ -213,55 +283,118 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 		"POSS" L -1;
 		Stop;
 	XDeath.T00:
-	XDeath.T01:
-	XDeath.T02:
-	XDeath.T04:
-		// CH gibs Green/Blue/Purple with tinted accessory sprites
-		// (ZOMG/ZOMB/ZOMP) -- not in the import; the translation on
-		// these POSS frames keeps the gibs the right colour.
-		"POSS" M 5;
-		"POSS" N 5 { A_XScream(); }
-		"POSS" O 5 { A_NoBlocking(); }
-		"POSS" PQRST 5;
+		"POSS" M 3;
+		"POSS" N 3 { A_XScream(); }
+		"POSS" O 3 { A_NoBlocking(); }
+		"POSS" PQRST 3;
 		"POSS" U -1;
 		Stop;
 	Raise.T00:
-	Raise.T01:
-	Raise.T02:
-	Raise.T04:
-	Raise.T07:
-		"POSS" LKJIH 5;
+		"POSS" K 5;
+		"POSS" JIH 5;
 		Goto See;
 
-	// ===== T01 GREEN -- bullet + stationary poison gas =====
+	// ================= T01 GREEN (01_G) =================
+	// Fires TWO bullet/gas cycles per Missile pass, and once engaged it
+	// walks inside its own poison cloud forever (CHP's See2).
+	Spawn.T01:
+		"ZOMG" AB 10 { A_Look(); }
+		Loop;
+	See.T01:
+		"ZOMG" AABBCCDD 4 { A_Chase(); }
+		Loop;
+	See.T01.Gas:
+		"ZOMG" AABBCCDD 4 { A_Chase(); }
+		"ZOMG" A 0 { A_SpawnProjectile("RS_Gas11", 32, 0); }
+		Loop;
 	Missile.T01:
-		"POSS" E 10 { A_FaceTarget(); A_StartSound("grunt/attack", CHAN_WEAPON); }
-		"POSS" F 6 Bright { RS_TierBullets(1 + rsStep, 5.6, 3, 15); }
-		"POSS" F 4 Bright { A_SpawnProjectile("RS_Gas11", 24, 0, 0); }
-		"POSS" E 6;
-		Goto See;
+		"ZOMG" E 0 { A_SpawnProjectile("RS_Gas11", 32, 0); }
+		"ZOMG" E 10 { A_FaceTarget(); }
+		"ZOMG" F 8 { A_CustomBulletAttack(22.5, 0, 1, random(1, 5) * 3, "BulletPuff", 0, CBAF_NORANDOM); }
+		"ZOMG" E 8 { A_SpawnProjectile("RS_Gas11", 32, 0); }
+		"ZOMG" E 10 { A_FaceTarget(); }
+		"ZOMG" F 8 { A_CustomBulletAttack(22.5, 0, 1, random(1, 5) * 3, "BulletPuff", 0, CBAF_NORANDOM); }
+		"ZOMG" E 8 { A_SpawnProjectile("RS_Gas11", 32, 0); }
+		Goto See.T01.Gas;
+	Pain.T01:
+		"ZOMG" G 3 { A_SpawnProjectile("RS_Gas11", 32, 0); }
+		"ZOMG" G 3 { A_Pain(); }
+		Goto See.T01.Gas;
+	Death.T01:
+		"ZOMG" H 5;
+		"ZOMG" I 5 { A_Scream(); }
+		"ZOMG" J 5 { A_NoBlocking(); }
+		"ZOMG" K 5 { A_SpawnProjectile("RS_Gas11", 32, 0); }
+		"ZOMG" L -1;
+		Stop;
+	XDeath.T01:
+		// CHP's last three lines use ZOMG frame U; no such frame ships in
+		// CH or CHP, so the gas burst rides the last real frame, T.
+		"ZOMG" M 5 { A_SetTranslucent(0.8); }
+		"ZOMG" N 5 { A_XScream(); }
+		"ZOMG" O 5 { A_NoBlocking(); }
+		"ZOMG" PQR 5 { A_SetTranslucent(0.5); }
+		"ZOMG" RST 5 { A_SetTranslucent(0.3); }
+		"ZOMG" T 5 { A_SpawnProjectile("RS_Gas11", 49, 0); }
+		"ZOMG" T 0 { A_SpawnProjectile("RS_Gas11", 32, 7); }
+		"ZOMG" T 0 { A_SpawnProjectile("RS_Gas11", 32, -7); }
+		Stop;
+	Raise.T01:
+		"ZOMG" K 5;
+		"ZOMG" JIH 5;
+		Goto See.T01.Gas;
 
-	// ===== T02 BLUE -- heavier bullet (CH blue is the HP/damage jump) =====
+	// ================= T02 BLUE (01_B) =================
+	Spawn.T02:
+		"ZOMB" AB 10 { A_Look(); }
+		Loop;
+	See.T02:
+		"ZOMB" AABBCCDD 4 { A_Chase(); }
+		"ZOMB" AABBCCDD 4 { A_FastChase(); }
+		Loop;
 	Missile.T02:
-		"POSS" E 10 { A_FaceTarget(); A_StartSound("grunt/attack", CHAN_WEAPON); }
-		"POSS" F 8 Bright { RS_TierBullets(1 + rsStep, 5.6, 5, 18); }
-		"POSS" E 8;
+		"ZOMB" E 10 { A_FaceTarget(); }
+		"ZOMB" F 7 { A_CustomBulletAttack(7, 7, 3, random(1, 3), "BulletPuff"); }
+		"ZOMB" E 8;
+		Goto See;
+	Pain.T02:
+		"ZOMB" G 3;
+		"ZOMB" G 3 { A_Pain(); }
+		Goto See;
+	Death.T02:
+		"ZOMB" H 5;
+		"ZOMB" I 5 { A_Scream(); }
+		"ZOMB" J 5 { A_NoBlocking(); }
+		"ZOMB" K 5;
+		"ZOMB" L -1;
+		Stop;
+	XDeath.T02:
+		"ZOMB" N 5 { A_XScream(); }
+		"ZOMB" O 5 { A_NoBlocking(); }
+		"ZOMB" PQRST 5;
+		"ZOMB" U -1;
+		Stop;
+	Raise.T02:
+		"ZOMB" K 5;
+		"ZOMB" JIH 5;
 		Goto See;
 
-	// ===== T03 CYAN -- frost zombie (CYNT), shatters on death =====
+	// ================= T03 CYAN (01_CY) =================
+	// Translucent, barely flinches, and its corpse wobbles then SHATTERS.
+	// CHP and CH both give it no XDeath and no Raise.
 	Spawn.T03:
 		"CYNT" AB 10 { A_Look(); }
 		Loop;
 	See.T03:
 		"CYNT" AABBCCDD 2 { A_Chase(); }
-		TNT1 A 0 A_Jump(128, "See.T03.Rush");
+		"CYNT" A 0 A_Jump(128, "See.T03.Rush");
 		Loop;
 	See.T03.Rush:
 		"CYNT" AABBCCDD 1 { A_FastChase(); }
 		Goto See.T03;
 	Missile.T03:
 		"CYNT" E 6 { A_FaceTarget(); }
-		"CYNT" F 4 Bright { A_SpawnProjectile("RS_IceZombieShot", 42, 1, random(-2, 2)); }
+		"CYNT" F 4 { A_SpawnProjectile("RS_IceZombieShot", 42, 1, random(-2, 2)); }
 		"CYNT" E 4;
 		Goto See;
 	Pain.T03:
@@ -269,86 +402,129 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 		"CYNT" G 3 { A_Pain(); }
 		Goto See;
 	Death.T03:
-	XDeath.T03:
-		// CH: the frost zombie's corpse wobbles and shatters.
 		"CYNT" G 12 { A_Scream(); }
 		"CYNT" G 4 { A_NoBlocking(); }
 		"CYNT" G 6 { A_SetScale(1.2, 0.8); }
 		"CYNT" G 6 { A_SetScale(1.0, 1.0); }
+		"CYNT" G 6 { A_SetScale(0.8, 1.2); }
+		"CYNT" G 4 { A_SetScale(1.2, 0.8); }
 		"CYNT" G 4 { A_SetScale(0.8, 1.2); }
 		"CYNT" G 3 { A_SetScale(1.2, 0.8); }
+		"CYNT" G 3 { A_SetScale(0.8, 1.2); }
+		"CYNT" G 2 { A_SetScale(1.2, 0.8); }
 		"CYNT" G 2 { A_SetScale(0.8, 1.2); }
 		"CYNT" G 1 { A_SetScale(1.2, 0.8); }
-		TNT1 A 0 { A_IceGuyDie(); }
+		"CYNT" G 1 { A_SetScale(0.8, 1.2); }
+		MISL X 0 { A_StartSound("misc/icebreak", CHAN_BODY); }
+		MISL X 0 { A_Burst("IceChunk"); }
 		Stop;
 
-	// ===== T04 PURPLE -- bullet + seeking orb =====
+	// ================= T04 PURPLE (01_P) =================
+	// Hitscan inside 800 units, otherwise a three-orb seeker volley.
+	Spawn.T04:
+		"BPOS" AB 10 { A_Look(); }
+		Loop;
+	See.T04:
+		"BPOS" AABBCCDD 4 { A_Chase(); }
+		"BPOS" AABBCCDD 4 { A_FastChase(); }
+		Loop;
 	Missile.T04:
-		"POSS" E 10 { A_FaceTarget(); A_StartSound("grunt/attack", CHAN_WEAPON); }
-		"POSS" F 6 Bright { RS_TierBullets(1 + rsStep, 5.6, 3, 15); }
-		"POSS" F 4 Bright { A_SpawnProjectile("RS_Orbb11", 24, 0, random(-4, 4)); }
-		"POSS" E 6;
+		"BPOS" E 2 A_JumpIfCloser(800, "Missile.T04.Hitscan");
+		"BPOS" E 0 A_Jump(255, "Missile.T04.Orb");
+		// CHP falls straight through into Hitscanne on the rare miss.
+	Missile.T04.Hitscan:
+		"BPOS" E 10 { A_FaceTarget(); }
+		"BPOS" F 7 { A_CustomBulletAttack(9, 9, 3, random(1, 2), "BulletPuff"); }
+		"BPOS" F 4 { A_CustomBulletAttack(7, 7, 2, random(1, 2), "BulletPuff"); }
+		"BPOS" E 8 A_MonsterRefire(128, "See");
+		Goto Missile;
+	Missile.T04.Orb:
+		"BPOS" E 5 { A_FaceTarget(); }
+		"BPOS" F 5 Bright { A_SpawnProjectile("RS_Orbb11", 46, 1); }
+		"BPOS" F 5 Bright { A_SpawnProjectile("RS_Orbb11", 46, 1); }
+		"BPOS" F 5 Bright { A_SpawnProjectile("RS_Orbb11", 46, 1); }
+		"BPOS" E 5;
+		Goto See;
+	Pain.T04:
+		"BPOS" G 3;
+		"BPOS" G 3 { A_Pain(); }
+		Goto See;
+	Death.T04:
+		"BPOS" H 5;
+		"BPOS" I 5 { A_Scream(); }
+		"BPOS" J 5 { A_NoBlocking(); }
+		"BPOS" K 5;
+		"BPOS" L -1;
+		Stop;
+	XDeath.T04:
+		"BPOS" M 5;
+		"BPOS" N 5 { A_XScream(); }
+		"BPOS" O 5 { A_NoBlocking(); }
+		"BPOS" PQRST 5;
+		"BPOS" U -1;
+		Stop;
+	Raise.T04:
+		"BPOS" K 5;
+		"BPOS" JIH 5;
 		Goto See;
 
-	// ===== T05 YELLOW -- Orange Zombiewoman (CZOW): guns or rockets,
-	// rockets jam after three, dodge-weaves under fire =====
+	// ================= T05 ORANGE ZOMBIEWOMAN (01_Y) =================
+	// Bursts inside 550, else a coin-flip between more bursts and
+	// mini-rockets. Three rockets and the launcher JAMS -- she stands
+	// there hammering it, NOPAIN, until it clears.
 	Spawn.T05:
 		"CZOW" AB 10 { A_Look(); }
 		Loop;
 	See.T05:
-		"CZOW" AABB 4 { A_Chase(); }
-		"CZOW" CCDD 4 { A_Chase(); }
-		TNT1 A 0 A_Jump(88, "Dodge.T05");
+		"CZOW" AABBCCDD 4 { A_Chase(); }
 		Loop;
-	Dodge.T05:
-		"CZOW" AABB 4 { A_FastChase(); }
-		"CZOW" CCDD 4 { A_FastChase(); }
-		TNT1 A 0 A_Jump(88, "See.T05");
+	See.T05.Dodge:
+		"CZOW" AABBCCDD 4 { A_FastChase(); }
+		"CZOW" A 0 A_Jump(88, "See.T05");
 		Loop;
 	Missile.T05:
 		"CZOW" E 5 { A_FaceTarget(); }
-		TNT1 A 0 A_JumpIfCloser(550, "Missile.T05.Guns");
-		TNT1 A 0 A_Jump(160, "Missile.T05.Rockets");
-		Goto Missile.T05.Guns;
-	Missile.T05.Guns:
-		// Three-round burst, spread opening as it walks fire.
-		"CZOW" F 3 Bright { A_StartSound("chainguy/attack", CHAN_WEAPON); RS_TierBullets(1, 4.0, 1, 3); }
-		"CZOW" E 2 { A_FaceTarget(); }
-		"CZOW" F 3 Bright { RS_TierBullets(1, 7.0, 1, 3); }
-		"CZOW" E 2 { A_FaceTarget(); }
-		"CZOW" F 3 Bright { RS_TierBullets(1, 9.0, 1, 3); }
-		"CZOW" E 2;
+		"CZOW" E 0 A_JumpIfCloser(550, "Missile.T05.Bullets");
+		"CZOW" E 0 A_Jump(256, "Missile.T05.RocketsOr");
 		Goto See;
-	Missile.T05.Rockets:
-		TNT1 A 0
-		{
-			if (rsRockets >= 3)
-				return ResolveState("Missile.T05.Jam");
-			return ResolveState(null);
-		}
-		"CZOW" F 3 Bright { rsRockets++; A_SpawnProjectile("RS_MiniRKTZombie", 32, 2, random(-2, 2)); }
-		"CZOW" E 2;
+	Missile.T05.RocketsOr:
+		"CZOW" E 0 A_Jump(255, "Missile.T05.Rockets", "Missile.T05.Bullets");
+		Goto See;
+	Missile.T05.Bullets:
+		"CZOW" F 0 { A_StartSound("chainguy/attack", CHAN_WEAPON); }
+		"CZOW" F 3 Bright { A_CustomBulletAttack(4, 4, 1, random(1, 3), "BulletPuff"); }
+		"CZOW" E 2 { A_FaceTarget(); }
+		"CZOW" F 3 Bright { A_CustomBulletAttack(7, 7, 1, random(1, 3), "BulletPuff"); }
+		"CZOW" E 2 { A_FaceTarget(); }
+		"CZOW" F 3 Bright { A_CustomBulletAttack(9, 9, 1, random(1, 3), "BulletPuff"); }
 		"CZOW" E 2 A_MonsterRefire(128, "See");
-		Goto Missile.T05.Rockets;
+		Goto Missile;
+	Missile.T05.Rockets:
+		"CZOW" F 0 { if (rsRockets >= 3) return ResolveState("Missile.T05.Jam"); return ResolveState(null); }
+		"CZOW" F 3 Bright { A_SpawnProjectile("RS_MiniRKTZombie", 32, 2, random(-2, 2)); }
+		"CZOW" E 2 { rsRockets++; }
+		"CZOW" E 2 A_MonsterRefire(128, "See");
+		Goto Missile;
 	Missile.T05.Jam:
-		// The launcher jams: helpless clatter, then back to work.
-		TNT1 A 0 { bNOPAIN = true; }
-		"CZOW" E 10 { A_StartSound("jam/jamd", CHAN_WEAPON); }
+		"CZOW" E 0 { bNOPAIN = true; }
+		"CZOW" E 10 { A_StartSound("jam/jamd", CHAN_AUTO, 0, 1.9); }
 		"CZOW" A 18 { A_FaceTarget(); }
-		"CZOW" E 10 { A_StartSound("jam/jamd", CHAN_WEAPON); }
+		"CZOW" E 10 { A_StartSound("jam/jamd", CHAN_AUTO, 0, 1.9); }
+		"CZOW" E 10 { A_StartSound("jam/jamd", CHAN_AUTO, 0, 1.9); }
+		"CZOW" E 10 { A_StartSound("jam/jamd", CHAN_AUTO, 0, 1.9); }
 		"CZOW" G 16 { rsRockets = 0; }
-		"CZOW" A 16 { A_StartSound("lady/active", CHAN_VOICE); bNOPAIN = false; }
+		"CZOW" A 16 { A_StartSound("lady/active", CHAN_VOICE); }
+		"CZOW" A 0 { bNOPAIN = false; }
 		Goto See;
 	Pain.T05:
 		"CZOW" G 3;
 		"CZOW" G 3 { A_Pain(); }
-		Goto Dodge.T05;
+		Goto See.T05.Dodge;
 	Death.T05:
 		"CZOW" H 5;
 		"CZOW" I 5 { A_Scream(); }
 		"CZOW" J 5 { A_NoBlocking(); }
-		"CZOW" K 5;
-		"CZOW" LM 5;
+		"CZOW" KLM 5;
 		"CZOW" N -1;
 		Stop;
 	XDeath.T05:
@@ -362,18 +538,19 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 		"CZOW" MLKJIH 5;
 		Goto See;
 
-	// ===== T06 ABYSS -- Abyss Infected (ABTR): twin abyss bolts,
-	// splash burst when hurt =====
+	// ================= T06 ABYSS INFECTED (01_A) =================
+	// Leaks abyss splash as it walks, twin bolts at range, and being hurt
+	// detonates a wide splash field around it.
 	Spawn.T06:
 		"ABTR" AB 10 { A_Look(); }
 		Loop;
 	See.T06:
 		"ABTR" AAB 2 { A_Chase(); }
-		TNT1 A 0 { A_SpawnItemEx("RS_SplashAbyss", random(-8, 8), random(-8, 8), random(5, 32)); }
-		"ABTR" B 1 { A_FastChase(); }
+		TNT1 AAA 0 { A_SpawnItemEx("RS_SplashAbyss", random(-8, 8), random(-8, 8), random(5, 32)); }
+		"ABTR" B 2 { A_FastChase(); }
 		"ABTR" CCD 2 { A_Chase(); }
-		TNT1 A 0 { A_SpawnItemEx("RS_SplashAbyss", random(-8, 8), random(-8, 8), random(5, 32)); }
-		"ABTR" D 1 { A_FastChase(); }
+		TNT1 AAA 0 { A_SpawnItemEx("RS_SplashAbyss", random(-8, 8), random(-8, 8), random(5, 32)); }
+		"ABTR" D 2 { A_FastChase(); }
 		Loop;
 	Missile.T06:
 		"ABTR" E 10 { A_FaceTarget(); }
@@ -384,7 +561,7 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 	Pain.T06:
 		"ABTR" G 1;
 		"ABTR" G 1 { A_Pain(); }
-		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_SplashAbyss2", random(-96, 96), random(-96, 96), random(6, 16), 0, 0, 2, 0, SXF_NOCHECKPOSITION); }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_SplashAbyss2", random(-178, 178), random(-178, 178), random(6, 16), 0, 0, 2, 0, SXF_NOCHECKPOSITION); }
 		Goto See;
 	Death.T06:
 		"ABTR" H 5;
@@ -394,70 +571,137 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 		"ABTR" L -1;
 		Stop;
 	XDeath.T06:
-		"ABTR" MNO 5;
-		"ABTR" P 5 { A_XScream(); }
-		"ABTR" Q 5 { A_NoBlocking(); }
-		"ABTR" RSTU 5 { A_SpawnItemEx("RS_SplashAbyss2", random(-24, 24), random(-24, 24), random(8, 64), 0, 0, 2, 0, SXF_NOCHECKPOSITION); }
+		"ABTR" M 5;
+		"ABTR" N 5 { A_XScream(); }
+		"ABTR" O 5 { A_NoBlocking(); }
+		"ABTR" PQ 5;
+		"ABTR" RSTU 5 { A_SpawnItemEx("RS_SplashAbyss2", random(-24, 24), random(-24, 24), random(8, 64), 0, 0, 2, random(-359, 359), SXF_NOCHECKPOSITION); }
 		"ABTR" U -1;
 		Stop;
 	Raise.T06:
 		"ABTR" KJIH 5;
 		Goto See;
 
-	// ===== T07 FIREBLU -- kamikaze: fire shots at range, trails
-	// flame while chasing, DETONATES in melee =====
+	// ================= T07 FIREBLU KAMIKAZE (01_F) =================
+	// CHP gives this one NO ranged attack: Missile is a single blank tic
+	// that dumps it straight back into the fire-trailing chase. Its whole
+	// kit is the melee self-detonation.
+	Spawn.T07:
+		"ZOMF" AB 10 { A_Look(); }
+		Loop;
 	See.T07:
-		"POSS" AABB 3 { A_Chase(); }
-		TNT1 A 0 { A_SpawnItemEx("RS_FireSGguy2", -6, 0, 3, -2, 0, 1, -180); }
-		"POSS" CCDD 3 { A_Chase(); }
-		TNT1 A 0 { A_SpawnItemEx("RS_FireSGguy2", -6, 0, 3, -2, 0, 1, -180); }
+		"ZOMF" AABBCCDD 3 { A_Chase(); }
+		Loop;
+	See.T07.Fire:
+		"ZOMF" AABB 2 { A_Chase(); }
+		"ZOMF" A 0 { A_SpawnItemEx("RS_FireSGguy2", -6, 0, 3, -2, 0, 1, -180); }
+		"ZOMF" CCDD 2 { A_Chase(); }
+		"ZOMF" A 0 { A_SpawnItemEx("RS_FireSGguy2", -6, 0, 3, -2, 0, 1, -180); }
 		Loop;
 	Missile.T07:
-		"POSS" E 10 { A_FaceTarget(); }
-		"POSS" F 6 Bright { A_SpawnProjectile("RS_FireSGguy2", 24, 0, random(-3, 3)); }
-		"POSS" E 6;
-		Goto See;
+		TNT1 A 0;
+		Goto See.T07.Fire;
 	Melee.T07:
-		// CH: the flaming zombie's "melee" IS its self-destruct.
-		"POSS" EF 5 Bright { A_FaceTarget(); }
-		TNT1 A 0 { A_Die("Extreme"); }
-		Goto See;
-	XDeath.T07:
-		TNT1 A 0 { A_StartSound("weapons/rocklx", CHAN_BODY); }
-		MISL B 6 Bright { A_Explode(int(30 * TierDamageMul), 84); }
-		MISL C 6 Bright { A_Quake(20, 12, 0, 64); }
-		TNT1 AAAAA 0 { A_SpawnItemEx("RS_FireSGguy2", 0, 0, 3, random(3, 9), 0, 1, random(-359, 359)); }
-		MISL D 6 { A_NoBlocking(); }
+		"ZOMF" EF 5 Bright { A_FaceTarget(); }
+		"ZOMF" E 0 { A_DamageSelf(9999); }
+		Goto XDeath.T07;
+	Pain.T07:
+		"ZOMF" G 3 { A_SpawnItemEx("RS_FireSGguy2", 6, 0, 3, 9, 0, 1, random(0, 359)); }
+		"ZOMF" G 3 { A_Pain(); }
+		Goto See.T07.Fire;
+	Death.T07:
+		"ZOMF" H 5;
+		"ZOMF" I 5 { A_Scream(); }
+		"ZOMF" J 5 { A_NoBlocking(); }
+		"ZOMF" K 5;
+		"ZOMF" L -1;
 		Stop;
+	XDeath.T07:
+		"ZOMF" P 0 Bright { A_StartSound("weapons/rocklx", 7, 0, 1.0); }
+		MISL X 6 Bright { A_Explode(random(12, 44), 84); }
+		MISL Y 6 Bright { A_Quake(20, 12, 0, 64, ""); }
+		"ZOMF" AAAAA 0 { A_SpawnItemEx("RS_FireSGguy2", 0, 0, 3, random(3, 9), 0, 1, random(-359, 359)); }
+		"ZOMF" U 0 { A_SpawnProjectile("RS_FireSGguy2", 32, 7); }
+		"ZOMF" U 0 { A_SpawnProjectile("RS_FireSGguy2", 32, -7); }
+		MISL Z 6 { A_NoBlocking(); }
+		Stop;
+	Raise.T07:
+		"ZOMF" KJIH 5;
+		Goto See.T07.Fire;
 
-	// ===== T08 BROWN -- the Bodyguard (SGAR): heavy bullet, leaping
-	// charge to close distance. NOTE: SGAR's sheet is offset -- walk
-	// is B-E, attack F/G, pain H, death I-M (verified on disk). =====
+	// ================= T08 BODYGUARD (01_BR) =================
+	// Slow sniper. Randomly scans for a big demon to bodyguard; if it
+	// finds one it dives in front of it, rolling, and heals everything
+	// nearby. Otherwise it hurls itself at the player (FrontJump).
+	// CHP's thrust specials become explicit velocity: ThrustThingZ(n) is
+	// n/4 units of vel.z, ThrustThing(n) is n units along facing.
 	Spawn.T08:
-		"SGAR" A 10 { A_Look(); }
+		"SGAR" A 5 { A_Look(); }
 		Loop;
 	See.T08:
-		"SGAR" BC 6 { A_Chase(); }
-		"SGAR" DE 6 { A_Chase(); }
-		TNT1 A 0 A_Jump(48, "Leap.T08");
-		Loop;
-	Leap.T08:
-		// CH FrontJump: hurl itself at the player's position.
-		"SGAR" F 5 { A_FaceTarget(); }
-		"SGAR" F 1 { vel.z += 7; A_Recoil(-14); }
-		"SGAR" F 16;
-		"SGAR" F 6 { A_Stop(); }
-		"SGAR" BC 6 { A_FastChase(); }
+		"SGAR" BC 5 { A_Chase(); }
+		TNT1 A 0 A_Jump(128, "See.T08.Checks");
+	See.T08.Half:
+		"SGAR" DE 5 { A_Chase(); }
+		TNT1 A 0 A_Jump(200, "See.T08");
+		TNT1 A 0 A_CheckLOF("Missile.T08.FrontJump", CLOFF_NOAIM_VERT | CLOFF_JUMPENEMY | CLOFF_SKIPOBSTACLES, 800);
 		Goto See.T08;
+	See.T08.Checks:
+		// CHP scans for the vanilla class names; RS's replacements do not
+		// inherit from them, so the RS classes are named directly.
+		// Cyberdemon has no RS_ port yet -- the IWAD class is used.
+		TNT1 A 0 A_CheckProximity("Missile.T08.GetDown", "RS_Archvile", 1000, 1, CPXF_ANCESTOR | CPXF_CHECKSIGHT | CPXF_SETMASTER | CPXF_CLOSEST);
+		TNT1 A 0 A_CheckProximity("Missile.T08.GetDown", "RS_Baron", 1000, 1, CPXF_ANCESTOR | CPXF_CHECKSIGHT | CPXF_SETMASTER | CPXF_CLOSEST);
+		TNT1 A 0 A_CheckProximity("Missile.T08.GetDown", "RS_HellKnight", 1000, 1, CPXF_ANCESTOR | CPXF_CHECKSIGHT | CPXF_SETMASTER | CPXF_CLOSEST);
+		TNT1 A 0 A_CheckProximity("Missile.T08.GetDown", "Cyberdemon", 1000, 1, CPXF_ANCESTOR | CPXF_CHECKSIGHT | CPXF_SETMASTER | CPXF_CLOSEST);
+		TNT1 A 0 A_CheckProximity("Missile.T08.GetDown", "RS_Chaingunner", 1000, 1, CPXF_ANCESTOR | CPXF_CHECKSIGHT | CPXF_SETMASTER | CPXF_CLOSEST);
+		Goto See.T08.Half;
 	Missile.T08:
 		"SGAR" F 10 { A_FaceTarget(); }
-		"SGAR" G 10 Bright { A_StartSound("grunt/attack", CHAN_WEAPON); RS_TierBullets(1 + rsStep, 5.6, 5, 18); }
+		"SGAR" G 10 Bright { A_CustomBulletAttack(5, 0, 1, 10, "BulletPuff", 0, CBAF_NORANDOM); }
 		"SGAR" F 10;
 		Goto See;
+	Missile.T08.GetDown:
+		TNT1 A 0 A_CheckLOF("Missile.T08.GetDown2", CLOFF_NOAIM_VERT | CLOFF_JUMPENEMY | CLOFF_SKIPOBSTACLES, 800);
+		Goto See.T08.Half;
+	Missile.T08.GetDown2:
+		"SGAR" F 5 { A_FaceMaster(); }
+		"SGAR" F 1 { vel.z += 7.5; }
+		"SGAR" F 1 { A_Recoil(-40); }
+		"SGAR" F 1 { A_SetRoll(20); }
+		"SGAR" F 1 { A_SetRoll(40); }
+		"SGAR" F 1 { A_SetRoll(60); }
+		"SGAR" F 1 { A_SetRoll(80); }
+		"SGAR" F 1 { A_SetRoll(100); }
+		"SGAR" F 1 { A_SetRoll(120); }
+		"SGAR" F 1 { A_SetRoll(140); }
+		"SGAR" F 1 { A_SetRoll(160); }
+		"SGAR" F 1 { A_SetRoll(180); }
+		TNT1 A 0 { A_RadiusGive("Health", 100, RGF_MONSTERS, 50); }
+		"SGAR" F 1 { A_SetRoll(200); }
+		"SGAR" F 1 { A_SetRoll(220); }
+		"SGAR" F 1 { A_SetRoll(240); }
+		"SGAR" F 1 { A_SetRoll(260); }
+		"SGAR" F 1 { A_SetRoll(280); }
+		"SGAR" F 1 { A_SetRoll(300); }
+		"SGAR" F 1 { A_SetRoll(320); }
+		"SGAR" F 1 { A_SetRoll(340); }
+		"SGAR" F 1 { A_SetRoll(0); }
+		"SGAR" F 6 { A_Stop(); }
+		Goto See;
+	Missile.T08.FrontJump:
+		"SGAR" F 5 { A_FaceTarget(); }
+		"SGAR" F 1 { vel.z += 7.0; }
+		"SGAR" F 17 { A_Recoil(-14); }
+		"SGAR" F 6 { A_Stop(); }
+		"SGAR" BC 6 { A_FastChase(); }
+		Goto See;
 	Pain.T08:
+		TNT1 A 0 { A_SetRoll(0); }
 		"SGAR" H 8 { A_Pain(); }
 		Goto See;
 	Death.T08:
+		TNT1 A 0 { A_SetRoll(0); }
 		"SGAR" I 5;
 		"SGAR" J 5 { A_Scream(); }
 		"SGAR" K 5;
@@ -465,33 +709,32 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 		"SGAR" M -1;
 		Stop;
 	XDeath.T08:
-		// CH itself gibs the bodyguard with POSS frames (untinted tier).
-		"POSS" M 3;
-		"POSS" N 3 { A_XScream(); }
-		"POSS" O 3 { A_NoBlocking(); }
-		"POSS" PQRST 3;
+		// CHP itself gibs the bodyguard with plain POSS frames.
+		"POSS" M 5;
+		"POSS" N 5 { A_XScream(); }
+		"POSS" O 5 { A_NoBlocking(); }
+		"POSS" PQRST 5;
 		"POSS" U -1;
 		Stop;
 	Raise.T08:
 		"SGAR" LKJI 5;
 		Goto See;
 
-	// ===== T09 GRAY -- rock-thrower (SHDT), slow and hard; gibbing
-	// it shatters it into a rock ring =====
+	// ================= T09 GRAY (01_GY) =================
+	// Slow, heavy, three-rock volley. Gibbing it wobbles the corpse apart
+	// and fires a 13-rock ring in every direction.
 	Spawn.T09:
 		"SHDT" AB 10 { A_Look(); }
 		Loop;
 	See.T09:
-		"SHDT" AABB 5 { A_Chase(); }
-		"SHDT" CCDD 5 { A_Chase(); }
+		"SHDT" AABBCCDD 5 { A_Chase(); }
 		Loop;
 	Missile.T09:
 		"SHDT" E 10 { A_FaceTarget(); }
 		"SHDT" F 2 Bright { A_SpawnProjectile("RS_ZombieRock", 46, 1, random(-2, 2)); }
 		"SHDT" F 2 { A_SpawnProjectile("RS_ZombieRock", 46, 1, random(-2, 2)); }
 		"SHDT" F 2 Bright { A_SpawnProjectile("RS_ZombieRock", 46, 1, random(-2, 2)); }
-		"SHDT" F 2;
-		"SHDT" E 8;
+		"SHDT" FEEEE 2;
 		Goto See;
 	Pain.T09:
 		"SHDT" G 3;
@@ -505,49 +748,57 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 		"SHDT" L -1;
 		Stop;
 	XDeath.T09:
-		// CH: the gray zombie wobbles apart and bursts into rocks.
-		"SHDT" G 12 { A_XScream(); }
+		"SHDT" G 12 { A_Scream(); }
 		"SHDT" G 4 { A_NoBlocking(); }
 		"SHDT" G 6 { A_SetScale(1.2, 0.8); }
-		"SHDT" G 5 { A_SetScale(0.8, 1.2); }
+		"SHDT" G 6 { A_SetScale(1.0, 1.0); }
+		"SHDT" G 6 { A_SetScale(0.8, 1.2); }
 		"SHDT" G 4 { A_SetScale(1.2, 0.8); }
+		"SHDT" G 4 { A_SetScale(0.8, 1.2); }
+		"SHDT" G 3 { A_SetScale(1.2, 0.8); }
 		"SHDT" G 3 { A_SetScale(0.8, 1.2); }
 		"SHDT" G 2 { A_SetScale(1.2, 0.8); }
+		"SHDT" G 2 { A_SetScale(0.8, 1.2); }
+		"SHDT" G 1 { A_SetScale(1.2, 0.8); }
 		"SHDT" G 1 { A_SetScale(0.8, 1.2); }
-		MISL BCD 1;
-		TNT1 AAAAAAAAAAAAA 0 { A_SpawnProjectile("RS_ZombieRock", 32, 0, random(-180, 180), CMF_AIMDIRECTION); }
+		MISL X 0 { A_StartSound("weapons/rocklx", CHAN_BODY); }
+		MISL XYZ 2;
+		TNT1 AAAAAAAAAAAAA 0 { A_SpawnProjectile("RS_ZombieRock", 32, 0, random(-359, 359)); }
 		Stop;
 	Raise.T09:
 		"SHDT" KJIH 5;
 		Goto See;
 
-	// ===== T10 RED -- ZombieUnman (ZUNM): Unmaker rail barrage at
-	// range, heavy slug otherwise =====
+	// ================= T10 RED ZOMBIEUNMAN (01_R) =================
+	// One heavy slug, or -- one roll in four -- the Unmaker: five rail
+	// beams fading red to black, then A_SentinelRefire to keep going.
 	Spawn.T10:
 		"ZUNM" AB 10 { A_Look(); }
 		Loop;
 	See.T10:
-		"ZUNM" AABB 2 { A_Chase(); }
-		"ZUNM" CCDD 2 { A_Chase(); }
+		"ZUNM" AABBCCDD 2 { A_Chase(); }
 		Loop;
 	Missile.T10:
-		TNT1 A 0 A_Jump(64, "Missile.T10.Rail");
+		"ZUNM" E 0 A_Jump(64, "Missile.T10.Rail");
 		"ZUNM" E 15 { A_FaceTarget(); }
-		"ZUNM" F 10 { RS_TierBullets(1, 2.0, 5, 25); }
+		"ZUNM" F 10 { A_CustomBulletAttack(10, 2, 1, random(5, 15), "RS_BloodyPuff"); }
 		"ZUNM" E 10;
 		Goto See;
 	Missile.T10.Rail:
 		"ZUNM" E 16 { A_FaceTarget(); }
+	Missile.T10.RailLoop:
 		"ZUNM" E 0 { A_StartSound("zombie/unpower", CHAN_WEAPON); }
-		"ZUNM" F 1 Bright { A_CustomRailgun(int(random(5, 20) * TierDamageMul), 4, "FF 00 00", "", 0, 0); }
+		"ZUNM" F 1 Bright { A_CustomRailgun(random(5, 10), 4, "FF 00 00", 0, 0); }
 		"ZUNM" E 0 { A_StartSound("zombie/unpower", CHAN_WEAPON); }
-		"ZUNM" F 1 Bright { A_CustomRailgun(int(random(5, 20) * TierDamageMul), 4, "CC 00 00", "", 0, 0); }
+		"ZUNM" F 1 Bright { A_CustomRailgun(random(5, 10), 4, "CC 00 00", 0, 0); }
 		"ZUNM" E 0 { A_StartSound("zombie/unpower", CHAN_WEAPON); }
-		"ZUNM" F 1 Bright { A_CustomRailgun(int(random(5, 20) * TierDamageMul), 4, "99 00 00", "", 0, 0); }
+		"ZUNM" F 1 Bright { A_CustomRailgun(random(5, 10), 4, "99 00 00", 0, 0); }
 		"ZUNM" E 0 { A_StartSound("zombie/unpower", CHAN_WEAPON); }
-		"ZUNM" F 1 Bright { A_CustomRailgun(int(random(5, 20) * TierDamageMul), 4, "55 00 00", "", 0, 0); }
-		"ZUNM" E 10;
-		Goto See;
+		"ZUNM" F 1 Bright { A_CustomRailgun(random(5, 10), 4, "55 00 00", 0, 0); }
+		"ZUNM" E 0 { A_StartSound("zombie/unpower", CHAN_WEAPON); }
+		"ZUNM" F 1 Bright { A_CustomRailgun(random(5, 10), 4, "33 00 00", 0, 0); }
+		"ZUNM" E 10 { A_SentinelRefire(); }
+		Goto Missile.T10.RailLoop;
 	Pain.T10:
 		"ZUNM" G 3;
 		"ZUNM" G 3 { A_Pain(); }
@@ -570,183 +821,136 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 		"ZUNM" KJIH 5;
 		Goto See;
 
-	// ===== T11 BLACK -- "Player 9" (PLAY): a dead marine still
-	// playing the game. SSG close (one shell, then reloads), plasma
-	// spam mid, rockets far, real punch in melee =====
+	// ================= T11 PLAYER 9 (01_K) =================
+	// A dead marine still playing the game. SSG inside 300 -- one shell,
+	// then a real reload; plasma to 840; rocket-and-bullet mix beyond.
+	// Neither CHP nor CH gives it a Raise.
 	Spawn.T11:
-		"PLAY" A 4 { A_Look(); }
+		"ZOMK" A 4 { A_Look(); }
 		Loop;
 	See.T11:
-		"PLAY" ABCD 4 { A_Chase(); }
-		TNT1 A 0 A_Jump(128, "See.T11.Sprint");
+		"ZOMK" ABCD 4 { A_Chase(); }
+		"ZOMK" A 0 A_Jump(128, "See.T11.Sprint");
 		Loop;
 	See.T11.Sprint:
-		"PLAY" ABCD 4 { A_FastChase(); }
-		Goto See.T11;
+		"ZOMK" ABCD 4 { A_FastChase(); }
+		"ZOMK" A 0 A_Jump(128, "See.T11");
+		Loop;
 	Melee.T11:
-		"PLAY" E 4 { A_FaceTarget(); }
-		"PLAY" E 4 { A_CustomMeleeAttack(random(20, 80), "player9/fist", ""); }
+		"ZOMK" E 4 { A_FaceTarget(); }
+		"ZOMK" E 4 { A_CustomMeleeAttack(random(20, 80), "*fist", ""); }
 		Goto Missile.T11.SSG;
 	Missile.T11:
-		TNT1 A 0 A_JumpIfCloser(300, "Missile.T11.SSG");
-		TNT1 A 0 A_JumpIfCloser(840, "Missile.T11.Plasma");
-		Goto Missile.T11.Rockets;
+		"ZOMK" E 0 A_JumpIfCloser(300, "Missile.T11.SSG");
+		"ZOMK" E 0 A_JumpIfCloser(840, "Missile.T11.Plasma");
+		"ZOMK" E 0 A_Jump(256, "Missile.T11.Rockets");
+		Goto See;
 	Missile.T11.SSG:
-		TNT1 A 0
-		{
-			if (rsShellUsed)
-				return ResolveState("Missile.T11.Reload");
-			return ResolveState(null);
-		}
-		"PLAY" E 3 { A_FaceTarget(); }
-		"PLAY" F 13 Bright { rsShellUsed = true; A_StartSound("weapons/sshotf", CHAN_WEAPON); RS_TierBullets(8, 22.5, 3, 8); }
+		"ZOMK" E 3 { A_FaceTarget(); }
+		"ZOMK" F 0 { if (rsShellUsed) return ResolveState("Missile.T11.Jammed"); return ResolveState(null); }
+		"ZOMK" F 0 { A_StartSound("weapons/sshotf", CHAN_WEAPON); }
+		"ZOMK" F 13 Bright { A_CustomBulletAttack(22.5, 5, 8, 6, "BulletPuff", 0); }
+		"ZOMK" F 0 { rsShellUsed = true; }
 		Goto See;
-	Missile.T11.Reload:
-		"PLAY" E 8 Bright;
-		"PLAY" A 2 { A_StartSound("weapons/sshotl", CHAN_WEAPON); }
-		"PLAY" A 8 { rsShellUsed = false; }
-		"PLAY" E 2;
-		Goto See;
+	Missile.T11.Jammed:
+		"ZOMK" E 8 Bright;
+		"ZOMK" A 2 { A_StartSound("weapons/sshotl", CHAN_WEAPON); }
+		"ZOMK" A 8 { rsShellUsed = false; }
+		"ZOMK" E 2 { A_SpawnItemEx("Shell", 8, 4, 32, 3, 3, 1, angle + 5); }
+		"ZOMK" E 0;
+		Goto Missile;
 	Missile.T11.Plasma:
-		"PLAY" E 2 { A_FaceTarget(); }
-		"PLAY" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-5, 5)); }
-		"PLAY" E 1 { A_FaceTarget(); }
-		"PLAY" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-15, 15)); }
-		"PLAY" E 1 { A_FaceTarget(); }
-		"PLAY" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-25, 25)); }
-		"PLAY" E 1;
-		"PLAY" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-35, 35)); }
-		"PLAY" A 3;
+		"ZOMK" E 2 { A_FaceTarget(); }
+		"ZOMK" E 0 { A_FaceTarget(); }
+		"ZOMK" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-5, 5)); }
+		"ZOMK" E 1 { A_FaceTarget(); }
+		"ZOMK" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-15, 15)); }
+		"ZOMK" E 1 { A_FaceTarget(); }
+		"ZOMK" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-25, 25)); }
+		"ZOMK" E 1;
+		"ZOMK" F 3 Bright { A_SpawnProjectile("RS_PlasmaBallSP3", 32, 0, random(-35, 35)); }
+		"ZOMK" A 0 A_MonsterRefire(128, "Missile.T11.CellEject");
+		Goto Missile;
+	Missile.T11.CellEject:
+		"ZOMK" A 8;
+		"ZOMK" GG 3 { A_SpawnItemEx("Cell", 8, 4, 32, 3, 3, 1, angle + 5); }
+		"ZOMK" A 3;
 		Goto See;
 	Missile.T11.Rockets:
-		"PLAY" E 2;
-		"PLAY" F 2 Bright { RS_TierBullets(1, 5.6, 3, 8); }
-		"PLAY" E 2 A_Jump(32, "Missile.T11.Rawk");
-		"PLAY" A 0 A_CPosRefire;
-		Goto Missile.T11.Rockets;
+		"ZOMK" E 2;
+		"ZOMK" F 2 Bright { A_CustomBulletAttack(5.6, 0, 1, 5, "BulletPuff"); }
+		"ZOMK" E 2 A_Jump(32, "Missile.T11.Rawk");
+		"ZOMK" A 0 { A_CPosRefire(); }
+		Goto Missile;
 	Missile.T11.Rawk:
-		"PLAY" E 2;
-		"PLAY" F 2 Bright { A_SpawnProjectile("Rocket", 32, 0, random(-1, 1)); }
-		"PLAY" E 2;
-		Goto See;
+		"ZOMK" E 2;
+		"ZOMK" F 2 Bright { A_SpawnProjectile("RS_Rocket", 32, 0, random(-1, 1)); }
+		"ZOMK" E 2;
+		Goto Missile;
 	Pain.T11:
-		"PLAY" G 4;
-		"PLAY" G 4 { A_Pain(); }
+		"ZOMK" G 4;
+		"ZOMK" G 4 { A_Pain(); }
 		Goto See;
 	Death.T11:
-		"PLAY" H 10;
-		"PLAY" I 10 { A_Scream(); }
-		"PLAY" J 10 { A_NoBlocking(); }
-		"PLAY" I 10 { A_StartSound("player9/death", CHAN_VOICE); }
-		"PLAY" JKL 10;
-		"PLAY" M -1;
+		"ZOMK" H 10;
+		"ZOMK" I 10 { A_Scream(); }
+		"ZOMK" J 10 { A_NoBlocking(); }
+		"ZOMK" I 10 { A_StartSound("*death", CHAN_VOICE); }
+		"ZOMK" J 10;
+		"ZOMK" I 10 { A_StartSound("*death", CHAN_VOICE); }
+		"ZOMK" J 10;
+		"ZOMK" I 10 { A_StartSound("*death", CHAN_VOICE); }
+		"ZOMK" J 10;
+		"ZOMK" KLM 10;
+		"ZOMK" M -1;
 		Stop;
 	XDeath.T11:
-		"PLAY" O 5;
-		"PLAY" P 5 { A_XScream(); }
-		"PLAY" Q 5 { A_NoBlocking(); }
-		"PLAY" RSTUV 5;
-		"PLAY" W -1;
+		"ZOMK" H 5;
+		"ZOMK" H 20 { A_StartSound("*xdeath", CHAN_AUTO, 0, 1.0, ATTN_NONE); }
+		"ZOMK" O 5 { A_StartSound("misc/gibbed/c", CHAN_BODY); }
+		"ZOMK" P 5 { A_XScream(); }
+		"ZOMK" Q 5 { A_NoBlocking(); }
+		"ZOMK" RSTUV 5;
+		"ZOMK" W -1;
 		Stop;
-	Raise.T11:
-		"PLAY" MLKJIH 5;
-		Goto See;
 
-	// ===== T12 WHITE -- THE UNDERTAKER (MAGE). Shovel blades close,
-	// bone shotgun mid, rapid bones far. The charge ladder (rsStep)
-	// upgrades bone grade and finally unlocks the bone tornado --
-	// this IS CH's BoneUp/user_skel1 staircase on RS machinery. =====
+	// ================= T12 THE UNDERTAKER (01_W) =================
+	// Melee and Missile are the same block in CHP. Range picks the mode;
+	// the ladder (rsStep, CH's user_skel1) upgrades bone grade at step 2
+	// and opens the FinalForm branch -- and the bone tornado -- at 3.
+	// Neither CHP nor CH gives it a Raise.
 	Spawn.T12:
 		"MAGE" A 4 { A_Look(); }
 		Loop;
 	See.T12:
 		"MAGE" ABCD 4 { A_Chase(); }
-		TNT1 A 0 A_Jump(128, "See.T12.Sprint");
+		"MAGE" A 0 A_Jump(128, "See.T12.Sprint");
 		Loop;
 	See.T12.Sprint:
 		"MAGE" ABCD 4 { A_FastChase(); }
-		Goto See.T12;
+		"MAGE" A 0 A_Jump(128, "See.T12");
+		Loop;
 	Melee.T12:
 	Missile.T12:
-		TNT1 A 0 A_JumpIfCloser(550, "Missile.T12.Shovel");
-		TNT1 A 0 A_JumpIfCloser(1250, "Missile.T12.Mid");
-		Goto Missile.T12.Rapid;
-	Missile.T12.Mid:
-		TNT1 A 0
-		{
-			if (rsStep >= 3 && random(0, 255) < 80)
-				return ResolveState("Missile.T12.Tornado");
-			return ResolveState(null);
-		}
-		TNT1 A 0 A_Jump(256, "Missile.T12.Shot", "Missile.T12.Rapid");
+		"MAGE" E 0 { if (rsStep >= 3) return ResolveState("Missile.T12.FinalForm"); return ResolveState(null); }
+		"MAGE" E 0 A_JumpIfCloser(550, "Missile.T12.Shovel", true);
+		"MAGE" E 0 A_JumpIfCloser(1250, "Missile.T12.MedRange");
+		"MAGE" E 0 A_Jump(256, "Missile.T12.RapidBone");
 		Goto See;
-	Missile.T12.Shovel:
-		"MAGE" E 7 { A_FaceTarget(); }
-		"MAGE" F 7 Bright { A_StartSound("skeleton/swing", CHAN_WEAPON); }
-		"MAGE" F 0 { A_SpawnProjectile("RS_ShoveZM", 38, 0, 0); }
-		"MAGE" F 0 { A_SpawnProjectile("RS_ShoveZM", 38, 3, 5); }
-		"MAGE" F 0 { A_SpawnProjectile("RS_ShoveZM", 38, -3, -5); }
-		"MAGE" E 6 A_Jump(128, "Missile.T12.Shot");
+	Missile.T12.FinalForm:
+		"MAGE" E 0 A_JumpIfCloser(550, "Missile.T12.Close2", true);
+		"MAGE" E 0 A_JumpIfCloser(1250, "Missile.T12.MedRange2");
+		"MAGE" E 0 A_Jump(256, "Missile.T12.RapidBone3");
 		Goto See;
-	// -- bone shotgun, three grades up the ladder --
-	Missile.T12.Shot:
-		TNT1 A 0
-		{
-			if (rsStep >= 3) return ResolveState("Missile.T12.Shot3");
-			if (rsStep >= 2) return ResolveState("Missile.T12.Shot2");
-			return ResolveState(null);
-		}
-		"MAGE" E 8 { A_FaceTarget(); }
-		"MAGE" F 5 Bright;
-		"MAGE" FFFFFFFFF 0 { A_SpawnProjectile("RS_BoneProjZM", random(32, 42), random(-5, 5), random(-12, 12), CMF_OFFSETPITCH, random(-3, 3)); }
-		"MAGE" E 5;
+	Missile.T12.Close2:
+		"MAGE" E 0 A_Jump(256, "Missile.T12.ShotBone3", "Missile.T12.Shovel");
 		Goto See;
-	Missile.T12.Shot2:
-		"MAGE" E 8 { A_FaceTarget(); }
-		"MAGE" F 5 Bright;
-		"MAGE" FFFFFFFFFFFF 0 { A_SpawnProjectile("RS_BoneProjZM2", random(32, 42), random(-5, 5), random(-12, 12), CMF_OFFSETPITCH, random(-3, 3)); }
-		"MAGE" E 5;
+	Missile.T12.MedRange2:
+		"MAGE" E 0 A_Jump(256, "Missile.T12.ShotBone3", "Missile.T12.BoneTornado", "Missile.T12.RapidBone3");
 		Goto See;
-	Missile.T12.Shot3:
-		"MAGE" E 8 { A_FaceTarget(); }
-		"MAGE" F 5 Bright;
-		"MAGE" FFFFFFFFFFF 0 { A_SpawnProjectile("RS_BoneProjZM3", random(32, 42), random(-5, 5), random(-12, 12), CMF_OFFSETPITCH, random(-3, 3)); }
-		"MAGE" E 5;
-		Goto See;
-	// -- rapid bones, same three grades --
-	Missile.T12.Rapid:
-		TNT1 A 0
-		{
-			if (rsStep >= 3) return ResolveState("Missile.T12.Rapid3");
-			if (rsStep >= 2) return ResolveState("Missile.T12.Rapid2");
-			return ResolveState(null);
-		}
-		"MAGE" E 7 { A_FaceTarget(); }
-	Missile.T12.RapidFire:
-		"MAGE" F 1 Bright;
-		"MAGE" FF 1 Bright { A_SpawnProjectile("RS_BoneProjZM", random(34, 40), random(-2, 2), random(-5, 5), CMF_OFFSETPITCH, random(-1, 1)); }
-		"MAGE" F 0 A_Jump(12, "Missile.T12.Shot");
-		"MAGE" F 2 A_MonsterRefire(150, "See");
-		Goto Missile.T12.RapidFire;
-	Missile.T12.Rapid2:
-		"MAGE" E 7 { A_FaceTarget(); }
-	Missile.T12.RapidFire2:
-		"MAGE" F 1 Bright;
-		"MAGE" FF 1 Bright { A_SpawnProjectile("RS_BoneProjZM2", random(34, 40), random(-1, 1), random(-3, 3), CMF_OFFSETPITCH, random(-1, 1)); }
-		"MAGE" F 0 A_Jump(12, "Missile.T12.Shot2");
-		"MAGE" F 1 A_MonsterRefire(120, "See");
-		Goto Missile.T12.RapidFire2;
-	Missile.T12.Rapid3:
-		"MAGE" E 7 { A_FaceTarget(); }
-	Missile.T12.RapidFire3:
-		"MAGE" F 1 Bright;
-		"MAGE" FFF 1 Bright { A_SpawnProjectile("RS_BoneProjZM3", random(34, 40), random(-1, 1), random(-2, 2), CMF_OFFSETPITCH, random(-1, 1)); }
-		"MAGE" F 1 A_MonsterRefire(120, "See");
-		Goto Missile.T12.RapidFire3;
-	// -- the tornado, final-form only --
-	Missile.T12.Tornado:
+	Missile.T12.BoneTornado:
 		"MAGE" E 9 { A_FaceTarget(); }
-		"MAGE" E 7 Bright { A_StartSound("under/goodie", CHAN_VOICE); }
+		"MAGE" E 7 Bright { A_StartSound("under/goodie", 7, 0, 2.0, ATTN_NONE); }
 		"MAGE" E 7;
 		"MAGE" E 5 Bright;
 		"MAGE" E 5;
@@ -756,20 +960,87 @@ class RS_Zombieman : RS_HumanMonster replaces Zombieman
 		"MAGE" F 3 Bright;
 		"MAGE" E 3;
 		Goto See;
+	Missile.T12.RapidBone3:
+		"MAGE" E 7 { A_FaceTarget(); }
+	Missile.T12.RapidBone3Loop:
+		"MAGE" F 1 Bright;
+		"MAGE" FFF 1 Bright { A_SpawnProjectile("RS_BoneProjZM3", random(34, 40), random(-1, 1), random(-2, 2), CMF_OFFSETPITCH, random(-1, 1)); }
+		"MAGE" F 1 A_MonsterRefire(120, "See");
+		Goto Missile.T12.RapidBone3Loop;
+	Missile.T12.ShotBone3:
+		"MAGE" E 8 { A_FaceTarget(); }
+		"MAGE" F 5 Bright;
+		"MAGE" FFFFFFFFFFF 0 { A_SpawnProjectile("RS_BoneProjZM3", random(32, 42), random(-5, 5), random(-12, 12), CMF_OFFSETPITCH, random(-3, 3)); }
+		"MAGE" E 5;
+		Goto See;
+	Missile.T12.MedRange:
+		"MAGE" E 0 A_Jump(256, "Missile.T12.ShotBone", "Missile.T12.RapidBone");
+		Goto See;
+	Missile.T12.ShotBone:
+		"MAGE" E 8 { A_FaceTarget(); }
+		"MAGE" F 6 Bright { if (rsStep >= 2) return ResolveState("Missile.T12.ShotBone2"); return ResolveState(null); }
+		"MAGE" FFFFFFFFF 0 { A_SpawnProjectile("RS_BoneProjZM", random(32, 42), random(-5, 5), random(-12, 12), CMF_OFFSETPITCH, random(-3, 3)); }
+		"MAGE" E 5;
+		Goto See;
+	Missile.T12.ShotBone2:
+		"MAGE" FFFFFFFFFFFF 0 { A_SpawnProjectile("RS_BoneProjZM2", random(32, 42), random(-5, 5), random(-12, 12), CMF_OFFSETPITCH, random(-3, 3)); }
+		"MAGE" E 5;
+		Goto See;
+	Missile.T12.RapidBone:
+		"MAGE" E 0 { if (rsStep >= 2) return ResolveState("Missile.T12.RapidBone2"); return ResolveState(null); }
+		"MAGE" E 7 { A_FaceTarget(); }
+	Missile.T12.RapidBoneLoop:
+		"MAGE" F 1 Bright;
+		"MAGE" FF 1 Bright { A_SpawnProjectile("RS_BoneProjZM", random(34, 40), random(-2, 2), random(-5, 5), CMF_OFFSETPITCH, random(-1, 1)); }
+		"MAGE" F 0 A_Jump(12, "Missile.T12.ShotBone");
+		"MAGE" F 2 A_MonsterRefire(150, "See");
+		Goto Missile.T12.RapidBoneLoop;
+	Missile.T12.RapidBone2:
+		"MAGE" E 7 { A_FaceTarget(); }
+	Missile.T12.RapidBone2Loop:
+		"MAGE" F 1 Bright;
+		"MAGE" FF 1 Bright { A_SpawnProjectile("RS_BoneProjZM2", random(34, 40), random(-1, 1), random(-3, 3), CMF_OFFSETPITCH, random(-1, 1)); }
+		"MAGE" F 0 A_Jump(12, "Missile.T12.ShotBone2");
+		"MAGE" F 1 A_MonsterRefire(120, "See");
+		Goto Missile.T12.RapidBone2Loop;
+	Missile.T12.Shovel:
+		"MAGE" E 7 { A_FaceTarget(); }
+		"MAGE" F 7 Bright { A_StartSound("spell/spellcast1", CHAN_WEAPON); }
+		"MAGE" F 0 { A_SpawnProjectile("RS_ShoveZM", 38, 0, 0); }
+		"MAGE" F 0 { A_SpawnProjectile("RS_ShoveZM", 38, 3, 5); }
+		"MAGE" F 0 { A_SpawnProjectile("RS_ShoveZM", 38, -3, -5); }
+		"MAGE" E 0 { if (rsStep >= 2) return ResolveState("Missile.T12.ShotBone2"); return ResolveState(null); }
+		"MAGE" E 6 A_Jump(128, "Missile", "Missile.T12.ShotBone");
+		Goto See;
 	Pain.T12:
 		"MAGE" G 4;
 		"MAGE" G 4 { A_Pain(); }
 		Goto See;
 	Death.T12:
-	XDeath.T12:
 		"MAGE" H 13;
 		"MAGE" I 13 { A_Scream(); }
 		"MAGE" J 13 { A_NoBlocking(); }
 		"MAGE" KLM 13;
 		"MAGE" N -1;
 		Stop;
-	Raise.T12:
-		"MAGE" NMLKJIH 6;
-		Goto See;
+	XDeath.T12:
+		TNT1 A 0 { A_StartSound("undergib", CHAN_VOICE, 0, 1.0, ATTN_NONE); }
+		TNT1 AAAA 0 { A_SpawnProjectile("RS_CH_BoneGib", 0, 12, random(-180, 180), 0, random(0, 90)); }
+		TNT1 AAAAA 1 { A_SpawnItemEx("RS_HomingRocketTrailFatso", random(-12, 12), random(-12, 12), random(20, 52)); }
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_HomingRocketTrailFatso", random(-32, 32), random(-32, 32), random(10, 64)); }
+		TNT1 AAA 1 { A_SpawnItemEx("RS_HomingRocketTrailFatso", random(-2, 2), random(-2, 2), random(26, 34)); }
+		TNT1 A 0 { A_SetTranslucent(0.1); }
+		REVB A 1 { vel.z += 11.25; }
+		"MAGE" X 12;
+		TNT1 A 0 { A_SetTranslucent(0.35); }
+		TNT1 AAA 0 { A_SpawnProjectile("RS_CH_BoneGib", 0, 12, random(-180, 180), 0, random(0, 90)); }
+		"MAGE" X 12;
+		TNT1 A 0 { A_SetTranslucent(0.7); }
+		TNT1 AA 0 { A_SpawnProjectile("RS_CH_BoneGib", 0, 12, random(-180, 180), 0, random(0, 90)); }
+		"MAGE" X 12;
+		TNT1 A 0 { A_SetTranslucent(1.0); }
+		TNT1 A 0 { A_SpawnProjectile("RS_CH_BoneGib", 0, 12, random(-180, 180), 0, random(0, 90)); }
+		"MAGE" X -1;
+		Stop;
 	}
 }

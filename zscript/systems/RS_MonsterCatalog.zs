@@ -95,7 +95,10 @@ class RS_MonsterCatalog
 	// MORPH STAGES -- the "death is a phase change" chain.
 	// =================================================================
 
-	static Class<Actor> MORPH_CacoReal()   { return "RS_CacodemonReal"; }
+	// NOTE: there is no MORPH_CacoReal any more. The old "shell dies and
+	// reveals the true form" chain was an RS invention; CHP's Hades
+	// (09_K) instead goes NOPAIN below 3000 HP and summons two red
+	// cacodemons inline, which is what RS_Cacodemon now implements.
 	static Class<Actor> MORPH_PainPilot()  { return "RS_PainPilot"; }
 	static Class<Actor> MORPH_BaronFallen(){ return "RS_BaronFallen"; }
 

@@ -687,3 +687,534 @@ class RS_WhiteSpidWinder : Actor
 		Stop;
 	}
 }
+
+// =====================================================================
+// FAMILY 16 SECOND PASS -- the pieces RS_Mastermind.zs needs that this
+// library did not carry yet. Ported from CHP\DECORATE\16\16_*.txt (and
+// the CH parent where CHP only tweaks it), same rules as above: the
+// projectile is faithful, purely-cosmetic sub-spawn chains are folded
+// in rather than dragging ten more decoration actors across.
+// =====================================================================
+
+// ---------- T03 CYAN: the ice trail. CH's CyanSpidTrail is a
+// SpecialSpot on purpose -- the cyan mind teleports ONTO its own trail
+// when it takes pain, so this must stay a spot, not a plain Actor.
+class RS_CyanSpidTrail : SpecialSpot
+{
+	Default { Radius 4; Height 4; Speed 8; +NOBLOCKMAP; +NOGRAVITY; +NOCLIP;
+		RenderStyle "Add"; Alpha 0.6; Scale 0.5;
+		Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]"; }
+	States
+	{
+	Spawn:
+		ICEY A 3 Bright A_FadeOut(0.12);
+		Loop;
+	}
+}
+
+// ---------- T11 BLACK: the teleport anchor. CH spawns BlackSpidShade
+// (a SpecialSpot there) as both the damaging shade and the warp anchor;
+// RS_BlackSpidShade is already a damaging drifter, so the anchor is its
+// own invisible, short-lived spot.
+class RS_BlackSpidSpot : SpecialSpot
+{
+	Default { Radius 2; Height 2; +NOBLOCKMAP; +NOGRAVITY; +NOCLIP; +INVISIBLE; }
+	States
+	{
+	Spawn:
+		TNT1 A 70;
+		Stop;
+	}
+}
+
+// ---------- T11 BLACK: the warp flash (CHP ZWAVE2_C).
+class RS_ZWAVE2 : Actor
+{
+	Default { +NOINTERACTION; +NOBLOCKMAP; Scale 1.5; RenderStyle "Add"; Alpha 0.75; }
+	States
+	{
+	Spawn:
+		TNT1 A 2;
+		BLST ABCD 1 Bright A_FadeOut(0.0625);
+		BLST EFGHIJKLMNOP 1 Bright A_FadeOut(0.0625);
+		Stop;
+	}
+}
+
+// ---------- T06 ABYSS: the tentacle field dropped by A_VileTarget.
+// CHP's ABVileTend_C is a translated ABVileTend whose death splashes
+// four abyss puddles; the splash actors are decoration and are folded
+// into the death animation here.
+// [dedupe] duplicate class RS_ABVileTend removed -- defined earlier in the load order.
+
+// ---------- T06 ABYSS: the psychic tangle (CHP PsychicTangleAbyVile_C).
+// [dedupe] duplicate class RS_PsychicTangleAbyVile removed -- defined earlier in the load order.
+
+// ---------- T07 FIREBLU: the fireblu spam bolt (CHP 04_F FireBCguy_C).
+class RS_FireBCguy : FastProjectile
+{
+	Default { Radius 6; Height 6; Speed 45; Damage 12; DamageType "Fire";
+		Projectile; +RANDOMIZE; +THRUACTORS; RenderStyle "Add"; Alpha 0.85; Scale 0.65;
+		SeeSound "imp/attack"; DeathSound "imp/shotx";
+		Translation "161:161=200:200", "160:160=177:177", "162:162=184:184", "163:163=204:204",
+		            "164:164=186:186", "165:165=204:204", "166:166=189:189", "167:167=207:207"; }
+	States
+	{
+	Spawn:
+		FIRE A 0;
+		FIRE AB 4 Bright A_Explode(random(4, 15), 64);
+		Goto Fly;
+	Fly:
+		FIRE CDEEDCDE 3 A_Explode(random(4, 15), 64);
+		Loop;
+	Death:
+		FIRE FGH 6 Bright A_Explode(random(5, 15), 64);
+		Stop;
+	}
+}
+
+// ---------- T08 BROWN: the third, fastest wind blast.
+class RS_WindBlastMasterMind3 : RS_WindBlastMasterMind2 { Default { Speed 20; } }
+
+// ---------- T08 BROWN: the bone shield the brown mind hands out to
+// every demon around it, once, when it drops below 3000.
+class RS_MindBoneShield : Actor
+{
+	private int rsSpin;
+	Default { Radius 40; Height 64; +NOBLOCKMAP; +NOGRAVITY; +NOINTERACTION;
+		RenderStyle "Translucent"; Alpha 0.7; Scale 1.1;
+		Translation "0:255=%[0.10,0.08,0.05]:[1.20,1.05,0.70]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		BBBN A 1 { rsSpin += 8; A_Warp(AAPTR_MASTER, 34, 0, 24, rsSpin, WARPF_ABSOLUTEANGLE | WARPF_NOCHECKPOSITION | WARPF_INTERPOLATE); if (!master || master.health <= 0) return ResolveState("Death"); return ResolveState(null); }
+		BBBN B 1 { rsSpin += 8; A_Warp(AAPTR_MASTER, 34, 0, 24, rsSpin, WARPF_ABSOLUTEANGLE | WARPF_NOCHECKPOSITION | WARPF_INTERPOLATE); if (!master || master.health <= 0) return ResolveState("Death"); return ResolveState(null); }
+		Loop;
+	Death:
+		BBBN CD 2 A_FadeOut(0.2);
+		Loop;
+	}
+}
+class RS_ShieldUpMind2 : CustomInventory
+{
+	Default { Inventory.MaxAmount 1; +INVENTORY.AUTOACTIVATE; +INVENTORY.UNDROPPABLE; }
+	States
+	{
+	Spawn:
+		TNT1 A -1;
+		Stop;
+	Pickup:
+	Use:
+		TNT1 A 0 A_SpawnItemEx("RS_MindBoneShield", 0, 0, 0, 0, 0, 0, 0, SXF_SETMASTER | SXF_NOCHECKPOSITION);
+		Stop;
+	}
+}
+
+// ---------- T09 GRAY: the floating brain that rides the gray mind.
+class RS_BrainPainGray : Actor
+{
+	Default { Radius 6; Height 6; +NOBLOCKMAP; +NOGRAVITY; +NOINTERACTION;
+		RenderStyle "Add"; Alpha 0.8; Scale 0.8; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		ICEY AAABBBCCC 1 Bright { A_Warp(AAPTR_MASTER, random(-8, 8), random(-13, 13), random(82, 102), 0, WARPF_NOCHECKPOSITION | WARPF_INTERPOLATE); if (!master || master.health <= 0) return ResolveState("Death"); return ResolveState(null); }
+		Loop;
+	Death:
+		ICEY A 2 Bright A_NoBlocking;
+		ICEY B 2 Bright A_SetScale(1);
+		ICEY C 2 Bright A_SetScale(0.7);
+		ICEY F 2 Bright A_SetScale(0.4);
+		Stop;
+	}
+}
+
+// ---------- T09 GRAY: the nail storm round (CHP SpidieNail_C).
+class RS_SpidieNail : FastProjectile
+{
+	Default { Radius 4; Height 6; Speed 30; Damage 20; DamageType "Fire";
+		Projectile; +SPAWNSOUNDSOURCE; +EXTREMEDEATH; +BLOODSPLATTER; +ROCKETTRAIL;
+		Scale 1.1; Decal "BulletChip";
+		SeeSound "moloch/nail"; AttackSound "moloch/nailhitbleed"; DeathSound "weapons/firex4"; }
+	States
+	{
+	Spawn:
+		BLAD A 1 Bright;
+		Loop;
+	Death:
+		"6PUF" A 0 A_StartSound("moloch/nailhit", CHAN_BODY);
+		"6PUF" ABCDEF 1 Bright A_Explode(random(2, 10), 64);
+		FBL1 EFG 1 Bright A_Explode(random(5, 20), 64);
+		Stop;
+	}
+}
+
+// =====================================================================
+// T12 WHITE -- "Everlasting White Spidey" (16_W) kit.
+// =====================================================================
+
+// The homing plasma rocket of the Rockabye pattern.
+class RS_ESPlasmaRocket : Actor
+{
+	Default { Radius 13; Height 9; Speed 1; Damage 60; DamageType "Plasma";
+		Projectile; +RANDOMIZE; +DEHEXPLOSION; +MTHRUSPECIES; Species "MMind";
+		Scale 1.0; XScale 1.3; YScale 0.85;
+		SeeSound "weapons/hominglaunch"; DeathSound "weapons/rocklx";
+		Translation "48:159=%[0.00,0.00,0.00]:[1.01,1.01,1.01]",
+		            "0:15=%[0.00,0.00,0.00]:[1.01,1.01,1.01]",
+		            "16:47=%[0.00,0.19,0.25]:[0.50,1.63,2.00]",
+		            "160:255=%[0.00,0.19,0.25]:[0.50,1.63,2.00]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 A_ScaleVelocity(random(20, 60));
+	Fly:
+		MISL A 1 Bright;
+		MISL AA 1 Bright A_Weave(3, 0, 3, 0);
+		Loop;
+	Death:
+		MISL B 0 A_SetTranslucent(0.75, 1);
+		MISL B 4 Bright A_Explode(random(80, 180), 88);
+		MISL CD 4 Bright;
+		Stop;
+	}
+}
+
+// The Shocker's bouncing lightning ball.
+class RS_ESZapper : Actor
+{
+	Default { Radius 8; Height 9; Speed 1; Damage 25; DamageType "Plasma";
+		Projectile; +RANDOMIZE; +FORCEXYBILLBOARD; +HEXENBOUNCE;
+		+BOUNCEONWALLS; +BOUNCEONCEILINGS; +BOUNCEONFLOORS;
+		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES; Species "MMind";
+		BounceCount 6; BounceFactor 1; WallBounceFactor 1;
+		RenderStyle "Add"; Alpha 0.9; Scale 1;
+		Translation "0:255=%[0.21,0.29,0.68]:[1.07,2.00,2.00]";
+		SeeSound "monster/hadtel"; BounceSound "Litn/litn2"; DeathSound "monster/hadsit"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 A_ScaleVelocity(random(20, 40));
+		TNT1 A 0 A_StartSound("Litn/litn3", CHAN_BODY);
+	Fly:
+		LITN B 0 A_Explode(random(0, 3), 96, 0);
+		LITN B 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, frandom(-5, 5), frandom(-5, 5), frandom(-5, 5), 0, SXF_NOCHECKPOSITION);
+		LITN C 0 A_Explode(random(0, 3), 96, 0);
+		LITN C 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, frandom(-5, 5), frandom(-5, 5), frandom(-5, 5), 0, SXF_NOCHECKPOSITION);
+		LITN D 0 A_Explode(random(0, 3), 96, 0);
+		LITN D 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, frandom(-5, 5), frandom(-5, 5), frandom(-5, 5), 0, SXF_NOCHECKPOSITION);
+		LITN E 0 A_Explode(random(0, 3), 96, 0);
+		LITN E 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, frandom(-5, 5), frandom(-5, 5), frandom(-5, 5), 0, SXF_NOCHECKPOSITION);
+		LITN F 0 A_Explode(random(0, 3), 96, 0);
+		LITN F 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, frandom(-5, 5), frandom(-5, 5), frandom(-5, 5), 0, SXF_NOCHECKPOSITION);
+		LITN G 0 A_Explode(random(0, 3), 96, 0);
+		LITN G 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, frandom(-5, 5), frandom(-5, 5), frandom(-5, 5), 0, SXF_NOCHECKPOSITION);
+		LITN O 0 A_Explode(random(0, 3), 96, 0);
+		LITN O 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, frandom(-5, 5), frandom(-5, 5), frandom(-5, 5), 0, SXF_NOCHECKPOSITION);
+		LITN P 0 A_Explode(random(0, 3), 96, 0);
+		LITN P 2 Bright A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, frandom(-5, 5), frandom(-5, 5), frandom(-5, 5), 0, SXF_NOCHECKPOSITION);
+		Loop;
+	Death:
+		LITN AAAAAAAA 0 A_SpawnItemEx("RS_ESZapZap", 0, 0, 0, frandom(-5, 5), frandom(-5, 5), frandom(-5, 5), 0, SXF_NOCHECKPOSITION);
+		LITN A 2;
+		Stop;
+	}
+}
+// The lightning-strike payload rained from the sky by the MegaStrike.
+class RS_ESZapper2 : RS_ESZapper {}
+
+// EyeBeam railgun puffs: the trail spark and the impact burst.
+class RS_WhiteMindRB4 : Actor
+{
+	Default { Radius 4; Height 4; Speed 11; Damage 20; Projectile; +NOGRAVITY;
+		+MTHRUSPECIES; Species "MMind"; RenderStyle "Add"; Alpha 0.9;
+		SeeSound "Spell/spellCast1"; DeathSound "Crack/death"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		BAL2 A 3 Bright A_SetScale(1.33, 1.33);
+		BAL2 B 3 Bright A_SetScale(1.15, 1.15);
+		BAL2 A 3 Bright A_SetScale(0.85, 0.85);
+		BAL2 B 3 Bright A_SetScale(1.15, 1.15);
+	Death:
+		BAL2 C 4 A_SetTranslucent(0.55);
+		BAL2 D 1 A_Explode(random(10, 20), 88);
+		BAL2 E 2 A_Explode(random(10, 20), 88);
+		Stop;
+	}
+}
+class RS_WhiteMindRB3 : Actor
+{
+	Default { Radius 4; Height 4; Speed 1; Damage 60; Projectile; +NOGRAVITY;
+		+MTHRUSPECIES; Species "MMind"; RenderStyle "Add"; DeathSound "NETHERDE"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Death:
+		TNT1 A 0 A_Scream;
+		BFE1 AB 5 Bright;
+		BFE1 C 8 Bright A_Explode(random(30, 95), 128);
+		TNT1 A 0 A_Quake(9, 9, 0, 30);
+		BFE1 DEF 8 Bright;
+		Stop;
+	}
+}
+
+// The orbiting reflective shield the white mind raises once.
+class RS_WhiteSpidShieldWalk : Actor
+{
+	private int rsAngle;
+	Default { Radius 88; Height 100; Speed 18; Health 999; Species "MMind";
+		Monster;
+		+NOTRIGGER +NOTARGET +DONTTHRUST +NOGRAVITY +INVULNERABLE
+		+REFLECTIVE +DEFLECT +SHIELDREFLECT +THRUSPECIES +MTHRUSPECIES
+		-COUNTKILL
+		RenderStyle "Add"; Alpha 1.0; Scale 1.5;
+		Translation "0:255=%[0.00,0.00,0.00]:[1.01,1.76,2.00]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		CHSW Z 1 Bright { rsAngle += 8; A_Warp(AAPTR_MASTER, 128, 0, 8, rsAngle, WARPF_ABSOLUTEANGLE | WARPF_NOCHECKPOSITION | WARPF_INTERPOLATE); if (rsAngle >= 3600 || !master || master.health <= 0) return ResolveState("Death"); return ResolveState(null); }
+		Loop;
+	Death:
+		CHSW Z 2 Bright A_NoBlocking;
+		CHSW Z 2 Bright A_SetScale(1.0);
+		CHSW Z 2 Bright A_SetScale(0.7);
+		CHSW Z 2 Bright A_SetScale(0.4);
+		TNT1 A 0 A_Die;
+		Stop;
+	}
+}
+
+// The lightning caller: a target marker that rains ESZapper2 from above.
+// CHP's marker blinks between CHTA A and CHTA X; RS's art set only
+// carries CHTA A, so the off-frames are TNT1.
+class RS_WhiteSpidMegaStrike2 : Actor
+{
+	Default { +NOBLOCKMAP; +NOGRAVITY; +MTHRUSPECIES; +DONTHARMSPECIES; Species "MMind"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 AAAAA 0 A_SpawnProjectile("RS_ESZapper2", -8, 0, random(0, 360), CMF_AIMDIRECTION, random(-60, -90));
+		Stop;
+	}
+}
+class RS_WhiteSpidMegaStrike : Actor
+{
+	Default { +NOBLOCKMAP; +NOGRAVITY; +MTHRUSPECIES; +DONTHARMSPECIES; Species "MMind"; Scale 1.25; }
+	States
+	{
+	Spawn:
+		CHTA A 0;
+		CHTA A 0 A_StartSound("SPMTARG", CHAN_BODY);
+		CHTA A 2 Bright;
+		TNT1 A 2;
+		CHTA A 2 Bright;
+		TNT1 A 2;
+		CHTA A 2 Bright;
+		TNT1 A 2;
+		CHTA A 2 Bright;
+		TNT1 A 2;
+		CHTA A 2 Bright A_SpawnItemEx("RS_WhiteSpidMegaStrike2", random(-32, 32), random(-32, 32), 32767, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		TNT1 A 2 A_SpawnItemEx("RS_WhiteSpidMegaStrike2", random(-32, 32), random(-32, 32), 32767, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		CHTA A 2 Bright A_SpawnItemEx("RS_WhiteSpidMegaStrike2", random(-32, 32), random(-32, 32), 32767, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		TNT1 A 2 A_SpawnItemEx("RS_WhiteSpidMegaStrike2", random(-32, 32), random(-32, 32), 32767, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		CHTA A 2 Bright A_SpawnItemEx("RS_WhiteSpidMegaStrike2", random(-32, 32), random(-32, 32), 32767, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		TNT1 A 2 A_SpawnItemEx("RS_WhiteSpidMegaStrike2", random(-32, 32), random(-32, 32), 32767, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		Stop;
+	}
+}
+
+// The web shot -- a slow, heavy tangle round fired in long strings.
+// Ported from CHP 12_W's WHITESPIDERWEBSHOT_C, which 16_W only reskins
+// with +MTHRUSPECIES. The web-decal litter it drops on death and the
+// player-slowdown token are CH inventory plumbing with no consumer
+// here; the round itself is verbatim.
+class RS_WhiteMindWebShot : FastProjectile
+{
+	Default { Radius 3; Height 3; Speed 35; Damage 3; DamageType "Melee";
+		Projectile; +MTHRUSPECIES; +DONTHARMSPECIES; Species "MMind"; Scale 0.75;
+		SeeSound "phantom/bomb"; DeathSound "phantom/explode";
+		Translation "192:207=80:95"; }
+	States
+	{
+	Spawn:
+		PLSE A 3 Bright;
+		Loop;
+	Death:
+		PLSE BCDE 1 Bright;
+		Stop;
+	}
+}
+
+// The chaos ball, fired once per Everlasting cycle: a heavy bouncing
+// plasma orb. CHP's OrbOfChaos death gag is left out; the ball keeps
+// its own blast.
+class RS_WhiteSpidChaosBall : Actor
+{
+	Default { Radius 40; Height 80; Speed 30; Damage 140; DamageType "Plasma";
+		Species "MMind"; Scale 1.5; Gravity 0.6;
+		Projectile; +BOUNCEONWALLS; +BOUNCEONCEILINGS; -NOGRAVITY; +MTHRUSPECIES;
+		BounceCount 99999; BounceFactor 1; WallBounceFactor 1;
+		SeeSound "Crack/see"; DeathSound "Crack/death";
+		RenderStyle "Stencil"; StencilColor "BF 98 E7"; }
+	States
+	{
+	Spawn:
+		RED9 AAAABBBB 1 Bright;
+		Loop;
+	Death:
+		BLL9 A 0 A_SetScale(3, 3);
+		BLL9 CDE 6 Bright A_Explode(120, 200);
+		Stop;
+	}
+}
+
+// The orbital nuke: a rising show flare, a ground marker that counts
+// down, and the shell that falls on it.
+class RS_WhiteFatNukeShow : FastProjectile
+{
+	Default { Radius 9; Height 9; Speed 21; Projectile; +NOINTERACTION;
+		Scale 1.0; XScale 0.55; YScale 1.74; SeeSound "imp/attack";
+		Translation "231:231=4:4", "208:223=80:86", "168:191=192:196", "32:47=4:4", "250:254=4:4"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		BAL2 B 6 A_SetScale(0.44, 1.86);
+		BAL2 A 6 A_SetScale(0.33, 1.99);
+		BAL2 B 6 A_SetScale(0.22, 2.22);
+		BAL2 A 6 A_SetScale(0.11, 2.44);
+		Stop;
+	}
+}
+class RS_WhiteFatNuke : FastProjectile
+{
+	Default { Radius 12; Height 12; Speed 25; Mass 8000; Damage 150; DamageType "Fire";
+		Projectile; -NOGRAVITY; +DONTHARMSPECIES; Species "MMind";
+		Scale 1.0; XScale 1.2; YScale 2.6; RenderStyle "Add"; Alpha 1.0;
+		SeeSound "ARCAZAP7"; DeathSound "NETHERDE";
+		Translation "231:231=4:4", "208:223=80:86", "168:191=192:196", "32:47=4:4",
+		            "250:254=4:4", "112:120=80:88", "120:127=192:199", "160:167=4:4",
+		            "224:235=192:192", "64:79=192:199", "144:151=4:4", "128:143=4:4"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		BAL2 AB 1 Bright;
+		Loop;
+	Death:
+		TNT1 A 0 A_SetScale(2.5, 0.15);
+		TNT1 A 0 A_Scream;
+		BFE1 AB 3 Bright;
+		BFE1 C 8 Bright A_Explode(random(80, 155), 326);
+		TNT1 A 0 A_Quake(15, 15, 0, 40);
+		BFE1 DEF 8 Bright A_Explode(random(80, 155), 326);
+		Stop;
+	}
+}
+class RS_WhiteFatMark : Actor
+{
+	Default { Radius 4; Height 4; Speed 1; +NOBLOCKMAP; +NOGRAVITY; +NOINTERACTION; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		Goto Death;
+	Death:
+		TNT1 A 1 A_Scream;
+		CHTA A 10 Bright;
+		TNT1 A 1;
+		CHTA A 10 Bright;
+		TNT1 A 1;
+		CHTA A 10 Bright;
+		TNT1 A 1;
+		CHTA A 10 Bright;
+		TNT1 A 1;
+		CHTA A 10 Bright;
+		TNT1 A 1;
+		CHTA A 10 Bright;
+		TNT1 A 1;
+		CHTA A 10 Bright;
+		TNT1 A 1;
+		CHTA A 10 Bright;
+		TNT1 A 0 A_SpawnItemEx("RS_WhiteFatNuke", 0, 0, random(128, 256), 0, 0, -2, 0, SXF_NOCHECKPOSITION);
+		Stop;
+	}
+}
+
+// The mini sentinel the white mind lobs out with A_PainAttack, and its
+// flare round. Excluded from the kill count, like every RS minion.
+class RS_DFlareMind2 : Actor
+{
+	Default { Radius 4; Height 4; Speed 25; Damage 5; DamageType "Plasma";
+		Projectile; +NOGRAVITY; RenderStyle "Add"; Alpha 0.9; Scale 0.5;
+		SeeSound "weapons/plasmaf"; DeathSound "weapons/plasmax";
+		Translation "16:47=%[0.00,0.34,0.34]:[0.00,2.00,2.00]",
+		            "160:255=%[0.00,0.34,0.34]:[0.00,2.00,2.00]"; }
+	States
+	{
+	Spawn:
+		PLSS AB 3 Bright;
+		Loop;
+	Death:
+		PLSE ABCDE 4 Bright;
+		Stop;
+	}
+}
+class RS_MiniSentinelSpider : Actor
+{
+	Default { Health 40; PainChance 255; Speed 28; FloatSpeed 4;
+		Radius 12; Height 26; Mass 300; Species "MMind";
+		Monster;
+		+NOGRAVITY +DROPOFF +NOBLOOD +NOBLOCKMONST +INCOMBAT +MISSILEMORE
+		+LOOKALLAROUND +NEVERRESPAWN +DONTHARMSPECIES +NOINFIGHTSPECIES
+		-COUNTKILL
+		DeathSound "Crack/death"; PainSound "prox/beep";
+		Obituary "%o was vaporized by a mini sentinel";
+		Tag "Mini Sentinel";
+		Translation "16:47=%[0.00,0.34,0.34]:[0.00,2.00,2.00]",
+		            "160:255=%[0.00,0.34,0.34]:[0.00,2.00,2.00]"; }
+	States
+	{
+	Spawn:
+		MNDR A 10;
+		Goto See;
+	See:
+		MNDR A 1 A_SentinelBob;
+		MNDR A 2 A_Chase;
+		Loop;
+	Missile:
+		MNDR A 4 A_FaceTarget;
+		MNDR B 1 Bright A_SpawnProjectile("RS_DFlareMind2", 15, 0, 0);
+		MNDR B 1 Bright A_SpawnProjectile("RS_DFlareMind2", 15, 0, random(-3, 3));
+		MNDR B 1 Bright A_SpawnProjectile("RS_DFlareMind2", 15, 0, random(-9, 9));
+		MNDR A 4;
+		Goto See;
+	Pain:
+		MNDR A 5 A_Pain;
+		Goto See;
+	Death:
+		MNDR C 7 Bright A_Fall;
+		MNDR D 5 Bright A_Scream;
+		MNDR E 5 Bright;
+		MNDR F 5 Bright;
+		MNDR G 5 Bright;
+		MNDR HI 5 Bright;
+		Stop;
+	}
+}

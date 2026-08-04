@@ -882,37 +882,7 @@ class RS_WarlordShield : Actor
 }
 
 // T11 BLACK -- the Agaures artillery shell.
-class RS_DIBigOne : Actor
-{
-	Default
-	{
-		Radius 12;
-		Height 24;
-		Speed 7;
-		Projectile;
-		+NOGRAVITY
-		RenderStyle "Add";
-		Scale 2.0;
-		Damage (random(40, 125));
-		DamageType "Plasma";
-		Alpha 0.75;
-		DeathSound "weapons/rocklx";
-	}
-	States
-	{
-	Spawn:
-		RED9 B 1 Bright;
-		RED9 AA 1 Bright { A_SpawnItemEx("RS_SpiralSaw5", 0, 0, 0, 0, 0, 0, 0, 128); }
-		RED9 A 0 { A_SpawnProjectile("RS_GroundRedCyb", 0, 0); }
-		RED9 A 0 { A_SpawnProjectile("RS_AgauresBall1", 7, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
-		RED9 A 0 { A_Explode(random(4, 10), 128); }
-		Loop;
-	Death:
-		SPIR AAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", random(-178, 178), random(-178, 178), random(-12, 42), 0, 0, 0, 0, 128); }
-		SPIR ABCDEDCBA 5 Bright { A_Explode(random(5, 30), 178); }
-		Stop;
-	}
-}
+// [dedupe] duplicate class RS_DIBigOne removed -- defined earlier in the load order.
 
 // T12 WHITE -- the seeking hellion round it rains during nopenopeno.
 class RS_Hel2 : Actor

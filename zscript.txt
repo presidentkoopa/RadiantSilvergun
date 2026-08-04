@@ -84,6 +84,8 @@ version "4.14"
 #include "zscript/monsters/RS_Mancubus.zs"
 #include "zscript/monsters/RS_Arachnotron.zs"
 #include "zscript/monsters/RS_Archvile.zs"
+#include "zscript/monsters/RS_Mastermind.zs"
+#include "zscript/monsters/RS_Cyberdemon.zs"
 
 // Summoned monsters. Real RS_MonsterMaster monsters (they carry a tier
 // and can be retiered), deliberately not throwaway actors -- see the

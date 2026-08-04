@@ -420,12 +420,6 @@ class RS_MonsterMaster : Actor abstract
 		}
 	}
 
-	// DEPRECATED no-op kept only so not-yet-converted family files still
-	// compile mid-rebuild. The verification pass (docs/rs_09 spec) greps
-	// for callsites and deletes this stub once they hit zero. Do not add
-	// new calls.
-	void RS_WearBody() {}
-
 	// =================================================================
 	// TIER STATE DISPATCH -- the rebuilt body system.
 	// A tier's body is a real state cluster: See.T03, Missile.T03...

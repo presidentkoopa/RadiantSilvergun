@@ -326,52 +326,10 @@ class RS_BaronStar2 : Actor
 		Stop;
 	}
 }
-class RS_Firehand1 : Actor
-{
-	Default { Radius 2; Height 2; Speed 0; +NOINTERACTION; RenderStyle "Add"; SeeSound "fire/fire4"; Alpha 0.9; Scale 1.2; }
-	States
-	{
-	Spawn:
-		FLUM ABCDE 6 Bright;
-		Goto Death;
-	Death:
-		MISL BCD 6 Bright A_SetScale(0.6);
-		Stop;
-	}
-}
-class RS_BaronFbomb : Actor
-{
-	Default
-	{
-		Radius 12; Height 12; Speed 19; FastSpeed 38;
-		Damage 40; DamageType "Fire";
-		Projectile; +RANDOMIZE; +SEEKERMISSILE; Species "BaronOfHell"; +DONTHARMCLASS;
-		RenderStyle "Add"; Alpha 1; Scale 1;
-		SeeSound "spell/spellcast1"; DeathSound "spell/Impact1";
-	}
-	States
-	{
-	Spawn:
-		BBOM A 1 Bright A_CustomMissile("RS_SparkPuff1", 4, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		BBOM A 1 Bright A_SetScale(1.3);
-		BBOM A 1 Bright A_CustomMissile("RS_SparkPuff1", 4, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		BBOM A 1 Bright A_SetScale(1.0);
-		Loop;
-	Death:
-		BBOM A 4 Bright A_SetScale(1.8);
-		BBOM B 5 A_SetTranslucent(0.65);
-		BBOM B 1 Bright A_CustomMissile("RS_BaronStar3", 4, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		BBOM B 1 Bright A_CustomMissile("RS_BaronStar3", 4, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		BBOM C 5 Bright A_Explode(17,155);
-		BBOM D 4 Bright A_CustomMissile("RS_BaronStar3", 4, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		BBOM D 1 Bright A_CustomMissile("RS_BaronStar3", 4, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		BBOM E 6 Bright A_Explode(17,155);
-		BBOM F 4 Bright A_CustomMissile("RS_BaronStar3", 4, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		BBOM F 1 Bright A_CustomMissile("RS_BaronStar3", 4, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		BBOM G 5 Bright A_Explode(17,155);
-		Stop;
-	}
-}
+// [dedupe] older duplicate of RS_Firehand1 removed -- ZScript is case-insensitive,
+// so the CHP-sourced definition later in this file serves every caller.
+// [dedupe] older duplicate of RS_BaronFbomb removed -- ZScript is case-insensitive,
+// so the CHP-sourced definition later in this file serves every caller.
 
 // ---------- FIREBLU: RedBBall/BluBBall (shared w/ imp) + BluPowerBomb + RedPower/Bomb ----------
 class RS_BluPowerBomb : Actor
@@ -757,35 +715,7 @@ class RS_BrownBaronSpiral : Actor
 		Stop;
 	}
 }
-class RS_BrownVileGas : Actor
-{
-	Default { Radius 8; Height 8; Speed 0; Projectile; +NOCLIP; +FLOATBOB; Scale 0.5;
-		Translation "0:255=%[0.18,0.13,0.13]:[1.73,1.51,1.30]"; }
-	States
-	{
-	Spawn:
-		TNT1 A 0;
-	Fly:
-		TNT1 A 0 A_Jump(255,"A1","A2","A3","A4");
-	A1:
-		PSBG CDEFGHI 3 Bright;
-		Goto Death;
-	A2:
-		TNT1 A 0 A_SetScale(0.7,0.25);
-		PSBG CDEFGHI 3 Bright;
-		Goto Death;
-	A3:
-		TNT1 A 0 A_SetScale(0.3,0.6);
-		PSBG CDEFGHI 3 Bright;
-		Goto Death;
-	A4:
-		PSBG IHGFEDCDEFGHI 3 Bright;
-		Goto Death;
-	Death:
-		TNT1 A 0;
-		Stop;
-	}
-}
+// [dedupe] duplicate class RS_BrownVileGas removed -- defined earlier in the load order.
 
 // ---------- CYAN: ice bombs/stars/seekers + frost wings (LOHS ice-baron) ----------
 class RS_IceSeekerTrailBaron : Actor
@@ -1373,3 +1303,203 @@ class RS_WhiteBaronGround : Actor
 		Stop;
 	}
 }
+
+// =====================================================================
+// CHP 15 REBUILD ADDITIONS
+// ---------------------------------------------------------------------
+// The five actors the CHP-15 rebuild needed that this library did not
+// already carry. Source: the first ACTOR of each
+// E:\New folder\ART SOURCE\CHP\DECORATE\15\15_<code>.txt, falling back
+// to the CH parent in CH\decorate\Barons.txt (and Revenants.txt, which
+// is where CH keeps Firehand1). CHP's `_C` suffix stripped, RS_ added.
+// =====================================================================
+
+// ---------- T03 CYAN: the frost wings' cold-burst variant ----------
+class RS_FrostWingBaron2 : Actor
+{
+	Default { Radius 2; Height 2; Speed 1; Projectile; +NOCLIP;
+		RenderStyle "Add"; Alpha 0.65; Scale 0.55; }
+	States
+	{
+	Spawn:
+		KIRC ABCDABCD 1 Bright;
+	Death:
+		TNT1 A 0 { A_Stop(); A_SetScale(0.65, 0.65); }
+		ICEY FGHI 1 Bright;
+		TNT1 A 0 { A_SetScale(0.85, 0.85); }
+		ICEY IGHF 1 Bright;
+		Stop;
+	}
+}
+
+// ---------- T05 YELLOW: the fire hand, and the bomb it throws ----------
+class RS_FireHand1 : Actor
+{
+	Default { Radius 2; Height 2; Speed 0; +NOINTERACTION;
+		RenderStyle "Add"; Alpha 0.9; Scale 1.2; SeeSound "fire/fire4"; }
+	States
+	{
+	Spawn:
+		FLUM ABCDE 6 Bright;
+		Goto Death;
+	Death:
+		MISL BCD 6 Bright { A_SetScale(0.6, 0.6); }
+		Stop;
+	}
+}
+
+// A seeking star-bomb: it swells as it flies and sheds stars as it dies.
+class RS_BaronFBomb : FastProjectile
+{
+	Default
+	{
+		Radius 12; Height 12; Speed 19; FastSpeed 38;
+		Damage (random(10, 70)); DamageType "Fire";
+		Projectile; +RANDOMIZE +SEEKERMISSILE +DONTHARMCLASS;
+		Species "BaronOfHell";
+		RenderStyle "Add"; Alpha 1.0; Scale 1.0;
+		SeeSound "spell/spellcast1"; DeathSound "spell/Impact1";
+	}
+	States
+	{
+	Spawn:
+		BBOM A 1 Bright { A_SpawnProjectile("RS_SparkPuff1", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		BBOM A 1 Bright { A_SetScale(1.3, 1.3); }
+		BBOM A 1 Bright { A_SpawnProjectile("RS_SparkPuff1", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		BBOM A 1 Bright { A_SetScale(1.0, 1.0); }
+		Loop;
+	Death:
+		BBOM A 4 Bright { A_SetScale(1.8, 1.8); }
+		BBOM B 5 Bright { A_SetTranslucent(0.65); }
+		BBOM B 1 Bright { A_SpawnProjectile("RS_BaronStar3", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		BBOM B 1 Bright { A_SpawnProjectile("RS_BaronStar3", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		BBOM C 5 Bright { A_Explode(random(5, 30), 155); }
+		BBOM D 4 Bright { A_SpawnProjectile("RS_BaronStar3", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		BBOM D 1 Bright { A_SpawnProjectile("RS_BaronStar3", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		BBOM D 1 Bright { A_SpawnProjectile("RS_BaronStar3", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		BBOM E 6 Bright { A_Explode(random(5, 30), 155); }
+		BBOM F 4 Bright { A_SpawnProjectile("RS_BaronStar3", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		BBOM F 1 Bright { A_SpawnProjectile("RS_BaronStar3", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		BBOM F 1 Bright { A_SpawnProjectile("RS_BaronStar3", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		BBOM G 5 Bright { A_Explode(random(5, 30), 155); }
+		Stop;
+	}
+}
+
+// ---------- T10 RED: the bouncing comet the Power Baron builds up to ----------
+class RS_ArchonCometTrail : Actor
+{
+	Default { Radius 1; Height 1; Speed 0; +NOINTERACTION +NOBLOCKMAP;
+		RenderStyle "Add"; Alpha 0.6; Scale 0.7;
+		Translation "112:127=176:191"; }
+	States { Spawn: ARCB DEFGH 3 Bright; Stop; }
+}
+
+class RS_ArchonComet : Actor
+{
+	Default
+	{
+		Radius 8; Height 12; Speed 25; Damage 20; Scale 1.0;
+		Projectile; +THRUGHOST +BOUNCEONWALLS +DONTHURTSHOOTER;
+		BounceType "Doom"; BounceFactor 1.0; BounceCount 4; WallBounceFactor 1.2;
+		SeeSound "weapons/firbfi"; DeathSound "weapons/hellex"; BounceSound "Fire/fire4";
+		DamageType "Fire";
+		Translation "112:127=176:191";
+	}
+	States
+	{
+	Spawn:
+		ARCB AAAABBBBCCCC 1 Bright { A_SpawnItemEx("RS_ArchonCometTrail", 0, 0, 0, 0, 0, 0, 0, 128); }
+		Loop;
+	Death:
+		ARCB J 0 { A_SetTranslucent(0.67, 1); }
+		ARCB J 3 Bright;
+		ARCB K 3 Bright { A_Explode(random(10, 80), 128, 0); }
+		ARCB LMN 3 Bright;
+		Stop;
+	}
+}
+
+// ---------- T11 BLACK: the deep-one railgun beam puff ----------
+class RS_DeepBeam1 : Actor
+{
+	Default
+	{
+		Radius 25; Height 13; Speed 1; Damage (random(10, 25)); Scale 1.5;
+		Projectile; +RANDOMIZE; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.9;
+		SeeSound "baron/attack"; DeathSound "baron/shotx";
+	}
+	States
+	{
+	Spawn:
+		OLDP AB 7 Bright;
+		OLDP C 0 { A_Scream(); }
+		OLDP CDEF 4 Bright;
+		Stop;
+	}
+}
+
+// ---------- THE FALLEN (15_R's CommonRedBaron2) ----------
+// Everything the second stage fires. CHP defines these in 15_R.txt
+// alongside the Fallen itself.
+
+class RS_FallenFX : Actor
+{
+	Default { Radius 2; Height 2; Speed 0; Scale 1.0; Projectile; +NOINTERACTION;
+		RenderStyle "Add"; Alpha 0.67; }
+	States { Spawn: TNT1 A 3 Bright; FBFX ABCDE 3 Bright; Stop; }
+}
+
+class RS_FallenShot : FastProjectile
+{
+	Default { Radius 8; Height 8; Speed 16; Damage 2; RenderStyle "Add";
+		DamageType "Fire"; Alpha 0.67; Projectile; +THRUGHOST;
+		SeeSound "baron/attack"; DeathSound "baron/shotx"; }
+	States
+	{
+	Spawn:
+		BALF AB 2 Bright { A_SpawnItemEx("RS_FallenFX", 0, 0, 0, 0, 0, 0, 0, 128); }
+		Loop;
+	Death:
+		BALF CDEF 4 Bright;
+		Stop;
+	}
+}
+
+class RS_RedBBall2 : FastProjectile
+{
+	Default
+	{
+		Radius 8; Height 12; Speed 25; Damage (random(10, 55)); Scale 0.5;
+		Projectile; +THRUGHOST +DONTHURTSHOOTER;
+		SeeSound "weapons/firbfi"; DeathSound "weapons/hellex";
+		RenderStyle "Add"; Alpha 0.8; DamageType "Plasma";
+		Translation "112:127=176:191";
+	}
+	States
+	{
+	Spawn:
+		RED9 A 3 Bright { A_SetScale(0.5, 0.5); }
+		RED9 B 3 Bright { A_SpawnProjectile("RS_CrackoBallTrail", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		RED9 C 3 Bright { A_SetScale(0.4, 0.4); }
+		Loop;
+	Death:
+		ARCB J 0 { A_SetTranslucent(0.67, 1); }
+		ARCB JJJJJ 1 Bright { A_SpawnProjectile("RS_FallenShot", 4, 0, random(0, 360), CMF_AIMOFFSET, random(0, 360)); }
+		ARCB K 3 Bright { A_Explode(random(8, 20), 128, 0); }
+		ARCB LMN 3 Bright;
+		Stop;
+	}
+}
+
+// --- CHP-15 IMPORT CORRECTIONS ------------------------------------
+//   * CH sound names with no SNDINFO entry in this repo (deepone/*,
+//     Obsidian/*, brnaby*, BBARO*, incubus/walk, monster/ar2*) are
+//     mapped to their nearest vanilla baron/knight voice rather than
+//     left as silent calls.
+//   * A_SpawnParticle walls, RandomLetterSpawner, CHRandom_GibGenerator,
+//     A_GivetoChildren and the CHBoner/CHWhitePlan gore gates are
+//     dropped per docs/rs_09_monster_rebuild_spec.txt.
+//   * CHP's DamageType "Fallen" has no resistance table here; the
+//     Fallen's shot uses "Fire".
+// ------------------------------------------------------------------

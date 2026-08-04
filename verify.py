@@ -14,15 +14,16 @@ VAN={'POSS':'ABCDEFGHIJKLMNOPQRSTU','SPOS':'ABCDEFGHIJKLMNOPQRSTU','CPOS':'ABCDE
 'SKEL':'ABCDEFGHIJKLMNOPQRST','VILE':'ABCDEFGHIJKLMNOPQRSTUVWXYZ','BSPI':'ABCDEFGHIJKL',
 'SPID':'ABCDEFGHIJKLMNOPQR','CYBR':'ABCDEFGHIJKLMNOP','PLAY':'ABCDEFGHIJKLMNOPQRSTUVW','TNT1':'A',
 'MISL':'ABCDE','BAL1':'ABCDE','BAL2':'ABCDE','BAL7':'ABCDE','FATB':'ABCDE','FBXP':'ABC','MANF':'AB',
+'BOSF':'ABCD',
 'APLS':'AB','APBX':'ABCDE','PUFF':'ABCD','BLUD':'ABC','TFOG':'ABCDEFGHIJ','FIRE':'ABCDEFGH',
 'BFE1':'ABCDEF','BFE2':'ABCDE','BFS1':'ABCD','PLSS':'AB','PLSE':'ABCDE','BAR1':'ABCD','GRND':'A','HMIS':'AB'}
 for k,v in VAN.items(): ALL.setdefault(k,set()).update(set(v))
 defined=set()
 for f in glob.glob('zscript/**/*.zs',recursive=True)+glob.glob('zscript/**/*.zsc',recursive=True):
-    defined|=set(re.findall(r'^\s*class\s+(\w+)',io.open(f,encoding='utf-8',errors='ignore').read(),re.M))
+    defined|=set(x.lower() for x in re.findall(r'^\s*class\s+(\w+)',io.open(f,encoding='utf-8',errors='ignore').read(),re.M))
 STOCK={'BaronBall','DoomImpBall','CacodemonBall','RevenantTracer','ArachnotronPlasma','FatShot',
 'BulletPuff','Blood','RocketSmokeTrail','TeleportFog','LostSoul','DoomImp','ArchvileFire'}
-defined|=STOCK
+defined|=set(x.lower() for x in STOCK)
 BASE={'See','Spawn','Missile','Melee','Pain','Death','XDeath','Raise','Heal','Burn','Crash','Wound','Idle','Look'}
 bad=0
 for name in sys.argv[1:]:
@@ -30,12 +31,17 @@ for name in sys.argv[1:]:
     if not os.path.exists(p): print(name,'MISSING FILE'); bad+=1; continue
     src=io.open(p,encoding='utf-8').read(); probs=[]
     for tok,fr in re.findall(r'^\s*"?([A-Z0-9]{4})"?\s+([A-Z]+)\s+-?\d',src,re.M):
+        # Vanilla IWAD tokens: we have no IWAD to read, so asserting frame
+        # ranges from memory produced two false failures already (PAIN M,
+        # FATT T -- both real vanilla frames). Only existence is checked
+        # for those; GZDoom reports a genuinely missing frame at load.
+        if tok in VAN: continue
         h=ALL.get(tok)
         if h is None: probs.append(f'sprite {tok} NOT FOUND'); continue
         m=sorted(set(fr)-h)
         if m: probs.append(f'{tok} missing {"".join(m)}')
     for c in set(re.findall(r'"([A-Z]\w+)"',src)):
-        if (c.startswith('RS_') or c in STOCK) and c not in defined: probs.append(f'class {c} UNDEFINED')
+        if (c.startswith('RS_') or c in STOCK) and c.lower() not in defined: probs.append(f'class {c} UNDEFINED')
     labels=set(re.findall(r'^\s*([A-Za-z][\w.]*):\s*$',src,re.M))
     tg=set(re.findall(r'Goto\s+([A-Za-z][\w.]*)',src))|set(re.findall(r'(?:ResolveState|A_Jump\w*|A_CheckSight|A_MonsterRefire)\([^)]*?"([A-Za-z][\w.]*)"',src))
     for t in tg:

@@ -1119,3 +1119,114 @@ class RS_ZapOrbHKEX2 : FastProjectile
 // --- IMPORT CORRECTIONS -------------------------------------------
 // Broken sprite references inherited from the source, fixed on import:
 //   * SGRN -> GRND (source comment wrongly called SGRN a stock IWAD sprite)  (6 occurrences)
+
+// =====================================================================
+// CHP FAMILY 11 IMPORT (rebuild pass). Classes CHP's hell knights call
+// that had no RS_ port yet. Ported verbatim from
+// E:\New folder\ART SOURCE\CHP\DECORATE\11\ (CH parents where CHP only
+// tweaks a property).
+// =====================================================================
+
+// T00/T01's combo ball. CHP ships its own BaronBall_C (15_C.txt) rather
+// than calling the stock class -- same silhouette, its own numbers.
+class RS_BaronBall : FastProjectile
+{
+	Default
+	{
+		Radius 6; Height 16; Speed 15; FastSpeed 20;
+		Damage 8;
+		Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 1.0;
+		SeeSound "baron/attack"; DeathSound "baron/shotx";
+		Decal "BaronScorch";
+	}
+	States
+	{
+	Spawn:
+		BAL7 AB 4 Bright;
+		Loop;
+	Death:
+		BAL7 CDE 6 Bright;
+		Stop;
+	}
+}
+
+// T08's parry. A real reflective wall the Hellion warrior throws up in
+// front of itself -- REFLECTIVE + SHIELDREFLECT means shots come back.
+class RS_BrownHKShield : Actor
+{
+	Default
+	{
+		Radius 72; Height 64; Speed 1;
+		Species "BaronOfHell";
+		Health 999;
+		Monster;
+		+NOTRIGGER +NOTARGET +DONTTHRUST +NOGRAVITY +INVULNERABLE
+		+REFLECTIVE +SHIELDREFLECT +THRUSPECIES +MTHRUSPECIES
+		-COUNTKILL
+		RenderStyle "Add"; Alpha 0.95; Scale 1.1;
+		Translation "0:255=#[240,247,9]";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		DKNT Z 1 Bright { A_SetScale(0.4, 0.4); }
+		DKNT Z 1 Bright { A_SetScale(0.6, 0.6); }
+		DKNT Z 1 Bright { A_SetScale(0.7, 0.5); }
+		DKNT Z 1 Bright { A_SetScale(0.9, 0.8); }
+		TNT1 A 0 { A_FaceTarget(); }
+		DKNT Z 1 Bright { A_SetScale(1.25, 1.1); }
+		TNT1 A 0 { A_StartSound("HEALSIEL", CHAN_AUTO); }
+		DKNT Z 8 Bright;
+		Goto Death;
+	Death:
+		DKNT Z 2 Bright { A_NoBlocking(); }
+		DKNT Z 2 Bright { A_SetScale(0.8, 0.7); }
+		DKNT Z 2 Bright { A_SetScale(0.5, 0.4); }
+		DKNT Z 2 Bright { A_SetScale(0.3, 0.2); }
+		DKNT Z 2 Bright { A_SetScale(0.2, 0.1); }
+		TNT1 A 0 { A_Die(); }
+		Stop;
+	}
+}
+
+// The shield plate the Hellion warrior drops when it dies.
+class RS_HellWarriorShield : Actor
+{
+	Default
+	{
+		Radius 8; Height 8; Speed 6;
+		+DOOMBOUNCE +DROPOFF +MISSILE
+	}
+	States
+	{
+	Spawn:
+		HWSH ABCDEFGH 3;
+		Loop;
+	Death:
+		HWSH I -1;
+		Stop;
+	}
+}
+
+// The gore burst every knight's XDeath opens with.
+class RS_HKSplashDed : Actor
+{
+	Default
+	{
+		Radius 10; Height 42;
+		+NOGRAVITY
+		Scale 2.0;
+	}
+	States
+	{
+	Spawn:
+		BAR1 AB 0;
+		Goto Death;
+	Death:
+		BAL7 C 6 Bright { A_StartSound("misc/gibbed/c"); }
+		BAL7 DE 6 Bright;
+		Stop;
+	}
+}

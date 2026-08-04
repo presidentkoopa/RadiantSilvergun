@@ -317,3 +317,485 @@ class RS_BigBadFire1 : Actor
 // --- IMPORT CORRECTIONS -------------------------------------------
 // Broken sprite references inherited from the source, fixed on import:
 //   * FBXP -> BFE2 (FBXP exists nowhere; BFE2 is the vanilla BFG blast)  (2 occurrences)
+
+// =====================================================================
+// CHP 08 rebuild additions -- every actor below is referenced by
+// RS_Revenant.zs / RS_RevenantShade and was ported from its CH/CHP
+// source, not invented. A_SpawnParticle walls are stripped throughout.
+// =====================================================================
+
+// ---------- shared: the bone shards every revenant XDeath throws ----------
+// CH Gibs.txt CH_BoneGib.
+class RS_CHBoneGib : Actor
+{
+	Default { Radius 2; Height 3; Damage 0; Speed 2; Projectile;
+		+DOOMBOUNCE; +MOVEWITHSECTOR; +CANNOTPUSH; -NOGRAVITY; +NOTONAUTOMAP;
+		BounceFactor 0.5; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 ThrustThingZ(0, 55, 0, 1);
+		Goto Wee;
+	Wee:
+		BBBN ABCD 4;
+		Loop;
+	Crash:
+	Death:
+		BBBN ABD 1;
+		BBBN C 850;
+		Stop;
+	}
+}
+
+// ---------- T04 PURPLE: the railgun's puff ----------
+// CH Fatsos.txt FatsoPuff3.
+// [dedupe] duplicate class RS_FatsoPuff3 removed -- defined earlier in the load order.
+
+// ---------- T05 YELLOW: the ring of fire its gib-death lays down ----------
+// CH Revenants.txt archvilefire2 : archvilefire (stock GZDoom parent).
+class RS_ArchvileFire2 : ArchvileFire
+{
+	Default { Speed 5; Damage 0; Projectile; +NOCLIP; +THRUACTORS; }
+}
+
+// ---------- T07 FIREBLU: the red/blue weaving barrage ----------
+// CH Revenants.txt FBSkelCH02/03/04 + their trailers.
+class RS_FBSkelTrailer : Actor
+{
+	Default { Radius 2; Height 2; Speed 0; +NOCLIP; +NOGRAVITY;
+		RenderStyle "Add"; Alpha 0.45;
+		Translation "0:255=%[0.35,0.00,0.00]:[2.00,0.50,0.50]"; }
+	States { Spawn: PLSS AB 4 Bright; Death: TNT1 A 0; Stop; }
+}
+class RS_FBSkelTrailer2 : RS_FBSkelTrailer
+{
+	Default { Translation "0:255=%[0.00,0.00,0.94]:[0.80,0.80,2.00]"; }
+}
+class RS_FBSkelCH02 : Actor
+{
+	Default { Radius 8; Height 8; Speed 20; Damage 3; DamageType "Fire";
+		Projectile; +RANDOMIZE; +MTHRUSPECIES; +NOGRAVITY; RenderStyle "Add";
+		Alpha 0.95; SeeSound "fire/fire3"; DeathSound "weapons/plasmax";
+		Translation "0:255=%[0.00,0.00,0.94]:[0.80,0.80,2.00]"; }
+	States
+	{
+	Spawn:
+		PLSS AB 6 Bright;
+		Goto Fly;
+	Fly:
+		TNT1 A 0 { bNOGRAVITY = false; }
+		PLSS AB 6 Bright;
+		Loop;
+	XDeath:
+	Death:
+		MISL BCD 6 Bright { A_Explode(random(7, 18), 64, 0); }
+		Stop;
+	}
+}
+class RS_FBSkelCH03 : Actor
+{
+	Default { Radius 8; Height 8; Speed 17; Damage 3; DamageType "Fire";
+		Projectile; +RANDOMIZE; +MTHRUSPECIES; SeeSound "fire/fire3";
+		DeathSound "weapons/plasmax"; RenderStyle "Add"; Alpha 0.95;
+		WeaveIndexXY 10; WeaveIndexZ 1;
+		Translation "0:255=%[0.35,0.00,0.00]:[2.00,0.50,0.50]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		PLSS A 3 Bright { A_Weave(6, 0, -1.5, 0.0); }
+		TNT1 A 0 { A_SpawnItemEx("RS_FBSkelTrailer2", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		PLSS B 3 Bright { A_Weave(6, 0, -1.5, 0.0); }
+		TNT1 A 0 { A_SpawnItemEx("RS_FBSkelTrailer2", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		Loop;
+	Death:
+		MISL BCD 6 Bright { A_Explode(random(5, 15), 64, 0); }
+		Stop;
+	}
+}
+class RS_FBSkelCH04 : Actor
+{
+	Default { Radius 8; Height 8; Speed 17; Damage 3; DamageType "Fire";
+		Projectile; +RANDOMIZE; +MTHRUSPECIES; RenderStyle "Add"; Alpha 0.95;
+		SeeSound "fire/fire3"; DeathSound "weapons/plasmax";
+		WeaveIndexXY 10; WeaveIndexZ 1;
+		Translation "0:255=%[0.00,0.00,0.94]:[0.80,0.80,2.00]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		PLSS A 3 Bright { A_Weave(6, 0, 1.5, 0.0); }
+		TNT1 A 0 { A_SpawnItemEx("RS_FBSkelTrailer", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		PLSS B 3 Bright { A_Weave(6, 0, 1.5, 0.0); }
+		TNT1 A 0 { A_SpawnItemEx("RS_FBSkelTrailer", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		Loop;
+	Death:
+		MISL BCD 6 Bright { A_Explode(random(5, 15), 64, 0); }
+		Stop;
+	}
+}
+// The exploding punch.
+class RS_BoomSkel1 : Actor
+{
+	Default { Radius 2; Height 2; Speed 10; Damage 4; DamageType "Fire";
+		Projectile; +RANDOMIZE; +MTHRUSPECIES; RenderStyle "Add"; Alpha 0.75; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		Goto Death;
+	Death:
+		MISL B 2 Bright { A_Explode(random(20, 50), 64, 0); }
+		MISL CD 2 Bright;
+		Stop;
+	}
+}
+
+// ---------- T11 BLACK KNIGHT: the shield, its blast, and the drops ----------
+// CH Revenants.txt RevShieldWalk / ShieldBlastRev / DKSword / DKShield.
+class RS_RevShieldWalk : Actor
+{
+	Default { Radius 64; Height 56; Speed 0; Species "MontyP"; Health 999;
+		Monster; +NOTRIGGER; +NOTARGET; +DONTTHRUST; +NOGRAVITY;
+		+INVULNERABLE; +REFLECTIVE; +DEFLECT; +SHIELDREFLECT; +THRUSPECIES;
+		-COUNTKILL; RenderStyle "Add"; Alpha 1.0; Scale 1.25; }
+	States
+	{
+	Spawn:
+		DKNT Z 3 Bright { A_Warp(AAPTR_MASTER, 24, 0, 42, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		DKNT Z 3 Bright { A_Warp(AAPTR_MASTER, 24, 0, 42, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		DKNT Z 3 Bright { A_Warp(AAPTR_MASTER, 24, 0, 42, 0, WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		Loop;
+	Death:
+		DKNT Z 2 Bright { A_NoBlocking(); }
+		DKNT Z 2 Bright { A_SetScale(1.0); }
+		DKNT Z 2 Bright { A_SetScale(0.7); }
+		DKNT Z 2 Bright { A_SetScale(0.4); }
+		TNT1 A 0 { A_Die(); }
+		Stop;
+	}
+}
+class RS_ShieldBlastRev : Actor
+{
+	Default { Radius 6; Height 8; Speed 12; Damage 37; DamageType "Fire";
+		Projectile; +SEEKERMISSILE; +MTHRUSPECIES; RenderStyle "Add";
+		Alpha 0.75; Scale (1.0, 1.45); SeeSound "fire/fire3";
+		DeathSound "spell/Impact1";
+		Translation "76:79=44:47", "136:143=184:191", "128:136=175:183",
+			"64:79=176:191", "208:223=171:181", "161:161=170:170", "144:151=180:191"; }
+	States
+	{
+	Spawn:
+		FRGO CC 2 Bright { A_SeekerMissile(12, 18); }
+		FRGO DD 2 Bright { A_SetSpeed(16); }
+		FRGO CC 2 Bright { A_SeekerMissile(12, 18); }
+		FRGO DD 2 Bright { A_SetSpeed(20); }
+		FRGO CC 2 Bright { A_SeekerMissile(12, 18); }
+		FRGO DD 2 Bright { A_SetSpeed(24); }
+		FRGO CC 2 Bright { A_SeekerMissile(12, 18); }
+		FRGO DD 2 Bright { A_SetSpeed(30); }
+	Fly:
+		FRGO CC 2 Bright { A_SeekerMissile(12, 18); }
+		FRGO DD 2 Bright { A_SeekerMissile(12, 18); }
+		Loop;
+	Death:
+		BBOM A 2 Bright { A_SetScale(1.5); }
+		BBOM B 2 { A_SetTranslucent(0.65); }
+		BBOM CD 3 Bright { A_Explode(random(5, 25), 148); }
+		BBOM EFG 6 Bright { A_Explode(random(5, 20), 148); }
+		Stop;
+	}
+}
+class RS_DKSword : Actor
+{
+	Default { Radius 8; Height 8; Speed 1; Projectile; RenderStyle "Normal";
+		-NOGRAVITY; +LOWGRAVITY; }
+	States
+	{
+	Spawn:
+		SWRD KLMNOPQ 3 Bright;
+		Goto Death;
+	Death:
+		SWRD RS 4 Bright;
+		SWRD T 4 Bright;
+		SWRD U 4;
+		SWRD T 4 Bright;
+		SWRD U 8;
+		SWRD T 4 Bright;
+		SWRD U 16;
+		SWRD T 4 Bright;
+		SWRD U -1;
+		Stop;
+	}
+}
+class RS_DKShield : Actor
+{
+	Default { Radius 8; Height 8; Speed 1; Projectile; RenderStyle "Normal";
+		-NOGRAVITY; +LOWGRAVITY; }
+	States
+	{
+	Spawn:
+		SHLD ABCDEFGHI 3;
+		Goto Death;
+	Death:
+		SHLD H -1;
+		Stop;
+	}
+}
+
+// ---------- SHADE (CHP CommonBlackRev2): its three attacks ----------
+// CH Revenants.txt RevSol / DKFire2 / DKFire / SoulSeekerRev.
+class RS_RevSol : Actor
+{
+	Default { Radius 3; Height 12; Speed 32; Damage 30; RenderStyle "Add";
+		DamageType "Fire"; Alpha 0.85; Projectile; +THRUGHOST;
+		SeeSound "monster/dkndrt"; DeathSound "weapons/firex2";
+		Translation "175:191=160:167"; }
+	States
+	{
+	Spawn:
+		DKAT ABC 3 Bright;
+		Loop;
+	Death:
+		DKAT D 0 { A_SetTranslucent(0.85, 1); }
+		DKAT D 3 Bright { A_SetScale(1.5); }
+		DKAT E 3 Bright { A_Explode(random(5, 30), 128); }
+		DKAT FGH 3 Bright;
+		DKAT IJKLM 3 Bright;
+		Stop;
+	}
+}
+class RS_DKFire : Actor
+{
+	Default { Radius 2; Height 6; Speed 6; Damage 0; ExplosionDamage 4;
+		ExplosionRadius 8; RenderStyle "Add"; Alpha 0.95; Projectile;
+		+THRUGHOST; +MTHRUSPECIES; DeathSound "weapons/scorch"; }
+	States
+	{
+	Spawn:
+		DKAT NOPQRSTNOPQRSTNOPQRST 3 Bright { A_Explode(); }
+		Goto Death;
+	Death:
+		DKAT UVW 3 Bright { A_Explode(); }
+		Stop;
+	}
+}
+class RS_DKFire2 : Actor
+{
+	Default { Radius 2; Height 6; Speed 8; Damage 0; RenderStyle "Add";
+		Alpha 0.95; Projectile; +THRUGHOST; +MTHRUSPECIES;
+		DeathSound "weapons/scorch";
+		Translation "168:191=192:208", "32:47=201:207"; }
+	States
+	{
+	Spawn:
+		DKAT NOPQRSTNOPQRSTNOPQRST 3 Bright { A_Explode(random(5, 15), 12); }
+		DKAT N 4 A_Jump(12, "Death");
+		Loop;
+	Death:
+		DKAT UVW 3 Bright { A_Explode(random(5, 20), 20); }
+		DKAT H 0 { A_SpawnProjectile("RS_DKFire", 0, 0, 45, 2); }
+		DKAT H 0 { A_SpawnProjectile("RS_DKFire", 0, 0, 90, 2); }
+		DKAT H 0 { A_SpawnProjectile("RS_DKFire", 0, 0, 135, 2); }
+		DKAT H 0 { A_SpawnProjectile("RS_DKFire", 0, 0, 180, 2); }
+		DKAT H 0 { A_SpawnProjectile("RS_DKFire", 0, 0, 225, 2); }
+		DKAT H 0 { A_SpawnProjectile("RS_DKFire", 0, 0, 270, 2); }
+		DKAT H 0 { A_SpawnProjectile("RS_DKFire", 0, 0, 315, 2); }
+		DKAT H 3 Bright { A_SpawnProjectile("RS_DKFire", 0, 0, 0, 2); }
+		Stop;
+	}
+}
+class RS_SoulSeekerRev : Actor
+{
+	Default { Radius 4; Height 8; Speed 22; Damage 12; RenderStyle "Add";
+		DamageType "Melee"; Alpha 0.85; Scale 0.45; Projectile;
+		+THRUGHOST; +MTHRUSPECIES; +SEEKERMISSILE;
+		SeeSound "skull/melee"; DeathSound "weapons/firex2";
+		Translation "175:191=193:207", "32:47=240:246"; }
+	States
+	{
+	Spawn:
+		UNHE AB 4 Bright { A_SeekerMissile(12, 24, SMF_PRECISE); }
+		Loop;
+	Death:
+		DKAT D 0 { A_SetTranslucent(0.85, 1); }
+		DKAT D 3 Bright { A_SetScale(1.0); }
+		DKAT E 3 Bright { A_Explode(random(5, 20), 64); }
+		DKAT FGH 3 Bright;
+		DKAT IJKLM 3 Bright;
+		Stop;
+	}
+}
+
+// ---------- T12 THE LICH: shades, frost, ground channel, summons ----------
+// CH Revenants.txt EvilShadeWhiteRev(2), IceGroundWhiteRev,
+// DarkChannelWhiteRev, ByeWhiteRevCast; CH Barons.txt FrostWingBaron2;
+// CH Zombies.txt MrBones; CH CYBIES.txt PortalSummons.
+class RS_EvilShadeWhiteRev : Actor
+{
+	Default { Radius 20; Height 56; Speed 14; Damage 4; DamageType "Melee";
+		Projectile; +NOCLIP; +DONTHARMCLASS; }
+	States
+	{
+	Spawn:
+		REVW NOPQRS 2;
+		Goto Death;
+	Death:
+		TNT1 A 1;
+		Stop;
+	}
+}
+class RS_EvilShadeWhiteRev2 : RS_EvilShadeWhiteRev
+{
+	Default { Scale (1.0, 0.15); }
+}
+// [dedupe] duplicate class RS_FrostWingBaron2 removed -- defined earlier in the load order.
+class RS_IceGroundWhiteRev : Actor
+{
+	Default { Radius 9; Height 9; DamageType "Ice"; Damage 49; Projectile;
+		+FLOORHUGGER; DeathSound "Ice/Splode"; }
+	States
+	{
+	Spawn:
+		"1C3F" DCB 10 Bright;
+	Fly:
+		"1C3F" AA 15 Bright;
+		TNT1 A 0 A_Jump(12, "Death");
+		Loop;
+	Death:
+		PUFI ABCD 3 Bright;
+		TNT1 AAAAAA 0 { A_SpawnItemEx("RS_SpikeCyanRev", random(-6, 6), random(-6, 6), random(12, 64), random(1, 13), 0, random(1, 13), random(0, 360)); }
+		TNT1 AAAAAA 0 { A_SpawnItemEx("RS_SpikeCyanRev", random(-6, 6), random(-6, 6), random(12, 64), random(1, 13), 0, random(1, 13), random(0, 360)); }
+		TNT1 AAAAAA 0 { A_SpawnItemEx("RS_SpikeCyanRev", random(-6, 6), random(-6, 6), random(12, 64), random(1, 13), 0, random(1, 13), random(0, 360)); }
+		PUFI EFGH 2 Bright;
+		Stop;
+	}
+}
+class RS_ByeWhiteRevCast : Inventory { Default { Inventory.MaxAmount 1; } }
+// The lich's ground channel. CH's CastTargetingWhiteRev1-4 reticles and
+// CybieZappy sparks are decoration only and are not ported; the damaging
+// pulse loop, its growth stages and the ByeWhiteRevCast dismiss are.
+class RS_DarkChannelWhiteRev : Actor
+{
+	Default { Radius 12; Height 9; Speed 0; Alpha 0.95; DamageType "Plasma";
+		Projectile; +DONTHARMCLASS; +FLOORHUGGER; +THRUACTORS; +FLATSPRITE;
+		DeathSound "Litn/litn3"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Mark:
+		TNT1 A 0 { A_StartSound("Forgotten/Attack", CHAN_BODY); }
+		TNT1 A 10;
+		TNT1 A 10;
+		D4RC A 8 { A_SetScale(0.1, 0.1); }
+		D4RC B 8 { A_SetScale(0.3, 0.3); }
+		D4RC C 8 { A_SetScale(0.5, 0.5); }
+		D4RC D 8 { A_SetScale(0.7, 0.7); }
+		D4RC E 8 { A_SetScale(1.0, 1.0); }
+		Goto Fly;
+	Fly:
+		TNT1 A 0 A_JumpIfInventory("RS_ByeWhiteRevCast", 1, "Death");
+		TNT1 A 0 { A_StartSound("Litn/litn3", CHAN_BODY); }
+		D4RC ABCDE 5 Bright { A_Explode(random(10, 80), 256, 0); }
+		D4RC A 1 Bright { A_Explode(random(10, 80), 256, 0); }
+		D4RC E 1 Bright { A_Explode(random(10, 80), 256, 0); }
+		TNT1 A 0 A_Jump(102, "Fly2");
+		Loop;
+	Fly2:
+		D4RC A 1 { A_SetScale(1.1, 1.1); }
+		D4RC B 1 { A_SetScale(1.3, 1.3); }
+		D4RC C 1 { A_SetScale(1.5, 1.5); }
+		D4RC D 1 { A_SetScale(1.7, 1.7); }
+		D4RC E 1 { A_SetScale(2.0, 2.0); }
+	Fly3:
+		TNT1 A 0 A_JumpIfInventory("RS_ByeWhiteRevCast", 1, "Death");
+		TNT1 A 0 { A_StartSound("Litn/litn3", CHAN_BODY); }
+		D4RC ABCDE 3 Bright { A_Explode(random(10, 80), 512, 0); }
+		D4RC A 1 Bright { A_Explode(random(10, 80), 512, 0); }
+		D4RC E 1 Bright { A_Explode(random(10, 80), 256, 0); }
+		Loop;
+	Death:
+		D4RC A 1 { A_SetScale(0.6, 0.6); }
+		D4RC B 1 { A_SetScale(0.4, 0.4); }
+		D4RC C 1 { A_SetScale(0.2, 0.2); }
+		D4RC D 1 { A_SetScale(0.1, 0.1); }
+		Stop;
+	}
+}
+// The skeletons the lich raises. CH Zombies.txt MrBones; its ACS-free
+// halves are kept, its ammo DropItems and BoneUp radius-gives are not.
+class RS_MrBones : Actor
+{
+	Default
+	{
+		Health 50;
+		PainChance 180;
+		Speed 12;
+		Radius 24;
+		Height 56;
+		Mass 100;
+		GibHealth -60;
+		Scale 0.9;
+		Species "UnderTaker";
+		SeeSound "skelsit"; PainSound "skelpai"; DeathSound "skeldth";
+		Monster;
+		+NOBLOOD +LOOKALLAROUND +NOBLOCKMONST +NOFEAR +DONTDRAIN +NOCLIP
+		+DONTHARMSPECIES
+		-COUNTKILL
+		HitObituary "%o's funnybone was tickled by a skeleton";
+		Tag "The ride";
+	}
+	States
+	{
+	Spawn:
+		SKLT R 10 { A_Look(); }
+		Loop;
+	See:
+		SKLT AABB 2 { A_Chase("Melee", null, CHF_STOPIFBLOCKED); }
+		SKLT DDCC 2 { A_Chase("Melee", null, CHF_STOPIFBLOCKED); }
+		SKLT EEFF 2 { A_Chase("Melee", null, CHF_STOPIFBLOCKED); }
+		Loop;
+	Melee:
+		SKLT GH 4 { A_FaceTarget(); }
+		SKLT I 4 { A_StartSound("skelatt", CHAN_AUTO); }
+		SKLT J 4 { A_CustomMeleeAttack(random(1, 6) * 4, "swordhit", "none"); }
+		SKLT K 4 { A_FaceTarget(); }
+		Goto See;
+	Pain:
+		SKLT L 2;
+		SKLT L 2 { A_Pain(); }
+		Goto See;
+	Death:
+		SKLT M 4 { A_Scream(); }
+		SKLT N 4 { A_NoBlocking(); }
+		SKLT O 8 { A_NoBlocking(); }
+		SKLT P 12;
+		Goto Vanish;
+	Vanish:
+		SKLT Q 20 { A_FadeOut(0.3); }
+		SKLT Q 15 { A_FadeOut(0.3); }
+		SKLT Q 10 { A_FadeOut(0.3); }
+		Stop;
+	}
+}
+// The lich's portal. CH PortalSummons is a RandomSpawner over CH monster
+// classes; each is mapped to the RS class that replaces it, so the same
+// creatures come through the portal.
+class RS_PortalSummons : RandomSpawner
+{
+	Default
+	{
+		DropItem "RS_Revenant", 255, 300;
+		DropItem "RS_LostSoul", 255, 200;
+		DropItem "RS_Zombieman", 255, 80;
+		DropItem "RS_Shotgunner", 255, 50;
+		DropItem "RS_Chaingunner", 255, 70;
+		DropItem "RS_Imp", 255, 300;
+		DropItem "RS_Demon", 255, 150;
+		DropItem "RS_Cacodemon", 255, 50;
+	}
+}

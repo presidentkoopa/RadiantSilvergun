@@ -252,3 +252,296 @@ class RS_WhiteHotFlareL9 : FastProjectile
 	Default { Radius 4; Height 4; Speed 64; Damage 20; Scale 0.15; DamageType "Fire"; Projectile; RenderStyle "Add"; Alpha 1.0; SeeSound "fire/fire3"; DeathSound "fire/fire1"; }
 	States { Spawn: APLS A 2 Bright; Loop; Death: APBX AB 3 Bright; Stop; }
 }
+
+// =====================================================================
+// CHP FAMILY 12 -- FX ported for the RS_Arachnotron per-tier rebuild.
+// Sources: CHP/DECORATE/12/12_{Y,A,W,C}.txt and their CH parents in
+// CH/decorate/Spiders.txt. CHP colour cruft (per-colour translations,
+// icon spawners, particle walls, ACS announcers) stripped; behaviour,
+// sprites, sounds and damage kept as authored.
+// =====================================================================
+
+// ---------- T05 YELLOW / T06 ABYSS: the psychic railgun ----------
+// CH PsychicAra is the railgun PUFF; PsychicPulse is its trail actor.
+class RS_PsychicAra : Actor
+{
+	Default
+	{
+		Projectile;
+		+NOBLOCKMAP +NOGRAVITY +ALLOWPARTICLES +RANDOMIZE
+		+PUFFONACTORS +BLOODLESSIMPACT
+		RenderStyle "Add";
+		DamageType "Getoutofmyheadcharles";
+		Alpha 0.95;
+		VSpeed 1;
+		Scale 2;
+		Mass 5;
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 1 Bright;
+	Melee:
+		BLST ABCDEFGHJKLMNOP 1 Bright;
+		Stop;
+	}
+}
+
+class RS_PsychicPulse : Actor
+{
+	Default
+	{
+		Radius 2; Height 2; Speed 11;
+		Projectile;
+		+NOCLIP +BLOODLESSIMPACT
+		RenderStyle "Add"; Alpha 0.75;
+		SeeSound "queen/fire";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		TNT1 A 0 A_Jump(255, "A1", "A2", "A3", "A4");
+	A1:
+		BLST ABCDEFGHIIHGEFDCBA 1 Bright;
+		Goto Death;
+	A4:
+		BLST ABCDEFGHHIIIIIIIHHHGEFDCBA 1 Bright;
+		Goto Death;
+	A2:
+		BLST BCDEFGGEFDCB 1 Bright;
+		Goto Death;
+	A3:
+		BLST BCD 1 Bright;
+		BLST EFGGEF 2 Bright;
+		BLST DCB 1 Bright;
+		Goto Death;
+	Death:
+		TNT1 A 0;
+		Stop;
+	}
+}
+
+// The abyss spider's heavier psychic bolt (A_VileTarget payload).
+class RS_PsychicAbyssSP : Actor
+{
+	Default
+	{
+		Radius 13; Height 9; Speed 0;
+		Damage (random(2, 15));
+		Projectile;
+		+RANDOMIZE +MTHRUSPECIES +DONTHARMCLASS
+		RenderStyle "Stencil"; StencilColor "Black";
+		Scale 0.75;
+		DamageType "Getoutofmyheadcharles";
+		SeeSound "holy3/holy3"; DeathSound "holy2/holy2";
+	}
+	States
+	{
+	Spawn:
+		BBOM B 1 Bright;
+	Death:
+		BBOM C 2 Bright A_Explode(random(10, 32), 64, 0);
+		Stop;
+	}
+}
+
+// ---------- T06 ABYSS: the ambient walk / shoot / pain ghosts ----------
+// CH spawns these through a 4-way RandomSpawner (norm/blue/black/fuzz);
+// the "norm" variant is the authored look, the rest are palette noise.
+class RS_AbyssSPwalk1 : Actor
+{
+	Default { +NOINTERACTION; RenderStyle "Add"; Alpha 0.65; XScale 2.45; YScale 1.75; }
+	States { Spawn: TRIT ABBC 2; Stop; }
+}
+class RS_AbyssSPwalk2 : Actor
+{
+	Default { +NOINTERACTION; RenderStyle "Add"; Alpha 0.65; XScale 2.45; YScale 1.75; }
+	States { Spawn: TRIT CDDEE 2; Stop; }
+}
+class RS_AbyssSPShoot : Actor
+{
+	Default { +NOINTERACTION; RenderStyle "Add"; Alpha 0.65; XScale 2.45; YScale 1.75; }
+	States { Spawn: TRIT E 5 Bright; TRIT F 4 Bright; Stop; }
+}
+class RS_AbyssSPPain : Actor
+{
+	Default { +NOINTERACTION; RenderStyle "Add"; Alpha 0.65; XScale 2.45; YScale 1.75; }
+	States { Spawn: TRIT F 6; Stop; }
+}
+
+// ---------- T12 WHITE: the egg it lays, and the webbing ----------
+class RS_WhiteSPSlowdown : PowerSpeed
+{
+	Default { +INVENTORY.AUTOACTIVATE; -INVENTORY.INVBAR; Powerup.Duration 15; Speed 0.2; }
+}
+
+class RS_WhiteSPWebWeb : Actor
+{
+	Default
+	{
+		Radius 2; Height 2; Speed 1;
+		Projectile;
+		+NOCLIP +DONTTHRUST +DONTBLAST
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0 A_Jump(128, "A1");
+	A2:
+		WW3B A 12 Bright;
+		TNT1 A 0 { A_RadiusGive("RS_WhiteSPSlowdown", 64, RGF_PLAYERS | RGF_CUBE, 1); }
+		WW3B A 12 Bright { A_SetTranslucent(0.7); }
+		TNT1 A 0 { A_RadiusGive("RS_WhiteSPSlowdown", 64, RGF_PLAYERS | RGF_CUBE, 1); }
+		WW3B A 12 Bright { A_SetTranslucent(0.4); }
+		TNT1 A 0 { A_RadiusGive("RS_WhiteSPSlowdown", 64, RGF_PLAYERS | RGF_CUBE, 1); }
+		WW3B A 12 Bright { A_SetTranslucent(0.2); }
+		TNT1 A 0 { A_RadiusGive("RS_WhiteSPSlowdown", 64, RGF_PLAYERS | RGF_CUBE, 1); }
+		Goto Death;
+	A1:
+		WW3B B 12 Bright;
+		TNT1 A 0 { A_RadiusGive("RS_WhiteSPSlowdown", 64, RGF_PLAYERS | RGF_CUBE, 1); }
+		WW3B B 12 Bright { A_SetTranslucent(0.7); }
+		TNT1 A 0 { A_RadiusGive("RS_WhiteSPSlowdown", 64, RGF_PLAYERS | RGF_CUBE, 1); }
+		WW3B B 12 Bright { A_SetTranslucent(0.4); }
+		TNT1 A 0 { A_RadiusGive("RS_WhiteSPSlowdown", 64, RGF_PLAYERS | RGF_CUBE, 1); }
+		WW3B B 12 Bright { A_SetTranslucent(0.2); }
+		TNT1 A 0 { A_RadiusGive("RS_WhiteSPSlowdown", 64, RGF_PLAYERS | RGF_CUBE, 1); }
+		Goto Death;
+	Death:
+		PLSE A 1;
+		Stop;
+	}
+}
+
+class RS_WhiteSpidegg : Actor
+{
+	Default
+	{
+		Health 50;
+		Radius 20; Height 32;
+		Species "WhiteSP";
+		Monster;
+		+NOPAIN +NOTARGET +FLOAT +FLOATBOB +NOGRAVITY +LOOKALLAROUND
+		-COUNTKILL
+		Speed 7;
+		Alpha 0.95;
+		Scale 2;
+		DeathSound "weapons/rocklx";
+		Tag "White Spider Egg";
+	}
+	States
+	{
+	Spawn:
+		BAL1 AB 4 A_Look();
+		Loop;
+	See:
+		BAL1 A 16;
+		BAL1 B 12 { A_SetScale(1.5, 2); }
+		BAL1 ABABABABABABABABABABABABABABABABABABABABABA 1 A_Wander();
+		TNT1 A 0 A_FaceTarget();
+		TNT1 AA 0 { A_SpawnItemEx("RS_WhiteSPWebWeb", random(12, 64), random(-28, 28), random(1, 8)); }
+		BAL1 A 12 { A_SetScale(2, 1.5); }
+		BAL1 B 12 { A_SetScale(1.5, 2); }
+		BAL1 ABABABABABABABABABABABABABABABABABABABABABA 1 A_Wander();
+		TNT1 A 0 A_FaceTarget();
+		TNT1 AA 0 { A_SpawnItemEx("RS_WhiteSPWebWeb", random(12, 64), random(-28, 28), random(1, 8)); }
+		BAL1 A 12 { A_SetScale(2, 1.5); }
+		BAL1 B 12 { A_SetScale(1.5, 2); }
+		BAL1 ABABABABABABABABABABABABABABABABABABABABABA 1 A_Wander();
+		TNT1 A 0 A_FaceTarget();
+		TNT1 AA 0 { A_SpawnItemEx("RS_WhiteSPWebWeb", random(12, 82), random(-28, 28), random(1, 8)); }
+		BAL1 A 12 { A_SetScale(2, 1.5); }
+		BAL1 B 12 { A_SetScale(1.5, 2); }
+		BAL1 ABABABABABABABABABABABABABABABABABABABABABA 1 A_Wander();
+		TNT1 A 0 A_FaceTarget();
+		TNT1 AA 0 { A_SpawnItemEx("RS_WhiteSPWebWeb", random(12, 82), random(-28, 28), random(1, 8)); }
+		BAL1 A 12 { A_SetScale(2, 1.5); }
+		Goto Death;
+	Death:
+		TNT1 A 0 A_ScreamAndUnblock();
+		MISL B 4 Bright;
+		MISL C 4 Bright A_Explode(random(10, 80), 64, 0);
+		MISL D 4 Bright;
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_WhiteSPWebWeb", random(-64, 64), random(-64, 64), random(-8, 26)); }
+		TNT1 A 1 A_Die();
+		Stop;
+	}
+}
+
+// ---------- SHARED: the arachnotron gib-death blasts (XDeath) ----------
+class RS_AraBoom1 : Actor
+{
+	Default { Radius 10; Height 42; +NOGRAVITY; Scale 1.2; }
+	States
+	{
+	Spawn:
+		BAR1 AB 0;
+		Goto Death;
+	Death:
+		MISL B 8 Bright;
+		MISL C 6 Bright { A_StartSound("world/barrelx"); }
+		MISL D 3 Bright;
+		Stop;
+	}
+}
+class RS_AraBoom2 : Actor
+{
+	Default { Radius 10; Height 42; +NOGRAVITY; Scale 0.6; DeathSound "weapons/firex4"; }
+	States
+	{
+	Spawn:
+		BAR1 AB 0 { A_StartSound("weapons/firex4"); }
+		Goto Death;
+	Death:
+		MISL B 8 Bright;
+		MISL C 6 Bright { A_StartSound("weapons/firex4"); }
+		MISL D 3 Bright;
+		Stop;
+	}
+}
+class RS_AraBoom3 : Actor
+{
+	Default { Radius 10; Height 42; +NOGRAVITY; RenderStyle "Add"; Alpha 0.75; Scale 0.4; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		Goto Death;
+	Death:
+		ARAG B 7 Bright;
+		TNT1 A 3;
+		ARAG C 6 Bright;
+		Stop;
+	}
+}
+
+// ---------- T03 CYAN: the death easter egg CH drops on the ice spider ----------
+class RS_CH_Cirno : Actor
+{
+	Default
+	{
+		Radius 3; Height 6; Speed 1; Scale 1; Damage 0;
+		Projectile;
+		+MOVEWITHSECTOR +CANNOTPUSH +NOTONAUTOMAP
+		-NOGRAVITY
+		Gravity 0.05;
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 { vel.z += 0.625; }   // CH: ThrustThingZ(0,5,0,1) -- add, not set
+		Goto Wee;
+	Wee:
+		CIRN A 5;
+		Loop;
+	Crash:
+		CIRN A -1;
+		Stop;
+	Death:
+		CIRN A -1;
+		Stop;
+	}
+}

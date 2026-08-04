@@ -619,9 +619,84 @@ $alias monster/fihoof      cyber/hoof
 queen/sight         QUESIT
 queen/fire          QBFGFIRE
 
+// ----- Shotgunner line (CHP family 02) -----
+// The colour shotgunners each carry their own voice in CHP; without
+// these the cyan/yellow/abyss/fireblu/gray/black tiers are mute.
+// Lumps ripped from ART SOURCE/CH/sounds into sounds/monsters/.
+$random zspecops/sight  { zspecops/sight1 zspecops/sight2 zspecops/sight3 }
+zspecops/sight1     ZSPCSIG1
+zspecops/sight2     ZSPCSIG2
+zspecops/sight3     ZSPCSIG3
+$random zspecops/pain   { zspecops/pain1 zspecops/pain2 zspecops/pain3 }
+zspecops/pain1      ZSPCPAI1
+zspecops/pain2      ZSPCPAI2
+zspecops/pain3      ZSPCPAI3
+$random zspecops/death  { zspecops/death1 zspecops/death2 zspecops/death3 zspecops/death4 }
+zspecops/death1     ZSPCDEA1
+zspecops/death2     ZSPCDEA2
+zspecops/death3     ZSPCDEA3
+zspecops/death4     ZSPCDEA4
+sguy2/see           D64FORM2
+form2/hurt          D64FORP
+sguy2/die           D64FORD2
+ssguner/sight       DSGPOSIT
+ssguner/ssg         DSSGGATK
+ssguner/death       DSGPODTH
+ssguner/idle        DSGPOACT
+asgguy/asgfir       DSASGFIR
+asgguy/asgld1       DSASGLD1
+asgguy/asgout       DSASGOUT
+asgguy/asgin        DSASGIN
+snprfire            SNPRFIRE
+gas/gas1            GLBHISS1
+fire/fire4          FELFIREI
+fire/fire5          HOTHOT
+weapons/firex4      DSFIREX4
+ice/hit2            ICEI
+// Benellus (T12) plays these by raw lump name in CHP; logical names are
+// spelled the same so the state code stays verbatim.
+bene/song           BENEFARE
+dsdbload            DSDBLOAD
+dsdbcls             DSDBCLS
+dsdshtgn            DSDSHTGN
+dssgcock            DSSGCOCK
+
+// ----- Zombieman line (CHP family 01) -----
+// CHP's colour zombiemen each carry their own voice; without these the
+// blue/cyan/purple/yellow/abyss/brown/gray/red/white tiers are mute.
+// Lump names and $random groups copied verbatim from CH SNDINFO.txt /
+// CHP SNDINFO.txt so the state code needs no renaming.
+zom2/see            D64FORM3
+zom2/die            D64FORD1
+form2/active        D64FORA
+lady/aggro          SUCAGGRO
+lady/hurt           SUCHURT
+lady/die            SUCDIE
+lady/active         SUCHA
+jam/jamd            CORK
+zombie/unmaker      DSUNMKER
+zombie/unpower      DSUNMKPO
+spell/spellcast1    KORATK
+under/see           WZMHI
+under/die           WZMDED
+under/goodie        WZMGDI
+$random skelpai { gethit1 gethit2 gethit3 gethit4 gethit5 gethit6 gethit7 }
+gethit1             GETHIT1
+gethit2             GETHIT2
+gethit3             GETHIT3
+gethit4             GETHIT4
+gethit5             GETHIT5
+gethit6             GETHIT6
+gethit7             GETHIT7
+$random undergib { undergb1 undergb2 }
+undergb1            UNDERGB1
+undergb2            UNDERGB2
+
 // ----- Aliased-only voices (CH shipped no lump; HF aliased these) -----
 $alias hellhound/melee     demon/melee
 $alias hellsmith/laugh     vile/sight
+// CHP's per-colour gib sound for the Common tier is the vanilla gib.
+$alias misc/gibbed/c       misc/gibbed
 
 // --- AllClear (rs_11): ready-to-fire cadence beep ---------------------
 // Source: li-gnrcwpn plasma altfire beep (PLBEEP), imported. ONE lump;

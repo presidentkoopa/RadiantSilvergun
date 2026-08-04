@@ -7,8 +7,8 @@
 // squad summons on a hit counter.
 //
 // These replace the old RS_TEX_* files, which were imported under an
-// earlier system and were still HF_-prefixed classes inheriting from
-// HF_ parents -- they could never have compiled against the current
+// earlier system and were still prefixed for a foreign class tree --
+// they could never have compiled against the current
 // template. Removed rather than patched.
 //
 // WHY TierLocked: an EX boss ignores the ambient tier dial entirely and
