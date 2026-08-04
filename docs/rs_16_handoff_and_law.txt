@@ -337,6 +337,16 @@ OPEN -- NEEDS THE OWNER
      Runtime `bMISSILEMORE` / `bMISSILEEVENMORE` assignments (Archvile,
      Arachnotron) are also untouched -- the compiler did not flag them.
 
+     UPDATE, 2026-08-04 (added later by the score lane; the paragraph
+     above is left as written): this IS now fixed, in 0c336c00 -- and
+     there were THREE inverted sites, not the one flagged here.
+     RS_MonsterMaster.zs:891 plus RS_Demon.zs and RS_Zombieman.zs, all
+     doing `MissileChanceMult *= 2.0`. Textbook case of the law already
+     in CLAUDE.md: the compiler reports ONE instance of a whole-tree
+     defect and stops, so the real count is always higher than the
+     report -- grep the tree before believing a number. Credit for the
+     find and the fix belongs to 0c336c00, not to the sweep above.
+
   FIRST THING TO DO ON THE NEXT BUILD: two unproven bets are now in the
   compile path and both revert independently --
      * DamageFunction across ~71 sites (all stand or fall together)
@@ -469,10 +479,40 @@ CONTROLS
   MENUDEF.txt: "Arcade Score" under Radiant Silvergun Options, with
   three subpages (Style Bonuses / Rewards & Extra Lives / Score Display).
 
-COMPILE STATUS -- UNPROVEN. READ THIS BEFORE TRUSTING ANY OF THE ABOVE.
-  NONE OF IT HAS EVER BEEN COMPILED. It went in while main was still
-  held by the 69-error gate, so this lane could not test-load. What was
-  done instead is a static review, which caught four real errors:
+COMPILE STATUS -- SPLIT. THE CORE AND THE VISUALS ARE NOT IN THE SAME
+PLACE, AND THE DIFFERENCE MATTERS.
+  (Revised after syncing with the shotgunner/lint lane, which held the
+  only compile log anyone has. The paragraph this replaces said flatly
+  that none of it had ever compiled; that is too strong for the core.)
+
+  RS_Score.zs -- PARSES CLEAN, FULL COMPILE UNCONFIRMED.
+    The compile log behind 6f032dca is silent on RS_Score.zs: no error,
+    no warning, no deprecation. Every entry in it is under
+    zscript/monsters/**, across 26 files.
+    The ORDERING is what makes that meaningful rather than merely
+    absent: at 6f032dca, zscript.txt line 8 is RS_Score.zs, the first
+    monster include is line 39, and the projectile files that actually
+    produced errors start at line 52. The compiler reached RS_Score.zs
+    31 lines before anything that spoke, and said nothing about it.
+    TWO CAVEATS, kept deliberately -- "it compiles" is exactly the kind
+    of claim that has cost sessions here:
+      1. That log is the owner's paste. It can be shown silent on
+         RS_Score; it cannot be shown unfiltered or complete.
+      2. The build had hard errors in it. Passing early parse and
+         property resolution is NOT surviving codegen and virtual
+         resolution, which may not have run to completion for any file.
+    So the honest claim is "parses and resolves its properties", not
+    "compiles". Still the first positive signal this file has had.
+
+  RS_ScoreHUD.zs and RS_ScoreRevival.zs -- GENUINELY NEVER COMPILED.
+    Independently confirmed from the other side: at 6f032dca, line 8 is
+    the ONLY RS_Score entry in zscript.txt. Their includes arrived in
+    9b3d733b, after that build. These two are where first-boot breakage
+    should be expected, and they revert by deleting two include lines
+    without touching the core.
+
+  What was done instead of a test-load is a static review, which caught
+  four real errors:
     * `invoker.` used in plain Actor states (RS_ScoreRevival) -- invoker
       is only meaningful where an item's states run on its owner.
     * a field named `players` shadowing the engine's global players[],
