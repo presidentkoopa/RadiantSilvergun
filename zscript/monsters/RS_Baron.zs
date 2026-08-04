@@ -1487,7 +1487,7 @@ class RS_BaronFallen : RS_MonsterMaster
 		FloatSpeed 25;
 		PainChance 128;
 		Monster;
-		+FLOAT +NOGRAVITY +MISSILEMORE +DONTFALL
+		+FLOAT +NOGRAVITY +DONTFALL MissileChanceMult 0.5;
 		RenderStyle "Add";
 		Alpha 0.9;
 		SeeSound "baron/sight";   PainSound "baron/pain";

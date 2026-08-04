@@ -86,7 +86,7 @@ class RS_MediCacoBrown2 : Actor
 // CH Demons.txt BloodDemonArm / BloodDemonArm2 (the 2 has no tint).
 class RS_BloodDemonArm : Actor
 {
-	Default { Radius 8; Height 8; Speed 8; +DOOMBOUNCE; +DROPOFF; +MISSILE;
+	Default { Radius 8; Height 8; Speed 8; BounceType "Doom"; +DROPOFF; +MISSILE;
 		Translation "168:191=160:167", "16:31=208:216", "32:40=215:223", "41:46=232:235", "47:47=190:190"; }
 	States
 	{
@@ -100,7 +100,7 @@ class RS_BloodDemonArm : Actor
 }
 class RS_BloodDemonArm2 : Actor
 {
-	Default { Radius 8; Height 8; Speed 8; +DOOMBOUNCE; +DROPOFF; +MISSILE; }
+	Default { Radius 8; Height 8; Speed 8; BounceType "Doom"; +DROPOFF; +MISSILE; }
 	States
 	{
 	Spawn:
@@ -185,7 +185,7 @@ class RS_SpecSlime2 : Actor
 class RS_SpecSlime3 : Actor
 {
 	Default { Alpha 1.0; RenderStyle "Add"; Speed 7; Radius 14; Height 9;
-		Damage 30; Scale (0.1, 1.8); DamageType "Plasma"; Projectile;
+		Damage 30; XScale 0.1; YScale 1.8; DamageType "Plasma"; Projectile;
 		+SEEKERMISSILE; +RIPPER; +FLOORHUGGER;
 		SeeSound "shadowbeast/pr1sight"; DeathSound "shadowbeast/pr1death"; }
 	States
@@ -224,7 +224,7 @@ class RS_Wakawaka : Actor
 		+NEVERTARGET
 		+NOINFIGHTING
 		+DONTHARMSPECIES
-		+DONTHURTSPECIES
+		+DONTHARMSPECIES
 		AttackSound "EWorm/Bite";
 		SeeSound "EWorm/Sight";
 		ActiveSound "EWorm/Idle";

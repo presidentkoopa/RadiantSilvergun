@@ -175,7 +175,7 @@ class RS_GrellBallBrown : Actor
 // ---------- ABYSS: void balls + hidi (BLL9/SPIR) ----------
 class RS_AbyssCacoBalls : Actor
 {
-	Default { Radius 8; Species "Caco"; Height 6; Speed 21; Damage 30; DamageType "Ice"; Projectile; +THRUSPECIES; +DONTHURTSPECIES; +DONTHARMCLASS; Scale 1.25;
+	Default { Radius 8; Species "Caco"; Height 6; Speed 21; Damage 30; DamageType "Ice"; Projectile; +THRUSPECIES; +DONTHARMSPECIES; +DONTHARMCLASS; Scale 1.25;
 		RenderStyle "Add"; Alpha 0.8; SeeSound "Crack/see"; DeathSound "Crack/death"; Translation "Ice"; }
 	States
 	{
@@ -189,7 +189,7 @@ class RS_AbyssCacoBalls : Actor
 }
 class RS_AbyssCacoHidi : Actor
 {
-	Default { Radius 4; Height 3; Speed 55; Damage 60; Projectile; +SEEKERMISSILE; +THRUSPECIES; +DONTHURTSPECIES; +DONTHARMCLASS; Species "Caco"; DamageType "Plasma";
+	Default { Radius 4; Height 3; Speed 55; Damage 60; Projectile; +SEEKERMISSILE; +THRUSPECIES; +DONTHARMSPECIES; +DONTHARMCLASS; Species "Caco"; DamageType "Plasma";
 		RenderStyle "Add"; Alpha 0.95; XScale 1.4; YScale 0.35; SeeSound "weapons/bigbrn"; DeathSound "weapons/bigbrn"; Translation "Ice"; }
 	States
 	{
@@ -663,7 +663,7 @@ class RS_RedSpikeCacoEX : Actor
 		RadiusDamageFactor 0.33;
 		Damage 5;
 		Monster;
-		+FLOAT +NOGRAVITY +DONTHARMSPECIES +MISSILEMORE +MISSILEEVENMORE
+		+FLOAT +NOGRAVITY +DONTHARMSPECIES MissileChanceMult 0.0625;
 		+NOTRIGGER +NOICEDEATH +NOBLOOD +THRUSPECIES +DONTMORPH
 		-NORADIUSDMG -COUNTKILL
 		Species "Caco";

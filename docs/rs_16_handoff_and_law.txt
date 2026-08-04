@@ -308,10 +308,43 @@ OPEN -- NEEDS THE OWNER
      NOT registered in MAPINFO, so it compiles but does not run. Turning
      the scoring system on is a design decision for whoever wrote it.
 
+  7. COMPILE LOG CLEARED in 6f032dca -- 3 error classes and 90 deprecation
+     warnings, 93 edits across 28 monster files. The three that actually
+     stopped the build:
+       * 'DontHurtShooter' is not a GZDoom flag and never was (19 sites, in
+         both +FLAG and bare-property form). Unknown flags do nothing, so
+         removing it changed no behaviour -- it only ever failed.
+       * Scale takes ONE number; `Scale (x, y)` is XScale/YScale (3 sites).
+       * Powerup.Type "TimeFreezer" -> "PowerTimeFreezer" (the class name).
+     Deprecated-in-4.13 flags went to their modern properties, each with
+     precedent already in this tree: DOOMBOUNCE/HEXENBOUNCE -> BounceType,
+     LOWGRAVITY -> Gravity 0.125, FIREDAMAGE -> DamageType "Fire",
+     SHORTMISSILERANGE -> MaxTargetRange 896, DONTHURTSPECIES ->
+     +DONTHARMSPECIES, A_MeleeAttack -> A_CustomMeleeAttack, and 15 NoDelay
+     keywords dropped from states that were not first after Spawn:.
+
+     MissileChanceMult -- READ BEFORE CHANGING. The old flags divided the
+     "don't fire" distance roll (MISSILEMORE halved it, MISSILEEVENMORE
+     eighthed it) and a SMALLER distance means the monster fires MORE. The
+     modern property multiplies that same distance, so the faithful values
+     are 0.5, 0.125, and 0.0625 where both flags were set. That is what
+     6f032dca uses.
+     CONSEQUENCE, NOT FIXED: RS_MonsterMaster.zs:891 does
+     `if (missileMore) MissileChanceMult *= 2.0` in Enrage(). By the above
+     that is INVERTED -- an enraged monster fires LESS, not more. Left alone
+     deliberately: runtime logic rather than a deprecated flag, and changing
+     it alters behaviour. Owner's call.
+     Runtime `bMISSILEMORE` / `bMISSILEEVENMORE` assignments (Archvile,
+     Arachnotron) are also untouched -- the compiler did not flag them.
+
   FIRST THING TO DO ON THE NEXT BUILD: two unproven bets are now in the
   compile path and both revert independently --
      * DamageFunction across ~71 sites (all stand or fall together)
      * RS_Score.zs (revert 9716f909 to drop it back out)
+  The deprecation sweep itself is low-risk -- every replacement has working
+  precedent elsewhere in this tree -- but MissileChanceMult's direction is
+  reasoned, not compiler-confirmed. If enraged monsters feel passive, that
+  is the line to check.
 
   DO NOT RE-ADD `if tok in VAN: continue` TO verify.py. It was added in good
   faith to stop false failures from the hand-written vanilla frame table, but

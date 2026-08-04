@@ -1001,7 +1001,7 @@ class RS_Mancubus : RS_MonsterMaster replaces Fatso
 	// ground nuke or the scatter shot; below 9000 HP the rapid railgun
 	// joins the pool, and inside 400 it detonates the zap ring.
 	Spawn.T12:
-		"QUEE" A 0 NoDelay { A_SetSize(80, 64, true); }
+		"QUEE" A 0 { A_SetSize(80, 64, true); }
 		"QUEE" AB 10 { A_Look(); }
 		Loop;
 	See.T12:
@@ -1188,7 +1188,7 @@ class RS_Mancubus : RS_MonsterMaster replaces Fatso
 	//     GroundSplashes / BiggerBomb / Weave1 / Burp -- the two weave
 	//     walls give way to the ground game and the burp.
 	Spawn.TEX:
-		"BDEM" A 0 NoDelay { A_SetScale(1.88, 1.33); }
+		"BDEM" A 0 { A_SetScale(1.88, 1.33); }
 		"BDEM" AB 10 { A_Look(); }
 		Loop;
 	See.TEX:

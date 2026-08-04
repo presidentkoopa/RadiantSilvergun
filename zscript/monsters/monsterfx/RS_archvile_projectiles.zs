@@ -253,7 +253,7 @@ class RS_ArchSpawnerOrb : Actor
 		Monster;
 		-COUNTKILL -ACTIVATEMCROSS
 		+NOGRAVITY +SPAWNFLOAT +NOBLOOD +LOOKALLAROUND +THRUACTORS
-		+MISSILEMORE +MISSILEEVENMORE
+
 		ActiveSound "vile/active";
 	}
 	States
@@ -384,8 +384,8 @@ class RS_ABVileTentacle : Actor
 		PainChance 96; Scale 0.55;
 		Monster;
 		-COUNTKILL
-		+FLOORCLIP +DONTHURTSPECIES +LOOKALLAROUND +NOTARGET +THRUACTORS
-		+MISSILEEVENMORE
+		+FLOORCLIP +DONTHARMSPECIES +LOOKALLAROUND +NOTARGET +THRUACTORS
+
 		SeeSound "vile/sight"; PainSound "vile/pain";
 		DeathSound "vile/death"; ActiveSound "vile/active";
 		Obituary "%o was tentacle-taken.";
@@ -602,7 +602,7 @@ class RS_BrownBoiVile : Actor
 		Monster;
 		-COUNTKILL
 		+FLOAT +FLOATBOB +NOTARGETSWITCH +NOGRAVITY +LOOKALLAROUND
-		+MISSILEMORE +MISSILEEVENMORE +NOPAIN +NOBLOOD +THRUSPECIES
+		+NOPAIN +NOBLOOD +THRUSPECIES MissileChanceMult 0.0625;
 		+BOUNCEONWALLS +BOUNCEONFLOORS +BOUNCEONCEILINGS +USEBOUNCESTATE
 		BounceCount 1; BounceFactor 0.05; WallBounceFactor 0.05;
 		Scale 1.6;
@@ -911,7 +911,7 @@ class RS_WVileSpot : Actor
 		Monster;
 		-COUNTKILL -SHOOTABLE -ACTIVATEMCROSS
 		+INVULNERABLE +NOBLOOD +LOOKALLAROUND +NOTARGET +NEVERTARGET
-		+THRUACTORS +MISSILEMORE +MISSILEEVENMORE
+		+THRUACTORS MissileChanceMult 0.0625;
 		RenderStyle "Stencil"; StencilColor "Black"; Alpha 1.0; Scale 0.75;
 		SeeSound "vile/start";
 	}
@@ -1552,7 +1552,7 @@ class RS_TimeSlowMOT : PowerupGiver
 {
 	Default
 	{
-		Powerup.Type "TimeFreezer";
+		Powerup.Type "PowerTimeFreezer";
 		Powerup.Duration -2;
 		+INVENTORY.ADDITIVETIME
 		+INVENTORY.AUTOACTIVATE

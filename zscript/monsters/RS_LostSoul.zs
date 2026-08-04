@@ -98,7 +98,7 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 		Damage 3;
 		PainChance 256;
 		Monster;
-		+FLOAT +NOGRAVITY +MISSILEMORE +DONTFALL +NOICEDEATH
+		+FLOAT +NOGRAVITY +DONTFALL +NOICEDEATH MissileChanceMult 0.5;
 		+FLOORCLIP
 		AttackSound "skull/melee";
 		PainSound "skull/pain";
@@ -270,7 +270,7 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 	// Two eye satellites ride it; the attack is a double skull-lunge with
 	// a self-thrust and an ice trail, and it shatters when killed.
 	Spawn.T03:
-		TNT1 A 0 NoDelay { A_SpawnItemEx("RS_CyanSoulEye2", 0, 0, 24, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER); }
+		TNT1 A 0 { A_SpawnItemEx("RS_CyanSoulEye2", 0, 0, 24, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER); }
 		TNT1 A 0 { A_SpawnItemEx("RS_CyanSoulEye", 0, 0, 24, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER); }
 	Spawn.T03.Idle:
 		"SKUC" STUVW 1 Bright { A_Look(); }
@@ -611,7 +611,7 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 	// out of lease after ~2000 chase ticks and kills itself; when the
 	// corpse hits the floor it bursts one last brood.
 	Spawn.T09:
-		"SKGR" A 0 NoDelay { A_Warp(AAPTR_DEFAULT, pos.x, pos.y, frandom(floorz, ceilingz - height), 0, WARPF_ABSOLUTEPOSITION|WARPF_NOCHECKPOSITION); }
+		"SKGR" A 0 { A_Warp(AAPTR_DEFAULT, pos.x, pos.y, frandom(floorz, ceilingz - height), 0, WARPF_ABSOLUTEPOSITION|WARPF_NOCHECKPOSITION); }
 	Spawn.T09.Idle:
 		"SKGR" A 10 Bright { A_Look(); }
 		Loop;
@@ -711,7 +711,7 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 	// a strafing stinger run that speeds up below 800 HP, or a seeking
 	// swarm bolt. She sidesteps anything that gets inside 256.
 	Spawn.T11:
-		"WASP" A 0 NoDelay { A_SpawnItemEx("RS_BlackLSoul2", random(-16, 16), random(-16, 16), random(-6, 10), 0, 0, 0, 0, SXF_SETMASTER|SXF_NOCHECKPOSITION); }
+		"WASP" A 0 { A_SpawnItemEx("RS_BlackLSoul2", random(-16, 16), random(-16, 16), random(-6, 10), 0, 0, 0, 0, SXF_SETMASTER|SXF_NOCHECKPOSITION); }
 		"WASP" A 0 { A_SpawnItemEx("RS_BlackLSoul2", random(-16, 16), random(-16, 16), random(-6, 10), 0, 0, 0, 0, SXF_SETMASTER|SXF_NOCHECKPOSITION); }
 		"WASP" A 0 { A_SpawnItemEx("RS_BlackLSoul2", random(-16, 16), random(-16, 16), random(-6, 10), 0, 0, 0, 0, SXF_SETMASTER|SXF_NOCHECKPOSITION); }
 		"WASP" A 0 { A_SpawnItemEx("RS_BlackLSoul2", random(-16, 16), random(-16, 16), random(-6, 10), 0, 0, 0, 0, SXF_SETMASTER|SXF_NOCHECKPOSITION); }
@@ -1021,7 +1021,7 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 	// It holds NOPAIN through every transform, and on pain has a 25%
 	// chance to Reset -- recall the escorts, wander, and re-form.
 	Spawn.TEX:
-		TNT1 A 0 NoDelay
+		TNT1 A 0
 		{
 			A_SpawnItemEx("RS_SkullWSoulEX1", 32, 32, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER);
 			A_SpawnItemEx("RS_SkullWSoulEX2", -32, -32, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_SETMASTER);

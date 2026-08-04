@@ -1403,7 +1403,7 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 	// five and speeds to 30.
 	// =================================================================
 	Spawn.TEX:
-		"SILE" A 0 NoDelay { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
+		"SILE" A 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
 		"SILE" A 5 { A_Look(); }
 		"SILE" A 0 { A_SpawnItemEx("RS_BVileEXCloud", -4, random(-7, 7), 1, 0, 0, frandom(1.0, 2.0), 0, 32); }
 		"SILE" A 5 { A_Look(); }
@@ -1714,7 +1714,7 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 	//                   five minutes or the fight is simply over.
 	// =================================================================
 	Spawn.T14:
-		"LMWX" E 0 NoDelay
+		"LMWX" E 0
 		{
 			A_SetSize(20, 80, true);
 			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
