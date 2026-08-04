@@ -39,11 +39,15 @@ for name in sys.argv[1:]:
     # and an ^-anchored scan walked straight past every one of them.
     code=re.sub(r'/\*.*?\*/','',re.sub(r'//[^\n]*','',src),flags=re.S)
     for tok,fr in re.findall(r'(?<![A-Za-z0-9_])"?([A-Z0-9]{4})"?\s+([A-Z]+)\s+-?\d',code):
-        # Vanilla IWAD tokens: we have no IWAD to read, so asserting frame
-        # ranges from memory produced two false failures already (PAIN M,
-        # FATT T -- both real vanilla frames). Only existence is checked
-        # for those; GZDoom reports a genuinely missing frame at load.
-        if tok in VAN: continue
+        # NOTE: vanilla tokens are checked, not skipped. A `if tok in VAN:
+        # continue` used to live here, added because the hand-written frame
+        # lists gave false failures (FATT T is real and was missing from the
+        # table). But skipping is pure loss: PUFF is in VAN, so `PUFF DE` --
+        # vanilla PUFF has no E -- became invisible, and that is exactly the
+        # typo this lint exists to catch. The frames below are the UNION of
+        # VAN + repo sprites + art_index, so a vanilla token extended by repo
+        # art already passes: MISL X/Y/Z are used on 19 lines across 5 files
+        # and are shipped in sprites/monsters/fx/. Fix the table, keep looking.
         h=ALL.get(tok)
         if h is None: probs.append(f'sprite {tok} NOT FOUND'); continue
         m=sorted(set(fr)-h)
