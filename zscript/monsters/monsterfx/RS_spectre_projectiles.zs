@@ -64,7 +64,8 @@ class RS_CHCirno : Actor
 
 // ---------- T08 BROWN: the prowler's rally medi-orbs ----------
 // CH Cacodemons.txt MediCacoBrown / MediCacoBrown2.
-// [dedupe] duplicate class RS_MediCacoBrown removed -- defined earlier in the load order.
+// RS_MediCacoBrown itself is defined in RS_archvile_projectiles.zs; the four
+// outriders it sheds are the RS_MediCacoBrown2 below.
 class RS_MediCacoBrown2 : Actor
 {
 	Default { Radius 2; Height 2; Mass 7; Speed 4; Projectile; +THRUACTORS;

@@ -745,10 +745,11 @@ class RS_ZWAVE2 : Actor
 // CHP's ABVileTend_C is a translated ABVileTend whose death splashes
 // four abyss puddles; the splash actors are decoration and are folded
 // into the death animation here.
-// [dedupe] duplicate class RS_ABVileTend removed -- defined earlier in the load order.
+// Defined in RS_archvile_projectiles.zs, from CH Archviles.txt ABVileTend.
 
 // ---------- T06 ABYSS: the psychic tangle (CHP PsychicTangleAbyVile_C).
-// [dedupe] duplicate class RS_PsychicTangleAbyVile removed -- defined earlier in the load order.
+// Defined in RS_archvile_projectiles.zs -- CHP's _C variant and CH's parent are
+// the same actor, so the vile's copy serves the spider mastermind too.
 
 // ---------- T07 FIREBLU: the fireblu spam bolt (CHP 04_F FireBCguy_C).
 class RS_FireBCguy : FastProjectile

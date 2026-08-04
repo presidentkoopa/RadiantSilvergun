@@ -245,7 +245,9 @@ class RS_Canyouleavemealonealready : Actor
 // ---------- T08 BROWN CUBE: the roving resurrector ring ----------
 // CH's ArchRingHelp: an invisible A_VileChase walker that raises corpses
 // along its path, then expires.
-// [dedupe] duplicate class RS_ArchRingHelp removed -- defined earlier in the load order.
+// Defined in RS_archvile_projectiles.zs (CH Archviles.txt is its source). The
+// A_RadiusGive("RS_GrowRaisin") this file's copy carried has been folded back
+// into that one -- RS_Demon's Raise states read the token.
 
 // ---------- T09 GRAY HIVE / T11 QUEEN BEE: the bee itself ----------
 // CHP CommonBlackLsoul2 (05_K) over CH BlackLSoul2. A real 18 HP escort
@@ -413,7 +415,8 @@ class RS_RevEgg : Actor
 }
 
 // ---------- T12 MIMIC, baron form: CHP's own baron ball + the HK egg -----
-// [dedupe] duplicate class RS_BaronBall removed -- defined earlier in the load order.
+// RS_BaronBall is defined in RS_hk_projectiles.zs and is a verbatim match for
+// CHP 15_C.txt BaronBall_C -- the mimic fires the same ball, so it shares it.
 class RS_HKEgg : RS_RevEgg
 {
 	States
@@ -440,8 +443,9 @@ class RS_HKEgg : RS_RevEgg
 }
 
 // ---------- T12 MIMIC, arch-vile form: the wound flash + the spawner orb --
-// [dedupe] duplicate class RS_BlueGash removed -- defined earlier in the load order.
-// [dedupe] duplicate class RS_ArchSpawnerOrb removed -- defined earlier in the load order.
+// RS_BlueGash and RS_ArchSpawnerOrb are both defined in
+// RS_archvile_projectiles.zs, from CH Archviles.txt. The mimic's vile form uses
+// the same two actors the arch-vile does.
 
 
 // --- IMPORT CORRECTIONS -------------------------------------------
