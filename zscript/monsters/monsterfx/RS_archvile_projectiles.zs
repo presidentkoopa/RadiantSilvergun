@@ -1278,7 +1278,9 @@ class RS_BVileEXMindWave : FastProjectile
 		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
 		Loop;
 	Death:
-		BLST A 0 { A_QuakeEx(15, 15, 0, 40, 0, 0, ""); }
+		// CHP: Radius_Quake(15, 15, 0, 40, 0) -- intensity 15, 15 tics,
+		// no damage radius, tremor radius 40 (x64 map units).
+		BLST A 0 { A_QuakeEx(15, 15, 15, 15, 0, 2560, ""); }
 		BLST A 1 Bright { A_SetScale(1.2, 1.2); }
 		BLST B 1 Bright { A_Explode(random(11, 50), 110); }
 		BLST CDEF 1 Bright { A_SetScale(1.4, 1.4); }

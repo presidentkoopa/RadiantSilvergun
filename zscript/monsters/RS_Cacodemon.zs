@@ -24,9 +24,29 @@
 //   T11   09_K  HELE  5000   BLACK HADES: three electro patterns and a
 //                            phase-2 that summons two red cacos
 //   T12   09_W  CDW2  5000   WHITE bald: basic / wonky / arm-spawner
+//   TEX   09_KX HELE 12500   BLACK HADES EX: the shockmaster with two
+//                            more electro patterns, a fade-out teleport
+//                            it can take out of See OR out of pain, a
+//                            railgun fired down its own eye beam, and a
+//                            phase two that hangs seven orbiting spike
+//                            drones on itself and doubles its speed
 //
 // Tier stats come from CHP's own Health/Speed/PainChance per file and
 // are applied through TierData below, replacing the generic ladder.
+//
+// TEX SOURCE: CHP 09_KX.txt, ACTOR GreenBlackCacoEX2 (line 191) -- the
+// actor named in the port brief. NOTED FOR THE RECORD: the FIRST actor
+// in 09_KX.txt is CommonBlackCacoEX2 and its state machine is identical;
+// the green differs only in numbers (12500/26/13 against 10000/21/16,
+// health gate 7500 against 6000, phase-two speed 53 against 42, railgun
+// 25-100 against 20-80, bullet attack random(1,6) against random(1,5)).
+// CHP's _G projectile suffix is dropped -- RS carries one projectile per
+// family and the tier dial does the colouring, so _G and _C resolve to
+// the same RS class.
+//
+// TEX CHP properties with no TierData channel: FloatSpeed 6 (Default is
+// 4) and Scale 1.15. Recorded here rather than silently dropped -- the
+// row carries Health / Speed / PainChance / damage only.
 // =====================================================================
 
 class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
@@ -36,6 +56,7 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 	private int rsPhase2Done;
 	private int rsVoidFields;
 	private int rsDashBudget;
+	private int rsExPhase2;   // TEX 09_KX User_DO2 -- the spike-drone gate
 
 	Default
 	{
@@ -76,6 +97,8 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 			case 10: hp = 999;  spd = 14; r.painChance = 64;  r.dmgMul = 1.8; break;
 			case 11: hp = 5000; spd = 16; r.painChance = 32;  r.dmgMul = 2.5; break;
 			case 12: hp = 5000; spd = 28; r.painChance = 128; r.dmgMul = 3.0; break;
+			// TEX -- CHP 09_KX GreenBlackCacoEX2's own numbers.
+			case 13: hp = 12500; spd = 26; r.painChance = 13; r.dmgMul = 4.0; break;
 			default: return false;
 		}
 		// Default Health is 400, Default Speed 8 -- express CHP's absolute
@@ -90,15 +113,17 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 	// verified present in sprites/monsters/Cacodemon/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "HEAD HEAG HEAB HEAC CCMN CALI HEAA HEAF GREL HEGY HED9 HELE CACP";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		// TEX wears HELE too: CHP's EX caco is the black hades' own body,
+		// re-animated, not a new sprite set. Same token twice is correct.
+		return "HEAD HEAG HEAB HEAC CCMN CALI HEAA HEAF GREL HEGY HED9 HELE CACP HELE";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()

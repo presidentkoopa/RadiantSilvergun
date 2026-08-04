@@ -29,6 +29,21 @@
 //   T11   02_K   BlackSG3    ZSP2   2450  CREW COMMANDER: airstrike,
 //                                         sniper mark, gas nade, squad
 //   T12   02_W   WhiteSG2    BENE   5000  BENELLUS, GOD OF SHOTGUNS
+//   TEX   02_WX  WhiteSGEX   BENE  10671  GREEN BENELLUS, ANGRIER: the EX
+//                                         tier. T12's roster plus the
+//                                         FULL-strength punisher guns,
+//                                         walking shrine emplacements, a
+//                                         forty-shield spark barrage and
+//                                         an 8000-range aimed volley; it
+//                                         blinks away when hurt
+//
+// TEX SHARES T12's BENE ARTWORK -- CHP ships no separate EX sprite set
+// for Benellus and distinguishes it with a green palette remap instead,
+// so TEX is the one tier in this family with a real TintTable entry
+// (rs_sgun_tex). CHP's FloatSpeed 39 and scale 1.00 are Default-only
+// properties with no per-tier setter in this template; Speed carries,
+// those two do not -- the same simplification T12 already ships (its
+// +FLOAT/+NOGRAVITY/+FLOATBOB are likewise not reproduced per-tier).
 //
 // RS mechanics preserved from the previous file: the T07+ squad summon
 // (RS_CallSquad / RS_SG_TIER_SQUAD), GetBaseKeywords(), and
@@ -203,6 +218,7 @@ class RS_Shotgunner : RS_HumanMonster replaces ShotgunGuy
 				AttackSound = "SNPRFIRE";
 				break;
 			case 12:
+			case 13:   // TEX -- CHP's green Benellus uses the same voice
 				SeeSound = "weapons/sshotl"; PainSound   = "weapons/sshotf";
 				DeathSound = "weapons/sshotf"; ActiveSound = "weapons/sshotf";
 				AttackSound = "shotguy/attack";
@@ -979,6 +995,188 @@ class RS_Shotgunner : RS_HumanMonster replaces ShotgunGuy
 	// does CH's WhiteSG2 parent. It leaves an armoury behind instead of
 	// a corpse.
 	Death.T12:
+		"BENE" AAAAAA 1 { A_Scream(); }
+		"BENE" A 8 { A_NoBlocking(); }
+		"BENE" AAABCDDDD 6 { A_SpawnProjectile("RS_HKRedDeath", random(0, 80), random(-30, 50), 0, CMF_AIMOFFSET, -10); }
+		"BENE" DDDDDDDDDDDDDDDDDDDD 1 { A_SpawnItemEx("Shotgun", random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80)); }
+		"BENE" D 8 { A_Quake(40, 60, 0, 40); }
+		"BENE" DDDDDDDDDDDDDDDDDDDD 1 { A_SpawnItemEx("Shotgun", random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80)); }
+		"BENE" D 6 { A_SetTranslucent(0.75); }
+		"BENE" D 6 { A_SetTranslucent(0.5); }
+		"BENE" D 6 { A_SetTranslucent(0.25); }
+		Stop;
+
+	// ================= TEX GREEN BENELLUS (02_WX) =================
+	// The EX tier: CHP's GreenWhiteSGEX2, "Benellus, God of Green
+	// Shotguns, ANGRIER". Same body as T12 with a green remap, twice the
+	// health (10671), and a roster that is genuinely wider rather than
+	// just harder-hitting:
+	//
+	//   SG          the pellet storm, on a refire loop (as T12)
+	//   GIFTS       four bouncing mines (as T12)
+	//   PUNISHER    the FULL-strength twin shotguns, not T12's nerfed pair
+	//   SHRINES     two walking gun emplacements you have to kill
+	//   FOCUSED     wraps itself in forty spark shields, then empties a
+	//               64-round spark barrage down the lane
+	//   HITSCAN     an unmissable 8000-range aimed volley
+	//
+	// The structural difference from T12 is RANGE: inside 1500 it rolls
+	// the whole four-way pool, outside it it commits to the long-range
+	// options only. And it leaks spark puffs while walking, so you can
+	// hear where it is before you see it.
+	//
+	// It also TELEPORTS on pain (CHP's Tele state, a short A_Wander
+	// burst) about half the time, which is why chasing it does not work.
+	Spawn.TEX:
+		"BENE" A 0 { A_SetSize(30, 64, 1); }
+		"BENE" ABCD 5 { A_Look(); }
+		Loop;
+	See.TEX:
+		"BENE" A 0 { A_SetSize(30, 64, 1); }
+		"BENE" AB 2 { A_Chase(); }
+		TNT1 AAAAA 0 { A_SpawnProjectile("RS_SparkPuff1", 42, 0, random(0, 360), CMF_AIMOFFSET, random(-150, 150)); }
+		"BENE" CD 2 { A_Chase(); }
+		TNT1 AAAAA 0 { A_SpawnProjectile("RS_SparkPuff1", 42, 0, random(0, 360), CMF_AIMOFFSET, random(-150, 150)); }
+		"BENE" A 0 A_Jump(128, "See.TEX.Fast");
+		Loop;
+	See.TEX.Fast:
+		"BENE" ABCD 2 { A_FastChase(); }
+		"BENE" A 0 A_Jump(128, "See.TEX.Fast");
+		Loop;
+	// The blink. Four tics of wandering is enough to break your lead.
+	See.TEX.Tele:
+		"BENE" DDDD 1 { A_Wander(); }
+		Goto See.TEX.Fast;
+	Missile.TEX:
+		"BENE" A 0 A_JumpIfCloser(1500, "Missile.TEX.Close");
+		"BENE" A 0 A_Jump(170, "Missile.TEX.HitScan");
+		"BENE" A 0 A_Jump(256, "Missile.TEX.Focused", "Missile.TEX.Rounded");
+		Goto Missile.TEX.Rounded;
+	// Inside 1500 the whole roster is live.
+	Missile.TEX.Close:
+		"BENE" A 0 A_Jump(256, "Missile.TEX.SG", "Missile.TEX.Gifts", "Missile.TEX.Focused", "Missile.TEX.Rounded");
+		Goto See;
+	// The spark storm, then EITHER the punisher guns or the shrines --
+	// and either way it plants two shrines behind them.
+	Missile.TEX.Rounded:
+		"BENE" ABCD 2;
+		"BENE" AAAAAAAAAAAAAAAAAAAA 1 Bright { A_SpawnProjectile("RS_SparkPuff1", 42, 0, random(0, 360), CMF_AIMOFFSET, random(-150, 150)); }
+		"BENE" AAAAAAAAA 0 { A_SpawnProjectile("RS_SparkPuff1", 42, 0, random(0, 360), CMF_AIMOFFSET, random(-150, 150)); }
+		"BENE" K 2 Bright A_Jump(64, "Missile.TEX.Shrines");
+		"BENE" K 2 Bright { A_VileTarget("RS_ShotgunPunisher"); }
+		"BENE" D 3 { A_SpawnItemEx("RS_ShotgunShrine", random(-128, 128), random(-1, 178), 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" D 3 { A_SpawnItemEx("RS_ShotgunShrine", random(-128, 128), random(-178, 1), 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		Goto See;
+	// Four mines lobbed on random arcs -- area denial, not aimed damage.
+	Missile.TEX.Gifts:
+		"BENE" ABCD 1 Bright { A_SpawnProjectile("RS_MineShotgun", random(20, 60), random(-15, 15), random(-20, 20), 0); }
+		Goto See;
+	// The pellet storm. Huge randomised counts on a refire loop, with a
+	// sight and a range check partway so it cannot fire at a wall.
+	Missile.TEX.SG:
+		"BENE" A 2 { A_FaceTarget(); }
+		"BENE" KBJCGDF 4 Bright { A_CustomBulletAttack(random(5, 180), random(0, 50), random(5, 30), random(1, 4), "BulletPuff", 0); }
+		"BENE" K 0 Bright A_CheckSight("See");
+		"BENE" K 0 Bright A_CheckRange(1250, "See");
+		"BENE" KB 2 Bright { A_CustomBulletAttack(22.5, 0, random(5, 18), random(1, 6), "BulletPuff", 0); }
+		"BENE" EAHBICLD 4 Bright { A_CustomBulletAttack(random(5, 180), random(0, 50), random(5, 30), random(1, 4), "BulletPuff", 0); }
+		"BENE" A 1 A_MonsterRefire(128, "See");
+		Goto Missile.TEX.SG;
+	// Four emplacements: two carried onto you, two planted at its feet.
+	Missile.TEX.Shrines:
+		"BENE" K 2 Bright { A_VileTarget("RS_ShotgunPunisher2"); }
+		"BENE" D 3 { A_SpawnItemEx("RS_ShotgunShrine", random(-128, 128), random(-1, 178), 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" D 3 { A_SpawnItemEx("RS_ShotgunShrine", random(-128, 128), random(-178, 1), 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		Goto See;
+	// The sniper answer -- 8000-unit range, so distance is not a defence.
+	Missile.TEX.HitScan:
+		"BENE" A 1 Bright { A_FaceTarget(); }
+		"BENE" AAAAA 0 { A_SpawnProjectile("RS_SparkPuff1", 42, 0, random(0, 360), CMF_AIMOFFSET, random(-150, 150)); }
+		"BENE" AAAAAA 1 Bright { A_SpawnProjectile("RS_SparkPuff1", 42, 0, random(0, 360), CMF_AIMOFFSET, random(-150, 150)); }
+		"BENE" A 8 Bright { A_FaceTarget(); }
+		"BENE" KBJCGDF 5 Bright { A_CustomBulletAttack(3, 3, random(5, 20), random(1, 8), "BulletPuff", 8000); }
+		"BENE" KD 3;
+		Goto See;
+	// THE BIG ONE. Forty spark shields go up first -- that cage IS the
+	// telegraph -- and then sixty-four spark rounds go downrange over
+	// about two seconds.
+	Missile.TEX.Focused:
+		"BENE" AAAAAA 1 Bright { A_SpawnProjectile("RS_SparkPuff1", 42, 0, random(0, 360), CMF_AIMOFFSET, random(-150, 150)); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 62, 62, 62, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -62, 62, 62, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 62, -62, 62, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -62, -62, 62, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 62, 62, -22, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -62, 62, -22, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 62, -62, -22, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -62, -62, -22, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 31, 62, 62, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -31, 62, 62, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 31, -62, 62, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -31, -62, 62, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 62, 31, -22, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -62, 31, -22, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 62, -31, -22, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -62, -31, -22, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 75, 75, 42, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -75, 75, 42, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 75, -75, 42, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -75, -75, 42, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 75, 75, -2, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -75, 75, -2, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 75, -75, -2, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -75, -75, -2, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 32, 75, 42, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -32, 75, 42, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 32, -75, 42, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -32, -75, 42, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 75, 32, -2, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -75, 32, -2, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 75, -32, -2, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -75, -32, -2, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 62, 62, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -62, 62, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 62, -62, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -62, -62, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 32, 62, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -32, 62, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 32, -62, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -32, -62, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 62, 32, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -62, 32, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", 62, -32, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 0 { A_SpawnItemEx("RS_SparkShieldBen", -62, -32, 20, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		"BENE" A 6 Bright { A_FaceTarget(); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-1, 1), CMF_ABSOLUTEPITCH, random(1, 5)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-8, 8), CMF_ABSOLUTEPITCH, random(-9, 8)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-12, 12)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-5, 5), CMF_AIMOFFSET, random(3, 9)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-1, 1), CMF_AIMOFFSET, random(1, 4)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-12, 12)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-8, 8), CMF_ABSOLUTEPITCH, random(-9, 4)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-5, 5), CMF_AIMOFFSET, random(-3, 3)); }
+		"BENE" A 6 Bright { A_FaceTarget(); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-1, 1), CMF_AIMOFFSET, random(-3, 5)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-8, 8), CMF_ABSOLUTEPITCH, random(-9, 8)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-12, 12)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-5, 5), CMF_AIMOFFSET, random(-1, 7)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-1, 1), CMF_ABSOLUTEPITCH, random(-9, 6)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-8, 8), CMF_AIMOFFSET, random(-2, 6)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-5, 5), CMF_ABSOLUTEPITCH, random(-9, 7)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-12, 12)); }
+		"BENE" A 10 Bright;
+		Goto See;
+	// Hitting it throws a shell, PLANTS A SHRINE where it stood, and
+	// half the time it blinks away. Pressure on it costs you ground.
+	Pain.TEX:
+		"BENE" D 2 { A_SpawnItemEx("Shell", random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80), random(-80, 80)); }
+		"BENE" D 2 { A_SpawnItemEx("RS_ShotgunShrine", random(-128, 128), random(-128, 128), 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION, 176); }
+		"BENE" D 2 { A_Pain(); }
+		"BENE" D 2 A_Jump(128, "See.TEX.Tele");
+		Goto See.TEX.Fast;
+	// Same armoury-instead-of-a-corpse death as T12, but it fades out
+	// entirely rather than leaving a body.
+	Death.TEX:
 		"BENE" AAAAAA 1 { A_Scream(); }
 		"BENE" A 8 { A_NoBlocking(); }
 		"BENE" AAABCDDDD 6 { A_SpawnProjectile("RS_HKRedDeath", random(0, 80), random(-30, 50), 0, CMF_AIMOFFSET, -10); }

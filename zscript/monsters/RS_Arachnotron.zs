@@ -40,6 +40,11 @@
 //   T12   12_W    CommonWhiteSpider2     TRIT  10000  WHITE SPIDER: nine
 //                                                     patterns, webs, egg-layer
 //                                                     below 4000 HP
+//   TEX   12_KX   CommonBlackSpiderEX2   KSPX  12000  MACROSS MISSILE SPAM EX:
+//                                                     four patterns, and below
+//                                                     7000 HP the pool does not
+//                                                     widen -- it SWAPS to five
+//                                                     different ones
 //
 // Tier stats are CHP's own Health/Speed/PainChance per file, applied
 // through TierData() as multipliers off the Default block.
@@ -101,6 +106,8 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 			case 10: hp = 1444;  spd = 16; r.painChance = 68;  r.dmgMul = 1.8; break;
 			case 11: hp = 5342;  spd = 21; r.painChance = 24;  r.dmgMul = 2.5; break;
 			case 12: hp = 10000; spd = 28; r.painChance = 32;  r.dmgMul = 3.0; break;
+			// TEX (13) -- 12_KX's own numbers, not an extrapolation.
+			case 13: hp = 12000; spd = 20; r.painChance = 24;  r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 500.0;
@@ -112,15 +119,15 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 	// verified present in sprites/monsters/Arachnotron/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "BSPI BSPG BSPB BSCY CSPI ACNB ABSP BSPF ARAC CSPG BSP2 MSPI TRIT";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		return "BSPI BSPG BSPB BSCY CSPI ACNB ABSP BSPF ARAC CSPG BSP2 MSPI TRIT KSPX";
 	}
 
 	// CHP gives every colour its own ARTWORK, so no palette remap is
 	// wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
