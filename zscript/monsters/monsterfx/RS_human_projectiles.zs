@@ -1032,6 +1032,484 @@ class RS_SpliceBaron : Actor
 	}
 }
 
+// =====================================================================
+// TEX ADDITIONS -- the fourteenth tier (the CHP "EX" bosses).
+// ---------------------------------------------------------------------
+// Zombieman TEX is CHP 01_KX CommonBlackZombieEX2, a COMMON boss, so its
+// projectiles are the `_C` colour. Shotgunner TEX (02_WX
+// GreenWhiteSGEX2) and Chaingunner TEX (04_KX GreenBlackCGuyEX2) are
+// GREEN bosses, so theirs are the `_G` colour. The suffix is stripped on
+// import, so one RS_ class serves each -- and the numbers below are the
+// ones the boss that actually fires it uses, not a different colour's.
+//
+// Every CHP `_C`/`_G` class here was checked against its CH parent; where
+// CHP redeclares the whole body (which it does for all of these) CHP
+// wins outright and CH was only read to confirm nothing was left
+// undefined.
+// =====================================================================
+
+// ---------- ZOMBIEMAN TEX: PLAYER X (01_KX) -------------------------
+// The BFG. Player X's panic button: a fat, slow orb that detonates into
+// a cloud of thirty smaller ones, so the real damage arrives a beat
+// AFTER you dodged the thing you saw.
+class RS_PlayerEXBFG : FastProjectile
+{
+	Default
+	{
+		Radius 12; Height 12; Speed 25;
+		Damage (random(100, 200)); DamageType "Plasma";
+		Projectile; +DONTHARMCLASS;
+		RenderStyle "Add"; Alpha 1.25; Scale 1.0;
+		DeathSound "weapons/bfgx";
+	}
+	States
+	{
+	Spawn:
+		BFS1 A 2 Bright { A_SpawnItemEx("RS_TrailSPCguy", random(-2, 2), random(-2, 2), random(-1, 1), 20, 0, random(-5, 5), random(-270, 270)); }
+		BFS1 B 2 Bright { A_SpawnItemEx("RS_TrailSPCguy", random(-2, 2), random(-2, 2), random(-1, 1), 20, 0, random(-5, 5), random(-270, 270)); }
+		Loop;
+	Death:
+		BFE1 AB 8 Bright { A_SetScale(1.25); }
+		TNT1 A 0 { A_Quake(15, 15, 0, 40); }
+		BFE1 C 8 Bright { A_Explode(random(45, 125), 156); }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_PlayerEXBFG2", random(-12, 12), random(-12, 12), random(-1, 1), random(2, 19), 0, random(-9, 9), random(-359, 359), SXF_NOCHECKPOSITION); }
+		BFE1 DEF 8 Bright;
+		Stop;
+	}
+}
+
+// The shrapnel. Each one also self-destructs on a small random roll, so
+// the cloud thins out instead of hanging around forever.
+class RS_PlayerEXBFG2 : Actor
+{
+	Default
+	{
+		Radius 6; Height 6; Speed 10;
+		Damage (random(20, 80)); DamageType "Plasma";
+		Projectile; +DONTHARMCLASS;
+		RenderStyle "Add"; Alpha 1.25; Scale 0.55;
+		Translation "0:255=%[0.00,0.17,0.00]:[0.81,1.35,0.28]";
+	}
+	States
+	{
+	Spawn:
+		BFS1 A 2 Bright { A_SetScale(0.55, 0.75); }
+		BFS1 B 2 Bright { A_SetScale(0.75, 0.55); }
+		TNT1 A 0 A_Jump(2, "Death");
+		Loop;
+	Death:
+		BFS1 ABABAB 2 Bright { A_FadeOut(0.33); }
+		Stop;
+	}
+}
+
+// ---------- SHOTGUNNER TEX: GREEN BENELLUS (02_WX) ------------------
+// The full-strength Punisher pair. The T12 Benellus already ships the
+// NERFED twins (RS_ShotgunPunishNerf/2); these are CH's originals, which
+// wind up faster and throw a bigger pellet spread. Kept as separate
+// classes rather than tuning the nerfed ones, because BOTH exist in the
+// source and T12 must not silently get the EX version's teeth.
+class RS_ShotgunPunish : Actor
+{
+	Default
+	{
+		Radius 12; Height 12; Speed 1; Health 375;
+		RenderStyle "SoulTrans"; Alpha 0.95;
+		Monster; +NOTRIGGER; +NOCLIP; +NOBLOOD; -COUNTKILL;
+		SeeSound "weapons/sshotl"; DeathSound "weapons/rocklx";
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		SHOT A 2 Bright { A_SetScale(0.8, 0.3); }
+		SHOT A 2 Bright { A_SetScale(1.3, 0.6); }
+		SHOT A 4 Bright { A_SetScale(1.6, 0.9); }
+		SHOT A 4 Bright { A_SetScale(1.2, 1.1); }
+		SHOT A 4 Bright { A_SetScale(1.0, 1.0); }
+		SHOT A 3 Bright { A_SetScale(1.3, 0.6); }
+	Shoot:
+		SHOT A 0 { A_FaceTarget(); }
+		SHOT A 13 Bright;
+		SHOT A 4 Bright { A_StartSound("weapons/sshotf", CHAN_WEAPON); }
+		SHOT A 4 Bright { A_SetScale(1.3, 0.6); }
+		SHOT A 6 Bright { A_CustomBulletAttack(7, 5, random(3, 10), random(1, 6), "BulletPuff", 0); }
+		SHOT A 4 Bright { A_SetScale(1.0, 1.0); }
+		Goto Death;
+	Death:
+		SHOT A 3 Bright { A_SetScale(0.7, 0.7); }
+		SHOT A 3 Bright { A_SetScale(0.4, 0.4); }
+		SHOT A 3 Bright { A_SetScale(0.1, 0.1); }
+		TNT1 A 0 { A_SetScale(1.0, 1.0); A_Scream(); }
+		MISL XYZ 5 Bright { A_Explode(random(5, 15), 64); }
+		Stop;
+	}
+}
+
+// The mirrored twin -- negative X scale, so the pair reads as closing in
+// from both sides at once.
+class RS_ShotgunPunish2 : RS_ShotgunPunish
+{
+	States
+	{
+	Spawn:
+		SHOT A 2 Bright { A_SetScale(-0.8, 0.3); }
+		SHOT A 4 Bright { A_SetScale(-1.3, 0.6); }
+		SHOT A 4 Bright { A_SetScale(-1.6, 0.9); }
+		SHOT A 4 Bright { A_SetScale(-1.2, 1.1); }
+		SHOT A 3 Bright { A_SetScale(-1.0, 1.0); }
+	Shoot:
+		SHOT A 0 { A_FaceTarget(); }
+		SHOT A 13 Bright;
+		SHOT A 4 Bright { A_StartSound("weapons/sshotf", CHAN_WEAPON); }
+		SHOT A 4 Bright { A_SetScale(-1.3, 0.6); }
+		SHOT A 6 Bright { A_CustomBulletAttack(7, 5, random(3, 10), random(1, 6), "BulletPuff", 0); }
+		SHOT A 3 Bright { A_SetScale(-1.0, 1.0); }
+		Goto Death;
+	Death:
+		SHOT A 3 Bright { A_SetScale(-0.7, 0.7); }
+		SHOT A 3 Bright { A_SetScale(-0.4, 0.4); }
+		SHOT A 3 Bright { A_SetScale(-0.1, 0.1); }
+		TNT1 A 0 { A_Scream(); }
+		MISL XYZ 5 Bright { A_Explode(random(5, 15), 64); }
+		Stop;
+	}
+}
+
+// The carrier A_VileTarget plants on you -- it hangs one gun on each
+// flank and vanishes.
+class RS_ShotgunPunisher : Actor
+{
+	Default { Speed 1; Projectile; +NOCLIP; -COUNTKILL; Alpha 0.01;
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 Bright { A_SpawnItemEx("RS_ShotgunPunish", 0, 128, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERPOINTERS); }
+		TNT1 A 1 Bright { A_SpawnItemEx("RS_ShotgunPunish2", 0, -128, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERPOINTERS); }
+		Stop;
+	}
+}
+
+// The OTHER carrier: same idea, but it plants two SHRINES instead of two
+// guns -- turrets that stay, chase, and have to be killed.
+class RS_ShotgunPunisher2 : Actor
+{
+	Default { Speed 1; Projectile; +NOCLIP; -COUNTKILL; Alpha 0.01;
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]"; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 Bright { A_SpawnItemEx("RS_ShotgunShrine", 0, 178, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERPOINTERS); }
+		TNT1 A 1 Bright { A_SpawnItemEx("RS_ShotgunShrine", 0, -178, 12, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_TRANSFERPOINTERS); }
+		Stop;
+	}
+}
+
+// A shrine is a walking gun emplacement: it chases you, opens up with a
+// spark barrage, and DAMAGES ITSELF every burst, so it burns down on its
+// own if you can survive it. Dies into an explosion plus two mines.
+class RS_ShotgunShrine : Actor
+{
+	Default
+	{
+		Radius 30; Height 64; Speed 10; Health 1000;
+		Monster;
+		+NOTRIGGER; +MISSILEMORE; +MISSILEEVENMORE; +THRUSPECIES;
+		+DONTHARMCLASS; +DONTHARMSPECIES; +NOTARGETSWITCH; +NOCLIP; +NOBLOOD;
+		Species "BENE";
+		SeeSound "weapons/sshotl"; DeathSound "weapons/rocklx";
+		Obituary "$OB_SHOTGUY";
+		Tag "Green Shotgun Shrine";
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		BENE M 2 Bright { A_SetScale(1.0, 0.1); }
+		BENE M 2 Bright { A_SetScale(1.0, 0.4); }
+		BENE M 2 Bright { A_SetScale(1.0, 0.7); }
+		BENE M 2 Bright { A_SetScale(1.0, 1.0); }
+	Idle:
+		BENE MNOP 6 { A_Chase(); }
+		Loop;
+	Missile:
+		BENE M 6 { A_FaceTarget(); }
+		BENE M 6 Bright;
+		BENE Q 1 Bright { A_StartSound("shotguy/attack", CHAN_WEAPON); }
+		BENE QRQRQRQR 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 84, 0, random(-3, 3)); }
+		// CHP's damagething(80): the shrine pays for every burst it fires.
+		TNT1 A 0 { A_DamageSelf(80); }
+		Goto Missile;
+	Death:
+		BENE M 2 Bright { A_SetScale(0.8, 1.0); }
+		BENE M 2 Bright { A_SetScale(0.5, 1.2); }
+		BENE M 2 Bright { A_SetScale(0.3, 1.5); }
+		BENE M 2 Bright { A_SetScale(0.1, 1.8); }
+		TNT1 A 0 { A_SetScale(1.0, 1.0); A_Scream(); A_NoBlocking(); }
+		MISL XYZ 5 Bright { A_Explode(random(5, 15), 128); }
+		TNT1 AA 0 { A_SpawnProjectile("RS_MineShotgun", random(20, 60), random(-15, 15), random(-20, 20), 0); }
+		Stop;
+	}
+}
+
+// The bubble Benellus wraps itself in before the focused-fire barrage --
+// forty of these, purely a tell that the big one is coming.
+class RS_SparkShieldBen : Actor
+{
+	Default
+	{
+		+NOGRAVITY; +SPAWNFLOAT; +NOINTERACTION;
+		RenderStyle "Add"; Speed 1; Alpha 0.95; Scale 1.33; Mass 2;
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		PUFF ABABABAB 10 Bright;
+		PUFF BBB 5 { A_FadeOut(0.33); }
+		Stop;
+	}
+}
+
+// The barrage itself: tiny, very fast, and it lays a spark puff on every
+// single tic of flight, so the volume on screen is the point.
+class RS_SparkFireBen : FastProjectile
+{
+	Default
+	{
+		Radius 2; Height 2; Speed 68; FastSpeed 100;
+		Damage (random(8, 15));
+		Projectile; +MTHRUSPECIES;
+		RenderStyle "Add"; Alpha 0.85; Scale 0.15;
+		DeathSound "imp/shotx";
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		PUFF AB 1 Bright { A_SpawnItemEx("RS_SparkPuff1", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		Loop;
+	Death:
+		TNT1 AAAAAAAAAAAA 0 { A_SpawnItemEx("RS_SparkPuff1", 0, 0, 0, random(-3, 3), random(-3, 3), random(-3, 3), random(-358, 358), SXF_NOCHECKPOSITION); }
+		Stop;
+	}
+}
+
+// ---------- CHAINGUNNER TEX: GREEN WARFACE (04_KX) ------------------
+// The lobbed bomb. Floats for its first arc, then gravity comes back on
+// and it drops -- and the detonation is a NINE-STAGE escalating blast,
+// each ring wider than the last. Getting out of the first one is not
+// getting out of it.
+class RS_YellowBombCGuyEX : Actor
+{
+	Default
+	{
+		Radius 6; Height 6; Speed 48;
+		Damage (random(25, 100)); DamageType "Fire";
+		Projectile; +RANDOMIZE; +DONTHARMCLASS;
+		RenderStyle "Add"; Alpha 1.0; Scale 1.25;
+		DeathSound "weapons/rocklx";
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		GBLL ABC 6 Bright;
+	Fly:
+		GBLL ABC 6 Bright;
+		TNT1 A 0 { bNOGRAVITY = false; }
+		Loop;
+	Death:
+		GBLL A 6 Bright { A_SetScale(1.0, 1.0); }
+		GBLL B 6 Bright { A_SetScale(0.75, 0.75); }
+		GBLL C 6 Bright { A_SetScale(0.5, 0.5); }
+		GBLL A 6 Bright { A_SetScale(0.25, 0.25); }
+		GBLL BCABC 6 Bright;
+		BBOM A 2 Bright { A_SetScale(0.5, 0.5); }
+		TNT1 A 0 { A_Explode(random(13, 25), 32, 0); }
+		BBOM B 2 Bright { A_SetScale(0.75, 0.75); }
+		TNT1 A 0 { A_Explode(random(13, 37), 64, 0); }
+		BBOM C 2 Bright { A_SetScale(1.25, 1.25); }
+		TNT1 A 0 { A_Explode(random(25, 75), 74, 0); }
+		BBOM C 2 Bright { A_SetScale(2.0, 2.0); }
+		TNT1 A 0 { A_Explode(random(25, 100), 128, 0); }
+		BBOM C 2 Bright { A_SetScale(2.5, 2.5); }
+		TNT1 A 0 { A_Explode(random(38, 112), 176, 0); }
+		BBOM C 2 Bright { A_SetScale(3.0, 3.0); }
+		TNT1 A 0 { A_Explode(random(38, 112), 256, 0); }
+		BBOM C 2 Bright { A_SetScale(3.5, 3.5); }
+		TNT1 A 0 { A_Explode(random(38, 112), 256, 0); }
+		BBOM C 2 Bright { A_SetScale(4.0, 4.0); }
+		TNT1 A 0 { A_Explode(random(38, 112), 312, 0); }
+		BBOM CCCBA 4 Bright { A_FadeOut(0.20); }
+		Stop;
+	}
+}
+
+// The spam round. Wide damage roll (13..150) so a burst of these is
+// genuinely swingy, and each one dies into a small cluster bomb.
+class RS_SpamShotsCGuyEX : FastProjectile
+{
+	Default
+	{
+		Radius 12; Height 9; Speed 35;
+		Damage (random(13, 150)); DamageType "Plasma";
+		Projectile; +DONTHARMCLASS;
+		RenderStyle "Add"; Alpha 0.95; Scale 0.25;
+		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		GRFZ DEFGH 2 Bright;
+		Loop;
+	Death:
+		GRFZ IJ 4 Bright { A_SetScale(1.0, 1.0); }
+		GRFZ K 4 Bright { A_Explode(random(28, 110), 256, 0); }
+		GRFZ LMN 3 Bright { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-64, 64), random(-64, 64), random(-32, 32), 0, 0, 0, random(0, 359), SXF_NOCHECKPOSITION); }
+		TNT1 AAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-128, 128), random(-128, 128), random(-32, 32), 0, 0, 0, random(0, 359), SXF_NOCHECKPOSITION); }
+		GRFZ OP 4 Bright { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-32, 32), random(-32, 32), random(-64, 128), random(12, 99), 0, random(-25, 25), random(0, 359), SXF_NOCHECKPOSITION); }
+		Stop;
+	}
+}
+
+// Identical round, fire damage type -- CHP alternates the two through
+// the RedSpam volley so resistances can't cover the whole burst.
+class RS_SpamShotsCGuyEX2 : RS_SpamShotsCGuyEX { Default { DamageType "Fire"; } }
+
+// The sub-munition. Spawns already dead: it exists only to be an
+// explosion at a random offset.
+class RS_ExplosionsCGuyEX : FastProjectile
+{
+	Default
+	{
+		Radius 12; Height 9; Speed 35;
+		Damage (random(25, 75)); DamageType "Fire";
+		Projectile; +DONTHARMCLASS;
+		RenderStyle "Add"; Alpha 0.95; Scale 0.42;
+		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Death:
+		GRFZ IJ 3 Bright;
+		GRFZ K 3 Bright { A_Explode(random(14, 96), 128, 0); }
+		GRFZ LMN 2 Bright;
+		GRFZ OP 3 Bright;
+		Stop;
+	}
+}
+
+// Same, but it FLIES for eleven tics first. That delay is the whole
+// trick: the second wave lands where you ran to.
+class RS_ExplosionsCGuyEXDelayed : FastProjectile
+{
+	Default
+	{
+		Radius 3; Height 3; Speed 63;
+		Damage (random(25, 75)); DamageType "Fire";
+		Projectile; +DONTHARMCLASS;
+		RenderStyle "Add"; Alpha 0.95; Scale 0.42;
+		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 11;
+	Death:
+		TNT1 A 0 { A_Stop(); }
+		GRFZ IJ 3 Bright;
+		GRFZ K 3 Bright { A_Explode(random(14, 96), 128, 0); }
+		GRFZ LMN 2 Bright;
+		GRFZ OP 3 Bright;
+		Stop;
+	}
+}
+
+// THE big one. A seeker that trails saws and small blasts on the way in,
+// then detonates into a two-stage 386-radius field seeded with roughly
+// two hundred delayed sub-munitions. It is the general's finisher.
+class RS_CGBigEX : FastProjectile
+{
+	Default
+	{
+		Radius 8; Height 8; Speed 26;
+		Damage (random(38, 100)); DamageType "Plasma";
+		Projectile; +NOGRAVITY; +SEEKERMISSILE;
+		RenderStyle "Add"; Alpha 0.75; Scale 0.75;
+		SeeSound "spell/spellcast1"; DeathSound "fire/fire4";
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		RED9 B 1 Bright { A_SeekerMissile(2, 4); }
+		RED9 AA 1 Bright { A_SpawnItemEx("RS_SpiralSaw5", 0, 0, 0, 0, 0, 0, 0, 128); }
+		RED9 A 0 Bright { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-128, 24), random(-64, 64), random(-32, 32), 1, 0, random(-1, 1), random(0, 359), SXF_NOCHECKPOSITION); }
+		Loop;
+	Death:
+		SPIR A 1 Bright { A_SetScale(1.5); }
+		SPIR ABCDEDCBA 5 Bright { A_Explode(random(6, 38), 164); }
+		SPIR E 1 Bright { A_SetScale(3.0); }
+		GRFZ IJ 4 Bright;
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-24, 68), random(12, 99), 0, random(-25, 25), random(0, 359), SXF_NOCHECKPOSITION); }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-14, 28), random(12, 99), 0, random(-25, 25), random(180, 359), SXF_NOCHECKPOSITION); }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-4, 28), random(12, 99), 0, random(-25, 25), random(0, 180), SXF_NOCHECKPOSITION); }
+		GRFZ K 4 Bright { A_Explode(random(68, 139), 386, 0); }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-6, 28), random(12, 99), 0, random(-25, 25), random(180, 359), SXF_NOCHECKPOSITION); }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-4, 28), random(12, 99), 0, random(-25, 25), random(0, 180), SXF_NOCHECKPOSITION); }
+		GRFZ LMN 3 Bright { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-64, 64), random(-64, 64), random(-32, 32), 0, 0, 0, random(0, 359), SXF_NOCHECKPOSITION); }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-4, 28), random(12, 99), 0, random(-25, 25), random(0, 359), SXF_NOCHECKPOSITION); }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-4, 28), random(12, 99), 0, random(-25, 25), random(180, 359), SXF_NOCHECKPOSITION); }
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-64, 128), random(12, 99), 0, random(-25, 25), random(0, 180), SXF_NOCHECKPOSITION); }
+		TNT1 A 0 { A_Explode(random(83, 160), 386, 0); }
+		GRFZ OP 4 Bright { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-64, 64), random(-124, 124), random(-32, 32), 0, 0, 0, random(0, 359), SXF_NOCHECKPOSITION); }
+		GRFZ III 2 { A_FadeOut(0.20); }
+		Stop;
+	}
+}
+
+// The wind-up glyph. Harmless -- it exists purely so the two-second
+// charge before the general's heavy shots is READABLE. Spawns straight
+// into its own Death, which is the whole animation.
+class RS_SpiralLoadGeneEX : Actor
+{
+	Default
+	{
+		Radius 2; Height 2; Speed 3;
+		Projectile; +NOINTERACTION; +THRUACTORS;
+		RenderStyle "Add"; Alpha 0.95; Scale 1.0;
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Death:
+		GRFZ CBA 4 Bright;
+		TNT1 A 0 { A_SetScale(0.75, 0.75); }
+		GRFZ BA 4 Bright;
+		TNT1 A 0 { A_SetScale(0.5, 0.5); }
+		GRFZ BA 4 Bright;
+		TNT1 A 0 { A_SetScale(0.25, 0.25); }
+		GRFZ BA 4 Bright;
+		GRFZ I 1 Bright;
+		TNT1 A 0 { A_SetScale(0.5, 0.5); }
+		GRFZ I 1 Bright;
+		TNT1 A 0 { A_SetScale(0.75, 0.75); }
+		GRFZ I 1 Bright;
+		Stop;
+	}
+}
+
 // --- IMPORT CORRECTIONS -------------------------------------------
 // Broken sprite references inherited from the source, fixed on import:
 //   * SGRN -> GRND (source comment wrongly called SGRN a stock IWAD sprite)  (1 occurrence)

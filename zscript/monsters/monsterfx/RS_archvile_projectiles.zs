@@ -960,6 +960,337 @@ class RS_WVileQuake : Actor
 	}
 }
 
+// =====================================================================
+// TEX BLACK-EX -- the tornado vile's kit (CHP 14_KX).
+// ---------------------------------------------------------------------
+// Ported verbatim from CHP\DECORATE\14\14_KX.txt (the _C colour, which
+// is the one RS_Archvile's TEX cluster fires). Nothing here is shared
+// with the T11 black vile -- the EX is a wind/leaf creature and every
+// piece below is its own actor in CHP too.
+// =====================================================================
+
+// ---------- the dust it sheds constantly ----------
+// Solid-looking but it IS a projectile with a melee-typed contact hit --
+// walking through the vile's own wake costs you.
+class RS_BVileEXCloud : Actor
+{
+	Default
+	{
+		Radius 20; Height 56; Speed 4;
+		Damage (random(5, 15));
+		DamageType "Melee";
+		+FLOATBOB
+		RenderStyle "Stencil"; Alpha 0.9;
+		Projectile;
+	}
+	States
+	{
+	Spawn:
+		"SILE" A 1;
+		"SILE" B 1 { A_FadeOut(0.15); }
+		"SILE" C 1;
+		"SILE" D 1 { A_FadeOut(0.15); }
+		"SILE" C 1;
+		"SILE" E 1 { A_FadeOut(0.15); }
+		"SILE" E 1;
+		"SILE" F 1 { A_FadeOut(0.15); }
+		"SILE" F 1 { A_SpawnItemEx("RS_ArchRingHelp", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION, 224); }
+		Stop;
+	Death:
+		"SILE" G 1;
+		"SILE" I 1 { A_FadeOut(0.15); }
+		"SILE" I 1;
+		"SILE" H 1 { A_FadeOut(0.15); }
+		"SILE" G 1;
+		"SILE" H 1 { A_FadeOut(0.15); }
+		"SILE" H 1;
+		"SILE" I 1 { A_FadeOut(0.15); }
+		"SILE" I 1 { A_SpawnItemEx("RS_ArchRingHelp", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION, 224); }
+		Stop;
+	}
+}
+
+// The burst-out variant: CHP stacks Spawn on Death so it plays the
+// dissipation animation immediately instead of the drift.
+class RS_BVileEXCloud2 : RS_BVileEXCloud
+{
+	States
+	{
+	Spawn:
+	Death:
+		"SILE" G 1;
+		"SILE" I 1 { A_FadeOut(0.15); }
+		"SILE" I 1;
+		"SILE" H 1 { A_FadeOut(0.15); }
+		"SILE" G 1;
+		"SILE" H 1 { A_FadeOut(0.15); }
+		"SILE" H 1;
+		"SILE" I 1 { A_FadeOut(0.15); }
+		"SILE" I 1 { A_SpawnItemEx("RS_ArchRingHelp", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION, 224); }
+		Stop;
+	}
+}
+
+// The in-tornado variant -- same body, FX07 funnel art.
+class RS_BVileEXCloud5 : RS_BVileEXCloud
+{
+	States
+	{
+	Spawn:
+	Death:
+		FX07 A 1;
+		FX07 C 1 { A_FadeOut(0.15); }
+		FX07 C 1;
+		FX07 B 1 { A_FadeOut(0.15); }
+		FX07 A 1;
+		FX07 B 1 { A_FadeOut(0.15); }
+		FX07 B 1;
+		FX07 C 1 { A_FadeOut(0.15); }
+		FX07 C 1 { A_SpawnItemEx("RS_ArchRingHelp", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION, 224); }
+		Stop;
+	}
+}
+
+// ---------- the leaves ----------
+// Thrown in sheets by the wind moves. They accelerate ONCE, hard and
+// randomly (A_ScaleVelocity), which is what makes the storm read as
+// chaotic rather than as a fan.
+class RS_Leaves1 : Actor
+{
+	Default
+	{
+		Radius 8; Height 16; Speed 1; Damage 3;
+		Projectile;
+		+RANDOMIZE +NOGRAVITY +FLOAT
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		LEF1 ABC 4 Bright;
+		TNT1 A 0 { A_ScaleVelocity(random(5, 35)); }
+		LEF1 DEFGHIABCDEFGHIABCDEFGHIABCDEFGHIABCDEFGHI 4 Bright;
+		Goto Death;
+	Death:
+		LEF1 A 1 Bright;
+		Stop;
+	}
+}
+
+class RS_Leaves2 : Actor
+{
+	Default
+	{
+		Radius 8; Height 16; Speed 1; Damage 2;
+		Projectile;
+		+RANDOMIZE +NOGRAVITY +FLOAT
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		LEF2 ABC 4 Bright;
+		TNT1 A 0 { A_ScaleVelocity(random(5, 20)); }
+		LEF2 DEFGHIABCDEFGHIABCDEFGHIABCDEFGHIABCDEFGHI 4 Bright;
+		Goto Death;
+	Death:
+		LEF2 A 1 Bright;
+		Stop;
+	}
+}
+
+// ---------- the tornado ----------
+// A floor-hugging funnel that keeps exploding and shedding leaves for as
+// long as it lives, then shrinks out. THRUACTORS -- it passes through
+// bodies rather than stopping on the first one it touches.
+class RS_BVileEXTornado : Actor
+{
+	Default
+	{
+		Radius 16; Height 16; Speed 18;
+		RenderStyle "Translucent"; Alpha 0.6;
+		SeeSound "tornado/form";
+		Projectile;
+		+RANDOMIZE +NOGRAVITY +FLOAT +THRUACTORS +FLOORHUGGER
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		FX07 A 4 Bright { A_Explode(random(5, 25), 70, 0); }
+		FX07 AAA 0 { A_SpawnProjectile("RS_Leaves1", random(16, 64), random(-32, 32), random(0, 360), 0, random(-5, 5)); }
+		FX07 B 4 Bright { A_Explode(random(5, 25), 70, 0); }
+		FX07 BBB 0 { A_SpawnProjectile("RS_Leaves1", random(16, 64), random(-32, 32), random(0, 360), 0, random(-5, 5)); }
+		FX07 C 4 Bright { A_Explode(random(5, 25), 70, 0); }
+		FX07 CCC 0 { A_SpawnProjectile("RS_Leaves1", random(16, 64), random(-32, 32), random(0, 360), 0, random(-5, 5)); }
+		Loop;
+	Death:
+		FX07 A 0 { A_Explode(random(5, 20), 50, 0); }
+		FX07 A 4 Bright { A_SetScale(0.95, 0.8); }
+		FX07 A 0 { A_Explode(random(5, 15), 40, 0); }
+		FX07 B 4 Bright { A_SetScale(0.9, 0.6); }
+		FX07 A 0 { A_Explode(random(5, 10), 30, 0); }
+		FX07 C 4 Bright { A_SetScale(0.85, 0.4); }
+		FX07 A 4 Bright { A_SetScale(0.8, 0.2); }
+		FX07 B 4 Bright { A_SetScale(0.75, 0.1); }
+		Stop;
+	}
+}
+
+// ---------- the darkness token ----------
+// CHP 16_K's BlackMindDarknessToken: a stacking screen-darkener the
+// shadow waves hand out on contact. Additive time, so standing in the
+// storm keeps you blind.
+class RS_BlackMindDarknessToken : Powerup
+{
+	Default
+	{
+		Powerup.Color "00 00 00", 0.5;
+		Powerup.Duration 60;
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.ALWAYSPICKUP
+		+INVENTORY.ADDITIVETIME
+		+INVENTORY.NOSCREENBLINK
+	}
+}
+
+// ---------- the shadow waves ----------
+// RS_BVileEXWAVE is the stationary ripper the seeker leaves behind it;
+// RS_BVileEXWAVE3 is the thrown one that also blinds.
+class RS_BVileEXWAVE : Actor
+{
+	Default
+	{
+		Radius 10; Height 10; Speed 0;
+		SeeSound "queen/fire";
+		Projectile;
+		+NOCLIP +RIPPER
+		Damage (random(1, 3));
+		DamageType "Plasma";
+		RenderStyle "Stencil";
+		StencilColor "00 00 00";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 4 { A_Explode(random(2, 7), 64); }
+		BLST ABCD 1 Bright { A_FadeOut(0.0625); }
+		TNT1 A 0 { A_Explode(random(2, 7), 64); }
+		BLST EFGHI 1 Bright { A_FadeOut(0.0625); }
+		TNT1 A 0 { A_Explode(random(2, 7), 64); }
+		BLST JKLMN 1 Bright { A_FadeOut(0.0625); }
+		TNT1 A 0 { A_Explode(random(2, 7), 64); }
+		BLST OP 1 Bright { A_FadeOut(0.0625); }
+		TNT1 A 0 { A_Explode(random(2, 7), 64); }
+		Stop;
+	}
+}
+
+class RS_BVileEXWAVE3 : FastProjectile
+{
+	Default
+	{
+		Radius 10; Height 10; Speed 15;
+		SeeSound "queen/fire";
+		Projectile;
+		Damage 0;
+		DamageType "Melee";
+		RenderStyle "Stencil"; Alpha 0.65; Scale 0.3;
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		Goto Fly;
+	Fly:
+		TNT1 A 0 { A_ScaleVelocity(frandom(0.65, 1.33)); }
+	Fly.Loop:
+		TNT1 A 0 { A_Explode(random(2, 7), 64); }
+		BLST ABCD 1 Bright;
+		TNT1 A 0 { A_Explode(random(2, 7), 64); }
+		BLST EFGHI 1 Bright;
+		TNT1 A 0 { A_Explode(random(2, 7), 64); }
+		BLST JKLMN 1 Bright;
+		TNT1 A 0 { A_Explode(random(2, 7), 64); }
+		BLST OP 1 Bright;
+		TNT1 A 0 { A_Explode(random(2, 7), 64); }
+		TNT1 A 0 { A_RadiusGive("RS_BlackMindDarknessToken", 24, RGF_PLAYERS, 1); }
+		Goto Fly.Loop;
+	Death:
+		TNT1 A 0;
+		TNT1 A 0 { A_RadiusGive("RS_BlackMindDarknessToken", 42, RGF_PLAYERS, 1); }
+		BLST A 1 Bright { A_SetScale(0.4, 0.4); }
+		BLST B 1 Bright { A_Explode(random(4, 14), 64); }
+		BLST CDEF 1 Bright { A_SetScale(0.6, 0.6); }
+		BLST F 0 { A_Explode(random(6, 16), 78); }
+		BLST FGHI 1 Bright { A_SetScale(0.8, 0.8); }
+		BLST I 0 { A_Explode(random(8, 18), 94); }
+		BLST JKLMOP 1 Bright { A_SetScale(1.0, 1.0); }
+		Stop;
+	}
+}
+
+// ---------- the seeker ----------
+// Invisible in flight (TNT1) -- what you actually see is the trail of
+// RS_BVileEXWAVE it drops every other tic. Detonates big.
+class RS_BVileEXMindWave : FastProjectile
+{
+	Default
+	{
+		Radius 8; Height 8; Speed 12;
+		Damage (random(30, 80));
+		Projectile;
+		+SEEKERMISSILE
+		DamageType "Plasma";
+		RenderStyle "Stencil";
+		SeeSound "queen/fire";
+		DeathSound "queen/hit";
+		Decal "SwordLightning";
+		StencilColor "00 00 00";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		TNT1 A 2 Bright { A_SeekerMissile(3, 6); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
+		TNT1 A 2 Bright { A_SeekerMissile(4, 8); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
+		TNT1 A 2 Bright { A_SeekerMissile(4, 8); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
+		TNT1 A 2 Bright { A_SeekerMissile(4, 8); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
+		TNT1 A 2 Bright { A_SeekerMissile(3, 9); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
+		TNT1 A 2 Bright { A_SeekerMissile(4, 8); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
+		TNT1 A 2 Bright { A_SeekerMissile(6, 6); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
+		TNT1 A 2 Bright { A_SeekerMissile(6, 6); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
+		TNT1 A 2 Bright { A_SeekerMissile(6, 12); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
+		TNT1 A 2 Bright { A_SeekerMissile(6, 12); }
+		TNT1 A 0 { A_SpawnItemEx("RS_BVileEXWAVE", 0, 0, 0, 0, 0, 0, 0, 32); }
+		Loop;
+	Death:
+		BLST A 0 { A_QuakeEx(15, 15, 0, 40, 0, 0, ""); }
+		BLST A 1 Bright { A_SetScale(1.2, 1.2); }
+		BLST B 1 Bright { A_Explode(random(11, 50), 110); }
+		BLST CDEF 1 Bright { A_SetScale(1.4, 1.4); }
+		BLST F 0 { A_Explode(random(9, 40), 130); }
+		BLST FGHI 1 Bright { A_SetScale(1.7, 1.7); }
+		BLST I 0 { A_Explode(random(7, 30), 150); }
+		BLST JKLM 1 Bright { A_SetScale(2, 2); }
+		BLST OP 1 Bright { A_Explode(random(5, 20), 170); }
+		Stop;
+	}
+}
+
 // --- CHP-14 IMPORT CORRECTIONS ------------------------------------
 //   * RS_ArchRingHelp drops the CH +INVISIBLE flag -- with it, the ring
 //     sprite the actor exists to draw never appears. Rest is verbatim.

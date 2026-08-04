@@ -942,3 +942,75 @@ class RS_DoomImpBall : Actor
 		Stop;
 	}
 }
+
+// =====================================================================
+// TEX ADDITIONS -- the Green Black Imp EX's Kamehameha (CHP 03_KX
+// GreenBlackImpEX2). A_CustomRailgun needs two classes: the PUFF it
+// stamps on whatever the beam hits, and the SPAWNCLASS it strings along
+// the beam itself. Both come from CHP's `_G` colour, which is the one
+// this boss actually fires.
+// =====================================================================
+
+// The impact end. CHP's `_C` moved the whole thing from Death into
+// Spawn and added +PUFFONACTORS/+ALWAYSPUFF, so the hit reads even when
+// the beam lands on a wall -- CH's original only fired on Death and
+// silently did nothing against actors. CHP wins.
+class RS_BlackImpBeam1 : Actor
+{
+	Default
+	{
+		Radius 1; Height 1; Speed 1; Scale 1.25;
+		Projectile;
+		+NOCLIP; +NOGRAVITY; +PUFFONACTORS; +ALWAYSPUFF;
+		RenderStyle "Add"; Alpha 1.25;
+		DamageType "Plasma";
+		DeathSound "imp/shotx";
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		TNT1 A 1 { A_Scream(); }
+		SPIR EDCBA 3 Bright { A_Explode(random(2, 20), 128); }
+		TNT1 AAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, 0, random(1, 6), random(3, 15), 0, random(1, 12), random(-359, 359)); }
+		Stop;
+	}
+}
+
+// The beam body. Strung along the rail one segment per tic, and each
+// segment keeps exploding as it shrinks -- so the beam is a corridor of
+// damage that lingers, not an instant line.
+class RS_BlackImpBeam2 : Actor
+{
+	Default
+	{
+		Radius 10; Height 18; Speed 1; Scale 1.75;
+		Damage (random(13, 25)); DamageType "Fire";
+		Projectile; +THRUGHOST; +NOCLIP;
+		RenderStyle "Add"; Alpha 0.67;
+		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+	}
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+		BLVB A 3 Bright { A_SetScale(1.75, 1.75); }
+		BLVB B 3 Bright { A_SetScale(1.5, 1.5); }
+		TNT1 A 0 { A_Explode(random(6, 38), 64, 0); }
+		BLVB A 3 Bright { A_SetScale(1.75, 1.75); }
+		BLVB B 3 Bright { A_SetScale(1.5, 1.5); }
+		TNT1 A 0 { A_Explode(random(6, 38), 64, 0); }
+		BLVB A 3 Bright { A_SetScale(1.75, 1.75); }
+		BLVB B 3 Bright { A_SetScale(1.5, 1.5); }
+		TNT1 A 0 { A_Explode(random(6, 38), 64, 0); }
+		BLVB A 3 Bright { A_SetScale(1.75, 1.75); }
+		BLVB B 3 Bright { A_SetScale(1.5, 1.5); }
+		TNT1 A 0 { A_Explode(random(6, 38), 64, 0); }
+		BLVB A 3 Bright { A_SetScale(1.15, 1.15); }
+		BLVB B 3 Bright { A_SetScale(0.5, 0.5); }
+		BLVB A 3 Bright { A_SetScale(0.15, 0.15); }
+		TNT1 AA 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, 0, random(1, 6), random(3, 15), 0, random(-3, 3), random(-359, 359)); }
+		Stop;
+	}
+}

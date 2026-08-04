@@ -100,6 +100,10 @@ class RS_Shotgunner : RS_HumanMonster replaces ShotgunGuy
 			case 10: hp = 150;  spd = 9;  r.painChance = 110; r.dmgMul = 1.8; break;
 			case 11: hp = 2450; spd = 16; r.painChance = 40;  r.dmgMul = 2.2; break;
 			case 12: hp = 5000; spd = 28; r.painChance = 8;   r.dmgMul = 3.0; break;
+			// TEX -- CHP 02_WX GreenWhiteSGEX2, verbatim (FloatSpeed 39
+			// is a Default-only property with no per-tier setter here, so
+			// only Speed carries; noted in the header).
+			case 13: hp = 10671; spd = 39; r.painChance = 6; r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 30.0;
@@ -112,15 +116,22 @@ class RS_Shotgunner : RS_HumanMonster replaces ShotgunGuy
 	// is the stock IWAD body and needs no files).
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "SPOS SGUG SGUB CNSG HMZP ASGZ ABSG SGUF QSZM GRSH GPOS ZSP2 BENE";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		return "SPOS SGUG SGUB CNSG HMZP ASGZ ABSG SGUF QSZM GRSH GPOS ZSP2 BENE BENE";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
+	// TEX is the ONE exception in this family: it shares T12's BENE
+	// artwork (CHP ships no separate EX sprite set for Benellus) and CHP
+	// distinguishes it with a real green palette remap
+	// ("0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]" on GreenWhiteSGEX2), so
+	// TEX carries a translation while every other tier stays "-".
+	// Recipe lives in TRNSLATE.txt as rs_sgun_tex.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		//      T00 T01 T02 T03 T04 T05 T06 T07 T08 T09 T10 T11 T12 TEX
+		return "- - - - - - - - - - - - - rs_sgun_tex";
 	}
 
 	override string GetBaseKeywords()

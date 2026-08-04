@@ -270,3 +270,241 @@ class RS_Wakawaka : Actor
 		Stop;
 	}
 }
+
+// =====================================================================
+// CHP 07_KX -- BLACK SPECTRE EX (the TEX rung of RS_Spectre).
+// ---------------------------------------------------------------------
+// Everything the TEX cluster in RS_Spectre.zs spawns or fires. Sources:
+// CHP 07_KX.txt for the EX actors, CH decorate/spectres.txt for the one
+// pre-EX parent (ShadowTrail). CHP's _C colour suffix is dropped -- RS
+// carries one projectile per family and lets the tier dial colour it.
+// =====================================================================
+
+// The generic shadow smear every shadow projectile drags. CH ShadowTrail.
+class RS_ShadowTrail : Actor
+{
+	Default { Radius 1; Height 1; Speed 0; Projectile; RenderStyle "Add"; Alpha 0.5; +NOCLIP; }
+	States { Spawn: SHTR ABCDEF 4 Bright; Stop; }
+}
+
+// ---------- the walk ghosts ----------
+// One per stride frame. The EX rogue drops one on every step, so what you
+// are shooting at is usually four frames behind where it actually is --
+// that is the whole read of the fight, not decoration.
+class RS_ShadowGhostEXB : Actor
+{
+	Default { +NOBLOCKMAP; +NOGRAVITY; +NOINTERACTION; +NOCLIP;
+		RenderStyle "Translucent"; XScale 1.2; YScale 0.85; Alpha 0.25; }
+	States { Spawn: GKEX B 10; Stop; }
+}
+class RS_ShadowGhostEXC : RS_ShadowGhostEXB { States { Spawn: GKEX C 10; Stop; } }
+class RS_ShadowGhostEXD : RS_ShadowGhostEXB { States { Spawn: GKEX D 10; Stop; } }
+class RS_ShadowGhostEXE : RS_ShadowGhostEXB { States { Spawn: GKEX E 10; Stop; } }
+
+// The one it leaves at the mouth of a blink, and the one it leaves dying.
+class RS_ShadowWarpGhostEX : RS_ShadowGhostEXB
+{
+	States { Spawn: GKEX AAAAAAAAAA 12 { A_FadeOut(alpha * 0.3); } Stop; }
+}
+class RS_ShadowDeathGhostEX : RS_ShadowGhostEXB
+{
+	States
+	{
+	Spawn:
+		GKEX NO 12;
+		GKEX PQRS 13 { A_FadeOut(0.1); }
+		Stop;
+	}
+}
+
+// ---------- the standard volley ----------
+// Bounces twice off walls, so a corridor is worse than open ground.
+class RS_ShadowBallEX1 : Actor
+{
+	Default
+	{
+		Radius 6;
+		Height 8;
+		Speed 20;
+		XScale 1.5;
+		YScale 0.5;
+		Damage (random(20, 55));
+		Projectile;
+		+RANDOMIZE +BOUNCEONWALLS
+		BounceCount 2;
+		DamageType "Plasma";
+		RenderStyle "Add";
+		Alpha 0.75;
+		SeeSound "Shadow/attack";
+		DeathSound "imp/shotx";
+		Decal "DoomImpScorch";
+	}
+	States
+	{
+	Spawn:
+		SBAL A 0 { A_SpawnItemEx("RS_ShadowTrail", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_TRANSFERSCALE); }
+		SBAL A 4 Bright { A_Weave(2, 1, 10, 1); }
+		SBAL B 0 { A_SpawnItemEx("RS_ShadowTrail", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_TRANSFERSCALE); }
+		SBAL B 4 Bright { A_Weave(2, 1, 10, 1); }
+		SBAL C 0 { A_SpawnItemEx("RS_ShadowTrail", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_TRANSFERSCALE); }
+		SBAL C 4 Bright { A_Weave(2, 1, 10, 1); }
+		Loop;
+	Death:
+		SBAL CDEFGH 4 Bright;
+		Stop;
+	}
+}
+
+// The pair the spiral sheds sideways as it travels, and the seventy-two
+// bouncers its death throws in every direction.
+class RS_ShadowBallEX2 : RS_ShadowBall
+{
+	States
+	{
+	Spawn:
+		SBAL DFH 4 Bright { A_SpawnItemEx("RS_ShadowTrail", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		Loop;
+	}
+}
+class RS_ShadowBallEX3 : Actor
+{
+	Default
+	{
+		Radius 6;
+		Height 8;
+		Speed 18;
+		Damage (random(20, 55));
+		Projectile;
+		+RANDOMIZE +BOUNCEONWALLS +BOUNCEONFLOORS +BOUNCEONCEILINGS
+		BounceCount 6;
+		BounceFactor 1;
+		WallBounceFactor 1;
+		DamageType "Plasma";
+		RenderStyle "Add";
+		Alpha 0.75;
+		SeeSound "Shadow/attack";
+		DeathSound "imp/shotx";
+		Decal "DoomImpScorch";
+	}
+	States
+	{
+	Spawn:
+		SBAL ABC 4 Bright { A_SpawnItemEx("RS_ShadowTrail", 0, 0, 0, 0, 0, 0, 0, 128); }
+		Loop;
+	Death:
+		SBAL C 5 Bright;
+		SBAL DEFGH 4 Bright;
+		Stop;
+	}
+}
+
+// ---------- the big one ----------
+// Slow, 100-200 damage, sheds a ball to each side twice per cycle, and
+// its death is the real attack: a seventy-two-shot scatter.
+class RS_ShadowSpiralTrailEX : Actor
+{
+	Default { +NOBLOCKMAP; +NOGRAVITY; +NOINTERACTION; +NOCLIP;
+		RenderStyle "Add"; XScale 4.0; YScale 0.8; Alpha 0.95; }
+	States { Spawn: SHTR ABCDEF 4 Bright; Stop; }
+}
+class RS_ShadowSpiralEX : Actor
+{
+	Default
+	{
+		Radius 18;
+		Height 13;
+		Speed 8;
+		XScale 2.0;
+		YScale 0.4;
+		Damage (random(100, 200));
+		Projectile;
+		DamageType "Plasma";
+		RenderStyle "Add";
+		Alpha 0.95;
+		SeeSound "fire/fire3";
+		DeathSound "spell/Impact1";
+	}
+	States
+	{
+	Spawn:
+		SPIR A 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, -30, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR A 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR A 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, 30, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR A 4 Bright { A_Weave(2, 1, 10, 1); }
+		SPIR B 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, -30, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR B 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR B 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, 30, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR B 0 { A_SpawnProjectile("RS_ShadowBallEX2", 0, 0, 90, 6, 0); }
+		SPIR B 0 { A_SpawnProjectile("RS_ShadowBallEX2", 0, 0, -90, 6, 0); }
+		SPIR B 4 Bright { A_Weave(2, 1, 10, 1); }
+		SPIR C 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, -30, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR C 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR C 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, 30, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR C 4 Bright { A_Weave(2, 1, 10, 1); }
+		SPIR D 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, -30, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR D 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR D 0 { A_SpawnItemEx("RS_ShadowSpiralTrailEX", 0, 30, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SPIR D 0 { A_SpawnProjectile("RS_ShadowBallEX2", 0, 0, 90, 6, 0); }
+		SPIR D 0 { A_SpawnProjectile("RS_ShadowBallEX2", 0, 0, -90, 6, 0); }
+		SPIR D 4 Bright { A_Weave(2, 1, 10, 1); }
+		Loop;
+	Death:
+		SBAL D 0 { A_SetScale(10.0, 2.0); }
+		SBAL DDDDFFFFHHHHDDDDFFFFHHHHDDDDFFFFHHHHDDDDFFFFHHHHDDDDFFFFHHHHDDDDFFFFHHHH 1 Bright { A_SpawnProjectile("RS_ShadowBallEX3", 0, 0, random(0, 360), 6, random(75, 105)); }
+		Stop;
+	}
+}
+
+// ---------- the dark beam ----------
+// Two damage a hit and it pierces armour, but every impact BLINDS: the
+// darkness powerup is the payload, the damage is incidental.
+class RS_ShadowDarkBeamTrailEX : Actor
+{
+	Default { +NOBLOCKMAP; +NOGRAVITY; +NOINTERACTION; +NOCLIP;
+		RenderStyle "Stencil"; Alpha 1.0; Scale 0.6; }
+	States { Spawn: BAL1 AAAABBBB 1 { A_FadeOut(0.125); } Stop; }
+}
+class RS_ShadowDarkBeamEX : FastProjectile
+{
+	Default
+	{
+		Radius 6;
+		Height 8;
+		Speed 35;
+		Damage 2;
+		Scale 0.6;
+		Projectile;
+		+BLOODLESSIMPACT +PIERCEARMOR
+		RenderStyle "Stencil";
+		StencilColor "00 00 00";
+		SeeSound "imp/attack";
+		DeathSound "imp/shotx";
+	}
+	States
+	{
+	Spawn:
+		BAL1 A 1 { A_SpawnItemEx("RS_ShadowDarkBeamTrailEX", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION|SXF_TRANSFERSTENCILCOL); }
+		Loop;
+	Death:
+		TNT1 A 0 { A_RadiusGive("RS_DarknessTokenSpectreEX", 42, RGF_PLAYERS, 1); }
+		BAL1 CDE 4;
+		Stop;
+	}
+}
+
+// The blind itself. CHP's Pickup state also calls A_Light(-20/-30/-25);
+// A_Light is a weapon action and has no meaning on an inventory item, so
+// only the Powerup.Color half -- which is what actually darkens the
+// screen -- is carried.
+class RS_DarknessTokenSpectreEX : Powerup
+{
+	Default
+	{
+		Powerup.Color "00 00 00", 0.5;
+		Powerup.Duration 30;
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.ALWAYSPICKUP
+		+INVENTORY.ADDITIVETIME
+		+INVENTORY.NOSCREENBLINK
+	}
+}

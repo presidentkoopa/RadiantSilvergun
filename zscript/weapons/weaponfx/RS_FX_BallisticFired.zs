@@ -58,6 +58,14 @@ class RS_BallisticFired : FastProjectile
 	int    PierceHits;
 	bool   StitchOnKill;
 
+	// --- Monster-signature spray (wave D1, docs/rs_13) ---
+	// How many sub-projectiles this round releases and whether they
+	// seek. Set at spawn from RS_ShotKeywordMods; the signature adapter
+	// classes (RS_FX_AffixParts.zs) read them. 0 = no spray, which is
+	// every round that isn't a Swarm/Nova signature.
+	int  SprayCount;
+	bool SpraySeek;
+
 	// --- Minimal impact-spawn hook ---
 	// Spawned at the impact point alongside the puff/spark, when set.
 	// This is the hook the payload:explosive/hazard keywords have been

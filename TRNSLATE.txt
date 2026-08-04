@@ -184,3 +184,18 @@ rs_vile_t12 = "48:63=[255,255,255]:[192,192,192]","64:79=[205,205,205]:[13,13,13
 // RS_MonsterMaster's staggered retier flicker (alternates with the
 // tier's own tint, accelerating -- the 90s boss telegraph).
 rs_gold_flash = "0:255=%[0.30,0.22,0.00]:[2.00,1.70,0.45]"
+
+// --- TEX (the CHP "EX" bosses) ---------------------------------------
+// The fourteenth tier. Three of the four humanoid EX bosses are CHP's
+// GREEN colour laid over artwork that is NOT already green -- Benellus
+// and Agaures share their T12/T11 bodies outright, and the EX
+// chaingunner's HCPO set is black -- so unlike every other tier in this
+// file they genuinely need a palette remap. The recipe below is CHP's
+// own, identical on all three (GreenWhiteSGEX2 / GreenBlackImpEX2 /
+// GreenBlackCGuyEX2 all carry the same Translation line).
+//
+// The EX ZOMBIEMAN is deliberately absent: CommonBlackZombieEX2 sets
+// "Translation None" explicitly, so its TintTable entry is "-".
+rs_sgun_tex = "0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]"
+rs_imp_tex  = "0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]"
+rs_cgun_tex = "0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]"

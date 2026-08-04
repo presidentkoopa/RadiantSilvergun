@@ -354,3 +354,244 @@ class RS_AffixPainOrbMaster : RS_AffixIceOrb
 		Stop;
 	}
 }
+
+// =====================================================================
+// WAVE D1 -- MONSTER SIGNATURES (docs/rs_13 shortlist entries 01/04/08)
+// ---------------------------------------------------------------------
+// Every asset below is IWAD-vanilla or verified in-repo. None of these
+// wear a CH-external sprite or sound: a signature that renders
+// invisible without the Colourful Hell pack loaded is not a signature.
+// Sub-spawn counts are HARD CAPPED here regardless of what the resolver
+// asks for -- these ride autofire weapons, and rs_13 flagged engine
+// load as the real hazard on all three.
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// 01 ARACH-PLASMA -- the Arachnotron's bolt. APLS flight, APBX death,
+// baby/* sounds: pure IWAD, the cleanest candidate in the survey. No
+// spray, no splash -- its identity is RATE, so the round stays cheap
+// and the Mastery (burn-through) rides the shared pierce fields.
+// ---------------------------------------------------------------------
+class RS_AffixArachPlasma : RS_BallisticFired
+{
+	Default
+	{
+		DamageType "Plasma";
+		RenderStyle "Add";
+		Alpha 0.85;
+		Scale 0.6;
+		DeathSound "baby/shotx";
+		+BRIGHT
+	}
+	States
+	{
+	Spawn:
+		APLS AB 3 Bright;
+		Loop;
+	Death:
+		TNT1 A 0 A_PlaySound("baby/shotx", CHAN_AUTO);
+		APBX A 3 Bright
+		{
+			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
+			Spawn(puff, pos);
+			if (ImpactSpawnExtra) Spawn(ImpactSpawnExtra, pos);
+		}
+		APBX BCDE 3 Bright;
+		Stop;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 08 SWARM -- the Overlord's bee carrier. LFX1 carrier + WASP motes,
+// both verified in-repo. The carrier deals the weapon's OWN rolled
+// damage on impact (rs_13 flagged the source's 0-damage carrier as the
+// hollow-round trap from rs_05); motes carry a small fixed bite on top.
+// ---------------------------------------------------------------------
+class RS_AffixSwarmMote : Actor
+{
+	Default
+	{
+		Projectile;
+		Radius 4;
+		Height 4;
+		Speed 14;
+		Damage 4;          // fixed and small ON PURPOSE -- the carrier's
+		                   // rolled damage already paid on the direct hit
+		DamageType "Plasma";
+		RenderStyle "Add";
+		Alpha 0.9;
+		Scale 0.7;
+		+THRUSPECIES
+		+SEEKERMISSILE
+		Species "Player";
+	}
+
+	bool Hunts;
+
+	override void Tick()
+	{
+		Super.Tick();
+		if (Hunts)
+			A_SeekerMissile(5, 5, SMF_LOOK);
+	}
+
+	States
+	{
+	Spawn:
+		WASP AB 3 Bright;
+		Loop;
+	Death:
+		WASP CD 3 Bright;
+		Stop;
+	}
+}
+
+class RS_AffixSwarmCarrier : RS_BallisticFired
+{
+	// Motes shed in FLIGHT, on a timer, capped for the whole lifetime --
+	// an SMG at 10 rounds/sec must not carpet the map with actors.
+	const SWARM_SHED_INTERVAL = 4;
+	const SWARM_LIFETIME_CAP  = 8;
+
+	int shedTimer;
+	int shedSoFar;
+
+	Default
+	{
+		DamageType "Plasma";
+		RenderStyle "Add";
+		Alpha 0.9;
+		Scale 0.8;
+		+BRIGHT
+	}
+
+	override void Tick()
+	{
+		Super.Tick();
+		if (SprayCount <= 0 || shedSoFar >= min(SprayCount, SWARM_LIFETIME_CAP))
+			return;
+		if (++shedTimer < SWARM_SHED_INTERVAL)
+			return;
+		shedTimer = 0;
+		shedSoFar++;
+
+		let m = RS_AffixSwarmMote(Spawn("RS_AffixSwarmMote", pos));
+		if (m)
+		{
+			m.angle = angle + frandom(-55, 55);
+			m.pitch = pitch + frandom(-20, 20);
+			m.VelFromAngle(m.Speed);
+			m.vel.z = vel.z * 0.3 + frandom(-1, 1);
+			m.Hunts = SpraySeek;
+			m.target = target;
+			m.master = master;   // THE SACRED POINTER -- XP attribution
+		}
+	}
+
+	States
+	{
+	Spawn:
+		LFX1 ABCD 3 Bright;
+		Loop;
+	Death:
+		TNT1 A 0 A_PlaySound("rs_fx_impact_bullet", CHAN_AUTO);
+		LFX1 D 3 Bright
+		{
+			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
+			Spawn(puff, pos);
+			if (ImpactSpawnExtra) Spawn(ImpactSpawnExtra, pos);
+		}
+		Stop;
+	}
+}
+
+// ---------------------------------------------------------------------
+// 04 NOVA -- the Cyberdemon's swoosh shell. BFS1 flight / BFE1 death,
+// PLSS beads: all IWAD. The heavy signature -- it detonates into a
+// plasma bead nova. Source sprayed ~30 beads; capped at 16 here
+// (rs_13's stated hazard) and the beads carry fixed small damage, not
+// the round's roll.
+// ---------------------------------------------------------------------
+class RS_AffixNovaBead : Actor
+{
+	Default
+	{
+		Projectile;
+		Radius 4;
+		Height 4;
+		Speed 9;
+		Damage 5;
+		DamageType "Plasma";
+		RenderStyle "Add";
+		Alpha 0.9;
+		Scale 0.6;
+		+THRUSPECIES
+		+SEEKERMISSILE
+		Species "Player";
+	}
+
+	bool Hunts;
+
+	override void Tick()
+	{
+		Super.Tick();
+		if (Hunts)
+			A_SeekerMissile(4, 6, SMF_LOOK);
+	}
+
+	States
+	{
+	Spawn:
+		PLSS AB 3 Bright;
+		Loop;
+	Death:
+		PLSE ABCDE 3 Bright;
+		Stop;
+	}
+}
+
+class RS_AffixNovaShell : RS_BallisticFired
+{
+	const NOVA_BEAD_CAP = 16;
+
+	Default
+	{
+		DamageType "Plasma";
+		RenderStyle "Add";
+		Alpha 0.95;
+		Scale 0.9;
+		DeathSound "weapons/bfgx";
+		+BRIGHT
+	}
+
+	States
+	{
+	Spawn:
+		BFS1 AB 3 Bright;
+		Loop;
+	Death:
+		TNT1 A 0 A_PlaySound("weapons/bfgx", CHAN_AUTO);
+		BFE1 A 4 Bright
+		{
+			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
+			Spawn(puff, pos);
+			if (ImpactSpawnExtra) Spawn(ImpactSpawnExtra, pos);
+
+			// The nova. Even ring, flat-ish, capped hard.
+			int n = clamp(SprayCount, 0, NOVA_BEAD_CAP);
+			for (int i = 0; i < n; i++)
+			{
+				let b = RS_AffixNovaBead(Spawn("RS_AffixNovaBead", pos + (0, 0, 6)));
+				if (!b) continue;
+				b.angle = 360.0 * i / double(n);
+				b.VelFromAngle(b.Speed);
+				b.vel.z = frandom(-1.5, 2.5);
+				b.Hunts = SpraySeek;
+				b.target = target;
+				b.master = master;   // XP attribution
+			}
+		}
+		BFE1 BCDE 4 Bright;
+		Stop;
+	}
+}

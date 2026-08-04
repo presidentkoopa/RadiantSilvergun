@@ -673,6 +673,8 @@ class RS_Weapon : Weapon abstract
 					proj.SeekLevel   = mods.SeekLevel;
 					proj.SeekPrecise = mods.SeekPrecise;
 					proj.SeekTurn    = mods.SeekTurn;
+					proj.SprayCount  = mods.SprayCount;
+					proj.SpraySeek   = mods.SpraySeek;
 					// Native ripper -- the round passes through monsters,
 					// damaging each. Real GZDoom flag, no custom logic.
 					proj.bRIPPER = mods.Piercing;

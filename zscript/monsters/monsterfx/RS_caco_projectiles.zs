@@ -460,3 +460,299 @@ class RS_CacodemonBall : Actor
 		Stop;
 	}
 }
+
+// =====================================================================
+// CHP 09_KX -- BLACK CACODEMON EX (the TEX rung of RS_Cacodemon).
+// ---------------------------------------------------------------------
+// Everything below is fired or worn by Missile.TEX / Death.TEX in
+// RS_Cacodemon.zs. Bodies come from CH decorate/Cacodemons.txt; the call
+// sites come from CHP 09_KX.txt. CHP's _C/_G colour suffixes are dropped
+// -- RS carries ONE projectile per family and lets the tier dial do the
+// colouring, so HadesBallEX3_G and HadesBallEX3_C are the same class here.
+// =====================================================================
+
+// ---------- the zapper swarm the EX hades balls drag behind them ----------
+// CH Cacodemons.txt Zappercaco / ZappercacoEX. Same actor, different burn
+// length: the EX one cycles the strip four times instead of once, which
+// is why a single EX4 ball leaves a wall and not a spark.
+class RS_ZapperCaco : Actor
+{
+	Default { Radius 12; Height 12; Speed 3; Damage 3; +NOCLIP; +NOGRAVITY; Projectile;
+		RenderStyle "Add"; Alpha 0.7; SeeSound "Crack/death"; }
+	States { Spawn: HADE IJKL 4 Bright A_Explode(random(2, 20), 32); Stop; }
+}
+class RS_ZapperCacoEX : RS_ZapperCaco
+{
+	States { Spawn: HADE IJKLIJKLIJKLIJKL 3 Bright A_Explode(random(2, 20), 32); Stop; }
+}
+
+// ---------- EX3: the sweeper ----------
+// Its whole point is the y-offset ramp on the zapper spawns: the swarm
+// starts a full 1000 units off to one side and walks across to the other
+// while the ball flies, so the danger is not where the ball is.
+class RS_HadesBallEX3 : RS_CacodemonBall
+{
+	Default
+	{
+		Damage (random(15, 60));
+		Speed 10;
+		Radius 12;
+		Height 8;
+		Alpha 0.80;
+		DamageType "Plasma";
+		+THRUGHOST +FORCEXYBILLBOARD
+		SeeSound "Monster/hadtel";
+		DeathSound "Monster/hadsit";
+		Decal "CacoScorch";
+		Scale 1.25;
+	}
+	States
+	{
+	Spawn:
+		HADE AA 1 Bright { A_SpawnItemEx("RS_ZapperCaco", 0, random(-526, -356), 0, 0, 0, 0, 0, 128); }
+		HADE AAAAA 0 { A_SpawnItemEx("RS_ZapperCaco", 0, random(-1026, -528), 0, 0, 0, 0, 0, 128); }
+		HADE BB 1 Bright { A_SpawnItemEx("RS_ZapperCaco", 0, random(-296, -188), 0, 0, 0, 0, 0, 128); }
+		HADE AAAAA 0 { A_SpawnItemEx("RS_ZapperCaco", 0, random(-528, -128), 0, 0, 0, 0, 0, 128); }
+		HADE CC 1 Bright { A_SpawnItemEx("RS_ZapperCaco", 0, random(-188, -88), 0, 0, 0, 0, 0, 128); }
+		HADE DD 1 Bright { A_SpawnItemEx("RS_ZapperCaco", 0, random(-88, 0), 0, 0, 0, 0, 0, 128); }
+		HADE EE 1 Bright { A_SpawnItemEx("RS_ZapperCaco", 0, random(0, 88), 0, 0, 0, 0, 0, 128); }
+		HADE GG 1 Bright { A_SpawnItemEx("RS_ZapperCaco", 0, random(88, 188), 0, 0, 0, 0, 0, 128); }
+		HADE HH 1 Bright { A_SpawnItemEx("RS_ZapperCaco", 0, random(188, 296), 0, 0, 0, 0, 0, 128); }
+		HADE AAAAA 0 { A_SpawnItemEx("RS_ZapperCaco", 0, random(128, 528), 0, 0, 0, 0, 0, 128); }
+		HADE AA 1 Bright { A_SpawnItemEx("RS_ZapperCaco", 0, random(356, 526), 0, 0, 0, 0, 0, 128); }
+		HADE AAAAA 0 { A_SpawnItemEx("RS_ZapperCaco", 0, random(526, 1026), 0, 0, 0, 0, 0, 128); }
+		Loop;
+	Death:
+		HEFX CDEEFGH 4 Bright { A_SpawnItemEx("RS_HadeExpl", random(-228, 228), random(-228, 228), random(-12, 12)); }
+		Stop;
+	}
+}
+
+// ---------- EX4: the spinner ----------
+// Same shell, but the zappers are thrown OUTWARD with their own velocity
+// and a random yaw, and death dumps forty-one of them at once.
+class RS_HadesBallEX4 : RS_HadesBallEX3
+{
+	States
+	{
+	Spawn:
+		HADE AA 1 Bright { A_SpawnItemEx("RS_ZapperCacoEX", 0, 0, 0, random(5, 28), 0, 0, random(33, 66)); }
+		HADE BB 1 Bright { A_SpawnItemEx("RS_ZapperCacoEX", 0, 0, 0, random(5, 28), 0, 0, random(-66, 33)); }
+		HADE CC 1 Bright { A_SpawnItemEx("RS_ZapperCacoEX", 0, 0, 0, random(5, 28), 0, 0, random(33, 66)); }
+		HADE DD 1 Bright { A_SpawnItemEx("RS_ZapperCacoEX", 0, 0, 0, random(5, 28), 0, 0, random(-66, 33)); }
+		HADE EE 1 Bright { A_SpawnItemEx("RS_ZapperCacoEX", 0, 0, 0, random(5, 28), 0, 0, random(33, 66)); }
+		HADE GG 1 Bright { A_SpawnItemEx("RS_ZapperCacoEX", 0, 0, 0, random(5, 28), 0, 0, random(-66, 33)); }
+		HADE HH 1 Bright { A_SpawnItemEx("RS_ZapperCacoEX", 0, 0, 0, random(5, 28), 0, 0, random(33, 66)); }
+		HADE AA 1 Bright { A_SpawnItemEx("RS_ZapperCacoEX", 0, 0, 0, random(5, 28), 0, 0, random(-66, 33)); }
+		Loop;
+	Death:
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ZapperCacoEX", 0, 0, 0, random(5, 28), 0, 0, random(0, 359)); }
+		HEFX CDEEFGH 4 Bright { A_SpawnItemEx("RS_HadeExpl", random(-228, 228), random(-228, 228), random(-12, 12)); }
+		Stop;
+	}
+}
+
+// ---------- EX2: the punish ball ----------
+// The reward the EX caco gets for being below its health gate. Slow to
+// arrive, then nine quadrant rings of RS_HadeExpl walk outward from where
+// it landed. CHP writes those rings as thirty-six literal lines; the
+// counter below is the same nine passes, not a shortened version.
+class RS_HadesBallEX2 : RS_CacodemonBall
+{
+	private int rsRings;
+
+	Default
+	{
+		Damage (random(25, 75));
+		Speed 18;
+		Alpha 0.80;
+		DamageType "Plasma";
+		+THRUGHOST +FORCEXYBILLBOARD
+		SeeSound "Monster/hadtel";
+		DeathSound "Monster/hadsit";
+		Decal "CacoScorch";
+		Scale 1.5;
+	}
+	States
+	{
+	Spawn:
+		HEFX AB 4 Bright { A_SpawnItemEx("RS_SpiralSaw5", 0, 0, 0, 0, 0, 0, 0, 128); }
+		Loop;
+	Death:
+		HEFX CDE 4 Bright { A_SpawnItemEx("RS_HadeLoad1", random(-128, 128), random(-128, 128), random(-12, 12)); }
+		HEFX EFGH 4 Bright { A_SpawnItemEx("RS_HadeExpl", random(-228, 228), random(-228, 228), random(-12, 12)); }
+		HADE HGEDCBA 6 Bright;
+	Death.Ring:
+		TNT1 A 1 { A_SpawnItemEx("RS_HadeExpl", random(-128, 128), random(-128, 128), random(-1, 24), random(8, 33), 0, 0, 0); }
+		TNT1 A 1 { A_SpawnItemEx("RS_HadeExpl", random(-128, 128), random(-128, 128), random(-1, 24), random(8, 33), 0, 0, 90); }
+		TNT1 A 1 { A_SpawnItemEx("RS_HadeExpl", random(-128, 128), random(-128, 128), random(-1, 24), random(8, 33), 0, 0, 180); }
+		TNT1 A 1 { A_SpawnItemEx("RS_HadeExpl", random(-128, 128), random(-128, 128), random(-1, 24), random(8, 33), 0, 0, 270); }
+		TNT1 A 0
+		{
+			rsRings++;
+			if (rsRings < 9)
+				return ResolveState("Death.Ring");
+			return ResolveState(null);
+		}
+		Stop;
+	}
+}
+
+// ---------- the railgun the EX caco fires down its own eye beam ----------
+// CH BlackCacoBeam1 is the impact puff, BlackCacoBeam2 the trail; both
+// carry their own A_Explode, which is why the beam reads as a wall and
+// not a line. Fired via A_CustomRailgun in Missile.TEX.Electro3.
+class RS_BlackCacoBeam1 : Actor
+{
+	Default { Radius 1; Height 1; Scale 0.95; Projectile; +NOCLIP; +NOGRAVITY; Speed 1;
+		RenderStyle "Add"; DamageType "Plasma"; DeathSound "NETHERDE"; Alpha 1.0; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Death:
+		TNT1 A 1 { A_Scream(); }
+		SPIR EDCBA 3 Bright { A_Explode(random(2, 20), 128); }
+		Stop;
+	}
+}
+class RS_BlackCacoBeam2 : Actor
+{
+	Default { Radius 10; Height 18; Speed 1; Scale 1.25; DamageType "Fire"; Damage (random(10, 20));
+		RenderStyle "Add"; Alpha 0.67; Projectile; +THRUGHOST; +NOCLIP; }
+	States
+	{
+	Spawn:
+		TNT1 A 0;
+	Fly:
+		BLVB A 3 Bright { A_SetScale(1.75, 1.75); }
+		BLVB B 3 Bright { A_SetScale(1.5, 1.5); }
+		TNT1 A 0 { A_Explode(random(5, 30), 64, 0); }
+		BLVB A 3 Bright { A_SetScale(1.75, 1.75); }
+		BLVB B 3 Bright { A_SetScale(1.5, 1.5); }
+		TNT1 A 0 { A_Explode(random(5, 30), 64, 0); }
+		BLVB A 3 Bright { A_SetScale(1.75, 1.75); }
+		BLVB B 3 Bright { A_SetScale(1.5, 1.5); }
+		TNT1 A 0 { A_Explode(random(5, 30), 64, 0); }
+		BLVB A 3 Bright { A_SetScale(1.75, 1.75); }
+		BLVB B 3 Bright { A_SetScale(1.5, 1.5); }
+		TNT1 A 0 { A_Explode(random(5, 30), 64, 0); }
+		BLVB A 3 Bright { A_SetScale(1.15, 1.15); }
+		BLVB B 3 Bright { A_SetScale(0.5, 0.5); }
+		BLVB A 3 Bright { A_SetScale(0.15, 0.15); }
+		Stop;
+	}
+}
+
+// ---------- the orbiting spikes phase two hangs on itself ----------
+// CH RedSpikeCacoEX. Warps around its master on a widening angle for two
+// full turns, then breaks orbit and hunts on its own; dying sprays nails
+// into all four quadrants. CHP's user_angle is the private field here.
+class RS_RedSpikeCacoEX : Actor
+{
+	private int rsOrbitAngle;
+
+	Default
+	{
+		Health 100;
+		Radius 16;
+		Height 56;
+		Mass 50;
+		Scale 1.25;
+		Speed 20;
+		RadiusDamageFactor 0.33;
+		Damage 5;
+		Monster;
+		+FLOAT +NOGRAVITY +DONTHARMSPECIES +MISSILEMORE +MISSILEEVENMORE
+		+NOTRIGGER +NOICEDEATH +NOBLOOD +THRUSPECIES +DONTMORPH
+		-NORADIUSDMG -COUNTKILL
+		Species "Caco";
+		Obituary "%o was spike shocked";
+		Tag "Spiky ouch ouch";
+		Translation "0:255=%[0.50,0.00,0.00]:[2.00,0.00,0.00]";
+	}
+
+	States
+	{
+	Spawn:
+		CHCY A 0;
+	See:
+		TNT1 A 0;
+	Fly:
+		CHCY AB 1 Bright { A_Warp(AAPTR_MASTER, 176, 0, 12, rsOrbitAngle, WARPF_ABSOLUTEANGLE|WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		TNT1 A 0 { rsOrbitAngle += 8; }
+		CHCY CD 1 Bright { A_Warp(AAPTR_MASTER, 176, 0, 12, rsOrbitAngle, WARPF_ABSOLUTEANGLE|WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		TNT1 A 0 { rsOrbitAngle += 8; }
+		CHCY FG 1 Bright { A_Warp(AAPTR_MASTER, 176, 0, 12, rsOrbitAngle, WARPF_ABSOLUTEANGLE|WARPF_NOCHECKPOSITION|WARPF_INTERPOLATE); }
+		TNT1 A 0
+		{
+			rsOrbitAngle += 8;
+			if (rsOrbitAngle >= 720)
+				return ResolveState("Strike");
+			return ResolveState(null);
+		}
+		Loop;
+	Strike:
+		CHCY ABCDFG 1 Bright { A_Chase(); }
+		Loop;
+	Missile:
+		CHCY ABCDFG 1 Bright { A_FaceTarget(); }
+		CHCY A 1 Bright { A_SkullAttack(50); }
+		// CHP writes thrustthing(angle,33,0,0) -- a degrees value handed
+		// to a byte-angle slot. A_Recoil(-33) is the same forward shove
+		// without the unit bug.
+		TNT1 A 0 { A_Recoil(-33); }
+		CHCY BCDFG 1 Bright;
+		CHCY ABCDFG 1 Bright;
+		CHCY ABCDFG 2 Bright;
+		CHCY ABCDFG 3 Bright;
+		CHCY ABCDFG 4 Bright;
+		CHCY ABCDFG 5 Bright;
+		CHCY ABCDFG 6 Bright;
+		CHCY ABCDFG 7 Bright;
+		CHCY ABCDFG 8 Bright;
+	Death:
+		TNT1 A 1 Bright { A_SpawnProjectile("RS_HKRedDeath", 100, -30, CMF_AIMOFFSET, 2, -10); }
+		TNT1 A 1 Bright { A_SpawnProjectile("RS_HKRedDeath", 100, 50, CMF_AIMOFFSET, 2, 10); }
+		TNT1 A 1 Bright { A_SpawnProjectile("RS_HKRedDeath", 20, 30, CMF_AIMOFFSET, 2, 10); }
+		TNT1 A 1 Bright { A_SpawnProjectile("RS_HKRedDeath", 60, 5, CMF_AIMOFFSET, 2, -10); }
+		TNT1 A 1 { A_SpawnProjectile("RS_HKRedDeath", 100, 50, CMF_AIMOFFSET, 2, 10); }
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_CacoNail", 0, 0, 2, random(33, 66), 0, random(-1, 25), random(0, 90)); }
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_CacoNail", 0, 0, 2, random(33, 66), 0, random(-1, 25), random(90, 180)); }
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_CacoNail", 0, 0, 2, random(33, 66), 0, random(-1, 25), random(180, 270)); }
+		TNT1 AAAAAAAA 0 { A_SpawnItemEx("RS_CacoNail", 0, 0, 2, random(33, 66), 0, random(-1, 25), random(270, 359)); }
+		TNT1 A 0 { A_Die(); }
+		Stop;
+	}
+}
+
+// CH CacoNail -- the shrapnel the spikes burst into.
+class RS_CacoNail : Actor
+{
+	Default { Radius 2; Height 4; Damage (random(5, 15)); DamageType "Melee"; RenderStyle "Add";
+		Speed 55; Scale 0.95; Decal "BulletChip"; AttackSound "moloch/nailhitbleed";
+		DeathSound "weapons/firex4"; Projectile;
+		+SPAWNSOUNDSOURCE +MTHRUSPECIES +EXTREMEDEATH +BLOODSPLATTER
+		Translation "0:255=%[0.50,0.00,0.00]:[2.00,0.00,0.00]"; }
+	States
+	{
+	Spawn:
+		BLAD A 1 Bright;
+		Loop;
+	Death:
+		6PUF A 0 { A_StartSound("moloch/nailhit", CHAN_BODY); }
+		6PUF ABCDEF 1 Bright { A_Explode(random(2, 5), 64); }
+		FBL1 EFG 1 Bright { A_Explode(random(2, 8), 64); }
+		FBL1 G 1 Bright { A_SpawnItemEx("RS_PuffCybieRed", 0, 0, 2); }
+		Stop;
+	}
+}
+
+// The red after-image the EX caco smears behind itself on every move,
+// attack and pain frame. CH BlackCacoEXShade.
+class RS_BlackCacoEXShade : Actor
+{
+	Default { Radius 6; Height 6; Speed 1; Projectile; +NOCLIP; +NOINTERACTION;
+		RenderStyle "Stencil"; StencilColor "red"; Alpha 0.33; YScale 1.85; XScale 2.35; }
+	States { Spawn: HADE IJKLIJKLIJKLIJKL 1 Bright; Stop; }
+}

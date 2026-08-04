@@ -51,6 +51,10 @@ register
   TFLV_Upgrade_RS_Bonecaller
   TFLV_Upgrade_RS_PainOrb
   TFLV_Upgrade_RS_Echo
+  # Wave D1 monster signatures (docs/rs_13)
+  TFLV_Upgrade_RS_ArachPlasma
+  TFLV_Upgrade_RS_Swarm
+  TFLV_Upgrade_RS_Nova
   # Stat cards (green) and combo cards (purple) -- docs/rs_10_ui_spec.txt
   TFLV_Upgrade_RS_CardDamage
   TFLV_Upgrade_RS_CardAccuracy

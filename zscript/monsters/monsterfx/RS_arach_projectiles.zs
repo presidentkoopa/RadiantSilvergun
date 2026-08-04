@@ -222,6 +222,14 @@ class RS_SpRocket4EX : FastProjectile
 	Default { Radius 11; Height 8; Speed 30; Damage 50; DamageType "Fire"; Projectile; +SEEKERMISSILE; Scale 1.25; SeeSound "weapons/hominglaunch"; DeathSound "weapons/rocklx"; }
 	States { Spawn: MISL A 3 Bright A_SeekerMissile(4,4); Loop; Death: MISL BCD 4 Bright A_Explode(80,128); Stop; }
 }
+// Harmless afterimage the black EX spider sheds when it opens up -- CH
+// BlackSpideEXShade, with 12_KX's magenta stencil override folded in.
+class RS_BlackSpideEXShade : Actor
+{
+	Default { Radius 6; Height 6; Speed 1; Projectile; +NOCLIP; +NOINTERACTION;
+		RenderStyle "Stencil"; StencilColor "FF 00 FF"; Alpha 0.33; XScale 3.35; YScale 1.75; }
+	States { Spawn: FLUM ACDBE 3 Bright; Stop; }
+}
 
 // ---------- WHITE EX "WHITE HOT SPIDER" extras (fire/heat theme) ----------
 class RS_BoilBoltL9 : FastProjectile

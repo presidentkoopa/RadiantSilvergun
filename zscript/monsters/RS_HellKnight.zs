@@ -33,6 +33,13 @@
 //   T12   11_W   PHAN   5000  GHOST OF E1M8: spawns its twin, phases
 //                             through walls, ghost bombs, spectre
 //                             summons, soul bombs
+//   TEX   11_KX  KKEX  11000  T-800 BARON MK II: the EX tier. One-time
+//                             arming sequence, range-banded weapon
+//                             modes, a squash-and-wander WARP, a
+//                             damage-resist "Resistance" move, and a
+//                             one-shot phase 2 below 5000 HP that
+//                             extends the warp and the resistance both
+//                             (CommonBlackHKEX2, the file's first ACTOR)
 //
 // Tier stats come from CHP's own Health/Speed/PainChance per file and
 // are applied through TierData below, replacing the generic ladder.
@@ -50,6 +57,8 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 	private bool rsIsClone;
 	private bool rsSplitDone;
 	private int  rsRage;            // 11_R's User_Rage2
+	private int  rsExReady;         // 11_KX's User_ready -- arming sequence done
+	private int  rsExRage;          // 11_KX's User_rage  -- phase 2 fired
 
 	Default
 	{
@@ -90,6 +99,8 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 			case 10: hp = 1300; spd = 11; r.painChance = 50; r.dmgMul = 1.9; break;
 			case 11: hp = 5555; spd = 6;  r.painChance = 30; r.dmgMul = 2.5; break;
 			case 12: hp = 5000; spd = 8;  r.painChance = 50; r.dmgMul = 3.0; break;
+			// TEX -- 11_KX CommonBlackHKEX2, CHP's own numbers.
+			case 13: hp = 11000; spd = 14; r.painChance = 30; r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		// Default Health is 500, Default Speed 8 -- express CHP's absolute
@@ -104,15 +115,15 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 	// verified present in sprites/monsters/HellKnight/T<nn>/.
 	override string BodyTable()
 	{
-		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12
-		return "BOS2 HKGR HKBL HFRY HKPR BRUS HKAB HKFB HWAR HKGY BRUR BRUC PHAN";
+		//      T00  T01  T02  T03  T04  T05  T06  T07  T08  T09  T10  T11  T12  TEX
+		return "BOS2 HKGR HKBL HFRY HKPR BRUS HKAB HKFB HWAR HKGY BRUR BRUC PHAN KKEX";
 	}
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
 	override string TintTable()
 	{
-		return "- - - - - - - - - - - - -";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -1117,6 +1128,300 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 	Escort.T12:
 		"PHAN" EF 8 { A_FaceTarget(); }
 		"PHAN" G 12 Bright { RS_CallEscort(); }
+		Goto See;
+
+	// ================= TEX BLACK-EX -- T-800 BARON MK II (11_KX) =========
+	// CHP's BlackEX knight: the T-800 taken past its own ceiling. Same
+	// two-mode idea as T11 but the modes are now RANGE BANDS, not a
+	// toggle -- inside 500 it is all beams and clusters, out past 1500 it
+	// is homing missiles and the death beam. Three things T11 does not
+	// have:
+	//   * a ONE-TIME arming sequence (rsExReady) before it will fight;
+	//   * a WARP -- squashes to a sliver, wanders, and reforms, rolled
+	//     off the walk loop and off pain, NOPAIN while it is gone;
+	//   * a RESISTANCE move that gives it RS_HKEXProtect (0.6 damage
+	//     factor, 7s) behind a curtain of zap decals.
+	// Phase 2 fires ONCE below 5000 HP: speed up, MISSILEEVENMORE on, and
+	// the Warp and Resistance moves both gain a second half (Warp2/Res2).
+	Spawn.TEX:
+		"KKEX" A 0 { A_SetScale(1.45, 1.45); }
+		"KKEX" AB 10 { A_Look(); }
+		Loop;
+	See.TEX:
+		// The arming sequence. Runs once, then every later See goes
+		// straight to the walk.
+		TNT1 A 0
+		{
+			if (rsExReady >= 1)
+				return ResolveState("See.TEX.Walk");
+			return ResolveState(null);
+		}
+		"KKEX" E 8 { A_FaceTarget(); }
+		"KKEX" E 5 Bright { A_SpawnProjectile("RS_ZapDecHKex", random(12, 88), random(-20, 20), 0); }
+		"KKEX" E 4 { A_SpawnProjectile("RS_ZapDecHKex", random(12, 88), random(-20, 20), 0); }
+		"KKEX" E 5 Bright { A_SpawnProjectile("RS_ZapDecHKex", random(12, 88), random(-20, 20), 0); }
+		"KKEX" E 3 { A_SpawnProjectile("RS_ZapDecHKex", random(12, 88), random(-20, 20), 0); }
+		"KKEX" E 2 Bright { A_SpawnProjectile("RS_ZapDecHKex", random(12, 88), random(-20, 20), 0); }
+		"KKEX" E 1 { A_SpawnProjectile("RS_ZapDecHKex", random(12, 88), random(-20, 20), 0); }
+		"KKEX" E 1 Bright { A_SpawnProjectile("RS_ZapDecHKex", random(12, 88), random(-20, 20), 0); }
+		"KKEX" E 1 { A_SpawnProjectile("RS_ZapDecHKex", random(12, 88), random(-20, 20), 0); }
+		"KKEX" E 1 Bright;
+		"KKEX" E 1;
+		"KKEX" E 1 Bright;
+		"KKEX" E 1 { rsExReady++; }
+		"KKEX" E 1 Bright;
+		"KKEX" E 1;
+		Goto See.TEX.Walk;
+	See.TEX.Walk:
+		"KKEX" A 0 { A_StartSound("monster/bruwlk", CHAN_6); }
+		"KKEX" AABB 3 { A_Chase(); }
+		"KKEX" C 0 { A_StartSound("monster/bruwlk", CHAN_7); }
+		"KKEX" CCDD 3 { A_Chase(); }
+		"KKEX" D 0 A_Jump(24, "See.TEX.Warp");
+		Loop;
+	Melee.TEX:
+	Missile.TEX:
+		TNT1 A 0 A_JumpIfHealthLower(5000, "Missile.TEX.Phase2");
+		"KKEX" E 8 { A_FaceTarget(); }
+		"KKEX" E 0 A_JumpIfCloser(500, "Missile.TEX.Mode2");
+		"KKEX" E 0 A_JumpIfCloser(1500, "Missile.TEX.Mode1");
+		TNT1 A 0 A_Jump(256, "Missile.TEX.Homing", "Missile.TEX.DeathBeam", "Missile.TEX.BigMis");
+		Goto See.TEX.Walk;
+	Missile.TEX.Phase2:
+		// One-shot. Once rsExRage is set the gate falls straight back
+		// into the range-band dispatcher (CHP's "Nah" -> Missile+1).
+		TNT1 A 0
+		{
+			if (rsExRage >= 1)
+				return ResolveState("Missile.TEX+1");
+			return ResolveState(null);
+		}
+		TNT1 A 0 { A_SetSpeed(18); bMISSILEEVENMORE = true; }
+		"KKEX" E 6 Bright { rsExRage++; }
+		"KKEX" EGGGG 2 Bright { A_SpawnProjectile("RS_ZapDecHKex", random(12, 88), random(-20, 20), 0); }
+		Goto See.TEX.Walk;
+	Missile.TEX.Mode1:
+		"KKEX" E 0 A_Jump(256, "Missile.TEX.BigMis", "Missile.TEX.MisBar", "Missile.TEX.NadeToss", "Missile.TEX.DeathBeam", "Missile.TEX.FastBeam");
+		Goto See.TEX.Walk;
+	Missile.TEX.Mode2:
+		"KKEX" E 0 A_Jump(256, "Missile.TEX.MisBar", "Missile.TEX.FastBeam", "Missile.TEX.NadeToss");
+		Goto See.TEX.Walk;
+	Missile.TEX.FastBeam:
+		"KKEX" E 0 { A_StartSound("prox/beep"); }
+	Missile.TEX.FastBeamLoop:
+		"KKEX" E 3 Bright { A_FaceTarget(); }
+		"KKEX" S 0 { A_SpawnProjectile("RS_BluCybFX", 44, -18, 0, 0); }
+		"KKEX" S 3 Bright { A_SpawnProjectile("RS_BluCybFX", 44, 18, 0, 0); }
+		"KKEX" S 0 { A_SpawnProjectile("RS_BluCybFX", 44, -18, 0, 0); }
+		"KKEX" S 3 Bright { A_SpawnProjectile("RS_BluCybFX", 44, 18, 0, 0); }
+		"KKEX" S 1 Bright { A_SpawnProjectile("RS_HKEXFastBeam", 44, 18, 0, 0); }
+		"KKEX" S 2 Bright { A_SpawnProjectile("RS_HKEXFastBeam", 44, -18, random(-14, 14), 0); }
+		"KKEX" S 2 Bright { A_SpawnProjectile("RS_HKEXFastBeam", 44, 18, random(-14, 14), 0); }
+		"KKEX" S 2 Bright { A_SpawnProjectile("RS_HKEXFastBeam", 44, -18, random(-14, 14), 0); }
+		"KKEX" S 0 A_Jump(32, "Missile.TEX.AccurateBeam");
+		"KKEX" S 0 A_CheckSight("See.TEX.Walk");
+		"KKEX" E 2 Bright { A_FaceTarget(); }
+		"KKEX" S 0 { A_SpawnProjectile("RS_BluCybFX", 44, -18, 0, 0); }
+		"KKEX" S 3 Bright { A_SpawnProjectile("RS_BluCybFX", 44, 18, 0, 0); }
+		"KKEX" S 0 { A_SpawnProjectile("RS_BluCybFX", 44, -18, 0, 0); }
+		"KKEX" S 3 Bright { A_SpawnProjectile("RS_BluCybFX", 44, 18, 0, 0); }
+		"KKEX" S 1 Bright { A_SpawnProjectile("RS_HKEXFastBeam", 44, 18, 0, 0); }
+		"KKEX" S 2 Bright { A_SpawnProjectile("RS_HKEXFastBeam", 44, -18, random(-14, 14), 0); }
+		"KKEX" S 2 Bright { A_SpawnProjectile("RS_HKEXFastBeam", 44, 18, random(-14, 14), 0); }
+		"KKEX" S 2 Bright { A_SpawnProjectile("RS_HKEXFastBeam", 44, -18, random(-14, 14), 0); }
+		"KKEX" S 0 A_Jump(64, "Missile.TEX.AccurateBeam");
+		"KKEX" S 0 A_Jump(18, "Missile.TEX.NadeToss");
+		"KKEX" E 2 Bright A_MonsterRefire(128, "See.TEX.Walk");
+		Goto Missile.TEX.FastBeamLoop;
+	Missile.TEX.AccurateBeam:
+		"KKEX" S 0 { A_StartSound("weapons/railgf", CHAN_5); }
+		"KKEX" S 6 Bright
+		{
+			A_CustomRailgun(random(1, 4), 0, 0, 0,
+			                RGF_FULLBRIGHT | RGF_NORANDOMPUFFZ | RGF_SILENT, 1, 0,
+			                "RS_CGRailBuff", 0, 0, 0, 66, 0.7, 0.9,
+			                "RS_CGRailBuff", 7, 10);
+		}
+		"KKEX" S 0 { A_StartSound("weapons/railgf", CHAN_5); }
+		"KKEX" S 6 Bright
+		{
+			A_CustomRailgun(random(1, 4), 0, 0, 0,
+			                RGF_FULLBRIGHT | RGF_NORANDOMPUFFZ | RGF_SILENT, 1, 0,
+			                "RS_CGRailBuff", 0, 0, 0, 66, 0.7, 0.9,
+			                "RS_CGRailBuff", 7, 10);
+		}
+		"KKEX" S 0 A_CheckSight("See.TEX.Walk");
+		"KKEX" E 2 Bright A_MonsterRefire(128, "See.TEX.Walk");
+		Goto Missile.TEX.FastBeamLoop;
+	Missile.TEX.Homing:
+		"KKEX" E 9 Bright { A_StartSound("prox/beep"); }
+		"KKEX" E 9 { A_FaceTarget(); }
+		"KKEX" E 9 Bright { A_StartSound("prox/beep"); }
+		"KKEX" E 9 { A_FaceTarget(); }
+		"KKEX" R 0 { A_SpawnProjectile("RS_BruiserMissileEx2", 80, -18, 0, 0); }
+		"KKEX" R 9 Bright { A_SpawnProjectile("RS_BruiserMissileEx2", 80, 18, 0, 0); }
+		"KKEX" E 6;
+		Goto See.TEX.Walk;
+	Missile.TEX.DeathBeam:
+		"KKEX" EE 9 { A_FaceTarget(); }
+		"KKEX" E 0 { A_StartSound("prox/beep"); }
+		"KKEX" S 0 { A_SpawnProjectile("RS_RedRevLoad", 44, -18, random(-1, 1), 0); }
+		"KKEX" S 7 Bright { A_SpawnProjectile("RS_RedRevLoad", 44, 18, random(-1, 1), 0); }
+		"KKEX" S 5 Bright { A_FaceTarget(); }
+		"KKEX" S 0 { A_SpawnProjectile("RS_MegaRedRev", 44, -18, random(-1, 1), 0); }
+		"KKEX" S 5 Bright { A_SpawnProjectile("RS_MegaRedRev", 44, 18, random(-1, 1), 0); }
+		"KKEX" S 0 { A_SpawnItemEx("Cell", 8, 4, 48, 3, 3, 3, angle + 1); }
+		"KKEX" S 5 A_Jump(60, "Missile.TEX.BigMis");
+		Goto See.TEX.Walk;
+	Missile.TEX.BigMis:
+		"KKEX" S 0 { A_StartSound("prox/beep"); }
+		"KKEX" S 0 { A_SpawnProjectile("RS_BruiserMissileEx", 46, -20, 0, 0); }
+		"KKEX" S 9 Bright { A_SpawnProjectile("RS_BruiserMissileEx", 46, 20, 0, 0); }
+		"KKEX" S 0 A_CheckSight("See.TEX.Walk");
+		"KKEX" EE 7 { A_FaceTarget(); }
+		"KKEX" S 0 { A_StartSound("prox/beep"); }
+		"KKEX" S 0 { A_SpawnProjectile("RS_BruiserMissileEx", 46, -20, random(-7, 7), 0); }
+		"KKEX" S 6 Bright { A_SpawnProjectile("RS_BruiserMissileEx", 46, 20, random(-7, 7), 0); }
+		"KKEX" S 0 A_CheckSight("See.TEX.Walk");
+		"KKEX" EE 7 { A_FaceTarget(); }
+		"KKEX" S 0 { A_StartSound("prox/beep"); }
+		"KKEX" S 0 { A_SpawnProjectile("RS_BruiserMissileEx", 46, -20, random(-17, 17), 0); }
+		"KKEX" S 6 Bright { A_SpawnProjectile("RS_BruiserMissileEx", 46, 20, random(-17, 17), 0); }
+		"KKEX" S 0 { A_SpawnItemEx("RocketBox", 8, 4, 48, 3, 3, 3, angle + 1); }
+		"KKEX" S 0 A_Jump(64, "Missile.TEX.Homing");
+		"KKEX" E 1 A_Jump(60, "Missile.TEX.MisBar");
+		Goto See.TEX.Walk;
+	Missile.TEX.MisBar:
+		"KKEX" F 2 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, -18, random(-5, 5), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-1, 1)); }
+		"KKEX" F 2 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, 18, random(-5, 5), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-1, 1)); }
+		"KKEX" F 2 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, -18, random(-14, 14), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-3, 3)); }
+		"KKEX" F 2 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, 18, random(-14, 14), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-3, 3)); }
+		"KKEX" F 2 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, -18, random(-14, 14), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-3, 3)); }
+		"KKEX" F 2 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, 18, random(-14, 14), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-3, 3)); }
+		"KKEX" F 0 A_CheckSight("See.TEX.Walk");
+		"KKEX" EEE 5 { A_FaceTarget(); }
+		"KKEX" F 2 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, -18, random(-14, 14), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-5, 5)); }
+		"KKEX" F 2 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, 18, random(-14, 14), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-5, 5)); }
+		"KKEX" F 2 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, -18, random(-14, 14), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-5, 5)); }
+		"KKEX" F 1 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, 18, random(-24, 24), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-7, 7)); }
+		"KKEX" F 1 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, -18, random(-24, 24), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-7, 7)); }
+		"KKEX" F 1 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, 18, random(-24, 24), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-7, 7)); }
+		"KKEX" F 1 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, -18, random(-24, 24), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-7, 7)); }
+		"KKEX" F 1 Bright { A_SpawnProjectile("RS_SpreadMisBarEX", 44, 18, random(-24, 24), CMF_OFFSETPITCH | CMF_SAVEPITCH, random(-7, 7)); }
+		"KKEX" FFF 0 { A_SpawnItemEx("Shell", 8, 4, 48, 3, 3, 3, angle + 1); }
+		"KKEX" E 1 A_Jump(42, "Missile");
+		Goto See.TEX.Walk;
+	Missile.TEX.NadeToss:
+		"KKEX" EG 7 { A_FaceTarget(); }
+		"KKEX" G 9 { A_SpawnProjectile("RS_BaronHellNade", 60, 2, random(-9, 9), 0, random(3, 12)); }
+		"KKEX" G 1 A_Jump(42, "Missile");
+		Goto See.TEX.Walk;
+	Missile.TEX.Resistance:
+		// The damage-resist curtain. Ends by handing itself
+		// RS_HKEXProtect (CHP: DamageFactor 0.6 for 7 seconds).
+		"KKEX" E 4;
+		"KKEX" G 5;
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 36, 2, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 39, 6, 0); }
+		"KKEX" G 1 { A_SpawnProjectile("RS_ZapDecHKex", 39, -6, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 42, 9, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 42, -9, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 42, 4, 0); }
+		"KKEX" G 1 { A_SpawnProjectile("RS_ZapDecHKex", 42, -4, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 45, 9, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 45, -9, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 45, 4, 0); }
+		"KKEX" G 1 { A_SpawnProjectile("RS_ZapDecHKex", 45, -4, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 48, 9, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 48, -9, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 48, 4, 0); }
+		"KKEX" G 1 { A_SpawnProjectile("RS_ZapDecHKex", 48, -4, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 54, 2, 0); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapDecHKex", 51, 6, 0); }
+		"KKEX" G 1 { A_SpawnProjectile("RS_ZapDecHKex", 51, -6, 0); }
+		"KKEX" G 0 { A_GiveInventory("RS_HKEXProtect", 1); }
+		"KKEX" G 6 { A_SpawnProjectile("RS_ZapOrbHKEX", 78, 0, 0); }
+		TNT1 A 0
+		{
+			if (rsExRage >= 1)
+				return ResolveState("Missile.TEX.Res2");
+			return ResolveState(null);
+		}
+		Goto See.TEX.Walk;
+	Missile.TEX.Res2:
+		"KKEX" G 6 Bright;
+		"KKEX" EG 8 Bright { A_FaceTarget(); }
+		"KKEX" EEEE 1 Bright { A_SpawnProjectile("RS_ZapDecHKex", 64, 12, 0); }
+		"KKEX" GEE 3 Bright;
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapOrbHKEX2", 44, 0, random(-12, 1)); }
+		"KKEX" G 0 { A_SpawnProjectile("RS_ZapOrbHKEX2", 44, 0, random(-1, 12)); }
+		"KKEX" G 4 { A_SpawnProjectile("RS_ZapOrbHKEX2", 44, 0, 0); }
+		Goto See;
+	See.TEX.Warp:
+		// Squashes to a sliver, wanders at speed 99, reforms. NOPAIN for
+		// the whole move -- you cannot stunlock it out of the warp.
+		"KKEX" G 1 { bNOPAIN = true; }
+		"KKEX" G 0 { A_StartSound("misc/teleport", CHAN_AUTO); }
+		"KKEX" G 2 { A_SetScale(1.6, 1.0); }
+		"KKEX" G 1 { A_SetScale(2.0, 0.7); }
+		"KKEX" G 1 { A_SetScale(2.3, 0.4); }
+		"KKEX" G 2 { A_SetScale(2.7, 0.2); }
+		"KKEX" G 1 { A_SetScale(3.1, 0.05); }
+		"KKEX" G 0 { A_SetSpeed(99); }
+		TNT1 AAAA 0 { A_Wander(); }
+		TNT1 AA 1 { A_Wander(); }
+		TNT1 AAAA 0 { A_Wander(); }
+		"KKEX" G 0
+		{
+			if (rsExRage >= 1)
+				return ResolveState("See.TEX.Warp2");
+			return ResolveState(null);
+		}
+		"KKEX" G 0 { A_SetSpeed(14); }
+		"KKEX" G 1 { A_SetScale(3.1, 0.05); }
+		"KKEX" G 0 { A_StartSound("misc/teleport", CHAN_AUTO); }
+		"KKEX" G 2 { A_SetScale(2.7, 0.2); }
+		"KKEX" G 1 { A_SetScale(2.3, 0.4); }
+		"KKEX" G 1 { A_SetScale(2.0, 0.7); }
+		"KKEX" G 2 { A_SetScale(1.6, 1.0); }
+		"KKEX" G 2 { A_SetScale(1.45, 1.45); }
+		"KKEX" G 1 { bNOPAIN = false; }
+		"KKEX" G 0 A_Jump(64, "Missile.TEX.Resistance");
+		Goto See.TEX.Walk;
+	See.TEX.Warp2:
+		"KKEX" G 0 { A_SetSpeed(18); }
+		"KKEX" G 1 { A_SetScale(3.1, 0.05); }
+		"KKEX" G 0 { A_StartSound("misc/teleport", CHAN_AUTO); }
+		"KKEX" G 2 { A_SetScale(2.7, 0.2); }
+		"KKEX" G 1 { A_SetScale(2.3, 0.4); }
+		"KKEX" G 1 { A_SetScale(2.0, 0.7); }
+		"KKEX" G 2 { A_SetScale(1.6, 1.0); }
+		"KKEX" G 2 { A_SetScale(1.45, 1.45); }
+		"KKEX" G 1 { bNOPAIN = false; }
+		"KKEX" G 0 A_Jump(78, "Missile.TEX.Resistance");
+		Goto See.TEX.Walk;
+	Pain.TEX:
+		"KKEX" G 2;
+		"KKEX" G 2 { A_Pain(); }
+		"KKEX" G 2 A_Jump(128, "See.TEX.Warp");
+		Goto See.TEX.Walk;
+	Death.TEX:
+		"KKEX" H 0 { A_SetScale(1.45, 1.45); }
+		"KKEX" HHHH 3 Bright { A_SpawnProjectile("RS_HKRedDeath", random(20, 100), random(-30, 30), random(0, 360), CMF_AIMOFFSET, -10); }
+		"KKEX" H 8 Bright { A_Scream(); }
+		"KKEX" IIIIJJJJJJKKKKKK 2 Bright { A_SpawnProjectile("RS_HKRedDeath", random(20, 100), random(-30, 30), random(0, 360), CMF_AIMOFFSET, -10); }
+		"KKEX" L 6 Bright { A_NoBlocking(); }
+		MISL XXXYYY 2 Bright { A_SpawnProjectile("RS_HKRedDeath", random(20, 100), random(-30, 30), random(0, 360), CMF_AIMOFFSET, -10); }
+		MISL Z 6;
+		"KKEX" Q 10 { A_SetTranslucent(0.1); }
+		"KKEX" Q 10 { A_SetTranslucent(0.4); }
+		"KKEX" Q 10 { A_SetTranslucent(0.7); }
+		"KKEX" Q 0 { A_SetTranslucent(1.0); }
+		"KKEX" Q -1 { A_BossDeath(); }
+		Stop;
+	Escort.TEX:
+		"KKEX" EG 8 { A_FaceTarget(); }
+		"KKEX" G 12 Bright { RS_CallEscort(); }
 		Goto See;
 	}
 }

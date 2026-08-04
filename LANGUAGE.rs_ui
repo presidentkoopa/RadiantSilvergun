@@ -96,3 +96,17 @@ TFLV_Upgrade_RS_ComboWinterKit_TT = "Deepens a held Pain Orb one level and offse
 TFLV_Upgrade_RS_ComboTwinDiscipline_Name = "Twin Discipline";
 TFLV_Upgrade_RS_ComboTwinDiscipline_Desc = "Splitter +1 level AND +2 accuracy";
 TFLV_Upgrade_RS_ComboTwinDiscipline_TT = "Deepens a held Splitter affix one level and steadies the spray. Never grants the Mastery -- that pick is always yours to make.";
+
+// --- Wave D1: monster signatures (docs/rs_13) ------------------------
+
+TFLV_Upgrade_RS_ArachPlasma_Name = "Arach-Plasma";
+TFLV_Upgrade_RS_ArachPlasma_Desc = "your rounds become the Arachnotron's bolt";
+TFLV_Upgrade_RS_ArachPlasma_TT = "The spider's own relentless plasma in your gun. A light, fast round -- its identity is how quickly it speaks, so the damage ramp is small (+2% per level). Mastery: the plasma burns through two bodies.";
+
+TFLV_Upgrade_RS_Swarm_Name = "Swarm";
+TFLV_Upgrade_RS_Swarm_Desc = "your rounds shed a cloud of hunting motes";
+TFLV_Upgrade_RS_Swarm_TT = "The Overlord's bee carrier. Your round still lands its own full damage -- what levels buy is the SWARM, 2 to 6 motes peeling off in flight to find their own targets. Mastery: eight motes, and they hunt precisely.";
+
+TFLV_Upgrade_RS_Nova_Name = "Nova";
+TFLV_Upgrade_RS_Nova_Desc = "your rounds detonate into a plasma ring";
+TFLV_Upgrade_RS_Nova_TT = "The Cyberdemon's swoosh shell -- a heavy round that bursts into a ring of plasma beads on impact. Levels buy both weight (+4% damage) and beads (4 to 12). Mastery: sixteen beads, and they seek.";
