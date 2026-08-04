@@ -306,7 +306,7 @@ class RS_SplashAbyssVile : Actor
 {
 	Default
 	{
-		Radius 12; Height 1; Speed 1; Damage (random(10, 30));
+		Radius 12; Height 1; Speed 1; DamageFunction (random(10, 30));
 		Scale 1.7;
 		+FLOORHUGGER +THRUACTORS +RANDOMIZE +DONTHARMCLASS +BOUNCEONWALLS
 		BounceCount 999; BounceType "Doom"; BounceFactor 1.0; WallBounceFactor 1.0;
@@ -494,7 +494,7 @@ class RS_FirebluVileFX : Actor
 {
 	Default
 	{
-		Radius 12; Height 16; Speed 1; Damage (random(5, 23)); DamageType "Fire";
+		Radius 12; Height 16; Speed 1; DamageFunction (random(5, 23)); DamageType "Fire";
 		Projectile; +RANDOMIZE +THRUACTORS; RenderStyle "Add"; Alpha 0.85;
 		SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "161:161=200:200","160:160=177:177","162:162=184:184","163:163=204:204","164:164=186:186","165:165=204:204","166:166=189:189","167:167=207:207";
@@ -776,7 +776,7 @@ class RS_BVileOrb1 : Actor
 {
 	Default
 	{
-		Radius 8; Height 9; Speed 6; Damage (random(12, 45)); DamageType "Fire";
+		Radius 8; Height 9; Speed 6; DamageFunction (random(12, 45)); DamageType "Fire";
 		Projectile; +BOUNCEONWALLS;
 		BounceFactor 1.2; BounceType "Hexen"; WallBounceFactor 1.2; BounceCount 6;
 		SeeSound "caco/attack"; DeathSound "caco/shotx";

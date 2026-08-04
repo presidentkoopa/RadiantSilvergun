@@ -18,8 +18,10 @@
 // (Pass 2 adds Cyan/Brown/Abyss/Black/White heavy custom bodies.)
 //
 // Ripped faithfully from Colourful Hell (full dependency trees traced).
-// Damage(random(a,b)) -> CONSTANT here; `DamageFunction (random(a,b))` keeps the
-// roll and compiles, and is preferred for new work. Translations/flags/sub-spawns preserved.
+// CH's rolled damage was flattened to constants here. That was unnecessary:
+// the `Damage` property needs a constant, but the roll survives as
+// `DamageFunction (random(a,b))`, which is what new work should use.
+// Translations/flags/sub-spawns preserved.
 // Stock IWAD sprites (BAL1/BAL2/BAL7/MISL/PLSE/BFE1) used as CH uses them.
 // Shared with imp/HK (reused, not redefined): RS_BaronStar3, RS_RedRevLoad/2,
 // RS_SparkPuff1, RS_RedBBall, RS_BluBBall, RS_CrackoBallTrail.
@@ -1428,7 +1430,7 @@ class RS_DeepBeam1 : Actor
 {
 	Default
 	{
-		Radius 25; Height 13; Speed 1; Damage (random(10, 25)); Scale 1.5;
+		Radius 25; Height 13; Speed 1; DamageFunction (random(10, 25)); Scale 1.5;
 		Projectile; +RANDOMIZE; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.9;
 		SeeSound "baron/attack"; DeathSound "baron/shotx";
 	}
@@ -1473,7 +1475,7 @@ class RS_RedBBall2 : FastProjectile
 {
 	Default
 	{
-		Radius 8; Height 12; Speed 25; Damage (random(10, 55)); Scale 0.5;
+		Radius 8; Height 12; Speed 25; DamageFunction (random(10, 55)); Scale 0.5;
 		Projectile; +THRUGHOST +DONTHURTSHOOTER;
 		SeeSound "weapons/firbfi"; DeathSound "weapons/hellex";
 		RenderStyle "Add"; Alpha 0.8; DamageType "Plasma";
