@@ -33,6 +33,42 @@ list. Don't re-derive project state from scratch — it's already written down.
 - Destructive shell commands (`rm -rf`, `Remove-Item -Recurse -Force`) are
   blocked by a permission layer regardless of user consent. Single-file `rm`,
   `mv`, and `rmdir` on already-empty dirs work.
+- **`Damage (random(a,b))` in a `Default` block does not compile** — that is the
+  `damage: non-constant parameter` error. `Damage` takes a constant; a roll goes
+  through **`DamageFunction (random(a,b))`**, which compiles and keeps the
+  spread. Two file headers used to assert ZScript "requires" a constant, and an
+  early pass flattened CH's rolls to single numbers on the strength of that. It
+  was wrong, and it cost this a second rediscovery. Never flatten a roll to make
+  it build.
+- **The compiler reports one instance of a whole-tree defect and stops.** The
+  same `damage:` error was reported as two lines; it was 63 across 12 files.
+  When an error is a *class* of defect, grep the whole tree before believing a
+  count.
+- **Don't line-anchor a search over this codebase.** Most of monsterfx is inline
+  `States { Spawn: ...; Death: ...; }` on one line, so `^\s*THING` silently
+  matches almost nothing. `verify.py`'s sprite check had this bug and reported
+  OK on files it never read; the sweep script written to fix the damage bug then
+  made the identical mistake and missed 21 sites. Also strip `//` lines before a
+  bulk rewrite, or it edits prose.
+
+## Parallel lanes
+
+Several sessions run at once, some sharing the `E:\RS_Main` working tree, some
+in their own worktrees. Consequences that have already bitten:
+
+- **Never `git add -A` in a shared working tree.** One lane swept another's
+  in-flight edits into its own commits, so `git log` blames it for files it
+  never wrote. Stage explicit paths.
+- **Count against `main`, not your worktree.** A branch that forked days ago
+  cannot see what `main` added; every count derived from it is wrong.
+- **Merge, don't rebase, once a branch is pushed** — rebasing rewrites published
+  history other lanes may have pulled. Rebase is right only while unpushed.
+- **Two lanes making the *identical* edit is not a conflict.** Git's three-way
+  merge absorbs it. Test with `git merge-tree --write-tree A B` before asking
+  anyone to back work out.
+- `crosscheck.py` at the repo root projects every lane onto `main` and reports
+  the damage that only exists in the union — duplicate class names, classes one
+  lane deletes that another calls, files missing from `zscript.txt`.
 
 ## Design rules that keep getting re-derived — don't re-litigate
 
