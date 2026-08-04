@@ -72,7 +72,7 @@ class RS_Mastermind : RS_MonsterMaster replaces SpiderMastermind
 		Monster;
 		Species "MMind";
 		RadiusDamageFactor 0.25;
-		+BOSS +MISSILEMORE +FLOORCLIP +BOSSDEATH
+		+BOSS +FLOORCLIP +BOSSDEATH MissileChanceMult 0.5;
 		+DONTMORPH +DONTHARMSPECIES +NOFEAR
 		-NORADIUSDMG
 		SeeSound "spider/sight";   AttackSound "spider/attack";
@@ -969,7 +969,7 @@ class RS_Mastermind : RS_MonsterMaster replaces SpiderMastermind
 	// Rocky Road: a rock chaingun, a shotgun-spread of stone shots, and
 	// the 46-shot nail storm.
 	Spawn.T09:
-		"SPGY" A 0 NoDelay { A_SpawnItemEx("RS_BrainPainGray", 0, 0, 32, 0, 0, 0, 0, SXF_SETMASTER); }
+		"SPGY" A 0 { A_SpawnItemEx("RS_BrainPainGray", 0, 0, 32, 0, 0, 0, 0, SXF_SETMASTER); }
 		"SPGY" AB 10 { A_Look(); }
 		Loop;
 	See.T09:

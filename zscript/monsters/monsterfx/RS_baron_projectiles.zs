@@ -871,7 +871,7 @@ class RS_IceSeekerBaron : Actor
 class RS_AbyssCacoZap2 : Actor
 {
 	Default { Radius 2; Height 2; Speed 2; Species "Caco"; Damage 3; DamageType "Plasma";
-		Projectile; +DONTHURTSPECIES; +DONTHARMCLASS; +THRUSPECIES; RenderStyle "Add"; Alpha 1.0; Translation "Ice"; }
+		Projectile; +DONTHARMSPECIES; +DONTHARMCLASS; +THRUSPECIES; RenderStyle "Add"; Alpha 1.0; Translation "Ice"; }
 	States
 	{
 	Spawn:
@@ -952,7 +952,7 @@ class RS_AbyssBaronSoul : Actor
 {
 	Default { Health 30; Radius 24; Height 24; Mass 20; Speed 30; FloatSpeed 30; Species "LSoul"; DamageType "Ice";
 		AttackSound "vile/active"; DeathSound "weapons/rocklx"; Scale 0.75; Monster;
-		+FLOAT; +NOICEDEATH; +FLOATBOB; +NOTARGETSWITCH; +MISSILEMORE; +NOPAIN; +THRUSPECIES; +MISSILEEVENMORE;
+		+FLOAT; +NOICEDEATH; +FLOATBOB; +NOTARGETSWITCH; +NOPAIN; +THRUSPECIES; MissileChanceMult 0.0625;
 		+NOGRAVITY; +LOOKALLAROUND; +NOBLOOD; +THRUACTORS; -COUNTKILL;
 		Translation "0:255=%[0.02,0.02,0.03]:[0.29,0.49,0.65]"; }
 	States
@@ -1106,7 +1106,7 @@ class RS_DeepTentacle : Actor
 {
 	Default { Health 500; Radius 40; Height 112; Scale 0.75; Mass 0x7FFFFFFF; Species "BaronOfHell"; PainChance 96;
 		SeeSound "monster/tensit"; PainSound "monster/tenpai"; DeathSound "monster/tendth"; ActiveSound "monster/tenact";
-		Monster; +FLOORCLIP; +DONTHURTSPECIES; +LOOKALLAROUND; +THRUSPECIES; +NOTARGET; +MISSILEEVENMORE; -NORADIUSDMG;
+		Monster; +FLOORCLIP; +DONTHARMSPECIES; +LOOKALLAROUND; +THRUSPECIES; +NOTARGET; -NORADIUSDMG; MissileChanceMult 0.125;
 		Translation "231:231=112:112","16:31=98:109","32:42=105:111"; }
 	States
 	{
@@ -1172,9 +1172,9 @@ class RS_RoseTentacle : Actor
 		TNT1 A 0 A_SetShootable;
 		TNT1 A 0 A_SetSolid;
 		ROSX RQ 4;
-		ROSX P 4 A_MeleeAttack;
+		ROSX P 4 A_CustomMeleeAttack(MeleeDamage, MeleeSound, "", "Melee", true);
 		ROSX ONMLABC 4;
-		ROSX D 3 A_MeleeAttack;
+		ROSX D 3 A_CustomMeleeAttack(MeleeDamage, MeleeSound, "", "Melee", true);
 		Goto See;
 	Pain:
 		ROSX LMNOPQR 3;
@@ -1406,7 +1406,7 @@ class RS_ArchonComet : Actor
 	Default
 	{
 		Radius 8; Height 12; Speed 25; Damage 20; Scale 1.0;
-		Projectile; +THRUGHOST +BOUNCEONWALLS +DONTHURTSHOOTER;
+		Projectile; +THRUGHOST +BOUNCEONWALLS
 		BounceType "Doom"; BounceFactor 1.0; BounceCount 4; WallBounceFactor 1.2;
 		SeeSound "weapons/firbfi"; DeathSound "weapons/hellex"; BounceSound "Fire/fire4";
 		DamageType "Fire";
@@ -1477,7 +1477,7 @@ class RS_RedBBall2 : FastProjectile
 	Default
 	{
 		Radius 8; Height 12; Speed 25; DamageFunction (random(10, 55)); Scale 0.5;
-		Projectile; +THRUGHOST +DONTHURTSHOOTER;
+		Projectile; +THRUGHOST
 		SeeSound "weapons/firbfi"; DeathSound "weapons/hellex";
 		RenderStyle "Add"; Alpha 0.8; DamageType "Plasma";
 		Translation "112:127=176:191";

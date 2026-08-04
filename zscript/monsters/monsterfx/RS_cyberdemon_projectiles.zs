@@ -791,7 +791,7 @@ class RS_HammerShot : Actor
 }
 class RS_SmithHammer : Actor
 {
-	Default { Radius 5; Height 5; Speed 2; Damage 0; RenderStyle "Normal"; Projectile; -NOGRAVITY; +LOWGRAVITY; DeathSound "monsters/hamflr"; }
+	Default { Radius 5; Height 5; Speed 2; Damage 0; RenderStyle "Normal"; Projectile; -NOGRAVITY; Gravity 0.125; DeathSound "monsters/hamflr"; }
 	States { Spawn: MAUL ABC 4; Loop; Death: MAUL D -1; Stop; }
 }
 class RS_MolochQuake : Actor
@@ -1021,7 +1021,7 @@ class RS_ShoweringCB : Actor
 class RS_SuperDemonArm : Actor
 {
 	Default { Radius 8; Height 8; Speed 1; Damage 1; Projectile; -NOGRAVITY;
-		+DOOMBOUNCE; BounceFactor 0.4; }
+		BounceType "Doom"; BounceFactor 0.4; }
 	States
 	{
 	Spawn:
@@ -1442,7 +1442,7 @@ class RS_HellBoom : Actor
 }
 class RS_HellShotEX2 : Actor
 {
-	Default { DontHurtShooter; Radius 13; Height 16; Speed 15; DamageFunction (random(20, 50)); DamageType "Supremesmith"; Projectile;
+	Default { Radius 13; Height 16; Speed 15; DamageFunction (random(20, 50)); DamageType "Supremesmith"; Projectile;
 		RenderStyle "Add"; Alpha 0.9; +THRUGHOST; -NOGRAVITY;
 		SeeSound "weapons/firbfi"; DeathSound "weapons/firex3"; }
 	States
@@ -1473,7 +1473,7 @@ class RS_STracerEX : RS_STracer
 // coin-flip chance of firing again before it fades.
 class RS_HellWaverEX : Actor
 {
-	Default { DontHurtShooter; Radius 8; Height 12; Speed 25; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
+	Default { Radius 8; Height 12; Speed 25; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex"; +THRUGHOST; Decal "Scorch"; }
 	States
 	{
@@ -1495,7 +1495,7 @@ class RS_HellWaverEX : Actor
 // the BigHell star leaves behind when it detonates.
 class RS_HellWaver2 : Actor
 {
-	Default { DontHurtShooter; Radius 8; Height 12; Speed 25; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
+	Default { Radius 8; Height 12; Speed 25; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex"; +THRUGHOST; Decal "Scorch"; }
 	States
 	{
@@ -1521,7 +1521,7 @@ class RS_HellWaver2 : Actor
 }
 class RS_HellShotEX : Actor
 {
-	Default { DontHurtShooter; Radius 8; Height 12; Speed 30; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
+	Default { Radius 8; Height 12; Speed 30; DamageFunction (random(40, 120)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/firbfi"; DeathSound "weapons/hellex";
 		+THRUGHOST; Decal "Scorch"; }
 	States
@@ -1541,7 +1541,7 @@ class RS_HellShotEX : Actor
 }
 class RS_HSHomer : Actor
 {
-	Default { DontHurtShooter; Radius 8; Height 12; Speed 22; DamageFunction (random(20, 80)); Projectile; RenderStyle "Add";
+	Default { Radius 8; Height 12; Speed 22; DamageFunction (random(20, 80)); Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/hellfi"; DeathSound "weapons/hellex";
 		+THRUGHOST; +SEEKERMISSILE; +EXTREMEDEATH; Decal "Scorch"; }
 	States
@@ -1569,7 +1569,7 @@ class RS_HSFlameBlastTrail : Actor
 }
 class RS_HSFlameBlast : FastProjectile
 {
-	Default { DontHurtShooter; Radius 8; Height 12; Speed 72; DamageFunction (random(20, 40)); Scale 1.5; Projectile; RenderStyle "Add";
+	Default { Radius 8; Height 12; Speed 72; DamageFunction (random(20, 40)); Scale 1.5; Projectile; RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.95; SeeSound "weapons/hellfi"; DeathSound "weapons/firbfi";
 		+THRUGHOST; Decal "Scorch"; }
 	States
@@ -1589,7 +1589,7 @@ class RS_HSFlameBlast : FastProjectile
 // The thrown lightning: a bouncing seeker that ends in a BFG-sized burst.
 class RS_ZapCybEX : Actor
 {
-	Default { DontHurtShooter; Radius 17; Height 15; Speed 32; DamageFunction (random(20, 50)); Projectile; RenderStyle "Add";
+	Default { Radius 17; Height 15; Speed 32; DamageFunction (random(20, 50)); Projectile; RenderStyle "Add";
 		Alpha 0.85; Scale 1.6; SeeSound "Litn/litn2"; +THRUGHOST; +SEEKERMISSILE;
 		BounceType "Hexen"; BounceCount 5; BounceFactor 2.0; WallBounceFactor 2.0;
 		Translation "192:199=[255,255,255]:[191,0,255]"; Decal "Scorch"; }
@@ -1699,7 +1699,7 @@ class RS_HSHammer : Actor
 // HellWaver on top.
 class RS_BigHellCybEX2 : Actor
 {
-	Default { DontHurtShooter; Species "Cybie"; Radius 32; Height 16; Speed 1; Scale 2.5; DamageFunction (random(200, 400));
+	Default { Species "Cybie"; Radius 32; Height 16; Speed 1; Scale 2.5; DamageFunction (random(200, 400));
 		Projectile; RenderStyle "Add"; DamageType "Supremesmith"; Alpha 0.95; DeathSound "weapons/hellex";
 		+THRUGHOST; +THRUSPECIES; +DONTHARMSPECIES; Decal "Scorch"; }
 	States
@@ -1800,7 +1800,7 @@ class RS_RomeroEXGlitch : Actor
 class RS_RomeroEXGlitchShot : Actor
 {
 	Default { Radius 13; Height 20; Damage 50; Speed 15; RenderStyle "Add"; DamageType "Melee";
-		Species "Daikatana"; Projectile; DontHurtShooter;
+		Species "Daikatana"; Projectile;
 		BounceType "Hexen"; +BOUNCEONWALLS; +BOUNCEONCEILINGS; +BOUNCEONFLOORS;
 		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
 		SeeSound "GLITCH"; DeathSound "GLITCH";
@@ -1842,7 +1842,7 @@ class RS_RomeroEXMegaGlitchShot : RS_RomeroEXGlitchShot
 class RS_RomeroEXFourthWall : Actor
 {
 	Default { Radius 64; Height 110; Damage 200; Speed 17; DamageType "Melee"; Species "Daikatana";
-		XScale 3.0; YScale 15.0; Projectile; DontHurtShooter;
+		XScale 3.0; YScale 15.0; Projectile;
 		+FLOORHUGGER; +SEEKERMISSILE; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES; }
 	States
 	{
@@ -1889,7 +1889,7 @@ class RS_RomeroEXBeamCH : FastProjectile
 {
 	private int rsBeamCount;
 	Default { Radius 13; Height 8; Speed 60; Damage 20; DamageType "Plasma"; Species "Daikatana";
-		Projectile; DontHurtShooter; RenderStyle "Add"; Alpha 0.9; Scale 2.5;
+		Projectile; RenderStyle "Add"; Alpha 0.9; Scale 2.5;
 		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
 		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
 		Translation "0:75=251:251", "149:219=199:199"; }
@@ -2067,7 +2067,7 @@ class RS_RomeroEXGlitchTrap : Actor
 class RS_RomeroEXCode : Actor
 {
 	Default { Radius 6; Height 8; Damage 20; Scale 1.5; Speed 10; RenderStyle "Add";
-		DamageType "Melee"; Species "Daikatana"; Projectile; DontHurtShooter;
+		DamageType "Melee"; Species "Daikatana"; Projectile;
 		BounceType "Hexen"; +BOUNCEONWALLS; +BOUNCEONCEILINGS; +BOUNCEONFLOORS;
 		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
 		BounceCount 9; BounceFactor 1.0; WallBounceFactor 1.0;
@@ -2159,7 +2159,7 @@ class RS_RomeroEXShield : Actor
 class RS_RomeroEXGlitchMine : Actor
 {
 	Default { Radius 32; Height 8; Speed 0; Damage 50; DamageType "Plasma"; Species "Daikatana";
-		Projectile; DontHurtShooter; +DONTHARMCLASS; +THRUSPECIES; +MTHRUSPECIES;
+		Projectile; +DONTHARMCLASS; +THRUSPECIES; +MTHRUSPECIES;
 		+DONTHARMSPECIES; +FLATSPRITE; +FLOORHUGGER; RenderStyle "Add"; Alpha 1.0; Scale 0.1;
 		SeeSound "GLITCH"; DeathSound "GLITCH"; }
 	States
@@ -2237,7 +2237,7 @@ class RS_RomeroEXSkyCH : RS_RomeroSkyCH
 class RS_RomeroEXBFGHeckShot : Actor
 {
 	Default { Radius 9; Height 8; Speed 40; Scale 0.75; DamageFunction (random(40, 99));
-		DamageType "Plasma"; Species "Daikatana"; Projectile; DontHurtShooter;
+		DamageType "Plasma"; Species "Daikatana"; Projectile;
 		+RANDOMIZE; +FORCERADIUSDMG; +THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES;
 		RenderStyle "Add"; Alpha 0.85; SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
 		Translation "112:117=23:86", "118:127=200:237", "160:227=40:79", "228:234=248:255"; }

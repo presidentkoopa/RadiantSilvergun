@@ -329,7 +329,7 @@ class RS_BigBadFire1 : Actor
 class RS_CHBoneGib : Actor
 {
 	Default { Radius 2; Height 3; Damage 0; Speed 2; Projectile;
-		+DOOMBOUNCE; +MOVEWITHSECTOR; +CANNOTPUSH; -NOGRAVITY; +NOTONAUTOMAP;
+		BounceType "Doom"; +MOVEWITHSECTOR; +CANNOTPUSH; -NOGRAVITY; +NOTONAUTOMAP;
 		BounceFactor 0.5; }
 	States
 	{
@@ -483,7 +483,7 @@ class RS_ShieldBlastRev : Actor
 {
 	Default { Radius 6; Height 8; Speed 12; Damage 37; DamageType "Fire";
 		Projectile; +SEEKERMISSILE; +MTHRUSPECIES; RenderStyle "Add";
-		Alpha 0.75; Scale (1.0, 1.45); SeeSound "fire/fire3";
+		Alpha 0.75; XScale 1.0; YScale 1.45; SeeSound "fire/fire3";
 		DeathSound "spell/Impact1";
 		Translation "76:79=44:47", "136:143=184:191", "128:136=175:183",
 			"64:79=176:191", "208:223=171:181", "161:161=170:170", "144:151=180:191"; }
@@ -513,7 +513,7 @@ class RS_ShieldBlastRev : Actor
 class RS_DKSword : Actor
 {
 	Default { Radius 8; Height 8; Speed 1; Projectile; RenderStyle "Normal";
-		-NOGRAVITY; +LOWGRAVITY; }
+		-NOGRAVITY; Gravity 0.125; }
 	States
 	{
 	Spawn:
@@ -535,7 +535,7 @@ class RS_DKSword : Actor
 class RS_DKShield : Actor
 {
 	Default { Radius 8; Height 8; Speed 1; Projectile; RenderStyle "Normal";
-		-NOGRAVITY; +LOWGRAVITY; }
+		-NOGRAVITY; Gravity 0.125; }
 	States
 	{
 	Spawn:
@@ -651,7 +651,7 @@ class RS_EvilShadeWhiteRev : Actor
 }
 class RS_EvilShadeWhiteRev2 : RS_EvilShadeWhiteRev
 {
-	Default { Scale (1.0, 0.15); }
+	Default { XScale 1.0; YScale 0.15; }
 }
 // RS_FrostWingBaron2 is defined in RS_baron_projectiles.zs (CH Barons.txt), a
 // verbatim match for the source actor.

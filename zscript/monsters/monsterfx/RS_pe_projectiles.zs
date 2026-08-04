@@ -554,7 +554,7 @@ class RS_SkullBundle3 : FastProjectile
 }
 class RS_OverFlesh1 : Actor
 {
-	Default { Speed 8; Mass 100; Radius 1; Height 1; Projectile; +THRUGHOST; +LOWGRAVITY; -NOGRAVITY; }
+	Default { Speed 8; Mass 100; Radius 1; Height 1; Projectile; +THRUGHOST; Gravity 0.125; -NOGRAVITY; }
 	States { Spawn: OVF1 ACEGIKM 5; Loop; Death: OVF1 O 3; OVF1 Q -1; Stop; }
 }
 class RS_OverFlesh2 : RS_OverFlesh1

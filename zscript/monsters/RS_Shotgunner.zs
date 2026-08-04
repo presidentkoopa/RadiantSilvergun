@@ -864,7 +864,7 @@ class RS_Shotgunner : RS_HumanMonster replaces ShotgunGuy
 	// detonates on the victim, and calling in the crew. It spawns with
 	// two bodyguards already at its shoulders.
 	Spawn.T11:
-		TNT1 A 0 NoDelay
+		TNT1 A 0
 		{
 			if (rsEscortDone == 0)
 			{

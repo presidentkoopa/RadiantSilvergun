@@ -614,7 +614,7 @@ class RS_Rocket : FastProjectile
 // Speed 2 override. Bounces, then rattles to a stop and fades.
 class RS_CH_BoneGib : Actor
 {
-	Default { Radius 2; Height 3; Damage 0; Speed 2; Projectile; +DOOMBOUNCE; +MOVEWITHSECTOR; +CANNOTPUSH;
+	Default { Radius 2; Height 3; Damage 0; Speed 2; Projectile; BounceType "Doom"; +MOVEWITHSECTOR; +CANNOTPUSH;
 		-NOGRAVITY; +NOTONAUTOMAP; BounceFactor 0.5; }
 	States
 	{
@@ -932,7 +932,7 @@ class RS_VolativeCaco : Actor
 	Default
 	{
 		Health 100; Radius 31; Height 56; Mass 500; Speed 11; FloatSpeed 4; PainChance 90;
-		Monster; +MISSILEMORE; +MISSILEEVENMORE; +TOUCHY; +LOOKALLAROUND; +FLOAT; +NOGRAVITY;
+		Monster; +TOUCHY; +LOOKALLAROUND; +FLOAT; +NOGRAVITY; MissileChanceMult 0.0625;
 		+DONTHARMSPECIES; -COUNTKILL;
 		Scale 1.1; XScale 1.3; BloodColor "Blue"; Species "Science";
 		SeeSound "caco/sight"; PainSound "caco/pain"; DeathSound "weapons/rocklx"; ActiveSound "caco/active";
@@ -984,7 +984,7 @@ class RS_SlimyWorm : Actor
 	Default
 	{
 		Health 250; Radius 30; Height 56; Mass 400; Speed 8; PainChance 90;
-		Monster; +THRUSPECIES; +FLOORCLIP; +MISSILEMORE; +SHORTMISSILERANGE; +NOCLIP; -COUNTKILL;
+		Monster; +THRUSPECIES; +FLOORCLIP; MaxTargetRange 896; +NOCLIP; -COUNTKILL; MissileChanceMult 0.5;
 		BloodColor "Yellow"; Species "Science";
 		SeeSound "demon/sight"; AttackSound "demon/melee"; PainSound "demon/pain";
 		DeathSound "demon/death"; ActiveSound "demon/active";
@@ -1041,7 +1041,7 @@ class RS_SpliceBaron : Actor
 	Default
 	{
 		Health 1000; Radius 64; Height 70; Mass 1000; Speed 12; PainChance 0;
-		Monster; +FLOORCLIP; +THRUSPECIES; +DONTHARMSPECIES; +MISSILEMORE; +MISSILEEVENMORE;
+		Monster; +FLOORCLIP; +THRUSPECIES; +DONTHARMSPECIES; MissileChanceMult 0.0625;
 		+DONTMORPH; +NOCLIP; -COUNTKILL;
 		BloodColor "Green"; Species "Science";
 		DamageFactor "Plasma", 1.2; DamageFactor "Fire", 1.1;
@@ -1271,7 +1271,7 @@ class RS_ShotgunShrine : Actor
 	{
 		Radius 30; Height 64; Speed 10; Health 1000;
 		Monster;
-		+NOTRIGGER; +MISSILEMORE; +MISSILEEVENMORE; +THRUSPECIES;
+		+NOTRIGGER; +THRUSPECIES; MissileChanceMult 0.0625;
 		+DONTHARMCLASS; +DONTHARMSPECIES; +NOTARGETSWITCH; +NOCLIP; +NOBLOOD;
 		Species "BENE";
 		SeeSound "weapons/sshotl"; DeathSound "weapons/rocklx";

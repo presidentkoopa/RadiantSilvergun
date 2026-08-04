@@ -98,7 +98,7 @@ class RS_Revenant : RS_MonsterMaster replaces Revenant
 		PainChance 100;
 		MeleeRange 64;
 		Monster;
-		+FLOORCLIP +MISSILEMORE
+		+FLOORCLIP MissileChanceMult 0.5;
 		SeeSound "skeleton/sight";   PainSound "skeleton/pain";
 		DeathSound "skeleton/death"; ActiveSound "skeleton/active";
 		MeleeSound "skeleton/melee";
@@ -1429,7 +1429,7 @@ class RS_RevenantShade : RS_MonsterMaster
 		FloatSpeed 19;
 		PainChance 12;
 		Monster;
-		+FLOAT +NOGRAVITY +MISSILEMORE
+		+FLOAT +NOGRAVITY MissileChanceMult 0.5;
 		SeeSound "skeleton/sight";   PainSound "skeleton/pain";
 		DeathSound "skeleton/death"; ActiveSound "skeleton/active";
 		Obituary "$OB_UNDEAD";
@@ -1477,7 +1477,7 @@ class RS_RevenantShade : RS_MonsterMaster
 	States
 	{
 	Spawn.T00:
-		TNT1 A 0 NoDelay
+		TNT1 A 0
 		{
 			SummonMinion(RS_MonsterCatalog.MORPH_RevShadow(), 0, 64.0, 0.0);
 			A_StartSound(RS_MonsterCatalog.SND_Morph(), CHAN_VOICE);

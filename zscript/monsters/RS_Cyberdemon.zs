@@ -120,7 +120,7 @@ class RS_Cyberdemon : RS_MonsterMaster replaces Cyberdemon
 		Monster;
 		Species "Cybie";
 		RadiusDamageFactor 0.25;
-		+BOSS +MISSILEMORE +FLOORCLIP +BOSSDEATH
+		+BOSS +FLOORCLIP +BOSSDEATH MissileChanceMult 0.5;
 		+DONTMORPH +DONTHARMSPECIES +NOFEAR
 		-NORADIUSDMG
 		SeeSound "cyber/sight";   PainSound "cyber/pain";

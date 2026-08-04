@@ -1114,7 +1114,7 @@ class RS_PainPilot : RS_MonsterMaster
 		FloatSpeed 15;
 		PainChance 128;
 		Monster;
-		+FLOAT +NOGRAVITY +MISSILEMORE +AVOIDMELEE +DONTHARMSPECIES
+		+FLOAT +NOGRAVITY +AVOIDMELEE +DONTHARMSPECIES MissileChanceMult 0.5;
 		+NOICEDEATH +DONTBLAST +DONTTHRUST
 		Species "PE";
 		SeeSound "pain/sight";   PainSound "pain/pain";

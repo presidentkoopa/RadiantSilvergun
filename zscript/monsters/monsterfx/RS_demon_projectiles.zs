@@ -152,7 +152,7 @@ class RS_DogFire : FastProjectile
 		Radius 2; Height 4; Speed 16; Damage 1; Projectile;
 		RenderStyle "Add"; DamageType "Fire"; Alpha 0.67; Scale 0.67;
 		SeeSound "weapons/bigbrn"; DeathSound "weapons/bigbrn";
-		+DONTHURTSHOOTER; +THRUGHOST;
+		+THRUGHOST;
 	}
 	States
 	{
@@ -181,7 +181,7 @@ class RS_WHOLETTHEDOGSOUT : Actor
 		Species "Butcher"; MaxTargetRange 256;
 		DamageFactor "Fire", 0.5;
 		Monster;
-		+FLOORCLIP +DONTHURTSPECIES +THRUSPECIES +NOFEAR
+		+FLOORCLIP +DONTHARMSPECIES +THRUSPECIES +NOFEAR
 		-COUNTKILL
 		SeeSound "monster/dogsit";
 		AttackSound "monster/dogatk";
@@ -203,7 +203,7 @@ class RS_WHOLETTHEDOGSOUT : Actor
 		Loop;
 	Melee:
 		HDOG GH 6 { A_FaceTarget(); }
-		HDOG I 6 { A_MeleeAttack(); }
+		HDOG I 6 { A_CustomMeleeAttack(MeleeDamage, MeleeSound, "", "Melee", true); }
 		Goto See;
 	Missile:
 		HDOG G 10 { A_FaceTarget(); }

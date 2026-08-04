@@ -637,12 +637,12 @@ class RS_WhiteFatRB4 : Actor
 class RS_WhiteFatsoGroundZap : Actor
 {
 	Default { Radius 12; Species "Fatso"; Height 16; Speed 18; DamageFunction (random(10, 30)); DamageType "Plasma"; Projectile;
-		+DONTHURTSPECIES; +DONTHARMCLASS; +THRUSPECIES; +FLOORHUGGER; RenderStyle "Add"; Alpha 1.0; Translation "Ice"; }
+		+DONTHARMSPECIES; +DONTHARMCLASS; +THRUSPECIES; +FLOORHUGGER; RenderStyle "Add"; Alpha 1.0; Translation "Ice"; }
 	States
 	{
 	Spawn:
 	Death:
-		TNT1 A 1 NoDelay { A_StartSound("prieinfu", CHAN_BODY); }
+		TNT1 A 1 { A_StartSound("prieinfu", CHAN_BODY); }
 		LITN ABCDEFGOPABCDEFGOPABCDEFGOP 2 Bright A_Explode(random(2, 9), 64, 0);
 		Stop;
 	}
@@ -650,12 +650,12 @@ class RS_WhiteFatsoGroundZap : Actor
 class RS_WhiteFatsoAirZap : Actor
 {
 	Default { Radius 8; Species "Fatso"; Height 8; Speed 17; DamageFunction (random(1, 2)); DamageType "Plasma"; Projectile;
-		+DONTHURTSPECIES; +DONTHARMCLASS; +SEEKERMISSILE; +THRUSPECIES; +RIPPER; RenderStyle "Add"; Alpha 1.0; Translation "Ice"; }
+		+DONTHARMSPECIES; +DONTHARMCLASS; +SEEKERMISSILE; +THRUSPECIES; +RIPPER; RenderStyle "Add"; Alpha 1.0; Translation "Ice"; }
 	States
 	{
 	Spawn:
 	Death:
-		TNT1 A 1 NoDelay { A_StartSound("prieinfu", CHAN_BODY); }
+		TNT1 A 1 { A_StartSound("prieinfu", CHAN_BODY); }
 		LITN ABCDEFGOPABCDEFGOPABCDEFGOPABCDEFGOP 2 Bright { A_Weave(3, 2, 5, 2); }
 		Stop;
 	}

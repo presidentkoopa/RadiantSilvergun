@@ -890,7 +890,7 @@ class RS_ESPlasmaRocket : Actor
 class RS_ESZapper : Actor
 {
 	Default { Radius 8; Height 9; Speed 1; Damage 25; DamageType "Plasma";
-		Projectile; +RANDOMIZE; +FORCEXYBILLBOARD; +HEXENBOUNCE;
+		Projectile; +RANDOMIZE; +FORCEXYBILLBOARD; BounceType "Hexen";
 		+BOUNCEONWALLS; +BOUNCEONCEILINGS; +BOUNCEONFLOORS;
 		+THRUSPECIES; +MTHRUSPECIES; +DONTHARMSPECIES; Species "MMind";
 		BounceCount 6; BounceFactor 1; WallBounceFactor 1;
@@ -1182,7 +1182,7 @@ class RS_MiniSentinelSpider : Actor
 	Default { Health 40; PainChance 255; Speed 28; FloatSpeed 4;
 		Radius 12; Height 26; Mass 300; Species "MMind";
 		Monster;
-		+NOGRAVITY +DROPOFF +NOBLOOD +NOBLOCKMONST +INCOMBAT +MISSILEMORE
+		+NOGRAVITY +DROPOFF +NOBLOOD +NOBLOCKMONST +INCOMBAT MissileChanceMult 0.5;
 		+LOOKALLAROUND +NEVERRESPAWN +DONTHARMSPECIES +NOINFIGHTSPECIES
 		-COUNTKILL
 		DeathSound "Crack/death"; PainSound "prox/beep";

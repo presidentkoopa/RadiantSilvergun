@@ -1035,7 +1035,7 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 		Goto See.T11.Walk;
 	Melee.T11:
 		"BRUC" GH 6 { A_FaceTarget(); }
-		"BRUC" I 4 { A_MeleeAttack(); }
+		"BRUC" I 4 { A_CustomMeleeAttack(MeleeDamage, MeleeSound, "", "Melee", true); }
 		"BRUC" I 0 A_Jump(128, "Missile");
 		Goto See.T11.Walk;
 	Pain.T11:

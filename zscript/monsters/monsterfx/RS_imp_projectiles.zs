@@ -867,7 +867,7 @@ class RS_BrownImpShieldMini : Actor
 
 class RS_WarlordMace : Actor
 {
-	Default { +DOOMBOUNCE Speed 4; }
+	Default { BounceType "Doom";Speed 4; }
 	States
 	{
 	Spawn:
@@ -879,7 +879,7 @@ class RS_WarlordMace : Actor
 
 class RS_WarlordShield : Actor
 {
-	Default { +DOOMBOUNCE Speed 5; }
+	Default { BounceType "Doom";Speed 5; }
 	States
 	{
 	Spawn:

@@ -725,8 +725,8 @@ class RS_BruiserMissile : Actor
 	{
 		Radius 8; Height 12; Speed 20; Scale 1.15;
 		Damage 47; DamageType "Fire";
-		Projectile; RenderStyle "Normal"; +THRUGHOST; +FIREDAMAGE;
-		SeeSound "monster/brufir"; DeathSound "weapons/hellex"; DontHurtShooter; Decal "Scorch";
+		Projectile; RenderStyle "Normal"; +THRUGHOST; DamageType "Fire";
+		SeeSound "monster/brufir"; DeathSound "weapons/hellex"; Decal "Scorch";
 	}
 	States
 	{
@@ -933,7 +933,7 @@ class RS_BrusMode : Inventory { Default { Inventory.MaxAmount 3; } }
 // ============================================================================
 class RS_SoulTrail : Actor
 {
-	Default { Radius 3; Height 3; Speed 15; Projectile; RenderStyle "Add"; Alpha 0.67; +FIREDAMAGE; }
+	Default { Radius 3; Height 3; Speed 15; Projectile; RenderStyle "Add"; Alpha 0.67; DamageType "Fire"; }
 	States { Spawn: SPIR QRS 4; Goto Death; Death: SPIR S 6 Bright; Stop; }
 }
 class RS_PhantomEgg : Actor
@@ -1021,7 +1021,7 @@ class RS_BruiserMissileEx : FastProjectile
 {
 	Default { Radius 8; Height 12; Speed 33; Damage 67; Scale 1.15; DamageType "Fire"; Projectile;
 		RenderStyle "Normal"; +THRUGHOST; SeeSound "monster/brufir"; DeathSound "weapons/hellex";
-		+FIREDAMAGE; Decal "Scorch"; }
+		DamageType "Fire"; Decal "Scorch"; }
 	States
 	{
 	Spawn:
@@ -1039,7 +1039,7 @@ class RS_BruiserMissileEx2 : FastProjectile
 {
 	Default { Radius 8; Height 12; Speed 29; Damage 100; Scale 1.15; DamageType "Fire"; Projectile;
 		RenderStyle "Normal"; +THRUGHOST; +SEEKERMISSILE; SeeSound "monster/brufir"; DeathSound "weapons/hellex";
-		+FIREDAMAGE; Decal "Scorch"; }
+		DamageType "Fire"; Decal "Scorch"; }
 	States
 	{
 	Spawn:
@@ -1203,7 +1203,7 @@ class RS_HellWarriorShield : Actor
 	Default
 	{
 		Radius 8; Height 8; Speed 6;
-		+DOOMBOUNCE +DROPOFF +MISSILE
+		BounceType "Doom";+DROPOFF +MISSILE
 	}
 	States
 	{

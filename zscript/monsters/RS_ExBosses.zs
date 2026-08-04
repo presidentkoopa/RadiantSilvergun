@@ -194,7 +194,7 @@ class RS_EX_ArchvilePhantom : RS_MonsterMaster
 		Speed 22;
 		PainChance 40;
 		Monster;
-		+BOSS +FLOAT +NOGRAVITY +MISSILEMORE +NORADIUSDMG +DONTMORPH
+		+BOSS +FLOAT +NOGRAVITY +NORADIUSDMG +DONTMORPH MissileChanceMult 0.5;
 		RenderStyle "Translucent";
 		Alpha 0.55;
 		SeeSound "vile/sight";   PainSound "vile/pain";

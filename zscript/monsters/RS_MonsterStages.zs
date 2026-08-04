@@ -576,7 +576,7 @@ class RS_ArchvileCloneMOT : RS_MonsterMaster
 	Spawn.T11:
 	Spawn.T12:
 	Spawn.TEX:
-		"LMWX" E 0 NoDelay
+		"LMWX" E 0
 		{
 			A_SetSize(20, 80, true);
 			A_SpawnItemEx("RS_FaceMOT", 4, 4, 84, 0, 0, 0, 0, SXF_NOCHECKPOSITION | SXF_SETMASTER);
@@ -1138,7 +1138,7 @@ class RS_GlitchBaron : RS_MonsterMaster
 	// GlitchBaron uses A for every animated state and O for the corpse,
 	// which is the whole joke: the sprite never finishes loading.
 	Spawn.T00:
-		TNT1 A 0 NoDelay { A_SpawnItemEx("RS_RomeroEXGlitch", random(-20, 20), random(-20, 20), random(0, 64), 0, 0, 0, 0, SXF_SETMASTER); }
+		TNT1 A 0 { A_SpawnItemEx("RS_RomeroEXGlitch", random(-20, 20), random(-20, 20), random(0, 64), 0, 0, 0, 0, SXF_SETMASTER); }
 		TNT1 A 0 { A_SpawnItemEx("RS_RomeroEXGlitch", random(-20, 20), random(-20, 20), random(0, 64), 0, 0, 0, 0, SXF_SETMASTER); }
 	Spawn.T00.Look:
 		"BOS9" AA 10 { A_Look(); }

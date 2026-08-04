@@ -496,7 +496,7 @@ class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
 		Goto See.T05.Chase;
 	Melee.T05:
 		"ACNB" AB 5;
-		"ACNB" C 6 { A_MeleeAttack(); }
+		"ACNB" C 6 { A_CustomMeleeAttack(MeleeDamage, MeleeSound, "", "Melee", true); }
 		Goto See.T05.Chase;
 	Missile.T05:
 		"ACNB" B 12 Bright { A_FaceTarget(); }

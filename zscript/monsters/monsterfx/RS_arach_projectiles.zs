@@ -161,7 +161,7 @@ class RS_BBSP1 : FastProjectile
 }
 class RS_SPMM1 : FastProjectile
 {
-	Default { Radius 8; Height 12; Speed 26; Damage 40; Scale 1.15; DamageType "Fire"; Projectile; RenderStyle "Normal"; +SEEKERMISSILE; DontHurtShooter;
+	Default { Radius 8; Height 12; Speed 26; Damage 40; Scale 1.15; DamageType "Fire"; Projectile; RenderStyle "Normal"; +SEEKERMISSILE;
 		SeeSound "monster/brufir"; DeathSound "weapons/hellex"; Decal "Scorch"; }
 	States { Spawn: MISL A 3 Bright A_SeekerMissile(4,4); Loop; Death: MISL BCD 4 Bright A_Explode(40,64); Stop; }
 }
@@ -665,7 +665,7 @@ class RS_MiniSP1 : Actor
 		Scale 0.20;
 		Monster;
 		Species "WhiteSP";
-		+FLOORCLIP +DONTHARMSPECIES +MISSILEMORE +MISSILEEVENMORE +THRUSPECIES
+		+FLOORCLIP +DONTHARMSPECIES +THRUSPECIES MissileChanceMult 0.0625;
 		-COUNTKILL
 		BloodColor "White";
 		SeeSound "kawai/sight";   PainSound "kawai/pain";
