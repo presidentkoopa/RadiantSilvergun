@@ -1,0 +1,143 @@
+================================================================================
+   RS_16 -- HANDOFF + LAW.  2026-08-03. Supersedes rs_11. READ FIRST.
+================================================================================
+
+WORKING WITH THE OWNER
+  Verify before you claim -- open the file. Wrong recollection has cost
+  whole sessions here. Short answers, no invented jargon. Never scan a
+  drive for a file; ask for the path. His corrections are law -- write
+  them down. He compiles and boots; you can't. Wait for his paste.
+
+STATE
+  The full loop is BUILT: roll -> level -> pick cards -> master ->
+  promote. UI built. 32 cards.
+  THE GATE: hasn't compiled since the UI build. Last errors were
+  `damage: non-constant parameter` in two monsterfx files (a Default
+  block needs a constant) -- those belong to a PARALLEL monster
+  session, not the affix work.
+  AFTER IT COMPILES: one boot -> owner sends ONE punch-list -> you fix
+  in ONE pass. Agreed protocol. Don't iterate blind on UI.
+
+THE TWO LAYERS
+  12 weapon stats = the gun's SOUL. Affixes amplify, never erase.
+  8 PACK axes (projectile/casing/muzzleflash/smoke/sound/puff/impact/
+  trail) = the attack's BODY. Affixes edit these + the rotation.
+
+THE AUDIT -- pass or it doesn't ship
+  1 Does a rolled stat stop mattering?        -> DEAD
+  2 Does a rolled stat matter MORE?           -> BEST
+  3 Do two different guns play the same?      -> DEAD
+  4 Ask similar/opposite/synergistic/antagonistic BEFORE coding
+  5 Never duplicate Promotion's lane (pellet growth)
+
+  Elementals are BANNED. The first slate shipped fire/ice; stock
+  GunBonsai already owns fire/ice/poison/acid and this mod's identity
+  is Doom's own guts. The replacement is MONSTER SIGNATURES: "your
+  bullets become a monster's own ammunition."
+
+HARD RULES (each one has cost real time)
+  * `static const T name[]` / fixed arrays in class bodies DON'T
+    RESOLVE. Use switch or a comparison chain. (4 real bugs.)
+  * A file not in zscript.txt, or a handler not in MAPINFO's
+    AddEventHandlers, SILENTLY does not exist.
+  * Array<T> can't be a return type -- out-params. switch can't take a
+    string. No static non-const fields. GetClassName() returns Name --
+    concat `.. ""`.
+  * GetMissileDamage is native non-virtual, CANNOT be overridden.
+    Exact damage rides DoSpecialDamage (one merged override -- don't
+    split it).
+  * VR: 3D models, NO weapon sprites. Nothing drawn on weapon/screen.
+    Audio and world-space actors only.
+  * HOOKS (rs_14): resolver / OnKill / OnDamageDealt are hand-correct.
+    ModifyDamageDealt and Tick reach the MAINHAND bag ONLY -- a card
+    built on them silently does nothing in the off hand.
+  * A new card needs FOUR things: the class, BONSAIRC, LANGUAGE.rs_ui,
+    and (new files) an include.
+  * Filenames lie -- look at the sprite. CH-external assets are
+    INVISIBLE without the Colourful Hell pack; rs_13 flags which are
+    safe.
+
+TIER -> OFFER LAW (settled)
+  Cursed/Trash/Basic: 2 cards, STAT ONLY (0 sockets).
+  Common+: full pool. Offers 4 / 5 / 6 by tier band.
+  SOCKETS = BREADTH CAP: distinct affixes <= sockets (1..5). Re-picking
+  to LEVEL a held affix never costs a socket.
+  PROMOTED PICKS LAND +1 (new affixes enter at L2), capped at L5 --
+  Mastery is always a deliberate 6th pick.
+  Levels 1-5 + Mastery. Mastery = a RULE CHANGE, never bigger numbers.
+  Gold at the picker: reroll 5<<n, buy a card 12<<n.
+
+BUILT (32 cards)
+  Slate.zsc -- Splitter/Slugger (shape group, exclusive); Overcharged,
+    Giant, Seeker, Ghost, Echo; Cacospit, Bonecaller, PainOrb,
+    Arach-Plasma, Swarm, Nova (all six = IDENTITY group, one per gun,
+    via IdentityFree()); Pain Train, Momentum, Overkill, Scavenger.
+  Cards.zsc -- 6 stat + 5 combo. NO velocity card on purpose: the stat
+    is perceptually nil at rolled speeds.
+  UI -- RS_UI.zs (play: screen models + netevents) + RS_UIMenus.zsc
+    (ui: one dynamic renderer + card picker). Sheets per hand, player
+    sheet, picker, promotion confirm, service. Cycle bind (owner
+    rebinds to PgUp = pad_x), Up/Down moves, menu-confirm selects,
+    Left/Right = the picker's gold spends.
+  AllClear -- ready-to-fire beep, pitched per archetype, silenced by a
+    held trigger. Shotgun family + melee excluded (their action IS the
+    tell).
+  State ladder -- default round's body shows damage-vs-ceiling and
+    condition. Never overrides an affix part.
+  Economy -- Gold Bits (rerolls/extra cards), Grey Bits (repair).
+    Promotion is REACHABLE for the first time: the gold PROMOTE card is
+    its trigger; Promote() had zero callers before.
+
+NOT BUILT
+  * The candidate pool below -- IDEAS ONLY. Owner strikes, THEN build.
+    Don't build unstruck items without asking.
+  * Curses: mechanism exists, stubbed off (`if (true) return;` /
+    `if (false &&`).
+  * Weapon drops: every gun rolls Basic; nothing spawns Common+ yet, so
+    tier gates gate a value almost nothing raises. rs_10's S7 compare
+    screen waits on this.
+  * Melee mode (damage mults only), heavy-mode exact damage.
+  * The per-card tailoring pass the owner has already asked for.
+
+DOCS
+  rs_16 (this) law + state · rs_13 signature shortlist (~25 ranked, with
+  IWAD/REPO/CH-EXT flags -- next signatures come from here) · rs_12
+  catalog index · rs_14 flavor/foley + offhand findings · rs_10 UI spec
+  · rs_09 affix workshop · rs_01/rs_00 promotion math + vision
+  rs_MASTER_FX_CATALOG.txt is PROTECTED -- never delete or clean up.
+
+NEXT, IN ORDER
+  1. Compile. 2. Boot walkthrough + one punch-list + one fix batch.
+  3. Owner strikes the pool; build survivors. 4. Per-card tailoring.
+  5. More signatures from rs_13.
+
+================================================================================
+CANDIDATE POOL -- NOT BUILT. [A:] = the rolled stat it amplifies.
+================================================================================
+  CULL THE WEAK    +dmg vs enemies under 30% HP          [A: damage]
+  OPENING SHOT     +crit vs full-health enemies          [A: crit]
+  POINT BLANK      close-range kills refund 1 ammo       [A: capacity]
+  LONG HAUL        accuracy climbs while holding fire    [A: accuracy]
+  HAIR TRIGGER     cadence-overshoot penalty halved      [A: RoF]
+  COLD BLOOD       standing still 1s+: +crit             [A: crit; VR body-play]
+  RUN AND GUN      moving: spread penalty inverted       [A: accuracy; COLD BLOOD's opposite -- exclusion pair]
+  BOTTOM OF THE MAG  last 25% of mag hits harder         [A: capacity]
+  TOP SHELF        first 25% of mag +accuracy            [A: capacity; pairs against BOTTOM]
+  BIT MAGNET       kills pull their bits to you          [neutral QoL]
+  BLOOD PRICE      backfires damage Condition, not you   [A: condition]
+  FIELD STRIP      reloading a full mag: +dmg window     [A: reload/capacity]
+  WARRANTY         Condition can't drop below 30         [A: condition; pairs vs WABI-SABI]
+  GRUDGE           hits mark; later shots +5% vs marked  [A: RoF]
+  COUP DE GRACE    point-blank vs pained enemies auto-crit [A: crit + painchance]
+  DEEP POCKETS     +reserve ammo capacity                [neutral]
+  SCATTERSONG      (shotgun) choke oscillates with cadence -- fire on the beat for the tight cone [A: choke + RoF; needs AllClear]
+  DEAD AIR         fire-pause-fire-fire: shot 3 +acc     [A: accuracy + cadence]
+  QUARTERTIME      every 4th on-beat shot: free crit     [A: crit + cadence]
+  IRONCLAD ROUNDS  rounds can't be deflected/reflected   [neutral defense]
+  Named but unbuilt: Rifled, Tracker, Hammer, Fork, Deadeye, Impact
+  Physics, Combat Reload, Ghost Load, Quickdraw, Gib Standard, Fan the
+  Hammer, Metronome, Opener, Last Rites, Duelist, Patience, Wabi-Sabi,
+  Grit, Infighter, Dead Man's Trigger.
+  DUAL-WIELD (QUARANTINE -- ONE-WAY only, A buffs B never back, no
+  loops; prototype exactly one, LAST): CROSSFIRE, SOUTHPAW, TWIN LINK.
+================================================================================
