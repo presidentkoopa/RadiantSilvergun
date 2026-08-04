@@ -45,14 +45,29 @@ list. Don't re-derive project state from scratch — it's already written down.
      redefinition that stops the mod compiling. A case-sensitive grep says
      they're two different classes. Run `python dedupe_check.py` (repo root)
      after adding any class — it checks this properly.
-- **`dedupe_check.py` passing does not mean the dedupe was CORRECT.** It proves
-  no name is defined twice. It cannot tell you the surviving copy is the right
-  actor. A mechanical pass that kept whichever definition came first in the load
-  order got 5 of 15 wrong, and every one of them passed every check in the repo
-  — including an `RS_ZapFFAT2` whose `Fly` state looped `A_Explode` forever with
-  no exit. When you resolve a duplicate, diff both copies against the CH/CHP
-  source actor and keep the one that matches; don't keep the one that happens to
-  load first.
+- **A passing check is not a correct result — know what it actually proves.**
+  `dedupe_check.py` proves no name is defined twice. It does NOT prove the
+  surviving copy is the right actor. A mechanical de-duplication that keeps
+  whichever definition comes first in load order got 5 of 15 wrong here, and
+  every one of those five passed every check in the repo. The sharpest was
+  `RS_ZAPFFAT2`, whose surviving copy had `A_Explode` on a *looping* state —
+  unbounded damage, forever, silently. When two definitions collide, open
+  both and diff them against CH/CHP; don't let position decide.
+- **Correct a body in place; don't move a definition between files.** When a
+  class is wrong, edit it where it lives. Relocating it to a "better" file
+  produces a diff no human can read and makes every later merge harder to
+  reason about — which matters because several sessions work this repo at
+  once. Two separate lanes independently reached this conclusion after
+  merging the same fix done both ways.
+- **Never flatten a damage roll to a constant.** `Damage (random(40,125))`
+  becoming `Damage 60` is not a simplification, it is data loss that hides
+  itself: there is no `random(` left for any later sweep to find, so no tool
+  and no reader can tell a spread was ever there. `RS_DIBigOne` sat flattened
+  through three lanes reading the same file. Rolls belong in
+  `DamageFunction (random(a,b))` — a ZScript `Default` block does NOT require
+  a constant `Damage`, despite comments in this repo that once claimed so.
+  If a roll ever must be flattened, record the original on the same line
+  (`// CH: random(40,125)`) in the same commit. Cheap now, impossible later.
 - **`Damage (random(a,b))` in a `Default` block does not compile** — that is the
   `damage: non-constant parameter` error. `Damage` takes a constant; a roll goes
   through **`DamageFunction (random(a,b))`**, which compiles and keeps the
