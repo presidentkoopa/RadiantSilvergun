@@ -179,7 +179,7 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 			// CH Buff1: MISSILEEVENMORE, speed up, grow.
 			rsStep = 1;
 			Speed *= 1.3;
-			MissileChanceMult *= 2.0;
+			MissileChanceMult *= 0.125;   // == +MISSILEEVENMORE; lower fires MORE
 			A_SetScale(Scale.X * 1.08);
 			A_StartSound("under/goodie", CHAN_VOICE);
 		}

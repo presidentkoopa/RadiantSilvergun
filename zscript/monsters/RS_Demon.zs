@@ -173,7 +173,7 @@ class RS_Demon : RS_DemonBase replaces Demon
 		if (!bNOPAIN && Tier >= 9 && random(0, 255) < 90)
 		{
 			bNOPAIN = true;
-			MissileChanceMult *= 2.0;
+			MissileChanceMult *= 0.5;   // == +MISSILEMORE; lower fires MORE
 			Speed *= 1.25;
 			A_StartSound(RS_MonsterCatalog.SND_Enrage(), CHAN_VOICE);
 		}

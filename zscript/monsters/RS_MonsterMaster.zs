@@ -884,11 +884,18 @@ class RS_MonsterMaster : Actor abstract
 
 	// The permanent enrage itself, as CHP shapes it nearly every time:
 	// faster, harder to stagger, more willing to shoot.
+	//
+	// MissileChanceMult SCALES THE "DON'T FIRE" DISTANCE ROLL, SO LOWER
+	// FIRES MORE. It is the modern spelling of the old flags, and the
+	// engine's own deprecation mapping fixes the direction:
+	// +MISSILEMORE == 0.5, +MISSILEEVENMORE == 0.125. Multiplying UP
+	// makes an enraged monster shoot LESS -- the exact opposite of the
+	// line above this one. Do not "fix" 0.5 back to 2.0.
 	void Enrage(double speedMult = 1.35, bool noPain = true, bool missileMore = true)
 	{
 		Speed *= speedMult;
 		if (noPain)      bNOPAIN = true;
-		if (missileMore) MissileChanceMult *= 2.0;
+		if (missileMore) MissileChanceMult *= 0.5;   // == +MISSILEMORE
 	}
 
 	// --- TIMED PULSE -------------------------------------------------
