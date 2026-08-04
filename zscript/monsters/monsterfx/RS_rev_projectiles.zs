@@ -350,7 +350,8 @@ class RS_CHBoneGib : Actor
 
 // ---------- T04 PURPLE: the railgun's puff ----------
 // CH Fatsos.txt FatsoPuff3.
-// [dedupe] duplicate class RS_FatsoPuff3 removed -- defined earlier in the load order.
+// Defined in RS_manc_projectiles.zs, where the rest of the Fatsos.txt shots
+// live. That copy is a verbatim match for the source actor.
 
 // ---------- T05 YELLOW: the ring of fire its gib-death lays down ----------
 // CH Revenants.txt archvilefire2 : archvilefire (stock GZDoom parent).
@@ -652,7 +653,8 @@ class RS_EvilShadeWhiteRev2 : RS_EvilShadeWhiteRev
 {
 	Default { Scale (1.0, 0.15); }
 }
-// [dedupe] duplicate class RS_FrostWingBaron2 removed -- defined earlier in the load order.
+// RS_FrostWingBaron2 is defined in RS_baron_projectiles.zs (CH Barons.txt), a
+// verbatim match for the source actor.
 class RS_IceGroundWhiteRev : Actor
 {
 	Default { Radius 9; Height 9; DamageType "Ice"; Damage 49; Projectile;

@@ -224,6 +224,7 @@ class RS_ArchRingHelp : Actor
 		TNT1 A 0;
 		Goto See;
 	See:
+		RNGG A 0 { A_RadiusGive("RS_GrowRaisin", 60, RGF_MONSTERS | RGF_CORPSES, 1); }
 		RNGG A 3 Bright { A_VileChase(); }
 		RNGG A 3 Bright { A_VileChase(); }
 		RNGG A 3 Bright { A_VileChase(); }
@@ -668,15 +669,23 @@ class RS_ShieldUpVile2 : CustomInventory
 	}
 }
 
-// Healing motes it throws over its friends.
+// Healing motes it throws over its friends. CH Cacodemons.txt MediCacoBrown:
+// each mote sheds four RS_MediCacoBrown2 outriders (defined alongside the
+// spectre's copy of this attack) as it drifts. No +NOINTERACTION -- every
+// caller hands this actor a velocity, which NOINTERACTION would discard.
 class RS_MediCacoBrown : Actor
 {
-	Default { Radius 2; Height 2; Mass 7; Speed 4; Projectile; +THRUACTORS +NOINTERACTION;
+	Default { Radius 2; Height 2; Mass 7; Speed 4; Projectile; +THRUACTORS;
 		Scale 0.45; RenderStyle "Add"; Alpha 0.33;
 		Translation "208:223=176:191","224:231=176:176"; }
 	States
 	{
 	Spawn:
+		TNT1 A 0;
+		TNT1 A 0 { A_SpawnItemEx("RS_MediCacoBrown2", 0, -4, 0, 0, 0, 0, 0); }
+		TNT1 A 0 { A_SpawnItemEx("RS_MediCacoBrown2", 0,  4, 0, 0, 0, 0, 0); }
+		TNT1 A 0 { A_SpawnItemEx("RS_MediCacoBrown2", 0,  0, -4, 0, 0, 0, 0); }
+		TNT1 A 0 { A_SpawnItemEx("RS_MediCacoBrown2", 0,  0, 4, 0, 0, 0, 0); }
 		BAL1 AB 6;
 		Goto Death;
 	Death:
@@ -967,9 +976,12 @@ class RS_WVileQuake : Actor
 //     (CH RandomizerArc). RS_Archvile calls RS_Conjure() in the same
 //     state, so the summon still happens -- through the RS live cap and
 //     tier-offset economy instead of an unbounded spawner.
-//   * The CH GrowRaisin corpse token has no RS equivalent, so the
-//     A_RadiusGive calls that handed it out are dropped. Resurrection
-//     itself is unaffected: it runs off A_VileChase / CHF_RESURRECT.
+//   * CH's GrowRaisin corpse token DOES have an RS equivalent --
+//     RS_GrowRaisin, in RS_demon_projectiles.zs -- and RS_Demon's Raise
+//     states read it to come back one colour up. RS_ArchRingHelp keeps
+//     the A_RadiusGive that hands it out. (An earlier note here claimed
+//     no equivalent existed and dropped the call; that broke the Grow
+//     ladder, since nothing else gives the token out.)
 //   * A_SpawnParticle walls (WVileEye1, BrightUpVile2, WVileBolt1,
 //     WVileSpot) are dropped per the rebuild spec.
 //   * CHP WVileEye1_C maps to the existing RS_WVileEye above -- the same

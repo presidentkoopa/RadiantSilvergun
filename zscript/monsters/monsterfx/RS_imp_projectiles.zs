@@ -547,7 +547,7 @@ class RS_DIBigOne : Actor
 	Default
 	{
 		Radius 12; Height 24; Speed 7;
-		Damage 60; DamageType "Plasma";
+		Damage (random(40,125)); DamageType "Plasma";
 		Projectile; +NOGRAVITY; RenderStyle "Add"; Scale 2; Alpha 0.75;
 		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4";
 		DropItem "RocketAmmo";
@@ -559,11 +559,11 @@ class RS_DIBigOne : Actor
 		RED9 AA 1 Bright A_SpawnItemEx("RS_SpiralSaw5",0,0,0,0,0,0,0,128);
 		RED9 A 0 A_CustomMissile("RS_GroundRedCyb",0,0);
 		RED9 A 0 A_CustomMissile("RS_AgauresBall1", 7, 0, CMF_AIMOFFSET, random(0,360), random(0,360));
-		RED9 A 0 A_Explode(7,128);
+		RED9 A 0 A_Explode(random(4,10),128);
 		Loop;
 	Death:
 		SPIR AAAA 0 A_SpawnItemEx("RS_DeathBreathDI", random(-178,178), random(-178,178), random(-12,42), 0,0,0,0,128,0);
-		SPIR ABCDEDCBA 5 Bright A_Explode(17,178);
+		SPIR ABCDEDCBA 5 Bright A_Explode(random(5,30),178);
 		SPIR E 1 A_NoBlocking;
 		Stop;
 	}
@@ -882,7 +882,10 @@ class RS_WarlordShield : Actor
 }
 
 // T11 BLACK -- the Agaures artillery shell.
-// [dedupe] duplicate class RS_DIBigOne removed -- defined earlier in the load order.
+// RS_DIBigOne is defined earlier in this file. The copy that stood here had the
+// CH Imps.txt random() damage and explode rolls but was missing the sounds, the
+// rocket-ammo drop and the A_NoBlocking; the surviving one now carries both
+// halves, so it is a full match for the source actor.
 
 // T12 WHITE -- the seeking hellion round it rains during nopenopeno.
 class RS_Hel2 : Actor

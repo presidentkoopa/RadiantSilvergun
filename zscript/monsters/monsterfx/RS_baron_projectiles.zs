@@ -326,10 +326,11 @@ class RS_BaronStar2 : Actor
 		Stop;
 	}
 }
-// [dedupe] older duplicate of RS_Firehand1 removed -- ZScript is case-insensitive,
-// so the CHP-sourced definition later in this file serves every caller.
-// [dedupe] older duplicate of RS_BaronFbomb removed -- ZScript is case-insensitive,
-// so the CHP-sourced definition later in this file serves every caller.
+// RS_FireHand1 and RS_BaronFBomb are defined later in this file. Both had an
+// older near-copy here (ZScript is case-insensitive, so RS_Firehand1 and
+// RS_FireHand1 are one class); the later pair is the one that matches source --
+// CH Revenants.txt Firehand1 and CH Barons.txt BaronFbomb, the latter keeping
+// the random() damage and explode rolls the older copy had flattened.
 
 // ---------- FIREBLU: RedBBall/BluBBall (shared w/ imp) + BluPowerBomb + RedPower/Bomb ----------
 class RS_BluPowerBomb : Actor
@@ -715,7 +716,8 @@ class RS_BrownBaronSpiral : Actor
 		Stop;
 	}
 }
-// [dedupe] duplicate class RS_BrownVileGas removed -- defined earlier in the load order.
+// RS_BrownVileGas is defined in RS_archvile_projectiles.zs -- CH sources it from
+// Archviles.txt, so it lives with the rest of the vile gas there.
 
 // ---------- CYAN: ice bombs/stars/seekers + frost wings (LOHS ice-baron) ----------
 class RS_IceSeekerTrailBaron : Actor

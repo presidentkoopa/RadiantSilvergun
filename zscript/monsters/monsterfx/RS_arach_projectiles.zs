@@ -109,12 +109,9 @@ class RS_RedBombSP : FastProjectile
 		SeeSound "weapons/hominglaunch"; DeathSound "weapons/firex4"; Translation "208:223=176:191","224:231=176:176"; }
 	States { Spawn: APLS AB 3 Bright A_SeekerMissile(4,4); Loop; Death: APBX ABCDE 4 Bright A_Explode(40,80); Stop; }
 }
-class RS_RocketShotFatso : FastProjectile
-{
-	Default { Radius 8; Height 8; Speed 30; Damage 35; Projectile; RenderStyle "Add"; SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx";
-		Translation "208:223=176:191"; }
-	States { Spawn: MISL A 3 Bright; Loop; Death: MISL BCD 4 Bright A_Explode(50,96); Stop; }
-}
+// RS_RocketShotFatso is NOT defined here. CHP 12_R.txt has the BSP2 arachnotron
+// firing RocketShotFatso_C -- the same homing rocket the Incubus fires, not a
+// plain dumbfire. The single shared definition lives in RS_manc_projectiles.zs.
 
 // ---------- BLACK: "Macross Missile Spam" -- big ball + missile swarm + rockets (MSPI) ----------
 class RS_BBSP1 : FastProjectile
