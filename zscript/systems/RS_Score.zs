@@ -249,8 +249,7 @@ class RS_ScorePlayer : Object
 			extraLives = 0;
 			regenTimer = 0;
 			regenSpent = 0;
-			scoreBanked = 0;
-			goldCarry = 0;
+			scoreSpent = 0;
 			ClearBonuses();
 		}
 	}
@@ -892,7 +891,6 @@ class RS_ScoreHandler : EventHandler
 			TickDisplay(sp);
 			TickRegen(i, sp, pmo);
 			ExpireBonuses(sp, now);
-			TickGoldTrickle(i, sp, pmo);
 		}
 	}
 
