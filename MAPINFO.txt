@@ -6,5 +6,5 @@ GameInfo
 	// An EventHandler subclass that is not listed here does not exist at
 	// runtime -- its netevents silently do nothing. RS_MonsterDebug was
 	// missing from this list, which is why its entire menu was dead.
-	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_MonsterDebug", "RS_UIHandler"
+	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_MonsterDebug", "RS_UIHandler", "RS_ScoreHandler"
 }

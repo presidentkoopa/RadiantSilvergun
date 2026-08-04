@@ -221,3 +221,140 @@ server int rs_bits_ratio_gold = 8;
 // AllClear: per-archetype ready-to-fire beep (rs_11). Audio-only by
 // design -- VR 3D models, nothing drawn on weapons.
 user bool rs_allclear_enable = true;
+
+// =====================================================================
+// RS_Score -- arcade scoring (zscript/systems/RS_Score.zs, RS_ScoreHUD.zs,
+// RS_ScoreRevival.zs). Conceptually ported from dakka's ACS score
+// system; see the header comment in RS_Score.zs for what changed and why.
+//
+// SCORE IS ITS OWN CURRENCY. It does not feed, convert into, or draw
+// from Gold Bits or any other economy -- it pays out in consumables
+// (extra lives, ammo regen) and nothing else. Keeping it separate is
+// deliberate: promotion owns permanent growth, Gun Bonsai owns weapon
+// growth, and score owns none of it.
+//
+// server scope = affects scoring/rewards, must be identical for all
+// players. user scope = purely how it looks on your own screen.
+// =====================================================================
+
+server bool rs_score_enable = true;
+server noarchive bool rs_score_debug = false;
+
+// --- Per-map reward threshold calibration ---------------------------
+// The threshold is derived from the map's own monster population, so
+// one bar means the same amount of work on MAP01 and on a slaughtermap.
+// Monster count is clamped to min/max, multiplied by the scalar, and
+// scaled by the average points per monster.
+server int rs_score_monstermin = 30;
+server int rs_score_monstermax = 400;
+server float rs_score_monsterscalar = 0.30;
+// Threshold is rounded to this, purely so the HUD number stays legible.
+server int rs_score_interval = 100;
+
+// How much a monster's TIER inflates its point value above raw health.
+// 0.12 -> a T13 (EX) monster is worth ~2.5x its hit points, a T03 ~1.36x.
+// Set to 0 to score purely on health, which is what dakka did.
+server float rs_score_tierweight = 0.12;
+
+// What survives a map change.
+// 0 = reset everything, 1 = keep score and rewards (default),
+// 2 = keep only progress toward the next reward.
+server int rs_score_startmode = 1;
+
+// --- Rewards --------------------------------------------------------
+server bool rs_score_rewards_enable = true;
+// 0 = alternate, regen first   1 = alternate, life first
+// 2 = ammo regen only          3 = extra lives only
+server int rs_score_rewardmode = 0;
+server bool rs_score_sound = true;
+
+// Ammo regen: total duration, how often it ticks, how much per tick.
+server int rs_score_regen_tics = 700;
+server int rs_score_regen_period = 7;
+server int rs_score_regen_amount = 1;
+server bool rs_score_regen_secondary = true;
+
+// --- Extra lives and the revival fire cone --------------------------
+server bool rs_score_lives_enable = true;
+server int rs_score_revive_health = 100;
+server int rs_score_revive_invuln = 70;
+server bool rs_score_revive_cone = true;
+server bool rs_score_revive_sound = true;
+server bool rs_score_revive_flash = true;
+// The cone itself. Blast is the opening thump; arms is how many flame
+// streams; tics is how long the emitter spins (it turns 2.5 deg/tic, so
+// 70 is a little under half a rotation). Set blast to 0 for a purely
+// cosmetic cone.
+server int rs_score_revive_blast = 384;
+server int rs_score_revive_blastradius = 256;
+server int rs_score_revive_arms = 8;
+server int rs_score_revive_tics = 70;
+
+// --- Individual bonuses ---------------------------------------------
+// Every bonus can be switched off on its own.
+server bool rs_score_b_spree = true;
+server bool rs_score_b_untouchable = true;
+server bool rs_score_b_infighter = true;
+server bool rs_score_b_ambidextrous = true;
+server bool rs_score_b_scrapping = true;
+server bool rs_score_b_telefrag = true;
+server bool rs_score_b_blindside = true;
+server bool rs_score_b_darwin = true;
+server bool rs_score_b_airborne = true;
+server bool rs_score_b_redline = true;
+server bool rs_score_b_swansong = true;
+server bool rs_score_b_pointblank = true;
+server bool rs_score_b_brawler = true;
+server bool rs_score_b_giantslayer = true;
+
+// --- Bonus magnitudes (fractions of the kill's base points) ---------
+// Defaults are dakka's own numbers where a bonus was ported directly.
+server float rs_score_m_spree = 0.025;        // per kill in the streak
+server float rs_score_m_spree_max = 0.25;
+server float rs_score_m_untouchable = 0.5;
+server float rs_score_m_infighter = 0.2;
+server float rs_score_m_darwin = 2.0;
+server float rs_score_m_ambidextrous = 0.15;  // half this for fire-mode only
+server float rs_score_m_scrapping = 0.125;
+server float rs_score_m_telefrag = 1.0;
+server float rs_score_m_blindside = 0.2;
+server float rs_score_m_airborne = 0.005;     // per map unit above 64
+server float rs_score_m_airborne_max = 2.0;
+server float rs_score_m_redline = 0.02;       // per point of health under
+server float rs_score_m_swansong = 3.0;
+server float rs_score_m_pointblank = 0.1;
+server float rs_score_m_giantslayer = 0.15;   // per tier above the floor
+
+// --- Bonus trigger thresholds ---------------------------------------
+server int rs_score_ut_kills = 20;            // kills before Untouchable arms
+server int rs_score_ut_damage = 2000;         // or points-worth killed
+server int rs_score_ut_hpdiv = 400;           // stacks gained per kill
+server int rs_score_ut_maxstacks = 20;
+server int rs_score_redline_hp = 25;          // your health at or under this
+server float rs_score_pointblank_dist = 96.0; // edge-to-edge, not center
+server int rs_score_giantslayer_tier = 8;     // lowest tier that counts
+
+// --- HUD (user scope -- your screen only) ---------------------------
+user bool rs_score_hud_enable = true;
+user bool rs_score_hud_onautomap = false;
+user int rs_score_hud_x = 85;                 // percent across the screen
+user int rs_score_hud_y = 10;                 // percent down the screen
+user int rs_score_hud_scale = 100;            // 25-400
+user bool rs_score_hud_flash = true;
+
+user bool rs_score_hud_showscore = true;
+user bool rs_score_hud_showbar = true;
+user bool rs_score_hud_showlives = true;
+user bool rs_score_hud_showbonuses = true;
+user bool rs_score_hud_showspree = true;
+user bool rs_score_hud_showbase = false;      // show the plain KILL line
+user bool rs_score_hud_barnumbers = false;    // "1240 / 5000" under the bar
+
+// Color presets: 0 gold, 1 white, 2 red, 3 green, 4 blue, 5 magenta,
+// 6 cyan, 7 orange.
+user int rs_score_hud_color = 0;              // the score number
+user int rs_score_hud_barcolor = 4;           // bar filling toward regen
+user int rs_score_hud_lifecolor = 3;          // bar filling toward a life, and pips
+
+// How long a bonus popup stays on screen, in tics (35 = 1 second).
+user int rs_score_bonustime = 105;

@@ -25,6 +25,7 @@ OptionMenu "RS_MainOptions"
 	Submenu "$TFLV_OPT_TITLE", "GunBonsaiOptions"
 	Option "GunBonsai: Classic Upgrade Pool", "rs_gb_legacy_affixes", "OnOff"
 	Submenu "Kill Rewards", "RS_BitsSettings"
+	Submenu "Arcade Score", "RS_ScoreOptions"
 	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
 }
 
@@ -462,4 +463,197 @@ OptionMenu "RS_MonsterDebugSpawnOneMenu"
 	Command "Cyberdemon",    "netevent rs_mon_spawn_cyberdemon"
 	StaticText " "
 	Command "Remove all RS monsters", "netevent rs_mon_clear"
+}
+
+// ---------------------------------------------------------------------
+// RS_Score -- arcade scoring. Split across four pages because the knob
+// count is genuinely large: the main page holds the switches most
+// people will touch, and the three subpages hold per-bonus tuning,
+// the reward/lives economy, and HUD appearance. Same principle as the
+// rest of this file -- branch by concern rather than one flat wall.
+// ---------------------------------------------------------------------
+OptionMenu "RS_ScoreOptions"
+{
+	Title "Arcade Score"
+	StaticText " "
+
+	Option "Enable Scoring", "rs_score_enable", "OnOff"
+	StaticText " "
+
+	Submenu "Style Bonuses", "RS_ScoreBonusOptions"
+	Submenu "Rewards & Extra Lives", "RS_ScoreRewardOptions"
+	Submenu "Score Display", "RS_ScoreHUDOptions"
+	StaticText " "
+
+	StaticText "Scoring Rules"
+	Option "Carry Score Between Maps", "rs_score_startmode", "RS_ScoreStartMode"
+	Slider "Monster Tier Bonus", "rs_score_tierweight", 0.0, 0.5, 0.01, 2
+	StaticText "How much a monster's tier raises its value above raw health.", "DarkGray"
+	StaticText " "
+
+	StaticText "Reward Bar Length"
+	StaticText "Calibrated per map from its monster population.", "DarkGray"
+	Slider "Bar Size Multiplier", "rs_score_monsterscalar", 0.05, 2.0, 0.05, 2
+	Slider "Min. Monsters Counted", "rs_score_monstermin", 0, 500, 10, 0
+	Slider "Max. Monsters Counted", "rs_score_monstermax", 50, 2000, 50, 0
+	Slider "Round Threshold To", "rs_score_interval", 10, 1000, 10, 0
+	StaticText " "
+
+	Option "Debug Output", "rs_score_debug", "OnOff"
+}
+
+OptionValue "RS_ScoreStartMode"
+{
+	0, "Reset Every Map"
+	1, "Keep Score And Rewards"
+	2, "Keep Progress Only"
+}
+
+// ---------------------------------------------------------------------
+OptionMenu "RS_ScoreBonusOptions"
+{
+	Title "Style Bonuses"
+	StaticText " "
+	StaticText "Each bonus is a share of the kill's base points.", "DarkGray"
+	StaticText "Several can land on the same kill and they add up.", "DarkGray"
+	StaticText " "
+
+	StaticText "Efficiency", "BRICK"
+	Option "Spree", "rs_score_b_spree", "OnOff"
+	Slider "  Per Kill In Streak", "rs_score_m_spree", 0.0, 0.2, 0.005, 3
+	Slider "  Streak Cap", "rs_score_m_spree_max", 0.0, 2.0, 0.05, 2
+	Option "Untouchable", "rs_score_b_untouchable", "OnOff"
+	Slider "  Value", "rs_score_m_untouchable", 0.0, 2.0, 0.05, 2
+	Slider "  Kills To Arm", "rs_score_ut_kills", 1, 100, 1, 0
+	Slider "  Or Points Killed", "rs_score_ut_damage", 100, 20000, 100, 0
+	Option "Infighter", "rs_score_b_infighter", "OnOff"
+	Slider "  Value", "rs_score_m_infighter", 0.0, 2.0, 0.05, 2
+	StaticText " "
+
+	StaticText "Style", "GREEN"
+	Option "Ambidextrous", "rs_score_b_ambidextrous", "OnOff"
+	Slider "  Value", "rs_score_m_ambidextrous", 0.0, 1.0, 0.05, 2
+	StaticText "  Two weapons fired within a few seconds of the kill.", "DarkGray"
+	Option "Scrapping", "rs_score_b_scrapping", "OnOff"
+	Slider "  Value", "rs_score_m_scrapping", 0.0, 1.0, 0.025, 3
+	StaticText "  Killed with a Basic-or-worse weapon.", "DarkGray"
+	Option "Blindside", "rs_score_b_blindside", "OnOff"
+	Slider "  Value", "rs_score_m_blindside", 0.0, 2.0, 0.05, 2
+	StaticText "  It never had line of sight to you.", "DarkGray"
+	Option "Airborne", "rs_score_b_airborne", "OnOff"
+	Slider "  Per Unit Of Height", "rs_score_m_airborne", 0.0, 0.05, 0.001, 3
+	Slider "  Cap", "rs_score_m_airborne_max", 0.0, 5.0, 0.25, 2
+	Option "Darwin", "rs_score_b_darwin", "OnOff"
+	Slider "  Value", "rs_score_m_darwin", 0.0, 5.0, 0.25, 2
+	StaticText "  It killed itself.", "DarkGray"
+	Option "Telefrag", "rs_score_b_telefrag", "OnOff"
+	Slider "  Value", "rs_score_m_telefrag", 0.0, 5.0, 0.25, 2
+	StaticText " "
+
+	StaticText "Daring", "ORANGE"
+	Option "Redline", "rs_score_b_redline", "OnOff"
+	Slider "  Per Point Under", "rs_score_m_redline", 0.0, 0.1, 0.005, 3
+	Slider "  Health Threshold", "rs_score_redline_hp", 1, 100, 1, 0
+	Option "Swan Song", "rs_score_b_swansong", "OnOff"
+	Slider "  Value", "rs_score_m_swansong", 0.0, 10.0, 0.5, 1
+	StaticText "  You killed it after you died.", "DarkGray"
+	Option "Point-Blank", "rs_score_b_pointblank", "OnOff"
+	Slider "  Value", "rs_score_m_pointblank", 0.0, 2.0, 0.05, 2
+	Slider "  Distance", "rs_score_pointblank_dist", 16.0, 256.0, 8.0, 0
+	Option "Brawler", "rs_score_b_brawler", "OnOff"
+	Slider "  Value", "rs_score_m_brawler", 0.0, 2.0, 0.05, 2
+	Option "Giant Slayer", "rs_score_b_giantslayer", "OnOff"
+	Slider "  Per Tier Above Floor", "rs_score_m_giantslayer", 0.0, 1.0, 0.05, 2
+	Slider "  Lowest Tier That Counts", "rs_score_giantslayer_tier", 0, 13, 1, 0
+}
+
+// ---------------------------------------------------------------------
+OptionMenu "RS_ScoreRewardOptions"
+{
+	Title "Rewards & Extra Lives"
+	StaticText " "
+
+	Option "Enable Rewards", "rs_score_rewards_enable", "OnOff"
+	Option "Reward Type", "rs_score_rewardmode", "RS_ScoreRewardMode"
+	Option "Reward Sound", "rs_score_sound", "OnOff"
+	StaticText " "
+
+	StaticText "Ammo Regeneration"
+	Slider "Duration -- Tics", "rs_score_regen_tics", 35, 2100, 35, 0
+	Slider "Tick Every N Tics", "rs_score_regen_period", 1, 35, 1, 0
+	Slider "Ammo Per Tick", "rs_score_regen_amount", 1, 20, 1, 0
+	Option "Refill Secondary Ammo", "rs_score_regen_secondary", "OnOff"
+	StaticText " "
+
+	StaticText "Extra Lives"
+	Option "Enable Extra Lives", "rs_score_lives_enable", "OnOff"
+	Slider "Health On Revival", "rs_score_revive_health", 1, 200, 5, 0
+	Slider "Invulnerable For -- Tics", "rs_score_revive_invuln", 0, 350, 5, 0
+	StaticText " "
+
+	StaticText "Revival Fire Cone"
+	Option "Spawn The Cone", "rs_score_revive_cone", "OnOff"
+	Option "Revival Sound", "rs_score_revive_sound", "OnOff"
+	Option "Screen Flash", "rs_score_revive_flash", "OnOff"
+	Slider "Opening Blast Damage", "rs_score_revive_blast", 0, 1000, 16, 0
+	Slider "Opening Blast Radius", "rs_score_revive_blastradius", 16, 1024, 16, 0
+	Slider "Flame Streams", "rs_score_revive_arms", 1, 24, 1, 0
+	Slider "Spin Duration -- Tics", "rs_score_revive_tics", 5, 210, 5, 0
+	StaticText "Blast damage 0 makes the cone purely cosmetic.", "DarkGray"
+}
+
+OptionValue "RS_ScoreRewardMode"
+{
+	0, "Alternate -- Ammo First"
+	1, "Alternate -- Life First"
+	2, "Ammo Regen Only"
+	3, "Extra Lives Only"
+}
+
+// ---------------------------------------------------------------------
+OptionMenu "RS_ScoreHUDOptions"
+{
+	Title "Score Display"
+	StaticText " "
+
+	Option "Show Score HUD", "rs_score_hud_enable", "OnOff"
+	Option "Show On Automap", "rs_score_hud_onautomap", "OnOff"
+	StaticText " "
+
+	StaticText "Position & Size"
+	Slider "Horizontal (%)", "rs_score_hud_x", 0, 100, 1, 0
+	Slider "Vertical (%)", "rs_score_hud_y", 0, 100, 1, 0
+	Slider "Scale (%)", "rs_score_hud_scale", 25, 400, 5, 0
+	StaticText " "
+
+	StaticText "Elements"
+	Option "Score Number", "rs_score_hud_showscore", "OnOff"
+	Option "Reward Bar", "rs_score_hud_showbar", "OnOff"
+	Option "Bar Numbers", "rs_score_hud_barnumbers", "OnOff"
+	Option "Extra Life Pips", "rs_score_hud_showlives", "OnOff"
+	Option "Bonus Popups", "rs_score_hud_showbonuses", "OnOff"
+	Option "Spree Counter", "rs_score_hud_showspree", "OnOff"
+	Option "Show Plain Kill Points", "rs_score_hud_showbase", "OnOff"
+	Option "Flash On Score", "rs_score_hud_flash", "OnOff"
+	StaticText " "
+
+	StaticText "Colors"
+	Option "Score Number", "rs_score_hud_color", "RS_ScoreColor"
+	Option "Bar -- Toward Ammo", "rs_score_hud_barcolor", "RS_ScoreColor"
+	Option "Bar -- Toward Life", "rs_score_hud_lifecolor", "RS_ScoreColor"
+	StaticText " "
+
+	Slider "Bonus Popup Time -- Tics", "rs_score_bonustime", 35, 350, 5, 0
+}
+
+OptionValue "RS_ScoreColor"
+{
+	0, "Gold"
+	1, "White"
+	2, "Red"
+	3, "Green"
+	4, "Blue"
+	5, "Magenta"
+	6, "Cyan"
+	7, "Orange"
 }

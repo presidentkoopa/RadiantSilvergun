@@ -220,3 +220,10 @@ version "4.14"
 // reference both RS_Weapon and TFLV_* types directly. Must load after
 // both RS_Weapon.zs and GunBonsai/main.zsc.
 #include "zscript/systems/RS_GunBonsaiBridge.zs"
+
+// Arcade scoring. RS_Score.zs itself is included further up (with the
+// other systems); these are its other two halves -- the HUD and the
+// revival fire cone. RS_ScoreHandler must ALSO be listed in MAPINFO's
+// AddEventHandlers or none of it runs.
+#include "zscript/systems/RS_ScoreHUD.zs"
+#include "zscript/systems/RS_ScoreRevival.zs"

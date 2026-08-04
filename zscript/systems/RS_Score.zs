@@ -16,11 +16,13 @@
 //   the instant it pays.
 //
 // WHAT THIS SYSTEM DELIBERATELY DOES NOT DO
-//   It does not grant permanent power. Promotion owns permanent growth
-//   and Gun Bonsai owns weapon growth; score pays out in CONSUMABLES
-//   (extra lives, ammo regen) and optionally trickles into the existing
-//   Gold economy. That keeps it clear of the rule in CLAUDE.md about
-//   never duplicating a design space another mechanic already owns.
+//   It does not grant permanent power, and it is NOT tied to Gold Bits
+//   or any other economy in this project. Score is its own currency.
+//   Promotion owns permanent growth, Gun Bonsai owns weapon growth,
+//   Gold owns card rerolls; score pays out in CONSUMABLES (extra lives,
+//   ammo regen) and nothing else. Keeping the currencies separate is
+//   the design, not an oversight -- if a score cash-in is ever wanted
+//   it gets its own price list, it does not become an exchange rate.
 //
 // REGISTRATION: RS_ScoreHandler is an EventHandler, so it does NOT
 // EXIST at runtime unless MAPINFO.txt lists it in
@@ -62,7 +64,7 @@ class RS_ScoreDefs
 	// Comparison chains, never `static const string x[] = {...}` --
 	// that form does not resolve reliably on this engine build (see
 	// CLAUDE.md; it has been rediscovered three times).
-	static string BonusName(int id)
+	clearscope static string BonusName(int id)
 	{
 		switch (id)
 		{
@@ -85,7 +87,7 @@ class RS_ScoreDefs
 		return "";
 	}
 
-	static int BonusFlavor(int id)
+	clearscope static int BonusFlavor(int id)
 	{
 		switch (id)
 		{
@@ -117,7 +119,7 @@ class RS_ScoreDefs
 
 	// Per-bonus enable cvar. One knob per bonus was an explicit ask --
 	// every bonus can be switched off independently.
-	static string BonusCVar(int id)
+	clearscope static string BonusCVar(int id)
 	{
 		switch (id)
 		{
@@ -139,7 +141,7 @@ class RS_ScoreDefs
 		return "";
 	}
 
-	static bool BonusEnabled(int id)
+	clearscope static bool BonusEnabled(int id)
 	{
 		if (id == RS_SB_BASE)
 			return true;
@@ -155,7 +157,7 @@ class RS_ScoreDefs
 	// Melee identification. dakka carried a 13-row table of weapon
 	// names and damage types; ours is a name test because every melee
 	// weapon in this project is an RS_ class with a predictable name.
-	static bool IsMeleeWeaponName(Name wpn)
+	clearscope static bool IsMeleeWeaponName(Name wpn)
 	{
 		// GetClassName() hands back a Name, not a String -- concatenate
 		// before any string work or it is a type error (CLAUDE.md).
@@ -326,25 +328,28 @@ class RS_ScoreHandler : EventHandler
 		return scorePlayers[pln];
 	}
 
-	bool ScoreEnabled() const
+	clearscope bool ScoreEnabled() const
 	{
 		let c = CVar.GetCVar("rs_score_enable", null);
 		return c ? c.GetBool() : true;
 	}
 
-	static int CVInt(string name, int def)
+	// clearscope: these are called from play code (scoring) AND from ui
+	// code (ShouldDrawHUD). A plain `static` here defaults to the class's
+	// play scope and makes the ui callers a compile error.
+	clearscope static int CVInt(string name, int def)
 	{
 		let c = CVar.GetCVar(name, null);
 		return c ? c.GetInt() : def;
 	}
 
-	static double CVFloat(string name, double def)
+	clearscope static double CVFloat(string name, double def)
 	{
 		let c = CVar.GetCVar(name, null);
 		return c ? c.GetFloat() : def;
 	}
 
-	static bool CVBool(string name, bool def)
+	clearscope static bool CVBool(string name, bool def)
 	{
 		let c = CVar.GetCVar(name, null);
 		return c ? c.GetBool() : def;
@@ -888,6 +893,7 @@ class RS_ScoreHandler : EventHandler
 
 			TrackAir(sp, pmo);
 			TrackWeapons(sp, pmo, now);
+			TickLives(i, sp, pmo);
 			TickDisplay(sp);
 			TickRegen(i, sp, pmo);
 			ExpireBonuses(sp, now);
@@ -1099,11 +1105,94 @@ class RS_ScoreHandler : EventHandler
 	}
 
 	// -----------------------------------------------------------------
+	// Extra lives / revival.
+	//
+	// dakka's trick, kept intact because it is the right one: while the
+	// player has a life banked, they are put in BUDDHA, so lethal damage
+	// parks them at 1hp instead of killing them. Catching that 1hp state
+	// is the revive. The alternative -- resurrecting an already-dead
+	// pawn -- loses the weapon state and looks wrong.
+	// -----------------------------------------------------------------
+	void TickLives(int pln, RS_ScorePlayer sp, Actor mo)
+	{
+		let pi = mo.player;
+		if (!pi)
+			return;
+
+		if (!CVBool("rs_score_lives_enable", true))
+		{
+			pi.cheats &= ~CF_BUDDHA;
+			return;
+		}
+
+		if (sp.extraLives <= 0)
+		{
+			// No lives left -- take buddha back off, or the player
+			// becomes quietly immortal.
+			pi.cheats &= ~CF_BUDDHA;
+			return;
+		}
+
+		pi.cheats |= CF_BUDDHA;
+
+		// Buddha floors lethal damage at 1. That is the revive cue.
+		if (mo.health > 1)
+			return;
+
+		sp.extraLives--;
+
+		int heal = CVInt("rs_score_revive_health", 100);
+		mo.A_SetHealth(max(1, heal));
+
+		if (sp.extraLives <= 0)
+			pi.cheats &= ~CF_BUDDHA;
+
+		// Brief immunity so the same shot that dropped you cannot
+		// immediately drop you again mid-animation.
+		int invuln = CVInt("rs_score_revive_invuln", 70);
+		if (invuln > 0)
+		{
+			mo.A_GiveInventory("PowerInvulnerable", 1);
+			let pow = Powerup(mo.FindInventory("PowerInvulnerable"));
+			// max(), not assignment: never shorten an invulnerability
+			// the player already had from a pickup.
+			if (pow)
+				pow.EffectTics = max(pow.EffectTics, invuln);
+		}
+
+		// The cone.
+		if (CVBool("rs_score_revive_cone", true))
+		{
+			Actor cone = Spawn("RS_ReviveExplosion", mo.pos + (0, 0, 32), ALLOW_REPLACE);
+			if (cone)
+			{
+				cone.target = mo;
+				cone.angle = mo.angle;
+			}
+		}
+
+		if (CVBool("rs_score_revive_flash", true))
+			mo.A_SetBlend("FF 7F 00", 0.75, 40);
+
+		// Streaks do not survive dying. Getting killed is exactly the
+		// thing Untouchable is measuring the absence of.
+		sp.utKills = 0;
+		sp.utDamage = 0;
+		sp.utStacks = 0;
+		sp.spreeCount = 0;
+	}
+
+	// -----------------------------------------------------------------
 	// HUD. Same shape GunBonsai's handler uses (EventHandler.zsc:123):
 	// RenderOverlay lives on the handler and delegates to a drawing
 	// class, so all the ui-scope work sits in one object.
 	// -----------------------------------------------------------------
-	RS_ScoreHUD hud;
+	// `ui`, not a plain field: RenderOverlay runs in ui scope and
+	// assigns this on first draw. An unmarked (play-scoped) field
+	// cannot be written from ui and is a compile error, not a runtime
+	// one. GunBonsai's handler declares its own the same way
+	// (EventHandler.zsc:12).
+	ui RS_ScoreHUD hud;
 
 	ui bool ShouldDrawHUD() const
 	{

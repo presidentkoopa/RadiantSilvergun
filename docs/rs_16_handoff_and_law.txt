@@ -329,3 +329,138 @@ OPEN -- NEEDS THE OWNER
   through art_index is a missing file at load time. Splitting "resolved" from
   "shipped" is a real improvement and will light up a long list.
 ================================================================================
+
+================================================================================
+   ADDENDUM -- THE SCORE LANE.  2026-08-04.  Written by the lane that
+   actually wrote RS_Score.zs, answering the questions rs_16 left open.
+================================================================================
+
+WHO WROTE IT, AND WHY IT LOOKED ORPHANED
+  RS_Score.zs was not a mystery file. It is a deliberate build from this
+  session: an arcade scoring system ported from dakka
+  (github.com/0dot0repeating/dakka, pk3/acs/score/), started from the
+  owner's ask to make RS_ an arcade scoring system, "or at least the
+  foundations of one."
+  It sat untracked only because the session was still mid-build. Other
+  lanes rescued it (705cec82, 7d725b62, 9716f909) and one swept in
+  RS_ScoreHUD.zs via `git add -A`, then corrected its own record
+  (f0e12c93, 2b2a5ca5). Nothing was lost and nothing was stepped on --
+  but the file has moved a long way since those snapshots, so do NOT
+  read 7d725b62's copy as current.
+
+  IT IS NOW THREE FILES, NOT ONE:
+    zscript/systems/RS_Score.zs         core -- state, bonuses, kill hook
+    zscript/systems/RS_ScoreHUD.zs      the readout
+    zscript/systems/RS_ScoreRevival.zs  the revival fire cone (UNTRACKED
+                                        at time of writing -- created
+                                        after the last sweep)
+
+CLOSED: "TURNING IT ON IS A DESIGN DECISION FOR WHOEVER WROTE IT"
+  Decided, by the author, deliberately: IT IS ON.
+    * MAPINFO.txt AddEventHandlers now lists "RS_ScoreHandler".
+    * zscript.txt includes all three files. RS_Score.zs is at line 8
+      (from 9716f909 -- kept); the HUD and revival includes were added
+      at the end of the file.
+  A duplicate RS_Score.zs include briefly existed -- 9716f909 added one
+  at line 8 while this lane was appending another. Removed. If a fatal
+  redefinition ever appears for RS_Score*, check for a second include
+  before anything else.
+
+LAW -- SCORE IS ITS OWN CURRENCY (owner correction, recorded as law)
+  Score does NOT convert to, feed, or draw from Gold Bits or any other
+  economy. An earlier draft built a points-to-gold exchange rate; the
+  owner rejected it outright. It is fully removed.
+  The reasoning, kept so it is not re-derived: promotion owns permanent
+  growth, Gun Bonsai owns weapon growth, Gold owns card rerolls, and
+  score owns CONSUMABLES -- extra lives and ammo regen, nothing else. If
+  a score cash-in is ever wanted it gets its OWN price list. It never
+  becomes an exchange rate. Gold is awarded one at a time and score
+  arrives in the hundreds; the two are not commensurable, and pretending
+  otherwise either floods gold or makes score meaningless.
+
+WHAT IT ACTUALLY DOES
+  Base points per kill, then independent situational multipliers that
+  stack, each announcing itself on the HUD as it pays. Fifteen bonuses:
+    Efficiency  Spree, Untouchable, Infighter
+    Style       Ambidextrous, Scrapping, Telefrag, Blindside, Darwin,
+                Airborne
+    Daring      Redline, Swan Song, Point-Blank, Brawler, Giant Slayer
+  Three are NOT straight ports and are worth knowing:
+    * AMBIDEXTROUS is dakka's Switcharoo re-aimed at this chassis. The
+      original paid for firing 2+ weapons (or 2+ fire modes) in a short
+      window; on a dual-wield mod that condition IS mainhand-then-
+      offhand, so it became the signature bonus. Tracked by sampling
+      button state in WorldTick -- NO weapon file was touched. dakka
+      needed an ACS call in every fire state of every weapon; we do not,
+      which also means it works on weapons we did not write.
+    * SCRAPPING was "killed with the Scrapper", dakka's slot-1 junk gun
+      (actually a dual-wielded pair that alternates hands -- its gimmick
+      is already our chassis). The transferable idea is "you did it with
+      bad equipment", and this project already ranks equipment, so it is
+      now any weapon at VRT_Basic or below.
+    * GIANT SLAYER is ours, not dakka's. It keys off the monster tier
+      ladder, which is this project's real difficulty statement.
+
+  TIER DRIVES VALUE. dakka scored base points off SpawnHealth. We use
+  RS_MonsterMaster.TierMaxHealth inflated by Tier (rs_score_tierweight,
+  default 0.12 -> a TEX is worth ~2.5x its HP). Non-RS monsters fall
+  back to SpawnHealth, so it still works on a plain or foreign bestiary.
+
+  THE REWARD BAR IS CALIBRATED PER MAP from that map's own monster
+  population, so one bar means the same amount of work on MAP01 and on
+  a slaughtermap. That is dakka's best idea and it was kept intact.
+
+  IT HONORS THE KILL-REWARDS PAYOUT GATE. Summoned minions and transient
+  boss stages score NOTHING -- the same rule RS_Bits already enforces,
+  for the same reason: the Pain Elemental's escort is designed to
+  respawn forever, so without this it is an infinite score farm. If
+  score and Bits ever disagree about what a kill is, one of them is bugged.
+
+  EXTRA LIVES use dakka's buddha trick: while a life is banked the
+  player is in CF_BUDDHA, so lethal damage parks them at 1hp instead of
+  killing them, and catching that 1hp state is the revive. Resurrecting
+  an already-dead pawn loses weapon state and looks wrong.
+
+  THE REVIVAL FIRE CONE (the owner's "death fire cone thing") is a port
+  of DakkaReviveExplosion: opening blast, then eight flame streams and
+  eight ground rakes thrown from an emitter spinning 2.5 deg/tic for ~70
+  tics. Uses RSI1/RSI2 from sprites/combatfx/fire/ -- the sheets
+  RS_FireLoop already draws from, verified present on disk (13 and 10
+  frames). NO new art dependency; it cannot break from a missing asset.
+
+CONTROLS
+  ~70 cvars appended to CVARINFO.txt -- every bonus has its own on/off
+  and its own magnitude, plus reward mode, regen shape, the whole cone
+  (arms/duration/blast; blast 0 = cosmetic only), and a full HUD block
+  (position as screen %, scale, per-element toggles, color presets).
+  MENUDEF.txt: "Arcade Score" under Radiant Silvergun Options, with
+  three subpages (Style Bonuses / Rewards & Extra Lives / Score Display).
+
+COMPILE STATUS -- UNPROVEN. READ THIS BEFORE TRUSTING ANY OF THE ABOVE.
+  NONE OF IT HAS EVER BEEN COMPILED. It went in while main was still
+  held by the 69-error gate, so this lane could not test-load. What was
+  done instead is a static review, which caught four real errors:
+    * `invoker.` used in plain Actor states (RS_ScoreRevival) -- invoker
+      is only meaningful where an item's states run on its owner.
+    * a field named `players` shadowing the engine's global players[],
+      which silently breaks every players[i].mo lookup in the class.
+    * cvar helpers callable from both play and ui needed `clearscope`;
+      plain `static` defaults to the class's play scope, making the ui
+      callers a compile error.
+    * the HUD field needed `ui` (GunBonsai's handler declares its own
+      the same way, EventHandler.zsc:12) -- RenderOverlay assigns it
+      from ui scope, and a play field cannot be written from ui.
+  python dedupe_check.py passes (no case-insensitive collisions).
+  "Statically reviewed" is NOT "compiles". Expect a first-boot punch
+  list. The revert path is clean and unchanged: drop the includes and
+  the MAPINFO registration and the rest of the mod is untouched -- this
+  system adds files and appends to config lumps, it restructures nothing.
+
+DEFERRED, BY THE OWNER
+  Deconstructing dakka's nine weapons into RS_AttackProfile entries and
+  GunBonsai upgrade cards. The agreed shape was to mine the MECHANICS
+  (alt-fires, bullet behaviors) as profiles/cards rather than import the
+  weapons -- if their attacks exist as attack profiles and GB affixes,
+  the weapons themselves are unnecessary, because the family weapons can
+  receive them. Tabled before any of it was written. Nothing exists yet.
+================================================================================
