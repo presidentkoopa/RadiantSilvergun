@@ -26,6 +26,42 @@ OptionMenu "RS_MainOptions"
 	Submenu "Arcade Score", "RS_ScoreOptions"
 	Submenu "Monster Health Bars", "RS_HPBarOptions"
 	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
+	Submenu "Monster Debug", "RS_MonsterDebug"
+}
+
+// ---------------------------------------------------------------------
+// Monster Debug -- spawns the CH import lineups in front of the player,
+// one row per family, tier order left to right, spaced so nothing
+// overlaps. Buttons fire net events handled by RS_MonsterDebugHandler
+// (zscript/monsters/RS_MonsterDebug.zs); that handler is registered in
+// MAPINFO.txt's AddEventHandlers -- if these buttons go silent, check
+// that registration first.
+// ---------------------------------------------------------------------
+OptionMenu "RS_MonsterDebug"
+{
+	Title "Monster Debug"
+	StaticText " "
+	StaticText "Spawns lineups in front of you, facing you.", "DarkGray"
+	StaticText "One row per family, tier order, 100 units apart.", "DarkGray"
+	StaticText " "
+	Command "Spawn One Of Each Monster (all families)", "netevent rs_spawnall"
+	StaticText " "
+	Command "Spawn Zombieman Family", "netevent rs_spawnall_zombieman"
+	Command "Spawn Shotgunner Family", "netevent rs_spawnall_shotgunner"
+	Command "Spawn Chaingunner Family", "netevent rs_spawnall_chaingunner"
+	Command "Spawn Imp Family", "netevent rs_spawnall_imp"
+	StaticText " "
+	// Elite summons -- handled by RS_EliteHandler (zscript/systems/
+	// monster/RS_Elite.zs). Aim at a monster BEFORE opening the menu;
+	// the crosshair target is where the mark lands. Console form takes a
+	// forced type: netevent rs_elite <1-17> (order: DarkRed Red Orange
+	// Yellow DarkGreen Green Cyan Blue Indigo Violet Pink Black Grey
+	// White Bronze Silver Gold).
+	StaticText "Elites: aim at a monster first, then use.", "DarkGray"
+	Command "Elite-ify Aimed Monster (random type)", "netevent rs_elite"
+	Command "Elite-ify Aimed Monster + Reveal Now", "netevent rs_elite 0 1"
+	Command "Elite-ify Every Monster In Map", "netevent rs_elite_all"
+	Command "Reveal Aimed Elite Now", "netevent rs_elite_reveal"
 }
 
 // ---------------------------------------------------------------------

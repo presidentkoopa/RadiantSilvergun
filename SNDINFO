@@ -1675,3 +1675,13 @@ $limit weapons/rocklf     32
 $random incubus/walk	{ dsinwlk1 dsinwlk2 dsinwlk3 dsinwlk4 }
 $random incubus2/walk	{ dsgiwlk1 dsgiwlk2 dsgiwlk3 dsgiwlk4 }
 $random weapons/flameballexplode { dsflbxp1 dsflbxp2 dsflbxp3 }
+
+// --- RS_Elite (zscript/systems/monster/RS_Elite.zs) ------------------
+// The reveal's three layers: loop rides channel 6 until death, reveal
+// sting on 7, boss layer on 5. Lumps in sounds/monsters/RSEL*.ogg.
+rs/elite/loop		RSELLOOP
+rs/elite/reveal		RSELTRAN
+$limit rs/elite/reveal	0
+rs/elite/boss		RSELBOSS
+$limit rs/elite/boss	0
+$pitchshift rs/elite/boss	0

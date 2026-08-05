@@ -24,3 +24,9 @@ addkeysection "Radiant Silvergun" RSMain
 addmenukey "Give Current Weapon a Random Profile (Debug)" rs_debug_random_profile
 alias rs_debug_random_profile "netevent rs_debug_random_profile"
 defaultbind PGDN rs_debug_random_profile
+
+// Twin weapon wheel PoC -- hold to open, release to equip both hands.
+addmenukey "Twin Weapon Wheel (Hold)" +rs_wheel
+alias +rs_wheel "netevent rs-wheel-on"
+alias -rs_wheel "netevent rs-wheel-off"
+defaultbind V +rs_wheel

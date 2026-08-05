@@ -53,7 +53,40 @@ version "4.14"
 // hitscan call sites in this tree -- see the file header.
 #include "zscript/systems/monster/RS_NoHitscan.zs"
 
+// RS_Elite: hidden elite monsters. Marked at spawn with boosted HP,
+// reveal at 50% health -- full heal, double aggression, type powers.
+// The seventeen types (C01-C17) live in RS_EliteColors.zs, their
+// support actors in RS_EliteFX.zs; the token wakes the controller.
+// RS_EliteHandler must ALSO be in MAPINFO.txt's AddEventHandlers.
+#include "zscript/systems/monster/RS_Elite.zs"
+#include "zscript/systems/monster/RS_EliteColors.zs"
+#include "zscript/systems/monster/RS_EliteFX.zs"
+
 // --- Monsters ---
+// CH Zombieman family, rebuilt native 2026-08-05 from
+// C:\Users\Command\Desktop\CH (Zombies.txt read whole, 2786 lines).
+// FX first: RS_Zombieman.zs references its support classes by string,
+// but readers go support -> monsters.
+#include "zscript/monsters/zombieman/RS_ZombiemanFX.zs"
+#include "zscript/monsters/zombieman/RS_Zombieman.zs"
+// CH Shotgunner family, rebuilt native 2026-08-05, same rules
+// (Shotgunners.txt read whole, 3102 lines). Depends on the zombieman
+// support classes above (RS_Zom, icons, tokens, bundles, shared FX).
+#include "zscript/monsters/shotgunner/RS_ShotgunnerFX.zs"
+#include "zscript/monsters/shotgunner/RS_Shotgunner.zs"
+// CH Chaingunner family, rebuilt native 2026-08-05, same rules
+// (Chaingunners.txt read whole, 3169 lines).
+#include "zscript/monsters/chaingunner/RS_ChaingunnerFX.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner.zs"
+// CH Imp family, rebuilt native 2026-08-05, same rules
+// (Imps.txt read whole, 3133 lines). The brown imp's ACS pack-buff is
+// rebuilt native in RS_ImpFX.zs (RS_BrownImpCommand).
+#include "zscript/monsters/imp/RS_ImpFX.zs"
+#include "zscript/monsters/imp/RS_Imp.zs"
+// Debug lineup spawner (netevent rs_spawnall). RS_MonsterDebugHandler is
+// ALSO in MAPINFO.txt's AddEventHandlers -- the two are a pair.
+#include "zscript/monsters/RS_MonsterDebug.zs"
+
 // RS_MonsterMaster: the monster-side parallel of RS_Weapon. Owns tier,
 // the per-tier body-sprite/TRNSLATE table, the per-tier attack slot,
 // and the shared behaviour primitives (summon-with-cap, threshold
@@ -192,6 +225,14 @@ version "4.14"
 // Also MAPINFO-registered. UI-scope half lives in the GunBonsai tree
 // (rs_menu/RS_UIMenus.zsc). Spec: docs/rs_10_ui_spec.txt.
 #include "zscript/systems/player/RS_UI.zs"
+
+// Spinning weapon display stand -- the world prop for in-world UI scenes
+// (drop cards, armory). Test toggle: `netevent rs-showcase`.
+#include "zscript/systems/player/RS_Showcase.zs"
+
+// Twin weapon wheel PROOF OF CONCEPT -- disposable; see file header.
+// RS_WheelHandler must also be in MAPINFO's AddEventHandlers.
+#include "zscript/systems/player/RS_WheelPoC.zs"
 
 // Archetype -> eligible Catalog slice, the fence PACK assembly reads so
 // a Shotgun stays a Shotgun instead of pooling the entire Catalog flat.

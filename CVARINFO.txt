@@ -542,3 +542,73 @@ server bool rs_mon_band_boss = true;
 // Cyberdemon 4000 -- so the gate is hit points. 700 puts it just under
 // a Baron, which is where "that was a big one" starts.
 server int rs_score_giantslayer_hp = 700;
+
+// --- CH Zombieman family gates (2026-08-05) -----------------------------
+// One-to-one with CH's cvars (CVARINFO.txt + CHSett.acs in the CH folder),
+// rs_ch_ prefixed so loading real CH alongside never double-defines.
+// Colour gates: 1 = colour OFF (reroll into the main set -- CH's default),
+// 3 = 50/50, any other value = colour spawns at its listed weight.
+server int rs_ch_brown = 1;         // CH: CH_Brown
+server int rs_ch_cyan = 1;          // CH: CH_Cyan
+server int rs_ch_fireblu = 1;       // CH: CH_FireBLU
+server int rs_ch_gray = 1;          // CH: CH_Gray
+server int rs_ch_abyss = 1;         // CH: CH_Abyss
+// Boss gates: 1 = boss enabled (CH default); else black->red, white->black.
+server int rs_ch_blackboss = 1;     // CH: CH_BlackBoss
+server int rs_ch_whiteboss = 1;     // CH: CH_WhiteBoss
+// EX variant: 1 = ~9% of black bosses are Player X, 2 = 50%, 3 = always.
+server int rs_ch_exboss = 1;        // CH: CH_EXBoss
+// Drop scaling, CH semantics: healthdrops/backpackdrops 1-4 pick bundle
+// sizes; ammodrops 1=normal 2=rare 3=double; extradrops 1=normal 2=rare.
+server int rs_ch_healthdrops = 1;   // CH: CH_HealthDrops
+server int rs_ch_backpackdrops = 1; // CH: CH_BackPackDrops
+server int rs_ch_ammodrops = 1;     // CH: CH_AmmoDrops
+server int rs_ch_extradrops = 1;    // CH: CH_ExtraDrops
+// 1 = show the floating colour icon above monsters (colourblind aid).
+server int rs_ch_colorblind = 0;    // CH: CH_ColorBlind
+// 1 = show the marker FX on abyss projectiles.
+server int rs_ch_abyssmark = 0;     // CH: CH_AbyssMark
+
+// =====================================================================
+// RS_Elite -- zscript/systems/monster/RS_Elite.zs + RS_EliteColors.zs.
+// Hidden elites: marked at spawn, boosted HP, reveal at 50% with full
+// heal, double aggression, and the rolled colour's powers. Chance is
+// one flat knob for now; skill/playercount scaling is a later decision.
+// The colour weights build a weighted pool per map -- 0 removes a
+// colour, higher numbers make it proportionally more common.
+// =====================================================================
+server int rs_elite_chance = 5;             // percent per eligible monster spawn
+server int rs_elite_healthmult = 300;       // percent of spawn health
+server float rs_elite_damagemult = 2.0;     // applied at the 50% reveal
+server int rs_elite_healthmult_boss = 200;
+server float rs_elite_damagemult_boss = 1.5;
+server bool rs_elite_booster = true;        // reveal also fires the type's boosted special
+server bool rs_elite_particles = true;      // type aura flecks on revealed elites
+server bool rs_elite_colortint = true;      // type body tint on revealed elites
+server bool rs_elite_flatcreep = true;      // creep/field visuals lie flat on the floor
+server bool rs_elite_missilecreep = true;   // C05/C14 projectiles drip creep in flight
+
+// Type weights, C01-C17 -- the reveal roll's weighted pool. 0 removes a
+// type; higher numbers make it proportionally more common. Metallics
+// deliberately rare: they are the heavy encounters.
+server int rs_elite_weight_c01 = 10;        // C01 DarkRed  -- comes back unless remains destroyed
+server int rs_elite_weight_c02 = 10;        // C02 Red      -- 2x health
+server int rs_elite_weight_c03 = 10;        // C03 Orange   -- explodes on death
+server int rs_elite_weight_c04 = 10;        // C04 Yellow   -- faster body and shots
+server int rs_elite_weight_c05 = 10;        // C05 DarkGreen-- toxic creep trail
+server int rs_elite_weight_c06 = 10;        // C06 Green    -- combat teleports
+server int rs_elite_weight_c07 = 10;        // C07 Cyan     -- wind push, leaves
+server int rs_elite_weight_c08 = 10;        // C08 Blue     -- fireball bursts
+server int rs_elite_weight_c09 = 10;        // C09 Indigo   -- splits into clones
+server int rs_elite_weight_c10 = 10;        // C10 Violet   -- seeker volleys
+server int rs_elite_weight_c11 = 10;        // C11 Pink     -- raises corpses at a price
+server int rs_elite_weight_c12 = 10;        // C12 Black    -- deals 2x, takes 2x
+server int rs_elite_weight_c13 = 10;        // C13 Grey     -- lunges, afterimages
+server int rs_elite_weight_c14 = 10;        // C14 White    -- slowing creep
+server int rs_elite_weight_c15 = 3;         // C15 Bronze   -- painless immovable tank
+server int rs_elite_weight_c16 = 2;         // C16 Silver   -- magnetic pull
+server int rs_elite_weight_c17 = 1;         // C17 Gold     -- gilds nearby monsters
+
+// Shotgunner family addition (2026-08-05): cyan's bounce-dodge gate.
+// 1 = no jump-dodge (CH default 0 = dodges).
+server int rs_ch_cyanbounce = 0;    // CH: CH_CyanBounce

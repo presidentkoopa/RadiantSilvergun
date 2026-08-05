@@ -104,6 +104,16 @@ class RS_UIHandler : EventHandler
 	// Sheet cycle position: 0 offhand, 1 mainhand, 2 player.
 	int mCycle;
 
+	// The test showcase stand (`netevent rs-showcase` toggles it). One
+	// slot, console-player oriented -- it's a dev/preview prop, not a
+	// per-player system.
+	RS_ShowcaseStand mShowcase;
+
+	// True only while the loaded model is a cycling sheet (weapon /
+	// player). RS_Menu_Dynamic reads it: Left/Right cycle subjects on
+	// sheets, and stay inert on confirm/repair screens.
+	bool mCycleNav;
+
 	// Reroll cost escalation: 5 << rsRerolls (5/10/20/40...), tracked on
 	// the giver itself (fresh giver per offer = automatic reset).
 	const REROLL_BASE_COST = 5;
@@ -115,6 +125,7 @@ class RS_UIHandler : EventHandler
 
 	void ClearModel()
 	{
+		mCycleNav = false;
 		mTitle = ""; mSubtitle = "";
 		mTitleColor = Font.CR_GOLD;
 		mSubtitleColor = Font.CR_WHITE;
@@ -150,14 +161,14 @@ class RS_UIHandler : EventHandler
 	// GunBonsai's EventHandler). Sheets only -- level-ups launch FROM
 	// the sheets, per the spec.
 	// -----------------------------------------------------------------
-	void CycleSheets(uint p)
+	void CycleSheets(uint p, int dir = 1)
 	{
 		PlayerPawn pawn = players[p].mo;
 		if (!pawn) return;
 
 		for (int tries = 0; tries < 3; tries++)
 		{
-			mCycle = (mCycle + 1) % 3;
+			mCycle = (mCycle + 3 + dir) % 3;
 			if (mCycle == 0 && !pawn.player.OffhandWeapon) continue;
 			if (mCycle == 1 && !pawn.player.ReadyWeapon) continue;
 			break;
@@ -165,6 +176,7 @@ class RS_UIHandler : EventHandler
 
 		if (mCycle == 2) BuildPlayerSheet(pawn);
 		else             BuildWeaponSheet(pawn, mCycle);
+		mCycleNav = true;
 
 		if (players[consoleplayer].mo == pawn)
 			Menu.SetMenu("RSDynamicSheet");
@@ -313,6 +325,87 @@ class RS_UIHandler : EventHandler
 			"", 0, "Spent on card-picker rerolls. Dropped by kills.");
 		AddRow("GREY BITS", string.format("%d", pawn.CountInv("RS_Bit_Grey")), Font.CR_WHITE,
 			"", 0, "Weapon repair currency -- see a weapon sheet's CONDITION row.");
+		AddRule();
+
+		// --- Player-level GB affixes ---
+		AddRow("PLAYER AFFIXES", "", Font.CR_LIGHTBLUE);
+		int pheld = 0;
+		if (stats.upgrades)
+		{
+			for (int i = 0; i < stats.upgrades.upgrades.Size(); i++)
+			{
+				let upg = stats.upgrades.upgrades[i];
+				if (upg.level <= 0) continue;
+				pheld++;
+				AddRow("  " .. upg.GetName(), string.format("Lv %d", upg.level), Font.CR_WHITE);
+			}
+		}
+		if (pheld == 0)
+			AddRow("  (none yet)", "", Font.CR_DARKGRAY);
+		AddRule();
+
+		// --- The map, at a glance ---
+		int mt = level.maptime / 35;
+		AddRow("MAP TIME", string.format("%d:%02d", mt / 60, mt % 60), Font.CR_WHITE);
+		AddRow("KILLS", string.format("%d / %d", level.killed_monsters, level.total_monsters), Font.CR_WHITE);
+		AddRow("ITEMS", string.format("%d / %d", level.found_items, level.total_items), Font.CR_WHITE);
+		AddRow("SECRETS", string.format("%d / %d", level.found_secrets, level.total_secrets), Font.CR_WHITE);
+	}
+
+	// -----------------------------------------------------------------
+	// S4 -- the spec card: the full stat readout, one stat per row.
+	// This is ALSO the row model the in-world card compositor will
+	// consume once the billboard surface lands -- same rows, second
+	// renderer. `netevent rs-ui-card <hand>` shows it in the 2D menu.
+	// -----------------------------------------------------------------
+	void BuildWeaponCard(PlayerPawn pawn, int hand)
+	{
+		ClearModel();
+		let wep = HandWeapon(pawn, hand);
+		if (!wep) { mTitle = "NO WEAPON"; return; }
+
+		mTitle = wep.GetTag();
+		let rsw = RS_Weapon(wep);
+		if (!rsw)
+		{
+			AddRow("(not an RS weapon)", "", Font.CR_DARKGRAY);
+			return;
+		}
+
+		mTitleColor = RS_UIStyle.TierColor(rsw.Tier);
+		mSubtitle = RS_UIStyle.TierName(rsw.Tier) .. "      " .. RS_UIStyle.Pips(rsw.PromotionCount);
+		mSubtitleColor = RS_UIStyle.TierColor(rsw.Tier);
+
+		let stats = TFLV_PerPlayerStats.GetStatsFor(pawn);
+		let info = stats ? stats.GetInfoFor(wep) : null;
+		int held = 0;
+		if (info)
+		{
+			for (int i = 0; i < info.upgrades.upgrades.Size(); i++)
+				if (info.upgrades.upgrades[i].level > 0) held++;
+		}
+
+		int dps = int(rsw.DamagePerShot * max(1, rsw.PelletCount) * max(1, rsw.RateOfFire));
+		double tbs = rsw.GetTimeBetweenShots();
+		int magNow = wep.AmmoType2 ? pawn.CountInv(wep.AmmoType2) : 0;
+
+		AddRow("DAMAGE", string.format("%d  (ceiling %d)", rsw.DamagePerShot, rsw.GetDamageCeiling()),
+			rsw.LockedDamage ? Font.CR_DARKRED : Font.CR_TAN);
+		AddRow("ROF", string.format("%d/s", rsw.RateOfFire), Font.CR_TAN);
+		AddRow("DPS", string.format("%d", dps), Font.CR_TAN);
+		AddRow("ACCURACY", string.format("%d%s", int(rsw.Accuracy), rsw.LockedAccuracy ? "  [LOCKED]" : ""),
+			rsw.LockedAccuracy ? Font.CR_DARKRED : Font.CR_TAN);
+		AddRow("CAPACITY", string.format("%d / %d", magNow, rsw.Capacity),
+			rsw.LockedCapacity ? Font.CR_DARKRED : Font.CR_TAN);
+		AddRow("CRIT", string.format("%.1f%%%s", rsw.CritChance * 100.0, rsw.LockedCritChance ? "  [LOCKED]" : ""),
+			rsw.LockedCritChance ? Font.CR_DARKRED : Font.CR_TAN);
+		AddRow("PELLETS", string.format("%d", rsw.PelletCount), Font.CR_TAN);
+		AddRow("VELOCITY", string.format("%d", int(rsw.Velocity)),
+			rsw.LockedVelocity ? Font.CR_DARKRED : Font.CR_TAN);
+		AddRow("BONSOC", string.format("%d / %d", held, rsw.GunBonaiSockets), Font.CR_LIGHTBLUE);
+		AddRow("TIME BTWN", tbs > 0 ? string.format("%.2fs", tbs) : "--", Font.CR_TAN);
+		AddRow("CONDITION", string.format("%d%%", int(rsw.Condition)),
+			RS_UIStyle.ConditionColor(rsw.Condition));
 	}
 
 	// -----------------------------------------------------------------
@@ -424,6 +517,39 @@ class RS_UIHandler : EventHandler
 				rsw.ApplyUpgradeCard(VRT_Basic);   // the designed Promote() path
 				pawn.A_Log(string.format("%s PROMOTED. %s",
 					rsw.GetTag(), RS_UIStyle.Pips(rsw.PromotionCount)), true);
+			}
+		}
+		else if (evt.name == "rs-ui-cycle")
+		{
+			// Left/Right on a sheet: move between offhand, mainhand and
+			// player -- the merged-arsenal navigation.
+			CycleSheets(evt.player, evt.args[0] == 0 ? 1 : evt.args[0]);
+		}
+		else if (evt.name == "rs-ui-card")
+		{
+			BuildWeaponCard(pawn, evt.args[0]);
+			if (players[consoleplayer].mo == pawn)
+				Menu.SetMenu("RSDynamicSheet");
+		}
+		else if (evt.name == "rs-showcase")
+		{
+			// Dev/preview toggle: spin this hand's weapon 96 units ahead.
+			// No args = offhand slot; falls back to the ready weapon.
+			if (mShowcase)
+			{
+				mShowcase.Destroy();
+				mShowcase = null;
+			}
+			else
+			{
+				let wep = HandWeapon(pawn, evt.args[0]);
+				if (!wep) wep = pawn.player.ReadyWeapon;
+				if (wep)
+				{
+					Vector3 spot = pawn.Vec3Angle(96, pawn.angle);
+					spot.z = pawn.pos.z + 40;
+					mShowcase = RS_ShowcaseStand.Create(spot, wep.GetClass());
+				}
 			}
 		}
 		else if (evt.name == "rs-ui-repair-menu")

@@ -52,6 +52,26 @@ class RS_Menu_Dynamic : TFLV_Menu_GenericMenu
 				PushTooltip(h.mRowTip[i]);
 		}
 	}
+
+	// L2: on the sheets, Left/Right are the lateral subject moves --
+	// offhand, mainhand, player. mCycleNav gates it so confirm/repair
+	// screens keep Left/Right inert.
+	override bool MenuEvent(int key, bool fromController)
+	{
+		if (key == Menu.MKey_Right || key == Menu.MKey_Left)
+		{
+			let h = RS_UIHandler(EventHandler.Find("RS_UIHandler"));
+			if (h && h.mCycleNav)
+			{
+				Menu.MenuSound("menu/change");
+				EventHandler.SendNetworkEvent("rs-ui-cycle",
+					key == Menu.MKey_Right ? 1 : -1);
+				Menu.GetCurrentMenu().Close();
+				return true;
+			}
+		}
+		return super.MenuEvent(key, fromController);
+	}
 }
 
 class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
