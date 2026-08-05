@@ -1,0 +1,548 @@
+================================================================================
+   RS_17 -- THE ATTACK GRAMMAR.  2026-08-04.
+   Naming, shape axes, the missing time dimension, and the coverage test.
+   Companion to rs_16 (law + state) and rs_05 (PACK). Supersedes neither.
+================================================================================
+
+STATUS OF THIS DOCUMENT
+  Sections marked [BUILT] describe code that exists and was read to write
+  this. Sections marked [PROPOSED] are design, not code -- nothing in them
+  has been written or compiled. rs_16's DamageFunction episode is the
+  reason for the labels: a doc asserting something confidently is how a
+  wrong claim survives three sessions.
+
+================================================================================
+1. THE PRINCIPLE
+================================================================================
+
+  The test is NOT "can we express a complex attack."
+  The test is "did expressing it require touching the engine."
+
+  A new fancy attack should cost new COMBINATIONS, never new FIELDS.
+
+  Both known failure modes are the same disease -- complexity living in
+  the instance instead of the grammar:
+
+    * Project Brutality's PB_M1Plasma is 1,574 lines to deliver two
+      attacks. Every timing decision is hand-written state code.
+    * The GH import hit the same wall three times and wrote an apology
+      comment instead of a field:
+        RS_GH_Minigun.zs   "The 2x rate comes from the Overdrive state
+                            chain ... not from anything on the profile
+                            itself."
+        RS_GH_Pistol.zs    "The burst itself is driven by the AltFire
+                            state chain ... not by anything on the
+                            profile."
+      RS_GH_Pistol declares `trigger:burst` in its keywords and its
+      "3-Round Burst" profile is byte-for-byte identical to its primary.
+      The keyword has no mechanical backing.
+
+  COROLLARY, WHICH MATTERS AS MUCH: capability is not obligation. Every
+  field added here defaults to today's behavior, so nothing existing
+  changes and almost every profile stays three or four arguments long.
+
+  ECHO IS THE MODEL. RS_Upgrade_Slate.zsc's Echo is a genuinely rich
+  mechanic -- your own shot, doubled, at double ammo cost, rebuilt
+  idempotently from scratch each activation -- and it is Clone() plus two
+  field tweaks plus a Replace(). Nothing was added to the engine for it.
+  That is what "we could build something as complex as PB's plasma
+  rifle" should look like on a day we are not building one.
+
+================================================================================
+2. TWO KINDS OF AXIS
+================================================================================
+
+  PAYLOAD AXES -- OPEN-ENDED.
+    What leaves the barrel, what it looks like, what it does on arrival.
+    There is always another projectile, another puff, another sound.
+    These absorb new content as CATALOG ENTRIES, not as new fields, and
+    RS already got this right: PROJ_GH_UnmakerShot() required no schema
+    change. rs_05's 8 PACK ingredients are the presentation subset of
+    this axis class.
+
+  SHAPE AXES -- A CLOSED SET.
+    How the attack is delivered: spread, cost, volley, range band, and
+    (missing today) time. A trigger pull is press -> windup -> fire ->
+    release. There is no fifth phase.
+
+    This list should be completed ONCE and then go quiet. If shape fields
+    are still being added a year from now, the model was wrong.
+
+  WHY THE DISTINCTION EARNS ITS KEEP: it tells you what a gap means. A
+  missing payload is a missing catalog entry -- cheap, additive, expected.
+  A missing shape axis is a hole in the grammar -- and every weapon that
+  needs it will hand-write a workaround until it is filled, which is
+  exactly what the three GH apology comments are.
+
+================================================================================
+3. SHAPE AXES THAT EXIST TODAY  [BUILT]
+================================================================================
+
+  Read off RS_AttackProfile.zs. This is the current grammar.
+
+  DELIVERY      Mode (BULLET / HEAVY / MELEE / HITSCAN / SUMMON /
+                RADIAL / SELFBUFF), ProjectileClass
+  DISPERSION    SpreadScale, UsesChoke, SpreadBonus, UsesCadence,
+                PelletOverride
+  MAGNITUDE     DamageMult, VelocityMult, CritBonus, ProjScale
+  COST          AmmoClass, AmmoCost
+  VOLLEY        VolleyCount, VolleyArc, VolleyPitchJitter
+  RANGE         MinRange, MaxRange
+  SCOPE         LocalKeywords (per-beat grants)
+
+  ROTATION, one level up, on RS_AttackSlot: Append / InsertAt / Replace /
+  RemoveAt / PadTo, plus a cursor that advances one step per pull.
+
+  HOW MUCH OF THIS IS ACTUALLY USED: almost none of the rotation. Echo is
+  the only affix in the tree that touches a slot's contents, and its own
+  comment records why -- "the universal single-beat case -- true of all
+  32 weapons today." PadTo, InsertAt and Replace have one caller between
+  them. The rotation machinery is built, correct, and idle.
+
+================================================================================
+4. THE GAP: TIME  [PROPOSED]
+================================================================================
+
+  FOUR INDEPENDENT CONFIRMATIONS, three of them from inside this repo:
+    1. RS_GH_Minigun Overdrive -- 2x rate, faked in the state chain
+    2. RS_GH_Pistol 3-round burst -- faked in the state chain
+    3. An AutoShotgun-style RoF affix -- cannot be written at all
+    4. PB_M1Plasma's charge shot -- see section 7
+
+  There is NO existing precedent to model on and nothing to break:
+  grep for Charge / Hold / Windup / SpinUp / JustPressed / JustReleased
+  across zscript/weapons/ returns zero. RS_Chaingun goes straight from
+  Fire: to Shoot: with no spin-up. RS_GH_Minigun has no spin state.
+
+  ONE MODEL COVERS EVERY CASE. Each weapon uses a different subset:
+
+    weapon              windup   fire            hold      release
+    ------------------  -------  --------------  --------  ---------
+    pistol (today)      --       1 shot          --        --
+    3-round burst       --       3 @ 2 tics      --        --
+    AutoShotgun         --       repeat @ RoF    repeat    --
+    minigun spin-up     ~10t     repeat @ RoF    repeat    spin-down
+    PB charge shot      14t      --              aura      1 shot
+    auto-charge         Nt       1 at full       --        --
+
+  That is not five features. It is one.
+
+  ---------------------------------------------------------------------
+  PROPOSED FIELDS -- on RS_AttackProfile, all defaulting to today
+  ---------------------------------------------------------------------
+
+    int    WindupTics;      // 0 = fires on press (every weapon today)
+    bool   HoldToSustain;   // can the pull be held past windup?
+    bool   FireOnRelease;   // payload fires on release, not at windup end
+    int    BurstCount;      // 1 = one shot per pull
+    int    BurstDelayTics;  // spacing INSIDE a burst
+    double RoFMult;         // this beat's multiplier on rolled RateOfFire
+    RS_AttackProfile WindupProfile;   // optional, ticks once per windup tic
+
+  HoldToSustain + FireOnRelease are two booleans doing four jobs:
+    false/false  auto-charge -- fires itself when windup completes
+    true /false  minigun     -- hold keeps firing
+    true /true   PB charge   -- hold waits, release fires
+
+  ---------------------------------------------------------------------
+  THREE RULES THAT SHIP WITH THE FIELDS
+  ---------------------------------------------------------------------
+
+  (a) VolleyCount AND BurstCount ARE NOT THE SAME THING, and will be
+      confused, and someone will build the wrong one or build the second
+      one twice. They must be documented against each other AT THE FIELD:
+        VolleyCount 3               -> three rounds leave the barrel on
+                                       the SAME tic (shotgun-like)
+        BurstCount 3, BurstDelay 2  -> three rounds, 2 tics apart, from
+                                       ONE trigger pull
+      VolleyCount already exists and already works. BurstCount is its
+      sequential twin, not a replacement.
+
+  (b) CANCEL IS A RULE, NOT A FIELD. PB spends a field on reload-to-
+      cancel. Cheaper and better: ANY windup is always cancellable by
+      reload or weapon switch, always a full refund, universally, no
+      field. A 20-ammo commitment with no escape hatch is a trap, and
+      making the escape universal costs one line instead of one field
+      per profile.
+
+  (c) WindupProfile MUST NOT NEST. A profile pointing at a profile
+      invites recursion. Hard guard, stated in the field comment: a
+      WindupProfile's OWN trigger shape is ignored, always. Without that
+      sentence in the source someone will nest them.
+
+  ---------------------------------------------------------------------
+  WHERE IT LANDS
+  ---------------------------------------------------------------------
+
+  A_RS_FireSlot() (RS_Weapon.zs:442) is already a universal chokepoint.
+  Every weapon fires through it; Fire: passes 0, AltFire: passes 1. It
+  already Peeks the beat before spending anything, resolves the ammo
+  pool, resolves the keyword mods, and advances the cursor. The reader
+  for these fields has an obvious home.
+
+  BUT A_RS_FireSlot IS A SINGLE-TIC FUNCTION AND CANNOT WAIT 14 TICS.
+  Functions do not wait; state machines do. The windup cannot live inside
+  it. It has to live in shared state labels on RS_Weapon that each
+  weapon's Fire: delegates into:
+
+      Fire:
+          TNT1 A 0 A_RS_BeginPull(0);   // -> windup / burst / the shot
+          ...the weapon's own frames...
+
+  UNVERIFIED, AND THE FIRST THING TO PROVE: that inherited state labels
+  resolve cleanly on this engine build. This repo's history is a list of
+  things that looked obvious and were not -- `static const T name[]`,
+  `extend class PlayerPawn`, `Damage (random(a,b))` in a Default block.
+  PROTOTYPE ONE WEAPON END TO END BEFORE TOUCHING A SECOND. Same rule
+  rs_16 wrote for DamageFunction: test one line before sweeping 69.
+
+  ---------------------------------------------------------------------
+  TWO PARTS ALREADY OWNED THAT MAKE THIS CHEAPER THAN IT LOOKS
+  ---------------------------------------------------------------------
+
+  * THE CHARGE LADDER IS ALREADY BUILT. AllClearPitch() (RS_Weapon.zs:155)
+    is pitched per archetype and fires at the exact tic cadence reopens.
+    PB's four-sound PLSC_1..4 charge ladder is that same mechanism run
+    upward across a windup. No new audio system -- one existing function,
+    called on a ramp.
+
+  * NO WEAPON SPRITES MEANS NO ANIMATION DESYNC. This is the actual
+    reason RS can afford a data-driven trigger shape and PB cannot. PB
+    pays ~400 lines per weapon because every timing change needs matching
+    frames. rs_16's VR rule -- 3D models, nothing drawn on the weapon
+    layer -- means RoFMult 3.0 on a pump shotgun has no pump animation to
+    fall out of sync with. The constraint that reads as a limitation
+    everywhere else is precisely what makes this viable here.
+
+  ---------------------------------------------------------------------
+  SCOPE FENCE
+  ---------------------------------------------------------------------
+
+  Cooldown and settle tails -- PB's 16-tic barrel vent, its 25-tic
+  post-blast recovery -- are ANIMATION and belong in weapon states. They
+  are tempting as profile fields and must not become them, or this list
+  grows to sixteen fields and stops being a closed set.
+
+================================================================================
+5. NAMING  [PROPOSED, except the rename pass which is a bounded job]
+================================================================================
+
+  THREE NAME-SPACES. Conflating them is the trap.
+
+    class name    RS_GH_AssaultShotgun    greppable, prefixed, collision-safe
+    ProfileName   "Buckshot"              display; sheets, cards, menus
+    card name     Splitter / Ghost / Echo what the player picks; MAY differ
+                                          from the profile it installs
+
+  THE DESCRIPTIVE VOCABULARY ALREADY EXISTS -- IT IS THE KEYWORD SYSTEM.
+  RS_GH_AssaultShotgun already declares itself as:
+
+    archetype:shotgun trigger:fullauto delivery:bullet payload:multi
+    feed:atomic-fill reserve:shell element:kinetic promotion:pellet
+
+  That IS "AutoShotgun," spelled along axes that exist and are queried.
+  36 values across 9 axes are live today. Nobody needs to invent
+  adjectives; name a profile from its own axes and the name cannot drift
+  from what it does.
+
+  THE RULE: NAME THE VERB, NOT THE NUMBER.
+    "FastBlaster" names a value that WILL be rebalanced, after which the
+    name lies -- the same self-hiding failure as a flattened damage roll.
+    Look at what already shipped: Splitter, Slugger, Ghost, Seeker, Nova,
+    Swarm, Pain Train, Hair Trigger, Cull the Weak. Not one names a stat.
+    They name behavior, so tuning cannot falsify them. The convention is
+    already in force; it just has not been applied to profiles.
+
+  PROVENANCE LIVES IN `set:`, NOWHERE ELSE. One axis, queryable,
+  droppable. A profile assembled from our own catalog is
+  set:radiantsilvergun and no file anywhere implies otherwise.
+
+  CLASS-NAME HAZARD: a large compound-name pool makes the case-
+  insensitivity landmine much more likely -- RS_Prof_FastBlaster and
+  RS_Prof_Fastblaster are the SAME class and a fatal redefinition. Rigid
+  prefix scheme, and run dedupe_check.py after every batch.
+
+  ---------------------------------------------------------------------
+  THE RENAME PASS -- 19 STRINGS, THE WHOLE JOB
+  ---------------------------------------------------------------------
+
+  Swept every profName:/ProfileName= in the tree. Every name already in
+  use is descriptive EXCEPT the GH set, which brands the source in the
+  display string instead of leaving it in set:.
+
+  ALREADY CORRECT, no action -- 3-Round Burst, 5.56, 9mm, Auto Burst,
+  BFG Ball, Belt Fed, Both Barrels, Buckshot, Chambered Round, Echo,
+  Full Auto, One Barrel, Overdrive, Plasma Bolt, Rocket, Sawteeth,
+  Scatter Load, Straight Bolt, Underbarrel Grenade.
+
+  TO RENAME -- 19, all of the form "Gunstar <thing>":
+    Gunstar Assault Shotgun, BFG10k, BFG9000, Chainsaw, Double Barrel,
+    Flamethrower, Grenade Launcher, Hand Grenade, Knuckles, MP40,
+    Machine Gun, Minigun, Plasma Rifle, Pump, Railgun, Rifle, Rocket
+    Launcher, SMG, Scattergun Revolver, Sidearm, Unmaker.
+
+  THE ARGUMENT IS REDUNDANCY, NOT PROVENANCE. RS_GH_AssaultShotgun has
+    Tag       "Gunstar Assault Shotgun"
+    profName  "Gunstar Assault Shotgun"
+  -- identical. ProfileName names THE ATTACK, not the gun, so on the
+  weapon sheet this line conveys exactly zero information. "Auto
+  Buckshot" tells the player something; repeating the Tag does not.
+  Note this argument does NOT depend on the GH set being deprecated --
+  the set stays (section 9). Branding a distinct set is defensible;
+  echoing the weapon's own Tag back at the player is not.
+
+  These are display strings only -- no class names, no keywords, no
+  includes. Contained edit, one file each, nothing else reads them.
+
+  FOR GENERATED PROFILES: hand-naming does not scale to rolled profiles.
+  Derive the name from the axes the generator just picked
+  (trigger:fullauto + archetype:shotgun + payload:multi -> "Auto
+  Buckshot"). Hand-name authored profiles for flavour, derive rolled
+  ones. Two paths, one vocabulary.
+
+================================================================================
+6. THE COVERAGE TEST -- A STANDING PROTOCOL
+================================================================================
+
+  Owner's process, adopted 2026-08-04: take a weapon from a feature-rich
+  set, ask "can we build this," and where the answer is no, work out what
+  we are missing.
+
+  THE GUARDRAIL THAT KEEPS THIS CLEAN: the OUTPUT OF A COVERAGE TEST IS A
+  GAP LIST, NEVER CODE. We read an example to answer "which of our axes
+  cover this." What comes back is a list of OUR missing fields. No art,
+  no code, no class, no sound, no numbers copied into this repo. If a
+  session finds itself pasting, it has stopped running a coverage test.
+
+  THE STEPS
+    1. Strip presentation. Find the actual attacks. (PB_M1Plasma: two.)
+    2. Per attack, payload side: what leaves the barrel, what it costs,
+       what it does on arrival -> map onto payload axes.
+    3. Per attack, shape side: how the pull unfolds over time -> map onto
+       shape axes.
+    4. Mark each element expressible or a gap. Be honest; a "sort of"
+       is a gap.
+    5. Roll the gaps up into an AXIS proposal. Never into a special case.
+    6. Run rs_16's audit on what survives -- elementals banned, never
+       duplicate Promotion's lane, do two guns now play the same.
+
+  WHAT A GOOD RESULT LOOKS LIKE: several examples producing the SAME
+  small gap list. Four independent cases converging on one missing
+  dimension (section 4) is the strongest evidence the model is right. If
+  every new example produces a brand-new field, the model is wrong.
+
+================================================================================
+7. WORKED EXAMPLE -- PB_M1Plasma (Project Brutality)
+================================================================================
+
+  Read for structure only, 2026-08-04. Nothing imported.
+
+  WHAT IT ACTUALLY FIRES -- two attacks.
+
+  PRIMARY. One plasma round per pull. Speed 60, damage 8, no radius
+  damage, zero spread. On death: puff, floor/ceiling crater decals, a
+  fire spawn, particles, and hand-rolled FSpawnParticleParams smoke. On
+  GIB only, a small extra explosion. Per shot: gun smoke, tinted muzzle
+  flash overlay, 3 frames of recoil, an FOV punch. Trigger release plays
+  a 16-tic barrel-vent tail.
+
+  ALT -- THE CHARGE SHOT.
+    gate at >= 20 ammo
+    ~14 tics of windup, four sounds at 1/2/3/3 tic spacing (a ladder)
+    hold phase loops INDEFINITELY; each tic spawns two radius-40 aura
+      actors, so a charged gun burns anything standing next to you
+    reload mid-charge cancels, plays the animation backwards, costs
+      nothing
+    release fires ONE payload plus 28 sparks in a cone
+    20 ammo taken AFTER the blast, then ~25 tics of cooldown
+
+  The payload is the interesting part: a rolling, growing, RIPPING
+  projectile that runs its explosion action on EVERY FRAME of both its
+  spawn and flight states, bounded only by a countdown -- roughly a dozen
+  detonations across ~175 units of travel. That is rs_16's own
+  multi-frame A_Explode finding used deliberately as a weapon, and it is
+  the same idiom as RS's ~55 protected looping-explode sites. WE ALREADY
+  OWN THIS TECHNIQUE.
+
+  THE PROPORTION IS THE POINT
+    actual attack definition (both fire states + 3 actor classes)  ~80
+    dual-wield -- the entire weapon duplicated, 2nd ammo pool      ~400
+    reload / unload / inspect choreography                         ~300
+    ammo-counter digit overlays (12 states)                        ~90
+    recoil / zoom / roll / overlay / kick-flash plumbing           ~200
+
+  Of ~1,574 lines, roughly 80 are the weapon. RS expresses about 60 of
+  those 80 in TWO FACTORY CALLS. The rest is either owned generically
+  here already (RS_Catalog, PACK, HiFiFX) or deliberately not done --
+  every overlay, counter and zoom state is inapplicable under the VR
+  no-weapon-sprites rule, by design and not by shortfall.
+
+  RESULT
+    Primary            fully expressible today, zero new code.
+    Alt payload        fully expressible today (MakeHeavy + a looping-
+                       explode projectile class + ExplosionVisual).
+    Alt cost/gate      fully expressible today (AmmoCost).
+    Alt TRIGGER        0% expressible. windup, indefinite hold, fire-on-
+                       release, charge aura, cancel, sound ladder --
+                       every one a gap, all in section 4's one dimension.
+
+  The charge aura specifically: RadialRadius / RadialDamage ALREADY EXIST
+  on the monster side. They simply cannot be attached to a hold phase.
+  That is what WindupProfile is for -- reuse, not a new mechanic.
+
+================================================================================
+8. WHAT NOT TO IMPORT
+================================================================================
+
+  1. THE ELEMENT. PB's plasma weapon is thermal to its core, and rs_16
+     bans elementals -- stock GunBonsai already owns fire/ice/poison/acid
+     and this mod's identity is Doom's own guts. An RS version is kinetic
+     or explosive, or it is a MONSTER SIGNATURE. This is the largest
+     identity cut and it is not small; say so out loud rather than
+     quietly shipping a reskin.
+
+  2. DUAL-WIELD BY DUPLICATION. PB implements akimbo by duplicating the
+     entire weapon -- ~400 lines, a second ammo pool, parallel reload
+     chains. That is exactly the failure mode rs_16's DUAL-WIELD
+     QUARANTINE exists to prevent (ONE-WAY only, A buffs B never back, no
+     loops, prototype exactly one, LAST).
+
+  3. PELLET COUNT FROM A SOURCE WEAPON. Standing trap for any imported
+     shape: GH_AssaultShotgun is 14 pellets against VR_Shotgun's 7. A
+     profile that carries its source pellet count DOUBLES PELLETS FOR
+     FREE -- Promotion's own reward lane, the banned move. An imported
+     shape may set spread, cadence, damage and cost. It must never raise
+     PelletOverride.
+
+  4. CONVERGENCE. If an AutoShotgun-style card is offered on every
+     shotgun, every shotgun becomes the same gun -- and specifically, the
+     class shotgun becomes GH_AssaultShotgun, which already exists as a
+     pickup, so the card competes with a real weapon. Profiles must be
+     MULTIPLIERS ON THE HOST'S ROLL, never absolute statlines. Echo is
+     the precedent: built from SavedOriginal.Clone(), so an SSG's echo
+     and an SMG's echo genuinely differ because the rolls do.
+
+================================================================================
+9. ONE BASE CLASS  [BUILT -- recorded because it was almost mis-stated]
+================================================================================
+
+  EVERY GUN IS AN RS_Weapon. There is no RS_GH_Weapon base class and
+  never was. Verified 2026-08-04:
+
+    11 VR_*    in zscript/weapons/rs_weapon/     : RS_Weapon
+    21 RS_GH_* in zscript/weapons/rs_gh_weapon/  : RS_Weapon
+    RS_GH_Weaponset (VR_PlayerClasses.zs:212) is a PLAYER CLASS
+      : VR_DualClassBase -- alongside VR_Dual_Pistol / Revolver / Rifle /
+      SMG / Shotgun / SSG / Chaingun. Not a weapon base.
+
+  WHY THIS MATTERS TO SECTION 4: the trigger-shape fields land ONCE, on
+  RS_AttackProfile, and all 32 weapons have them. There is no second
+  system to port to, no parallel dispatch, no per-set work. A grammar
+  addition here is genuinely universal.
+
+  SET SEPARATION IS ALREADY A FILTER, NOT A REFACTOR. `set:gunstarheroes`
+  vs `set:radiantsilvergun` is a live keyword on every weapon's
+  GetBaseKeywords(). Anything that needs to scope to one set -- an affix
+  pool, a drop table, a menu -- queries that. Nothing needs moving.
+
+================================================================================
+10. THE PAYLOAD SUPPLY LINE -- STATE OF THE ART CATALOGUE
+================================================================================
+
+  New attacks need new payload content, and payload axes absorb content
+  as CATALOG ENTRIES (section 2). So the supply line is the sprite/sound
+  catalogue. Its state, measured 2026-08-04:
+
+  WHAT EXISTS
+    art_index.json        1,722 tokens across 284 FOLDERS. Every entry
+                          carries { dir, frames }. Rebuilt reproducibly
+                          by build_art_index.py over the whole ART SOURCE
+                          tree. This is a SHOPPING CATALOGUE -- a token
+                          here is art that COULD be copied, not art that
+                          ships (rs_16, monsters-stand-alone law).
+    rs_12_catalog_index   439 sequences DESCRIBED, one line each:
+                          SEQNAME | frames | STATUS | axes | flavor |
+                          one-phrase visual. Combat FX only.
+    fx_inventory_staging/ 5 reports -- fire, smoke, explosions, gore,
+                          misc. The raw viewing work behind rs_12.
+    rs_MASTER_FX_CATALOG  172 lines. PROTECTED (see CLAUDE.md).
+
+  WHAT IS MISSING -- three jobs, wildly different costs. Do not treat
+  them as one task; the last one is the only expensive one.
+
+    (a) PER-FOLDER INVENTORY REPORT -- FREE TODAY, NO NEW SCANNING.
+        art_index.json already carries `dir` on every entry, so
+        "how many sequences in each folder, and which" is a pure rollup
+        of data already on disk. 284 folders, largest being
+        SPRITES (331), CH/sprites/trashmon (47), SPRITES/FATALITY (44),
+        CH/sprites/fx (40). One script, one report.
+
+    (b) BACKFILL rs_MASTER_FX_CATALOG -- CHEAP, NO VIEWING.
+        SIX of its sections still read "(pending inventory pass)". The
+        data for them already exists in fx_inventory_staging/. This is a
+        MERGE of work already done, not new work. It is also the reason
+        rs_12's own header says the master catalogue's per-section
+        entries are placeholders and "the data lives in the reports" --
+        a confusing split that this closes.
+        CAUTION: rs_MASTER_FX_CATALOG is a PROTECTED file. Append and
+        fill in place; never restructure or regenerate it.
+
+    (c) DESCRIBE THE REST -- THE REAL JOB.
+        439 of 1,722 tokens are described, roughly 25%. The other ~1,280
+        have a name, a folder and a frame string, and nothing about what
+        they LOOK like. Only viewing frames produces that, which is
+        exactly how the protected catalogue was built and exactly why it
+        is protected.
+        rs_16's standing warning applies with full force here:
+        FILENAMES LIE. 40 sprites were once assumed to be revolver muzzle
+        flashes from the name prefix alone and were unrelated voxel-pack
+        content. A descriptor pass that pattern-matches names instead of
+        opening files produces a catalogue that is worse than none,
+        because it reads as authoritative.
+
+  SCOPE NOTE: (a) and (b) are available immediately and independent of
+  everything else in this document. (c) is a large, separate effort and
+  should be scoped on its own terms, not smuggled in as part of an
+  attack-grammar change.
+
+================================================================================
+11. STATUS AND NEXT
+================================================================================
+
+  NOTHING IN SECTION 4 IS BUILT. No fields added, no code written, no
+  compile attempted. This document is the proposal and the reasoning.
+
+  SEQUENCING -- this reworks the attack layer's core abstraction and must
+  land on a green build, not before one. rs_16 records two unproven bets
+  already sitting in the compile path: DamageFunction across ~71 sites
+  (all standing or falling together) and RS_Score.zs. Neither has been
+  compiled. Adding a third unproven change on top makes a failed build
+  unattributable.
+
+  ORDER
+    1. Green build. (rs_16's list: compile, boot, one punch-list, one
+       fix batch.)
+    2. Prove inherited state labels resolve. ONE weapon, end to end.
+       If they do not, section 4's landing site is wrong and the whole
+       proposal needs rethinking before any field is added.
+    3. WindupTics + FireOnRelease on that one weapon. Simplest real
+       case: a charge shot.
+    4. BurstCount / BurstDelayTics -- retires RS_GH_Pistol's fake burst
+       and makes its `trigger:burst` keyword mean something.
+    5. RoFMult -- the AutoShotgun card becomes writable.
+    6. WindupProfile last. It is the one with a recursion hazard.
+    7. WindupProfile last. It is the one with a recursion hazard.
+
+  INDEPENDENT OF ALL OF THE ABOVE -- can land any time, including first,
+  and none of them touch the compile path:
+    * The 19-string ProfileName rename (section 5).
+    * The per-folder art inventory report (section 10a) -- free.
+    * The rs_MASTER_FX_CATALOG backfill (section 10b) -- a merge.
+
+  OPEN QUESTION FOR THE OWNER: whether a rotation should be able to mix
+  trigger shapes -- beat 1 instant, beat 3 a charge. The slot machinery
+  allows it mechanically. Whether it is legible to a player pulling a
+  trigger is a design call, not an engineering one, and it is not
+  answered here.
+
+================================================================================
