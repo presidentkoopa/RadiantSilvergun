@@ -69,9 +69,17 @@
 //     Script3's SpecialSoulCheck spawns are ACS-driven and dropped.
 //   * T03's CallACS CH_CyanBounce guard on the leap -- ACS. The leap it
 //     guards IS ported.
-//   * T08's A_RadiusGive("RevSpeedBuff2"): the CH item's whole body is
-//     ACS_NamedExecute("BrownRevSPEED2"), so porting it imports nothing.
-//     The heal half of the gib rally IS ported.
+//   * [REVERSED 2026-08-04 -- this entry was WRONG. Corrected in place
+//     rather than deleted: a deleted claim gets rediscovered.]
+//     T08's A_RadiusGive("RevSpeedBuff2") was dropped because "the CH
+//     item's whole body is ACS_NamedExecute("BrownRevSPEED2"), so porting
+//     it imports nothing." The body is empty BECAUSE the behaviour is in
+//     the ACS: BrownRevSPEED2 DOUBLES the recipient's speed for 210 tics.
+//     Rebuilt as RS_RevSpeedBuff in RS_MonsterCommands.zs and wired back
+//     into See.T08 (twice per walk cycle, radius 256) and XDeath.T08
+//     (radius 1200), exactly where CHP 08_BR.txt:32,37,74 has them.
+//     Only the heal half of the gib rally had survived. See
+//     docs/rs_19_acs_inventory.txt.
 //   * T07's A_SpawnItemEx("FBSkelOnFire_C") on spawn -- that actor does
 //     not exist anywhere in CH or CHP (searched both decorate trees).
 //     REPORTED, not substituted.
@@ -814,10 +822,17 @@ class RS_Revenant : RS_MonsterMaster replaces Revenant
 		"INCA" AAB 2 { A_Chase(); }
 		"INCA" A 0 { A_SpawnItemEx("RS_BrownVileGas", random(-2, 2), random(-2, 2), random(8, 32), 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
 		"INCA" BCC 2 { A_Chase(); }
+		// RESTORED (rs_19 / L3). CHP 08_BR.txt:32. The Incarnate hastens its
+		// pack TWICE per walk cycle -- a constant aura, not an event. Dropped
+		// by the import as an "empty ACS wrapper"; BrownRevSPEED2 doubles the
+		// recipient's speed for 210 tics. See RS_MonsterCommands.zs.
+		"INCA" A 0 { A_RadiusGive("RS_RevSpeedBuff", 256, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_Revenant"); }
 		"INCA" A 0 { A_SpawnItemEx("RS_BrownVileGas", random(-2, 2), random(-2, 2), random(8, 32), 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
 		"INCA" DDE 2 { A_Chase(); }
 		"INCA" A 0 { A_SpawnItemEx("RS_BrownVileGas", random(-2, 2), random(-2, 2), random(8, 32), 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
 		"INCA" EFF 2 { A_Chase(); }
+		// CHP 08_BR.txt:37 -- the second of the two per-cycle casts.
+		"INCA" A 0 { A_RadiusGive("RS_RevSpeedBuff", 256, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_Revenant"); }
 		"INCA" A 0 { A_SpawnItemEx("RS_BrownVileGas", random(-2, 2), random(-2, 2), random(8, 32), 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
 		Loop;
 	Melee.T08:
@@ -850,6 +865,11 @@ class RS_Revenant : RS_MonsterMaster replaces Revenant
 		"INCX" D 5 Bright { A_NoBlocking(); }
 		"INCX" AAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_BrownVileGas", random(-2, 2), random(-2, 2), random(8, 32), random(1, 11), 0, random(0, 4), random(0, 360), SXF_NOCHECKPOSITION); }
 		"INCX" A 0 { A_RadiusGive("Health", 1200, RGF_MONSTERS|RGF_EXFILTER, 500, "RS_Revenant"); }
+		// CHP 08_BR.txt:74 -- the dying gift. Note the radius: 1200, not the
+		// 256 of the walking aura. The Incarnate's death hastens the whole
+		// room, and it pairs with the 500 heal on the line above, which the
+		// import kept while dropping this half.
+		"INCX" A 0 { A_RadiusGive("RS_RevSpeedBuff", 1200, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_Revenant"); }
 		"INCX" EFGHIJ 5 Bright;
 		"INCX" K -1;
 		Stop;

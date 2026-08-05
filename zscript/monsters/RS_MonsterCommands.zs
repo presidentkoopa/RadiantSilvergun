@@ -178,6 +178,73 @@ class RS_BrownImpCommand : RS_PowerPackHaste
 }
 
 // ---------------------------------------------------------------------
+// THE REVENANT LINE -- CH's BrownRevSPEED2, whose own author labelled it
+// "//THIS SCRIPT CAN GO BURN IN HELL!!!" and was not wrong.
+//
+// WHAT IT ACTUALLY DOES, once the machinery is stripped: DOUBLE the
+// target's speed for 210 tics, then put it back. That is the whole
+// mechanic. Everything else in those 45 lines exists to emulate, in ACS,
+// what a Powerup gives you for free:
+//   * RevSpeedBuff2 / RevSpeedBuff3 are not items, they are BOOLEANS --
+//     token inventory used to record "is the buff running".
+//   * the NOSKIN actor flag is ALSO abused as a second such boolean,
+//     because the first pair could not be made reliable.
+//   * every "SetActorProperty(SPEED, Normal / 2)" branch is the UNDO
+//     path: `Normal` is read at script entry, so on an already-doubled
+//     monster, halving is what restores it. It reads like a penalty and
+//     is actually a restore.
+//   * `Nope` is a script-local, zero on every entry, so the guard it
+//     looks like it provides does not exist -- same defect as the other
+//     four scripts in this file.
+// A Powerup renews its timer on re-application and runs EndEffect once,
+// which is precisely the behaviour all of that was reaching for.
+//
+// NO BOSS EXEMPTION, deliberately: unlike PESPEED and the *Command
+// scripts, BrownRevSPEED2 has no CheckFlag(0,"BOSS") guard. Matched.
+// ---------------------------------------------------------------------
+class RS_RevSpeedBuff : Powerup
+{
+	bool applied;
+
+	Default
+	{
+		Powerup.Duration 210;        // CH: Delay(210).
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.ALWAYSPICKUP
+		+INVENTORY.NOSCREENBLINK
+		+INVENTORY.UNDROPPABLE
+		-INVENTORY.INVBAR
+	}
+
+	override bool TryPickup(in out Actor toucher)
+	{
+		if (!toucher || !toucher.bISMONSTER)
+			return false;
+		return Super.TryPickup(toucher);
+	}
+
+	override void InitEffect()
+	{
+		Super.InitEffect();
+		if (!Owner)
+			return;
+		Owner.Speed *= 2.0;
+		applied = true;
+	}
+
+	override void EndEffect()
+	{
+		// Halve rather than restore a captured absolute -- CH's own undo
+		// path, and it means a speed change from anything else during the
+		// buff survives instead of being stomped.
+		if (applied && Owner)
+			Owner.Speed *= 0.5;
+		applied = false;
+		Super.EndEffect();
+	}
+}
+
+// ---------------------------------------------------------------------
 // GUARD -- the DamageFactor line (BrownVileCommand, BrownMindCommand).
 //
 // PowerProtection already models "scale damage received" and this repo
