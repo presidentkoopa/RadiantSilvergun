@@ -177,3 +177,131 @@ STILL OWED -- NEEDS ONE COMPILE
        errors, any existing 1-frame sprite works; the model is what draws.
 
 ================================================================================
+
+
+================================================================================
+   APPENDIX A -- THE FIVE-AGENT CH SWEEP.  2026-08-05.  THE WORKING SET.
+================================================================================
+
+THE SIX RULES THIS SWEEP ESTABLISHED
+
+ 1. CHP INVERTS CH FLAGS, IT DOES NOT ONLY ADD TO THEM. A union pass is
+    wrong. Removal sites: -MISSILEEVENMORE on Revenant T03/T07/T08
+    (08_CY:10, 08_F:9, 08_BR:10) but NOT T04; Imp TEX (03_KX:8); Baron
+    T09/T12 (15_GY:6, 15_W:3). -MISSILEMORE on Caco T11/TEX (09_K:10,
+    09_KX:11), PainEl T03 (10_CY:9), Mastermind T06 (16_A:8), Arachno
+    T03 (12_CY:10). -FLOATBOB Caco T03, PainEl T07. -NOPAIN LostSoul
+    T07, Baron T07, Mastermind T10, Cybie T06. -FLOORCLIP Mancubus T06.
+    -BOSS PainEl T09. -FULLVOLACTIVE Cybie T08.
+    AND THE OTHER WAY: +MISSILEEVENMORE added to Mancubus T12 (13_W:9)
+    and Caco T08 (09_BR:9); +FLOAT/+NOGRAVITY/+FLOATBOB re-enabled on
+    Arachnotron T03/T05/T07 and Mastermind T10 where CH sets all three
+    MINUS. The row being an ABSOLUTE statement is what survives this.
+
+ 2. "NONE STATED" MAPS ONTO WHETHER THE TIER HAS A VANILLA PARENT.
+    Tiers declared : HellKnight / : PainElemental / : Doomimp state
+    almost nothing and lean on the engine; bare-Actor tiers state
+    everything. Inventing a default is wrong in OPPOSITE directions on
+    the two kinds.
+
+ 3. FOUR TIERS HAVE NO CH PARENT AT ALL, whole block is CHP's:
+    Chaingunner T09 (04/04_GY), Demon T09 (06/06_GY), Mastermind T12
+    (16_W), Arachnotron T14 (12_WX), plus every Archvile/Cyberdemon EX
+    rung. A "read the CH parent per tier" loop returns EMPTY here.
+
+ 4. ORPHAN DUPLICATES AT THE CHP DECORATE ROOT disagree with the folder
+    copies: 04GY.txt, 06GY.txt, 14WX.txt, 16W.txt. DECORATE.txt includes
+    the FOLDER copies (lines 704, 735). Root copies are dead.
+
+ 5. PROPERTIES SET TWICE IN ONE BLOCK -- DECORATE TAKES THE LAST:
+    MeleeRange 102 then 88 (Revenant T03, T08); Mass 1500 then 2000
+    (Mancubus T05/T07/T10); Mass 3000 then 1000 (CyanCybie2 CY:793/812);
+    xScale 1.0 then 1.15 (BrownBaron2); ice 0.15 then 0.50 (BrownMind2
+    MM:86/88); Fire 0.75 then 0.5 (YellowHK); fire 8 then 4
+    (YellowDemon); Fire 0.7 then 1.50 (CyanBaron2 -- the ICE baron
+    effectively BURNS).
+
+ 6. RUNTIME FLAG CHANGES LIVE IN THE STATE LAYER, NOT THE ROW. Red
+    Revenant, Red Fatso, WhiteSpider3, Archvile T10/T12, Mastermind
+    T05/T10/T11, Cybie T05/T06/T09/T10/T11 all turn MISSILEEVENMORE on
+    mid-fight with A_ChangeFlag. Do NOT put those in TierData.
+
++AVOIDMELEE -- WHERE IT ACTUALLY IS
+  ZERO hits in Imps, Demons, spectres, lostsouls, Cacodemons, Revenants,
+  Fatsos, Spiders, Hellknights, Barons, CYBIES. It is a ranged
+  attacker's flag: Zombieman 9/14, Shotgunner 4, Chaingunner 7,
+  PainElemental T12 only, Archvile T12+T14 only, Mastermind T12 only.
+  Do not "even it out".
+
+SPECIES MAP -- THE INFIGHTING WEB
+  Imp        "Imp" all 14 -- UNIFORM.
+  Baron      "BaronOfHell" all 13, SHARED with Hell Knights (except HK
+             T12) and its own tentacles -- UNIFORM.
+  Chaingunner SIX: "CGuy"(T00) "Cguy"(T02, case-only) "Cguy2"(T04)
+             "Cguy3"(T05,T07) "BrownCguy"(T08) "Science"(T12); 7 none.
+  Shotgunner "SGuy"(T00,T02) "SGuy2"(T04,T08) "SGuy3"(T01)
+             "BlackSG"(T11) "BENE"(TEX); T09 none.
+  Mastermind "MMind2"(T00) "MMind"(T01,02,07,08,09,12) "MMind3"(T04);
+             T03,05,06,10,11 none. SpecialSpider1 -- the BLUE mind's
+             summon -- carries "MMind3", the PURPLE one's. CH bug;
+             reproduce verbatim.
+  Cyberdemon "Cybie" T00-T09+TEX; "Daikatana" T12,T14; T10,T11 none.
+             SpecialHK, the blue cybie's escort Hell Knight, is given
+             "Cybie" -- folded into the cyberdemon bloc.
+  Archvile   "vile1" most; NONE on T03/T12/RedArch2; "MasterofTime" T14.
+             THE RESURRECTOR'S SUMMONS SHARE IT: SpecialRev (AV:3008)
+             and SpecialVile (AV:3445) are both Species "Vile1" -- the
+             Undertaker/MrBones pattern again.
+  Demon      "Demon1" most; "Demon"(T06); "Butcher"(T11).
+  Spectre    "Demon1" most; "Demon"(T06 -- ONE CHARACTER drops that tier
+             out of the bubble); none on T11/T12/TEX.
+  LostSoul   "LSoul" T00-T10; "HORNET"(T11 Queen Bee, swarm is damagetype
+             "hornet" with damagefactor "hornet",0); "whitelsoul"(T12,TEX).
+  Mancubus   "Fatso"(7) "Fatso2"(T05,T07,T10); T06,11,12,TEX none.
+  PainElem   "PE" all but T11. T12 SHARES "PE" with MiniSentinelPE, its
+             escort -- the only PE tier that species-protects its summon.
+             T11 Overlord instead uses DamageFactor "hornet",0.
+  HellKnight "BaronOfHell" except T12 "WhiteHK"; T03/T08 none.
+  Revenant   "revenant" most; "MontyP"(T11,TEX); T12 Lich none AND
+             +NOINFIGHTING.
+  Arachnotron "Spider1" most; "WhiteSP"(T12,T14,T15); T04 none AND no
+             +DONTHARMSPECIES -- the designated infighter on two axes.
+
+TIERS CHP SHIPS THAT WE HAVE NO CLASS FOR
+  15_R2 RedBaron1      2000 HP GROUND bruiser, NOT the Fallen -- keeps
+                       "Blessed", no +Float. CHP ships two red-Baron
+                       tier files; we have one.
+  14_R2 RedArch2       CH's RedArch is an ACS coin-flip between RedArch3
+                       and RedArch2. The red vile slot is TWO monsters.
+  17_WX WhiteCybieEX2  1.85 MB, Health 32767, "Daikatana". A full T14
+                       rung; our header stops at TEX.
+  05_K2 BlackLSoulOld  second, weaker Queen Bee (666 vs 1500 HP).
+  12_W2 WhiteSpiderOld
+  Phase forms with their OWN property blocks, spawned mid-fight and not
+  spawnable tiers: CommonBlackArchEX3, CommonWhiteArchEX3,
+  CommonWhiteCybieEX3.
+
+BUG IN OUR EXISTING CODE -- NOT A MISSING TABLE
+  RS_BaronFallen (RS_Baron.zs:1493) against CH RedBaron2:
+    Height 56, CH says 48   (Barons.txt:3606)
+    Mass  400, CH says 200  (Barons.txt:3608)
+    MISSING DamageFactor Melee,5.0 (Barons.txt:3616-3617). The Fallen is
+    meant to take FIVE TIMES melee damage. That is its entire
+    counterplay and we do not have it.
+
+THREE DAMAGE ROLLS ON TIER PARENTS -- DO NOT FLATTEN
+  BlackDemon3    Damage (random(10,40))  Demons.txt:1816
+  WhiteDemon2    Damage (random(20,60))  Demons.txt:2140
+  FireBluCybie2  Damage (random(15,70))  CYBIES.txt:1974
+  All three go through DamageFunction per CLAUDE.md.
+
+SELF-IMMUNITY DAMAGE TYPES -- LOAD-BEARING
+  "DIMp",0 family-wide; "Moloch",0 (RedCybie CY:3319);
+  "Supremesmith",0 (17_KX:12); "stophurtinghimalready",0 (17_WX:16);
+  "hornet",0 (BlackPE2 thepains:1988). These are how a boss survives its
+  own attack. Drop one and the boss kills itself.
+
+GIBHEALTH
+  Stated NOWHERE in Archviles/MASTERMINDS/CYBIES. FIVE MANCUBUS PARENTS
+  HAVE A POSITIVE GibHealth 70, and GreenDemon has +45; CHP flips them
+  negative. Porting CH's value makes those monsters explode on any death.

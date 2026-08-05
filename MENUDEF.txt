@@ -389,6 +389,12 @@ OptionMenu "RS_MonsterOptions"
 	Option "Staggered transform (flash + delay)",  "rs_mon_transform_tell", "OnOff"
 
 	StaticText " "
+	StaticText "Aggression", 1
+	// 0.0625 is CH's own value where it stacks both missile flags, and
+	// it makes a monster stand still and hose. 0 = raw CHP.
+	Slider "Missile-rate floor (0 = raw CHP)", "rs_mon_missilechance_floor", 0.0, 1.0, 0.0625, 4
+
+	StaticText " "
 	StaticText "No More Hitscans", 1
 	Option "Monster bullets travel", "rs_nohitscan_enabled", "OnOff"
 	Slider "Bullet speed", "rs_nohitscan_speed", 8, 1024, 8, 0

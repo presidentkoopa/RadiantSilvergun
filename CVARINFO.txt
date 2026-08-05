@@ -487,3 +487,11 @@ server float rs_nohitscan_alpha   = 0.5;
 // most monsters are never touched, and every one of those now costs zero
 // actors, zero thinking and zero draw calls.
 user bool rs_hpbar_onlydamaged = true;
+
+// --- Monster missile-rate floor -----------------------------------
+// CH stacks +MISSILEMORE with +MISSILEEVENMORE on some tiers, which is
+// MissileChanceMult 0.0625. At that value a monster at 500 units fires
+// on ~93% of its chase decisions -- it stops moving and hoses you. The
+// tier tables keep CH's real value; this is the floor applied at use.
+// 0 = no floor, full CHP fidelity. Higher = calmer.
+user float rs_mon_missilechance_floor = 0.125;

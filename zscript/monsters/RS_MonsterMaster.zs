@@ -703,7 +703,28 @@ class RS_MonsterMaster : Actor abstract
 		// AVOIDMELEE keeps the monster at range instead of closing.
 		bAVOIDMELEE       = (f & RS_TF_AVOIDMELEE)       != 0;
 		if (r.missileChance > 0)
-			MissileChanceMult = r.missileChance;
+		{
+			// THE LOCK VALVE. Owner-reported, and the mechanism checks
+			// out: P_CheckMissileRange does
+			//     dist = Distance2D - 64;
+			//     if (MeleeState == NULL) dist -= 128;
+			//     pr() >= min(int(dist * MissileChanceMult), MinMissileChance)
+			// so at 0.0625 -- CH stacking +MISSILEMORE with
+			// +MISSILEEVENMORE -- a monster at 500 units rolls
+			// (500-192)*0.0625 = 19 and fires on ~93% of chase
+			// decisions. It stops moving and hoses. Repointing
+			// MeleeState (see ApplyTier) made this WORSE, because those
+			// tiers now also get the -128 they were wrongly missing.
+			//
+			// The ROW KEEPS CH's REAL VALUE -- it is ground truth and a
+			// clamped table is a table nobody can audit. The floor is
+			// applied here, at use, and is a cvar so it can be tuned or
+			// switched off (0) for full CHP fidelity without a rebuild.
+			double floorMult = RS_MonOptF("rs_mon_missilechance_floor", 0.125);
+			MissileChanceMult = (floorMult > 0)
+			                    ? max(r.missileChance, floorMult)
+			                    : r.missileChance;
+		}
 
 		// INFIGHTING AND PASS-THROUGH.
 		bDONTHARMSPECIES  = (f & RS_TF_DONTHARMSPECIES)  != 0;
@@ -1795,6 +1816,14 @@ class RS_MonsterMaster : Actor abstract
 	{
 		let cv = CVar.FindCVar(name);
 		return cv ? cv.GetBool() : def;
+	}
+
+	// Float form. Same contract: missing cvar falls back to the default,
+	// so the tree still runs if CVARINFO and the code get out of step.
+	static double RS_MonOptF(string name, double def)
+	{
+		let cv = CVar.FindCVar(name);
+		return cv ? cv.GetFloat() : def;
 	}
 
 	// =================================================================
