@@ -24,36 +24,55 @@ HOW THIS WAS BUILT, AND WHAT IT IS WORTH
   This file rots. Prune completed entries; do not let it accumulate.
 
 ================================================================================
-PART A -- THE GATE.  Nothing else moves until this does.
+PART A -- THE GATE.  *** FIRST COMPILE LOG ARRIVED 2026-08-04. ***
+Four of five entries here are now CLOSED. Kept with their outcomes rather
+than deleted, because what a bet PROVED is worth as much as what it cost.
 ================================================================================
 
-  A1. GET ONE COMPILE LOG FROM THE OWNER.
-      The single blocking dependency for the entire project. No lane can
-      compile; the owner boots and pastes.
+  A1. GET ONE COMPILE LOG FROM THE OWNER.  -- DONE.
+      Arrived 2026-08-04: 11 script errors across 5 files, plus one
+      non-fatal JIT error. Cleared in a single pass (see A2-A4, A6).
 
-  A2. VALIDATE DamageFunction.
-      75 sites across 12 files, zero `Damage (random(` remaining -- all
-      stand or fall together. Fallback if rejected is flattening to
-      constants, which destroys CH's damage spreads, so this needs to work.
-      THE NUMBER IS 75, NOT ~71. Verified two ways (match count and line
-      count agree, so no line carries two). rs_16 and rs_17 both say "~71"
-      and a third lane repeated it in handoff; the tilde has been carrying
-      a stale figure between three documents. Corrected at source.
+  A2. VALIDATE DamageFunction.  -- PROVEN. THE BET PAID.
+      75 sites across 12 files, flagged by rs_16 as having ZERO precedent
+      in this repo and standing or falling together. NOT ONE `damage:`
+      ERROR IN THE LOG. The rolls are safe, the flatten-to-constants
+      fallback is dead, and CH's damage spreads survive.
+      Footnote kept for the discipline: the number is 75, not the "~71"
+      that rs_16, rs_17 and a third lane's handoff all carried. Measured
+      two ways. A tilde is where a stale figure hides.
 
-  A3. VALIDATE RS_Score.zs.
-      Parses clean per the 6f032dca log -- the compiler passed zscript.txt
-      line 8 and said nothing, while errors began at line 52. Full compile
-      is still unconfirmed; reverts via 9716f909.
+  A3. VALIDATE RS_Score.zs.  -- COMPILED, AFTER TWO SCOPE FIXES.
+      Both errors were scope, both cascaded, and both are worth knowing:
+      Spawn() unqualified inside an EventHandler (not an Actor -- no Spawn
+      in scope; use Actor.Spawn), and Get() called from ui-scope
+      RenderOverlay while defaulting to play (marked clearscope). The file
+      ALREADY had this exact fix on CVInt/CVBool/ScoreEnabled with a
+      comment explaining it; Get was simply missed by that pass.
 
-  A4. VALIDATE RS_ScoreHUD.zs + RS_ScoreRevival.zs.
-      Genuinely never through a compiler; this is where first-boot breakage
-      should be expected. Reverts by deleting two include lines at
-      zscript.txt:228-229 without touching the core.
+  A4. VALIDATE RS_ScoreHUD.zs + RS_ScoreRevival.zs.  -- PASSED CLEAN.
+      The two files rs_16 predicted would break -- never through any
+      compiler -- produced NOTHING. RS_ScoreHUD is consistently ui-scoped
+      on every method; RS_ScoreRevival's `invoker.` misuse had already been
+      caught by the score lane's static review. The static review worked.
 
-  A5. SPOT-CHECK MissileChanceMult DIRECTION IN PLAY.
+  A5. SPOT-CHECK MissileChanceMult DIRECTION IN PLAY.  -- STILL OPEN.
       The 0.5 / 0.125 / 0.0625 values are reasoned from the old flags'
-      semantics, not compiler-confirmed. If enraged monsters feel passive,
-      that is the line to check.
+      semantics, not compiler-confirmed, and a compile log cannot confirm
+      them. If enraged monsters feel passive, that is the line to check.
+      THIS IS NOW A B-LIST ITEM -- it needs play, not a build.
+
+  A6. EMPTY-STRING STATE LABELS.  -- FOUND AND CLOSED BY THE SAME LOG.
+      `A_Chase("", "")` is the DECORATE idiom for "no melee, no missile";
+      in ZScript "" is an EMPTY label, not an absent one, and the spelling
+      is null. 6 errors, 5 lines, 2 functions (A_Chase and
+      A_JumpIfHigherOrLower -- which is why RS_Baron appeared in a log
+      otherwise about projectiles).
+      SWEPT, NOT SPOT-FIXED: 8 distinct A_ functions in this tree receive
+      "", but only those 2 take state labels. The other 6 -- A_CustomRailgun
+      colours, A_Quake / A_QuakeEx / A_CustomMeleeAttack / A_VileAttack
+      sounds, A_SetTranslation -- take "" legitimately. So 5 lines is the
+      WHOLE class, verified rather than assumed.
 
 ================================================================================
 PART B -- THE BOOT WALKTHROUGH.  Agreed protocol, still owed.
@@ -131,6 +150,21 @@ PART D -- MONSTER AND LINT CORRECTNESS.
       It made `PUFF DE` -- the literal typo the lint lane was opened to fix
       -- invisible, along with any bad frame on MISL, BAL1, TROO, POSS. If
       the vanilla table gives a false failure, FIX THE TABLE.
+
+  D5. RS_MonsterAim's JIT ERROR.  -- CLOSED 2026-08-04, and the only item
+      in the first log that was NEVER FATAL.
+      GZDoom's JIT cannot emit a VECTOR OUT-PARAMETER, so `out Vector3`
+      made the CALLER (GetLeadAngle) fail to JIT and silently fall back to
+      the interpreter -- working, just slow and noisy. Rewritten to RETURN
+      the vector with an `out bool solved`; scalar out-params are fine, and
+      vector returns have working precedent at Leech.zsc:8 (WigglePos).
+      Behaviour identical -- the early returns now yield targetPos, exactly
+      the fallback GetLeadAngle used to write by hand.
+      ONE `out Vector3` existed in the whole tree, so this was isolated
+      rather than a class. Recorded because the NEXT one will not announce
+      itself as a compile error either.
+      NOTE: RS_MonsterAim is still wired to no monster -- the utility works
+      and nothing calls it. That is a content decision, not a defect.
 
 ================================================================================
 PART E -- THE ATTACK GRAMMAR (rs_17).  Nothing built. Lands on a green
@@ -364,9 +398,11 @@ useful part.
 
 ================================================================================
 END OF REGISTER.  Generated 2026-08-04.
-53 entries: 47 objectives, plus Part H's 5 standing constraints (tests, not
+55 entries: 49 objectives, plus Part H's 5 standing constraints (tests, not
 tasks) and Part K's single correction record.
-Counts by part -- A5 B3 C6 D4 E9 F8 G6 H5 I4 J2 K1.
+Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1.
+CLOSED SO FAR: A1, A2, A3, A4, A6, D5, J1 -- seven, all on 2026-08-04.
+REMAINING OPEN: 42.
 
   REVISION, same day: first draft was built from a 451-line WORKING COPY of
   rs_17 read while its authoring lane was still editing. The committed file
