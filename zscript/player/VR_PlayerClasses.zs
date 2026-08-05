@@ -76,7 +76,7 @@ class VR_Dual_Pistol : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Pistols";
-		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist";
 		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_Pistol";
 		Player.StartItem "VR_Pistol4";
@@ -94,7 +94,7 @@ class VR_Dual_Revolver : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Revolvers";
-		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist";
 		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_Revolver";
 		Player.StartItem "VR_Revolver4";
@@ -112,7 +112,7 @@ class VR_Dual_Rifle : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Rifles";
-		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist";
 		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_Rifle";
 		Player.StartItem "VR_Rifle4";
@@ -130,7 +130,7 @@ class VR_Dual_SMG : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual SMGs";
-		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist";
 		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_SMG";
 		Player.StartItem "VR_SMG4";
@@ -148,7 +148,7 @@ class VR_Dual_Shotgun : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Shotguns";
-		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist";
 		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_Shotgun";
 		Player.StartItem "VR_Shotgun4";
@@ -166,7 +166,7 @@ class VR_Dual_SSG : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Super Shotguns";
-		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist";
 		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_SuperShotgun";
 		Player.StartItem "VR_SuperShotgun4";
@@ -184,7 +184,7 @@ class VR_Dual_Chaingun : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Chainguns";
-		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist";
 		Player.StartItem "VR_Fist2";
 		Player.StartItem "VR_Chaingun";
 		Player.StartItem "VR_Chaingun4";
@@ -215,7 +215,7 @@ class RS_GH_Weaponset : VR_DualClassBase
 	{
 		Player.DisplayName "Vanilla+";
 
-		Player.StartItem "Fist";
+		Player.StartItem "VR_Fist";
 		Player.StartItem "VR_Fist2";
 
 		// Reserve ammo -- covers the starting pistols (or rifles, if the
