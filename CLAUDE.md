@@ -123,28 +123,30 @@ that can only inspect our own tree tells you nothing you did not already believe
 Between the compiler, a boot, and CHP's own files, everything those five scripts
 claimed to cover is covered by something that cannot flatter us.
 
-## Parallel lanes
+## One repo, one branch — consolidated 2026-08-05
 
-Several sessions run at once, some sharing the `E:\RS_Main` working tree, some
-in their own worktrees. Consequences that have already bitten:
+**`main` is the only branch and `E:\RS_Main` is the only worktree.** The owner
+consolidated on 2026-08-05: everything merged to `main`, pushed, and the lane
+branches and their worktrees deleted. Work directly on `main`. Do not create a
+branch or a worktree unless the owner asks for one.
 
-- **Never `git add -A` in a shared working tree.** One lane swept another's
-  in-flight edits into its own commits, so `git log` blames it for files it
-  never wrote. Stage explicit paths.
-- **Count against `main`, not your worktree.** A branch that forked days ago
-  cannot see what `main` added; every count derived from it is wrong.
-- **Merge, don't rebase, once a branch is pushed** — rebasing rewrites published
-  history other lanes may have pulled. Rebase is right only while unpushed.
-- **Two lanes making the *identical* edit is not a conflict.** Git's three-way
-  merge absorbs it. Test with `git merge-tree --write-tree A B` before asking
-  anyone to back work out.
-- **Cross-lane damage is found by building, not by a script.** `crosscheck.py`
-  used to claim it projected every lane onto `main` and reported union-only
-  breakage. It went with the rest of the tooling on 2026-08-04. Duplicate class
-  names, a class one lane deletes that another calls, and a file missing from
+Rules that outlived the multi-lane setup, because they cost real time:
+
+- **Never `git add -A`.** A lane once swept another's in-flight edits into its
+  own commits, so `git log` blamed it for files it never wrote. Stage explicit
+  paths. Still right with one lane — it keeps a commit's message honest about
+  what is in it.
+- **Merge, don't rebase, once something is pushed.** Rebasing rewrites
+  published history. Rebase is right only while unpushed.
+- **Breakage is found by building, not by a script.** `crosscheck.py` used to
+  claim it projected every lane onto `main` and reported union-only breakage.
+  It went with the rest of the tooling on 2026-08-04. Duplicate class names, a
+  class one change deletes that another calls, and a file missing from
   `zscript.txt` are all things the compiler reports at once, by name, with the
-  line — and unlike the script, it cannot be wrong about them. Merge, then
-  build.
+  line — and unlike the script, it cannot be wrong about them.
+
+**If the owner ever runs two sessions at once again, use worktrees — do not
+share `E:\RS_Main`.** That failure mode is recorded above because it happened.
 
 ## Design rules that keep getting re-derived — don't re-litigate
 
@@ -161,8 +163,11 @@ in their own worktrees. Consequences that have already bitten:
   flashes from the name prefix alone and were unrelated voxel-pack content.
   Look at the file; don't pattern-match the name.
 
-## Parallel work
+## Prefer additive changes
 
-More than one session may be active on this repo (e.g. weapons/PACK in one,
-the Colourful Hell monster set in another). Check `git status` before large
-edits, and prefer additive changes over restructuring shared files.
+Superseded 2026-08-05: this used to describe several sessions running at once.
+See "One repo, one branch" above — there is one lane now. What survives is the
+habit that was worth having anyway: check `git status` before large edits, and
+prefer additive changes over restructuring shared files. A restructure of a
+file several systems read is expensive to review and easy to get subtly wrong,
+regardless of who else is working.
