@@ -123,7 +123,196 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 		}
 		r.hpMul  = double(hp) / 30.0;
 		r.spdMul = double(spd) / 8.0;
+
+		// =============================================================
+		// THE CH PARENT PROPERTIES.  Added 2026-08-05, same pass as
+		// family 01. See docs/rs_24_ch_parent_properties.txt for why
+		// these were missing everywhere: CHP carries the STATES, the CH
+		// parent in CH/decorate/Shotgunners.txt carries every combat
+		// PROPERTY, and four porting passes only ever read CHP.
+		//
+		// WHAT IS SPECIAL ABOUT THIS FAMILY, and is not in family 01:
+		//
+		// SPECIES IS NOT ONE VALUE. CH splits the shotgunners across
+		// "SGuy" (T00, T02), "SGuy2" (T04, T08) and "SGuy3" (T01), then
+		// gives the bosses "BlackSG" (T11) and "BENE" (TEX). Combined
+		// with +DONTHARMSPECIES that is SELECTIVE INFIGHTING -- a green
+		// sergeant will happily shred a purple one and not its own kind.
+		// It is deliberate and it is the family's signature. Do not
+		// normalise these to one string.
+		//
+		// +NOFEAR IS ON ELEVEN OF FOURTEEN. Family 01 has it only on
+		// bosses. These are soldiers; CH does not let them break.
+		//
+		// MASS IS WILD HERE: 4200 on the cyan and 5000 on the fireblu
+		// and red, against 110 for the rank and file. Those three cannot
+		// be shoved, at all, by anything.
+		// =============================================================
+		r.mass = 100; r.scale = 1.0;
+		switch (t)
+		{
+			case 0:   // CommonSG : Shotgunguy      Shotgunners.txt:813
+				r.species = "SGuy";
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_AVOIDMELEE;
+				break;
+			case 1:   // GreenSG : Shotgunguy       Shotgunners.txt:897
+				// Its own species -- green fights every other colour.
+				r.species = "SGuy3";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_AVOIDMELEE;
+				break;
+			case 2:   // BlueSG : Shotgunguy       Shotgunners.txt:1033
+				r.species = "SGuy";      // same as Common -- allies
+				r.radius = 20; r.height = 56; r.mass = 110;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_AVOIDMELEE;
+				break;
+			case 3:   // CyanSG2                    Shotgunners.txt:213
+				// MASS 4200. Immovable. Also the only tier CH makes
+				// nearly immune to its own element (ice 0.10).
+				r.bloodColor = "Black";
+				r.radius = 20; r.height = 56; r.mass = 4200;
+				r.flags = RS_TF_NOICEDEATH | RS_TF_NOFEAR
+				        | RS_TF_LAXTELEFRAGDMG;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 4:   // PurpleSG : Shotgunguy     Shotgunners.txt:1262
+				// No MISSILEMORE and no AVOIDMELEE: the hazmat charges.
+				r.species = "SGuy2";
+				r.radius = 20; r.height = 56; r.mass = 110;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_NOFEAR;
+				break;
+			case 5:   // YellowSG                  Shotgunners.txt:1401
+				r.bloodColor = "Yellow";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 6:   // AbyssSG2                   Shotgunners.txt:549
+				r.bloodColor = "Black";
+				r.radius = 20; r.height = 56; r.scale = 0.95;
+				r.flags = RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 7:   // FireBluSG2                 Shotgunners.txt:681
+				// MASS 5000, and +DONTHARMCLASS so its own fire is safe.
+				r.radius = 20; r.height = 56; r.mass = 5000; r.scale = 0.9;
+				r.flags = RS_TF_NOFEAR | RS_TF_DONTHARMCLASS;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 8:   // BrownSG2 : Shotgunguy       Shotgunners.txt:40
+				r.species = "SGuy2";     // allied with the purple hazmat
+				r.radius = 20; r.height = 56; r.mass = 110;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_NOFEAR;
+				break;
+			case 9:   // GraySG2 : Shotgunguy       Shotgunners.txt:364
+				// The sniper: the only tier with BOTH AVOIDMELEE and
+				// MISSILEMORE. It backs off and shoots, which is exactly
+				// what its turret state is for. CH gives it no Species,
+				// so it infights the rest of the family.
+				r.radius = 20; r.height = 56; r.mass = 110;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 10:  // RedSG                     Shotgunners.txt:1555
+				r.radius = 20; r.height = 56; r.mass = 5000; r.scale = 0.9;
+				r.flags = RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 11:  // BlackSG3 (Crew Commander) Shotgunners.txt:1863
+				// Takes a THIRD from splash -- you cannot rocket the
+				// commander down. Shares "BlackSG" with its own squad.
+				r.species = "BlackSG";
+				r.radius = 20; r.height = 56; r.scale = 1.1;
+				r.radiusDamageFactor = 0.33;
+				r.flags = RS_TF_BOSS | RS_TF_TAKESRADIUSDMG
+				        | RS_TF_DONTMORPH | RS_TF_NOINFIGHTING
+				        | RS_TF_THRUSPECIES | RS_TF_DONTHARMSPECIES
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 12:  // WhiteSG2 -- BENELLUS      Shotgunners.txt:2334
+				// THE GOD OF SHOTGUNS DOES NOT WALK. +FLOAT +NOGRAVITY
+				// +FLOATBOB, and CH stacks MISSILEMORE with
+				// MISSILEEVENMORE (its own comment on that line is
+				// ">:(" ). Takes 1.5x splash and 2x fire and melee --
+				// enormously aggressive and genuinely fragile to the
+				// right answer.
+				r.radius = 20; r.height = 56; r.mass = 400;
+				r.radiusDamageFactor = 1.5;
+				r.flags = RS_TF_BOSS | RS_TF_TAKESRADIUSDMG
+				        | RS_TF_DONTMORPH | RS_TF_BOSSDEATH
+				        | RS_TF_SEEINVISIBLE | RS_TF_NOBLOOD
+				        | RS_TF_NOFEAR | RS_TF_LOOKALLAROUND
+				        | RS_TF_NOGRAVITY | RS_TF_FLOAT | RS_TF_FLOATBOB;
+				r.missileChance = 0.0625;   // MORE *and* EVENMORE
+				break;
+			case 13:  // WhiteSGEX -- GREEN BENELLUS  Shotgunners.txt:2532
+				// Benellus plus: its own species, +NOTIMEFREEZE (a time
+				// stop does not save you), +THRUSPECIES, scale 1.25, and
+				// DOUBLE splash taken.
+				r.species = "BENE";
+				r.radius = 20; r.height = 56; r.mass = 400; r.scale = 1.25;
+				r.radiusDamageFactor = 2.0;
+				r.flags = RS_TF_BOSS | RS_TF_TAKESRADIUSDMG
+				        | RS_TF_DONTMORPH | RS_TF_BOSSDEATH
+				        | RS_TF_SEEINVISIBLE | RS_TF_NOBLOOD
+				        | RS_TF_NOFEAR | RS_TF_LOOKALLAROUND
+				        | RS_TF_NOTIMEFREEZE | RS_TF_THRUSPECIES
+				        | RS_TF_NOGRAVITY | RS_TF_FLOAT | RS_TF_FLOATBOB;
+				r.missileChance = 0.0625;   // MORE *and* EVENMORE
+				break;
+			default:
+				break;
+		}
 		return true;
+	}
+
+	// CH's per-tier DamageFactors, CH/decorate/Shotgunners.txt.
+	//
+	// The cyan sergeant is the interesting one: 1.5x fire, 2x melee, and
+	// 0.10 ICE -- it is a frost trooper and shrugging off cold is the
+	// point. Both Benellus tiers take 2x fire AND 2x melee while taking
+	// only 0.75 from untyped damage, so plain bullets are the wrong
+	// answer and a rocket or a chainsaw is the right one.
+	override double TierDamageFactor(int t, Name damageType)
+	{
+		if (damageType == 'DIMp')
+			return 0.0;
+		// "Exorcist" is the anti-grunt type on T00-T10; the three bosses
+		// swap it for "Heroic". Both at 3.0, as in family 01.
+		if (damageType == 'Exorcist')
+			return (t >= 11) ? 1.0 : 3.0;
+		if (damageType == 'Heroic')
+			return (t >= 11) ? 3.0 : 1.0;
+
+		switch (t)
+		{
+			case 3:   // CyanSG2
+				if (damageType == 'Fire')    return 1.5;
+				if (damageType == 'Melee')   return 2.0;
+				if (damageType == 'Ice')     return 0.10;
+				if (damageType == 'Falling') return 0.0;
+				break;
+			case 11:  // BlackSG3
+				if (damageType == 'Plasma')  return 1.1;
+				break;
+			case 12:  // WhiteSG2 -- Benellus
+				if (damageType == 'None')    return 0.75;
+				if (damageType == 'Fire')    return 2.0;
+				if (damageType == 'Plasma')  return 1.2;
+				if (damageType == 'Melee')   return 2.0;
+				break;
+			case 13:  // WhiteSGEX -- Green Benellus
+				if (damageType == 'None')       return 0.75;
+				if (damageType == 'Fire')       return 2.0;
+				if (damageType == 'Plasma')     return 1.25;
+				if (damageType == 'Melee')      return 2.0;
+				if (damageType == 'PlayerVoid') return 0.5;
+				break;
+			default:
+				break;
+		}
+		return 1.0;
 	}
 
 	// Audit data. Every entry is a real, distinct CHP sprite set --
@@ -174,11 +363,12 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 	{
 		Super.OnTierApplied(t);
 
-		// Benellus floats; every other body is a ground grunt.
-		bool floaty = (t == 12);
-		bNOGRAVITY = floaty;
-		bFLOAT     = floaty;
-		bFLOATBOB  = floaty;
+		// THE HOVER SET MOVED TO TierData's ROW, and it was wrong here:
+		// this read `bool floaty = (t == 12)`, so TEX walked. CH gives
+		// WhiteSGEX (Shotgunners.txt:2532) the same +FLOAT +NOGRAVITY
+		// +FLOATBOB as WhiteSG2, so Green Benellus hovers too. It also
+		// had to move regardless -- this function runs AFTER
+		// RS_ApplyTierProperties and would have overwritten the row.
 
 		switch (t)
 		{
