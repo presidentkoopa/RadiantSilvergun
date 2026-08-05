@@ -17,7 +17,7 @@
 // time. Stage 3 shatters instead of leaving a corpse.
 // ---------------------------------------------------------------------
 
-class RS_ArachnotronStage2 : RS_MonsterMaster
+class RS_ArachnotronStage2 : RS_MonsterLadder
 {
 	Default
 	{
@@ -285,7 +285,7 @@ class RS_ArachShard : Actor
 // beating on a high-tier demon is three of these arriving.
 // ---------------------------------------------------------------------
 
-class RS_DemonDog : RS_MonsterMaster
+class RS_DemonDog : RS_MonsterLadder
 {
 	Default
 	{
@@ -516,7 +516,7 @@ class RS_DemonDog : RS_MonsterMaster
 // Kept as a stage body rather than a tier: it is spawned, never rolled.
 // ---------------------------------------------------------------------
 
-class RS_ArchvileCloneMOT : RS_MonsterMaster
+class RS_ArchvileCloneMOT : RS_MonsterLadder
 {
 	private int rsHohoMOT;
 
@@ -753,7 +753,7 @@ class RS_ArchvileCloneMOT : RS_MonsterMaster
 	}
 }
 
-class RS_ArchvilePhantomEX : RS_MonsterMaster
+class RS_ArchvilePhantomEX : RS_MonsterLadder
 {
 	const RS_PHEX_SUMMON_AT   = 8;
 	const RS_PHEX_BLACKOUT_AT = 14;
@@ -1094,7 +1094,7 @@ class RS_ArchvilePhantomEX : RS_MonsterMaster
 // corrupted along with everything else -- it NOCLIPS, it will not infight,
 // and it throws the boss's own glitch shots instead of hellfire. Spawned
 // two at a time by the phase-2 gate and by FatalBarons.
-class RS_GlitchBaron : RS_MonsterMaster
+class RS_GlitchBaron : RS_MonsterLadder
 {
 	Default
 	{
@@ -1179,7 +1179,7 @@ class RS_GlitchBaron : RS_MonsterMaster
 // that teleports to whoever killed the boss and then does nothing but
 // hover and spray BFG balls. Its output GROWS as it dies: four volleys
 // above 2000 HP, five below, seven below 1000.
-class RS_CyberdemonRomeroStage2 : RS_MonsterMaster
+class RS_CyberdemonRomeroStage2 : RS_MonsterLadder
 {
 	private int rsVolleys;
 

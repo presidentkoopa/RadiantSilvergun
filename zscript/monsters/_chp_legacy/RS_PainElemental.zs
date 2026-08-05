@@ -64,7 +64,7 @@
 // names RS_LostSoul rather than adding a fourteenth soul family.
 // =====================================================================
 
-class RS_PainElemental : RS_MonsterMaster replaces PainElemental
+class RS_PainElemental : RS_MonsterLadder replaces PainElemental
 {
 	const RS_PE_TIER_ESCORT = 6;
 	const RS_PE_TIER_HEAVY  = 9;
@@ -1102,7 +1102,7 @@ class RS_PainElemental : RS_MonsterMaster replaces PainElemental
 // token on every line below.
 // =====================================================================
 
-class RS_PainPilot : RS_MonsterMaster
+class RS_PainPilot : RS_MonsterLadder
 {
 	Default
 	{

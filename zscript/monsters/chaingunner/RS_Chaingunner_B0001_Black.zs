@@ -259,16 +259,5 @@ class RS_CG_B0001 : RS_Chaingunner
 		BFGZ N -1;
 		Stop;
 
-	// TIER DISPATCH ALIASES -- LOAD-BEARING. RS_MonsterMaster resolves
-	// every state via FindStateByString(prefix..".T00", EXACT), which a
-	// plain `Missile:` label does not satisfy -- without these the
-	// General never fires a shot. No Melee/XDeath/Raise alias: CH gives
-	// BlackCGuy2 none, and a null MeleeState is what earns the engine's
-	// `if (MeleeState == NULL) dist -= 128` range bonus.
-	Spawn.T00:   Goto Spawn;
-	See.T00:     Goto See;
-	Missile.T00: Goto Missile;
-	Pain.T00:    Goto Pain;
-	Death.T00:   Goto Death;
 	}
 }

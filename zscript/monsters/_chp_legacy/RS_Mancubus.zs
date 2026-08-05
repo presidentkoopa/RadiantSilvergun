@@ -45,7 +45,7 @@
 // every tier cluster inherits them without repeating the roll.
 // =====================================================================
 
-class RS_Mancubus : RS_MonsterMaster replaces Fatso
+class RS_Mancubus : RS_MonsterLadder replaces Fatso
 {
 	// CHP's red Horned Beast counts pains in User_Rage5; user vars are
 	// not a thing here, so it is a private field (same contract as

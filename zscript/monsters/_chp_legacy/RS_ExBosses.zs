@@ -28,7 +28,7 @@
 // it takes and answers every eighth with a squad.
 // ---------------------------------------------------------------------
 
-class RS_EX_Archvile : RS_MonsterMaster
+class RS_EX_Archvile : RS_MonsterLadder
 {
 	const RS_EXV_GATE1 = 0;   // 66% -- second attack becomes available
 	const RS_EXV_GATE2 = 1;   // 33% -- third, and it speeds up
@@ -184,7 +184,7 @@ class RS_EX_Archvile : RS_MonsterMaster
 // the very thing that punishes you.
 // ---------------------------------------------------------------------
 
-class RS_EX_ArchvilePhantom : RS_MonsterMaster
+class RS_EX_ArchvilePhantom : RS_MonsterLadder
 {
 	const RS_PHANTOM_SQUAD_AT = 8;
 
@@ -287,7 +287,7 @@ class RS_EX_ArchvilePhantom : RS_MonsterMaster
 // it holds a standing guard, replaces it, and enrages twice.
 // ---------------------------------------------------------------------
 
-class RS_EX_Baron : RS_MonsterMaster
+class RS_EX_Baron : RS_MonsterLadder
 {
 	const RS_EXB_GATE1 = 0;
 	const RS_EXB_GATE2 = 1;

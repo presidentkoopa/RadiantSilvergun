@@ -257,30 +257,6 @@ class RS_CG_C0001 : RS_Chaingunner replaces ChaingunGuy
 		TNT1 A 0 A_Die;
 		Stop;
 
-	// =================================================================
-	// TIER DISPATCH ALIASES -- LOAD-BEARING, DO NOT DELETE.
-	// RS_MonsterMaster dispatches every state through
-	// TierState(prefix), which does FindStateByString(prefix.".T00",
-	// EXACT). An exact lookup does NOT match a plain `Missile:` label,
-	// so without these the dispatcher resolves to null: ApplyTier sets
-	// MissileState = null and THE MONSTER NEVER FIRES A SHOT.
-	// Base class dispatch sites: RS_MonsterMaster.zs:640-641 and
-	// :1872-1897.
-	//
-	// MELEE IS DELIBERATELY ABSENT. This captain has no melee attack,
-	// and a null MeleeState is what earns it the engine's
-	// `if (MeleeState == NULL) dist -= 128` in P_CheckMissileRange --
-	// declaring an empty Melee.T00 here would trap it at point blank.
-	// That defect was found and fixed family-wide once already; do not
-	// reintroduce it by "completing the set".
-	// =================================================================
-	Spawn.T00:   Goto Spawn;
-	See.T00:     Goto See;
-	Missile.T00: Goto Missile;
-	Pain.T00:    Goto Pain;
-	Death.T00:   Goto Death;
-	XDeath.T00:  Goto XDeath;
-	Raise.T00:   Goto Raise;
 	}
 }
 

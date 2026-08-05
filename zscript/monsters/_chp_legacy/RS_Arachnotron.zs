@@ -69,7 +69,7 @@
 // RS_MonsterStages.zs), GetBaseKeywords, and +MAP07BOSS2.
 // =====================================================================
 
-class RS_Arachnotron : RS_MonsterMaster replaces Arachnotron
+class RS_Arachnotron : RS_MonsterLadder replaces Arachnotron
 {
 	// CHP's white arachnotron EX dies into a smaller copy of itself,
 	// twice, keeping its kit at reduced scale before shattering.

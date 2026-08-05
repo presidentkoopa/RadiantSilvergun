@@ -60,7 +60,7 @@
 // promotion (the tier dial owns that now).
 // =====================================================================
 
-class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
+class RS_Shotgunner : RS_MonsterLadder replaces ShotgunGuy
 {
 	// --- RS mechanic: the crew commander's squad call -----------------
 	// CHP's black shotgunner calls in a squad of its own kind. Summoning

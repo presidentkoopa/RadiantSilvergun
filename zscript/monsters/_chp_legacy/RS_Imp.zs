@@ -43,7 +43,7 @@
 // ships for CH's yScale 1.4 / XScale 1.05.
 // =====================================================================
 
-class RS_Imp : RS_MonsterMaster replaces DoomImp
+class RS_Imp : RS_MonsterLadder replaces DoomImp
 {
 	private int rsEnraged;
 

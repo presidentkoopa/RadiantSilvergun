@@ -48,7 +48,7 @@
 // already, and each one is a single tail frame of a death animation.
 // =====================================================================
 
-class RS_Baron : RS_MonsterMaster replaces BaronOfHell
+class RS_Baron : RS_MonsterLadder replaces BaronOfHell
 {
 	const RS_BARON_ENRAGE_SLOT = 0;
 
@@ -1490,7 +1490,7 @@ class RS_Baron : RS_MonsterMaster replaces BaronOfHell
 // Baron's Fallen is a different animal from a T10 Baron's.
 // =====================================================================
 
-class RS_BaronFallen : RS_MonsterMaster
+class RS_BaronFallen : RS_MonsterLadder
 {
 	Default
 	{

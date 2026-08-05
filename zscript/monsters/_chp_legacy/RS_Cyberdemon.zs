@@ -63,7 +63,7 @@
 //   T12 the RomeroCHWeak token (commented out in CHP itself).
 // =====================================================================
 
-class RS_Cyberdemon : RS_MonsterMaster replaces Cyberdemon
+class RS_Cyberdemon : RS_MonsterLadder replaces Cyberdemon
 {
 	// CHP user vars / inventory latches, rewritten as fields.
 	private int rsSpamCombo;   // T02 SpamComboCB

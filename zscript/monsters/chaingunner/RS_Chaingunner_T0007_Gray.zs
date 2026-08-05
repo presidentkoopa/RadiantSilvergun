@@ -119,6 +119,17 @@
 // Gated on rs_mon_tiericons, off by default exactly as CH ships it.
 // Anything below claiming the icons were dropped is superseded by this.
 
+//
+// STATE DISPATCH: SIMPLIFIED 2026-08-05. Any note below describing a
+// "Spawn.T00/See.T00/... alias block" is STALE -- those aliases are
+// GONE from this file, 56 lines of them across the family.
+// RS_MonsterMaster.TierState now falls back to the PLAIN label, which
+// is what this file writes and what any ordinary actor writes. The
+// ".T00" requirement belonged to the CHP-era ladder, which now lives
+// in RS_MonsterLadder and is not in this class hierarchy at all.
+// That requirement is why five files in this family could not fire a
+// shot: an exact lookup does not match a plain Missile: label, so
+// MissileState came back null. It cannot happen again.
 // =====================================================================
 
 class RS_CG_T0007 : RS_Chaingunner
@@ -286,19 +297,5 @@ class RS_CG_T0007 : RS_Chaingunner
 	// these are true aliases and cost nothing at runtime.
 	// RS_Chaingunner_C0001_Common.zs has the same hole and no aliases --
 	// flagged for the owner rather than edited from here.
-	Spawn.T00:
-		Goto Spawn;
-	See.T00:
-		Goto See;
-	Missile.T00:
-		Goto Missile;
-	Pain.T00:
-		Goto Pain;
-	Death.T00:
-		Goto Death;
-	XDeath.T00:
-		Goto XDeath;
-	Raise.T00:
-		Goto Raise;
 	}
 }

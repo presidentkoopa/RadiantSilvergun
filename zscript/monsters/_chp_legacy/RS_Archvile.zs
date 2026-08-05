@@ -64,7 +64,7 @@
 // bracket tokens broke the parse here once already.
 // =====================================================================
 
-class RS_Archvile : RS_MonsterMaster replaces Archvile
+class RS_Archvile : RS_MonsterLadder replaces Archvile
 {
 	// Slot 0: the one-shot enrage gate. Slot indices are per-monster --
 	// see RS_MonsterMaster.CheckThreshold.

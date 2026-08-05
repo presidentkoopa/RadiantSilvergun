@@ -65,7 +65,7 @@
 // damage only.
 // =====================================================================
 
-class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
+class RS_Cacodemon : RS_MonsterLadder replaces Cacodemon
 {
 	const RS_CACO_TIER_REAL = 11;   // Hades' phase-2 add-summon gate
 

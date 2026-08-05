@@ -84,7 +84,7 @@
 //   * BOSF (T08) and MISL/SKUL/SKEL/BOSS/VILE/BAL1 are IWAD sprites.
 // =====================================================================
 
-class RS_LostSoul : RS_MonsterMaster replaces LostSoul
+class RS_LostSoul : RS_MonsterLadder replaces LostSoul
 {
 	// T06 BEETLEJUICE burrow timer (CHP user_pop) and T09 HIVE lifespan
 	// (CHP's DewzanToken counter). CHP user vars / inventory counters are

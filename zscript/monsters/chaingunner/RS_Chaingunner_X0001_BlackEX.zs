@@ -343,12 +343,5 @@ class RS_CG_X0001 : RS_Chaingunner
 		HCPO L -1;
 		Stop;
 
-	// TIER DISPATCH ALIASES -- LOAD-BEARING, see C0001. Without these
-	// MissileState resolves null and the EX boss never attacks.
-	Spawn.T00:   Goto Spawn;
-	See.T00:     Goto See;
-	Missile.T00: Goto Missile;
-	Pain.T00:    Goto Pain;
-	Death.T00:   Goto Death;
 	}
 }

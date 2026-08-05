@@ -46,7 +46,7 @@
 //       (A-I only); those lines are ANIM, which does. Same artwork set.
 // =====================================================================
 
-class RS_Mastermind : RS_MonsterMaster replaces SpiderMastermind
+class RS_Mastermind : RS_MonsterLadder replaces SpiderMastermind
 {
 	// CHP user vars, rewritten as fields (A_SetUserVar is stripped).
 	private int rsRageMind;      // T04 User_Ragemind

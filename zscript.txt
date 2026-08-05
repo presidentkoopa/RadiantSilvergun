@@ -77,6 +77,9 @@ version "4.14"
 // base classes it used to declare were removed 2026-08-04 -- see the
 // note at the bottom of that file.
 #include "zscript/monsters/RS_MonsterMaster.zs"
+// The CHP-era tier machinery, split out 2026-08-05. Only the quarantined
+// families inherit it; nothing rebuilt from CH is in its path.
+#include "zscript/monsters/_chp_legacy/RS_MonsterLadder.zs"
 
 // Monster parts bin -- summon rosters, satellites, portals, morph
 // stages, monster projectiles. Same job RS_Catalog.zs does for weapons

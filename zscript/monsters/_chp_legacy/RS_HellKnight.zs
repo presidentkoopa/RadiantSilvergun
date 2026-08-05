@@ -49,7 +49,7 @@
 // rolled in the Missile dispatcher into per-tier Escort clusters).
 // =====================================================================
 
-class RS_HellKnight : RS_MonsterMaster replaces HellKnight
+class RS_HellKnight : RS_MonsterLadder replaces HellKnight
 {
 	const RS_HK_TIER_CLONE  = 12;   // CHP: only the WHITE knight twins
 	const RS_HK_TIER_ESCORT = 7;

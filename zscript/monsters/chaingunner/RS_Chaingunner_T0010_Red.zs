@@ -237,14 +237,5 @@ class RS_CG_T0010 : RS_Chaingunner
 		CPS2 PONMLKJIH 5;
 		Goto See;
 
-	// TIER DISPATCH ALIASES -- LOAD-BEARING, see C0001. Without these
-	// MissileState resolves null and this captain never fires.
-	Spawn.T00:   Goto Spawn;
-	See.T00:     Goto See;
-	Missile.T00: Goto Missile;
-	Pain.T00:    Goto Pain;
-	Death.T00:   Goto Death;
-	XDeath.T00:  Goto XDeath;
-	Raise.T00:   Goto Raise;
 	}
 }

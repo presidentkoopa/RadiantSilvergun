@@ -23,7 +23,7 @@
 // ranged plinker that hangs back.
 // ---------------------------------------------------------------------
 
-class RS_BaronTentacle : RS_MonsterMaster
+class RS_BaronTentacle : RS_MonsterLadder
 {
 	Default
 	{
@@ -283,7 +283,7 @@ class RS_BaronTentacleRanged : RS_BaronTentacle
 // one-shot summon you can just out-wait.
 // ---------------------------------------------------------------------
 
-class RS_PainSentinel : RS_MonsterMaster
+class RS_PainSentinel : RS_MonsterLadder
 {
 	Default
 	{

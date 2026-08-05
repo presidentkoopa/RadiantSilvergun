@@ -87,7 +87,7 @@
 //     the tier dispatch has no per-damage-type channel.
 // =====================================================================
 
-class RS_Revenant : RS_MonsterMaster replaces Revenant
+class RS_Revenant : RS_MonsterLadder replaces Revenant
 {
 	// CHP user vars, re-expressed as private fields (no A_SetUserVar).
 	private int rsNoDash1;   // 08_B  User_nodash1
@@ -1437,7 +1437,7 @@ class RS_Revenant : RS_MonsterMaster replaces Revenant
 // RS half of the chain, kept from the previous file.
 // =====================================================================
 
-class RS_RevenantShade : RS_MonsterMaster
+class RS_RevenantShade : RS_MonsterLadder
 {
 	Default
 	{
@@ -1571,7 +1571,7 @@ class RS_RevenantShade : RS_MonsterMaster
 // Wears the knight's own DKNT body at every tier.
 // =====================================================================
 
-class RS_RevenantShadow : RS_MonsterMaster
+class RS_RevenantShadow : RS_MonsterLadder
 {
 	Default
 	{

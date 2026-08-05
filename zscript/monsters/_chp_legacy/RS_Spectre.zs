@@ -84,7 +84,7 @@
 //     was substituted.
 // =====================================================================
 
-class RS_Spectre : RS_MonsterMaster replaces Spectre
+class RS_Spectre : RS_MonsterLadder replaces Spectre
 {
 	// CHP user vars, re-expressed as private fields (no A_SetUserVar).
 	private int rsCalm;      // 07_Y  User_Calm
