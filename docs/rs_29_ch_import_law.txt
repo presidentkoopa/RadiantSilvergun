@@ -86,6 +86,82 @@ PART 2 -- FILE SHAPE. ONE CLASS PER CREATURE.
   attack profiles) and they all break otherwise.
 
 
+PART 2b -- THE NAMING CONVENTION. LOCKED 2026-08-05 AT THE OWNER'S
+DIRECTION: "name it whatever, just make sure it is consistent across
+chaingunner and every monster we import."
+--------------------------------------------------------------------------------
+
+  FOUR LAYERS, FOUR RULES. Family 04 already follows all four; every
+  family after it must. If a new case does not fit, extend this section
+  -- do not invent a fifth style in a family file.
+
+  1. MONSTER BODIES -- NUMBERED, NEVER COLOURED.
+
+         class  RS_<FAM>_<ROLE><nnnn>          RS_CG_B0001
+         file   RS_<Family>_<ROLE><nnnn>_<CHName>.zs
+                                               RS_Chaingunner_B0001_Black.zs
+
+     A body is a rung on a ladder, so it gets a number. The CH colour
+     word survives ONLY in the FILENAME and the header citation, because
+     that is provenance, not identity. Never in the class name, never in
+     player-facing text, never in how we talk about it.
+
+     <FAM> is the two-letter family code, unique across all seventeen:
+         ZM SG CG IM DM SP LS CA PE HK BA RV MA AR AV MM CY
+
+  2. PROJECTILES AND EFFECTS -- CH'S OWN NAME, VERBATIM, WITH RS_.
+
+         class  RS_<CH's actor name>           RS_SpamShotsCguy
+                                               RS_BrownOrbCguy
+
+     NOT numbered, and this is deliberate: a projectile is a PART, not a
+     rung. It has no position on any ladder, it is frequently SHARED
+     between families (RS_HKRedDeath has 22 referencing files), and a
+     family-prefixed number would be a lie about ownership the moment a
+     second family fired it. Keeping CH's name also means a differ can
+     find the original by dropping "RS_" -- which is exactly how every
+     sweep in this project locates its source.
+
+  3. THE CATALOGUE IS THE CONSISTENCY LAYER. THIS IS THE IMPORTANT ONE.
+
+         RS_MonsterCatalog:
+             PROJ_<FAM>_<WhatItIs>()      PROJ_CG_Shield()
+             MINION_<FAM>_<WhatItIs>()    MINION_CG_Worm()
+             PROJ_<FAM>_<Thing>(int grade)   for graded families
+
+     Named for WHAT THE THING DOES, never for its colour and never for
+     the creature that happens to fire it. `PROJ_CG_Cover` says what it
+     is; `PROJ_CG_Brown` would not.
+
+     Because every monster file reads the catalogue rather than a raw
+     class name, the class names underneath can stay CH's without any
+     inconsistency reaching the monsters. That is the whole point of
+     THE RULE at the top of RS_MonsterCatalog.zs -- which this session
+     broke 38 times before the owner caught it.
+
+  4. SELECTABLE OPTIONS -- ONE ENUMERABLE SET, SAME SHAPE EVERY FAMILY.
+
+         BULLET_OptionCount() / BULLET_OptionClass(i)
+         BULLET_OptionName(i)  / BULLET_OptionDesc(i)
+
+     Only attacks that DO something a plain bullet does not. A reskin is
+     a palette swap, not a choice, and a picker padded with seventeen
+     indistinguishable bullets is a worthless picker. Decide the split by
+     reading CH's STATES, never the name: RS_BlueChainPuff3 looks like a
+     puff and is actually a zero-damage proximity telegraph, while
+     RS_SpamShotsCGuyEX2 is its sibling plus `damagetype fire` and
+     nothing else.
+
+  FOLDERS. Family 01 set the shape and it is the target:
+      zscript/monsters/<Family>/                 the bodies
+      zscript/monsters/<Family>/attacks/*.zs     one attack per file
+  FAMILY 04 DOES NOT YET MEET THIS -- its 38 projectiles are still in the
+  shared monsterfx/RS_human_projectiles.zs. That is a SPLIT, not a move,
+  because several are genuinely shared, and CLAUDE.md warns that
+  relocating definitions produces diffs no human can read. Recorded here
+  as owed work, not as done.
+
+
 PART 3 -- THE ENGINE TRAPS. ALL OF THESE HAVE SHIPPED BROKEN.
 --------------------------------------------------------------------------------
 
