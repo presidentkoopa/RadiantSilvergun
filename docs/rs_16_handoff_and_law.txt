@@ -39,6 +39,12 @@
         the appendix.
       * RS_DIBigOne (SPIR ABCDEDCBA, 9 frames, radius 178) -- flagged for an
         explicit yes/no either way.
+      * THE SCORE CASH-IN. Score pays out only in extra lives and ammo
+        regen; there is no spend, the owner raised wanting one, and it was
+        never resolved. The law is settled (never gold, never an exchange
+        rate) but "should a spend exist, and priced how" is not. See
+        "OPEN -- NEEDS THE OWNER (SCORE LANE)" near the bottom for that and
+        the score lane's three other asks.
 ================================================================================
 
 WORKING WITH THE OWNER
