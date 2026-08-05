@@ -33,6 +33,52 @@ WHY THIS DOCUMENT EXISTS
     state heals them, its Missile state was supposed to hasten them.
 
 ================================================================================
+FILE-BY-FILE, MEASURED 2026-08-04. READ THIS BEFORE COSTING ANY ACS WORK.
+================================================================================
+
+  The "943 scripts" figure below is true and badly misleading. Classified
+  by what each script's body actually calls:
+
+    file                     bytes  scripts  gameplay  cosmetic-only
+    WVileEX.acs             62,590       49        32             16
+    CHACS2.acs               8,845       30        30              0
+    CHSett2.acs              9,564       54        16              3
+    CHSett.acs   (CH)        7,036       35        13              3
+    CHACS.acs    (CH)        2,162        4         4              0
+    NICEICE.acs              1,866        6         1              2
+    Bosses.acs             196,156      724         1            723
+    Announcers.acs (CH)      8,608       41         0             41
+    commonFuncs2.acs        25,066        0    (function library, no scripts)
+    miscFuncs2.acs           5,059        0    (function library, no scripts)
+
+  ~96 GAMEPLAY SCRIPTS, IN ABOUT 90KB. Everything else is announcements.
+
+  BOSSES.ACS IS NOT A BOSS SYSTEM. Owner's read, confirmed by opening it:
+  "it seems like an announcement system, i don't think this is for us."
+  All 724 of its scripts are the same three calls -- SetFont, SetHudSize,
+  Hudmessagebold. Median body SIX non-blank lines, largest SEVEN. It is
+  196KB because the same banner is written once per tier per boss:
+      "Red Baron is on the fly!"
+      "Gaze into the void, Black Archvile is here"
+  Exactly ONE script in the file does anything mechanical -- a single
+  Radius_Quake in EXBOSS.
+  DECISION, owner 2026-08-04: NOT PORTED. It is a notification layer and
+  this project has its own HUD systems. Announcers.acs (41 scripts, zero
+  gameplay) goes with it. Between them that is 765 of the 943 scripts and
+  205KB of the corpus, for one screen shake.
+
+  SO THE REAL ACS JOB IS ~90 SCRIPTS, NOT 943, and several are already
+  rebuilt (PESPEED, BrownImpCommand, BrownVileCommand, BrownMindCommand,
+  BrownRevSPEED2, PERAGE, PEHULK, plus ProjInt_Brute as RS_MonsterAim).
+  The remaining weight is concentrated:
+    WVileEX.acs   32  the Archvile EX timed-phase engine -- the biggest
+                      single real system in the pack (register: L6)
+    CHACS2.acs    30  30 for 30, no filler. Densest gameplay file here.
+    CHSett2/CHSett 29 the pack buffs. Six already done.
+  commonFuncs2 / miscFuncs2 are utility LIBRARIES the above call into --
+  ported once as helpers, never per-monster.
+
+================================================================================
 THE SCALE -- MEASURED, NOT ESTIMATED
 ================================================================================
 
