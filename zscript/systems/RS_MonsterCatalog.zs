@@ -180,6 +180,175 @@ class RS_MonsterCatalog
 	static Class<Actor> PROJ_ArachPlasma()   { return "RS_ArachnotronPlasma"; }
 
 	// =================================================================
+	// FAMILY 04 -- CHAINGUNNER. Every projectile its fourteen creatures
+	// fire, routed through here per THE RULE at the top of this file.
+	// The fourteen bodies named these 38 classes inline, which is
+	// exactly what this file exists to prevent.
+	//
+	// Names are CH's own (RS_ + CH's actor name). They are NOT on the
+	// numeric tier scheme the bodies use -- the bodies are tiers and
+	// belong on a ladder; a projectile is a PART, and parts are named
+	// for what they are. Renaming these is a separate decision and is
+	// not made here by default.
+	// =================================================================
+
+	// --- the common bullets -------------------------------------------
+	static Class<Actor> PROJ_CG_SpamShots()    { return "RS_SpamShotsCguy"; }
+	static Class<Actor> PROJ_CG_SpamShotsEX()  { return "RS_SpamShotsCGuyEX"; }
+	static Class<Actor> PROJ_CG_SpamShotsEX2() { return "RS_SpamShotsCGuyEX2"; }
+	static Class<Actor> PROJ_CG_Rail()         { return "RS_CGRailBuff"; }
+	static Class<Actor> PROJ_CG_Nail()         { return "RS_CGNail"; }
+	static Class<Actor> PROJ_CG_Needle()       { return "RS_NeedlesCg1"; }
+	static Class<Actor> PROJ_CG_NeedleTrail()  { return "RS_NeedlesCg2"; }
+	static Class<Actor> PROJ_CG_Ice()          { return "RS_IceZombieShot2"; }
+	static Class<Actor> PROJ_CG_AbyssShot()    { return "RS_AbyssZShotCH3"; }
+	static Class<Actor> PROJ_CG_Fireblu()      { return "RS_FireBCGguy"; }
+
+	// --- the mechanics ------------------------------------------------
+	static Class<Actor> PROJ_CG_Cover()        { return "RS_BrownSandBagCGuy"; }
+	static Class<Actor> PROJ_CG_Shield()       { return "RS_GenShield"; }
+	static Class<Actor> PROJ_CG_Orb()          { return "RS_BrownOrbCguy"; }
+	static Class<Actor> PROJ_CG_NailRing()     { return "RS_GrayCGuff"; }
+	static Class<Actor> PROJ_CG_NailRingSub()  { return "RS_CGthing3"; }
+	static Class<Actor> PROJ_CG_Puddle()       { return "RS_Puddle1"; }
+	static Class<Actor> PROJ_CG_PuddleCrawl()  { return "RS_Puddle2"; }
+	static Class<Actor> PROJ_CG_Splash()       { return "RS_SplashAbyssCguy"; }
+	static Class<Actor> PROJ_CG_BigOne()       { return "RS_CGBigOne"; }
+	static Class<Actor> PROJ_CG_BigEX()        { return "RS_CGBigEX"; }
+	static Class<Actor> PROJ_CG_Bomb()         { return "RS_YellowBombCGuyEX"; }
+	static Class<Actor> PROJ_CG_Mortar()       { return "RS_HKRedDeath"; }
+
+	// --- telegraphs and trails (no damage, pure information) ----------
+	static Class<Actor> PROJ_CG_ProxBeep()     { return "RS_BlueChainPuff3"; }
+	static Class<Actor> PROJ_CG_WindUp()       { return "RS_SpiralLoadGeneEX"; }
+	static Class<Actor> PROJ_CG_SelfTrail()    { return "RS_TrailSPCguy"; }
+	static Class<Actor> PROJ_CG_Trail11()      { return "RS_Trail11"; }
+	static Class<Actor> PROJ_CG_Trail14()      { return "RS_Trail14"; }
+	static Class<Actor> PROJ_CG_Puff()         { return "RS_BlueChainPuff2"; }
+	static Class<Actor> PROJ_CG_MuzzleGlow()   { return "RS_RedRevLoad"; }
+	static Class<Actor> PROJ_CG_Spark()        { return "RS_SparkPuff1"; }
+	static Class<Actor> PROJ_CG_Marker()       { return "RS_CHBSTarget"; }
+
+	// --- detonating puff, three range grades --------------------------
+	static Class<Actor> PROJ_CG_Deto(int grade)
+	{
+		// Comparison chain, not an array literal -- CLAUDE.md.
+		if (grade <= 0) return "RS_DetoPuffCG";     // splash 42
+		if (grade == 1) return "RS_DetoPuff2";      // splash 38
+		return "RS_DetoPuff3";                      // splash 32
+	}
+
+	// --- seek strength by range band ----------------------------------
+	// CH's three Boomers are ONE weapon with three tracking strengths:
+	// close seeks hard, mid seeks weakly, far is dumb-fire. The grade IS
+	// the mechanic; do not collapse them.
+	static Class<Actor> PROJ_CG_Boomer(int band)
+	{
+		if (band <= 0) return "RS_Boomer1";         // A_SeekerMissile(8,8)
+		if (band == 1) return "RS_Boomer2";         // A_SeekerMissile(4,4)
+		return "RS_Boomer3";                        // no seek at all
+	}
+
+	// --- the white boss's live experiments (summons, not bullets) -----
+	static Class<Actor> MINION_CG_Volatile()   { return "RS_VolativeCaco"; }
+	static Class<Actor> MINION_CG_Worm()       { return "RS_SlimyWorm"; }
+	static Class<Actor> MINION_CG_Splice()     { return "RS_SpliceBaron"; }
+
+	// =================================================================
+	// BULLET OPTIONS -- the assemblable set.
+	//
+	// Not every projectile is worth offering. A reskin of a straight
+	// bullet is not an OPTION, it is a palette swap, and padding a
+	// selection list with seventeen indistinguishable bullets makes the
+	// list worthless. These are the ones that do something a plain
+	// bullet does not -- each was read out of CH's own states, not
+	// guessed from the name.
+	//
+	// This is the enumerable set for the affix / attack-profile work:
+	// Count + Class + Name + Desc, so a picker or a roll can walk it
+	// without any caller hardcoding a class name.
+	// =================================================================
+	const RS_CG_BULLET_OPTIONS = 17;
+	static int BULLET_OptionCount() { return RS_CG_BULLET_OPTIONS; }
+
+	static Class<Actor> BULLET_OptionClass(int i)
+	{
+		switch (i)
+		{
+			case 0:  return "RS_BrownSandBagCGuy";
+			case 1:  return "RS_GenShield";
+			case 2:  return "RS_Puddle1";
+			case 3:  return "RS_GrayCGuff";
+			case 4:  return "RS_BrownOrbCguy";
+			case 5:  return "RS_BlueChainPuff3";
+			case 6:  return "RS_YellowBombCGuyEX";
+			case 7:  return "RS_CGBigEX";
+			case 8:  return "RS_CGBigOne";
+			case 9:  return "RS_SpiralLoadGeneEX";
+			case 10: return "RS_TrailSPCguy";
+			case 11: return "RS_NeedlesCg2";
+			case 12: return "RS_Boomer1";
+			case 13: return "RS_SplashAbyssCguy";
+			case 14: return "RS_CGRailBuff";
+			case 15: return "RS_FireBCGguy";
+			case 16: return "RS_HKRedDeath";
+		}
+		return null;
+	}
+
+	static string BULLET_OptionName(int i)
+	{
+		switch (i)
+		{
+			case 0:  return "Deployed Cover";
+			case 1:  return "Counter-Fire Shield";
+			case 2:  return "Crawling Slime";
+			case 3:  return "Nail Ring";
+			case 4:  return "Lobbed Orb";
+			case 5:  return "Proximity Beep";
+			case 6:  return "Cascade Bomb";
+			case 7:  return "Seeding Finisher";
+			case 8:  return "Pulsing Seeker";
+			case 9:  return "Wind-Up Glyph";
+			case 10: return "Self-Trailing Bolt";
+			case 11: return "Poison Needle";
+			case 12: return "Banded Seeker";
+			case 13: return "Planted Splash";
+			case 14: return "Live Rail";
+			case 15: return "Burn Line";
+			case 16: return "Placed Detonation";
+		}
+		return "";
+	}
+
+	// One sentence each, describing the MECHANIC -- what it does that a
+	// plain bullet does not. Read from CH's states.
+	static string BULLET_OptionDesc(int i)
+	{
+		switch (i)
+		{
+			case 0:  return "Destructible cover. A health-80 body that inflates, steps once, then blocks. Shoot it down.";
+			case 1:  return "A shield that fights back -- popping it launches three live bolts and drops a cell.";
+			case 2:  return "Two-stage area denial. The lob sprays crawlers that ricochet, wander, and spit.";
+			case 3:  return "Hitscan that plants a twelve-way nail ring at every landing point.";
+			case 4:  return "Ballistic arc. It drops over distance, so range becomes a skill check.";
+			case 5:  return "Harmless. It beeps twice and shrinks -- pure proximity information.";
+			case 6:  return "Eight-stage expanding detonation, radius 32 to 312, escalating rolls.";
+			case 7:  return "Trails saws inbound, then lands delayed sub-munitions where you ran to.";
+			case 8:  return "Grow-then-shrink seeker that trails saws and leaves ground fire.";
+			case 9:  return "No damage at all. A shrinking glyph that makes a wind-up readable.";
+			case 10: return "Spawns its own trail actor from every frame of flight.";
+			case 11: return "Lays trail in flight, then scatters six more across a two-stage burst.";
+			case 12: return "Seek strength banded by range -- tracks hard close, dumb-fires far.";
+			case 13: return "Planted under the target, detonates upward and launches what it hits.";
+			case 14: return "A rail beam built from live actors, each seeking, shrinking and popping.";
+			case 15: return "Passes through bodies and burns a corridor, then detonates on geometry.";
+			case 16: return "Not a projectile -- a detonation placed at a coordinate. Mortar or mine.";
+		}
+		return "";
+	}
+
+	// =================================================================
 	// SOUNDS
 	// =================================================================
 
