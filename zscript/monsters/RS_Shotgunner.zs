@@ -1253,7 +1253,7 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 		"BENE" D 6 { A_SetTranslucent(0.25); }
 		Stop;
 
-	// ================= TEX GREEN BENELLUS (02_WX) =================
+	// ================= TEX BENELLUS EX (02_WX) =================
 	// The EX tier: CHP's GreenWhiteSGEX2, "Benellus, God of Green
 	// Shotguns, ANGRIER". Same body as T12 with a green remap, twice the
 	// health (10671), and a roster that is genuinely wider rather than
@@ -1322,11 +1322,11 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 	// sight and a range check partway so it cannot fire at a wall.
 	Missile.TEX.SG:
 		"BENE" A 2 { A_FaceTarget(); }
-		"BENE" KBJCGDF 4 Bright { A_CustomBulletAttack(random(5, 180), random(0, 50), random(5, 30), random(1, 4), "BulletPuff", 0); }
+		"BENE" KBJCGDF 4 Bright { A_CustomBulletAttack(random(5, 180), random(0, 50), random(5, 30), random(1, 3), "BulletPuff", 0); }
 		"BENE" K 0 Bright A_CheckSight("See");
 		"BENE" K 0 Bright A_CheckRange(1250, "See");
-		"BENE" KB 2 Bright { A_CustomBulletAttack(22.5, 0, random(5, 18), random(1, 6), "BulletPuff", 0); }
-		"BENE" EAHBICLD 4 Bright { A_CustomBulletAttack(random(5, 180), random(0, 50), random(5, 30), random(1, 4), "BulletPuff", 0); }
+		"BENE" KB 2 Bright { A_CustomBulletAttack(22.5, 0, random(5, 18), random(1, 5), "BulletPuff", 0); }
+		"BENE" EAHBICLD 4 Bright { A_CustomBulletAttack(random(5, 180), random(0, 50), random(5, 30), random(1, 3), "BulletPuff", 0); }
 		"BENE" A 1 A_MonsterRefire(128, "See");
 		Goto Missile.TEX.SG;
 	// Four emplacements: two carried onto you, two planted at its feet.
@@ -1341,7 +1341,7 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 		"BENE" AAAAA 0 { A_SpawnProjectile("RS_SparkPuff1", 42, 0, random(0, 360), CMF_AIMOFFSET, random(-150, 150)); }
 		"BENE" AAAAAA 1 Bright { A_SpawnProjectile("RS_SparkPuff1", 42, 0, random(0, 360), CMF_AIMOFFSET, random(-150, 150)); }
 		"BENE" A 8 Bright { A_FaceTarget(); }
-		"BENE" KBJCGDF 5 Bright { A_CustomBulletAttack(3, 3, random(5, 20), random(1, 8), "BulletPuff", 8000); }
+		"BENE" KBJCGDF 5 Bright { A_CustomBulletAttack(3, 3, random(5, 20), random(1, 6), "BulletPuff", 8000); }
 		"BENE" KD 3;
 		Goto See;
 	// THE BIG ONE. Forty spark shields go up first -- that cage IS the
@@ -1398,7 +1398,7 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-8, 8), CMF_ABSOLUTEPITCH, random(-9, 8)); }
 		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-12, 12)); }
 		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-5, 5), CMF_AIMOFFSET, random(3, 9)); }
-		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-1, 1), CMF_AIMOFFSET, random(1, 4)); }
+		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-1, 1), CMF_AIMOFFSET, random(1, 3)); }
 		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-12, 12)); }
 		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-8, 8), CMF_ABSOLUTEPITCH, random(-9, 4)); }
 		"BENE" KBJCGDF 1 Bright { A_SpawnProjectile("RS_SparkFireBen", 52, 0, random(-5, 5), CMF_AIMOFFSET, random(-3, 3)); }

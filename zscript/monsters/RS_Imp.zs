@@ -84,8 +84,13 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 			case 10: hp = 215;  spd = 10; r.painChance = 100; r.dmgMul = 1.8; break;
 			case 11: hp = 3800; spd = 12; r.painChance = 28;  r.dmgMul = 2.5; break;
 			case 12: hp = 6666; spd = 18; r.painChance = 24;  r.dmgMul = 3.0; break;
-			// TEX -- CHP 03_KX GreenBlackImpEX2, verbatim.
-			case 13: hp = 10750; spd = 18; r.painChance = 22; r.dmgMul = 3.5; break;
+			// TEX -- CHP 03_KX CommonBlackImpEX2, THE FIRST ACTOR (03_KX.txt:1).
+			// WAS GreenBlackImpEX2 (03_KX.txt:163), the SECOND actor:
+			//   Common  8600 / 14 / 28   03_KX.txt:3,:5,:6
+			//   Green  10750 / 18 / 22   03_KX.txt:165,:167,:168
+			// Third family with this defect. GibHealth differs too
+			// (-860 vs -1075) but CH states none, so it stays CHP-side.
+			case 13: hp = 8600;  spd = 14; r.painChance = 28; r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 60.0;
@@ -320,7 +325,12 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 	override string TintTable()
 	{
 		//      T00 T01 T02 T03 T04 T05 T06 T07 T08 T09 T10 T11 T12 TEX
-		return "- - - - - - - - - - - - - rs_imp_tex";
+		// TEX SLOT WAS rs_imp_tex -- a GREEN PALETTE REMAP taken from
+		// GreenBlackImpEX2 (03_KX.txt:179). CommonBlackImpEX2 has NO
+		// Translation line at all. rs_imp_tex is byte-identical to
+		// rs_sgun_tex, the recipe family 02 already identified as the
+		// spawn-colour remap. It belongs to that axis, not to TEX.
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -1065,7 +1075,7 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 	Melee.TEX:
 		"AGUR" W 6 { A_FaceTarget(); }
 		"AGUR" X 6 { A_FaceTarget(); }
-		"AGUR" Y 6 { A_CustomMeleeAttack(random(25, 119), "agaures/swing", ""); }
+		"AGUR" Y 6 { A_CustomMeleeAttack(random(20, 95), "agaures/swing", ""); }
 		"AGUR" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, 0, random(1, 6), random(3, 15), 0, random(1, 12), random(-359, 359)); }
 		"AGUR" YYY 0 { A_SpawnItemEx("RS_DeathBreathDI", random(-118, 118), random(-118, 118), random(-6, 32), 0, 0, 0, 0, 128, 0); }
 		"AGUR" Y 0 A_Jump(88, "Missile");
@@ -1167,11 +1177,11 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 	// normal -- it is gone before the pain animation would have finished.
 	See.TEX.Warp:
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, 0, random(1, 6), random(3, 15), 0, random(1, 12), random(-359, 359)); }
-		TNT1 A 0 { bNOPAIN = true; A_SetSpeed(124); }
+		TNT1 A 0 { bNOPAIN = true; A_SetSpeed(99); }
 		TNT1 AAAA 0 { A_Wander(); }
 		TNT1 AA 3 { A_Wander(); }
 		TNT1 AAAA 1 { A_Wander(); }
-		TNT1 A 0 { A_SetSpeed(18); bNOPAIN = false; }
+		TNT1 A 0 { A_SetSpeed(14); bNOPAIN = false; }
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_DeathBreathDI", 0, 0, random(1, 6), random(3, 15), 0, random(1, 12), random(-359, 359)); }
 		Goto See;
 	Death.TEX:

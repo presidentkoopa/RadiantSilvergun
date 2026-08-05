@@ -118,8 +118,11 @@ class RS_Chaingunner : RS_MonsterMaster replaces ChaingunGuy
 			case 10: hp = 250;  spd = 10; r.painChance = 88;  r.dmgMul = 1.8; break;
 			case 11: hp = 4500; spd = 10; r.painChance = 25;  r.dmgMul = 2.5; break;
 			case 12: hp = 6666; spd = 14; r.painChance = 20;  r.dmgMul = 3.0; break;
-			// TEX -- CHP 04_KX GreenBlackCGuyEX2, verbatim.
-			case 13: hp = 11249; spd = 25; r.painChance = 10; r.dmgMul = 3.5; break;
+			// TEX -- CHP 04_KX CommonBlackCGuyEX2, THE FIRST ACTOR (04_KX.txt:1).
+			// WAS GreenBlackCGuyEX2 (04_KX.txt:114), the SECOND actor:
+			//   Common  8999 / 20 / 12   04_KX.txt:3,:4,:5
+			//   Green  11249 / 25 / 10   04_KX.txt:116,:117,:118
+			case 13: hp = 8999;  spd = 20; r.painChance = 12; r.dmgMul = 3.5; break;
 			default: return false;
 		}
 
@@ -279,7 +282,12 @@ class RS_Chaingunner : RS_MonsterMaster replaces ChaingunGuy
 	override string TintTable()
 	{
 		//      T00 T01 T02 T03 T04 T05 T06 T07 T08 T09 T10 T11 T12 TEX
-		return "- - - - - - - - - - - - - rs_cgun_tex";
+		// TEX SLOT WAS rs_cgun_tex -- GreenBlackCGuyEX2's Translation
+		// (04_KX.txt:125). CommonBlackCGuyEX2 has none. The old comment
+		// here argued the tint was legitimate because "CHP recolours the
+		// EX per colour" -- true of the GREEN EX, and exactly why it does
+		// not belong on the tier we ship.
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
@@ -1362,7 +1370,7 @@ class RS_Chaingunner : RS_MonsterMaster replaces ChaingunGuy
 		"HCPO" E 3 Fast { A_FaceTarget(); }
 		"HCPO" F 0 { A_Quake(2, 12, 0, 128); }
 		"HCPO" A 0 { bNOPAIN = false; }
-		"HCPO" FE 3 Fast Bright { A_CustomBulletAttack(6, 5, random(1, 3), random(1, 5), "RS_DetoPuffCG"); }
+		"HCPO" FE 3 Fast Bright { A_CustomBulletAttack(6, 5, random(1, 3), random(1, 4), "RS_DetoPuffCG"); }
 		"HCPO" E 2 A_MonsterRefire(188, "See");
 		"HCPO" A 0 A_Jump(25, "Missile.TEX.RedSpam", "Missile.TEX.YellowBomb", "Missile.TEX.BigBomb");
 		Goto Missile.TEX.RapidCheck;
