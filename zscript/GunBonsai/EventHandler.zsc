@@ -381,7 +381,7 @@ class TFLV_EventHandler : StaticEventHandler {
       // actor to carry a master pointer at all -- RS_Weapon declares who
       // fired directly, at the moment it fires, instead of GunBonsai
       // trying to detect it after the fact. See
-      // zscript/systems/RS_GunBonsaiBridge.zs (NotifyFired) and
+      // zscript/systems/affix/RS_GunBonsaiBridge.zs (NotifyFired) and
       // docs/rs_01_promotion_system.txt. Cast to VR_DualClassBase --
       // that's where the field actually lives, not on PlayerPawn itself.
       let rssource = VR_DualClassBase(source);
