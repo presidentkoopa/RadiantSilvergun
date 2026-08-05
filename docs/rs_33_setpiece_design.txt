@@ -247,9 +247,21 @@ THE CHOREOGRAPHY, rebuilt on real capabilities:
   speed-up; herding = Tide DIRECTION (eyes follow colour flow) and
   darkness-as-wall (players avoid dark in a dark game); the room-wide
   threat gauge = the climbing Meniscus.
-  TIER LANGUAGE -- engine lane's closing move, adopted: ALIGN TIER
-  COLOURS WITH RAMP SLOTS EARLY. If tier colours ARE the 8 ramp slots,
-  every room can speak tier through its walls with zero new mechanics.
+  THE THREE COLOUR VOCABULARIES (owner correction 2026-08-05: MONSTER
+  tiers are NUMERIC, not colour-named -- never paint them):
+    RAMP SLOTS (8) = WEAPON-TIER language. The eight weapon tiers
+    (Cursed..Prototype) already carry canonical UI colours
+    (RS_UIStyle.TierColor: dark red, brown, gray, white, green, light
+    blue, purple, gold) -- map those onto the 8-slot sector ramps and a
+    room's walls announce the REWARD at stake: a Dead Detail arena
+    literally glows toward gold as the clean sweep stays alive.
+    SPOTS/TETHERS (17) = ELITE-TYPE language. The pentagram colour
+    table; tethers, reveals, station glyphs speak type.
+    SDF DIGITS = MONSTER-TIER language. Tiers are numbers, so the world
+    speaks them as numbers -- the engine lane's own telegraph rule
+    (count length = threat: fodder gets a bare 1, the Captain counts
+    from 5) is the numeric tier made visible without inventing colours
+    for it.
 
 ENGINE ASKS (small, request deliberately when a design demands them):
 yaw-locked billboard panel (real gates); explicit-width line wipeType;
