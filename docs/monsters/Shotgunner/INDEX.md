@@ -100,8 +100,10 @@ row for both.
 
 ## What is knowingly NOT done
 
-- **No attack catalog.** Family 01 has `CATALOG.md` with 32 entries in
-  rs_21 §4 format. This family has none.
+- ~~No attack catalog.~~ **DONE 2026-08-05** — `CATALOG.md`, 31 entries in
+  rs_21 §4 format, plus the four axis values this family wants and that do
+  not exist (mud, abyss, a jam/reload trigger, a rail delivery). Flagged,
+  not invented.
 - **No ACS audit.** Family 01 has `Zombieman_ACS_GAPS.md`. The only ACS
   touchpoint found incidentally is T03's bounce gate, above; nobody has
   swept `02_*` for the rest.
@@ -112,6 +114,17 @@ row for both.
 - **Not moved into its own folder.** rs_23's rule is that a family owns its
   name in `zscript/`, `attacks/`, `sprites/` and `docs/`. Only `docs/` is
   done.
-- **T11's squad summon** (`RS_CallSquad`) is RS machinery carried over from
-  the previous file, not a CHP transcription. It has not been checked
-  against `02_K`.
+- ~~T11's squad summon has not been checked against `02_K`.~~ **CHECKED,
+  AND IT WAS WRONG. FIXED 2026-08-05.** It called
+  `SummonMinion("RS_Shotgunner", -4, 48.0)` — T11 minus four is **T07, the
+  fireblu kamikaze**. Four troopers of a different creature entirely.
+  CHP summons `CommonBlackSG2` (`02_K.txt:43-46`), a distinct actor with a
+  five-stance AI. Now `zscript/monsters/RS_BlackSGTrooper.zs`; see
+  CATALOG.md entries 20 and 31. This was family 02's version of the
+  Undertaker's missing economy.
+
+### Still open
+
+- **Never compiled.** The trooper, the summon change and the property
+  table have not been through a build together.
+- **No boot.** Nobody has watched the fourteen tiers or the squad in game.
