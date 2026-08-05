@@ -91,10 +91,16 @@ class RS_MonsterTierRow
 	// and finding them again costs a read of CH/decorate; applying them
 	// needs a BloodTranslation rebuild, which is its own job.
 	string bloodColor;
-	// 1.0 = normal, 0.5 = +MISSILEMORE, 0.125 = +MISSILEEVENMORE.
+	// 1.0 = normal, 0.5 = +MISSILEMORE, 0.125 = +MISSILEEVENMORE,
+	// 0.0625 = BOTH (CH stacks them on Benellus and the Arachnotron set).
 	// LOWER FIRES MORE -- it scales the "don't fire" distance roll.
 	// 0 = leave alone.
 	double missileChance;
+	// Splash taken, as a multiplier. Added for family 02: CH's shotgunner
+	// bosses span 0.33 (the Crew Commander shrugs it off) to 2.0 (Green
+	// Benellus is a balloon), which is a wider spread than any stat in the
+	// hp table. 0 = leave alone.
+	double radiusDamageFactor;
 }
 
 // Tier flag bits. Plain file-scope consts, NOT a static const array --
@@ -121,6 +127,16 @@ const RS_TF_NOTARGET         = 16384;
 const RS_TF_LAXTELEFRAGDMG   = 32768;
 const RS_TF_DONTHARMCLASS    = 65536;
 const RS_TF_NOBLOOD          = 131072;
+// The hover set. CH gives Benellus (family 02 T12/TEX) +FLOAT +NOGRAVITY
+// +FLOATBOB -- the God of Shotguns does not walk. A previous pass noted
+// these as "Default-only properties with no per-tier setter"; this is
+// the setter.
+const RS_TF_NOGRAVITY        = 262144;
+const RS_TF_FLOAT            = 524288;
+const RS_TF_FLOATBOB         = 1048576;
+const RS_TF_BOSSDEATH        = 2097152;
+const RS_TF_SEEINVISIBLE     = 4194304;
+const RS_TF_NOTIMEFREEZE     = 8388608;
 
 class RS_MonsterMaster : Actor abstract
 {
@@ -673,6 +689,18 @@ class RS_MonsterMaster : Actor abstract
 		bLAXTELEFRAGDMG   = (f & RS_TF_LAXTELEFRAGDMG)   != 0;
 		bNORADIUSDMG      = (f & RS_TF_TAKESRADIUSDMG)   == 0
 		                    && (f & RS_TF_BOSS)          != 0;
+		bBOSSDEATH        = (f & RS_TF_BOSSDEATH)        != 0;
+		bSEEINVISIBLE     = (f & RS_TF_SEEINVISIBLE)     != 0;
+		bNOTIMEFREEZE     = (f & RS_TF_NOTIMEFREEZE)     != 0;
+		if (r.radiusDamageFactor > 0)
+			RadiusDamageFactor = r.radiusDamageFactor;
+
+		// THE HOVER SET. Assigned together and absolutely -- a floater
+		// that retiers into a walker has to come back down, and NOGRAVITY
+		// left on by accident is a monster stuck in the air forever.
+		bNOGRAVITY        = (f & RS_TF_NOGRAVITY)        != 0;
+		bFLOAT            = (f & RS_TF_FLOAT)            != 0;
+		bFLOATBOB         = (f & RS_TF_FLOATBOB)         != 0;
 
 		// SPECIES. The Undertaker and MrBones share "UnderTaker" -- that
 		// is how a summoner does not shred its own summons.
