@@ -1,0 +1,215 @@
+================================================================================
+   RS_21 -- THE PORT LAW.  2026-08-04.
+   Written after the THIRD failed monster port, at the owner's direction.
+   This supersedes every prior instruction about HOW to port a monster.
+   If a future session disagrees with this file, the file wins.
+================================================================================
+
+WHY THIS EXISTS
+
+  Three ports have been attempted. All three produced a tree that passed
+  every check in the repo and was still wrong. The checks are gone now
+  (see CLAUDE.md) because of what they were, not because of their bugs:
+  they compared this tree against ITSELF. That cannot tell faithful from
+  merely self-consistent, and self-consistent-and-wrong is the exact
+  failure that happened three times.
+
+  Owner, verbatim, 2026-08-04:
+    "you will import each and every monster in all of its states. do not
+     shortcut. each line of attack, appearance, everything. break down
+     the ACS byte by byte and rebuild every line in zscript. i don't care
+     how much work it is."
+    "every monster attack will be cataloged. everything goes into its own
+     folder. everything documented. everything cataloged. everything
+     described. everything set up to be part of the PACK system."
+
+  That is the specification. It is not negotiable down.
+
+================================================================================
+1. GROUND TRUTH
+================================================================================
+
+  THE SOURCE IS ON DISK. It is not our tree, not a doc, not a lint.
+
+    E:\New folder\ART SOURCE\CHP\DECORATE\NN\NN_<code>.txt   monsters
+    E:\New folder\ART SOURCE\CHP\source\*.acs                behaviour
+    E:\New folder\ART SOURCE\CH\decorate\*.txt               fallback
+    E:\New folder\ART SOURCE\CH\source\*.acs                 fallback
+
+  CHP ALWAYS WINS. CH fills only what CHP leaves undefined -- CHP is a
+  patch on top of CH, so a CHP actor that does not redefine a state
+  inherits CH's. Colour code -> tier:
+    C=T00 G=T01 B=T02 CY=T03 P=T04 Y=T05 A=T06 F=T07
+    BR=T08 GY=T09 R=T10 K=T11 W=T12  KX/WX=TEX and up
+
+  Family numbers:
+    01 Zombieman 02 Shotgunner 03 Imp       04 Chaingunner 05 LostSoul
+    06 Demon     07 Spectre    08 Revenant  09 Cacodemon   10 PainElem
+    11 HellKnight 12 Arachnotron 13 Mancubus 14 Archvile   15 Baron
+    16 Mastermind 17 Cyberdemon
+
+  OUR TIER MAPS TO CHP'S `Common<Colour><Family>` ACTOR. The other
+  sub-variants (Green*, Blue*, Purple*, ... 15 per tier) are CHP's
+  SPAWN-COLOUR axis and are a separate, later question -- but they are
+  NOT to be silently dropped. Record them; do not pretend they are not
+  there. Family 15's red tier alone holds 15 sub-variants x 3 ranks.
+
+  NOTHING IS "CRUFT" UNTIL ITS SOURCE HAS BEEN READ. The previous ports
+  dropped ACS tokens as "empty wrappers" without opening the script they
+  called. The wrapper is empty BECAUSE the behaviour is in the ACS. That
+  single mistake removed pack speed buffs, damage resistance auras,
+  lead-fire, and the Archvile EX timer.
+
+================================================================================
+2. WHAT "PORTED" MEANS -- THE COMPLETION TEST
+================================================================================
+
+  A family is DONE when, for every tier it has, ALL of the following are
+  true and have been checked against the CHP file with it open:
+
+  [ ] Every state CHP defines exists: Spawn, Idle, See, Melee, Missile
+      (and every Missile.* branch), Pain, Death, XDeath, Raise, and any
+      named state CHP invents (Scatter, Miss2, Buff, Bomb, ...).
+  [ ] Every state's SPRITE TOKEN matches, frame for frame.
+  [ ] Every state's TIC COUNT matches.
+  [ ] Every action function matches, including its arguments, and every
+      damage roll is preserved as a roll (DamageFunction, never a
+      constant -- see CLAUDE.md).
+  [ ] Every property matches: Health, Speed, PainChance, Scale, Radius,
+      Height, Mass, MeleeRange, MeleeDamage, DamageFactor, Translation,
+      BloodColor, every sound, Obituary, Tag.
+  [ ] Every ACS script the actor calls has been OPENED, read, and
+      rebuilt in ZScript -- or explicitly recorded as cosmetic with the
+      script body quoted as evidence.
+  [ ] Every projectile, puff, gib, summon and effect actor it references
+      exists, with ITS states ported to the same standard.
+  [ ] Every attack has a catalog entry (section 4) and an
+      RS_AttackProfile (section 5).
+
+  ANYTHING NOT PORTED IS RECORDED AT THE SITE WITH THE SOURCE QUOTED.
+  Not "cosmetic, dropped". The actual lines, so the next reader can judge
+  for themselves. A wrong REASON is more expensive than a missing
+  feature: "porting it imports nothing" hid four real mechanics for three
+  sessions, while "only the aim-lead math is lost" got fixed the day
+  somebody looked, because it described the gap honestly.
+
+================================================================================
+3. LAYOUT -- EVERYTHING IN ITS OWN FOLDER
+================================================================================
+
+  zscript/monsters/<Family>/
+      RS_<Family>.zs              the monster: tiers, states, dispatch
+      attacks/
+          RS_<Family>_<Attack>.zs one file per distinct attack, holding
+                                  its projectile(s) and effect actors
+      README.txt                  what this family is, tier by tier
+
+  docs/monsters/<Family>.md       THE CATALOG (section 4)
+
+  RULES
+    * One attack, one file. A file may hold the projectile plus the puff,
+      trail and explosion that only it uses -- nothing else.
+    * Anything shared by two families moves to
+      zscript/monsters/_shared/ and is named for what it IS, never for
+      the first family that happened to use it.
+    * A new file that is not in zscript.txt SILENTLY DOES NOT EXIST.
+      Add the include in the same commit that adds the file.
+
+================================================================================
+4. THE CATALOG -- EVERY ATTACK, DESCRIBED
+================================================================================
+
+  docs/monsters/<Family>.md carries one entry per attack. Format:
+
+    ## <AttackName>            RS_<Family>_<Attack>
+    tier(s)      : T06, T07
+    chp source   : CHP/DECORATE/09/09_A.txt:245-268
+    acs          : CHSett2.acs "PESPEED" -- rebuilt as RS_PESpeedBuff
+                   (or: none)
+    fires        : RS_AbyssCacoHidi x3, 4-tic spacing, +-7 degrees
+    damage       : random(20,75)          <- the ROLL, never a mean
+    sprites      : HEAA B (spawn) / MISL BCD (death)
+    sounds       : see=holy3/holy3  death=holy2/holy2
+    behaviour    : one paragraph, in plain words, of what it DOES and
+                   what it feels like to be hit by
+    profile      : RS_AttackProfile.MakeVolley(...) -- the exact call
+    notes        : anything CHP does that looks like a bug, quoted
+
+  A DESCRIPTION THAT COULD DESCRIBE TWO DIFFERENT ATTACKS IS NOT DONE.
+  "fires a projectile" is not a description. The catalog exists so an
+  attack can be chosen from a list without opening the code.
+
+================================================================================
+5. PACK -- EVERY ATTACK IS ASSIGNABLE
+================================================================================
+
+  THIS IS THE HALF THE LAST PORT DID NOT BUILD, and the measurement is
+  the reason this section exists:
+
+    917  standalone projectile classes  (the parts bin -- real, and good)
+    4054 attacks fired INLINE from state code, hardcoded
+      30 attacks routed through RS_AttackProfile
+       8 of 19 monster files with a tier attack slot
+
+  0.7%. The parts exist; the sockets do not. An attack written as
+  `A_SpawnProjectile("RS_X", 32, 0, angle)` inside a state cannot be
+  reassigned to anything, which is the entire point of cataloguing it.
+
+  SO: every attack gets an RS_AttackProfile entry, built in
+  BuildTierAttacks, and the state fires it through the slot. The
+  projectile class stays exactly where it is -- this is about the CALL,
+  not the actor.
+
+  The conversion is mechanical: an inline call and a profile entry carry
+  the same information (projectile, offset, angle, count, sound). 30
+  already work. Nothing needs redesigning.
+
+================================================================================
+6. HOW WORK IS DONE AND PROVEN
+================================================================================
+
+  ONE FAMILY AT A TIME, COMPLETE, THEN VERIFIED IN GAME BEFORE THE NEXT.
+
+  This is the part that failed three times. Broad-and-shallow passes
+  across all 17 families produced a tree that looked finished everywhere
+  and was correct nowhere, and no single monster was ever confirmed
+  right. Depth-first cannot fail that way: at any moment the count of
+  families that are genuinely done is a number the owner has personally
+  seen on screen.
+
+    1. Read the family's CHP files, all tiers, before writing anything.
+    2. Read every ACS script they call.
+    3. Build: monster, attacks, catalog, profiles.
+    4. Owner boots and walks every tier with the debug menu.
+    5. Punch list -> one fix pass.
+    6. Only then, next family.
+
+  THE COMPILER AND THE GAME ARE THE ONLY AUTHORITIES. No script in this
+  repo may be treated as evidence of correctness. If a tool is written
+  again it must be a DIFFER AGAINST CHP that quotes both sides -- never
+  a lint that reads only us.
+
+  NEVER REPORT A FAMILY DONE WITHOUT THE OWNER HAVING SEEN IT.
+
+================================================================================
+7. THE WEAPONS QUESTION -- OPEN, NOT ASSUMED
+================================================================================
+
+  The owner's concern: "all of this tells me i have to rebuild all of my
+  weapons one at a time as well."
+
+  UNKNOWN, AND IT WILL BE MEASURED BEFORE IT IS ANSWERED. The weapons
+  came from a different source and a different process than the monsters,
+  so the monster port's failure does not automatically transfer. What is
+  already known:
+    * 32 base weapons, all extending RS_Weapon, all with rolled stats,
+      tiers, sockets and attack profiles -- so the PACK half that the
+      monsters lack is BUILT on the weapon side.
+    * The GH set's profile names branded their source rather than
+      describing the attack (fixed 2026-08-04, 21 strings).
+    * VR_Fist was outside RS_Weapon entirely until 2026-08-04.
+    * The three heavies do not consume ammo -- a known live bug.
+  Answering this properly means the same treatment: compare each weapon
+  against ITS source, not against our own tree. Not started.
+
+================================================================================
