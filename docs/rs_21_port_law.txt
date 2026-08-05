@@ -108,14 +108,48 @@ WHY THIS EXISTS
 3. LAYOUT -- EVERYTHING IN ITS OWN FOLDER
 ================================================================================
 
-  zscript/monsters/<Family>/
-      RS_<Family>.zs              the monster: tiers, states, dispatch
-      attacks/
-          RS_<Family>_<Attack>.zs one file per distinct attack, holding
-                                  its projectile(s) and effect actors
-      README.txt                  what this family is, tier by tier
+  A FAMILY OWNS ITS NAME IN ALL FOUR TREES. Owner's layout, 2026-08-04:
 
-  docs/monsters/<Family>.md       THE CATALOG (section 4)
+    zscript/monsters/<Family>/RS_<Family>.zs      the monster
+    zscript/monsters/<Family>/attacks/*.zs        one attack per file
+    sprites/monsters/<Family>/T00 .. TEX          one folder per tier
+    docs/monsters/<Family>/                       the catalog + transcripts
+
+  Sprites were already like this. Zombieman is the first family moved to
+  it on the code and docs side; every other family follows as it is
+  ported, and until then it stays flat in zscript/monsters/ -- do NOT
+  bulk-move the other sixteen ahead of their port, because a folder move
+  makes the porting diff unreadable for no gain.
+
+  docs/monsters/<Family>/ holds:
+      INDEX.md      the map, and an explicit list of what is NOT done
+      CATALOG.md    every attack (section 4)
+      README.txt    tier prose, sub-variants, ACS bodies, gaps
+      *_Tnn-Tnn.md  the raw state transcriptions
+
+  --------------------------------------------------------------------
+  "CATALOG" MEANS FOUR DIFFERENT THINGS IN THIS REPO. Settled here so it
+  stops being ambiguous, because the owner asked and the answer was not
+  obvious from any one file:
+
+    docs/monsters/<Family>/CATALOG.md   THE ATTACK DATABASE. This is what
+                                        rs_21 s4 means by "the catalog",
+                                        and catalog and database are the
+                                        same thing for a monster. One
+                                        entry per attack, `kind:` first.
+    zscript/systems/RS_MonsterCatalog.zs  Its CODE-SIDE TWIN -- the class
+                                        accessors so no monster file
+                                        names a raw class inline. The
+                                        .md describes an attack; this
+                                        hands you the actor.
+    docs/rs_12_catalog_index.txt        FX SEQUENCE index, 439 described
+                                        combat effects. Unrelated.
+    art_index.json                      What COULD be copied in from ART
+                                        SOURCE. A shopping list, not a
+                                        dependency list. Unrelated, and
+                                        the source of three false
+                                        "missing sprite" panics already.
+  --------------------------------------------------------------------
 
   RULES
     * One attack, one file. A file may hold the projectile plus the puff,

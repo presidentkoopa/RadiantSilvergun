@@ -50,12 +50,6 @@ version "4.14"
 // and the same rule: no monster file names a raw class inline.
 #include "zscript/systems/RS_MonsterCatalog.zs"
 
-// Per-family folders, rs_21 section 3: one attack per file, beside the
-// monster that owns it. Zombieman is the first family ported under that
-// law -- the rest follow as each is done.
-#include "zscript/monsters/Zombieman/attacks/RS_Zombieman_Undertaker.zs"
-#include "zscript/monsters/Zombieman/attacks/RS_Zombieman_BoneTornado.zs"
-
 // CH/CHP's pack-buff ACS, rebuilt as ZScript Powerups. The import
 // dropped these as "empty ACS wrappers"; the behaviour lived in the ACS
 // script, so the mechanic went with them. docs/rs_19_acs_inventory.txt
@@ -89,7 +83,22 @@ version "4.14"
 // adds, death chains), and a shared file gets unreadable fast once
 // that lands. Sprites and TRNSLATE names verified against Colourful
 // Hell's own decorate and against ART SOURCE.
-#include "zscript/monsters/RS_Zombieman.zs"
+// --- Zombieman (family 01) -------------------------------------------
+// FIRST FAMILY UNDER rs_21 SECTION 3'S LAYOUT, and the shape every other
+// family moves to as it is ported:
+//     zscript/monsters/Zombieman/RS_Zombieman.zs      the monster
+//     zscript/monsters/Zombieman/attacks/*.zs         one attack per file
+//     sprites/monsters/Zombieman/T00../TEX            already like this
+//     docs/monsters/Zombieman/                        catalog + transcripts
+// Everything about a family lives under its own name in all four trees.
+// The attacks are included BEFORE the monster purely so this block reads
+// bottom-up like the folder does; ZScript is one translation unit and
+// does not care.
+#include "zscript/monsters/Zombieman/attacks/RS_Zombieman_Undertaker.zs"
+#include "zscript/monsters/Zombieman/attacks/RS_Zombieman_BoneTornado.zs"
+#include "zscript/monsters/Zombieman/RS_Zombieman.zs"
+
+// --- families not yet ported under rs_21 -- flat, one file each -------
 #include "zscript/monsters/RS_Shotgunner.zs"
 #include "zscript/monsters/RS_Chaingunner.zs"
 #include "zscript/monsters/RS_Imp.zs"
