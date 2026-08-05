@@ -427,6 +427,52 @@ enumerated holes in a port that is substantially built.
       this survived three sessions.
 
 ================================================================================
+PART M -- PER-TIER FIDELITY.  Owner-deferred 2026-08-04 ("come back later
+and make them even more unique, closer to their CHP originals").
+Raised by the owner from PLAY, not from reading: "I ran through the
+zombieman tiers and some of the attacks and sounds seem suspiciously
+vanilla compared to their CHP tiers."
+================================================================================
+
+  SIZED BEFORE IT WAS BELIEVED, and the first read was too alarming.
+  CHP defines 16,666 tier-variant actors (Gas11_C, Gas11_G, BulletPuff_G
+  ...) and this tree defines ZERO -- but that comparison is misleading,
+  because our architecture deliberately replaces 14 sibling actors with
+  ONE class carrying per-tier state clusters, which is the better shape.
+  The real measurement: of 45 Missile.T* clusters across the roster, only
+  ONE is mechanically identical to another tier in its own file. The
+  tiers ARE differentiated. This is NOT a copy-paste port.
+
+  WHAT ACTUALLY DRIFTED is narrower and worth stating exactly, because
+  "the tiers are vanilla" would send a later session on a rewrite it does
+  not need:
+
+  M1. PER-TIER DAMAGE MULTIPLIERS DO NOT ESCALATE.
+      CHP's zombieman bullet damage climbs the ladder
+      x3 -> x4 -> x5 -> x6 -> x9 -> x12 -> x30.
+      Ours is x3 at T00 and x3 again at T01. CONFIRMED CASE:
+      RS_Zombieman.zs Missile.T01 vs CHP 01_G.txt's _G block. One
+      confirmed instance; the roster has not been swept.
+
+  M2. TIER-VARIANT PROJECTILES / PUFFS COLLAPSED TO THE COMMON ONE.
+      CHP T01 fires Gas11_G with BulletPuff_G; ours fires RS_Gas11 with
+      BulletPuff -- the T00 variants. The variants differ in more than
+      colour in CH, so this is not purely cosmetic.
+
+  M3. TIER-VARIANT ATTACK SOUNDS COLLAPSED.
+      CHP suffixes them (grunt/attack -> grunt/attack/g). Ours uses the
+      base sound at low tiers. NOTE the SeeSound/PainSound/DeathSound
+      ladder IS ported and correct from T03 up (zom2/see, lady/aggro,
+      snprfire, zombie/unmaker, under/see) -- this is specifically the
+      ATTACK sound and specifically the low tiers.
+
+  HOW TO DO IT WHEN IT COMES BACK: per family, per tier, diff our cluster
+  against CHP/DECORATE/NN/NN_<code>.txt and carry across the NUMBERS and
+  the variant names. It is a data pass, not a rewrite -- the structure is
+  already right. Do NOT recreate 16,666 actors; put the per-tier values
+  in the state clusters that already exist.
+
+================================================================================
 PART K -- THE CORRECTION rs_17 FORCED ON THIS LIST.
 Kept as an entry rather than a silent edit, because the reasoning is the
 useful part.
@@ -450,7 +496,7 @@ useful part.
 END OF REGISTER.  Generated 2026-08-04.
 55 entries: 49 objectives, plus Part H's 5 standing constraints (tests, not
 tasks) and Part K's single correction record.
-Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1 L8.
+Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1 L8 M3.
 CLOSED SO FAR: A1, A2, A3, A4, A6, D5, J1, L1 -- eight, all on 2026-08-04.
 REMAINING OPEN: 49.
 
