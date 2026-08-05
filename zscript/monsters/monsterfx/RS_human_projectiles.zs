@@ -30,7 +30,14 @@ class RS_Gas11 : Actor
 {
 	Default { Radius 6; Height 8; Speed 12; Damage 8; DamageType "Poison"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.7; Scale 0.8;
 		SeeSound "grenade/fuse"; DeathSound "weapons/grenade"; Translation "0:255=%[0.20,0.40,0.00]:[0.70,1.20,0.20]"; }
-	States { Spawn: PSBG CDE 4 Bright; Loop; Death: PSBG E 4 Bright A_Explode(24, 48, XF_HURTSOURCE, false, 16); PSBG FG 4 Bright; Stop; }
+	// RESTORED 1:1 TO CHP 01_G.txt:1418 -- `PSBG FGHI 6 Bright
+	// A_Explode(random(1,8),32)`. This was the single worst numeric error
+	// in family 01 and it is the whole point of the green zombie: the roll
+	// was flattened to a constant 24 and the radius inflated 32 -> 48, so
+	// it covered 2.25x the area. Four frames means four detonations, which
+	// is CH's deliberate idiom (see the header note on the A_Explode
+	// reversal) -- not a bug to convert.
+	States { Spawn: PSBG CDE 4 Bright; Loop; Death: PSBG FGHI 6 Bright A_Explode(random(1, 8), 32); Stop; }
 }
 class RS_IceZombieShot : Actor
 {
@@ -207,7 +214,20 @@ class RS_Puddle1 : Actor
 // REBUILD ADDITIONS (rs_09 per-tier state port). These are CH attacks
 // the earlier HF port never imported; ported from CH decorate
 // (Zombies.txt / Shotgunners.txt / Chaingunners.txt) per the spec's
-// "no RS_ port -> add it here" rule. Damage -> constants, house style.
+// "no RS_ port -> add it here" rule.
+//
+// [CORRECTED 2026-08-04] This header used to end "Damage -> constants,
+// house style." THERE IS NO SUCH HOUSE STYLE and there never was -- it
+// is the exact practice CLAUDE.md forbids, because a roll turned into a
+// constant leaves no `random(` for any later sweep to find and no reader
+// can tell a spread was ever there. Two independent cataloguing passes
+// found the same flattenings here on the same day.
+// Worse, the constants were not even means: CHP's random(10,45) (mean
+// 27.5) had become 20, and random(1,9) had become 4.
+// RS_PlayerEXBFG, further down THIS SAME FILE, already used
+// DamageFunction (random(100,200)) correctly -- so the working pattern
+// was sitting eleven hundred lines below the note telling people not to
+// use it. Rolls restored against CHP 01_W.txt, cited at each actor.
 // =====================================================================
 
 // ---------- UNDERTAKER (white zombieman) bone kit ----------
@@ -215,7 +235,7 @@ class RS_Puddle1 : Actor
 // into sprites/monsters/projectiles/.
 class RS_BoneProjZM : Actor
 {
-	Default { Radius 8; Height 8; Speed 32; Damage 10; Projectile; +BLOODLESSIMPACT; +SKYEXPLODE; +FORCEPAIN; Scale 0.75;
+	Default { Radius 8; Height 8; Speed 32; DamageFunction (random(4, 16)); Projectile; +BLOODLESSIMPACT; +SKYEXPLODE; +FORCEPAIN; Scale 0.75;
 		SeeSound "skeleton/attack"; DeathSound "skeleton/melee"; Translation "0:255=[129,129,129]:[255,255,255]"; }
 	States
 	{
@@ -228,14 +248,14 @@ class RS_BoneProjZM : Actor
 		Stop;
 	}
 }
-class RS_BoneProjZM2 : RS_BoneProjZM { Default { Speed 36; Damage 14; } }
-class RS_BoneProjZM3 : RS_BoneProjZM { Default { Speed 40; Damage 19; } }
+class RS_BoneProjZM2 : RS_BoneProjZM { Default { Speed 36; DamageFunction (random(8, 20)); } }
+class RS_BoneProjZM3 : RS_BoneProjZM { Default { Speed 40; DamageFunction (random(12, 26)); } }
 
 // The shovel: a big blade fan. CH ShoveZM sprays ShoveZM2/3 side
 // blades both forward and backward; kept, at reduced count.
 class RS_ShoveZM2 : Actor
 {
-	Default { Radius 6; Height 8; Speed 25; Damage 3; DamageType "Melee"; Alpha 0.75; Scale 1.8; Decal "BulletChip";
+	Default { Radius 6; Height 8; Speed 25; DamageFunction (random(1, 5)); DamageType "Melee"; Alpha 0.75; Scale 1.8; Decal "BulletChip";
 		Projectile; +SPAWNSOUNDSOURCE; +EXTREMEDEATH; +BLOODSPLATTER; DeathSound ""; }
 	States
 	{
@@ -247,10 +267,10 @@ class RS_ShoveZM2 : Actor
 		Stop;
 	}
 }
-class RS_ShoveZM3 : RS_ShoveZM2 { Default { Speed 27; Damage 7; Scale 1.55; } }
+class RS_ShoveZM3 : RS_ShoveZM2 { Default { Speed 27; DamageFunction (random(3, 12)); Scale 1.55; } }
 class RS_ShoveZM : Actor
 {
-	Default { Radius 6; Height 8; Speed 25; Damage 20; DamageType "Melee"; Scale 2.0; Decal "BulletChip";
+	Default { Radius 6; Height 8; Speed 25; DamageFunction (random(10, 45)); DamageType "Melee"; Scale 2.0; Decal "BulletChip";
 		Projectile; +SPAWNSOUNDSOURCE; +EXTREMEDEATH; +BLOODSPLATTER;
 		AttackSound "skeleton/swing"; DeathSound "moloch/nailhitbleed"; }
 	States

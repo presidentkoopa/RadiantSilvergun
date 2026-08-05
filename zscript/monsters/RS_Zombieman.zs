@@ -177,28 +177,35 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		if (rsStep < 1 && ChargeCounter >= RS_ZM_STEP1)
 		{
 			// CH Buff1: MISSILEEVENMORE, speed up, grow.
+			// ABSOLUTE, NOT MULTIPLICATIVE. CHP 01_W.txt:124,125 is
+			// A_Setspeed(16) / A_SetScale(1.1,1.1) -- it SETS values, it
+			// does not scale them. Multiplying compounded across the three
+			// rungs and landed the final form at Speed ~19.5 against CHP's
+			// 28, roughly 30% slower, with the error growing at every step.
 			rsStep = 1;
-			Speed *= 1.3;
+			Speed = 16;
 			MissileChanceMult *= 0.125;   // == +MISSILEEVENMORE; lower fires MORE
-			A_SetScale(Scale.X * 1.08);
+			A_SetScale(1.1);
 			A_StartSound("under/goodie", CHAN_VOICE);
 		}
 		else if (rsStep < 2 && ChargeCounter >= RS_ZM_STEP2)
 		{
 			// CH Buff2: user_skel1 == 3 -- bone grade 2 unlocks.
+			// CHP 01_W.txt:134,135 -- A_Setspeed(21) / A_SetScale(1.25).
 			rsStep = 2;
-			Speed *= 1.25;
-			A_SetScale(Scale.X * 1.10);
+			Speed = 21;
+			A_SetScale(1.25);
 			A_StartSound("under/goodie", CHAN_VOICE);
 		}
 		else if (rsStep < 3 && ChargeCounter >= RS_ZM_STEP3)
 		{
 			// CH Buff3: user_skel1 == 4 -- final form, stops flinching,
 			// bone grade 3 and the tornado unlock.
+			// CHP 01_W.txt:145,147 -- A_Setspeed(28) / A_SetScale(1.45).
 			rsStep = 3;
 			bNOPAIN = true;
-			Speed *= 1.2;
-			A_SetScale(Scale.X * 1.12);
+			Speed = 28;
+			A_SetScale(1.45);
 			A_StartSound("under/goodie", CHAN_VOICE);
 		}
 	}
