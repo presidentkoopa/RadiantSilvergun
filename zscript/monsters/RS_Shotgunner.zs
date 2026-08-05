@@ -118,10 +118,26 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 			case 10: hp = 150;  spd = 9;  r.painChance = 110; r.dmgMul = 1.8; break;
 			case 11: hp = 2450; spd = 16; r.painChance = 40;  r.dmgMul = 2.2; break;
 			case 12: hp = 5000; spd = 28; r.painChance = 8;   r.dmgMul = 3.0; break;
-			// TEX -- CHP 02_WX GreenWhiteSGEX2, verbatim (FloatSpeed 39
-			// is a Default-only property with no per-tier setter here, so
-			// only Speed carries; noted in the header).
-			case 13: hp = 10671; spd = 39; r.painChance = 6; r.dmgMul = 3.5; break;
+			// TEX -- CHP 02_WX CommonWhiteSGEX2, the FIRST actor.
+			//
+			// THIS ROW USED TO BE GreenWhiteSGEX2's, AND THAT WAS A PORT
+			// ERROR. 02_WX.txt holds fifteen actors; the first is the one
+			// we port and the other fourteen are the spawn-colour axis
+			// (rs_23: "RECORDED, NOT BUILT"). Someone read the SECOND.
+			//   CommonWhiteSGEX2  02_WX:1    Health 8537  Speed 31  Pain 8
+            //   GreenWhiteSGEX2   02_WX:185  Health 10671 Speed 39  Pain 6
+            // and the old row was 10671/39/6 exactly. The green palette
+            // remap this tier used to carry came from the same misread --
+            // it is GreenWhiteSGEX2's Translation at 02_WX:201, and
+            // CommonWhiteSGEX2 has NO Translation line at all.
+			//
+			// Every other tier T00-T12 was checked against its own file's
+			// first actor at the same time and all thirteen are correct.
+			// TEX was the only one.
+			//
+			// FloatSpeed 31 is Default-only in this template; Speed
+			// carries, FloatSpeed does not.
+			case 13: hp = 8537;  spd = 31; r.painChance = 8; r.dmgMul = 3.5; break;
 			default: return false;
 		}
 		r.hpMul  = double(hp) / 30.0;
@@ -249,12 +265,17 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 				        | RS_TF_NOGRAVITY | RS_TF_FLOAT | RS_TF_FLOATBOB;
 				r.missileChance = 0.0625;   // MORE *and* EVENMORE
 				break;
-			case 13:  // WhiteSGEX -- GREEN BENELLUS  Shotgunners.txt:2532
+			case 13:  // WhiteSGEX -- BENELLUS EX  Shotgunners.txt:2532
 				// Benellus plus: its own species, +NOTIMEFREEZE (a time
-				// stop does not save you), +THRUSPECIES, scale 1.25, and
-				// DOUBLE splash taken.
+				// stop does not save you), +THRUSPECIES, and DOUBLE
+				// splash taken.
+				//
+				// SCALE IS 1.00, NOT 1.25. CommonWhiteSGEX2 states
+				// `scale 1.00` at 02_WX:7. The 1.25 that used to be here
+				// came from the same GreenWhiteSGEX2 misread as the old
+				// stat row -- see case 13 in the stat switch above.
 				r.species = "BENE";
-				r.radius = 20; r.height = 56; r.mass = 400; r.scale = 1.25;
+				r.radius = 20; r.height = 56; r.mass = 400; r.scale = 1.0;
 				r.radiusDamageFactor = 2.0;
 				r.flags = RS_TF_BOSS | RS_TF_TAKESRADIUSDMG
 				        | RS_TF_DONTMORPH | RS_TF_BOSSDEATH
@@ -262,7 +283,11 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 				        | RS_TF_NOFEAR | RS_TF_LOOKALLAROUND
 				        | RS_TF_NOTIMEFREEZE | RS_TF_THRUSPECIES
 				        | RS_TF_NOGRAVITY | RS_TF_FLOAT | RS_TF_FLOATBOB;
-				r.missileChance = 0.0625;   // MORE *and* EVENMORE
+				// MORE ONLY. CH gives WhiteSGEX both flags, but CHP
+				// writes `-MISSILEEVENMORE` (02_WX:9) on the Common AND
+				// the Green variant alike, so the shipping EX is 0.5.
+				// Same class of trap as the Imp EX.
+				r.missileChance = 0.5;
 				break;
 			default:
 				break;
@@ -305,8 +330,14 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 				if (damageType == 'Plasma')  return 1.2;
 				if (damageType == 'Melee')   return 2.0;
 				break;
-			case 13:  // WhiteSGEX -- Green Benellus
-				if (damageType == 'None')       return 0.75;
+			case 13:  // WhiteSGEX -- Benellus EX
+				// NO 'None' ENTRY, DELIBERATELY. CH gives WhiteSGEX
+				// Damagefactor None,0.75 and CHP CANCELS it with
+				// `Damagefactor None, 1` (02_WX:8). T12 keeps its 0.75;
+				// the EX does not. So plain bullets are the WRONG answer
+				// to Benellus and the RIGHT one to Benellus EX -- the
+				// harder tier is the softer target to ordinary fire,
+				// which is worth knowing before anyone "corrects" it.
 				if (damageType == 'Fire')       return 2.0;
 				if (damageType == 'Plasma')     return 1.25;
 				if (damageType == 'Melee')      return 2.0;
@@ -329,21 +360,26 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
-	// TEX USED TO CARRY A GREEN REMAP AND THE OWNER CUT IT, 2026-08-05.
-	// CHP ships no separate EX sprite set for Benellus, so it reuses
-	// T12's BENE artwork and distinguishes the EX with a palette remap
-	// ("0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]" on GreenWhiteSGEX2).
-	// Owner's call: the green reads badly and the plain art is the good
-	// art. TEX now wears BENE untinted, exactly as T12 does.
+	// TEX'S GREEN REMAP WAS A PORT ERROR AND IT IS GONE, 2026-08-05.
 	//
-	// This is a DELIBERATE DIVERGENCE FROM CHP, not an omission. The
-	// recipe stays in TRNSLATE.txt as rs_sgun_tex -- unused, so putting
-	// it back is one word here rather than a re-derivation.
+	// The owner asked where "reuse BENE with a green tint" came from and
+	// whether it was CHP's behaviour. IT WAS NOT. 02_WX.txt holds fifteen
+	// actors: CommonWhiteSGEX2 first, then fourteen spawn-colour
+	// re-skins. CommonWhiteSGEX2 -- the one we port -- HAS NO
+	// Translation line at all. The green recipe is
+	// GreenWhiteSGEX2's, at 02_WX:201.
 	//
-	// Consequence, stated so nobody "fixes" it later: T12 and TEX are now
-	// visually identical. They are told apart by scale (CHP gives TEX
-	// 1.25 against T12's 1.0), by size and speed, and by TEX's extra
-	// roster -- shrines, the focused volley, the blink. Not by colour.
+	// Removing it therefore RESTORES CHP fidelity rather than diverging
+	// from it, and it exposed that the whole TEX row had been read off
+	// the same wrong actor: Health/Speed/PainChance/scale were all
+	// GreenWhiteSGEX2's. Fixed in TierData; see case 13 there.
+	//
+	// rs_sgun_tex stays in TRNSLATE.txt, unused. It is a real CHP recipe
+	// for a spawn-colour variant, so it belongs to the spawn-colour axis
+	// (rs_23: RECORDED, NOT BUILT) if that is ever built -- not to TEX.
+	//
+	// T12 and TEX are told apart by size, speed and roster, which is how
+	// CHP tells them apart too. Never by colour.
 	override string TintTable()
 	{
 		//      T00 T01 T02 T03 T04 T05 T06 T07 T08 T09 T10 T11 T12 TEX
