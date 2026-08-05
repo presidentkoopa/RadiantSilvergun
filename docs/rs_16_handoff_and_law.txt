@@ -10,7 +10,7 @@
 
     "THE GATE -- 69 ERRORS"     DONE. All swept to DamageFunction. The gate
                                 now is that DamageFunction itself has never
-                                been compiled (~71 sites, all stand or fall
+                                been compiled (75 sites, all stand or fall
                                 together).
     "LANES (as of 2026-08-04)"  ALL MERGED. The shotgunner-FX branch, the
                                 dedupe branch and the monster rebuild are in
@@ -24,7 +24,7 @@
 
   NOTHING IN THIS TREE HAS SUCCESSFULLY COMPILED. Three things entered the
   compile path today and each reverts independently:
-      * DamageFunction, ~71 sites          (all stand or fall together)
+      * DamageFunction, 75 sites          (all stand or fall together)
       * RS_Score.zs                        (parses clean per the 6f032dca log;
                                             full compile unconfirmed)
       * RS_ScoreHUD.zs + RS_ScoreRevival.zs (never in ANY compile path --
@@ -313,10 +313,10 @@ OPEN -- NEEDS THE OWNER
      SPAWN AND DEATH SWAPPED (RS_MineShotgun and RS_SGGasNade, both fixed).
      NOTE the PLSS/MANF/BFS1 entries were invisible until the vanilla-token
      skip was removed from verify.py -- see the warning below.
-  3. DamageFunction IS AN UNPROVEN BET. ~71 sites now use it for rolled
+  3. DamageFunction IS AN UNPROVEN BET. 75 sites now use it for rolled
      damage, all standing or falling together, and NOBODY HAS COMPILED. If
      the build rejects it the fix is mechanical -- flatten each to a constant
-     -- but it is ~71 lines. Three file headers were corrected to stop them
+     -- but it is 75 lines. Three file headers were corrected to stop them
      asserting the opposite (they used to say "-> CONSTANT (ZScript Default
      requires it)"), so the tree is at least self-consistent now.
   4. RESOLVED -- there are NO unresolved labels. An earlier version of this
@@ -394,7 +394,7 @@ OPEN -- NEEDS THE OWNER
 
   FIRST THING TO DO ON THE NEXT BUILD: two unproven bets are now in the
   compile path and both revert independently --
-     * DamageFunction across ~71 sites (all stand or fall together)
+     * DamageFunction across 75 sites (all stand or fall together)
      * RS_Score.zs (revert 9716f909 to drop it back out)
   The deprecation sweep itself is low-risk -- every replacement has working
   precedent elsewhere in this tree -- but MissileChanceMult's direction is

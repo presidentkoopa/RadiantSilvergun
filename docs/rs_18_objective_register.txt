@@ -35,6 +35,10 @@ PART A -- THE GATE.  Nothing else moves until this does.
       75 sites across 12 files, zero `Damage (random(` remaining -- all
       stand or fall together. Fallback if rejected is flattening to
       constants, which destroys CH's damage spreads, so this needs to work.
+      THE NUMBER IS 75, NOT ~71. Verified two ways (match count and line
+      count agree, so no line carries two). rs_16 and rs_17 both say "~71"
+      and a third lane repeated it in handoff; the tilde has been carrying
+      a stale figure between three documents. Corrected at source.
 
   A3. VALIDATE RS_Score.zs.
       Parses clean per the 6f032dca log -- the compiler passed zscript.txt
@@ -134,6 +138,16 @@ build, not before one -- a third unproven change makes a failed build
 unattributable.
 ================================================================================
 
+  STANDING FACT THAT DE-RISKS ALL OF E1-E5 (rs_17 s9, [BUILT], verified):
+  EVERY GUN IS AN RS_Weapon -- 11 VR_* and 21 RS_GH_*, 32 in total. There
+  is no RS_GH_Weapon base class and never was; RS_GH_Weaponset
+  (VR_PlayerClasses.zs:212) is a PLAYER class extending VR_DualClassBase,
+  which is easy to mistake for one. So the trigger-shape fields land ONCE
+  on RS_AttackProfile and every weapon has them -- no second system, no
+  parallel dispatch, no per-set port. `set:` is already a live keyword
+  filter, so scoping anything to one weapon set is a query, not a refactor.
+
+
   E1. PROVE INHERITED STATE LABELS RESOLVE ON THIS ENGINE.
       One weapon, end to end, before touching a second. If they do not,
       rs_17 section 4's landing site is wrong and the whole proposal needs
@@ -230,10 +244,33 @@ PART G -- CONTENT BACKLOG.
       rs_14 lists 18 files with exact source paths and destination names.
       Purely mechanical.
 
-  G3. MERGE THE ART SOURCE FX INVENTORY INTO rs_MASTER_FX_CATALOG.txt.
-      ~743 visually-described sequences across five reports; the merge agent
-      died before writing Sections 1-6. Data-ready and needs no re-viewing.
-      (That catalog is a PROTECTED file -- append to it, never clean it up.)
+  --- THE ART CATALOGUE IS THREE JOBS, NOT ONE (rs_17 s10). Costs differ by
+      orders of magnitude; only G3c is expensive. An earlier draft of this
+      register had them as a single "~743 sequences" merge entry, which was
+      both wrong on the number and wrong on the shape. ---
+
+  G3a. PER-FOLDER ART INVENTORY REPORT -- FREE TODAY.
+      art_index.json already carries `dir` on all 1,722 tokens across 284
+      folders, so "what is in each folder" is a pure rollup of data already
+      on disk -- one script, one report, no scanning and no viewing.
+
+  G3b. BACKFILL rs_MASTER_FX_CATALOG's SIX "(pending inventory pass)"
+      SECTIONS.
+      The data already exists in docs/fx_inventory_staging/ (five reports:
+      fire, smoke, explosions, gore, misc), so this is a MERGE of work
+      already done. Closes the confusing split where rs_12's header says
+      the master catalogue's entries are placeholders and the real data
+      lives in the reports. FILL IN PLACE -- that file is PROTECTED; never
+      restructure or regenerate it.
+
+  G3c. DESCRIBE THE REMAINING ~1,280 TOKENS.  THE EXPENSIVE ONE.
+      439 of 1,722 are described today (~25%); the rest have a name, a
+      folder and a frame string and nothing about what they look like. Only
+      viewing frames produces that, and rs_16's FILENAMES LIE warning
+      applies at full force -- a pass that pattern-matches names instead of
+      opening files yields a catalogue WORSE than none, because it reads as
+      authoritative. Scope this on its own terms; never smuggle it into an
+      attack-grammar change.
 
   G4. GENERALISE THE CADENCE SYSTEM -- AND NOTE IT IS THE SAME JOB AS E2.
       AllClearPitch() (RS_Weapon.zs:155) is already pitched per archetype
@@ -327,7 +364,15 @@ useful part.
 
 ================================================================================
 END OF REGISTER.  Generated 2026-08-04.
-51 entries: 45 objectives, plus Part H's 5 standing constraints (tests, not
+53 entries: 47 objectives, plus Part H's 5 standing constraints (tests, not
 tasks) and Part K's single correction record.
-Counts by part -- A5 B3 C6 D4 E9 F8 G4 H5 I4 J2 K1.
+Counts by part -- A5 B3 C6 D4 E9 F8 G6 H5 I4 J2 K1.
+
+  REVISION, same day: first draft was built from a 451-line WORKING COPY of
+  rs_17 read while its authoring lane was still editing. The committed file
+  (2201caee) is 548 lines with two sections that draft never saw -- s9 ONE
+  BASE CLASS and s10 THE PAYLOAD SUPPLY LINE. s10 is what split G3 into
+  G3a/b/c. Reading another lane's uncommitted working copy gives you a
+  snapshot with no version on it; re-read from the commit before building
+  anything on top of it.
 ================================================================================

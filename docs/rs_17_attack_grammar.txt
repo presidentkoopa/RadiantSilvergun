@@ -514,10 +514,12 @@ STATUS OF THIS DOCUMENT
 
   SEQUENCING -- this reworks the attack layer's core abstraction and must
   land on a green build, not before one. rs_16 records two unproven bets
-  already sitting in the compile path: DamageFunction across ~71 sites
-  (all standing or falling together) and RS_Score.zs. Neither has been
-  compiled. Adding a third unproven change on top makes a failed build
-  unattributable.
+  already sitting in the compile path: DamageFunction across 75 sites in
+  12 files (all standing or falling together) and RS_Score.zs. Neither has
+  been compiled. Adding a third unproven change on top makes a failed
+  build unattributable.
+  (The count was "~71" here and in rs_16 until it was measured: 75, with
+  match count and line count agreeing. See rs_18 A2.)
 
   ORDER
     1. Green build. (rs_16's list: compile, boot, one punch-list, one
@@ -531,7 +533,6 @@ STATUS OF THIS DOCUMENT
        and makes its `trigger:burst` keyword mean something.
     5. RoFMult -- the AutoShotgun card becomes writable.
     6. WindupProfile last. It is the one with a recursion hazard.
-    7. WindupProfile last. It is the one with a recursion hazard.
 
   INDEPENDENT OF ALL OF THE ABOVE -- can land any time, including first,
   and none of them touch the compile path:
