@@ -400,12 +400,11 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 			return ResolveState(null);
 		}
 		"AYPB" AAB 5 Bright;
-		// CH plays "AbyssForm" here. We ship neither the lump nor an
-		// SNDINFO entry for it, and calling an undefined token is a
-		// silent no-op that reads as done -- the same trap as
-		// HEHEEENH on Player X. Frame kept, sound left for the asset
-		// pass that imports it.
-		"AYPB" B 5 Bright;
+		// CH Zombies.txt:139. The lump is imported and SNDINFO now
+		// defines the PLAIN token -- CHP only ever defined AbyssForm/G,
+		// /B, /P ... so its own Common tier called a name that resolved
+		// to nothing.
+		"AYPB" B 5 Bright { A_StartSound("AbyssForm", CHAN_VOICE); }
 		"AYPB" BBACDE 5 Bright;
 		TNT1 A 0
 		{
@@ -1309,40 +1308,37 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		"ZMKX" E 0 A_Jump(256, "Missile.TEX.Chaingun");
 		Goto See;
 	// Pure showboating -- and it is the only time the fight pauses.
+	// CHP 01_KX.txt:46-65. The laugh lands on twelve of the nineteen
+	// frames, always the G ones.
 	//
-	// THE LAUGH IS DELIBERATELY ABSENT, and this is not the gap it looks
-	// like. CHP 01_KX.txt:48-65 hangs A_Playsound("HEHEEENH",0) on 12 of
-	// these frames. But CHP's own SNDINFO defines only the COLOUR-SUFFIXED
-	// tokens -- HEHEEENH/A /B /BR /CY /F /G /GY /K /KX /P /R /W /WX /Y --
-	// and no plain "HEHEEENH" and no "/C". The Common Player X therefore
-	// calls a token that does not exist, and IS SILENT IN CHP TOO. Same
-	// defect class as misc/gibbed/c, which is undefined and called from 11
-	// files in this family.
-	// So our behaviour already matches CHP's real behaviour. Making it
-	// audible means IMPORTING THE LUMP (we ship neither the sound nor an
-	// SNDINFO entry) and then aliasing a plain token -- an asset job under
-	// the monsters-stand-alone law, not a code fix. Do NOT "restore" the
-	// A_StartSound calls on their own; that just adds 12 no-ops.
+	// IT WAS SILENT UNTIL 2026-08-04 AND SO IS CHP'S. CHP hangs
+	// A_Playsound("HEHEEENH",0) on these frames but its SNDINFO defines
+	// only HEHEEENH/A /B /BR /CY /F /G /GY /K /KX /P /R /W /WX /Y -- no
+	// plain token and no /C -- so the Common Player X calls a name that
+	// resolves to nothing. Nothing in CH defines it either. The lump does
+	// exist (CH/sounds/HEHEEENH.wav); only the mapping was missing.
+	// Imported to sounds/monsters/ and mapped to the plain token in
+	// SNDINFO, so ours actually laughs.
 	Missile.TEX.Taunt:
 		"ZMKX" A 4;
-		"ZMKX" G 4;
+		"ZMKX" G 4 { A_StartSound("HEHEEENH", CHAN_VOICE); }
 		"ZMKX" A 4;
-		"ZMKX" G 4;
+		"ZMKX" G 4 { A_StartSound("HEHEEENH", CHAN_VOICE); }
 		"ZMKX" A 4;
-		"ZMKX" G 4;
+		"ZMKX" G 4 { A_StartSound("HEHEEENH", CHAN_VOICE); }
 		"ZMKX" A 4;
-		"ZMKX" G 4;
+		"ZMKX" G 4 { A_StartSound("HEHEEENH", CHAN_VOICE); }
 		"ZMKX" A 4;
-		"ZMKX" G 4;
+		"ZMKX" G 4 { A_StartSound("HEHEEENH", CHAN_VOICE); }
 		"ZMKX" A 3;
-		"ZMKX" G 3;
+		"ZMKX" G 3 { A_StartSound("HEHEEENH", CHAN_VOICE); }
 		"ZMKX" A 3;
-		"ZMKX" G 3;
+		"ZMKX" G 3 { A_StartSound("HEHEEENH", CHAN_VOICE); }
 		"ZMKX" A 3;
-		"ZMKX" G 3;
-		"ZMKX" GAG 4;
-		"ZMKX" AGA 3;
-		"ZMKX" GAG 2;
+		"ZMKX" G 3 { A_StartSound("HEHEEENH", CHAN_VOICE); }
+		"ZMKX" GAG 4 { A_StartSound("HEHEEENH", CHAN_VOICE); }
+		"ZMKX" AGA 3 { A_StartSound("HEHEEENH", CHAN_VOICE); }
+		"ZMKX" GAG 2 { A_StartSound("HEHEEENH", CHAN_VOICE); }
 		Goto See;
 	// Closes the last of the gap with a hop before it fires.
 	Missile.TEX.Shotgun:

@@ -680,6 +680,18 @@ spell/spellcast1    KORATK
 under/see           WZMHI
 under/die           WZMDED
 under/goodie        WZMGDI
+
+// Family 01 (Zombieman), imported 2026-08-04 from CH/sounds/. Both were
+// called by CHP and resolved to nothing, for the SAME reason twice: CHP's
+// own SNDINFO defines only COLOUR-SUFFIXED variants (AbyssForm/G, /B, /P
+// ...; HEHEEENH/A, /B, /BR ...) and never the plain token its Common-tier
+// actors actually call. CH defines the plain AbyssForm at SNDINFO.txt:203;
+// nothing anywhere defines a plain HEHEEENH. So in CHP itself the Abyss
+// conversion is silent unless CH is loaded under it, and Player X's laugh
+// is silent always.
+// We define the plain tokens, so both play here.
+AbyssForm           AbyssForm      // the T06 abyss conversion, Pain.AbyssPE
+HEHEEENH            HEHEEENH       // Player X's gloat, Missile.TEX.Taunt
 $random skelpai { gethit1 gethit2 gethit3 gethit4 gethit5 gethit6 gethit7 }
 gethit1             GETHIT1
 gethit2             GETHIT2
