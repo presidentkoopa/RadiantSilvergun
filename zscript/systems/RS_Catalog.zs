@@ -135,6 +135,15 @@ class RS_Catalog
 		return "RS_BallisticType1";
 	}
 
+	// Second selectable ballistic visual -- MeatGrinder's `Bullet` (TRAC).
+	// Not a reskin of Type1: TRAC is an 8-way rotation set, so the round
+	// holds its orientation as you strafe around it, where RSB0 cycles
+	// five shapes regardless of viewing angle. See RS_PS_FX.zs.
+	static Class<Actor> PROJ_Ballistic2()
+	{
+		return "RS_BallisticType2";
+	}
+
 	// Launched grenade -- arcs under gravity, bounces, two-stage blast.
 	// Referenced by the GH Machine Gun's underbarrel alt-fire; the same
 	// entry a Grenade Launcher import points at rather than duplicating.
@@ -212,6 +221,34 @@ class RS_Catalog
 		return "RS_GH_FlameJet";
 	}
 
+	// MeatGrinder set -- real ported art and behaviour, NOT a fallback to
+	// the vanilla-derived Enhanced* skins. The pack's own plasma ball,
+	// BFG ball and rocket, each its own selectable entry alongside the
+	// existing ones rather than replacing them. See RS_PS_FX.zs.
+	static Class<Actor> PROJ_PS_PlasmaShot()
+	{
+		return "RS_PS_PlasmaShot";
+	}
+
+	static Class<Actor> PROJ_PS_BFGShot()
+	{
+		return "RS_PS_BFGShot";
+	}
+
+	static Class<Actor> PROJ_PS_Rocket()
+	{
+		return "RS_PS_Rocket";
+	}
+
+	// Streak set (RS_ST_) -- PACK resources only, no weapons imported.
+	// FlameJet is a real travelling round usable as a profile's
+	// ProjectileClass (same shape as PROJ_GH_FlameJet); Grenade is a
+	// re-skin of the launched-grenade body, arc/bounce/blast unchanged.
+	// See RS_FX_Streak.zs.
+	static Class<Actor> PROJ_ST_FlameJet()   { return "RS_ST_FlameJet"; }
+	static Class<Actor> PROJ_ST_EnergyShot() { return "RS_ST_EnergyShot"; }
+	static Class<Actor> PROJ_ST_Grenade()    { return "RS_ST_Grenade"; }
+
 	// -----------------------------------------------------------------
 	// CASING ENTRIES
 	// Ejected shell/casing actors, read by RS_HiFiFX.CasingEject() as a
@@ -222,16 +259,26 @@ class RS_Catalog
 	static string CASING_Rifle()  { return "RS_CasingRifle"; }
 	static string CASING_Shell()  { return "RS_CasingShell"; }
 
+	// MeatGrinder brass -- settles into one of five resting frames, so a
+	// littered floor doesn't tile. Second selectable casing pair.
+	static string CASING_PS_Rifle() { return "RS_PS_CasingRifle"; }
+	static string CASING_PS_Shell() { return "RS_PS_CasingShell"; }
+
 	// -----------------------------------------------------------------
 	// PLAYER FEEDBACK ENTRIES -- impact puffs, impact sparks, muzzle
 	// smoke. Read by RS_AttackProfile.ImpactPuff/ImpactSparks/MuzzleSmoke
 	// (bullet/hitscan profiles only). Real classes live in
 	// RS_FX_Puffs.zs / RS_FX_Sparks.zs / RS_FX_Ricochet.zs / RS_FX_Smoke.zs.
 	// -----------------------------------------------------------------
-	static Class<Actor> PUFF_Bullet()   { return "RS_EnhancedBulletPuff"; }
+	static Class<Actor> PUFF_Bullet()   { return "RS_StreakPuff"; }
 	static Class<Actor> PUFF_Shot()     { return "RS_EnhancedShotPuff"; }
 	static Class<Actor> PUFF_Chainsaw() { return "RS_ChainsawPuff"; }
 	static Class<Actor> PUFF_Vanilla()  { return "BulletPuff"; }
+
+	// MeatGrinder impact puffs -- additive 10-frame flash with a 50/50
+	// horizontal mirror so repeated hits don't rubber-stamp.
+	static Class<Actor> PUFF_PS_Hit()  { return "RS_PS_HitPuff"; }
+	static Class<Actor> PUFF_PS_Saw()  { return "RS_PS_SawPuff"; }
 
 	static Class<Actor> SPARK_Hit()        { return "RS_HitSpark"; }
 	static Class<Actor> SPARK_X()          { return "RS_SparkX"; }
@@ -247,7 +294,36 @@ class RS_Catalog
 	// Read as the default when an AttackProfile doesn't set its own
 	// Trail override (RS_AttackProfile.Trail), same null-means-default
 	// shape as the puff/spark/smoke entries above.
-	static Class<Actor> TRAIL_Ballistic() { return "RS_BallisticTrail"; }
+	static Class<Actor> TRAIL_Ballistic() { return "RS_StreakTrail"; }
+
+	// Streak set cosmetics -- no damage of their own, safe in any
+	// ImpactPuff/Trail/ExplosionVisual slot. Kept as separate entries
+	// rather than one composite so an affix can take the burst without
+	// the ball. See RS_FX_Streak.zs.
+	static Class<Actor> TRAIL_ST_Ember()     { return "RS_ST_EmberTrail"; }
+	static Class<Actor> FIRE_ST_Flame()      { return "RS_ST_Flame"; }
+	static Class<Actor> FIRE_ST_Cloud()      { return "RS_ST_FireCloud"; }
+	static Class<Actor> PLASMA_ST_ArcImpact(){ return "RS_ST_ArcImpact"; }
+	static Class<Actor> PLASMA_ST_Spray()    { return "RS_ST_EnergySpray"; }
+	static Class<Actor> FLARE_ST_Glow()      { return "RS_ST_Glow"; }
+	static Class<Actor> SPARK_ST_Scrap()     { return "RS_ST_ScrapShard"; }
+
+	// Particle for RS_ST_Beam.Draw(). The beam GENERATOR is not a catalog
+	// entry -- it's a static call, not a spawnable class -- but the thing
+	// it spawns is, so a caller can swap the beam's look without touching
+	// the generator:
+	//     RS_ST_Beam.Draw(muzzlePos, hitPos, RS_Catalog.BEAM_ST_Arc());
+	static Class<Actor> BEAM_ST_Arc()        { return "RS_ST_ArcTrail"; }
+
+	// Ring-burst blast. EXPLOSION_ST_Ring is the assembled look and is the
+	// one an ExplosionVisual slot wants; the three pieces below are
+	// separate entries so an affix can take the sparks without the ring,
+	// same reasoning as the MG blast set above. None of them carry damage.
+	static Class<Actor> EXPLOSION_ST_Ring()  { return "RS_ST_Explosion"; }
+	static Class<Actor> SPARK_ST_Ring()      { return "RS_ST_RingParticle"; }
+	static Class<Actor> SPARK_ST_Blast()     { return "RS_ST_BlastSpark"; }
+	static Class<Actor> SMOKE_ST_Blast()     { return "RS_ST_BlastSmoke"; }
+	static Class<Actor> SPARK_ST_ScrapAlt()  { return "RS_ST_ScrapShardAlt"; }
 
 	// -----------------------------------------------------------------
 	// IMPACT / EXPLOSION ENTRIES -- standalone cosmetic-only visuals,
@@ -274,6 +350,27 @@ class RS_Catalog
 
 	static Class<Actor> PLASMA_Splash()    { return "RS_PlasmaSplash"; }
 	static Class<Actor> PLASMA_SplashAlt() { return "RS_PlasmaSplashAlt"; }
+
+	// ---- MeatGrinder blast assembly ---------------------------------
+	// Deliberately kept as separate entries rather than one composite, so
+	// an affix can take the shrapnel without the smoke. EXPLOSION_PS_Blast
+	// is the assembled cosmetic half; it carries no damage of its own.
+	static Class<Actor> EXPLOSION_PS_Blast()     { return "RS_PS_Explosion"; }
+	static Class<Actor> EXPLOSION_PS_Fire()      { return "RS_PS_ExplosionFire"; }
+	static Class<Actor> EXPLOSION_PS_FireSmall() { return "RS_PS_ExplosionFireSmall"; }
+	static Class<Actor> EXPLOSION_PS_BFGBurst()  { return "RS_PS_BFGExtra"; }
+
+	static Class<Actor> SPARK_PS_Shrapnel()      { return "RS_PS_Shrapnel"; }
+	static Class<Actor> SPARK_PS_ShrapnelSmall() { return "RS_PS_ShrapnelSmall"; }
+
+	static Class<Actor> SMOKE_PS_Blast()      { return "RS_PS_BlastSmoke"; }
+	static Class<Actor> SMOKE_PS_BlastSmall() { return "RS_PS_BlastSmokeSmall"; }
+	static Class<Actor> SMOKE_PS_BlastTiny()  { return "RS_PS_BlastSmokeTiny"; }
+	static Class<Actor> SMOKE_PS_Pillar()     { return "RS_PS_SmokePillar"; }
+
+	static Class<Actor> TRAIL_PS_Rocket()  { return "RS_PS_RocketTrail"; }
+	static Class<Actor> FIRE_PS_Trail()    { return "RS_PS_FireTrail"; }
+	static Class<Actor> PLASMA_PS_Particle() { return "RS_PS_PlasmaParticle"; }
 
 	// -----------------------------------------------------------------
 	// SOUND ENTRIES
@@ -340,6 +437,73 @@ class RS_Catalog
 
 	// Grenade launch thump -- underbarrel and any future launcher.
 	static sound SND_GH_GrenadeLaunch() { return "rs_gh/grenade_launch"; }
+
+	// ---- MeatGrinder set: one fire-sound entry per weapon. --------------
+	// The pack shipped five distinct fire sounds for nine weapons, so
+	// several genuinely share one -- that sharing is the source's, not a
+	// shortcut here. Declared in SNDINFO under the same logical names.
+	static sound SND_PS_Fist()           { return "rs_ps/fist_fire"; }
+	static sound SND_PS_Chainsaw()       { return "rs_ps/chainsaw_fire"; }
+	static sound SND_PS_Machinegun()     { return "rs_ps/machinegun_fire"; }
+	static sound SND_PS_AutoShotgun()    { return "rs_ps/autoshotgun_fire"; }
+	static sound SND_PS_SSG()            { return "rs_ps/ssg_fire"; }
+	static sound SND_PS_Chaingun()       { return "rs_ps/chaingun_fire"; }
+	static sound SND_PS_RocketLauncher() { return "rs_ps/rocketlauncher_fire"; }
+	static sound SND_PS_Plasma()         { return "rs_ps/plasma_fire"; }
+	static sound SND_PS_BFG()            { return "rs_ps/bfg_fire"; }
+
+	// Shotgun pump -- the source played this as a separate beat after the
+	// SSG's second barrel, not as part of the fire sound.
+	static sound SND_PS_ShotgunPump()    { return "rs_ps/shotgun_pump"; }
+
+	// ---- Streak set (RS_ST_) -------------------------------------------
+	// PACK audio, imported without any weapon that played it. Files in
+	// sounds/rs_st_weapon/, logical names declared in SNDINFO.
+	// The _explode/_shotgun_fire/_arc_fire entries are $random groups in
+	// SNDINFO, not single files -- referencing one plays a different take
+	// each time, which is why there is no _1/_2/_3 suffix here.
+	static sound SND_ST_Pistol()      { return "rs_st/pistol_fire"; }
+	static sound SND_ST_PistolAlt()   { return "rs_st/pistol_altfire"; }
+	static sound SND_ST_Shotgun()     { return "rs_st/shotgun_fire"; }
+	static sound SND_ST_ShotgunGren() { return "rs_st/shotgun_grenade"; }
+	static sound SND_ST_SSG()         { return "rs_st/ssg_fire1"; }
+	static sound SND_ST_SSGAlt()      { return "rs_st/ssg_altfire"; }
+	static sound SND_ST_Chaingun()    { return "rs_st/chaingun_fire"; }
+	static sound SND_ST_ChaingunAlt() { return "rs_st/chaingun_altfire"; }
+	static sound SND_ST_Minigun()     { return "rs_st/minigun_fast"; }
+	static sound SND_ST_MinigunSlow() { return "rs_st/minigun_slow"; }
+	static sound SND_ST_SpinUp()      { return "rs_st/minigun_spinup"; }
+	static sound SND_ST_SpinDown()    { return "rs_st/minigun_spindown"; }
+	static sound SND_ST_Rocket()      { return "rs_st/rocket_fire"; }
+	static sound SND_ST_RocketAlt()   { return "rs_st/rocket_altfire"; }
+	static sound SND_ST_RocketFly()   { return "rs_st/rocket_fly"; }
+	static sound SND_ST_Plasma()      { return "rs_st/plasma_fire"; }
+	static sound SND_ST_PlasmaAlt()   { return "rs_st/plasma_altfire"; }
+	static sound SND_ST_Arc()         { return "rs_st/arc_fire"; }
+	static sound SND_ST_ArcCharge()   { return "rs_st/arc_charge"; }
+	static sound SND_ST_ArcAlt()      { return "rs_st/arc_altfire"; }
+	static sound SND_ST_BFG()         { return "rs_st/bfg_fire"; }
+	static sound SND_ST_BFGAlt()      { return "rs_st/bfg_altfire"; }
+	static sound SND_ST_Gyrojet()     { return "rs_st/gyrojet_fire"; }
+	static sound SND_ST_Punch()       { return "rs_st/punch"; }
+
+	// Flame is a three-beat set, not one sound: start once, loop while
+	// held, stop on release. Both loops are $limit 1 in SNDINFO so a held
+	// trigger can't stack them.
+	static sound SND_ST_FlameStart()  { return "rs_st/flame_start"; }
+	static sound SND_ST_FlameLoop()   { return "rs_st/flame_loop"; }
+	static sound SND_ST_FlameStop()   { return "rs_st/flame_stop"; }
+
+	// Impact / detonation.
+	static sound SND_ST_Explode()        { return "rs_st/explode"; }
+	static sound SND_ST_RocketExplode()  { return "rs_st/rocket_explode"; }
+	static sound SND_ST_PlasmaExplode()  { return "rs_st/plasma_explode"; }
+	static sound SND_ST_BFGExplode()     { return "rs_st/bfg_explode"; }
+	static sound SND_ST_GyrojetExplode() { return "rs_st/gyrojet_explode"; }
+	static sound SND_ST_ArcFry()         { return "rs_st/arc_fry"; }
+	static sound SND_ST_ChaingunDet()    { return "rs_st/chaingun_detonate"; }
+	static sound SND_ST_FistWall()       { return "rs_st/fist_wall"; }
+	static sound SND_ST_HammerWall()     { return "rs_st/hammer_wall"; }
 
 	// -----------------------------------------------------------------
 	// WEAPON SOUND ASSIGNMENT DISPATCH
