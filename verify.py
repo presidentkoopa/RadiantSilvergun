@@ -52,16 +52,23 @@ for name in sys.argv[1:]:
         if h is None: probs.append(f'sprite {tok} NOT FOUND'); continue
         m=sorted(set(fr)-h)
         if m: probs.append(f'{tok} missing {"".join(m)}')
-    for c in set(re.findall(r'"([A-Z]\w+)"',src)):
+    # EVERY check below reads `code`, not `src`. The sprite scan above was
+    # already comment-stripped; the label and class checks were not, so a
+    # comment QUOTING DECORATE -- e.g. explaining that CH writes
+    # A_JumpIf(CallACS("CH_Intercept") == true,"Miss2") -- registered
+    # "CH_Intercept" and "Miss2" as real jump targets and reported both
+    # UNRESOLVED. Same disease as the ^-anchored sprite scan this file was
+    # opened to fix, and the same fix: read code, not prose.
+    for c in set(re.findall(r'"([A-Z]\w+)"',code)):
         if (c.startswith('RS_') or c in STOCK) and c.lower() not in defined: probs.append(f'class {c} UNDEFINED')
     # Labels are NOT always alone on their line -- `A5: TCLK E 10 {...} Loop;`
     # is common. Requiring end-of-line missed every inline one. (?!:) keeps the
     # Super:: scope qualifier from registering as a label named Super.
-    labels=set(re.findall(r'^\s*([A-Za-z][\w.]*):(?!:)',src,re.M))
+    labels=set(re.findall(r'^\s*([A-Za-z][\w.]*):(?!:)',code,re.M))
     tg=set()
     # `Goto Super::Spawn + 1` targets the PARENT's Spawn. Super:: is a scope
     # qualifier, not a label -- strip it or every such line reads as broken.
-    for t in re.findall(r'Goto\s+((?:\w+::)?[A-Za-z][\w.]*)',src): tg.add(t.split('::')[-1])
+    for t in re.findall(r'Goto\s+((?:\w+::)?[A-Za-z][\w.]*)',code): tg.add(t.split('::')[-1])
     # The label is NOT always the first quoted argument, and assuming so made
     # every A_JumpIfInventory in the project look broken:
     #   A_JumpIfInventory("RS_WhiteSoulAdsOff", 1, "See")  <- arg 1 is an ITEM
@@ -69,7 +76,7 @@ for name in sys.argv[1:]:
     #                                                         is the LAST arg.
     #   A_Jump(chance, "A", "B", "C")                      <- ALL are labels.
     #   ResolveState / A_CheckSight / A_MonsterRefire      <- first is right.
-    for fn,args in re.findall(r'\b(ResolveState|A_Jump\w*|A_CheckSight|A_MonsterRefire)\s*\(([^)]*)\)',src):
+    for fn,args in re.findall(r'\b(ResolveState|A_Jump\w*|A_CheckSight|A_MonsterRefire)\s*\(([^)]*)\)',code):
         q=re.findall(r'"([A-Za-z][\w.:]*)"',args)
         if not q: continue
         if fn=='A_Jump': tg|=set(q)

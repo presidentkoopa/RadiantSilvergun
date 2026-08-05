@@ -260,6 +260,23 @@ class RS_Cyberdemon : RS_MonsterMaster replaces Cyberdemon
 		"CYBR" F 12 Bright { A_SpawnProjectile("RS_Rocket", 42, -9, random(-2, 2)); }
 		"CYBR" E 12 { A_FaceTarget(); }
 	Missile.T00.Third:
+		// RESTORED (rs_19 / L5). CHP 17_C.txt:35-36 gates the THIRD rocket
+		// behind CH_Intercept and fires CybMissile -- a ProjInt_Brute LED
+		// shot. The import kept only the fallback, so the Cyberdemon has
+		// always fired three dumb rockets instead of two dumb and one that
+		// solves for where you are going.
+		// CH spawns the led rocket from a DIFFERENT point than the other
+		// two -- zoff 60 / xoff -25 against 42 / -9 for the dumb pair --
+		// and that difference is CH's, kept rather than normalised.
+		"CYBR" E 0
+		{
+			if (!FireLeadShot("RS_Rocket", 60.0, -25.0))
+				return ResolveState("Missile.T00.Miss2");
+			return ResolveState(null);
+		}
+		"CYBR" F 12 Bright;
+		Goto See;
+	Missile.T00.Miss2:
 		"CYBR" F 12 Bright { A_SpawnProjectile("RS_Rocket", 42, -9, random(-4, 4)); }
 		Goto See;
 	Pain.T00:

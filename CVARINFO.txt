@@ -45,6 +45,24 @@ server bool rs_dualclass_allowbigguns = false;
 // Off switch here rather than nowhere; it is a strong visual.
 server bool rs_monster_enragetell = true;
 
+// Lead fire. CH's four ProjInt_Brute scripts (BaronMissile, CybMissile,
+// ImpMissile, FatMissile) make a monster solve where you WILL be and
+// shoot there instead of at where you are. CH gates all of them behind
+// its own CH_Intercept cvar with a Miss2 fallback state, so this is a
+// real option in the original, not an always-on behaviour.
+// The import dropped the gated branch and kept only Miss2, which meant
+// this was effectively OFF and unswitchable. On by default now, because
+// off is what we have been playing.
+//
+// POLARITY IS DELIBERATELY NOT CH'S. CH_Intercept defaults to FALSE and
+// its DECORATE reads A_JumpIf(CH_Intercept == true, "Miss2") -- Miss2
+// being the DUMB shot. So CH's false means "lead", true means "do not",
+// while its own menu label reads "Intercepting missiles / Can Cybie &
+// Baron Aim where you go?". The cvar is inverted against its own text.
+// CH's effective DEFAULT (lead on) is what we match; its spelling is not.
+// Here, true means the monster leads. Do not "fix" this to match CH.
+server bool rs_monster_intercept = true;
+
 // =====================================================================
 // GunBonsai (zscript/GunBonsai/) -- weapon leveling/upgrade system,
 // offhand-aware fork. Cvars kept under upstream's own bonsai_ prefix
@@ -303,12 +321,12 @@ server int rs_score_revive_tics = 70;
 server bool rs_score_b_spree = true;
 server bool rs_score_b_untouchable = true;
 server bool rs_score_b_infighter = true;
-server bool rs_score_b_ambidextrous = true;
+server bool rs_score_b_switcharoo = true;
 server bool rs_score_b_scrapping = true;
 server bool rs_score_b_telefrag = true;
-server bool rs_score_b_blindside = true;
+server bool rs_score_b_curveball = true;
 server bool rs_score_b_darwin = true;
-server bool rs_score_b_airborne = true;
+server bool rs_score_b_air = true;
 server bool rs_score_b_redline = true;
 server bool rs_score_b_swansong = true;
 server bool rs_score_b_pointblank = true;
@@ -322,15 +340,19 @@ server float rs_score_m_spree_max = 0.25;
 server float rs_score_m_untouchable = 0.5;
 server float rs_score_m_infighter = 0.2;
 server float rs_score_m_darwin = 2.0;
-server float rs_score_m_ambidextrous = 0.15;  // half this for fire-mode only
+server float rs_score_m_switcharoo = 0.15;    // half this for fire-mode only
 server float rs_score_m_scrapping = 0.125;
 server float rs_score_m_telefrag = 1.0;
-server float rs_score_m_blindside = 0.2;
-server float rs_score_m_airborne = 0.005;     // per map unit above 64
-server float rs_score_m_airborne_max = 2.0;
+server float rs_score_m_curveball = 0.2;
+server float rs_score_m_air = 0.005;          // per map unit above 64
+server float rs_score_m_air_max = 2.0;
 server float rs_score_m_redline = 0.02;       // per point of health under
 server float rs_score_m_swansong = 3.0;
 server float rs_score_m_pointblank = 0.1;
+// Brawler was the ONE bonus with no magnitude cvar -- MENUDEF had a live
+// slider pointing at a name that was never declared, so the slider did
+// nothing and the code silently used its hardcoded 0.5 fallback.
+server float rs_score_m_brawler = 0.5;
 server float rs_score_m_giantslayer = 0.15;   // per tier above the floor
 
 // --- Bonus trigger thresholds ---------------------------------------
@@ -339,14 +361,19 @@ server int rs_score_ut_damage = 2000;         // or points-worth killed
 server int rs_score_ut_hpdiv = 400;           // stacks gained per kill
 server int rs_score_ut_maxstacks = 20;
 server int rs_score_redline_hp = 25;          // your health at or under this
-server float rs_score_pointblank_dist = 96.0; // edge-to-edge, not center
+server float rs_score_pointblank_dist = 64.0; // edge-to-edge, not center
 server int rs_score_giantslayer_tier = 8;     // lowest tier that counts
 
 // --- HUD (user scope -- your screen only) ---------------------------
 user bool rs_score_hud_enable = true;
 user bool rs_score_hud_onautomap = false;
-user int rs_score_hud_x = 85;                 // percent across the screen
-user int rs_score_hud_y = 10;                 // percent down the screen
+// dakka's own defaults are 85/10 -- top right. We sit top-CENTRE instead,
+// by request, so the readout lives between the mainhand and offhand Gun
+// Bonsai XP bars (bonsai_hud_x 0.01 puts one top-left and mirrors the
+// other to top-right at the same height). This is the one deliberate
+// departure from the original layout.
+user int rs_score_hud_x = 50;                 // percent across the screen
+user int rs_score_hud_y = 5;                  // percent down the screen
 user int rs_score_hud_scale = 100;            // 25-400
 user bool rs_score_hud_flash = true;
 

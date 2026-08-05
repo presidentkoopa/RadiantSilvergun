@@ -302,6 +302,56 @@ class RS_MonsterMaster : Actor abstract
 	//
 	// Beat length shrinks from ~10 tics to 1 as the deadline nears; the
 	// acceleration IS the signal that something is about to change.
+	// --- LEAD FIRE -----------------------------------------------------
+	//
+	// Fire a projectile at where the target WILL BE, not where it is.
+	//
+	// This is CH's ProjInt_Brute, and it is the reason RS_MonsterAim.zs
+	// exists -- that file's header says so and then notes it is "not
+	// wired into any monster yet". It has had ZERO callers since it was
+	// written. This is the caller.
+	//
+	// CH routes four scripts through ProjInt_Brute -- BaronMissile,
+	// CybMissile, ImpMissile, FatMissile -- and gates every one behind
+	// CallACS("CH_Intercept"), a plain cvar read, with a Miss2 state as
+	// the fallback when it is off. THE IMPORT KEPT Miss2 AND DROPPED THE
+	// GATED BRANCH, so every monster in this tree has been permanently
+	// behaving as though intercept were switched off. RS_Baron's
+	// Missile.T00 still ends in a bare `Goto Missile.T00.Miss2` -- a jump
+	// with nothing left to choose between.
+	//
+	// Returns false when it did not fire, so a state can fall through to
+	// its own Miss2 exactly the way CH's does.
+	bool FireLeadShot(class<Actor> proj, double zoff = 32.0, double xoff = 0.0)
+	{
+		if (!proj || !target)
+			return false;
+
+		// The cvar is CH_Intercept's equivalent, kept as a real option
+		// because CH shipped it as one.
+		let cv = CVar.GetCVar("rs_monster_intercept", null);
+		if (cv && !cv.GetBool())
+			return false;
+
+		// Speed comes off the projectile's own defaults rather than a
+		// hand-passed number: CH passes speed explicitly and then has to
+		// keep it in sync with the actor, which is how those four scripts
+		// ended up with 10.0 / 15.0 / 20.0 hardcoded three different ways.
+		let pd = GetDefaultByType(proj);
+		double spd = pd ? pd.Speed : 0.0;
+		if (spd <= 0.0)
+			return false;
+
+		double ang, pit;
+		RS_MonsterAim.GetLeadAngle(self, target, spd, ang, pit);
+
+		// Absolute angle AND pitch -- GetLeadAngle returns a world-space
+		// solution, not an offset from where we happen to be facing.
+		A_SpawnProjectile(proj, zoff, xoff, ang,
+			CMF_ABSOLUTEANGLE | CMF_ABSOLUTEPITCH | CMF_AIMDIRECTION, pit);
+		return true;
+	}
+
 	// Turn on the silver pulse WITHOUT touching stats.
 	//
 	// Enrage() is the packaged version -- speed, bNOPAIN and a halved

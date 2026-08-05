@@ -242,7 +242,22 @@ class RS_Baron : RS_KnightBase replaces BaronOfHell
 		"BOSS" EF 8 { A_FaceTarget(); }
 		"BOSS" G 8 { A_CustomComboAttack("RS_BaronBall", 32, 10 * random(1, 8), "baron/melee"); }
 		"BOSS" PQ 8 { A_FaceTarget(); }
-		Goto Missile.T00.Miss2;
+		// RESTORED (rs_19 / L5). CHP 15_C.txt:29-31 is:
+		//   BOSS Q 0 A_JumpIf(CallACS("CH_Intercept") == true,"Miss2")
+		//   BOSS R 8 ACS_NamedExecuteWithResult("BaronMissile_C",1)
+		// BaronMissile is a ProjInt_Brute call -- a LED shot, solved at
+		// the target's velocity. The import dropped the branch and left a
+		// bare `Goto Miss2`, so the Baron has only ever fired the dumb
+		// fallback. FireLeadShot returns false when the option is off,
+		// which falls through to Miss2 exactly as CH's jump does.
+		"BOSS" R 8
+		{
+			if (!FireLeadShot("RS_BaronBall", 32.0, 16.0))
+				return ResolveState("Missile.T00.Miss2");
+			return ResolveState(null);
+		}
+		"BOSS" R 0 A_Jump(75, "Missile.T00");
+		Goto See;
 	Missile.T00.Miss2:
 		"BOSS" R 8 { A_CustomComboAttack("RS_BaronBall", 32, 10 * random(1, 8), "baron/melee"); }
 		"BOSS" R 0 A_Jump(75, "Missile.T00");
