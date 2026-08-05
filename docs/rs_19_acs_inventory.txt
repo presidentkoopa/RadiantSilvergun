@@ -86,6 +86,14 @@ FILE-BY-FILE, MEASURED 2026-08-04. READ THIS BEFORE COSTING ANY ACS WORK.
   The remaining weight is concentrated:
     WVileEX.acs   32  the Archvile EX timed-phase engine -- the biggest
                       single real system in the pack (register: L6)
+                      CORRECTED 2026-08-04: this file's ~120-line timer is
+                      NOT "15 tier copies". All 16 copies carry CHP's
+                      SPAWN-COLOUR suffix and all of them live in ONE
+                      file, 14/14_WX.txt -- the Archvile TEX tier. Per
+                      rs_21 s1 only the _C copy is RS work. Three of the
+                      16 (_E) are DEAD: no _E actor exists, SNDINFO has no
+                      /E sound pair, and nothing anywhere calls them --
+                      an abandoned 16th colour.
     CHACS2.acs    30  30 for 30, no filler. Densest gameplay file here.
     CHSett2/CHSett 29 the pack buffs. Six already done.
   commonFuncs2 / miscFuncs2 are utility LIBRARIES the above call into --
