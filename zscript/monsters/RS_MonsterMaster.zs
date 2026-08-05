@@ -302,6 +302,28 @@ class RS_MonsterMaster : Actor abstract
 	//
 	// Beat length shrinks from ~10 tics to 1 as the deadline nears; the
 	// acceleration IS the signal that something is about to change.
+	// Turn on the silver pulse WITHOUT touching stats.
+	//
+	// Enrage() is the packaged version -- speed, bNOPAIN and a halved
+	// MissileChanceMult together. Plenty of monsters escalate through
+	// their own one-shot flag instead and never call it: the T10 Primal
+	// imp just does A_SetSpeed(14), and CH's User_Rage / User_RageUP /
+	// User_rage gates unlock a harder attack rather than changing stats.
+	// Those are still the thing the player needs to see coming, so the
+	// tell gets its own door. Calling this NEVER changes behaviour --
+	// it only makes an escalation that already happened legible.
+	//
+	// ONE-SHOT ESCALATIONS ONLY. Do not hang this on a fill-and-drain
+	// meter (RS_Mancubus.rsRage drains by 50, RS_Mastermind.rsRageMind by
+	// 8): a pulse that switches off again is noise, not a signal.
+	void MarkEnrageTell()
+	{
+		if (rsEnrageTellOn)
+			return;
+		rsEnrageTellOn   = true;
+		rsEnrageTellBeat = level.time;
+	}
+
 	// --- ENRAGE TELL ---------------------------------------------------
 	//
 	// A silver pulse whose RATE IS THE HEALTH BAR: slow while the monster

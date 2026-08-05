@@ -1087,7 +1087,7 @@ class RS_Archvile : RS_MonsterMaster replaces Archvile
 		"DIAB" G 9 { A_StartSound("vile/sight", CHAN_VOICE); }
 		"DIAB" GGGGGGGGGG 1 { A_SpawnProjectile("RS_SparkPuff1", 34, 0, 0, CMF_AIMOFFSET, random(0, 360)); }
 		"DIAB" G 1 { bMISSILEEVENMORE = true; bNOPAIN = false; }
-		"DIAB" G 2 { rsRage++; }
+		"DIAB" G 2 { rsRage++; MarkEnrageTell(); }
 		Goto Missile.T10.Pick;
 	Heal.T10:
 		"DIAB" G 0 { RS_Conjure(); }

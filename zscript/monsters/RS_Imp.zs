@@ -627,7 +627,7 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 		"PRIM" H 3 { bNOPAIN = true; }
 		"PRIM" H 3 { bMISSILEEVENMORE = true; }
 		"PRIM" H 2 { A_StartSound("imp/pain", CHAN_VOICE); }
-		"PRIM" H 4 { A_SetSpeed(14); rsEnraged = 1; }
+		"PRIM" H 4 { A_SetSpeed(14); rsEnraged = 1; MarkEnrageTell(); }
 		Goto See;
 	Death.T10:
 		"PRIM" N 5 { A_SpawnProjectile("RS_HKRedDeath", 32, 0); }

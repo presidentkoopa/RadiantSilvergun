@@ -923,7 +923,7 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 		"BRUR" KL 12 Bright { A_SpawnProjectile("RS_EffectHK", 48, 0); }
 		"BRUR" M 10 Bright { bMISSILEEVENMORE = true; }
 		"BRUR" MMM 2 Bright { A_SpawnProjectile("RS_EffectHK", 24, 0); }
-		"BRUR" M 8 Bright { rsRage++; }
+		"BRUR" M 8 Bright { rsRage++; MarkEnrageTell(); }
 		Goto See;
 	Pain.T10:
 		"BRUR" N 5 Bright { A_Pain(); }
@@ -1199,7 +1199,7 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 			return ResolveState(null);
 		}
 		TNT1 A 0 { A_SetSpeed(18); bMISSILEEVENMORE = true; }
-		"KKEX" E 6 Bright { rsExRage++; }
+		"KKEX" E 6 Bright { rsExRage++; MarkEnrageTell(); }
 		"KKEX" EGGGG 2 Bright { A_SpawnProjectile("RS_ZapDecHKex", random(12, 88), random(-20, 20), 0); }
 		Goto See.TEX.Walk;
 	Missile.TEX.Mode1:

@@ -1026,7 +1026,7 @@ class RS_Baron : RS_KnightBase replaces BaronOfHell
 		"BOS4" MN 6 Bright;
 		"BOS4" O 6 Bright { A_SpawnProjectile("RS_RedPower", 10, 0, 0, 0); }
 		"BOS4" O 2 Bright { A_SetSpeed(28); }
-		"BOS4" O 2 { rsRageUp++; }
+		"BOS4" O 2 { rsRageUp++; MarkEnrageTell(); }
 		"BOS4" O 2;
 		Goto See;
 	Melee.T10:
@@ -1138,7 +1138,7 @@ class RS_Baron : RS_KnightBase replaces BaronOfHell
 		"CUTH" D 1 Bright { bMISSILEEVENMORE = true; }
 		"CUTH" D 1 Bright { A_SetSpeed(17); }
 		"CUTH" D 8 Bright { A_StartSound("baron/pain", CHAN_VOICE); }
-		"CUTH" D 1 { rsRageUp++; }
+		"CUTH" D 1 { rsRageUp++; MarkEnrageTell(); }
 		"CUTH" D 2 { RS_SummonPack(); }
 		Goto See;
 	Missile.T11.Nah:
