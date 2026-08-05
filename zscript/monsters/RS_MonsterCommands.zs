@@ -94,10 +94,15 @@ class RS_PowerPackHaste : Powerup
 	void JostleOwner()
 	{
 		if (!Owner) return;
+		// Vel.X/Y math rather than Thrust(): this tree has three working
+		// examples of the former (RS_Mancubus.zs:390, RS_human_projectiles
+		// .zs:126) and ZERO callers of the latter. Proven beats tidy.
 		double ang = random(0, 255) * (360.0 / 256.0);  // BYTE angle
-		Owner.Thrust(random(1, 12) * 0.125, ang);
+		double f   = random(1, 12) * 0.125;
+		Owner.Vel.X += f * cos(ang);
+		Owner.Vel.Y += f * sin(ang);
 		double zf = random(1, 12) * 0.25;
-		Owner.vel.z += (random(0, 1) == 0) ? zf : -zf;
+		Owner.Vel.Z += (random(0, 1) == 0) ? zf : -zf;
 	}
 
 	Default
@@ -148,7 +153,9 @@ class RS_PowerPackHaste : Powerup
 		{
 			// Divergence 3: restore by delta, so a speed change from
 			// something else during the buff is not stomped.
-			Owner.Speed = max(0, Owner.Speed - 10);
+			// 0.0 not 0 -- Speed is a double, and a mixed int/double max()
+			// is the kind of thing this engine build rejects.
+			Owner.Speed = max(0.0, Owner.Speed - 10.0);
 			if (weSetFast)
 				Owner.bALWAYSFAST = false;
 		}
@@ -190,10 +197,15 @@ class RS_PowerPackGuard : PowerProtection
 	void JostleOwner()
 	{
 		if (!Owner) return;
+		// Vel.X/Y math rather than Thrust(): this tree has three working
+		// examples of the former (RS_Mancubus.zs:390, RS_human_projectiles
+		// .zs:126) and ZERO callers of the latter. Proven beats tidy.
 		double ang = random(0, 255) * (360.0 / 256.0);  // BYTE angle
-		Owner.Thrust(random(1, 12) * 0.125, ang);
+		double f   = random(1, 12) * 0.125;
+		Owner.Vel.X += f * cos(ang);
+		Owner.Vel.Y += f * sin(ang);
 		double zf = random(1, 12) * 0.25;
-		Owner.vel.z += (random(0, 1) == 0) ? zf : -zf;
+		Owner.Vel.Z += (random(0, 1) == 0) ? zf : -zf;
 	}
 
 	Default
