@@ -43,6 +43,12 @@ version "4.14"
 // and the same rule: no monster file names a raw class inline.
 #include "zscript/systems/RS_MonsterCatalog.zs"
 
+// CH/CHP's pack-buff ACS, rebuilt as ZScript Powerups. The import
+// dropped these as "empty ACS wrappers"; the behaviour lived in the ACS
+// script, so the mechanic went with them. docs/rs_19_acs_inventory.txt
+// has the full audit. Revert = delete this one line.
+#include "zscript/monsters/RS_MonsterCommands.zs"
+
 // Monster attack components (474 catalogued projectiles, one file per
 // family) -- extracted per docs/catalog_notes.txt so monster attacks
 // can be recombined rather than hardcoded per monster. Sprite refs

@@ -1,0 +1,257 @@
+// =====================================================================
+// RS_MonsterCommands -- CH/CHP's pack-buff ACS, rebuilt in ZScript.
+//
+// WHY THIS FILE EXISTS. CH and CHP express several monster mechanics as
+// an Inventory token whose entire DECORATE body is one
+// ACS_NamedExecuteAlways(...) call. The monster import read those empty
+// bodies and dropped the tokens on the reasoning that "porting them
+// would import nothing." The body is empty BECAUSE the behaviour lives
+// in the ACS script -- so dropping the token dropped the mechanic, and
+// because the DECORATE really does look empty the loss was invisible at
+// every call site. See docs/rs_19_acs_inventory.txt for the full audit.
+//
+// This file rebuilds the PACK BUFF family: the four scripts a "brown
+// tier" leader throws at its neighbours to make the pack genuinely
+// harder. Sources read verbatim from CH/source/CHSett.acs and
+// CHP/source/CHSett2.acs (identical bodies -- CHP is a copy of CH).
+//
+//   CH script          property        value      duration  fast  thrust
+//   PESPEED            APROP_SPEED     normal+10   600t     yes   no
+//   BrownImpCommand    APROP_SPEED     normal+10   180t     yes   yes
+//   BrownVileCommand   APROP_DamageFac 0.65        300t     no    yes
+//   BrownMindCommand   APROP_DamageFac 0.50        300t     yes   yes
+//
+// APROP_DamageFactor scales damage RECEIVED, so the last two are damage
+// RESISTANCE auras (0.50 = takes half), not damage buffs.
+//
+// THREE DELIBERATE DIVERGENCES FROM CH, each fixing a bug in the
+// original rather than reproducing it:
+//
+//  1. CH's re-entrancy guard does not work. Every one of these scripts
+//     opens `int Nope;` as a SCRIPT-LOCAL, which is zero-initialised on
+//     every invocation, so the `if (Nope == 0)` test always passes. Two
+//     overlapping casts therefore both read the ALREADY-BUFFED value as
+//     `Normal` and the monster's base speed permanently drifts upward.
+//     A Powerup cannot do this: InitEffect runs once on attach, the
+//     saved value is captured once, and a re-cast renews the timer
+//     instead of re-reading. This is why the rebuild is a Powerup and
+//     not a Thinker imitating the script.
+//
+//  2. CH clears ALWAYSFAST unconditionally when the buff ends, so a
+//     monster that was NATIVELY ALWAYSFAST loses the flag permanently
+//     the first time it is buffed. We track whether WE set it and only
+//     clear it if we did.
+//
+//  3. CH restores the property to a captured absolute. If the monster's
+//     speed legitimately changed during the buff (a tier promotion, say)
+//     that change is stomped. We restore by DELTA for speed, so an
+//     unrelated change survives.
+//
+// Boss exemption is CH's, kept exactly: `if (CheckFlag(0,"BOSS"))
+// Terminate;`. Bosses refuse these outright.
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// THE JOSTLE. CH follows every *Command with
+//   ThrustThing (random(0,255), random(1,12), 0, 0)
+//   ThrustThingZ(0, random(1,12), random(0,1), 0)
+// which physically flings the recipient in a random direction -- the
+// visible "the pack just got shouted at" tell. Scale is APPROXIMATE
+// (Hexen's 1/8 and 1/4 unit conventions) and is flavour, not damage, so
+// getting it slightly wrong costs feel rather than balance.
+//
+// NOTE ON SHAPE: this is duplicated as a method on both base classes
+// below rather than living once on a shared helper. That is deliberate.
+// A static helper on a plain Object has NO precedent in this tree for
+// calling random() -- and this repo's history is a list of constructs
+// that looked obviously fine and did not resolve (`static const T
+// name[]`, `extend class PlayerPawn`, `Damage (random(a,b))` in a
+// Default). Powerup descends from Actor, where random() is certainly in
+// scope. Six duplicated lines is a cheaper bet than a novel one, and
+// RS_PowerPackGuard cannot share a base with RS_PowerPackHaste anyway:
+// it must descend from PowerProtection, which is Powerup's own subclass.
+
+// ---------------------------------------------------------------------
+// HASTE -- the +10 ADDITIVE speed line (PESPEED, BrownImpCommand).
+//
+// Additive, not multiplicative, and that is the whole character of it:
+// PowerSpeed multiplies, so it would scale with the recipient. CH adds a
+// flat +10, which takes a Zombieman from 8 to 18 (+125%) and a
+// Cyberdemon from 16 to 26 (+62%). The buff deliberately does more for
+// the weak half of the pack. Do NOT "simplify" this to PowerSpeed.
+// ---------------------------------------------------------------------
+class RS_PowerPackHaste : Powerup
+{
+	double savedSpeed;
+	bool   weSetFast;
+	bool   applied;
+	bool   doJostle;
+
+	// CH: ThrustThing(random(0,255), random(1,12), 0, 0)
+	//     ThrustThingZ(0, random(1,12), random(0,1), 0)
+	// Scale is the Hexen 1/8 and 1/4 unit convention and is APPROXIMATE
+	// -- one edit here corrects the feel after first boot.
+	void JostleOwner()
+	{
+		if (!Owner) return;
+		double ang = random(0, 255) * (360.0 / 256.0);  // BYTE angle
+		Owner.Thrust(random(1, 12) * 0.125, ang);
+		double zf = random(1, 12) * 0.25;
+		Owner.vel.z += (random(0, 1) == 0) ? zf : -zf;
+	}
+
+	Default
+	{
+		Powerup.Duration 600;        // positive = TICS. CH: Delay(600).
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.ALWAYSPICKUP
+		+INVENTORY.NOSCREENBLINK
+		+INVENTORY.UNDROPPABLE
+		-INVENTORY.INVBAR
+	}
+
+	// CH: `if (CheckFlag(0,"BOSS")) Terminate;` -- refuse the item
+	// outright rather than attach an inert one.
+	override bool TryPickup(in out Actor toucher)
+	{
+		if (!toucher || toucher.bBOSS || !toucher.bISMONSTER)
+			return false;
+		return Super.TryPickup(toucher);
+	}
+
+	override void InitEffect()
+	{
+		Super.InitEffect();
+		if (!Owner || Owner.bBOSS)
+			return;
+
+		savedSpeed = Owner.Speed;
+		Owner.Speed = savedSpeed + 10;
+
+		// Divergence 2: only claim the flag if it was not already set,
+		// so EndEffect cannot strip a natively-fast monster's own flag.
+		if (!Owner.bALWAYSFAST)
+		{
+			Owner.bALWAYSFAST = true;
+			weSetFast = true;
+		}
+
+		applied = true;
+
+		if (doJostle)
+			JostleOwner();
+	}
+
+	override void EndEffect()
+	{
+		if (applied && Owner)
+		{
+			// Divergence 3: restore by delta, so a speed change from
+			// something else during the buff is not stomped.
+			Owner.Speed = max(0, Owner.Speed - 10);
+			if (weSetFast)
+				Owner.bALWAYSFAST = false;
+		}
+		applied = false;
+		Super.EndEffect();
+	}
+}
+
+// CH: PESPEED. The Abyss Cacodemon's pack haste -- 600 tics, no jostle.
+class RS_PESpeedBuff : RS_PowerPackHaste
+{
+	Default { Powerup.Duration 600; }
+}
+
+// CH: BrownImpCommand. Shorter (180t) but adds the physical shove.
+class RS_BrownImpCommand : RS_PowerPackHaste
+{
+	Default { Powerup.Duration 180; }
+	override void InitEffect() { doJostle = true; Super.InitEffect(); }
+}
+
+// ---------------------------------------------------------------------
+// GUARD -- the DamageFactor line (BrownVileCommand, BrownMindCommand).
+//
+// PowerProtection already models "scale damage received" and this repo
+// already leans on it the same way -- RS_WVileResist (DamageFactor 0.5)
+// and RS_HKEXProtect (0.6) are both PowerProtection subclasses with the
+// factor set in Default. Same shape here, so nothing new is invented.
+// ---------------------------------------------------------------------
+class RS_PowerPackGuard : PowerProtection
+{
+	bool weSetFast;
+	bool wantFast;
+	bool doJostle;
+	bool applied;
+
+	// Same six lines as RS_PowerPackHaste.JostleOwner -- see the note
+	// above that class for why this is duplicated rather than shared.
+	void JostleOwner()
+	{
+		if (!Owner) return;
+		double ang = random(0, 255) * (360.0 / 256.0);  // BYTE angle
+		Owner.Thrust(random(1, 12) * 0.125, ang);
+		double zf = random(1, 12) * 0.25;
+		Owner.vel.z += (random(0, 1) == 0) ? zf : -zf;
+	}
+
+	Default
+	{
+		Powerup.Duration 300;        // CH: Delay(300).
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.ALWAYSPICKUP
+		+INVENTORY.NOSCREENBLINK
+		+INVENTORY.UNDROPPABLE
+		-INVENTORY.INVBAR
+	}
+
+	override bool TryPickup(in out Actor toucher)
+	{
+		if (!toucher || toucher.bBOSS || !toucher.bISMONSTER)
+			return false;
+		return Super.TryPickup(toucher);
+	}
+
+	override void InitEffect()
+	{
+		Super.InitEffect();
+		if (!Owner || Owner.bBOSS)
+			return;
+
+		if (wantFast && !Owner.bALWAYSFAST)
+		{
+			Owner.bALWAYSFAST = true;
+			weSetFast = true;
+		}
+
+		applied = true;
+
+		if (doJostle)
+			JostleOwner();
+	}
+
+	override void EndEffect()
+	{
+		if (applied && Owner && weSetFast)
+			Owner.bALWAYSFAST = false;
+		applied = false;
+		Super.EndEffect();
+	}
+}
+
+// CH: BrownVileCommand -- 0.65 damage taken, 300 tics, jostle, NO
+// ALWAYSFAST (the only one of the four that does not set it).
+class RS_BrownVileCommand : RS_PowerPackGuard
+{
+	Default { DamageFactor 0.65; Powerup.Duration 300; }
+	override void InitEffect() { doJostle = true; wantFast = false; Super.InitEffect(); }
+}
+
+// CH: BrownMindCommand -- 0.50 damage taken, 300 tics, jostle AND
+// ALWAYSFAST. The hardest of the four: half damage on the whole pack.
+class RS_BrownMindCommand : RS_PowerPackGuard
+{
+	Default { DamageFactor 0.50; Powerup.Duration 300; }
+	override void InitEffect() { doJostle = true; wantFast = true; Super.InitEffect(); }
+}
