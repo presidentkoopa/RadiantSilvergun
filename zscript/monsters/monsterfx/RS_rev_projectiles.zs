@@ -775,7 +775,14 @@ class RS_MrBones : Actor
 		SKLT M 4 { A_Scream(); }
 		SKLT N 4 { A_NoBlocking(); }
 		SKLT O 8 { A_NoBlocking(); }
-		SKLT P 12;
+		// RESTORED. CHP 01_W.txt:3027-3029 pays the Undertaker on this
+		// exact frame: random(12,128) health and one BoneUp, radius 528,
+		// filtered to the boss class. THIS IS THE WHOLE MECHANIC --
+		// killing the skeletons is what heals and levels the Undertaker.
+		// Our port had MrBones defined and never spawned, and the boss
+		// climbing its ladder from Pain instead. See
+		// zscript/monsters/Zombieman/attacks/RS_Zombieman_Undertaker.zs.
+		SKLT P 12 { A_SpawnItemEx("RS_BoneTithe", 0, 0, 4, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
 		Goto Vanish;
 	Vanish:
 		SKLT Q 20 { A_FadeOut(0.3); }

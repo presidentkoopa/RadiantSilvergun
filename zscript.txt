@@ -43,6 +43,11 @@ version "4.14"
 // and the same rule: no monster file names a raw class inline.
 #include "zscript/systems/RS_MonsterCatalog.zs"
 
+// Per-family folders, rs_21 section 3: one attack per file, beside the
+// monster that owns it. Zombieman is the first family ported under that
+// law -- the rest follow as each is done.
+#include "zscript/monsters/Zombieman/attacks/RS_Zombieman_Undertaker.zs"
+
 // CH/CHP's pack-buff ACS, rebuilt as ZScript Powerups. The import
 // dropped these as "empty ACS wrappers"; the behaviour lived in the ACS
 // script, so the mechanic went with them. docs/rs_19_acs_inventory.txt

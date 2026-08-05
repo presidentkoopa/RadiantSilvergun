@@ -77,7 +77,10 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 	// ---- The Undertaker's ladder (CH BoneUp -> user_skel1 staircase) ----
 	// Charge rises on every hit it takes. Steps at 5 / 9 / 12, exactly
 	// CH's BoneUp thresholds. Tier-gated so only the heavy tiers climb.
-	const RS_ZM_TIER_LADDER = 6;
+	// T12 ONLY. CHP filters every BoneUp and heal to CommonWhiteZombie1,
+	// the White Zombieman -- the ladder is the Undertaker's alone. This was
+	// 6, which let six lower tiers climb a ladder CHP never gives them.
+	const RS_ZM_TIER_LADDER = 12;
 	const RS_ZM_STEP1 = 5;
 	const RS_ZM_STEP2 = 9;
 	const RS_ZM_STEP3 = 12;
@@ -279,11 +282,13 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		TNT1 A 0 { return TierState("Missile"); }
 		Goto See;
 	Pain:
-		TNT1 A 0
-		{
-			RS_ClimbLadder();
-			return TierState("Pain");
-		}
+		// RS_ClimbLadder() USED TO BE CALLED HERE and that was the single
+		// biggest behavioural error in this family: it fed the Undertaker's
+		// escalation from damage TAKEN. CHP feeds it from skeleton DEATHS
+		// (01_W.txt:3027-3029) -- the same variable names wired to the
+		// opposite trigger. The feed now arrives via RS_BoneTithe; see
+		// zscript/monsters/Zombieman/attacks/RS_Zombieman_Undertaker.zs.
+		TNT1 A 0 { return TierState("Pain"); }
 		Goto See;
 
 	// ================= T00 COMMON (01_C) =================
@@ -949,6 +954,12 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 	// and opens the FinalForm branch -- and the bone tornado -- at 3.
 	// Neither CHP nor CH gives it a Raise.
 	Spawn.T12:
+		// THE PLAN -- CHP 01_W.txt:18. Radius 16383 with RGF_NOSIGHT:
+		// through walls, no line of sight, effectively the whole level.
+		// Every monster alive when the Undertaker arrives is marked, and
+		// every marked corpse hatches a skeleton (RS_MonsterMaster.Die).
+		// NoDelay so it fires on the spawn tic, exactly as CHP's does.
+		TNT1 A 0 NoDelay { A_RadiusGive("RS_UndertakerPlan", 16383, RGF_MONSTERS|RGF_NOSIGHT, 1); }
 		"MAGE" A 4 { A_Look(); }
 		Loop;
 	See.T12:

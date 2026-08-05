@@ -1313,8 +1313,42 @@ class RS_MonsterMaster : Actor abstract
 		return DeathMorphClass() != null;
 	}
 
+	// THE UNDERTAKER'S PLAN -- CHP 01_W.txt:18.
+	//
+	// The T12 White Zombieman opens by radius-giving CHWhitePlan to every
+	// monster on the map, at radius 16383 and RGF_NOSIGHT: through walls,
+	// no line of sight, effectively the whole level. Every marked corpse
+	// then hatches a skeleton on death.
+	//
+	// CH implements the second half by editing the Death state of every
+	// monster in the game -- 128 CHP files carry a `Tickles` jump. We do
+	// it once, here, because every RS monster already funnels through this
+	// one override. Same behaviour, one site instead of 128, and it
+	// cannot rot out of sync the way 128 hand-edited Death states can.
+	//
+	// Deliberately NOT gated on the Undertaker still being alive: CH does
+	// not clear the mark either, so a level the Undertaker passed through
+	// keeps hatching. That is the mechanic, not an oversight -- the boss
+	// is seeding the whole map, and it is why ignoring the skeletons is
+	// as bad as killing them.
+	private void RS_HatchPlan()
+	{
+		if (!CountInv("RS_UndertakerPlan"))
+			return;
+
+		// One skeleton per corpse. Take the mark first so a monster that
+		// somehow dies twice (raised, then killed again) cannot double up.
+		TakeInventory("RS_UndertakerPlan", 1);
+
+		class<Actor> bones = "RS_MrBones";
+		if (bones)
+			Actor.Spawn(bones, pos + (0, 0, 4), ALLOW_REPLACE);
+	}
+
 	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath)
 	{
+		RS_HatchPlan();
+
 		if (MinionsDieWithMe())
 			ReleaseMinions(true);
 
