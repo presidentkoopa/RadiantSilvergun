@@ -21,20 +21,47 @@ enum EVR_Tier
 	VRT_Prototype
 }
 
-// Class-gating families -- one per Dual_X starting class. None is the
-// "not gated" value: heavy ordnance (Rocket/Plasma/BFG) is deliberately
-// universal (every class gets it via "Allow Big Guns"), Fist and the
-// Vanilla+ set aren't part of the class system at all.
+// Weapon families. Every RS_Weapon declares one, so any weapon from any
+// imported set can be a candidate for the loop / progression systems --
+// an import is not a second-class citizen that sits outside them.
+//
+// TWO DISTINCT ROLES, and conflating them deletes weapons:
+//
+//   1. IDENTITY -- what kind of gun this is. Every family below.
+//   2. CLASS GATING -- whether a Dual_X starting class filters it at
+//      world spawn. ONLY the original seven do this; see
+//      RS_ClassGating.IsGatedFamily(), which is the single place that
+//      decides, and the place to revisit when the class system is redone.
+//
+// The split exists because RS_ClassGating DESTROYS a gated weapon whose
+// family doesn't match the player's class. Before this enum grew, the
+// GunstarHeroes and MeatGrinder sets all returned EVR_Family_None, and
+// None was doing double duty as both "no identity" and "never filtered".
+// Giving them real identities without the IsGatedFamily() split would
+// have silently removed most of both sets from the game.
+//
+// Heavy ordnance staying universal is the original design, not an
+// accident of this change -- every class gets it via "Allow Big Guns".
 enum EVR_Family
 {
 	EVR_Family_None,
+
+	// --- the original seven: identity AND class gating ---
 	EVR_Family_Pistol,
 	EVR_Family_Revolver,
 	EVR_Family_Rifle,
 	EVR_Family_SMG,
 	EVR_Family_Shotgun,
 	EVR_Family_SuperShotgun,
-	EVR_Family_Chaingun
+	EVR_Family_Chaingun,
+
+	// --- identity only, never class-gated (see comment above) ---
+	EVR_Family_Melee,
+	EVR_Family_Launcher,
+	EVR_Family_Energy,
+	EVR_Family_BFG,
+	EVR_Family_Railgun,
+	EVR_Family_Flamethrower
 }
 
 class RS_Roll : Object

@@ -1,10 +1,10 @@
 GameInfo
 {
-	PlayerClasses = "RS_GH_Weaponset", "VR_Dual_Pistol", "VR_Dual_Revolver", "VR_Dual_Rifle", "VR_Dual_SMG", "VR_Dual_Shotgun", "VR_Dual_SSG", "VR_Dual_Chaingun"
+	PlayerClasses = "RS_GH_Weaponset", "RS_PS_Weaponset", "VR_Dual_Pistol", "VR_Dual_Revolver", "VR_Dual_Rifle", "VR_Dual_SMG", "VR_Dual_Shotgun", "VR_Dual_SSG", "VR_Dual_Chaingun"
 	// Registers GunBonsai's (zscript/GunBonsai/) event handler and the
 	// Kill Rewards (Bits) handler (zscript/systems/RS_Bits.zs).
 	// An EventHandler subclass that is not listed here does not exist at
 	// runtime -- its netevents silently do nothing. RS_MonsterDebug was
 	// missing from this list, which is why its entire menu was dead.
-	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_MonsterDebug", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler"
+	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_MonsterDebug", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_EliteHandler", "RS_ClassGating"
 }

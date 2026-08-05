@@ -766,7 +766,12 @@ class TFLV_Upgrade_RS_Nova : TFLV_Upgrade_RS_SignatureBase
 // ---------------------------------------------------------------------
 class TFLV_Upgrade_RS_PainTrain : TFLV_Upgrade_RS_SlateBase
 {
-	override string KeyAxis() { return "behavior"; }
+	// "element", not "behavior" -- the flinch* branch is resolved in
+	// RS_KeywordEffects' ELEMENT loop (:346-453), not the behavior loop
+	// (:256-344). Granting on "behavior" put the keyword on an axis
+	// nothing reads, so this whole six-level affix was inert: offerable,
+	// takeable, and doing nothing.
+	override string KeyAxis() { return "element"; }
 
 	override string ValueForLevel(int lvl)
 	{
@@ -798,6 +803,13 @@ class TFLV_Upgrade_RS_PainTrain : TFLV_Upgrade_RS_SlateBase
 // ---------------------------------------------------------------------
 class TFLV_Upgrade_RS_Momentum : TFLV_Upgrade_RS_SlateBase
 {
+	// Was inheriting the base's default "payload" axis, but the momentum*
+	// branch is resolved in RS_KeywordEffects' ELEMENT loop (:426-437).
+	// The keyword landed on an axis nothing reads, so the affix was
+	// entirely inert -- and INVISIBLY so, because it feeds CritAdd: no
+	// missing visual, just a crit chain that never happened.
+	override string KeyAxis() { return "element"; }
+
 	override string ValueForLevel(int lvl)
 	{
 		switch (lvl)

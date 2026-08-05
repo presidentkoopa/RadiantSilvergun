@@ -2,8 +2,12 @@
 // RS_ClassGating -- one chokepoint, not per-weapon logic.
 // ---------------------------------------------------------------------
 // Every map-placed weapon pickup gets checked once, at the moment the
-// map spawns it, against the player's chosen class family. A mismatch
-// is destroyed on the spot, before it's ever collidable. Player.StartItem
+// map spawns it, against the player's chosen class family. A mismatch is
+// REPLACED WITH RESERVE AMMO for the class you're actually playing,
+// before it's ever collidable -- play Dual_Revolver and the pistol, SMG,
+// chaingun, shotgun, SSG and rifle pickups become Clip. It used to
+// simply destroy the pickup, which stripped items out of maps and left
+// nothing in their place. Player.StartItem
 // grants and GiveInventory calls (Elite drops, "Allow Big Guns", console
 // give) never go through WorldThingSpawned, so this only ever touches
 // actual floor pickups -- it can't clobber anything already handed to
@@ -16,6 +20,54 @@
 
 class RS_ClassGating : EventHandler
 {
+	// Which families the Dual_X class system actually filters on.
+	//
+	// ONLY the original seven. Every other family -- melee, launcher,
+	// energy, BFG, railgun, flamethrower -- is identity only and is never
+	// filtered, which keeps heavy ordnance universal (the documented
+	// design) and keeps the imported GunstarHeroes / MeatGrinder sets
+	// spawning for every class, exactly as they did when they all still
+	// returned EVR_Family_None.
+	//
+	// This is the ONE place that decides gated-vs-not. When the class
+	// system is redone so every weapon can be a candidate, change this
+	// function -- not GetFamily() on 30+ weapon files.
+	//
+	// Comparison chain, not a static const table: this engine build
+	// doesn't resolve `static const TYPE name[] = {...}` in a class body.
+	static bool IsGatedFamily(EVR_Family f)
+	{
+		return f == EVR_Family_Pistol
+		    || f == EVR_Family_Revolver
+		    || f == EVR_Family_Rifle
+		    || f == EVR_Family_SMG
+		    || f == EVR_Family_Shotgun
+		    || f == EVR_Family_SuperShotgun
+		    || f == EVR_Family_Chaingun;
+	}
+
+	// What a gated-out pickup leaves behind: reserve ammo for the class
+	// you're actually playing. Taken from the Dual_X-owned weapons'
+	// own Weapon.AmmoType1, not invented here -- RS_Pistol/RS_Revolver/
+	// RS_Rifle/RS_SMG all draw Clip, RS_Shotgun/RS_SuperShotgun draw
+	// VR_Shell, RS_Chaingun draws VR_ChaingunAmmo.
+	static string AmmoForFamily(EVR_Family f)
+	{
+		if (f == EVR_Family_Pistol || f == EVR_Family_Revolver
+		 || f == EVR_Family_Rifle  || f == EVR_Family_SMG)
+			return "Clip";
+
+		if (f == EVR_Family_Shotgun || f == EVR_Family_SuperShotgun)
+			return "VR_Shell";
+
+		if (f == EVR_Family_Chaingun)
+			return "VR_ChaingunAmmo";
+
+		// Not a gated family -- never reached from the handler below,
+		// which checks IsGatedFamily() first. Empty means "leave nothing".
+		return "";
+	}
+
 	override void WorldThingSpawned(WorldEvent e)
 	{
 		super.WorldThingSpawned(e);
@@ -28,7 +80,7 @@ class RS_ClassGating : EventHandler
 			return;
 
 		let wep = RS_Weapon(e.Thing);
-		if (!wep || wep.owner || wep.GetFamily() == EVR_Family_None)
+		if (!wep || wep.owner || !IsGatedFamily(wep.GetFamily()))
 			return;
 
 		// consoleplayer is deliberate, not a multiplayer oversight -- this
@@ -45,8 +97,18 @@ class RS_ClassGating : EventHandler
 		if (allowed == EVR_Family_None)
 			return;
 
+		// A mismatch is REPLACED, not deleted. Playing Dual_Revolver, the
+		// pistol/SMG/chaingun/shotgun/SSG/rifle pickups don't spawn -- but
+		// what's left behind is ammo you can actually use, not an empty
+		// floor. Deleting outright was the old behaviour and it silently
+		// stripped pickups out of every map.
 		if (wep.GetFamily() != allowed)
+		{
+			string ammo = AmmoForFamily(allowed);
+			if (ammo != "")
+				Actor.Spawn(ammo, wep.Pos, ALLOW_REPLACE);
 			wep.Destroy();
+		}
 	}
 }
 

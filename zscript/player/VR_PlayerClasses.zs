@@ -247,3 +247,34 @@ class RS_GH_Weaponset : VR_DualClassBase
 	// No GetFamily() override -- inherits EVR_Family_None from the base,
 	// which is deliberately "ungated" here, not an oversight.
 }
+
+// =====================================================================
+// RS_PS_Weaponset -- the MeatGrinder starting class.
+// ---------------------------------------------------------------------
+// Starts dual knives and dual TEC-9s: mainhand + offhand of each. The
+// offhand variants are the _4 classes, matching the convention every
+// Dual_X class above uses (_1.._3 mainhand, _4.._6 carry
+// +WEAPON.OFFHANDWEAPON).
+//
+// No GetFamily() override -- inherits EVR_Family_None from the base,
+// which RS_ClassGating reads as "ungated". Deliberate: this is a
+// whole-set class, not a single-family one, so it must not filter the
+// world down to one weapon family the way VR_Dual_Pistol does.
+// =====================================================================
+class RS_PS_Weaponset : VR_DualClassBase
+{
+	Default
+	{
+		Player.DisplayName "MeatGrinder";
+		Player.StartItem "RS_PS_Fist";
+		Player.StartItem "RS_PS_Fist4";
+		Player.StartItem "RS_PS_Machinegun";
+		Player.StartItem "RS_PS_Machinegun4";
+
+		// Reserve for the starting TEC-9s. MeatGrinder has no reload
+		// mechanic, so these feed straight from the pool.
+		Player.StartItem "Clip", 200;
+	}
+
+	override string GetMainhandClass() { return "RS_PS_Machinegun"; }
+}
