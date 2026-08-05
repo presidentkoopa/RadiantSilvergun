@@ -69,7 +69,7 @@
 //    those A_PlaySound calls are dropped rather than left dangling.
 // =====================================================================
 
-class RS_Chaingunner : RS_HumanMonster replaces ChaingunGuy
+class RS_Chaingunner : RS_MonsterMaster replaces ChaingunGuy
 {
 	// CHP's abyss captain hides once per approach; the lady scientist's
 	// phase change fires once. Both are user_ vars in CHP.

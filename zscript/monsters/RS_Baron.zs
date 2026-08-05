@@ -48,7 +48,7 @@
 // already, and each one is a single tail frame of a death animation.
 // =====================================================================
 
-class RS_Baron : RS_KnightBase replaces BaronOfHell
+class RS_Baron : RS_MonsterMaster replaces BaronOfHell
 {
 	const RS_BARON_ENRAGE_SLOT = 0;
 

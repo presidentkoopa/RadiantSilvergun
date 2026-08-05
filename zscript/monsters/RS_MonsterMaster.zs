@@ -24,10 +24,10 @@
 // The sprite and colour are applied on TIER CHANGE, not on state entry.
 // A monster's body doesn't change because it took a step.
 //
-// Also owns the shared per-family base classes (RS_HumanMonster,
-// RS_DemonBase, RS_KnightBase) -- they're template machinery, same as
-// everything else in this file, even though each is only used by one
-// group of concrete monster files.
+// It used to also declare three empty per-family base classes
+// (RS_HumanMonster, RS_DemonBase, RS_KnightBase). They were removed on
+// 2026-08-04 -- see the note at the bottom of this file for why, and for
+// what to do instead if family grouping is ever actually wanted.
 // =====================================================================
 
 class RS_MonsterTierRow
@@ -1435,9 +1435,23 @@ class RS_MonsterMaster : Actor abstract
 // Thin family-group shells. Their old shared "POSS"-literal state
 // blocks were the skin-system bug -- every state advance re-baked a
 // zombieman frame over whatever body the monster was supposed to wear.
-// Bodies now live in each family's own per-tier clusters; these
-// classes remain only as grouping points for shared mechanics and
-// `is`-checks, inheriting the base dispatchers unchanged.
-class RS_HumanMonster : RS_MonsterMaster abstract {}
-class RS_DemonBase   : RS_MonsterMaster abstract {}
-class RS_KnightBase  : RS_MonsterMaster abstract {}
+// REMOVED 2026-08-04: RS_HumanMonster, RS_DemonBase, RS_KnightBase.
+//
+// Three empty abstract classes -- literally `: RS_MonsterMaster abstract
+// {}` -- that six families inherited from. The comment here claimed they
+// were kept "as grouping points for shared mechanics and `is`-checks".
+// There were no shared mechanics and no `is`-checks: a search for all
+// three names across the whole tree returned only the six `class X : Y`
+// lines and this comment. They did nothing.
+//
+// They are gone rather than left harmless because of what they invited.
+// Demon and Spectre share an IDENTICAL body list from T00 to T07, and
+// Baron and HellKnight are close. The moment somebody notices that and
+// "helpfully" hoists shared states up into RS_DemonBase, a Demon and a
+// Spectre are running the same state code -- change one, change both --
+// which is the cross-family sprite bleed this project has been chasing.
+// An empty base class is a standing invitation to exactly that.
+//
+// If shared family behaviour is ever genuinely wanted, add it when there
+// is something to share, and add it as a MIXIN or a helper the families
+// call, not as a parent that silently owns their states.

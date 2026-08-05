@@ -71,7 +71,7 @@
 //     run on its own frames.
 // =====================================================================
 
-class RS_Demon : RS_DemonBase replaces Demon
+class RS_Demon : RS_MonsterMaster replaces Demon
 {
 	// CHP user vars -> private int fields.
 	private int rsCalm;   // T05 / T08  User_Calm
