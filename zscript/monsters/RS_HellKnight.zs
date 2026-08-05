@@ -250,6 +250,20 @@ class RS_HellKnight : RS_KnightBase replaces HellKnight
 		Goto See;
 	Missile.T01.Second:
 		"HKGR" PQ 8 { A_FaceTarget(); }
+		// RESTORED (rs_19 / L5). CHP 11_G.txt:28-29 gates this behind
+		// CH_Intercept and fires BaronMissile -- a ProjInt_Brute LED shot.
+		// The import kept only the Miss2 body below. Falls through to it
+		// when the option is off, exactly as CH's jump does.
+		"HKGR" Q 0
+		{
+			if (!FireLeadShot("RS_BaronBall", 32.0, 0.0))
+				return ResolveState("Missile.T01.Miss2");
+			return ResolveState(null);
+		}
+		"HKGR" R 8;
+		"HKGR" R 2 A_Jump(128, "Missile.T01");
+		Goto See;
+	Missile.T01.Miss2:
 		"HKGR" R 8 { A_CustomComboAttack("RS_BaronBall", 32, 11 * random(1, 8), "baron/melee/c"); }
 		"HKGR" R 2 A_Jump(128, "Missile.T01");
 		Goto See;

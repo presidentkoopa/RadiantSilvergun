@@ -63,10 +63,14 @@
 //   * T11's BlackLSoul2Check_C escorts were ACS-gated (CallACS
 //     "CH_Lackeys"); the CH parent spawns the six bees unconditionally,
 //     so that is what ships.
-//   * T12's ACS_NamedExecuteWithResult("BaronMissile_C") is an ACS
-//     lead-prediction wrapper around BaronBall_C -- ported as a plain
-//     A_SpawnProjectile("RS_BaronBall", 32, 0, 0); same projectile, only
-//     the aim-lead math is lost.
+//   * [RESOLVED 2026-08-04 -- kept, corrected, rather than deleted.]
+//     T12's ACS_NamedExecuteWithResult("BaronMissile_C") is an ACS
+//     lead-prediction wrapper around BaronBall_C. It WAS ported as a
+//     plain A_SpawnProjectile, and this note correctly recorded that
+//     "only the aim-lead math is lost" -- an accurate description of a
+//     real loss, which is why it was findable. The math now exists:
+//     RS_MonsterAim solves the intercept and RS_MonsterMaster.FireLeadShot
+//     fires it. Both sites here are wired. See docs/rs_19_acs_inventory.txt.
 //
 // SPRITE NOTES (verified against sprites/monsters/_src):
 //   * SKUC ships only frames S-W; the whole cyan cluster lives there and
@@ -919,7 +923,19 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 		"BOSS" EF 6 { A_FaceTarget(); }
 		"BOSS" G 7 { A_CustomComboAttack("RS_BaronBall", 32, 10 * random(1, 8), "baron/melee"); }
 		"BOSS" PQ 5 { A_FaceTarget(); }
-		"BOSS" R 5 { A_SpawnProjectile("RS_BaronBall", 32, 0, 0); }
+		// RESTORED (rs_19 / L5). CHP 05_W.txt:102 / 05_WX fire BaronMissile
+		// here -- a ProjInt_Brute LED shot -- and UNLIKE the Baron,
+		// Cyberdemon and HellKnight sites it is NOT gated behind
+		// CH_Intercept: this one always leads in CH.
+		// We still honour the option, deliberately. A toggle that only
+		// some monsters obey is worse than no toggle, so with
+		// rs_monster_intercept off this falls back to the plain shot the
+		// import had been using all along.
+		"BOSS" R 5
+		{
+			if (!FireLeadShot("RS_BaronBall", 32.0, 0.0))
+				A_SpawnProjectile("RS_BaronBall", 32, 0, 0);
+		}
 		"BOSS" EF 5 { A_FaceTarget(); }
 		"BOSS" G 5 { A_SpawnProjectile("RS_Spspit2", 32, 5, random(-1, 1)); }
 		"BOSS" PQ 5 { A_FaceTarget(); }
@@ -1205,7 +1221,19 @@ class RS_LostSoul : RS_MonsterMaster replaces LostSoul
 		"BOSS" EF 6 { A_FaceTarget(); }
 		"BOSS" G 7 { A_CustomComboAttack("RS_BaronBall", 32, 10 * random(1, 8), "baron/melee"); }
 		"BOSS" PQ 5 { A_FaceTarget(); }
-		"BOSS" R 5 { A_SpawnProjectile("RS_BaronBall", 32, 0, 0); }
+		// RESTORED (rs_19 / L5). CHP 05_W.txt:102 / 05_WX fire BaronMissile
+		// here -- a ProjInt_Brute LED shot -- and UNLIKE the Baron,
+		// Cyberdemon and HellKnight sites it is NOT gated behind
+		// CH_Intercept: this one always leads in CH.
+		// We still honour the option, deliberately. A toggle that only
+		// some monsters obey is worse than no toggle, so with
+		// rs_monster_intercept off this falls back to the plain shot the
+		// import had been using all along.
+		"BOSS" R 5
+		{
+			if (!FireLeadShot("RS_BaronBall", 32.0, 0.0))
+				A_SpawnProjectile("RS_BaronBall", 32, 0, 0);
+		}
 		"BOSS" EF 5 { A_FaceTarget(); }
 		"BOSS" G 5 { A_SpawnProjectile("RS_Spspit2", 32, 5, random(-1, 1)); }
 		"BOSS" PQ 5 { A_FaceTarget(); }
