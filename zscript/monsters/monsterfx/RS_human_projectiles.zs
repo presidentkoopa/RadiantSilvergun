@@ -41,39 +41,60 @@ class RS_Gas11 : Actor
 }
 class RS_IceZombieShot : Actor
 {
-	Default { Radius 6; Height 8; Speed 33; Damage 11; DamageType "Ice"; Projectile; RenderStyle "Add"; Alpha 0.9; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
+	Default { Radius 6; Height 8; Speed 33; /* CH: Damage (random(6,16))  Zombies.txt:216 -- was flattened to `Damage 11`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(6,16)); DamageType "Ice"; Projectile; RenderStyle "Add"; Alpha 0.9; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
 	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY C 4 Bright A_Explode(33, 40, XF_HURTSOURCE, false, 13); ICEY FG 4 Bright; Stop; }
 }
-class RS_IceZombieShot2 : RS_IceZombieShot { Default { Speed 28; Damage 9; } }
+// NOT CORRECTED -- SHARED WITH THE SHOTGUNNER. See the report.
+// CH Zombies.txt:236 is
+//     ACTOR IceZombieShot2 : IceZombieShot
+//     { radius 2  xscale 0.95  yscale 0.1  speed 42  Damage (random(4,14)) }
+// so ours is wrong on every line (Speed 28 vs 42, a flattened `Damage 9` where
+// CH rolls 4..14, and no radius/scale overrides at all). It is left alone
+// because RS_Shotgunner.zs:667 (Missile.T03.Proj, the cyan shotgunner) fires
+// it too -- exactly as CH's own Shotgunners.txt:295 does -- so correcting it
+// changes a NON-chaingunner family's behaviour and that is not this pass's
+// call to make. The parent RS_IceZombieShot is family 01's and is also still
+// CHP's (CH Zombies.txt:211: Radius 3/Height 2, Damage (random(6,16)),
+// Alpha 0.75, xScale 1.15/yScale 0.15, SeeSound "Ice/Hit2",
+// DeathSound "spike/spiked", Spawn ICEY ABC 3, Death ICEY FGHI 5, no explode).
+class RS_IceZombieShot2 : RS_IceZombieShot { Default { Speed 28; /* CH: Damage (random(4,14))  Zombies.txt:242 -- was flattened to `Damage 9`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(4,14)); } }
 class RS_Orbb11 : Actor
 {
-	Default { Radius 6; Height 8; Speed 21; Damage 10; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.9; Scale 0.7;
+	Default { Radius 6; Height 8; Speed 21; /* CH: Damage (random(2,18))  Zombies.txt:1252 -- was flattened to `Damage 10`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(2,18)); DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.9; Scale 0.7;
 		SeeSound "imp/attack"; DeathSound "imp/shotx"; Translation "0:255=%[0.40,0.00,0.60]:[1.30,0.30,1.70]"; }
 	States { Spawn: BAL1 AB 3 Bright A_SeekerMissile(2,2); Loop; Death: BAL1 C 4 Bright A_Explode(30, 40, XF_HURTSOURCE, false, 13); BAL1 DE 4 Bright; Stop; }
 }
 class RS_MiniRKTZombie : Actor
 {
-	Default { Radius 6; Height 8; Speed 22; Damage 22; DamageType "Fire"; Projectile; +RANDOMIZE; +ROCKETTRAIL; Scale 0.6; SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx"; }
+	Default { Radius 6; Height 8; Speed 22; /* CH: Damage (random(5,40))  Zombies.txt:1417 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,40)); DamageType "Fire"; Projectile; +RANDOMIZE; +ROCKETTRAIL; Scale 0.6; SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx"; }
 	States { Spawn: MISL A 3 Bright; Loop; Death: MISL B 4 Bright A_Explode(120, 80, XF_HURTSOURCE, false, 26); MISL CD 4 Bright; Stop; }
 }
 class RS_AbyssZshotCH : Actor
 {
-	Default { Radius 6; Height 8; Speed 32; Damage 17; DamageType "Ice"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Translation "Ice"; SeeSound "imp/attack"; DeathSound "imp/shotx"; }
+	Default { Radius 6; Height 8; Speed 32; /* CH: Damage (random(5,30))  Zombies.txt:651 -- was flattened to `Damage 17`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,30)); DamageType "Ice"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Translation "Ice"; SeeSound "imp/attack"; DeathSound "imp/shotx"; }
 	States { Spawn: BAL7 AB 3 Bright; Loop; Death: BAL7 C 4 Bright A_Explode(51, 48, XF_HURTSOURCE, false, 16); BAL7 DE 4 Bright; Stop; }
 }
 class RS_AbyssZshotCH2 : RS_AbyssZshotCH { Default { Speed 45; } }
-class RS_AbyssZShotCH3 : RS_AbyssZshotCH { Default { Speed 60; Damage 22; } }
+// CH Zombies.txt:686. CH's AbyssZShotCH3 overrides ONLY Radius/Height/Speed and
+// the two scales -- it carries NO Damage of its own, it inherits the parent's
+// roll. The `Damage 22` that used to sit here was CHP's and is deleted.
+// WARNING: the parent RS_AbyssZshotCH above is the ZOMBIEMAN's actor and is
+// still CHP's (CH Zombies.txt:~640 has Damage (random(5,30)), a Fly state with
+// a_weave, Translation "0:255=%[0.02,0.02,0.03]:[0.29,0.49,0.65]" and a death of
+// TNT1 A 0 A_setscale(0.85,0.85) + BAL7 CDE 4 A_Explode(random(1,8),42)).
+// Not corrected here: it is family 01's, not the chaingunner's. See report.
+class RS_AbyssZShotCH3 : RS_AbyssZshotCH { Default { Radius 2; Height 2; Speed 60; XScale 0.35; YScale 0.15; } }
 
 // ---------- SHOTGUNNER color projectiles ----------
 class RS_FireSGguy : Actor
 {
-	Default { Radius 4; Height 4; Speed 21; Damage 10; DamageType "Fire"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; SeeSound "imp/attack"; DeathSound "imp/shotx";
+	Default { Radius 4; Height 4; Speed 21; /* CH: Damage (random(5,15))  Shotgunners.txt:791 -- was flattened to `Damage 10`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,15)); DamageType "Fire"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "161:161=200:200","163:163=204:204","165:165=204:204","167:167=207:207"; }
 	States { Spawn: FIRE AB 3 Bright; Loop; Death: FIRE CDE 3 Bright; Stop; }
 }
 class RS_SGshot1 : Actor
 {
-	Default { Radius 4; Height 4; Speed 55; Damage 4; DamageType "Plasma"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85; Scale 0.6; SeeSound "weapons/shotgf"; DeathSound "weapons/plasmax"; }
+	Default { Radius 4; Height 4; Speed 55; /* CH: Damage (random(2,6))  Shotgunners.txt:1013 -- was flattened to `Damage 4`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(2,6)); DamageType "Plasma"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85; Scale 0.6; SeeSound "weapons/shotgf"; DeathSound "weapons/plasmax"; }
 	States { Spawn: BAL1 AB 2 Bright; Loop; Death: BAL1 CD 3 Bright; Stop; }
 }
 class RS_SGLance1 : Actor
@@ -144,32 +165,71 @@ class RS_MineShotgun : Actor
 }
 
 // ---------- CHAINGUNNER color projectiles ----------
+// T02 BLUE -- the proximity beeper the blue chaingunner lobs out ahead of its
+// rail bursts. CORRECTED TO CH Chaingunners.txt:1323. Every property here was
+// CHP's: Radius/Height 4 (CH 12), +NOGRAVITY and no Projectile at all, Alpha
+// 0.7 (CH 0.73), Scale 0.6 (CH 0.55), no seesound, and an SSBL ABCD spawn that
+// is not CH's frame set. The beep IS the actor -- CH plays "prox/beep" twice,
+// once as SeeSound and once on the second frame.
 class RS_BlueChainPuff3 : Actor
 {
-	Default { Radius 4; Height 4; Speed 1; Damage 0; +NOGRAVITY +NOINTERACTION; RenderStyle "Add"; Alpha 0.7; Scale 0.6; }
-	States { Spawn: SSBL ABCD 2 Bright; Stop; }
+	Default { Radius 12; Height 12; Speed 1; Projectile; +NOINTERACTION;
+		RenderStyle "Add"; Alpha 0.73; Scale 0.55; SeeSound "prox/beep"; }
+	States
+	{
+	Spawn:
+		SSBL KIJ 1 Bright;
+		SSBL I 1 Bright A_StartSound("prox/beep");
+		SSBL J 1 Bright A_SetScale(0.3, 0.3);
+		Goto Death;
+	Death:
+		SSBL KJI 1 Bright;
+		Stop;
+	}
 }
+// T06 BROWN -- CORRECTED TO CH Chaingunners.txt:204. This was built from CHP
+// and the single biggest loss was the ARC: CH gives it `Gravity 0.05` and
+// `-NOGRAVITY`, so the brown gunner's orb DROPS over distance instead of
+// flying flat. Also restored: Radius/Height 3 -> 2, Mass 10, +MTHRUSPECIES,
+// CH's own sounds (fire/fire3, weapons/boom1 -- both resolve, SNDINFO:1524
+// and :1406), CH's desaturating translation, Scale 0.5 -> 0.33, and the death,
+// which in CH is five RIP1 frames each rolling random(1,5) at radius 32, not
+// one flat 27 at radius 40. +RANDOMIZE, RenderStyle Add and Alpha 0.9 were all
+// CHP additions and are gone; CH renders it opaque.
 class RS_BrownOrbCguy : Actor
 {
-	Default { Radius 3; Height 3; Speed 32; DamageFunction (random(3,9)); /* CHP 04_BR.txt:1445 - roll restored */ DamageType "Fire"; Projectile; +THRUGHOST; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Scale 0.5;
-		SeeSound "imp/attack"; DeathSound "imp/shotx"; Translation "0:255=%[0.31,0.23,0.18]:[1.10,0.74,0.40]"; }
-	States { Spawn: BAL1 AB 2 Bright; Loop; Death: RIP1 A 3 Bright A_Explode(27, 40, XF_HURTSOURCE, false, 13); RIP1 BC 3 Bright; Stop; }
+	Default { Radius 2; Height 2; Speed 32; Mass 10; DamageFunction (random(3, 9)); DamageType "Fire";
+		Gravity 0.05; Projectile; -NOGRAVITY; +MTHRUSPECIES; +THRUGHOST; Scale 0.33;
+		SeeSound "fire/fire3"; DeathSound "weapons/boom1"; Translation "0:255=@74[77,52,26]"; }
+	States
+	{
+	Spawn:
+		BAL1 AB 4 Bright;
+		Loop;
+	Death:
+		RIP1 D 0 A_SetScale(1.0, 1.0);
+		// CH is `a_settranslation("BBEASTEX5")` here, and CH's TRNSLATE.txt:5
+		// defines BBEASTEX5 = "0:0=0:0" -- an identity map, i.e. this line
+		// CLEARS the brown tint so the burst renders untinted. Our TRNSLATE.txt
+		// does not define BBEASTEX5, so the call is left out rather than
+		// emitting a runtime warning on every shot. Kept as an explicit 0-tic
+		// placeholder so the frame count of this state is unchanged.
+		TNT1 A 0;
+		RIP1 DEFGH 3 Bright A_Explode(random(1, 5), 32);
+		Stop;
+	}
 }
 class RS_CGBigOne : Actor
 {
-	// RESTORED 1:1 TO CHP 04_K.txt:2268 (CGBigOne_C). An earlier pass rewrote
-	// this actor on the theory that its multi-frame A_Explode was a bug
-	// "dealing 400 at the epicentre from a line that reads 80", and replaced
-	// CH's pulsing detonation with an invented two-stage 280/120 burst.
-	// That premise was wrong. CHP uses multi-frame A_Explode 4,545 times --
-	// a THIRD of all its explode sites -- and SPIR ABCDEDCBA is a grow-then-
-	// shrink cycle: the explosion PULSES as it expands and collapses. The
-	// repeat is the attack, exactly as in RS_DIBigOne, which was correctly
-	// left alone. CH's real total is random(5,30) x 9 = 45-270, never 400.
-	// Three separate regressions are undone here:
-	//   * Damage 50            -> DamageFunction (random(30,80))   CHP:2277
-	//   * spawn SPIR FGH       -> RED9 B / RED9 AA / RED9 A        CHP:2285
-	//   * death RED9 two-stage -> SPIR ABCDEDCBA A_Explode(...,164) CHP:2291
+	// VERIFIED AGAINST CH Chaingunners.txt:2389 -- clean, no edit needed.
+	// Every property and every state line matches CH: Radius 6 / Height 8 /
+	// Speed 19, Damage (random(30,80)) Plasma, +NOGRAVITY +SEEKERMISSILE,
+	// Add / Alpha 0.75, Spell/SpellCast1 + Fire/Fire4, spawn RED9 B / AA / A,
+	// death SPIR A A_SetScale(2) -> SPIR ABCDEDCBA A_Explode(random(5,30),164)
+	// -> SPIR E 1. (The old header credited CHP 04_K.txt:2268 for these
+	// numbers; they are CH's, and CHP was never opened for this pass.)
+	// SPIR ABCDEDCBA is NINE frames, so nine blasts -- a grow-then-shrink
+	// pulse, and CH's deliberate idiom. Do not collapse it.
 	Default { Radius 6; Height 8; Speed 19; DamageFunction (random(30, 80)); DamageType "Plasma";
 		Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.75;
 		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4"; }
@@ -189,24 +249,142 @@ class RS_CGBigOne : Actor
 		Stop;
 	}
 }
+// B01 BLACK (The General) -- CORRECTED TO CH Chaingunners.txt:2442.
+// The old body here ("orbiting shield bubble") was an invention: it looped
+// BFE1 ABCD forever and died into two frames doing nothing. CH's GenShield is
+// a SHIELD THAT COUNTER-FIRES. It hangs on the General for 45 tics (BFS1 ABA
+// 15) and then bursts, and its last three frames each launch a live
+// TrailSPCguy bolt on a randomised vector -- so popping the shield is what
+// puts three plasma bolts in the air. It also drops a Cell.
+// Restored: Radius/Height 8 -> 20, Alpha 0.4 -> 0.75, Scale 1.2 -> 1.5,
+// DamageType Plasma, +SEEKERMISSILE, DropItem Cell, and both states.
+// CHP-only flags +NOGRAVITY and +THRUACTORS removed -- CH sets neither.
 class RS_GenShield : Actor
 {
-	// orbiting shield bubble (cosmetic-ish, low damage)
-	Default { Radius 8; Height 8; Speed 1; Damage 0; Projectile; +RANDOMIZE; +NOGRAVITY +THRUACTORS; RenderStyle "Add"; Alpha 0.4; Scale 1.2; }
-	States { Spawn: BFE1 ABCD 4 Bright; Loop; Death: BFE1 EF 3 Bright; Stop; }
+	Default { Radius 20; Height 20; Speed 1; Damage 0; DamageType "Plasma";
+		Projectile; +RANDOMIZE; +SEEKERMISSILE;
+		RenderStyle "Add"; Alpha 0.75; Scale 1.5; DropItem "Cell"; }
+	States
+	{
+	Spawn:
+		BFS1 ABA 15 Bright;
+		Goto Death;
+	Death:
+		BFE1 A 8 Bright A_SetScale(1.15);
+		BFE1 B 8 Bright A_SetScale(0.8);
+		BFE1 C 8 Bright A_SetScale(0.6);
+		BFE1 C 0 A_NoBlocking();
+		BFE1 DEF 8 Bright A_SpawnProjectile("RS_TrailSPCguy", random(-2, 2), random(-2, 2), random(-4, 4), CMF_AIMDIRECTION | CMF_SAVEPITCH);
+		Stop;
+	}
 }
+// B02 WHITE (the crazy lady scientist) -- CORRECTED TO CH Chaingunners.txt:2825.
+// Ours had Spawn and Death INVERTED (it flew as a 6PUF smoke puff and died into
+// BLAD blades; CH flies the BLAD needle and dies into the 6PUF/FBL1 burst), and
+// the entire two-stage explosion was missing. Restored: Radius 2/Height 2 -> 5/4,
+// Decal BulletChip, AttackSound "moloch/nailhitbleed" (SNDINFO:591), the
+// A_PlaySound("moloch/nailhit") on impact (SNDINFO:1671), both A_Explode rolls,
+// and the RS_Trail12 spawn that seeds the residue. +RANDOMIZE was CHP's, removed.
 class RS_NeedlesCg1 : Actor
 {
-	Default { Radius 2; Height 2; Speed 35; DamageFunction (random(5,25)); /* CHP 04_W.txt:6604 - roll restored */ DamageType "Melee"; Projectile; +SPAWNSOUNDSOURCE; +BLOODSPLATTER; +RANDOMIZE; YScale 0.6; XScale 1.4;
-		SeeSound "Jam/Jamd"; DeathSound "gas/gas1"; }
-	States { Spawn: 6PUF AB 2 Bright; Loop; Death: BLAD AAA 3 Bright; Stop; }
+	Default { Radius 5; Height 4; Speed 35; DamageFunction (random(5, 25)); DamageType "Melee";
+		Projectile; +SPAWNSOUNDSOURCE; +BLOODSPLATTER; YScale 0.6; XScale 1.4; Decal "BulletChip";
+		SeeSound "Jam/Jamd"; AttackSound "moloch/nailhitbleed"; DeathSound "gas/gas1"; }
+	States
+	{
+	Spawn:
+		BLAD A 1 Bright;
+		Loop;
+	Death:
+		"6PUF" A 0 A_StartSound("moloch/nailhit");
+		// Six frames and three frames: six rolls then three. CH's idiom, kept.
+		"6PUF" ABCDEF 1 Bright A_Explode(random(2, 5), 64);
+		FBL1 EFG 1 Bright A_Explode(random(2, 8), 64);
+		FBL1 G 1 Bright A_SpawnItemEx("RS_Trail12", 0, 0, 1);
+		Stop;
+	}
 }
-class RS_NeedlesCg2 : RS_NeedlesCg1 { Default { DamageFunction (random(5,45)); /* CHP 04_W.txt:6091 - roll restored */ DamageType "Poison"; PoisonDamage 6; } }
+// CH Chaingunners.txt:2772. NOT a subclass in CH -- NeedlesCg2 is a standalone
+// actor with its own body and its own, LONGER death. Ours was
+// `: RS_NeedlesCg1 { PoisonDamage 6 }`, which got the poison wrong (CH 15),
+// the speed wrong (inherited 35, CH 25), both scales wrong (CH 1.55/0.75) and
+// dropped CH's whole trail mechanic. Kept as a subclass here only so the diff
+// stays readable -- every property CH declares is re-declared, and the states
+// are fully overridden, so nothing of NeedlesCg1's body survives.
+class RS_NeedlesCg2 : RS_NeedlesCg1
+{
+	Default { Radius 6; Height 5; Speed 25; DamageFunction (random(5, 45)); DamageType "Poison";
+		PoisonDamage 15; PoisonDamageType "Poison"; YScale 0.75; XScale 1.55; }
+	States
+	{
+	Spawn:
+		BLAD A 1 Bright A_SpawnItemEx("RS_Trail14", 0, 0, 2);
+		Loop;
+	Death:
+		"6PUF" A 0 A_StartSound("moloch/nailhit");
+		"6PUF" ABCDEF 1 Bright A_Explode(random(2, 8), 64);
+		FBL1 GGG 0 A_SpawnItemEx("RS_Trail14", random(-8, 8), random(-8, 8), random(-8, 8));
+		FBL1 EFG 1 Bright A_Explode(random(2, 12), 64);
+		FBL1 GGG 0 A_SpawnItemEx("RS_Trail12", random(-8, 8), random(-8, 8), random(-8, 8));
+		Stop;
+	}
+}
+// The trail RS_NeedlesCg2 lays and scatters. CH Chaingunners.txt:2805 (Trail14).
+// Added because the corrected NeedlesCg2 references it and nothing in the repo
+// defined it; a string class name that does not resolve is a compile error.
+class RS_Trail14 : Actor
+{
+	Default { Radius 6; Height 16; Speed 16; FastSpeed 23; Projectile; +NOINTERACTION;
+		RenderStyle "Add"; Scale 0.3; Alpha 0.5; }
+	States { Spawn: BAL7 CDE 4 Bright; Stop; }
+}
+// B02 WHITE -- CORRECTED TO CH Chaingunners.txt:2745. Ours was a static
+// floorhugging gas patch that faded out: Speed 0, +NOCLIP +FLOORHUGGER, a green
+// translation, and a Spawn that just ran BOGY ABCD twice and stopped. None of
+// that is CH. CH's Puddle1 is a LOBBED, GRAVITY-BOUND slime ball (Speed 14,
+// -NOGRAVITY) that on impact turns its gravity off and sprays THREE Puddle2s at
+// randomised angles and pitches -- and Puddle2 is the thing that then crawls,
+// bounces off walls and keeps spitting. The area denial is two stages deep.
 class RS_Puddle1 : Actor
 {
-	Default { Radius 8; Height 4; Speed 0; Damage 4; DamageType "Poison"; Projectile; +NOCLIP +FLOORHUGGER; RenderStyle "Translucent"; Alpha 0.5; Scale 0.8;
-		DeathSound "gas/gas1"; Translation "0:255=%[0.20,0.40,0.00]:[0.70,1.20,0.20]"; }
-	States { Spawn: BOGY ABCD 6; BOGY ABCD 6 A_FadeOut(0.1); Stop; }
+	Default { Radius 4; Height 4; Speed 14; Damage 4; PoisonDamage 15; PoisonDamageType "Poison";
+		Projectile; -NOGRAVITY; Scale 0.5; Decal "PlasmaScorchLower";
+		SeeSound ""; DeathSound "slimeball/splat"; }
+	States
+	{
+	Spawn:
+		BOGY ABC 2 Bright;
+		Loop;
+	Death:
+		BOGY D 0 { bNOGRAVITY = true; }
+		BOGY DEF 4 Bright A_SpawnProjectile("RS_Puddle2", random(2, 16), random(-16, 16), random(-20, 20), CMF_SAVEPITCH, random(5, 15));
+		BOGY F 1;
+		Stop;
+	}
+}
+// The second stage. CH Chaingunners.txt:2707 (Puddle2). Added for the same
+// reason as RS_Trail14: RS_Puddle1's corrected death names it.
+// This is the actual area-denial mechanic -- it wanders, ricochets off walls
+// almost 1000 times, and throws a RS_SlimeBall4 out of every frame it crawls.
+class RS_Puddle2 : Actor
+{
+	Default { Radius 12; Height 3; Speed 12; Damage 4; PoisonDamage 15; PoisonDamageType "Poison";
+		Species "Science"; XScale 1.1; YScale 0.3;
+		+FLOORHUGGER; +DONTHARMCLASS; +DONTHARMSPECIES; +THRUACTORS; +RANDOMIZE; +BOUNCEONWALLS;
+		BounceCount 999; BounceType "Doom"; BounceFactor 1; WallBounceFactor 1.5;
+		RenderStyle "Add"; SeeSound ""; DeathSound "slimeball/splat"; }
+	States
+	{
+	Spawn:
+		BOGY ABC 2 Bright A_SpawnProjectile("RS_SlimeBall4", random(5, 15), random(-8, 8), random(-180, 180), CMF_AIMDIRECTION, random(10, 60));
+		BOGY A 0 A_Jump(16, "Death");
+		BOGY ABC 2 Bright A_Wander();
+		Loop;
+	Death:
+		BOGY D 0 { bNOGRAVITY = true; }
+		BOGY DEF 4 Bright;
+		Stop;
+	}
 }
 
 
@@ -354,7 +532,7 @@ class RS_BoneTorn2 : Actor
 // Brown SG mud pellet: fast, near-invisible, knocks the target around.
 class RS_BrownSGshot : Actor
 {
-	Default { Radius 2; Height 2; Speed 64; Damage 3; Projectile; +DONTBLAST; +DONTTHRUST; RenderStyle "Add"; Alpha 0.85;
+	Default { Radius 2; Height 2; Speed 64; /* CH: Damage (random(1,5))  Shotgunners.txt:169 -- was flattened to `Damage 3`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,5)); Projectile; +DONTBLAST; +DONTTHRUST; RenderStyle "Add"; Alpha 0.85;
 		DeathSound "imp/shotx"; }
 	States
 	{
@@ -385,79 +563,136 @@ class RS_RedDotSGPuff : BulletPuff
 }
 
 // ---------- CHAINGUNNER rebuild additions ----------
-// Gray chaingunner's exploding tracer puff.
+// T07 GRAY -- CORRECTED TO CH Chaingunners.txt:742. This is not a plain tracer
+// puff: in CH every round that lands throws a RING OF TWELVE NAILS (via
+// CGthing3), which is the gray gunner's whole close-range identity and was
+// missing entirely. Also restored: A_Explode's roll (ours had a flat 6 where CH
+// rolls 1..12), VSpeed 1, SeeSound "weapons/firex4" (SNDINFO:654) in place of
+// an invented DeathSound "imp/shotx", CH's translation, and the removal of
+// +ALWAYSPUFF, which CH does not set on this one (only on DetoPuffCG).
+// CH declares no Death state -- Spawn falls through into Melee, and a puff that
+// hits an actor is put straight into Melee, so both paths detonate. The `Death:`
+// alias that used to sit here was ours; every caller is A_CustomBulletAttack.
 class RS_GrayCGuff : Actor
 {
-	Default { Projectile; +NOGRAVITY; +ALLOWPARTICLES; +PUFFONACTORS; +ALWAYSPUFF; RenderStyle "Add"; Alpha 0.85; Scale 0.25;
-		Mass 5; DamageType "Fire"; DeathSound "imp/shotx"; }
+	Default { Projectile; +NOGRAVITY; +ALLOWPARTICLES; +PUFFONACTORS; RenderStyle "Add"; Alpha 0.85;
+		VSpeed 1; Scale 0.25; Mass 5; DamageType "Fire"; SeeSound "weapons/firex4";
+		Translation "0:249=%[0.00,0.00,0.00]:[2.00,2.00,2.00]","128:143=80:95","144:151=87:95","13:15=93:95","96:111=80:95","236:239=95:95","152:159=80:89","5:12=85:95","0:2=92:95","168:191=0:2","192:207=0:0","32:47=0:0"; }
 	States
 	{
 	Spawn:
 		MISL BC 2 Bright;
 	Melee:
-	Death:
-		MISL D 4 Bright A_Explode(6, 64);
+		MISL D 4 Bright A_Explode(random(1, 12), 64);
+		MISL D 1 Bright A_SpawnItemEx("RS_CGthing3", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
 		MISL E 4 Bright;
 		Stop;
 	}
 }
-// Red chaingunner's detonating puffs, three range grades.
-class RS_DetoPuffCG : Actor
+// The nail ring. CH Chaingunners.txt:769 (CGthing3). Added because the corrected
+// GrayCGuff names it and nothing in the repo defined it. Twelve CGNails at 30
+// degree intervals, all on 0-tic frames, so the whole ring leaves at once.
+// RS_CGNail already exists at RS_imp_projectiles.zs:271.
+class RS_CGthing3 : Actor
 {
-	Default { Projectile; +NOGRAVITY; +ALLOWPARTICLES; +RANDOMIZE; +PUFFONACTORS; +ALWAYSPUFF; RenderStyle "Add"; Alpha 0.85; Scale 0.35;
-		Mass 5; DamageType "Fire"; DeathSound "imp/shotx"; }
+	Default { Speed 0; Height 1; Radius 1; Projectile; +NOCLIP; }
 	States
 	{
 	Spawn:
-		MISL BC 4 Bright;
-	Melee:
+		TNT1 A 0;
+		Goto Death;
 	Death:
-		MISL D 4 Bright A_Explode(random(2,6), 42) /* CHP 04_R.txt:1757 */;
+		// CH passes flags 0, i.e. aimmode 0 -- the twelve angles are offsets
+		// from the direction back to the shooter, not from this actor's own
+		// facing. Kept as 0 (the argument is omitted) rather than "tidied" to
+		// CMF_AIMDIRECTION, which would orient the ring differently.
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 15);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 45);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 75);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 105);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 135);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 165);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 195);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 225);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 255);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 285);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 315);
+		MISL D 0 A_SpawnProjectile("RS_CGNail", 0, 0, 345);
+		Stop;
+	}
+}
+// T10 RED -- the detonating puffs, three range grades.
+// CORRECTED TO CH Chaingunners.txt:1820 / :1847 / :1860.
+// The A_Explode rolls and radii were already right. What was wrong:
+//   * DeathSound "imp/shotx" was invented -- CH has SeeSound "weapons/firex4"
+//     (SNDINFO:654) and no DeathSound at all.
+//   * VSpeed 1 was missing, so these did not drift upward the way CH's do.
+//   * CH sizes the grades with A_SetScale in the SPAWN frames (0.35 / 0.28 /
+//     0.2), not with a Scale property override -- and the property is 0.35 on
+//     all three. Ours used Scale 0.30 / 0.25 on the subclasses, so the two
+//     short grades read a size larger than CH's.
+//   * CH has no Death label; Spawn falls through into Melee, and a puff that
+//     hits an actor is put straight into Melee, so both paths detonate.
+//     Because CH's subclasses override SPAWN (not Death), the grades are
+//     written that way here too.
+class RS_DetoPuffCG : Actor
+{
+	Default { Projectile; +NOGRAVITY; +ALLOWPARTICLES; +RANDOMIZE; +PUFFONACTORS; +ALWAYSPUFF;
+		RenderStyle "Add"; Alpha 0.85; VSpeed 1; Scale 0.35; Mass 5; DamageType "Fire";
+		SeeSound "weapons/firex4"; }
+	States
+	{
+	Spawn:
+		MISL BC 4 Bright A_SetScale(0.35);
+	Melee:
+		MISL D 4 Bright A_Explode(random(2, 6), 42);
 		MISL E 4 Bright;
 		Stop;
 	}
 }
-// T10's three range grades. These used to differ ONLY by Scale, which
-// made all three detonate identically -- the whole point of the tier is
-// that closing trades reach for splash. CHP gives each its own roll AND
-// its own radius: DetoPuffCG r42, DetoPuff2 r38, DetoPuff3 r32
-// (CH Chaingunners.txt:1847, :1860). Overriding the Death state is the
-// only way to change the A_Explode arguments.
 class RS_DetoPuff2 : RS_DetoPuffCG
 {
-	Default { Scale 0.30; }
 	States
 	{
-	Death:
-		MISL D 4 Bright { A_Explode(random(1,4), 38); }
+	Spawn:
+		MISL BC 4 Bright A_SetScale(0.28);
+	Melee:
+		MISL D 4 Bright A_Explode(random(1, 4), 38);
 		MISL E 4 Bright;
 		Stop;
 	}
 }
 class RS_DetoPuff3 : RS_DetoPuffCG
 {
-	Default { Scale 0.25; }
 	States
 	{
-	Death:
-		MISL D 4 Bright { A_Explode(random(1,3), 32); }
+	Spawn:
+		MISL BC 4 Bright A_SetScale(0.2);
+	Melee:
+		MISL D 4 Bright A_Explode(random(1, 3), 32);
 		MISL E 4 Bright;
 		Stop;
 	}
 }
-// The General's seeking plasma bombs (BFS1/BFE1 are IWAD BFG sprites).
+// B01 BLACK (The General) -- his plasma bombs. CH Chaingunners.txt:2472.
+// Every property and both A_Explode/damage rolls already matched CH. ONE fix:
+// the spawn frame carried `A_SeekerMissile(2, 3)`, which CH does not have.
+// CH sets +SEEKERMISSILE but never calls A_SeekerMissile, so in CH these fly
+// DEAD STRAIGHT -- the flag alone does nothing. They are volume, not tracking;
+// RS_CGBigOne is the General's seeker. (BFS1/BFE1 are IWAD BFG sprites.)
 class RS_SpamShotsCguy : Actor
 {
-	Default { Radius 14; Height 9; Speed 25; DamageFunction (random(10,60)); /* CHP 04_K.txt:1479 - roll restored */ DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE;
+	Default { Radius 14; Height 9; Speed 25; DamageFunction (random(10, 60)); DamageType "Plasma";
+		Projectile; +RANDOMIZE; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 0.75; Scale 0.55; SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx"; }
 	States
 	{
 	Spawn:
-		BFS1 AB 2 Bright A_SeekerMissile(2, 3);
+		BFS1 AB 2 Bright;
 		Loop;
 	Death:
 		BFE1 AB 8 Bright A_SetScale(1.15);
-		BFE1 C 8 Bright A_Explode(random(5,45), 128) /* CHP 04_K.txt:1502 */;
+		BFE1 C 8 Bright A_Explode(random(5, 45), 128);
 		BFE1 DEF 8 Bright;
 		Stop;
 	}
@@ -493,7 +728,7 @@ class RS_CyanSGPuff : BulletPuff
 // Smoke motes the detonating puffs and airstrike missiles burst into.
 class RS_PufFCHBS : Actor
 {
-	Default { Radius 1; Height 1; Speed 8; Damage 1; Projectile; +NOCLIP; +NOGRAVITY;
+	Default { Radius 1; Height 1; Speed 8; /* CH: Damage (random(0,1))  Shotgunners.txt:1802 -- was flattened to `Damage 1`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(0,1)); Projectile; +NOCLIP; +NOGRAVITY;
 		RenderStyle "Add"; Alpha 0.75; }
 	States { Spawn: SMK2 ABCDE 2; Stop; }
 }
@@ -518,7 +753,7 @@ class RS_DetoPuffCG2 : Actor
 // The bomblets the airstrike rains down while it flies overhead.
 class RS_MissileCHBS : Actor
 {
-	Default { Radius 11; Height 8; Speed 10; Damage 30; DamageType "Fire"; Projectile; -NOGRAVITY;
+	Default { Radius 11; Height 8; Speed 10; /* CH: Damage (random(10,50))  Shotgunners.txt:1771 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Fire"; Projectile; -NOGRAVITY;
 		Gravity 1.5; Scale 0.7; SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx"; }
 	States
 	{
@@ -538,7 +773,7 @@ class RS_MissileCHBS : Actor
 // bomblets the whole way, then detonates twice on impact.
 class RS_AirStrikeCHBS : Actor
 {
-	Default { Radius 6; Height 8; Speed 28; Mass 50; Damage 22; DamageType "Fire"; Projectile;
+	Default { Radius 6; Height 8; Speed 28; Mass 50; /* CH: Damage (random(5,40))  Shotgunners.txt:1739 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,40)); DamageType "Fire"; Projectile;
 		+CEILINGHUGGER; +FLOAT; +NOGRAVITY; RenderStyle "Add"; Gravity 7; Alpha 0.35; Scale 0.5;
 		SeeSound "caco/attack"; DeathSound "fire/fire5"; }
 	States
@@ -729,13 +964,25 @@ class RS_BlueChainPuff2 : Actor
 	States { Spawn: SSBL KIJ 1 Bright; Goto Death; Death: SSBL KIJ 1 Bright; Stop; }
 }
 
-// T04 PURPLE -- three grades of seeking micro-rocket, one per range band
-// (CHP 04_P Boomer1/2/3_C). 1 = point blank and hardest-seeking, 3 = long
-// range and dumb-fired.
-class RS_Boomer1 : FastProjectile
+// T04 PURPLE -- three grades of seeking micro-rocket, one per range band.
+// CH Chaingunners.txt:1461 / :1488 / :1499. 1 = point blank and hardest-seeking
+// (8,8), 2 = mid (4,4), 3 = long range and dumb-fired (-SEEKERMISSILE).
+// CORRECTED: all three had their damage rolls FLATTENED (Boomer1 4 for CH's
+// random(1,8), Boomer2 and Boomer3 both 3 where CH rolls random(1,7) and
+// random(1,6) -- so the two long grades were identical). A bare `Damage N` on a
+// projectile is multiplied by random(1,8) by the engine and a DamageFunction is
+// not, so those constants were also ~8x hot at the top end.
+// Also restored: +DEHEXPLOSION, CH's own SeeSound "SNPRFIRE" (SNDINFO:650) and
+// DeathSound "weapons/firex4" (SNDINFO:654) in place of the rocket sounds, and
+// Boomer3's own Spawn frame, which CH declares with A_SeekerMissile(7,7) even
+// though it has just cleared the flag. Base changed FastProjectile -> Actor:
+// CH's is a plain ACTOR, and FastProjectile substepping changes how a Speed 68
+// missile reads at close range.
+class RS_Boomer1 : Actor
 {
-	Default { Radius 3; Height 2; Speed 68; Damage 4; DamageType "Fire"; Projectile; +SEEKERMISSILE;
-		Scale 0.15; SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx"; }
+	Default { Radius 3; Height 2; Speed 68; DamageFunction (random(1, 8)); DamageType "Fire";
+		Projectile; +DEHEXPLOSION; +SEEKERMISSILE;
+		Scale 0.15; SeeSound "SNPRFIRE"; DeathSound "weapons/firex4"; }
 	States
 	{
 	Spawn:
@@ -750,17 +997,24 @@ class RS_Boomer1 : FastProjectile
 }
 class RS_Boomer2 : RS_Boomer1
 {
-	Default { Damage 3; }
+	Default { DamageFunction (random(1, 7)); }
 	States { Spawn: MISL A 1 Bright A_SeekerMissile(4, 4); Loop; }
 }
-class RS_Boomer3 : RS_Boomer1 { Default { -SEEKERMISSILE; Damage 3; } }
-
-// T05 YELLOW -- the plasma gunner's rail spark: A_CustomRailgun spawns a
-// line of these along the beam and they seek and pop (CHP 04_Y).
-class RS_CGRailBuff : FastProjectile
+class RS_Boomer3 : RS_Boomer1
 {
-	Default { Radius 4; Height 4; Speed 14; FastSpeed 26; Damage 2; DamageType "Plasma"; Projectile;
-		+RANDOMIZE; +SEEKERMISSILE; Scale 0.33; RenderStyle "Add"; Alpha 0.85;
+	Default { -SEEKERMISSILE; DamageFunction (random(1, 6)); }
+	States { Spawn: MISL A 1 Bright A_SeekerMissile(7, 7); Loop; }
+}
+
+// T05 YELLOW -- the plasma gunner's rail spark: A_CustomRailgun lays a line of
+// these along the beam and they pop. CH Chaingunners.txt:1677.
+// CORRECTED: THREE flattened rolls. Contact damage was `Damage 2` where CH has
+// Damage (random(1,3)), and BOTH A_Explode calls were flat 2 where CH rolls
+// random(1,2). Base changed FastProjectile -> Actor to match CH's plain ACTOR.
+class RS_CGRailBuff : Actor
+{
+	Default { Radius 4; Height 4; Speed 14; FastSpeed 26; DamageFunction (random(1, 3)); DamageType "Plasma";
+		Projectile; +RANDOMIZE; +SEEKERMISSILE; Scale 0.33; RenderStyle "Add"; Alpha 0.85;
 		Translation "168:191=193:205", "208:223=192:197", "160:167=4:4", "224:231=4:4",
 		            "232:235=199:199", "248:249=193:193", "0:0=0:0"; }
 	States
@@ -770,59 +1024,83 @@ class RS_CGRailBuff : FastProjectile
 		Goto Death;
 	Death:
 		TNT1 A 0 A_SetScale(0.22, 0.22);
-		BAL1 A 3 Bright A_Explode(2, 24);
+		BAL1 A 3 Bright A_Explode(random(1, 2), 24);
 		TNT1 A 0 A_SetScale(0.11, 0.11);
-		BAL1 B 3 Bright A_Explode(2, 24);
+		BAL1 B 3 Bright A_Explode(random(1, 2), 24);
 		Stop;
 	}
 }
 
-// T06 ABYSS -- the captain's ground splash. Spawned ON the target by
+// T08 ABYSS -- the captain's ground splash. Spawned ON the target by
 // A_VileTarget; its Spawn frame falls straight through into Death, so it
-// detonates where it lands rather than travelling.
+// detonates where it lands rather than travelling. CH Chaingunners.txt:553.
+// CORRECTED: TWO flattened rolls -- contact `Damage 5` where CH has
+// Damage (random(1,9)), and A_Explode(7,32) where CH rolls random(2,12).
+// The translation was CHP's, and it is EXACTLY DOUBLE CH's on every channel
+// (0.04/0.04/0.06 -> 0.29/0.49/0.65 becomes 0.08.../1.30), i.e. the abyss
+// captain's splash was rendering twice as bright as CH's. CH's restored.
 class RS_SplashAbyssCguy : Actor
 {
-	Default { Radius 6; Height 16; Damage 5; DamageType "Ice"; Speed 16; FastSpeed 23; Projectile;
+	Default { Radius 6; Height 16; DamageFunction (random(1, 9)); DamageType "Ice";
+		Speed 16; FastSpeed 23; Projectile;
 		+THRUACTORS; +FLOATBOB; +FORCERADIUSDMG; Scale 0.3;
-		Translation "0:255=%[0.04,0.04,0.06]:[0.58,0.98,1.30]"; }
+		Translation "0:255=%[0.02,0.02,0.03]:[0.29,0.49,0.65]"; }
 	States
 	{
 	Spawn:
 		TNT1 A 0;
 	Death:
 		BAL7 C 1 Bright A_SetScale(0.5);
+		// CH spawns an AbyssShotIdentifier here (Chaingunners.txt:574). That
+		// actor (CH Revenants.txt:217) is a marker gated behind
+		// CallACS("CH_AbyssMark"), and neither the actor nor the ACS script
+		// exists in this repo, so it is left out. Kept as an explicit 0-tic
+		// placeholder because dropping the line would shift every later frame
+		// index in this state.
+		TNT1 A 0;
 		TNT1 A 0 ThrustThingZ(0, random(1, 33), 0, 0);
-		TNT1 A 0 A_Explode(7, 32);
+		TNT1 A 0 A_Explode(random(2, 12), 32);
 		BAL7 CDE 3 Bright;
 		Stop;
 	}
 }
 
-// T08 BROWN -- the deployable sandbag. Thrown, inflates, wanders a step,
+// T06 BROWN -- the deployable sandbag. Thrown, inflates, wanders a step,
 // turns solid, then rots. This is the brown chaingunner's whole identity:
-// it builds cover instead of pushing.
+// it builds cover instead of pushing. CH Chaingunners.txt:162.
+// CORRECTED, and the biggest one is structural: CH's sandbag is a MONSTER with
+// health 80 and -COUNTKILL, so it is SHOOTABLE -- you can blow the cover away.
+// Ours was a plain Actor with +SOLID, i.e. permanent, indestructible cover.
+// Restored: health 80, Monster, +NOTRIGGER, +NOTARGET, +DONTTHRUST, +NOBLOOD,
+// +FLOORCLIP, -COUNTKILL; the missing first `SB4G X 3` frame of Flier; and
+// every A_SetScale value, all six of which were CHP's 1.5x inflation
+// (0.3/0.4,0.5/0.7,0.8/1.0 inflate, 0.7/0.5/0.2,0.1 rot). At CHP's numbers the
+// deployed bag stood half again as tall as CH's.
 class RS_BrownSandBagCGuy : Actor
 {
-	Default { Radius 42; Height 24; Speed 3; Species "BrownCguy"; +THRUSPECIES; +THRUACTORS; +SOLID; Gravity 1; }
+	Default { Radius 42; Height 24; Speed 3; Health 80; Species "BrownCguy";
+		Monster; +NOTRIGGER; +NOTARGET; +DONTTHRUST; +NOBLOOD; +FLOORCLIP; -COUNTKILL;
+		+THRUSPECIES; +THRUACTORS; Gravity 1; }
 	States
 	{
 	Spawn:
 		TNT1 A 0;
 	Fly:
-		SB4G X 3 Bright A_SetScale(0.45, 0.45);
-		SB4G X 3 Bright A_SetScale(0.6, 0.75);
-		SB4G X 3 Bright A_SetScale(1.05, 1.2);
-		SB4G X 3 Bright A_SetScale(1.5, 1.5);
+		SB4G X 3 Bright A_SetScale(0.3, 0.3);
+		SB4G X 3 Bright A_SetScale(0.4, 0.5);
+		SB4G X 3 Bright A_SetScale(0.7, 0.8);
+		SB4G X 3 Bright A_SetScale(1.0, 1.0);
 		SB4G XX 1 A_Wander();
 		TNT1 A 0 { bTHRUACTORS = false; }
 	Flier:
+		SB4G X 3 Bright;
 		SB4G X 300 Bright;
 		Goto Death;
 	Death:
 		SB4G X 2 Bright A_NoBlocking();
-		SB4G X 2 Bright A_SetScale(1.05, 1.05);
-		SB4G X 2 Bright A_SetScale(0.75, 0.75);
-		SB4G X 2 Bright A_SetScale(0.3, 0.15);
+		SB4G X 2 Bright A_SetScale(0.7, 0.7);
+		SB4G X 2 Bright A_SetScale(0.5, 0.5);
+		SB4G X 2 Bright A_SetScale(0.2, 0.1);
 		Stop;
 	}
 }
@@ -915,7 +1193,9 @@ class RS_TrailSP2 : FastProjectile
 		Stop;
 	}
 }
-class RS_TrailSPCguy : FastProjectile
+// CH Chaingunners.txt:2418. Every property and both states already matched CH.
+// ONE fix: base changed FastProjectile -> Actor, which is what CH declares.
+class RS_TrailSPCguy : Actor
 {
 	Default { Radius 6; Height 16; Speed 22; DamageType "Plasma"; Projectile; +RANDOMIZE;
 		RenderStyle "Add"; Alpha 0.65; Scale 0.55; Decal "ArachnotronScorch"; }
@@ -931,10 +1211,18 @@ class RS_TrailSPCguy : FastProjectile
 }
 
 // ---------------------------------------------------------------------
-// T12 WHITE -- the lady scientist's three live experiments. These are
+// B02 WHITE -- the crazy lady scientist's three live experiments. These are
 // real monsters, not projectiles, but they exist only as her summons, so
-// they live with the rest of her kit. All are -COUNTKILL per CHP: a boss
-// that spawns forever must not make 100% kills impossible.
+// they live with the rest of her kit.
+//
+// [CORRECTED] This header used to read "All are -COUNTKILL per CHP: a boss
+// that spawns forever must not make 100% kills impossible." CH sets
+// -COUNTKILL on NONE of VolativeCaco (Chaingunners.txt:2957), SlimyWorm
+// (:2855) or SpliceBaron (:3020), so it has been removed from all three --
+// CH wins. The consequence is real and is flagged in the report: they now
+// count toward the level kill total and become eligible for elite promotion
+// (RS_Elites.zs:870 gates on bCOUNTKILL). RS_BabyCaco below is untouched;
+// it was not part of this pass's scope.
 // ---------------------------------------------------------------------
 
 // Her first experiment: a cacodemon wired to blow. It swells as it
@@ -997,16 +1285,26 @@ class RS_BabyCaco : Actor
 		Goto See;
 	}
 }
+// CORRECTED TO CH Chaingunners.txt:2957.
+// Restored: GibHealth 65 (missing entirely); +MISSILEMORE +MISSILEEVENMORE in
+// place of `MissileChanceMult 0.0625`, which is a different mechanism and a
+// different number; CH's obituary verbatim, typo and all ("stood to close" --
+// the law says a name comes from CH or there is no name, and that includes not
+// silently rewriting CH's strings); and the five-baby birth, which CH does with
+// A_DualPainAttack/A_PainAttack (a pain-elemental fan that launches them AT the
+// player) and ours had replaced with A_SpawnItemEx at random offsets, i.e. the
+// babies just fell on the floor. -COUNTKILL and FloatSpeed 4 removed -- neither
+// is in CH. (-COUNTKILL was a deliberate house call, noted in the report.)
 class RS_VolativeCaco : Actor
 {
 	Default
 	{
-		Health 100; Radius 31; Height 56; Mass 500; Speed 11; FloatSpeed 4; PainChance 90;
-		Monster; +TOUCHY; +LOOKALLAROUND; +FLOAT; +NOGRAVITY; MissileChanceMult 0.0625;
-		+DONTHARMSPECIES; -COUNTKILL;
+		Health 100; GibHealth 65; Radius 31; Height 56; Mass 500; Speed 11; PainChance 90;
+		Monster; +MISSILEMORE; +MISSILEEVENMORE; +TOUCHY; +LOOKALLAROUND; +FLOAT; +NOGRAVITY;
+		+DONTHARMSPECIES;
 		Scale 1.1; XScale 1.3; BloodColor "Blue"; Species "Science";
 		SeeSound "caco/sight"; PainSound "caco/pain"; DeathSound "weapons/rocklx"; ActiveSound "caco/active";
-		Obituary "%o stood too close to the unstable cacodemon";
+		Obituary "%o stood to close to the unstable cacodemon";
 		Tag "Unstable cacodemon";
 	}
 	States
@@ -1035,14 +1333,14 @@ class RS_VolativeCaco : Actor
 	Death:
 		HEAD D 8;
 		HEAD D 1 A_Scream();
+		// TWO frames, so two blasts. CH's idiom, not a bug.
 		MISL CD 6 A_Explode(random(20, 60), 128);
-		MISL E 0 A_SpawnItemEx("RS_BabyCaco", random(-64, 64), random(-64, 64), random(5, 15), 0, 0, 0, 0, SXF_SETMASTER | SXF_NOCHECKPOSITION | SXF_TRANSFERPOINTERS);
-		MISL E 1 A_SpawnItemEx("RS_BabyCaco", random(-64, 64), random(-64, 64), random(5, 15), 0, 0, 0, 0, SXF_SETMASTER | SXF_NOCHECKPOSITION | SXF_TRANSFERPOINTERS);
-		MISL E 2 A_SpawnItemEx("RS_BabyCaco", random(-64, 64), random(-64, 64), random(5, 15), 0, 0, 0, 0, SXF_SETMASTER | SXF_NOCHECKPOSITION | SXF_TRANSFERPOINTERS);
-		MISL E 0 A_SpawnItemEx("RS_BabyCaco", random(-64, 64), random(-64, 64), random(5, 15), 0, 0, 0, 0, SXF_SETMASTER | SXF_NOCHECKPOSITION | SXF_TRANSFERPOINTERS);
-		MISL E 1 A_SpawnItemEx("RS_BabyCaco", random(-64, 64), random(-64, 64), random(5, 15), 0, 0, 0, 0, SXF_SETMASTER | SXF_NOCHECKPOSITION | SXF_TRANSFERPOINTERS);
+		// CH Chaingunners.txt:3012-3014 -- 2 + 1 + 2 = five babies, thrown out
+		// pain-elemental style rather than dropped at random offsets.
+		MISL E 1 A_DualPainAttack("RS_BabyCaco");
+		MISL E 2 A_PainAttack("RS_BabyCaco");
+		MISL E 1 A_DualPainAttack("RS_BabyCaco");
 		TNT1 A 0 A_Die();
-		MISL E 0;
 		Stop;
 	}
 }
@@ -1051,14 +1349,31 @@ class RS_VolativeCaco : Actor
 // five-ball slime volley. Reuses the arachnotron slime pool.
 class RS_SlimyWorm : Actor
 {
+	// CORRECTED TO CH Chaingunners.txt:2855.
+	// The sounds were the big one: all five were remapped to demon/* by an
+	// earlier pass because CH's lumps had never been imported. They have been
+	// now -- slimeworm/sight :1334, /melee :593, /pain :1662 ($random),
+	// /death :1335, /active :1336 in SNDINFO -- so CH's own names are restored
+	// and this thing stops sounding like a pinky.
+	// Also restored: +MISSILEMORE (was `MissileChanceMult 0.5`),
+	// +SHORTMISSILERANGE (was `MaxTargetRange 896`, a different mechanism),
+	// all three DamageFactor/PainChance rows, and CH's obituary verbatim
+	// ("by slimy minion worm", no article). -COUNTKILL removed: not in CH.
+	// CH's DropItem table is NOT carried, because none of the four pickup
+	// classes exist in this repo yet. Itemised so it is not silently gutted:
+	//     DropItem "CH_Shell",128        CH Chaingunners.txt:2881
+	//     DropItem "implyingclip",174    CH Chaingunners.txt:2882
+	//     DropItem "CH_RocketAmmo",64    CH Chaingunners.txt:2883
+	//     DropItem "CH_Cell",32          CH Chaingunners.txt:2884
 	Default
 	{
 		Health 250; Radius 30; Height 56; Mass 400; Speed 8; PainChance 90;
-		Monster; +THRUSPECIES; +FLOORCLIP; MaxTargetRange 896; +NOCLIP; -COUNTKILL; MissileChanceMult 0.5;
+		Monster; +THRUSPECIES; +FLOORCLIP; +MISSILEMORE; +SHORTMISSILERANGE; +NOCLIP;
 		BloodColor "Yellow"; Species "Science";
-		SeeSound "demon/sight"; AttackSound "demon/melee"; PainSound "demon/pain";
-		DeathSound "demon/death"; ActiveSound "demon/active";
-		Obituary "%o got melted up good by a slimy minion worm";
+		DamageFactor "Heroic", 3.0; DamageFactor "DIMp", 0; PainChance "DIMp", 0;
+		SeeSound "slimeworm/sight"; AttackSound "slimeworm/melee"; PainSound "slimeworm/pain";
+		DeathSound "slimeworm/death"; ActiveSound "slimeworm/active";
+		Obituary "%o got melted up good by slimy minion worm";
 		HitObituary "%o was digested by a slimy minion worm.";
 		Tag "Worm minion";
 	}
@@ -1073,7 +1388,7 @@ class RS_SlimyWorm : Actor
 		Loop;
 	Missile:
 		WORM E 8 A_FaceTarget();
-		WORM F 8 A_StartSound("imp/attack", CHAN_WEAPON);
+		WORM F 8 A_StartSound("SlimeBall/Shoot", CHAN_WEAPON);
 		WORM F 0 A_SpawnProjectile("RS_SlimeBall1", 40, 0, random(-10, 10), 2, random(10, 20));
 		WORM F 0 A_SpawnProjectile("RS_SlimeBall2", 40, 0, random(-10, 10), 2, random(10, 20));
 		WORM F 0 A_SpawnProjectile("RS_SlimeBall3", 40, 0, random(-10, 10), 2, random(10, 20));
@@ -1083,6 +1398,11 @@ class RS_SlimyWorm : Actor
 		Goto See;
 	Melee:
 		WORM EF 8 A_FaceTarget();
+		// CH is A_SargAttack, which is a Demon-class method and therefore not
+		// callable from a plain Actor in ZScript. A_CustomMeleeAttack with the
+		// identical roll (random(1,10)*4) is the same damage; the AttackSound
+		// is already CH's. Kept, not "corrected" back to a name that would not
+		// compile here.
 		WORM G 8 A_CustomMeleeAttack(random(1, 10) * 4);
 		Goto See;
 	Pain:
@@ -1108,14 +1428,25 @@ class RS_SlimyWorm : Actor
 // refire loop with a three-ball baron fan.
 class RS_SpliceBaron : Actor
 {
+	// CORRECTED TO CH Chaingunners.txt:3020.
+	// Restored: DeathSound "arachnobaron/death" (SNDINFO:1349 -> DSABRDTH.ogg
+	// -- it was remapped to "baron/death" back when CH's lumps were missing);
+	// +MISSILEMORE +MISSILEEVENMORE in place of `MissileChanceMult 0.0625`;
+	// DamageFactor "Heroic",3.0 / "DIMp",0 and PainChance "DIMp",0, all three
+	// absent. -COUNTKILL removed: not in CH.
+	// CH's DropItem table is NOT carried -- neither pickup class exists here.
+	// Itemised rather than silently dropped:
+	//     DropItem "CH_CellPack"         CH Chaingunners.txt:3048
+	//     DropItem "CH_MediKit",174      CH Chaingunners.txt:3049
 	Default
 	{
 		Health 1000; Radius 64; Height 70; Mass 1000; Speed 12; PainChance 0;
-		Monster; +FLOORCLIP; +THRUSPECIES; +DONTHARMSPECIES; MissileChanceMult 0.0625;
-		+DONTMORPH; +NOCLIP; -COUNTKILL;
+		Monster; +FLOORCLIP; +THRUSPECIES; +DONTHARMSPECIES; +MISSILEMORE; +MISSILEEVENMORE;
+		+DONTMORPH; +NOCLIP;
 		BloodColor "Green"; Species "Science";
 		DamageFactor "Plasma", 1.2; DamageFactor "Fire", 1.1;
-		SeeSound "baron/sight"; PainSound "baron/pain"; DeathSound "baron/death"; ActiveSound "baby/active";
+		DamageFactor "Heroic", 3.0; DamageFactor "DIMp", 0; PainChance "DIMp", 0;
+		SeeSound "baron/sight"; PainSound "baron/pain"; DeathSound "arachnobaron/death"; ActiveSound "baby/active";
 		Obituary "what has science done; %o was killed by a horrible abomination";
 		Tag "Splice hell";
 	}
@@ -1125,23 +1456,30 @@ class RS_SpliceBaron : Actor
 		ARBR AB 10 A_Look();
 		Loop;
 	See:
-		ARBR A 0 A_Chase();
-		ARBR A 3 A_StartSound("baby/walk", CHAN_BODY);
+		// CH is `ARBR A 3 A_BabyMetal` -- ONE frame that both chases and plays
+		// the walk sound. A_BabyMetal is an Arachnotron-class method and is not
+		// callable from a plain Actor here, so it is inlined; it must stay ONE
+		// frame, because Missile2 below ends `Goto See+1` and See+1 must land on
+		// the first ARBR A of `ARBR ABBCC`. It used to be split across two
+		// frames (a 0-tic A_Chase plus a 3-tic A_StartSound), which pushed every
+		// index in this state along by one.
+		ARBR A 3 { A_StartSound("baby/walk", CHAN_BODY); A_Chase(); }
 		ARBR ABBCC 3 A_Chase();
 		ARBR A 0 { bNOCLIP = false; }
-		ARBR D 0 A_Chase();
-		ARBR D 3 A_StartSound("baby/walk", CHAN_BODY);
+		ARBR D 3 { A_StartSound("baby/walk", CHAN_BODY); A_Chase(); }
 		ARBR DEEFF 3 A_Chase();
 		Goto See;
 	Missile:
-		ARBR A 1 Bright A_Jump(128, "Missile2");
+		// CH is A_Jump(127, ...), not 128.
+		ARBR A 1 Bright A_Jump(127, "Missile2");
 		// THE LOOP TARGET IS THE SHOT, NOT THE AIM FRAME.
-		// CHP is `Goto Missile+2` (04_W.txt:4067), and Missile+2 is the
-		// ARBR G 3 firing frame -- +1 is the 20-tic A_FaceTarget. The
-		// label used to sit on +1, so every refire cycle re-paid twenty
-		// tics of aiming: 26 tics per shot against CHP's 6, i.e. this
-		// minion's gun ran at roughly a QUARTER speed.
-		// Exactly the Goto X+N class that has now bitten three times.
+		// CH is `Goto Missile+2` (Chaingunners.txt:3069), and Missile+2 is the
+		// ARBR G 3 firing frame -- +1 is the 20-tic A_FaceTarget. The label used
+		// to sit on +1, so every refire cycle re-paid twenty tics of aiming:
+		// 26 tics per shot against CH's 6, i.e. this minion's gun ran at roughly
+		// a QUARTER speed. Exactly the Goto X+N class that has bitten three
+		// times. MissileLoop below IS Missile+2; it is a named label rather than
+		// an offset so it cannot drift again.
 		ARBR A 20 Bright A_FaceTarget();
 	MissileLoop:
 		ARBR G 3 Bright A_SpawnProjectile("ArachnotronPlasma", 15, 0, 0);
@@ -1153,7 +1491,9 @@ class RS_SpliceBaron : Actor
 		ARBR P 5 Bright A_SpawnProjectile("BaronBall", 30, 0, 5);
 		ARBR Q 5 Bright A_SpawnProjectile("BaronBall", 30, 0, 0);
 		ARBR R 5 Bright A_SpawnProjectile("BaronBall", 30, 0, -5);
-		Goto See;
+		// CH is `Goto See+1` (Chaingunners.txt:3075) -- it re-enters the walk
+		// cycle one frame in, skipping the A_BabyMetal step. This was `Goto See`.
+		Goto See+1;
 	Death:
 		ARBR J 20 A_Scream();
 		ARBR K 7 A_NoBlocking();
@@ -1429,21 +1769,32 @@ class RS_SparkFireBen : FastProjectile
 	}
 }
 
-// ---------- CHAINGUNNER TEX: GREEN WARFACE (04_KX) ------------------
+// ---------- CHAINGUNNER X0001 (the EX boss) ------------------------
 // The lobbed bomb. Floats for its first arc, then gravity comes back on
-// and it drops -- and the detonation is a NINE-STAGE escalating blast,
+// and it drops -- and the detonation is an EIGHT-STAGE escalating blast,
 // each ring wider than the last. Getting out of the first one is not
-// getting out of it.
+// getting out of it. CORRECTED TO CH Chaingunners.txt:2050.
+// This one was CHP top to bottom. Every single number moved:
+//   Speed 48 -> 38; contact roll (25,100) -> CH's (20,80); the translation was
+//   GREEN and CH's is ORANGE/YELLOW; and all EIGHT A_Explode rolls were CHP's
+//   1.25x inflation of CH's -- (13,25)->(10,20), (13,37)->(10,30),
+//   (25,75)->(20,60), (25,100)->(20,80), and the last four (38,112)->(30,90).
+// Restored structurally: CH's SeeSound "spit/spit" and DeathSound "spit/spit2"
+// (SNDINFO:1255/:1256, both real lumps), the third `GBLL ABC 6` frame of Fly
+// that ours dropped, and the two A_PlaySound cues in the death chain --
+// "spell/Impact1" at the start of the detonation (SNDINFO:1526) and
+// "Bomb/boom" before the fifth ring (SNDINFO:1254). Without those the
+// eight-stage blast landed in silence.
 class RS_YellowBombCGuyEX : Actor
 {
 	Default
 	{
-		Radius 6; Height 6; Speed 48;
-		DamageFunction (random(25, 100)); DamageType "Fire";
+		Radius 6; Height 6; Speed 38;
+		DamageFunction (random(20, 80)); DamageType "Fire";
 		Projectile; +RANDOMIZE; +DONTHARMCLASS;
 		RenderStyle "Add"; Alpha 1.0; Scale 1.25;
-		DeathSound "weapons/rocklx";
-		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+		SeeSound "spit/spit"; DeathSound "spit/spit2";
+		Translation "0:255=%[1.29,0.65,0.00]:[2.00,2.00,1.01]";
 	}
 	States
 	{
@@ -1452,64 +1803,83 @@ class RS_YellowBombCGuyEX : Actor
 	Fly:
 		GBLL ABC 6 Bright;
 		TNT1 A 0 { bNOGRAVITY = false; }
+		GBLL ABC 6 Bright;
 		Loop;
 	Death:
 		GBLL A 6 Bright { A_SetScale(1.0, 1.0); }
 		GBLL B 6 Bright { A_SetScale(0.75, 0.75); }
 		GBLL C 6 Bright { A_SetScale(0.5, 0.5); }
 		GBLL A 6 Bright { A_SetScale(0.25, 0.25); }
-		GBLL BCABC 6 Bright;
+		GBLL BC 6 Bright;
+		GBLL ABC 6 Bright;
+		TNT1 A 0 { A_StartSound("spell/Impact1", CHAN_AUTO); }
 		BBOM A 2 Bright { A_SetScale(0.5, 0.5); }
-		TNT1 A 0 { A_Explode(random(13, 25), 32, 0); }
+		TNT1 A 0 { A_Explode(random(10, 20), 32, 0); }
 		BBOM B 2 Bright { A_SetScale(0.75, 0.75); }
-		TNT1 A 0 { A_Explode(random(13, 37), 64, 0); }
+		TNT1 A 0 { A_Explode(random(10, 30), 64, 0); }
 		BBOM C 2 Bright { A_SetScale(1.25, 1.25); }
-		TNT1 A 0 { A_Explode(random(25, 75), 74, 0); }
+		TNT1 A 0 { A_Explode(random(20, 60), 74, 0); }
 		BBOM C 2 Bright { A_SetScale(2.0, 2.0); }
-		TNT1 A 0 { A_Explode(random(25, 100), 128, 0); }
+		TNT1 A 0 { A_Explode(random(20, 80), 128, 0); }
 		BBOM C 2 Bright { A_SetScale(2.5, 2.5); }
-		TNT1 A 0 { A_Explode(random(38, 112), 176, 0); }
+		TNT1 A 0 { A_StartSound("Bomb/boom", CHAN_AUTO); }
+		TNT1 A 0 { A_Explode(random(30, 90), 176, 0); }
 		BBOM C 2 Bright { A_SetScale(3.0, 3.0); }
-		TNT1 A 0 { A_Explode(random(38, 112), 256, 0); }
+		TNT1 A 0 { A_Explode(random(30, 90), 256, 0); }
 		BBOM C 2 Bright { A_SetScale(3.5, 3.5); }
-		TNT1 A 0 { A_Explode(random(38, 112), 256, 0); }
+		TNT1 A 0 { A_Explode(random(30, 90), 256, 0); }
 		BBOM C 2 Bright { A_SetScale(4.0, 4.0); }
-		TNT1 A 0 { A_Explode(random(38, 112), 312, 0); }
+		TNT1 A 0 { A_Explode(random(30, 90), 312, 0); }
 		BBOM CCCBA 4 Bright { A_FadeOut(0.20); }
 		Stop;
 	}
 }
 
-// The spam round. Wide damage roll (13..150) so a burst of these is
-// genuinely swingy, and each one dies into a small cluster bomb.
-class RS_SpamShotsCGuyEX : FastProjectile
+// The spam round. Wide damage roll so a burst of these is genuinely swingy,
+// and each one dies into a small cluster bomb.
+// CORRECTED TO CH Chaingunners.txt:2106. Speed 35 -> 28, contact roll
+// (13,150) -> CH's (10,120), death blast (28,110) -> CH's (22,88), and the
+// green translation deleted -- CH declares none on this actor at all, so the
+// round was being tinted a colour it does not have. Base changed
+// FastProjectile -> Actor to match CH's plain ACTOR. CH's Spawn is a TNT1 A 0
+// falling into a `Fly:` label, restored so any Goto into Spawn behaves as CH's.
+class RS_SpamShotsCGuyEX : Actor
 {
 	Default
 	{
-		Radius 12; Height 9; Speed 35;
-		DamageFunction (random(13, 150)); DamageType "Plasma";
+		Radius 12; Height 9; Speed 28;
+		DamageFunction (random(10, 120)); DamageType "Plasma";
 		Projectile; +DONTHARMCLASS;
 		RenderStyle "Add"; Alpha 0.95; Scale 0.25;
 		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx";
-		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
 	}
 	States
 	{
 	Spawn:
+		TNT1 A 0;
+	Fly:
+		// CH also runs A_SpawnParticle("red", ...) on this frame and on two
+		// 10x TNT1 lines in Death; the particle calls are omitted rather than
+		// guessed at, and the two death lines are kept as explicit 0-tic
+		// placeholders below so no frame index shifts.
 		GRFZ DEFGH 2 Bright;
 		Loop;
 	Death:
 		GRFZ IJ 4 Bright { A_SetScale(1.0, 1.0); }
-		GRFZ K 4 Bright { A_Explode(random(28, 110), 256, 0); }
+		GRFZ K 4 Bright { A_Explode(random(22, 88), 256, 0); }
+		TNT1 AAAAAAAAAA 0;
 		GRFZ LMN 3 Bright { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-64, 64), random(-64, 64), random(-32, 32), 0, 0, 0, random(0, 359), SXF_NOCHECKPOSITION); }
 		TNT1 AAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-128, 128), random(-128, 128), random(-32, 32), 0, 0, 0, random(0, 359), SXF_NOCHECKPOSITION); }
+		TNT1 AAAAAAAAAA 0;
 		GRFZ OP 4 Bright { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-32, 32), random(-32, 32), random(-64, 128), random(12, 99), 0, random(-25, 25), random(0, 359), SXF_NOCHECKPOSITION); }
 		Stop;
 	}
 }
 
-// Identical round, fire damage type -- CHP alternates the two through
-// the RedSpam volley so resistances can't cover the whole burst.
+// Identical round, fire damage type -- CH alternates the two through the volley
+// so resistances can't cover the whole burst.
+// CH Chaingunners.txt:2140: `ACTOR SpamShotsCguyEX2 : SpamShotsCguyEX
+// { damagetype fire }`. Matches.
 class RS_SpamShotsCGuyEX2 : RS_SpamShotsCGuyEX { Default { DamageType "Fire"; } }
 
 // The sub-munition. Spawns already dead: it exists only to be an
@@ -1568,40 +1938,45 @@ class RS_ExplosionsCGuyEXDelayed : FastProjectile
 // THE big one. A seeker that trails saws and small blasts on the way in,
 // then detonates into a two-stage 386-radius field seeded with roughly
 // two hundred delayed sub-munitions. It is the general's finisher.
-class RS_CGBigEX : FastProjectile
+// CORRECTED TO CH Chaingunners.txt:2142. Speed 26 -> 21, contact roll
+// (38,100) -> CH's (30,80), and all three death blasts were CHP's inflation:
+// (6,38) -> CH's (5,30), (68,139) -> (55,111), (83,160) -> (66,128).
+// The green translation is deleted -- CH declares none. Base changed
+// FastProjectile -> Actor to match CH's plain ACTOR.
+class RS_CGBigEX : Actor
 {
 	Default
 	{
-		Radius 8; Height 8; Speed 26;
-		DamageFunction (random(38, 100)); DamageType "Plasma";
+		Radius 8; Height 8; Speed 21;
+		DamageFunction (random(30, 80)); DamageType "Plasma";
 		Projectile; +NOGRAVITY; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 0.75; Scale 0.75;
-		SeeSound "spell/spellcast1"; DeathSound "fire/fire4";
-		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
+		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4";
 	}
 	States
 	{
 	Spawn:
 		RED9 B 1 Bright { A_SeekerMissile(2, 4); }
 		RED9 AA 1 Bright { A_SpawnItemEx("RS_SpiralSaw5", 0, 0, 0, 0, 0, 0, 0, 128); }
-		RED9 A 0 Bright { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-128, 24), random(-64, 64), random(-32, 32), 1, 0, random(-1, 1), random(0, 359), SXF_NOCHECKPOSITION); }
+		RED9 A 0 { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-128, 24), random(-64, 64), random(-32, 32), 1, 0, random(-1, 1), random(0, 359), SXF_NOCHECKPOSITION); }
 		Loop;
 	Death:
 		SPIR A 1 Bright { A_SetScale(1.5); }
-		SPIR ABCDEDCBA 5 Bright { A_Explode(random(6, 38), 164); }
+		// NINE frames, so nine blasts -- the grow-then-shrink pulse. CH's.
+		SPIR ABCDEDCBA 5 Bright { A_Explode(random(5, 30), 164); }
 		SPIR E 1 Bright { A_SetScale(3.0); }
 		GRFZ IJ 4 Bright;
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-24, 68), random(12, 99), 0, random(-25, 25), random(0, 359), SXF_NOCHECKPOSITION); }
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-14, 28), random(12, 99), 0, random(-25, 25), random(180, 359), SXF_NOCHECKPOSITION); }
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-4, 28), random(12, 99), 0, random(-25, 25), random(0, 180), SXF_NOCHECKPOSITION); }
-		GRFZ K 4 Bright { A_Explode(random(68, 139), 386, 0); }
+		GRFZ K 4 Bright { A_Explode(random(55, 111), 386, 0); }
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-6, 28), random(12, 99), 0, random(-25, 25), random(180, 359), SXF_NOCHECKPOSITION); }
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-4, 28), random(12, 99), 0, random(-25, 25), random(0, 180), SXF_NOCHECKPOSITION); }
 		GRFZ LMN 3 Bright { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-64, 64), random(-64, 64), random(-32, 32), 0, 0, 0, random(0, 359), SXF_NOCHECKPOSITION); }
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-4, 28), random(12, 99), 0, random(-25, 25), random(0, 359), SXF_NOCHECKPOSITION); }
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-4, 28), random(12, 99), 0, random(-25, 25), random(180, 359), SXF_NOCHECKPOSITION); }
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAAA 0 { A_SpawnItemEx("RS_ExplosionsCGuyEXDelayed", random(-12, 12), random(-12, 12), random(-64, 128), random(12, 99), 0, random(-25, 25), random(0, 180), SXF_NOCHECKPOSITION); }
-		TNT1 A 0 { A_Explode(random(83, 160), 386, 0); }
+		TNT1 A 0 { A_Explode(random(66, 128), 386, 0); }
 		GRFZ OP 4 Bright { A_SpawnItemEx("RS_ExplosionsCGuyEX", random(-64, 64), random(-124, 124), random(-32, 32), 0, 0, 0, random(0, 359), SXF_NOCHECKPOSITION); }
 		GRFZ III 2 { A_FadeOut(0.20); }
 		Stop;
@@ -1611,14 +1986,16 @@ class RS_CGBigEX : FastProjectile
 // The wind-up glyph. Harmless -- it exists purely so the two-second
 // charge before the general's heavy shots is READABLE. Spawns straight
 // into its own Death, which is the whole animation.
+// CH Chaingunners.txt:2247. Both states already matched CH exactly. Two fixes:
+// Speed 3 -> 2, and the green translation deleted -- CH declares none, so the
+// wind-up glyph was being tinted a colour it does not have.
 class RS_SpiralLoadGeneEX : Actor
 {
 	Default
 	{
-		Radius 2; Height 2; Speed 3;
+		Radius 2; Height 2; Speed 2;
 		Projectile; +NOINTERACTION; +THRUACTORS;
 		RenderStyle "Add"; Alpha 0.95; Scale 1.0;
-		Translation "0:255=%[0.04,0.29,0.04]:[0.18,1.32,0.18]";
 	}
 	States
 	{
@@ -1640,6 +2017,36 @@ class RS_SpiralLoadGeneEX : Actor
 		Stop;
 	}
 }
+
+// =====================================================================
+// 2026-08-05 -- CH PASS OVER THE 31 CHAINGUNNER PROJECTILES.
+// ---------------------------------------------------------------------
+// The classes the 14 CH chaingunners fire were diffed against CH itself
+// (CH/decorate/Chaingunners.txt, plus Zombies.txt and Revenants.txt for the
+// three that live in other family files) and corrected. CHP was not opened.
+// Where CH and CHP disagree, CH wins, because CH is what is being built.
+//
+// The sound remap list below is now PARTLY OBSOLETE and must not be trusted
+// as a statement of what this file does. CH's sound library was imported this
+// session (sounds/ch/, 804 new SNDINFO definitions), so the classes touched by
+// this pass carry CH's own names again and every one of them was traced to a
+// real lump: prox/beep, fire/fire3, weapons/boom1, weapons/firex4, SNPRFIRE,
+// spit/spit, spit/spit2, spell/Impact1, Bomb/boom, slimeball/splat,
+// moloch/nailhit, moloch/nailhitbleed, Jam/Jamd, arachnobaron/death,
+// SlimeBall/Shoot and all five slimeworm/* names. The remaps that remain below
+// belong to classes this pass did not touch.
+//
+// Three actors were ADDED because corrected classes name them and nothing in
+// the repo defined them -- an unresolvable class-name string is a compile
+// error, not a silent no-op: RS_Trail14 (CH :2805), RS_Puddle2 (CH :2707) and
+// RS_CGthing3 (CH :769).
+//
+// Two of CH's spawns are deliberately NOT reproduced, each replaced by an
+// explicit 0-tic TNT1 placeholder so no `Goto X+N` offset can shift:
+// AbyssShotIdentifier in RS_SplashAbyssCguy (needs CallACS("CH_AbyssMark"),
+// which does not exist here) and a_settranslation("BBEASTEX5") in
+// RS_BrownOrbCguy (needs a TRNSLATE entry this repo does not have).
+// =====================================================================
 
 // --- IMPORT CORRECTIONS -------------------------------------------
 // Broken sprite references inherited from the source, fixed on import:
