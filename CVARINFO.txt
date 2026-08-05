@@ -447,3 +447,20 @@ user int   rs_hpbar_chip       = 0;
 user float rs_hpbar_chip_speed = 60.0;
 // Tics the chip holds before it starts draining (35 = 1 second).
 user int   rs_hpbar_chip_hold  = 10;
+
+// --- Threshold marks & boss bracket ---
+// Both OFF by default; Default style stays 1:1 with upstream.
+//
+// Marks are LEARNED, not read from a table. CheckThreshold's fraction is
+// a literal at each call site inside the monsters, so nothing stores it,
+// and exposing it would mean editing monster files for a health-bar
+// feature. Instead the bar watches ThresholdFired() and records the
+// health fraction the tic a gate trips, remembered per monster CLASS.
+// Consequence: the first Baron you fight teaches the system, every Baron
+// after shows the mark before it enrages. First of a kind shows nothing.
+user bool rs_hpbar_marks     = false;
+// 0 Off, 1 Auto (health at or above the cutoff), 2 Always
+user int  rs_hpbar_bossframe = 0;
+// The Auto cutoff. 1000 splits our ladder cleanly -- T10 is 115, T11 is
+// 2000 -- so it catches the genuine long fights and nothing else.
+user int  rs_hpbar_boss_hp   = 1000;

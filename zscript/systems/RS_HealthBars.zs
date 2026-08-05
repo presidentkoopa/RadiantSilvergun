@@ -62,8 +62,16 @@
 //   3. The sprites must be registered by a state block. See
 //      RS_HPBarSprites -- it looks like dead code and is not.
 //
-// Art and TEXTURES.txt entries carried over unchanged; graphics are
-// graphics/HP_A_*.png and HP_B_*.png.
+// ART. The bar frames (graphics/HP_A_*.png, HP_B_*.png) and their
+// TEXTURES entries are upstream's, unchanged. The threshold marks
+// (HP_M_*.png) and the boss bracket (HP_FRAME.png) are generated
+// geometry added here -- see the commit that introduced them for the
+// script.
+//
+// NOTHING IN THIS FEATURE TOUCHES A MONSTER FILE, and it should stay
+// that way. The only thing it reads from the monster side is
+// RS_MonsterMaster's own public TierMaxHealth and ThresholdFired(),
+// both already there for other reasons.
 // =====================================================================
 
 // ---------------------------------------------------------------------
@@ -73,11 +81,12 @@
 // exists because GZDoom only enters a sprite name into the sprite table
 // if some actor STATE references it, and this bar picks its frame at
 // runtime with GetSpriteIndex() rather than by walking states. Without
-// a state block naming all 44 frames, GetSpriteIndex() returns nothing
-// and every bar renders blank.
+// a state block naming every frame, GetSpriteIndex() returns nothing and
+// the bar renders blank.
 //
 // Upstream did this with 44 one-line dummy classes. Same trick, one
-// class. If you add a style with new sprite names, add them here too.
+// class, now also covering the threshold marks and the boss bracket.
+// If you add a style with new sprite names, add them here too.
 // ---------------------------------------------------------------------
 class RS_HPBarSprites : Actor
 {
@@ -92,6 +101,11 @@ class RS_HPBarSprites : Actor
 		HB75 A 1; HB70 A 1; HB65 A 1; HB60 A 1; HB55 A 1; HB50 A 1;
 		HB45 A 1; HB40 A 1; HB35 A 1; HB30 A 1; HB25 A 1; HB20 A 1;
 		HB15 A 1; HB10 A 1; HB05 A 1; HB00 A 1;
+		HM00 A 1; HM05 A 1; HM10 A 1; HM15 A 1; HM20 A 1; HM25 A 1;
+		HM30 A 1; HM35 A 1; HM40 A 1; HM45 A 1; HM50 A 1; HM55 A 1;
+		HM60 A 1; HM65 A 1; HM70 A 1; HM75 A 1; HM80 A 1; HM85 A 1;
+		HM90 A 1; HM95 A 1;
+		HFRM A 1;
 		Stop;
 	}
 }
@@ -131,6 +145,7 @@ class RS_HPBarBase : Actor
 	// lookups every tic for no gain.
 	protected CVar cvStyle, cvScale, cvOffset, cvFullBright, cvStealth, cvEnable;
 	protected CVar cvChip, cvChipSpeed, cvChipHold;
+	protected CVar cvMarks, cvBossFrame, cvBossHP;
 
 	protected void RS_CacheCVars()
 	{
@@ -143,6 +158,9 @@ class RS_HPBarBase : Actor
 		if (!cvChip)       cvChip       = CVar.FindCVar("rs_hpbar_chip");
 		if (!cvChipSpeed)  cvChipSpeed  = CVar.FindCVar("rs_hpbar_chip_speed");
 		if (!cvChipHold)   cvChipHold   = CVar.FindCVar("rs_hpbar_chip_hold");
+		if (!cvMarks)      cvMarks      = CVar.FindCVar("rs_hpbar_marks");
+		if (!cvBossFrame)  cvBossFrame  = CVar.FindCVar("rs_hpbar_bossframe");
+		if (!cvBossHP)     cvBossHP     = CVar.FindCVar("rs_hpbar_boss_hp");
 	}
 
 	// Style letter. NOT a `static const String[]` indexed by the cvar,
@@ -274,7 +292,51 @@ class RS_HPBarChip : RS_HPBarBase
 }
 
 // ---------------------------------------------------------------------
-// The main bar: visibility, scale, brightness, position, and the chip.
+// THRESHOLD MARK -- a gold tick above the bar at the next phase gate.
+//
+// Position is chosen by picking one of 20 pre-rendered sprites, because
+// the tick's x offset is baked into the canvas. See the file header for
+// why a billboard cannot be offset sideways at runtime.
+// ---------------------------------------------------------------------
+class RS_HPBarMark : RS_HPBarBase
+{
+	// Pushed in by the main bar: where the next gate sits, 0..100.
+	double markPct;
+
+	override void RS_UpdateSprite()
+	{
+		// Nearest 5%, not floor -- a mark is a point, and rounding a
+		// 66% gate down to 65 rather than to the nearer 65 would be
+		// arbitrary. (Both land on 65 here; nearest is still the right
+		// rule for gates like 0.62.)
+		int slot = clamp(int(round(markPct / 5.0)) * 5, 0, 95);
+		Sprite = GetSpriteIndex(String.Format("HM%02d", slot));
+		Frame = 0;
+		Angle = 0;
+	}
+}
+
+// ---------------------------------------------------------------------
+// BOSS BRACKET -- corner pieces around the bar on high-health monsters.
+//
+// Its whole job is expectation-setting: a 5000 HP bar drains so slowly
+// that without a signal it reads as broken rather than big.
+// ---------------------------------------------------------------------
+class RS_HPBarFrame : RS_HPBarBase
+{
+	override void RS_UpdateSprite()
+	{
+		Sprite = GetSpriteIndex("HFRM");
+		Frame = 0;
+		Angle = 0;
+	}
+}
+
+// ---------------------------------------------------------------------
+// The main bar. Owns everything that hangs off it -- the chip layer, the
+// threshold mark, the boss bracket -- because all three need the same
+// position, scale and visibility, and one actor computing that once and
+// placing the others is cheaper and cannot drift out of sync.
 // ---------------------------------------------------------------------
 class RS_HPBar : RS_HPBarBase
 {
@@ -284,7 +346,21 @@ class RS_HPBar : RS_HPBarBase
 	const RS_CHIP_UNDER_YSCALE = 0.4;
 	const RS_CHIP_UNDER_GAP    = 0.15;
 
-	private RS_HPBarChip rsChip;
+	// Mark sits above the bar by this fraction of bar height.
+	const RS_MARK_GAP = 0.2;
+
+	// The bracket art is 21px tall against the bar's 11, both centred,
+	// so it hangs (21-11)/2 = 5px below the bar's bottom edge.
+	const RS_FRAME_DROP_PX = 5.0;
+
+	// Boss frame modes, matching rs_hpbar_bossframe.
+	const RS_BOSSFRAME_OFF    = 0;
+	const RS_BOSSFRAME_AUTO   = 1;
+	const RS_BOSSFRAME_ALWAYS = 2;
+
+	private RS_HPBarChip  rsChip;
+	private RS_HPBarMark  rsMark;
+	private RS_HPBarFrame rsFrame;
 
 	// The lagging health value, in HEALTH UNITS (not percent, so it
 	// stays correct across a retier that moves the ceiling).
@@ -292,6 +368,21 @@ class RS_HPBar : RS_HPBarBase
 	private int    rsLastHP;
 	private int    rsChipHold;
 	private bool   rsChipSeeded;
+
+	// Threshold-gate observation. See RS_LearnThresholds.
+	private int  rsSeenFired;
+	private bool rsGatesSeeded;
+
+	// Cached for the same reason the CVar handles are: the mark path
+	// wants this every tic, and EventHandler.Find walks the handler list.
+	private RS_HealthBarHandler rsHandler;
+
+	protected RS_HealthBarHandler RS_Handler()
+	{
+		if (!rsHandler)
+			rsHandler = RS_HealthBarHandler(EventHandler.Find("RS_HealthBarHandler"));
+		return rsHandler;
+	}
 
 	// -----------------------------------------------------------------
 	// Advance the trailing value. Damage restarts a short hold, then it
@@ -352,6 +443,63 @@ class RS_HPBar : RS_HPBarBase
 			let c = RS_HPBarChip(Spawn("RS_HPBarChip", Pos, NO_REPLACE));
 			if (c) { c.ownerRef = ownerRef; rsChip = c; }
 		}
+	}
+
+	// -----------------------------------------------------------------
+	// THRESHOLD LEARNING.
+	//
+	// CheckThreshold's fraction is a literal at each call site -- nothing
+	// stores it, so there is no table for the bar to read, and putting
+	// one there would mean editing monster files this feature has no
+	// business touching.
+	//
+	// So the bar learns instead. ThresholdFired(slot) is already public
+	// and read-only; poll it, and the tic a slot flips from unfired to
+	// fired IS the moment the gate tripped, so current health over max
+	// is the gate's fraction. Hand it to the handler, which remembers it
+	// PER MONSTER CLASS.
+	//
+	// The honest consequence: the first Baron you fight teaches the
+	// system where Barons enrage, and every Baron after that shows the
+	// mark before it happens. First of any given monster shows nothing.
+	// A predictive mark on the very first encounter is not possible
+	// without the monsters declaring their gates as data.
+	//
+	// Slots 0-3 only. Every gate in the tree today uses 0 or 1; polling
+	// all 32 would be 32 calls per bar per tic to find nothing.
+	// -----------------------------------------------------------------
+	const RS_GATE_SLOTS = 4;
+
+	private void RS_LearnThresholds(RS_MonsterMaster mm, int maxhp)
+	{
+		if (!mm || maxhp <= 0)
+			return;
+
+		for (int s = 0; s < RS_GATE_SLOTS; s++)
+		{
+			int bit = 1 << s;
+			bool fired = mm.ThresholdFired(s);
+
+			// Seed on the first pass: anything ALREADY fired when this
+			// bar appeared did not fire on our watch, so we never saw
+			// the health it fired at and must not record one.
+			if (!rsGatesSeeded)
+			{
+				if (fired) rsSeenFired |= bit;
+				continue;
+			}
+
+			if (fired && !(rsSeenFired & bit))
+			{
+				rsSeenFired |= bit;
+				let h = RS_Handler();
+				if (h)
+					h.RS_LearnGate(mm.GetClassName(), s,
+					               clamp(double(mm.Health) / double(maxhp), 0.0, 1.0));
+			}
+		}
+
+		rsGatesSeeded = true;
 	}
 
 	override void Tick()
@@ -461,6 +609,84 @@ class RS_HPBar : RS_HPBarBase
 					rsChip.SetOrigin((ownerRef.Pos.X, ownerRef.Pos.Y, zpos), true);
 				}
 			}
+
+			// --- threshold mark ---
+			// Only our own monsters have gates at all; anything else
+			// simply never gets a mark.
+			let mm = RS_MonsterMaster(ownerRef);
+			bool wantMark = mm && cvMarks && cvMarks.GetInt();
+
+			if (mm)
+				RS_LearnThresholds(mm, maxhp);
+
+			if (!wantMark)
+			{
+				if (rsMark) { rsMark.Destroy(); rsMark = null; }
+			}
+			else
+			{
+				if (!rsMark)
+				{
+					let m = RS_HPBarMark(Spawn("RS_HPBarMark", Pos, NO_REPLACE));
+					if (m) { m.ownerRef = ownerRef; rsMark = m; }
+				}
+
+				if (rsMark)
+				{
+					double curFrac = (maxhp > 0)
+						? clamp(double(ownerRef.Health) / double(maxhp), 0.0, 1.0) : 1.0;
+
+					double gate = -1.0;
+					let h = RS_Handler();
+					if (h) gate = h.RS_NextGate(mm.GetClassName(), curFrac);
+
+					rsMark.markPct = gate * 100.0;
+					rsMark.bBright = bBright;
+					// Nothing learned for this monster yet, or every gate
+					// already behind us -- draw nothing rather than a mark
+					// at zero.
+					rsMark.bInvisible = bInvisible || gate < 0 || ownerRef.Health <= 0;
+
+					rsMark.Scale.X = sc;
+					rsMark.Scale.Y = sc;
+					double barH = RS_BAR_PX_H * sc;
+					rsMark.SetOrigin((ownerRef.Pos.X, ownerRef.Pos.Y,
+					                  zpos + barH + barH * RS_MARK_GAP), true);
+				}
+			}
+
+			// --- boss bracket ---
+			int frameMode = cvBossFrame ? cvBossFrame.GetInt() : RS_BOSSFRAME_OFF;
+			int bossCut   = cvBossHP ? cvBossHP.GetInt() : 1000;
+			bool wantFrame = (frameMode == RS_BOSSFRAME_ALWAYS)
+			                 || (frameMode == RS_BOSSFRAME_AUTO && maxhp >= bossCut);
+
+			if (!wantFrame)
+			{
+				if (rsFrame) { rsFrame.Destroy(); rsFrame = null; }
+			}
+			else
+			{
+				if (!rsFrame)
+				{
+					let f = RS_HPBarFrame(Spawn("RS_HPBarFrame", Pos, NO_REPLACE));
+					if (f) { f.ownerRef = ownerRef; rsFrame = f; }
+				}
+
+				if (rsFrame)
+				{
+					rsFrame.bBright   = bBright;
+					rsFrame.bInvisible = bInvisible;
+					rsFrame.Scale.X   = sc;
+					rsFrame.Scale.Y   = sc;
+					// Centred on the bar: the bracket is 21px to the
+					// bar's 11, so it starts 5px lower. Its interior is
+					// transparent exactly where the bar sits, so being
+					// coplanar with the bar is safe here.
+					rsFrame.SetOrigin((ownerRef.Pos.X, ownerRef.Pos.Y,
+					                   zpos - RS_FRAME_DROP_PX * sc), true);
+				}
+			}
 		}
 
 		// Clean-up: the token going away is the owner's way of saying
@@ -468,14 +694,25 @@ class RS_HPBar : RS_HPBarBase
 		// outright. The chip goes with the bar in both cases.
 		if (!ownerRef || ownerRef.CountInv("RS_HPBarToken") <= 0)
 		{
-			if (rsChip) { rsChip.Destroy(); rsChip = null; }
+			RS_DestroyAttachments();
 			Destroy();
 		}
 	}
 
+	// Every actor hanging off this bar, torn down together. Anything
+	// added later goes here as well as in OnDestroy -- an orphaned
+	// attachment has no owner to hide or move it and just sits in the
+	// level.
+	private void RS_DestroyAttachments()
+	{
+		if (rsChip)  { rsChip.Destroy();  rsChip = null;  }
+		if (rsMark)  { rsMark.Destroy();  rsMark = null;  }
+		if (rsFrame) { rsFrame.Destroy(); rsFrame = null; }
+	}
+
 	override void OnDestroy()
 	{
-		if (rsChip) { rsChip.Destroy(); rsChip = null; }
+		RS_DestroyAttachments();
 		Super.OnDestroy();
 	}
 }
@@ -522,12 +759,70 @@ class RS_HPBarToken : CustomInventory
 	}
 }
 
+// One learned phase gate: "monsters of class X have a gate in slot N at
+// fraction F". Plain Object holder, same shape RS_MonsterTierRow uses in
+// RS_MonsterMaster -- that pattern is known to work on this build.
+class RS_HPLearnedGate
+{
+	Name   cls;
+	int    slot;
+	double frac;
+}
+
 // ---------------------------------------------------------------------
-// Hands out and takes back the token. MUST be listed in MAPINFO.txt's
+// Hands out and takes back the token, and remembers where each monster
+// class's phase gates sit. MUST be listed in MAPINFO.txt's
 // AddEventHandlers or none of this runs.
 // ---------------------------------------------------------------------
 class RS_HealthBarHandler : EventHandler
 {
+	// Learned gates, shared by every bar. See RS_HPBar.RS_LearnThresholds
+	// for why this is learned rather than read from a table: the gate
+	// fractions are literals at their call sites inside the monsters, and
+	// health bars have no business editing monster files to expose them.
+	//
+	// Lives for the session, not the level -- what you learned about
+	// Barons on MAP01 is still true on MAP02.
+	private Array<RS_HPLearnedGate> rsGates;
+
+	void RS_LearnGate(Name cls, int slot, double frac)
+	{
+		if (frac <= 0.0 || frac >= 1.0)
+			return;
+
+		for (int i = 0; i < rsGates.Size(); i++)
+		{
+			// Already known. Keep the FIRST reading: later ones are
+			// measured a tic or two after the gate tripped, by which
+			// point the monster has taken more damage and the fraction
+			// reads low.
+			if (rsGates[i].cls == cls && rsGates[i].slot == slot)
+				return;
+		}
+
+		let g = new("RS_HPLearnedGate");
+		g.cls  = cls;
+		g.slot = slot;
+		g.frac = frac;
+		rsGates.Push(g);
+	}
+
+	// The next gate this monster will hit: the highest learned fraction
+	// still below its current one. -1 if nothing is known or they are all
+	// behind it.
+	double RS_NextGate(Name cls, double curFrac)
+	{
+		double best = -1.0;
+		for (int i = 0; i < rsGates.Size(); i++)
+		{
+			let g = rsGates[i];
+			if (g.cls != cls)     continue;
+			if (g.frac >= curFrac) continue;
+			if (g.frac > best) best = g.frac;
+		}
+		return best;
+	}
+
 	// Same filter upstream used: real monsters only, nothing decorative
 	// or non-interacting.
 	static bool RS_WantsBar(Actor a)

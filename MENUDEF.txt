@@ -730,6 +730,18 @@ OptionMenu "RS_HPBarOptions"
 	Option "Chip Damage", "rs_hpbar_chip", "RS_HPBarChipModes"
 	Slider "Chip Drain Speed -- % Per Second", "rs_hpbar_chip_speed", 5, 300, 5, 0
 	Slider "Chip Hold Before Draining -- Tics", "rs_hpbar_chip_hold", 0, 70, 1, 0
+	StaticText " "
+
+	StaticText "Phase Gates", "GOLD"
+	StaticText "Gold tick showing where a monster next enrages.", "DarkGray"
+	StaticText "LEARNED: the first of a kind teaches it, the rest show it.", "DarkGray"
+	Option "Threshold Marks", "rs_hpbar_marks", "OnOff"
+	StaticText " "
+
+	StaticText "Boss Bracket", "GOLD"
+	StaticText "Marks a long fight, so a slow drain doesn't read as stuck.", "DarkGray"
+	Option "Boss Bracket", "rs_hpbar_bossframe", "RS_HPBarFrameModes"
+	Slider "Counts As Big -- Max Health", "rs_hpbar_boss_hp", 100, 5000, 100, 0
 }
 
 OptionValue "RS_HPBarChipModes"
@@ -737,4 +749,11 @@ OptionValue "RS_HPBarChipModes"
 	0, "Off"
 	1, "Underline"
 	2, "Layered"
+}
+
+OptionValue "RS_HPBarFrameModes"
+{
+	0, "Off"
+	1, "Big Monsters Only"
+	2, "Always"
 }
