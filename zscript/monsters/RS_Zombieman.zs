@@ -281,6 +281,72 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 	Missile:
 		TNT1 A 0 { return TierState("Missile"); }
 		Goto See;
+	// ABYSS CONVERSION -- CH Zombies.txt:136, and inherited by EVERY zombie
+	// parent (:136 :300 :414 :546 :813 :927 :1064 :1190 :1363 :1507). CHP
+	// redefines it nowhere, so all ten tiers run it live. Our port had it
+	// on none of them.
+	//
+	// TRIGGER: DamageType "AbyssPE", dealt only by the Abyss Pain
+	// Elemental's pulse (CH thepains.txt:874, ours RS_AbyssPEPulse). The
+	// pulse was typed "Plasma" here until today, which made this entire
+	// chain unreachable -- so the state and its trigger were BOTH missing
+	// and each hid the other.
+	//
+	// WHAT IT DOES: the zombie seizes up, sprouts the abyss shell over
+	// twelve frames, throws ninety splash particles, and comes out an
+	// ABYSS ZOMBIE. A conversion attack -- the Abyss PE does not kill its
+	// allies, it recruits them upward.
+	//
+	// WE RETIER INSTEAD OF SWAPPING ACTORS. CH must spawn AbyssZombie2 and
+	// A_die the original because its tiers are separate classes. Ours are
+	// one class with a tier, and SetTier is documented safe mid-fight and
+	// idempotent -- so the monster keeps its position, its target, its
+	// threshold flags and its kill credit rather than dying and being
+	// replaced. Same outcome, none of the actor-swap side effects.
+	Pain.AbyssPE:
+		TNT1 A 0
+		{
+			// Already Abyss or beyond? Nothing to convert to. CH has no
+			// such guard because a T06 zombie is simply a different class
+			// there and never carries this state.
+			if (Tier >= 6)
+				return ResolveState("Pain");
+			bNOPAIN = true;
+			A_SetScale(0.8);
+			return ResolveState(null);
+		}
+		"AYPB" AAB 5 Bright;
+		// CH plays "AbyssForm" here. We ship neither the lump nor an
+		// SNDINFO entry for it, and calling an undefined token is a
+		// silent no-op that reads as done -- the same trap as
+		// HEHEEENH on Player X. Frame kept, sound left for the asset
+		// pass that imports it.
+		"AYPB" B 5 Bright;
+		"AYPB" BBACDE 5 Bright;
+		TNT1 A 0
+		{
+			// CH throws 45 + 45 SplashAbyss at two velocities. One loop
+			// rather than two 45-character frame runs; same count.
+			for (int i = 0; i < 45; i++)
+			{
+				A_SpawnItemEx("RS_SplashAbyss", random(-16, 16), random(-16, 16), random(4, 32),
+				              16, 0, 3, random(-359, 359), SXF_NOCHECKPOSITION|SXF_TRANSFERSPECIAL|SXF_TRANSFERAMBUSHFLAG);
+				A_SpawnItemEx("RS_SplashAbyss", random(-16, 16), random(-16, 16), random(4, 32),
+				              12, 0, 8, random(-359, 359), SXF_NOCHECKPOSITION|SXF_TRANSFERSPECIAL|SXF_TRANSFERAMBUSHFLAG);
+			}
+		}
+		"AYPB" FGH 3 Bright;
+		"AYPB" I 5 Bright;
+		"AYPB" H 5 Bright;
+		TNT1 A 0
+		{
+			// The conversion. CH: spawn AbyssZombie2 + A_die.
+			bNOPAIN = false;
+			A_SetScale(1.0);
+			SetTier(6, true);
+		}
+		Goto See;
+
 	Pain:
 		// RS_ClimbLadder() USED TO BE CALLED HERE and that was the single
 		// biggest behavioural error in this family: it fed the Undertaker's

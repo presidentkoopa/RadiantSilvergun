@@ -38,6 +38,16 @@
 //     is the point.
 // =====================================================================
 
+// NOTE ON RS_SplashAbyss, the burst the Abyss conversion throws ninety
+// times: it is ALREADY PORTED, 1:1 from CH Imps.txt:637, and lives at
+// RS_imp_projectiles.zs:203 because that is where CH defines it. Do not
+// add a second one here -- ZScript is case-insensitive and a duplicate
+// class name is a fatal redefinition, not a shadow.
+// Also do not substitute RS_SplashAbyssVile for it. That name is a
+// prefix match and a completely different actor -- floor-hugging, radius
+// 12, DamageFunction (random(10,30)) -- so the swap would put ninety
+// damaging floor-crawlers under a monster that should only be sparkling.
+
 // The mark. CH's CHWhitePlan is a bare Inventory token and so is this;
 // all the behaviour is in who holds it and what reads it.
 class RS_UndertakerPlan : Inventory

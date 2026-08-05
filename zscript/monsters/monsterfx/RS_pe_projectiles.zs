@@ -119,7 +119,13 @@ class RS_AbyPECoil : Actor
 }
 class RS_AbyssPEPulse : Actor
 {
-	Default { Speed 11; Damage 2; DamageType "Plasma"; Radius 10; Height 4; RenderStyle "Translucent"; Alpha 0.1; Species "PE"; Translation "Ice"; Projectile;
+	// DamageType "AbyssPE", not "Plasma" -- CH thepains.txt:874. The type
+	// IS the mechanic here, not flavour: ten zombie tiers carry a
+	// Pain.AbyssPE that catches exactly this damage type and TRANSFORMS
+	// the monster into an Abyss variant. Typed as Plasma the pulse was
+	// chip damage and the entire transformation chain was unreachable
+	// from anywhere in the game. Damage restored to CH's roll with it.
+	Default { Speed 11; DamageFunction (random(1, 2)); DamageType "AbyssPE"; Radius 10; Height 4; RenderStyle "Translucent"; Alpha 0.1; Species "PE"; Translation "Ice"; Projectile;
 		+THRUACTORS; +DROPOFF; +FORCERADIUSDMG; +BLOODLESSIMPACT; +RIPPER; +FORCEPAIN; }
 	States
 	{
