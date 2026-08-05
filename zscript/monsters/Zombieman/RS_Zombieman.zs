@@ -135,7 +135,191 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		}
 		r.hpMul  = double(hp) / 20.0;
 		r.spdMul = double(spd) / 8.0;
+
+		// =============================================================
+		// THE CH PARENT PROPERTIES.  Added 2026-08-05.
+		//
+		// CHP's actors are `ACTOR CommonRedZombie : RedZombie` -- the
+		// STATES are CHP's and were ported faithfully, but every combat
+		// PROPERTY lives on the CH parent in CH/decorate/Zombies.txt and
+		// NONE of it came across. All fourteen tiers ran as one flat
+		// property set with only hp/speed/painChance varying, which is
+		// why every tier played like a plain zombieman regardless of
+		// which creature was on screen.
+		//
+		// The two that actually cost the grammar:
+		//   +MISSILEMORE  -- on the ten tiers CH gives it. It halves the
+		//                    "don't fire" distance roll. Without it every
+		//                    tier fired on the timid vanilla schedule.
+		//   +AVOIDMELEE   -- on the eleven tiers CH gives it. Keeps the
+		//                    monster at range instead of walking into
+		//                    your face. Its absence is half of why they
+		//                    closed and then danced.
+		// CH's design is a CONTRAST: T00/T06/T08/T10 are the cautious
+		// ones, T01-T05/T07/T09 and the three bosses are aggressive. We
+		// had flattened all fourteen to cautious.
+		//
+		// Every line below is CH/decorate/Zombies.txt verbatim, with the
+		// parent's name and line number. Where CHP restates a property
+		// CHP WINS (Mass 400 on T09 and T12) -- CLAUDE.md's rule.
+		// DamageFactors are NOT here; per-type factors live on the class
+		// defaults in ZScript and go through TierDamageFactor() below.
+		// =============================================================
+		// Stated for EVERY tier, not just the ones CH mentions: the row
+		// has to be an absolute statement so a monster retiering off T08
+		// (mass 1000, scale 0.9) actually loses them again.
+		r.mass = 100; r.scale = 1.0;
+		switch (t)
+		{
+			case 0:   // CommonZombie : ZombieMan          Zombies.txt:788
+				r.species = "Zombie";
+				r.flags = RS_TF_AVOIDMELEE;
+				break;
+			case 1:   // GreenZombie : Zombieman           Zombies.txt:870
+				r.species = "Zombie"; r.bloodColor = "Green";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_DONTHARMSPECIES;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 2:   // BlueZombie : Zombieman           Zombies.txt:1013
+				// CH states no Species on this one. Not an omission --
+				// it is why blue zombies infight where green ones don't.
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_AVOIDMELEE;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 3:   // CyanZombie2                       Zombies.txt:245
+				r.bloodColor = "Blue";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_THRUSPECIES
+				        | RS_TF_NOICEDEATH;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 4:   // PurpleZombie : Zombieman         Zombies.txt:1125
+				r.species = "Zombie";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_AVOIDMELEE;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 5:   // YellowZombie : Zombieman         Zombies.txt:1275
+				// Smaller and lighter than every other zombie: 19/52/90.
+				r.species = "Zombie"; r.bloodColor = "Yellow";
+				r.radius = 19; r.height = 52; r.mass = 90;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_DONTHARMSPECIES;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 6:   // AbyssZombie2                      Zombies.txt:695
+				// No MISSILEMORE. The abyss zombie is one of the four CH
+				// keeps cautious -- it sows splash instead of shooting.
+				r.species = "Zombie"; r.bloodColor = "Black";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_DONTHARMSPECIES;
+				break;
+			case 7:   // FireBluZombie2                    Zombies.txt:359
+				// No AVOIDMELEE -- the kamikaze WANTS to be in your face.
+				r.species = "Zombie";
+				r.radius = 20; r.height = 56; r.gibHealth = -5;
+				r.flags = RS_TF_DONTHARMSPECIES;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 8:   // BrownZombie2 (bodyguard)           Zombies.txt:40
+				// +ROLLSPRITE IS LOAD-BEARING: without it the GET DOWN
+				// dive-roll's A_SetRoll(20..340) renders as nothing.
+				// Mass 1000 is ten times any other zombie -- it cannot
+				// be shoved off the demon it is shielding.
+				r.radius = 24; r.height = 64; r.mass = 1000; r.scale = 0.9;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_NOINFIGHTING
+				        | RS_TF_ROLLSPRITE | RS_TF_NOTARGETSWITCH;
+				break;
+			case 9:   // GrayZombie2 : Zombieman           Zombies.txt:492
+				r.radius = 20; r.height = 56;
+				r.mass = 400;                    // CHP 01_GY overrides CH
+				r.flags = RS_TF_AVOIDMELEE;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 10:  // RedZombie                        Zombies.txt:1441
+				// No MISSILEMORE, and +EXTREMEDEATH means it ALWAYS gibs.
+				r.species = "Zombie";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_DONTHARMSPECIES
+				        | RS_TF_EXTREMEDEATH;
+				break;
+			case 11:  // BlackZombie1 (Player 9)          Zombies.txt:1888
+				r.radius = 16; r.height = 56;
+				r.flags = RS_TF_BOSS | RS_TF_QUICKTORETALIATE
+				        | RS_TF_LOOKALLAROUND | RS_TF_NOFEAR
+				        | RS_TF_DONTMORPH | RS_TF_TAKESRADIUSDMG;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 12:  // WhiteZombie1 (Undertaker)        Zombies.txt:2027
+				// Species "UnderTaker" IS SHARED WITH MrBones. That is
+				// how the summoner does not shred its own skeletons --
+				// drop it and the Undertaker kills its whole economy.
+				r.species = "UnderTaker";
+				r.radius = 16; r.height = 56;
+				r.mass = 400;                     // CHP 01_W overrides CH
+				r.flags = RS_TF_BOSS | RS_TF_QUICKTORETALIATE
+				        | RS_TF_LOOKALLAROUND | RS_TF_NOFEAR
+				        | RS_TF_DONTMORPH | RS_TF_TAKESRADIUSDMG
+				        | RS_TF_NOTARGET | RS_TF_DONTHARMSPECIES
+				        | RS_TF_DONTHARMCLASS;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 13:  // BlackZombieEX (Player X)         Zombies.txt:1607
+				r.radius = 16; r.height = 56;
+				r.flags = RS_TF_BOSS | RS_TF_QUICKTORETALIATE
+				        | RS_TF_LOOKALLAROUND | RS_TF_NOFEAR
+				        | RS_TF_DONTMORPH | RS_TF_TAKESRADIUSDMG
+				        | RS_TF_LAXTELEFRAGDMG;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			default:
+				break;
+		}
 		return true;
+	}
+
+	// CH's per-tier DamageFactors, CH/decorate/Zombies.txt. These are
+	// real gameplay, not dressing: cyan and gray take DOUBLE from fire
+	// and melee, the fire zombie takes a QUARTER from fire, red takes
+	// TRIPLE from melee, and every tier is immune to DIMp.
+	//
+	// "Exorcist" is the anti-zombie damage type on T00-T10; the three
+	// bosses swap it for "Heroic". Both at 3.0.
+	override double TierDamageFactor(int t, Name damageType)
+	{
+		// Universal across the family.
+		if (damageType == 'DIMp')
+			return 0.0;
+		if (damageType == 'Exorcist')
+			return (t >= 11) ? 1.0 : 3.0;
+		if (damageType == 'Heroic')
+			return (t >= 11) ? 3.0 : 1.0;
+
+		switch (t)
+		{
+			case 3:   // CyanZombie2:  Fire 2.0, Melee 2.0
+			case 9:   // GrayZombie2:  Fire 2.0, Melee 2.0
+				if (damageType == 'Fire')  return 2.0;
+				if (damageType == 'Melee') return 2.0;
+				break;
+			case 5:   // YellowZombie: Melee 2
+				if (damageType == 'Melee') return 2.0;
+				break;
+			case 7:   // FireBluZombie2: fire 0.25 -- it IS the fire one
+				if (damageType == 'Fire')  return 0.25;
+				break;
+			case 10:  // RedZombie: Melee 3
+				if (damageType == 'Melee') return 3.0;
+				break;
+			case 13:  // BlackZombieEX: PlayerVoid 0.5, Falling 0.0
+				if (damageType == 'PlayerVoid') return 0.5;
+				if (damageType == 'Falling')    return 0.0;
+				break;
+			default:
+				break;
+		}
+		return 1.0;
 	}
 
 	// Audit data. Every entry is a real, distinct CHP sprite set --
@@ -330,9 +514,12 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		SeeSound = "grunt/sight";   PainSound = "grunt/pain";
 		DeathSound = "grunt/death"; ActiveSound = "grunt/active";
 		AttackSound = "grunt/attack";
-		Mass = 100;
-		bROLLSPRITE = false;
 		A_SetRenderStyle(1.0, STYLE_Normal);
+		// Mass and +ROLLSPRITE USED TO BE RESET HERE and re-set per tier
+		// in the switch below. They are CH parent properties, so they now
+		// live in TierData's row with the rest of that set -- one owner,
+		// and this function runs AFTER RS_ApplyTierProperties, so leaving
+		// them here would have silently overwritten the row.
 
 		switch (t)
 		{
@@ -355,8 +542,6 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 				SeeSound = "zom2/see";    PainSound = "form2/hurt";
 				DeathSound = "zom2/die";  ActiveSound = "form2/active";
 				AttackSound = "snprfire";
-				Mass = 1000;
-				bROLLSPRITE = true;   // CH BrownZombie2 +ROLLSPRITE
 				break;
 			case 10:
 				SeeSound = "zom2/see";    PainSound = "form2/hurt";
@@ -370,7 +555,6 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 			case 12:
 				SeeSound = "under/see";   PainSound = "skelpai";
 				DeathSound = "under/die"; ActiveSound = "grunt/active";
-				Mass = 400;
 				break;
 			default:
 				break;
@@ -379,9 +563,8 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		// CHP's cyan zombie is Renderstyle Translucent / Alpha 0.75.
 		if (t == 3)
 			A_SetRenderStyle(0.75, STYLE_Translucent);
-		// CHP gives the gray zombie Mass 400.
-		if (t == 9)
-			Mass = 400;
+		// The gray zombie's Mass 400 moved to TierData's row with the
+		// rest of the CH/CHP property set.
 	}
 
 	States

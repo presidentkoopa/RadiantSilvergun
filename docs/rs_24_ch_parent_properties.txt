@@ -1,0 +1,179 @@
+================================================================================
+   RS_24 -- THE CH PARENT PROPERTIES.  2026-08-05.
+   The half of the monster port that was missing all four times.
+   Read after rs_21 (THE PORT LAW) and rs_23.
+================================================================================
+
+WHAT WAS WRONG
+--------------------------------------------------------------------------------
+
+  The owner's report: "they all seem to fire once while walking around,
+  sometimes they fire a custom sprite, but the behavior doesn't seem too
+  different... the behavior itself seems like just, zombieman."
+
+  He was right, and every state block was correct. All fourteen Zombieman
+  tiers were diffed against CHP line by line on 2026-08-05 and they MATCH --
+  T01's double-shot and permanent gas walk, T06's fastchase interleave,
+  T07's no-op Missile plus kamikaze Melee, T08's `See+3` re-entry, T10's
+  `Missile2+1` loop that skips the wind-up. The port of the states is good.
+
+  THE STATES ARE ONLY HALF OF A CHP ACTOR.
+
+      ACTOR CommonRedZombie : RedZombie
+
+  CHP files carry the STATES. Every combat PROPERTY -- flags, species,
+  radius/height/mass/scale, damage factors, blood colour -- lives on the CH
+  PARENT in CH/decorate/<Family>.txt. Four porting attempts read CHP and
+  never opened the parent. Result: fourteen tiers running one identical
+  property set, with only hp/speed/painChance varying.
+
+  THE TWO THAT COST THE GRAMMAR:
+
+    +MISSILEMORE  Halves the "don't fire" distance roll (modern spelling:
+                  MissileChanceMult 0.5 -- LOWER FIRES MORE). CH puts it on
+                  10 of 14 zombie tiers. Missing from all of them, so every
+                  tier fired on the timid vanilla schedule. CH's design is a
+                  CONTRAST -- T00/T06/T08/T10 cautious, the rest aggressive.
+                  We had flattened all fourteen to cautious.
+
+    +AVOIDMELEE   Keeps the monster at range instead of closing. CH puts it
+                  on 9 of 14. Missing, so they walked into your face -- and
+                  once there, the second defect below trapped them.
+
+  AND A SEPARATE, COMPOUNDING BASE-CLASS DEFECT:
+
+    RS_MonsterMaster's dispatcher declares `Melee:` for EVERY monster, so
+    MeleeState was non-null on every tier of every family -- including the
+    ones with no melee attack. Two consequences:
+      1. P_CheckMissileRange does `if (MeleeState == NULL) dist -= 128;`
+         -- "no melee attack, so fire more". Every tier lost that bonus.
+      2. A_Chase checks melee FIRST and returns. At melee range a
+         melee-less tier went Melee: -> TierState null -> Goto See ->
+         chase -> Melee: ... and never reached its missile state.
+    Of the 15 family-01 CHP actors only 01_F (T07) and 01_K (T11) define
+    Melee:. The other thirteen have none, and get the -128.
+
+  NONE of this is visible to any lint. It is the exact disease CLAUDE.md
+  names: the tree was consistent with itself and wrong.
+
+WHAT WAS BUILT
+--------------------------------------------------------------------------------
+
+  RS_MonsterMaster.zs
+    * ApplyTier now re-points the state pointers per tier:
+          MeleeState   = TierState("Melee");
+          MissileState = TierState("Missile");
+      TierState returns null when neither Melee.<tier> nor Melee.T00
+      exists -- exactly the melee-less set. Family-agnostic.
+    * RS_MonsterTierRow gained the CH property fields: flags, species,
+      radius, height, mass, scale, gibHealth, bloodColor, missileChance.
+    * RS_TF_* flag consts at file scope, named for what CH writes so the
+      table diffs against CH/decorate without translation.
+    * RS_ApplyTierProperties(row) applies them. FLAGS ARE ASSIGNED, NEVER
+      OR'd -- the row is an absolute statement of the tier, so a flag T03
+      sets is CLEARED when the monster becomes T04.
+    * virtual TierDamageFactor(t, damageType) + a DamageMobj override.
+      Per-type DamageFactors live on class DEFAULTS in ZScript and cannot
+      be assigned per instance; this is the per-instance equivalent.
+
+  RS_Zombieman.zs
+    * All fourteen tiers' CH properties transcribed with parent name and
+      Zombies.txt line number on every case.
+    * TierDamageFactor override: DIMp 0 family-wide, Exorcist 3.0 on
+      T00-T10, Heroic 3.0 on the three bosses, Fire/Melee 2.0 on cyan and
+      gray, fire 0.25 on the fire zombie, Melee 3 on red, PlayerVoid 0.5
+      and Falling 0.0 on TEX.
+    * Mass and +ROLLSPRITE REMOVED from OnTierApplied. They were already
+      correct there -- but OnTierApplied runs AFTER RS_ApplyTierProperties,
+      so leaving them would have silently overwritten the row. One owner.
+
+  DELIBERATELY RECORDED, NOT APPLIED:
+    * bloodColor. It is a `color` field and setting it at runtime does
+      nothing -- the engine bakes BloodTranslation at class init. The CH
+      values are in the row because they are ground truth and finding them
+      again costs a read of CH/decorate. Applying them needs a
+      BloodTranslation rebuild, which is its own job.
+    * +FLOORCLIP is NOT an assigned tier flag. Every CH parent has it and
+      so does every Default here; making it absolute would silently clear
+      it for the sixteen families with no table yet.
+
+  WHAT T11/T12/TEX ACTUALLY ARE -- recorded because it surprised the owner
+  and rs_23 did not say it plainly. Family 01 stops being zombiemen at the
+  top. T11 is Player 9 (ZOMK, a dead marine), T12 is the UNDERTAKER (MAGE,
+  a robed necromancer with a shovel), TEX is Player X (ZMKX). Only those
+  THREE carry +BOSS -- T10 Red is not a boss, it is a nasty zombie that
+  always gibs. All three bosses share one profile: +BOSS +QUICKTORETALIATE
+  +LOOKALLAROUND +MISSILEMORE +NOFEAR +DONTMORPH -NORADIUSDMG. The
+  -NORADIUSDMG is deliberate: CH wants them to take splash.
+
+  T12's `Species "UnderTaker"` IS SHARED WITH MrBones. That is how the
+  summoner does not shred its own skeletons. Drop it and the Undertaker
+  kills its whole economy.
+
+THE PLAN FOR FAMILIES 02-17
+--------------------------------------------------------------------------------
+
+  THIS IS A READ AGAINST CH/decorate, NOT A REWRITE. For each family:
+  open the CH file, extract the property block of each tier's parent, fill
+  in a TierData property switch exactly as Zombieman's now reads. The
+  state blocks are not touched.
+
+  Measured scope -- actor counts include spawn-colour variants, so the
+  number of PARENTS to read is roughly one per tier, not per actor:
+
+    family              CH file             actors  +MISSILEMORE  +AVOIDMELEE
+    01 Zombieman        Zombies.txt             58        10           9   DONE
+    02 Shotgunner       Shotgunners.txt         60        14           4
+    03 Imp              Imps.txt                65        20           0
+    04 Chaingunner      Chaingunners.txt        64        18           7
+    05 Demon            Demons.txt              48         5           0
+    06 Spectre          spectres.txt            35         1           0
+    07 LostSoul         lostsouls.txt           53        26           0
+    08 Cacodemon        Cacodemons.txt          81        16           0
+    09 PainElemental    thepains.txt            83        11           2
+    10 HellKnight       Hellknights.txt         74        14           0
+    11 Baron            Barons.txt              97        20           0
+    12 Revenant         Revenants.txt          112        25           0
+    13 Mancubus         Fatsos.txt              87         7           0
+    14 Arachnotron      Spiders.txt            110        24           0
+    15 Archvile         Archviles.txt          106        11           1
+    16 Mastermind       MASTERMINDS.txt        108        17           1
+    17 Cyberdemon       CYBIES.txt             140        15           0
+
+  READ THE ZERO COLUMNS AS DATA, NOT AS ABSENCE. +AVOIDMELEE is a ranged
+  attacker's flag -- the four families that have it are the four human
+  gunner families plus the Pain Elemental, Archvile and Mastermind. A
+  Baron does not avoid melee because a Baron IS melee. The distribution
+  is the design; do not normalise it.
+
+  +MISSILEMORE is on every family and is the single highest-value item on
+  this list. 246 instances across the seventeen files, none of them ported.
+
+  ORDER: rs_23's depth-first order still holds -- 02 Shotgunner, then 04
+  Chaingunner, then 03 Imp. Shotgunner and Chaingunner share the human
+  gunner shape with Zombieman, so their tables read almost identically and
+  the diff is cheapest.
+
+  DO NOT BULK-SWEEP THIS. The Zombieman table took a read of every parent
+  with the line number written down next to each case. A mechanical pass
+  that copies flags without opening both sides is the exact failure mode
+  that produced four bad ports.
+
+STILL OWED -- NEEDS ONE COMPILE
+--------------------------------------------------------------------------------
+
+  Nothing in this batch has been through a build. The lines most likely to
+  be rejected, in order:
+
+    1. MeleeState / MissileState assignment in ApplyTier. If ZScript
+       treats them as readonly on this engine, the -128 half cannot be
+       fixed this way and the fallback (MeleeRange = -1000 on melee-less
+       tiers) only kills the melee bounce, not the aggression loss.
+    2. The DamageMobj override signature in RS_MonsterMaster.
+    3. Species = r.species  (string -> Name conversion).
+    4. bLAXTELEFRAGDMG, bQUICKTORETALIATE, bNOTARGETSWITCH spellings.
+    5. RS_NoHitscan's AMRK sprite anchor -- the mod ships no sprite for
+       it, so it resolves from the IWAD/gzdoom.pk3 or not at all. If it
+       errors, any existing 1-frame sprite works; the model is what draws.
+
+================================================================================

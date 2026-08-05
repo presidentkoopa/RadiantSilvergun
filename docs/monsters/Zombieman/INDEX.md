@@ -70,6 +70,36 @@ exactly one EX tier.
 - **Attack profiles** for the five projectile tiers, plus ten catalog
   accessors so no new call names a raw class inline.
 
+## The CH parent properties — 2026-08-05, and this is what finished it
+
+The states were right all along; they are only half of a CHP actor.
+`ACTOR CommonRedZombie : RedZombie` — CHP carries the STATES, but every
+combat PROPERTY lives on the CH parent in `Zombies.txt`, and four porting
+passes never opened it. All fourteen tiers ran one identical property set
+with only hp/speed/painChance varying, which is why fourteen different
+creatures all played like a plain zombieman.
+
+Restored, per tier, with the parent name and line number on every case:
+
+- **`+MISSILEMORE` on the ten tiers CH gives it.** Halves the "don't fire"
+  distance roll. Its absence made every tier fire on the timid vanilla
+  schedule. CH's ladder is a CONTRAST — T00/T06/T08/T10 cautious, the rest
+  aggressive — and we had flattened all fourteen to cautious.
+- **`+AVOIDMELEE` on the nine that have it.** They hold range instead of
+  walking into your face.
+- **A base-class defect that compounded both:** the dispatcher declared
+  `Melee:` for every monster, so `MeleeState` was non-null even on tiers
+  with no melee. That cost them the engine's own
+  `if (MeleeState == NULL) dist -= 128; // no melee attack, so fire more`,
+  AND trapped them at point-blank, where `A_Chase` checks melee first and
+  returns. `ApplyTier` now re-points `MeleeState`/`MissileState` per tier.
+- Species and the infighting model, per-tier damage factors, per-tier
+  body size/mass/scale, `GibHealth`, and the three bosses' full flag set.
+
+Owner confirmed in game: **the tiers now read as fourteen creatures.**
+Mechanism and the plan for families 02–17 are in
+`docs/rs_24_ch_parent_properties.txt`.
+
 ## What is knowingly NOT done
 
 - **Hitscan tiers have no attack profile.** `MakeHitscan` carries no

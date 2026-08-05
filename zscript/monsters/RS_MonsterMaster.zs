@@ -58,13 +58,78 @@ class RS_MonsterTierRow
 	// every monster. It is data the monster's own attack code reads and
 	// applies. Do not read this as "damage scaling is wired." It isn't.
 	double dmgMul;
+
+	// =================================================================
+	// THE CH PARENT PROPERTIES.  Added 2026-08-05, and this is the half
+	// of the port that was missing for three attempts.
+	//
+	// CHP's actors are `ACTOR CommonRedZombie : RedZombie` -- the STATES
+	// are CHP's, but every combat PROPERTY lives on the CH parent in
+	// CH/decorate/<Family>.txt. The port transcribed the states
+	// faithfully and took none of the parents, so all fourteen tiers ran
+	// with one identical flag set and only hp/speed/painChance varying.
+	// That is why every tier played like a plain zombieman no matter
+	// which creature was on screen: +MISSILEMORE was missing from the
+	// ten tiers that have it, +AVOIDMELEE from the eleven that have it.
+	//
+	// EVERY FIELD HERE IS "LEAVE ALONE" AT ITS ZERO VALUE, because
+	// ApplyTier runs on every retier and must be able to state a tier
+	// absolutely -- a flag T03 sets has to be CLEARED when the monster
+	// becomes T04. Flags are therefore assigned, never OR'd.
+	int    flags;         // RS_TF_* bitmask
+	string species;       // "" = leave alone
+	double radius;        // 0 = leave alone
+	double height;        // 0 = leave alone
+	double mass;          // 0 = leave alone
+	double scale;         // 0 = leave alone
+	int    gibHealth;     // 0 = leave alone
+	// RECORDED, NOT APPLIED -- deliberately, and this is not an omission.
+	// BloodColor is a `color` field, and setting it at runtime does
+	// nothing on its own: the engine bakes BloodTranslation at class-init
+	// from the DECORATE property, and that is what actually tints blood.
+	// The CH values are transcribed here because they are ground truth
+	// and finding them again costs a read of CH/decorate; applying them
+	// needs a BloodTranslation rebuild, which is its own job.
+	string bloodColor;
+	// 1.0 = normal, 0.5 = +MISSILEMORE, 0.125 = +MISSILEEVENMORE.
+	// LOWER FIRES MORE -- it scales the "don't fire" distance roll.
+	// 0 = leave alone.
+	double missileChance;
 }
+
+// Tier flag bits. Plain file-scope consts, NOT a static const array --
+// array literals do not reliably resolve on this build (CLAUDE.md).
+// Named for what CH writes, so a reader can diff this against
+// CH/decorate/<Family>.txt without a translation step.
+const RS_TF_AVOIDMELEE       = 1;
+const RS_TF_DONTHARMSPECIES  = 2;
+const RS_TF_THRUSPECIES      = 4;
+const RS_TF_NOINFIGHTING     = 8;
+const RS_TF_NOTARGETSWITCH   = 16;
+const RS_TF_ROLLSPRITE       = 32;
+const RS_TF_NOICEDEATH       = 64;
+const RS_TF_EXTREMEDEATH     = 128;
+const RS_TF_BOSS             = 256;
+const RS_TF_QUICKTORETALIATE = 512;
+const RS_TF_LOOKALLAROUND    = 1024;
+const RS_TF_NOFEAR           = 2048;
+const RS_TF_DONTMORPH        = 4096;
+// CH writes `-NORADIUSDMG` on all three bosses -- they DO take splash.
+// Spelled positively here so the zero value stays "leave alone".
+const RS_TF_TAKESRADIUSDMG   = 8192;
+const RS_TF_NOTARGET         = 16384;
+const RS_TF_LAXTELEFRAGDMG   = 32768;
+const RS_TF_DONTHARMCLASS    = 65536;
+const RS_TF_NOBLOOD          = 131072;
 
 class RS_MonsterMaster : Actor abstract
 {
 	// --- Tier ---
 	int    Tier;
 	double TierDamageMul;   // see RS_MonsterTierRow.dmgMul -- data only
+	// This tier's CH GibHealth, 0 = unstated. Held rather than assigned
+	// because the engine's GibHealth is readonly; GetGibHealth() serves it.
+	int    rsTierGibHealth;
 
 	// The health ceiling for our CURRENT tier. Tracked ourselves rather
 	// than read back from the engine: we rescale health per tier, so the
@@ -479,6 +544,37 @@ class RS_MonsterMaster : Actor abstract
 
 	void ApplyTier(bool instant)
 	{
+		// RE-POINT THE ATTACK STATE POINTERS AT THIS TIER'S OWN CLUSTER.
+		// This runs BEFORE the TierData bail on purpose -- a tier with no
+		// data row still needs correct pointers.
+		//
+		// WHY THIS EXISTS, because it is not obvious and it cost a session:
+		// the dispatcher block below declares Melee: for EVERY monster, so
+		// MeleeState was non-null on every tier of every family -- including
+		// the ones that have no melee attack at all. Two things break.
+		//
+		//   1. P_CheckMissileRange does `if (MeleeState == NULL) dist -= 128;`
+		//      -- "no melee attack, so fire more". That subtraction is what
+		//      makes a hitscan zombie aggressive. Every tier was losing it,
+		//      so all fourteen collapsed onto the same lethargic vanilla
+		//      firing rate and the tier grammar read as "just a zombieman"
+		//      no matter which body was on screen.
+		//   2. A_Chase/A_FastChase check melee FIRST and return. At melee
+		//      range a melee-less tier went Melee: -> TierState null ->
+		//      Goto See -> chase -> Melee: ... and never reached its
+		//      missile state at all.
+		//
+		// CHP is the evidence: of the fifteen family-01 actors only 01_F
+		// (T07) and 01_K (T11) define Melee:. The other thirteen have none,
+		// and get the -128.
+		//
+		// TierState returns null when neither Melee.<tier> nor Melee.T00
+		// exists, which is exactly the melee-less set, and keeps the real
+		// clusters for the tiers that do have one. Family-agnostic: a melee
+		// family that authors Melee.T00 still gets its fallback.
+		MeleeState   = TierState("Melee");
+		MissileState = TierState("Missile");
+
 		RS_MonsterTierRow r = new("RS_MonsterTierRow");
 		if (!TierData(Tier, r))
 			return;
@@ -510,6 +606,7 @@ class RS_MonsterMaster : Actor abstract
 		PainChance    = r.painChance;
 		TierDamageMul = r.dmgMul;
 
+		RS_ApplyTierProperties(r);
 		RS_ApplyTint();
 		BuildAttacksForTier(Tier);
 		OnTierApplied(Tier);
@@ -524,6 +621,122 @@ class RS_MonsterMaster : Actor abstract
 
 	virtual void OnTierApplied(int t) {}
 	virtual void OnRetier(int oldTier, int newTier) {}
+
+	// =================================================================
+	// THE CH PARENT PROPERTIES, APPLIED.
+	//
+	// Flags are ASSIGNED, not OR'd -- a monster that retiers from T03
+	// (+THRUSPECIES) to T04 (no THRUSPECIES) must lose it. The row is a
+	// complete statement of the tier, not a delta.
+	//
+	// The scalar fields are the exception: zero means "the family did
+	// not state one", so the authored Default survives. That keeps this
+	// additive for the sixteen families that have no table yet.
+	// =================================================================
+	private void RS_ApplyTierProperties(RS_MonsterTierRow r)
+	{
+		int f = r.flags;
+
+		// AGGRESSION AND SPACING -- the two that were actually costing us
+		// the tier grammar. MissileChanceMult scales the "don't fire"
+		// distance roll, so LOWER FIRES MORE (+MISSILEMORE == 0.5).
+		// AVOIDMELEE keeps the monster at range instead of closing.
+		bAVOIDMELEE       = (f & RS_TF_AVOIDMELEE)       != 0;
+		if (r.missileChance > 0)
+			MissileChanceMult = r.missileChance;
+
+		// INFIGHTING AND PASS-THROUGH.
+		bDONTHARMSPECIES  = (f & RS_TF_DONTHARMSPECIES)  != 0;
+		bTHRUSPECIES      = (f & RS_TF_THRUSPECIES)      != 0;
+		bDONTHARMCLASS    = (f & RS_TF_DONTHARMCLASS)    != 0;
+		bNOINFIGHTING     = (f & RS_TF_NOINFIGHTING)     != 0;
+		bNOTARGETSWITCH   = (f & RS_TF_NOTARGETSWITCH)   != 0;
+		bNOTARGET         = (f & RS_TF_NOTARGET)         != 0;
+
+		// PRESENTATION AND DEATH.
+		bROLLSPRITE       = (f & RS_TF_ROLLSPRITE)       != 0;
+		bNOICEDEATH       = (f & RS_TF_NOICEDEATH)       != 0;
+		bEXTREMEDEATH     = (f & RS_TF_EXTREMEDEATH)     != 0;
+		bNOBLOOD          = (f & RS_TF_NOBLOOD)          != 0;
+		// +FLOORCLIP is deliberately NOT assigned here. Every CH parent
+		// has it and so does every Default in this tree -- making it an
+		// absolutely-assigned tier flag would silently CLEAR it for the
+		// sixteen families that have no table yet.
+
+		// THE BOSS SET. CH writes -NORADIUSDMG on every boss it makes,
+		// so a boss here TAKES splash unless a family says otherwise.
+		bBOSS             = (f & RS_TF_BOSS)             != 0;
+		bQUICKTORETALIATE = (f & RS_TF_QUICKTORETALIATE) != 0;
+		bLOOKALLAROUND    = (f & RS_TF_LOOKALLAROUND)    != 0;
+		bNOFEAR           = (f & RS_TF_NOFEAR)           != 0;
+		bDONTMORPH        = (f & RS_TF_DONTMORPH)        != 0;
+		bLAXTELEFRAGDMG   = (f & RS_TF_LAXTELEFRAGDMG)   != 0;
+		bNORADIUSDMG      = (f & RS_TF_TAKESRADIUSDMG)   == 0
+		                    && (f & RS_TF_BOSS)          != 0;
+
+		// SPECIES. The Undertaker and MrBones share "UnderTaker" -- that
+		// is how a summoner does not shred its own summons.
+		if (r.species != "")
+			Species = r.species;
+
+		// BODY. A_SetSize rather than raw radius/height: the engine has
+		// to revalidate the position, and a bare assignment can leave the
+		// actor stuck in geometry after a mid-fight retier.
+		if (r.radius > 0 || r.height > 0)
+		{
+			A_SetSize(r.radius > 0 ? r.radius : radius,
+			          r.height > 0 ? r.height : height);
+		}
+		if (r.mass  > 0) Mass = int(r.mass);
+		if (r.scale > 0) A_SetScale(r.scale);
+		// GibHealth IS READONLY on the instance -- "Expression must be a
+		// modifiable value". The engine exposes it through the virtual
+		// GetGibHealth() instead, so the row's value is stashed and the
+		// override below serves it. Same shape as TierDamageFactor.
+		rsTierGibHealth = r.gibHealth;
+		// r.bloodColor is deliberately not applied -- see the field.
+	}
+
+	// CH states GibHealth on a few parents (FireBluZombie2 is -5: it comes
+	// apart almost immediately, which is the point of a kamikaze). 0 in the
+	// row means "the family did not state one" and the engine default
+	// stands.
+	override int GetGibHealth()
+	{
+		if (rsTierGibHealth != 0)
+			return rsTierGibHealth;
+		return Super.GetGibHealth();
+	}
+
+	// Per-tier DamageFactor. CH states these on the parent and they are
+	// real gameplay -- the cyan and gray zombies take DOUBLE from fire
+	// and melee, the fire zombie takes a QUARTER from fire, the bosses
+	// take triple from "Heroic". Per-type factors live on the class
+	// DEFAULTS in ZScript, so they cannot be assigned per instance;
+	// this virtual plus the DamageMobj hook below is the per-instance
+	// equivalent. 1.0 = unmodified.
+	virtual double TierDamageFactor(int t, Name damageType)
+	{
+		return 1.0;
+	}
+
+	override int DamageMobj(Actor inflictor, Actor source, int damage,
+	                        Name mod, int flags, double angle)
+	{
+		double fac = TierDamageFactor(Tier, mod);
+		if (fac != 1.0)
+		{
+			damage = int(damage * fac);
+			// A factor of 0 means immune, and that has to survive the
+			// int truncation above -- otherwise a 1-damage hit rounds
+			// back up to nothing-in-particular rather than nothing.
+			if (fac <= 0.0)
+				return 0;
+			if (damage < 1)
+				damage = 1;
+		}
+		return Super.DamageMobj(inflictor, source, damage, mod, flags, angle);
+	}
 
 	// =================================================================
 	// BODY -- thirteen sprite names on one line, in ladder order.
