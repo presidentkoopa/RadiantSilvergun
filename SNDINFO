@@ -1685,3 +1685,17 @@ $limit rs/elite/reveal	0
 rs/elite/boss		RSELBOSS
 $limit rs/elite/boss	0
 $pitchshift rs/elite/boss	0
+
+// --- CH Demon family (2026-08-05): playback modifiers CH declares for
+// names the 693-lump import already defined; the import carried the
+// definitions but not these. (CH SNDINFO.txt:558, 874, 770, 771.)
+$limit Juggernaut/Step 0
+$volume Butcher/melee 0.7
+$limit SlimeBall/Splat 0
+$volume SlimeBall/Splat 0.7
+
+// --- CH Lost Soul family (2026-08-05): playback modifiers CH declares
+// for names the whole-SNDINFO import already defined, same shape as the
+// demon block above. (CH SNDINFO.txt:853-854.)
+$limit Hornet/Fly 0
+$volume Hornet/fly 0.5

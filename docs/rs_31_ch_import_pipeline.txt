@@ -1,0 +1,62 @@
+================================================================================
+   RS_31 -- THE CH FAMILY IMPORT PIPELINE THAT WORKED
+   2026-08-05. Written after Zombieman, Shotgunner, Chaingunner, and Imp
+   shipped in one session, compiled, and were verified by the owner at all
+   tiers. This documents HOW. It does not grant scope: ASK THE OWNER which
+   family is next and what his current strips are. Do not launch the game;
+   he compiles, errors come back to you by line.
+================================================================================
+
+THE PIPELINE, in order, one family at a time. Source of truth is
+C:\Users\Command\Desktop\CH -- read the family's decorate/*.txt WHOLE (every
+line; the "read only the first actor" shortcut cost a previous project
+14/15ths of its source), then chase every external actor it names to its
+defining CH file:line (they scatter across 6+ files; grep case-insensitively,
+CH mixes Actor/ACTOR). Rebuild native ZScript in zscript/monsters/<family>/
+as two files -- RS_<Family>FX.zs (support/projectiles/externals) and
+RS_<Family>.zs (colourset spawner + cvar stubs + bodies) -- every class
+RS_-prefixed, every class citing its CH file:line, every internal string
+reference renamed to RS_. Shared classes from earlier families (RS_Zom,
+icons, tokens, bundles, RS_CH_* drop gates, RS_SplashAbyss...) are referenced
+read-only, never redefined -- the compiler names duplicates. Conversion rules
+that came from real compile errors: rolls become DamageFunction (random(a,b))
+and bare constants STAY bare (engine multiplies missile Damage N by 1d8 --
+flattening a roll is data loss, see RS_DIBigOne); CallACS gates become
+RS_Zom.CV('rs_ch_*', CH-default) with CH's exact value semantics (1=colour
+off/reroll, 3=fifty-fifty); A_SetUserVar -> anon blocks; A_ChangeFlag ->
+{ bFLAG = x; }; ThrustThing angle expressions need int(); A_Chase "" labels
+become null; A_RadiusGive filter 0 becomes null; DamageThing -> A_DamageSelf;
++DOOMBOUNCE -> BounceType "Doom"; a literal unknown class name is a compile
+error even guarded -- assemble it at runtime (see MrBones' RS_CommonRevenant
+guard, which self-activates when revenants land). Standing strips, each
+preserved at its site as a "// CH:" comment so nothing is silently gutted:
+ACS announcers, the CHRandom_GibGenerator/NashGore gore chain (owner accepts
+vanilla gore; XDeath ANIMATIONS stay), all DRLA RL*/RareArmorPool cross-mod
+drops, and LegenDoom gates. Tier = RS_Zom.SetTier(self, N) in PostBeginPlay,
+token amount is the tier, ladder is CH's icon index (1 Common .. 13 Brown,
+black bosses both 10); minions/summons get no token.
+
+Then wire and verify -- the verification is the import. Wiring: two includes
+in zscript.txt's Monsters block; a FamilyList case + netevent in
+zscript/monsters/RS_MonsterDebug.zs and a matching MENUDEF Monster Debug
+button; CVARINFO only if the family gates on a cvar no earlier family added
+(rs_ch_* set is complete through imp); MAPINFO only for new EventHandlers
+(PAIR RULE: handler class and AddEventHandlers entry land in the same
+change). Verify with denominators, mechanically: (1) every "RS_*" string in
+zscript/monsters resolves to a defined class, zero duplicates; (2) every
+sprite frame letter in every state line resolves against sprites/rs_<family>/
++ repo tree + IWAD -- AND parse BOTH halves of mirror lumps (AGURA1C1
+defines frame A and frame C; a first-half-only scan reports false gaps);
+(3) every sound name resolves end-to-end through SNDINFO to a lump,
+following $random members. Anything unresolved must be proven missing IN CH
+ITSELF (15 such frames and 4 such sounds exist across the four families,
+each flagged in its file header) -- verbatim silence is faithful, silent
+substitution is banned. Copy sprites from the WHOLE CH/sprites tree by
+4-char prefix into sprites/rs_<family>/; prefixes CH doesn't ship resolve
+from the IWAD and must NOT be extracted from doom2.wad. Remaining families
+in CH file order: Demons, spectres, lostsouls, Cacodemons, thepains,
+Hellknights, Barons, Revenants, Fatsos, Spiders, Archviles, CYBIES,
+MASTERMINDS -- Revenants closes the MrBones dangler. Expect deprecation
+warnings (MISSILEMORE, VelX, A_CustomMissile, "Bad hex number: no") -- they
+are CH's idiom kept verbatim and are not errors.
+================================================================================

@@ -18,6 +18,7 @@ OptionMenu "RS_MainOptions"
 	Title "Radiant Silvergun Options"
 	StaticText " "
 
+	Submenu "Weapon Options", "RS_WeaponOptions"
 	Submenu "Weapon Fidelity Options", "RS_FXSettings"
 	Submenu "Weapon Sound Assignment", "RS_WeaponSoundOptions"
 	Submenu "$TFLV_OPT_TITLE", "GunBonsaiOptions"
@@ -27,6 +28,52 @@ OptionMenu "RS_MainOptions"
 	Submenu "Monster Health Bars", "RS_HPBarOptions"
 	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
 	Submenu "Monster Debug", "RS_MonsterDebug"
+	Submenu "UI Debug", "RS_UIDebug"
+}
+
+// ---------------------------------------------------------------------
+// Weapon Options -- gameplay behavior of the guns themselves (the FX
+// menu is look/feel; this is rules). Grows as more weapon-behavior
+// knobs land: cadence, condition, reload.
+// ---------------------------------------------------------------------
+OptionMenu "RS_WeaponOptions"
+{
+	Title "Weapon Options"
+	StaticText " "
+	StaticText "Firing before a weapon's action fully cycles widens", "DarkGray"
+	StaticText "the cone. Waiting it out tightens it by this much.", "DarkGray"
+	Slider "Patience Accuracy Bonus (%)", "rs_cadence_patience", 0, 90, 5, 0
+	StaticText " "
+	StaticText "Weapon wear.", "DarkGray"
+	Option "Weapons Degrade", "rs_condition_degrade", "OnOff"
+	Slider "Hazard Floor Wear (per second)", "rs_condition_hazard_rate", 0.0, 5.0, 0.25, 2
+	Slider "Radsuit Gun Protection (0=full)", "rs_condition_hazard_suited", 0.0, 1.0, 0.05, 2
+	StaticText " "
+	Option "HUD Condition Readout (CND)", "rs_hud_condition", "OnOff"
+}
+
+// ---------------------------------------------------------------------
+// UI Debug -- fire the rs-ui-* / showcase netevents without the
+// console. Same pattern as Monster Debug above: every button is a
+// Command running a netevent; the handlers live in RS_UI.zs
+// (RS_UIHandler, MAPINFO-registered). Bound to U by default (KEYCONF).
+// ---------------------------------------------------------------------
+OptionMenu "RS_UIDebug"
+{
+	Title "UI Debug"
+	StaticText " "
+	Command "Cycle Sheets (Offhand / Mainhand / Player)", "netevent gboh-unified-info"
+	StaticText "Left/Right inside a sheet also cycles.", "DarkGray"
+	StaticText " "
+	Command "Spec Card -- Mainhand", "netevent rs-ui-card 1"
+	Command "Spec Card -- Offhand", "netevent rs-ui-card 0"
+	StaticText " "
+	Command "Showcase: Spin Current Weapon (toggle)", "netevent rs-showcase"
+	StaticText " "
+	StaticText "Twin wheel is a HOLD bind -- hold V in game,", "DarkGray"
+	StaticText "it cannot be driven from inside a menu.", "DarkGray"
+	StaticText " "
+	Command "Give Current Weapon a Random Profile", "netevent rs_debug_random_profile"
 }
 
 // ---------------------------------------------------------------------
@@ -50,6 +97,12 @@ OptionMenu "RS_MonsterDebug"
 	Command "Spawn Shotgunner Family", "netevent rs_spawnall_shotgunner"
 	Command "Spawn Chaingunner Family", "netevent rs_spawnall_chaingunner"
 	Command "Spawn Imp Family", "netevent rs_spawnall_imp"
+	Command "Spawn Demon Family", "netevent rs_spawnall_demon"
+	Command "Spawn Spectre Family", "netevent rs_spawnall_spectre"
+	Command "Spawn Lost Soul Family", "netevent rs_spawnall_lostsoul"
+	Command "Spawn Cacodemon Family", "netevent rs_spawnall_cacodemon"
+	Command "Spawn Pain Elemental Family", "netevent rs_spawnall_painelemental"
+	Command "Spawn Hell Knight Family", "netevent rs_spawnall_hellknight"
 	StaticText " "
 	// Elite summons -- handled by RS_EliteHandler (zscript/systems/
 	// monster/RS_Elite.zs). Aim at a monster BEFORE opening the menu;

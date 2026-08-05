@@ -4,6 +4,10 @@ version "4.14"
 
 //#include "zscript/systems/player/RS_OffhandSeat.zs" // disabled -- see plan history, offhand system needs rebuilding
 #include "zscript/systems/weapon/RS_Roll.zs"
+// Weapon Condition degradation -- the caller RS_Roll.DegradeCondition never
+// had. Damage hits + hazard floors, radsuit dial. RS_ConditionHandler must
+// ALSO be in MAPINFO.txt's AddEventHandlers.
+#include "zscript/systems/weapon/RS_Condition.zs"
 #include "zscript/systems/player/RS_Bits.zs"
 #include "zscript/systems/score/RS_Score.zs"
 
@@ -83,6 +87,41 @@ version "4.14"
 // rebuilt native in RS_ImpFX.zs (RS_BrownImpCommand).
 #include "zscript/monsters/imp/RS_ImpFX.zs"
 #include "zscript/monsters/imp/RS_Imp.zs"
+// CH Demon (Pinky) family, rebuilt native 2026-08-05, same rules
+// (Demons.txt read whole, 2603 lines). RS_DemonFX.zs also defines the
+// classes CH keeps in spectres.txt but fires from both families
+// (RS_RedDemonBloodBolt3) -- the spectre pair below references them.
+#include "zscript/monsters/demon/RS_DemonFX.zs"
+#include "zscript/monsters/demon/RS_Demon.zs"
+// CH Spectre family, rebuilt native 2026-08-05, same rules
+// (spectres.txt read whole, 1688 lines). Depends on the demon pair
+// above (RS_AbyssDemon2, RS_FireBluDemon2, RS_BloodDemonArm/2,
+// RS_RedDemonBloodBolt3) -- keep it after demon.
+#include "zscript/monsters/spectre/RS_SpectreFX.zs"
+#include "zscript/monsters/spectre/RS_Spectre.zs"
+// CH Cacodemon family, rebuilt native 2026-08-05, same rules
+// (Cacodemons.txt read whole, 3876 lines). Ahead of lostsoul: the lost
+// soul pair fires this family's projectiles (RS_Cacospit1, RS_CacoFire2-4,
+// RS_SpitFireCaco, RS_SbombCaco, RS_CrackodemonBall...) read-only.
+#include "zscript/monsters/cacodemon/RS_CacodemonFX.zs"
+#include "zscript/monsters/cacodemon/RS_Cacodemon.zs"
+// CH Lost Soul family, rebuilt native 2026-08-05, same rules
+// (lostsouls.txt read whole, 3092 lines). Chases externals from six
+// other CH files (Revenants, Barons, Archviles, Hellknights, Fatsos);
+// depends on the cacodemon pair above.
+#include "zscript/monsters/lostsoul/RS_LostSoulFX.zs"
+#include "zscript/monsters/lostsoul/RS_LostSoul.zs"
+// CH Pain Elemental family, rebuilt native 2026-08-05, same rules
+// (thepains.txt read whole, 3307 lines). Spawns lostsoul-lane bodies;
+// PERAGE/PEHULK pack-buffs rebuilt native (RS_PERageCtl/RS_PEHulkCtl).
+#include "zscript/monsters/painelemental/RS_PainElementalFX.zs"
+#include "zscript/monsters/painelemental/RS_PainElemental.zs"
+// CH Hell Knight family, rebuilt native 2026-08-05, same rules
+// (Hellknights.txt read whole, 3546 lines). Landing it closes the
+// lostsoul family's RS_CommonHK/GreenHK/BlueHK/YellowHK guards; the ACS
+// BaronMissile lead-shot is rebuilt native (RS_HKLead).
+#include "zscript/monsters/hellknight/RS_HellKnightFX.zs"
+#include "zscript/monsters/hellknight/RS_HellKnight.zs"
 // Debug lineup spawner (netevent rs_spawnall). RS_MonsterDebugHandler is
 // ALSO in MAPINFO.txt's AddEventHandlers -- the two are a pair.
 #include "zscript/monsters/RS_MonsterDebug.zs"

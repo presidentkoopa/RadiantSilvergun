@@ -609,6 +609,36 @@ server int rs_elite_weight_c15 = 3;         // C15 Bronze   -- painless immovabl
 server int rs_elite_weight_c16 = 2;         // C16 Silver   -- magnetic pull
 server int rs_elite_weight_c17 = 1;         // C17 Gold     -- gilds nearby monsters
 
+// =====================================================================
+// Weapon Condition degradation -- zscript/systems/weapon/RS_Condition.zs.
+// Wires RS_Roll.DegradeCondition into play: hits the player takes wear
+// both equipped weapons (threshold/loss numbers live in RS_Roll), and
+// damaging floors grind Condition continuously while stood in.
+// =====================================================================
+server bool rs_condition_degrade = true;         // master switch for both paths
+server float rs_condition_hazard_rate = 1.0;     // Condition points per second on a damaging floor
+// Radsuit dial: how much of the hazard grind suited guns still take.
+// 0 = suit fully protects the guns, 1 = suit never cared about them.
+server float rs_condition_hazard_suited = 0.25;
+
+// CND readout on the GunBonsai HUDs (both hands). Only draws below
+// Condition 80 -- a healthy gun shows nothing. user scope: cosmetic.
+user bool rs_hud_condition = true;
+
+// =====================================================================
+// Weapon Options -- MENUDEF's RS_WeaponOptions (expand here later).
+// Patience bonus: firing AFTER the full firing sequence completes
+// tightens the cone by this percent (semi-auto only -- full-auto's hard
+// gate does its pacing and never reads this). Firing early keeps the
+// existing overshoot spread penalty. 0 disables the bonus entirely.
+// =====================================================================
+server int rs_cadence_patience = 40;
+
 // Shotgunner family addition (2026-08-05): cyan's bounce-dodge gate.
 // 1 = no jump-dodge (CH default 0 = dodges).
 server int rs_ch_cyanbounce = 0;    // CH: CH_CyanBounce
+
+// Hell Knight family addition (2026-08-05): the green knight's lead-shot
+// opt-out. 1 = plain BaronBall combo attack instead of the lead-predicted
+// shot (CH default false = lead-predict).
+server int rs_ch_intercept = 0;     // CH: CH_Intercept (CHSett.acs:84)
