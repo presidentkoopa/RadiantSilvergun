@@ -223,6 +223,10 @@ class RS_LoadPE3 : Actor
 // ---------- WHITE: holy seekers (reuses RS_HKRedDeath) + sentinel spawner folded ----------
 // (White's MiniSentinelPE/BufferWhitePE/HealthFountain summons folded -> cosmetic/gameplay flag.
 //  HKRedDeath already defined; White uses it directly.)
+// [CORRECTED 2026-08-04] BufferWhitePE was NOT cosmetic. It rolls one of
+// three real pack buffs -- PERAGE, PEHULK, SpeedBuffPE -- and was gutted
+// because those tokens looked like empty ACS wrappers. Restored below;
+// see docs/rs_19_acs_inventory.txt.
 
 // =====================================================================
 // CHP FAMILY 10 IMPORT (rebuild pass). Everything CHP's pain elementals
@@ -608,9 +612,29 @@ class RS_NothinPuff : Actor
 	Default { +NOBLOCKMAP +NOGRAVITY +NOINTERACTION; RenderStyle "None"; }
 	States { Spawn: TNT1 A 1; Stop; }
 }
-// The Watcher's aura drops. CHP routes rage/hulk/speed through ACS
-// buff scripts; with ACS stripped these keep the tell and the one
-// radius-give that needs no script.
+// The Watcher's aura drops -- RESTORED 1:1 TO CHP 10_W.txt:3896 (rs_19/L4).
+//
+// This actor used to read: "CHP routes rage/hulk/speed through ACS buff
+// scripts; with ACS stripped these keep the tell and the one radius-give
+// that needs no script." Both halves of that were wrong. The ACS is where
+// the behaviour LIVED (CHSett2.acs PERAGE:492 and PEHULK:551), and CHP's
+// BufferWhitePE gives NO health at all -- the 15-point heal here was
+// invented to fill the hole the stripping left.
+//
+// What it really is: the T12 Watcher drops orbs that each roll ONE of
+// three pack buffs, colour-coded so the player can read which landed.
+//     A1  red    RS_PERage        +50% damage DEALT, immune to stagger
+//     A2  green  RS_PEHulk        takes QUARTER damage, unpushable
+//     A3  blue   RS_PESpeedBuff   +10 speed, ALWAYSFAST
+// All three run 600 tics. EXFILTER excludes the Watcher's own kind and
+// EXSPECIES excludes species "PE", so the orbs buff the ESCORT, never
+// the elementals -- that asymmetry is the whole point of the fight.
+// (This tree does not set Species on monsters, so the EXSPECIES half is
+// carried by the class filter alone; see the same note in RS_Spectre.)
+//
+// Particles use hex colour literals and the 17-argument form, matching
+// the working calls at RS_demon_projectiles.zs:251 rather than CHP's
+// named-colour 16-arg form.
 class RS_BufferWhitePE : Actor
 {
 	Default
@@ -624,9 +648,20 @@ class RS_BufferWhitePE : Actor
 	{
 	Spawn:
 		RNGG A 0;
-		Goto Death;
-	Death:
-		RNGG A 6 { A_RadiusGive("Health", 526, RGF_MONSTERS, 15); }
+		Goto See;
+	See:
+		TNT1 A 0 A_Jump(256, "A1", "A2", "A3");
+	A1:
+		RNGG A 0 { A_RadiusGive("RS_PERage", 526, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_PainElemental"); }
+		TNT1 AAAAA 0 { A_SpawnParticle(0xFF0000, SPF_FULLBRIGHT|SPF_RELATIVE, random(27, 74), random(1, 13), frandom(0, 360), 0, 0, 24, frandom(0.1, 11.0), frandom(-0.15, 0.25), frandom(-6.9, 6.9), 0, 0, -0.1, 0.98, -1, 0); }
+		Stop;
+	A2:
+		RNGG A 0 { A_RadiusGive("RS_PEHulk", 526, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_PainElemental"); }
+		TNT1 AAAAA 0 { A_SpawnParticle(0x00FF00, SPF_FULLBRIGHT|SPF_RELATIVE, random(27, 74), random(1, 13), frandom(0, 360), 0, 0, 24, frandom(0.1, 11.0), frandom(-0.15, 0.25), frandom(-6.9, 6.9), 0, 0, -0.1, 0.98, -1, 0); }
+		Stop;
+	A3:
+		RNGG A 0 { A_RadiusGive("RS_PESpeedBuff", 526, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_PainElemental"); }
+		TNT1 AAAAA 0 { A_SpawnParticle(0x0000FF, SPF_FULLBRIGHT|SPF_RELATIVE, random(27, 74), random(1, 13), frandom(0, 360), 0, 0, 24, frandom(0.1, 11.0), frandom(-0.15, 0.25), frandom(-6.9, 6.9), 0, 0, -0.1, 0.98, -1, 0); }
 		Stop;
 	}
 }

@@ -334,3 +334,125 @@ class RS_BrownMindCommand : RS_PowerPackGuard
 	Default { DamageFactor 0.50; Powerup.Duration 300; }
 	override void InitEffect() { doJostle = true; wantFast = true; Super.InitEffect(); }
 }
+
+// ---------------------------------------------------------------------
+// THE PAIN ELEMENTAL LINE -- PERAGE and PEHULK, CHSett2.acs:492 and :551.
+// One offensive, one defensive, both 600 tics, both boss-exempt.
+//
+// MIND THE TWO DIFFERENT DAMAGE PROPERTIES -- they are easy to confuse
+// and they point in opposite directions:
+//   APROP_DamageMultiplier -> Actor.DamageMultiply -- damage DEALT.
+//                             PERAGE sets 1.5: hits 50% HARDER.
+//   APROP_DamageFactor     -> Actor.DamageFactor   -- damage RECEIVED.
+//                             PEHULK sets 0.25: takes 75% LESS.
+// Reading either as "damage" and picking the wrong one silently inverts
+// the buff, so both are spelled out here.
+// ---------------------------------------------------------------------
+
+// CH: PERAGE. +50% damage dealt and immunity to pain stagger, 600 tics.
+// NOPAIN is the interesting half: a raging PE cannot be flinch-locked,
+// which is what makes the rage read as rage rather than as a number.
+class RS_PERage : Powerup
+{
+	bool weSetNoPain;
+	bool applied;
+
+	Default
+	{
+		Powerup.Duration 600;        // CH: Delay(600).
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.ALWAYSPICKUP
+		+INVENTORY.NOSCREENBLINK
+		+INVENTORY.UNDROPPABLE
+		-INVENTORY.INVBAR
+	}
+
+	override bool TryPickup(in out Actor toucher)
+	{
+		if (!toucher || toucher.bBOSS || !toucher.bISMONSTER)
+			return false;
+		return Super.TryPickup(toucher);
+	}
+
+	override void InitEffect()
+	{
+		Super.InitEffect();
+		if (!Owner || Owner.bBOSS)
+			return;
+
+		Owner.DamageMultiply *= 1.5;
+
+		if (!Owner.bNOPAIN)
+		{
+			Owner.bNOPAIN = true;
+			weSetNoPain = true;
+		}
+		applied = true;
+	}
+
+	override void EndEffect()
+	{
+		if (applied && Owner)
+		{
+			Owner.DamageMultiply /= 1.5;
+			if (weSetNoPain)
+				Owner.bNOPAIN = false;
+		}
+		applied = false;
+		Super.EndEffect();
+	}
+}
+
+// CH: PEHULK. Quarter damage taken for 600 tics, plus three flags.
+// NOTE CH CLEARS NoDropOff rather than setting it -- the hulked PE is
+// allowed to walk off ledges it would normally refuse. That asymmetry is
+// deliberate and is preserved; it is not a transcription slip.
+class RS_PEHulk : PowerProtection
+{
+	bool setRetaliate, setDontThrust, clearedNoDropOff;
+	bool applied;
+
+	Default
+	{
+		DamageFactor 0.25;           // CH: APROP_DAMAGEFACTOR 0.25.
+		Powerup.Duration 600;
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.ALWAYSPICKUP
+		+INVENTORY.NOSCREENBLINK
+		+INVENTORY.UNDROPPABLE
+		-INVENTORY.INVBAR
+	}
+
+	override bool TryPickup(in out Actor toucher)
+	{
+		if (!toucher || toucher.bBOSS || !toucher.bISMONSTER)
+			return false;
+		return Super.TryPickup(toucher);
+	}
+
+	override void InitEffect()
+	{
+		Super.InitEffect();
+		if (!Owner || Owner.bBOSS)
+			return;
+
+		if (!Owner.bQUICKTORETALIATE) { Owner.bQUICKTORETALIATE = true;  setRetaliate     = true; }
+		if (!Owner.bDONTTHRUST)       { Owner.bDONTTHRUST       = true;  setDontThrust    = true; }
+		if (Owner.bNODROPOFF)         { Owner.bNODROPOFF        = false; clearedNoDropOff = true; }
+		applied = true;
+	}
+
+	override void EndEffect()
+	{
+		// Only undo what we actually changed -- the same correction made
+		// to ALWAYSFAST at the top of this file, for the same reason.
+		if (applied && Owner)
+		{
+			if (setRetaliate)     Owner.bQUICKTORETALIATE = false;
+			if (setDontThrust)    Owner.bDONTTHRUST       = false;
+			if (clearedNoDropOff) Owner.bNODROPOFF        = true;
+		}
+		applied = false;
+		Super.EndEffect();
+	}
+}
