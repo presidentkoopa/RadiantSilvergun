@@ -40,11 +40,11 @@ class RS_MonsterCatalog
 	// escalating instead of flatlining on Cacodemons.
 	static Class<Actor> ROSTER_VilePortal(int step)
 	{
-		if (step <= 0) return "RS_Imp";
-		if (step == 1) return "RS_Revenant";
-		if (step == 2) return "RS_Cacodemon";
-		if (step == 3) return "RS_HellKnight";
-		return "RS_Baron";
+		if (step <= 0) return "DoomImp";
+		if (step == 1) return "Revenant";
+		if (step == 2) return "Cacodemon";
+		if (step == 3) return "HellKnight";
+		return "BaronOfHell";
 	}
 
 	// The Gray Archvile's flat conjure -- CHP picks one of six with
@@ -53,12 +53,12 @@ class RS_MonsterCatalog
 	// deepening" ladder, and the contrast is the design.
 	static Class<Actor> ROSTER_VileConjure(int pick)
 	{
-		if (pick <= 0) return "RS_Demon";
+		if (pick <= 0) return "Demon";
 		if (pick == 1) return "RS_CG_C0001";
-		if (pick == 2) return "RS_Revenant";
-		if (pick == 3) return "RS_HellKnight";
-		if (pick == 4) return "RS_Spectre";
-		return "RS_Cacodemon";
+		if (pick == 2) return "Revenant";
+		if (pick == 3) return "HellKnight";
+		if (pick == 4) return "Spectre";
+		return "Cacodemon";
 	}
 
 	static int ROSTER_VileConjureCount() { return 6; }
@@ -66,30 +66,30 @@ class RS_MonsterCatalog
 	// Baron's tentacle pack -- two different minion shapes from one
 	// summoner, a melee rusher and a ranged plinker, so the pack has
 	// internal structure rather than being four copies of one thing.
-	static Class<Actor> MINION_BaronRusher()  { return "RS_BaronTentacle"; }
-	static Class<Actor> MINION_BaronRanger()  { return "RS_BaronTentacleRanged"; }
+	static Class<Actor> MINION_BaronRusher()  { return null; }
+	static Class<Actor> MINION_BaronRanger()  { return null; }
 
 	// Pain Elemental's permanent escort. Small, fast, replaced when it
 	// dies -- the thing that makes the White PE fight feel maintained
 	// rather than a one-shot summon.
-	static Class<Actor> MINION_Sentinel()     { return "RS_PainSentinel"; }
+	static Class<Actor> MINION_Sentinel()     { return null; }
 
 	// The Butcher's pack -- fast fragile harassers released by a
 	// hit-counter rather than summoned on a timer.
-	static Class<Actor> MINION_DemonDog()     { return "RS_DemonDog"; }
+	static Class<Actor> MINION_DemonDog()     { return null; }
 
 	// =================================================================
 	// SATELLITES -- orbiting attached children.
 	// =================================================================
 
-	static Class<Actor> SAT_VileEye()  { return "RS_VileEye"; }
+	static Class<Actor> SAT_VileEye()  { return null; }
 
 	// =================================================================
 	// PORTALS / SPAWNERS -- free-standing objects that summon on their
 	// own schedule rather than the monster summoning directly.
 	// =================================================================
 
-	static Class<Actor> PORTAL_Vile()  { return "RS_VilePortal"; }
+	static Class<Actor> PORTAL_Vile()  { return null; }
 
 	// =================================================================
 	// MORPH STAGES -- the "death is a phase change" chain.
@@ -99,19 +99,19 @@ class RS_MonsterCatalog
 	// reveals the true form" chain was an RS invention; CHP's Hades
 	// (09_K) instead goes NOPAIN below 3000 HP and summons two red
 	// cacodemons inline, which is what RS_Cacodemon now implements.
-	static Class<Actor> MORPH_PainPilot()  { return "RS_PainPilot"; }
-	static Class<Actor> MORPH_BaronFallen(){ return "RS_BaronFallen"; }
+	static Class<Actor> MORPH_PainPilot()  { return null; }
+	static Class<Actor> MORPH_BaronFallen(){ return null; }
 
 	// Revenant chain: body -> shade -> (shade brings a bound shadow).
-	static Class<Actor> MORPH_RevShade()   { return "RS_RevenantShade"; }
-	static Class<Actor> MORPH_RevShadow()  { return "RS_RevenantShadow"; }
+	static Class<Actor> MORPH_RevShade()   { return null; }
+	static Class<Actor> MORPH_RevShadow()  { return null; }
 
 	// Arachnotron shrink chain: full -> split -> remnant -> shards.
-	static Class<Actor> MORPH_ArachStage2(){ return "RS_ArachnotronStage2"; }
-	static Class<Actor> MORPH_ArachStage3(){ return "RS_ArachnotronStage3"; }
+	static Class<Actor> MORPH_ArachStage2(){ return null; }
+	static Class<Actor> MORPH_ArachStage3(){ return null; }
 
 	// EX tier -- the vile boss dies into a phantom rather than ending.
-	static Class<Actor> MORPH_ExVilePhantom(){ return "RS_EX_ArchvilePhantom"; }
+	static Class<Actor> MORPH_ExVilePhantom(){ return null; }
 
 	// =================================================================
 	// MONSTER PROJECTILES
@@ -157,7 +157,7 @@ class RS_MonsterCatalog
 	static Class<Actor> PROJ_ZM_Bone2()      { return "RS_BoneProjZM2"; }
 	static Class<Actor> PROJ_ZM_Bone3()      { return "RS_BoneProjZM3"; }
 	static Class<Actor> PROJ_ZM_Shovel()     { return "RS_ShoveZM"; }
-	static Class<Actor> PROJ_ZM_Tornado()    { return "RS_BoneTornado"; }
+	static Class<Actor> PROJ_ZM_Tornado()    { return null; }
 	static Class<Actor> MINION_ZM_Bones()    { return "RS_MrBones"; }
 
 	static Class<Actor> PROJ_BaronStar()     { return "RS_BaronStar"; }

@@ -782,7 +782,7 @@ class RS_MrBones : Actor
 		// Our port had MrBones defined and never spawned, and the boss
 		// climbing its ladder from Pain instead. See
 		// zscript/monsters/Zombieman/attacks/RS_Zombieman_Undertaker.zs.
-		SKLT P 12 { A_SpawnItemEx("RS_BoneTithe", 0, 0, 4, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		SKLT P 12 { A_SpawnItemEx("", 0, 0, 4, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
 		Goto Vanish;
 	Vanish:
 		SKLT Q 20 { A_FadeOut(0.3); }
@@ -798,14 +798,14 @@ class RS_PortalSummons : RandomSpawner
 {
 	Default
 	{
-		DropItem "RS_Revenant", 255, 300;
-		DropItem "RS_LostSoul", 255, 200;
-		DropItem "RS_Zombieman", 255, 80;
-		DropItem "RS_Shotgunner", 255, 50;
+		DropItem "Revenant", 255, 300;
+		DropItem "LostSoul", 255, 200;
+		DropItem "ZombieMan", 255, 80;
+		DropItem "ShotgunGuy", 255, 50;
 		DropItem "RS_CG_C0001", 255, 70;
-		DropItem "RS_Imp", 255, 300;
-		DropItem "RS_Demon", 255, 150;
-		DropItem "RS_Cacodemon", 255, 50;
+		DropItem "DoomImp", 255, 300;
+		DropItem "Demon", 255, 150;
+		DropItem "Cacodemon", 255, 50;
 	}
 }
 

@@ -450,13 +450,13 @@ class RS_DeathBreathDI : Actor
 	{
 	Spawn:
 		AGAS ABCDE 4 A_Explode(1,42);
-		AGAS E 0 A_RadiusGive("Health", 64, RGF_MONSTERS|RGF_EXFILTER, 3, "RS_Imp");
+		AGAS E 0 A_RadiusGive("Health", 64, RGF_MONSTERS|RGF_EXFILTER, 3, "DoomImp");
 		AGAS FGDEF 4 A_Explode(1,42);
-		AGAS F 0 A_RadiusGive("Health", 64, RGF_MONSTERS|RGF_EXFILTER, 5, "RS_Imp");
+		AGAS F 0 A_RadiusGive("Health", 64, RGF_MONSTERS|RGF_EXFILTER, 5, "DoomImp");
 		AGAS GDEFGD 4 A_Explode(1,42);
-		AGAS E 0 A_RadiusGive("Health", 64, RGF_MONSTERS|RGF_EXFILTER, 3, "RS_Imp");
+		AGAS E 0 A_RadiusGive("Health", 64, RGF_MONSTERS|RGF_EXFILTER, 3, "DoomImp");
 		AGAS EFGDEF 4 A_Explode(1,42);
-		AGAS F 0 A_RadiusGive("Health", 64, RGF_MONSTERS|RGF_EXFILTER, 5, "RS_Imp");
+		AGAS F 0 A_RadiusGive("Health", 64, RGF_MONSTERS|RGF_EXFILTER, 5, "DoomImp");
 		AGAS GDCBA 4 A_Explode(1,42);
 		Goto Death;
 	Death:

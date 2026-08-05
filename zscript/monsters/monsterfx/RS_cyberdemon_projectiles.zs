@@ -2148,8 +2148,9 @@ class RS_RomeroEXShield : Actor
 	Death:
 		TNT1 A 0
 		{
-			let m = RS_Cyberdemon(master);
-			if (m) m.RS_ClearGlitchShield();
+			// RS_Cyberdemon is a CAST, not a class-name string, so the
+			// dangle sweep did not catch it. Family 17 is quarantined and
+			// unloaded; restore this cast when it is rebuilt from CH.
 		}
 		CHSW Z 2 Bright A_NoBlocking();
 		CHSW Z 2 Bright A_SetScale(1.0);

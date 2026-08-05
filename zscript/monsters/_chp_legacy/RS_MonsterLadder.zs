@@ -41,7 +41,7 @@ class RS_MonsterLadder : RS_MonsterMaster abstract
 	// Switch, not a static const array: this engine build does not
 	// resolve `static const TYPE name[] = {...}` in a class body
 	// reliably (three real bugs so far).
-	override int t, out RS_MonsterTierRow r)
+	override bool TierData(int t, out RS_MonsterTierRow r)
 	{
 		r.hpMul = 1.0; r.spdMul = 1.0; r.painChance = 200; r.dmgMul = 1.0;
 
@@ -69,7 +69,7 @@ class RS_MonsterLadder : RS_MonsterMaster abstract
 	// Show a specific tier's BODY without committing to that tier --
 	// display only, no stat recompute. Used by the transform tell to
 	// flick between the old and new creature mid-telegraph.
-	override int t)
+	override void RS_ShowBody(int t)
 	{
 		State st = FindStateByString("See." .. TierLabel(t), true);
 		if (!st) st = FindStateByString("Spawn." .. TierLabel(t), true);
@@ -78,7 +78,7 @@ class RS_MonsterLadder : RS_MonsterMaster abstract
 	}
 
 
-	override bool instant)
+	override void ApplyTier(bool instant)
 	{
 		// RE-POINT THE ATTACK STATE POINTERS AT THIS TIER'S OWN CLUSTER.
 		// This runs BEFORE the TierData bail on purpose -- a tier with no
@@ -334,7 +334,7 @@ class RS_MonsterLadder : RS_MonsterMaster abstract
 	// DEFAULTS in ZScript, so they cannot be assigned per instance;
 	// this virtual plus the DamageMobj hook below is the per-instance
 	// equivalent. 1.0 = unmodified.
-	override int t, Name damageType)
+	override double TierDamageFactor(int t, Name damageType)
 	{
 		return 1.0;
 	}
@@ -398,7 +398,7 @@ class RS_MonsterLadder : RS_MonsterMaster abstract
 	// Tint only, on tier change only. The sprite half of the old
 	// "wear body" system is GONE -- bodies are real per-tier state
 	// clusters now (see TierState below), never runtime assignment.
-	override )
+	override void RS_ApplyTint()
 	{
 		RS_ParseTables();
 
@@ -418,7 +418,7 @@ class RS_MonsterLadder : RS_MonsterMaster abstract
 	// tiers that share the base body, then to null (caller's fallback
 	// line handles it). Families stack labels for shared bodies; the
 	// fallback is a safety net, not the design.
-	override string prefix)
+	override State TierState(string prefix)
 	{
 		State st = FindStateByString(prefix .. "." .. TierLabel(Tier), true);
 		if (st) return st;

@@ -430,39 +430,41 @@ OptionMenu "RS_MonsterDebugMenu"
 {
 	Title "Monster Diagnostics"
 	StaticText " "
+	StaticText "Colourful Hell -- Chaingunner (family 04)", 1
+	StaticText "The only family ported from CH. This menu grows when 05 lands.", 2
+	StaticText " "
 
 	Command "God Mode (toggle)", "god"
 	Option  "Spawn hostile (they fight back)", "rs_mon_dbg_hostile", "OnOff"
 	StaticText " "
 
-	StaticText "Spawn", 1
-	// 0-12 are CH's colour ladder, 13 is TEX (CHP's EX variant), and
-	// 14+ are further packs. The ladder is open-ended -- raise this
-	// ceiling whenever a family's MaxTier() goes higher.
-	Slider  "Tier to spawn at  (13 = TEX)", "rs_mon_dbg_tier", 0, 15, 1, 0
-	Command "SPAWN ROW -- one of every family", "netevent rs_mon_line"
-	Submenu "SPAWN SET -- every tier of ONE family", "RS_MonsterDebugSpawnSetMenu"
-	Submenu "Spawn ONE family (T00) -- for bisecting", "RS_MonsterDebugSpawnOneMenu"
-	Command "Remove all RS monsters", "netevent rs_mon_clear"
+	StaticText "Spawn one", 1
+	Command "Former Captain                         C0001", "netevent rs_cg_spawn 0"
+	Command "Green Chaingunner                      T0001", "netevent rs_cg_spawn 1"
+	Command "Blue Chaingunner                       T0002", "netevent rs_cg_spawn 2"
+	Command "Purple Chaingunner                     T0004", "netevent rs_cg_spawn 3"
+	Command "Yellow Chaingunner                     T0005", "netevent rs_cg_spawn 4"
+	Command "Red Chaingunner                        T0010", "netevent rs_cg_spawn 5"
+	Command "Jetpack Larry                          T0003", "netevent rs_cg_spawn 6"
+	Command "Gray Chaingunner                       T0007", "netevent rs_cg_spawn 7"
+	Command "Brown Chaingunner                      T0006", "netevent rs_cg_spawn 8"
+	Command "Abyss Chaingunner                      T0008", "netevent rs_cg_spawn 9"
+	Command "Fireblu Chaingunner                    T0009", "netevent rs_cg_spawn 10"
+	Command "The General  (boss, 4500)              B0001", "netevent rs_cg_spawn 11"
+	Command "The crazy lady scientist  (boss, 7777) B0002", "netevent rs_cg_spawn 12"
+	Command "Black ChainGunner EX  (8999)           X0001", "netevent rs_cg_spawn 13"
 	StaticText " "
 
-	StaticText "Change tier", 1
-	Command "Tier UP   (+1)", "netevent rs_mon_tier_up"
-	Command "Tier DOWN (-1)", "netevent rs_mon_tier_down"
-	Command "Set all to the tier above", "netevent rs_mon_tier_set"
+	Command "SPAWN ALL FOURTEEN", "netevent rs_cg_line"
+	Command "Remove them all", "netevent rs_cg_clear"
 	StaticText " "
 
-	StaticText "Diagnostics -- read the console (~) after pressing", 1
-	Command "DIAG -- dump every live monster's real state", "netevent rs_mon_diag"
-	Command "AUDIT -- check every family's sprite tables", "netevent rs_mon_audit"
-	Command "WAKE -- force them to target you", "netevent rs_mon_wake"
+	StaticText "Read the console (~) after pressing", 1
+	Command "DIAG -- what is alive, and what it really is", "netevent rs_cg_diag"
+	Command "WAKE -- make them hostile and target you", "netevent rs_cg_wake"
 	StaticText " "
-	StaticText "DIAG prints tier, sprite index, stats and flags per", 2
-	StaticText "monster -- if the sprite index does not change when the", 2
-	StaticText "tier changes, the body swap is the bug.", 2
-	StaticText "AUDIT needs no spawns; it reads the tables directly.", 2
-	StaticText "WAKE tells you whether standing still is a targeting", 2
-	StaticText "problem or a state-machine problem.", 2
+	StaticText "DIAG reads the LIVE actor, not a table. A table can agree", 2
+	StaticText "with itself while the game disagrees with both.", 2
 }
 
 // ---------------------------------------------------------------------
@@ -475,68 +477,12 @@ OptionMenu "RS_MonsterDebugMenu"
 // question got asked in the first place.
 // Args[0] is the family index; the handler clamps it.
 // ---------------------------------------------------------------------
-OptionMenu "RS_MonsterDebugSpawnSetMenu"
-{
-	Title "Spawn Set (all tiers)"
-	StaticText " "
-	StaticText "One family, every tier it has, left to right.", 2
-	StaticText "Reads each family's own MaxTier -- four families", 2
-	StaticText "have no TEX because CHP ships those as empty stubs.", 2
-	StaticText " "
-
-	Command "Zombieman set",      "netevent rs_mon_set 0"
-	Command "Shotgunner set",     "netevent rs_mon_set 1"
-	Command "Chaingunner set",    "netevent rs_mon_set 2"
-	Command "Imp set",            "netevent rs_mon_set 3"
-	Command "Demon set",          "netevent rs_mon_set 4"
-	Command "Spectre set",        "netevent rs_mon_set 5"
-	Command "Lost Soul set",      "netevent rs_mon_set 6"
-	Command "Cacodemon set",      "netevent rs_mon_set 7"
-	Command "Pain Elemental set", "netevent rs_mon_set 8"
-	Command "Baron set",          "netevent rs_mon_set 9"
-	Command "Hell Knight set",    "netevent rs_mon_set 10"
-	Command "Revenant set",       "netevent rs_mon_set 11"
-	Command "Mancubus set",       "netevent rs_mon_set 12"
-	Command "Arachnotron set",    "netevent rs_mon_set 13"
-	Command "Archvile set",       "netevent rs_mon_set 14"
-	Command "Mastermind set",     "netevent rs_mon_set 15"
-	Command "Cyberdemon set",     "netevent rs_mon_set 16"
-	StaticText " "
-	Command "Remove all RS monsters", "netevent rs_mon_clear"
-}
 
 // ---------------------------------------------------------------------
 // Spawn ONE family at T00 -- for bisecting in VR without the console.
 // Spawn one, then use Tier UP on the previous page to walk it up by
 // itself and see exactly which family and which tier hangs.
 // ---------------------------------------------------------------------
-OptionMenu "RS_MonsterDebugSpawnOneMenu"
-{
-	Title "Spawn One (T00)"
-	StaticText " "
-	StaticText "Clear first, spawn one, Tier UP it alone.", 2
-	StaticText " "
-
-	Command "Zombieman",     "netevent rs_mon_spawn_zombieman"
-	Command "Shotgunner",    "netevent rs_mon_spawn_shotgunner"
-	Command "Chaingunner",   "netevent rs_mon_spawn_chaingunner"
-	Command "Imp",           "netevent rs_mon_spawn_imp"
-	Command "Demon",         "netevent rs_mon_spawn_demon"
-	Command "Spectre",       "netevent rs_mon_spawn_spectre"
-	Command "Lost Soul",     "netevent rs_mon_spawn_lostsoul"
-	Command "Cacodemon",     "netevent rs_mon_spawn_cacodemon"
-	Command "Pain Elemental","netevent rs_mon_spawn_painelemental"
-	Command "Baron",         "netevent rs_mon_spawn_baron"
-	Command "Hell Knight",   "netevent rs_mon_spawn_hellknight"
-	Command "Revenant",      "netevent rs_mon_spawn_revenant"
-	Command "Mancubus",      "netevent rs_mon_spawn_mancubus"
-	Command "Arachnotron",   "netevent rs_mon_spawn_arachnotron"
-	Command "Archvile",      "netevent rs_mon_spawn_archvile"
-	Command "Mastermind",    "netevent rs_mon_spawn_mastermind"
-	Command "Cyberdemon",    "netevent rs_mon_spawn_cyberdemon"
-	StaticText " "
-	Command "Remove all RS monsters", "netevent rs_mon_clear"
-}
 
 // ---------------------------------------------------------------------
 // RS_Score -- arcade scoring. Split across four pages because the knob

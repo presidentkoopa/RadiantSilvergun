@@ -1506,15 +1506,21 @@ class RS_MonsterMaster : Actor abstract
 	// seed a skeleton from.
 	private bool RS_HatchAbyss()
 	{
-		if (!CountInv("RS_AbyssMark"))
+		// DISABLED 2026-08-05. This is family 01's mechanic and its
+		// inventory token (RS_AbyssMark) lives in the quarantined CHP
+		// build, which is no longer loaded. Restore the token check the
+		// day the zombieman is rebuilt from CH.
+		return false;
+		/*
+		if (!CountInv(""))
 			return false;
 
-		TakeInventory("RS_AbyssMark", 1);
+		TakeInventory("", 1);
 
 		// CH's filter is species "Zombie" excluding CommonAbyssZombie.
 		// Ours is one class with a tier, so the equivalent test is "is a
 		// Zombieman below the Abyss tier".
-		if (!(self is "RS_Zombieman") || Tier >= 6)
+		if (!(self is "ZombieMan") || Tier >= 6)
 			return false;
 
 		// SPAWN A FRESH ONE rather than retiering this corpse. Die() is
@@ -1533,10 +1539,15 @@ class RS_MonsterMaster : Actor abstract
 				m.target = target;
 		}
 		return true;
+		*/
 	}
 
 	private void RS_HatchPlan()
 	{
+		// DISABLED 2026-08-05, same reason: RS_UndertakerPlan and
+		// RS_MrBones are family 01's, and family 01 is not loaded.
+		return;
+		/*
 		if (!CountInv("RS_UndertakerPlan"))
 			return;
 
@@ -1547,6 +1558,7 @@ class RS_MonsterMaster : Actor abstract
 		class<Actor> bones = "RS_MrBones";
 		if (bones)
 			Actor.Spawn(bones, pos + (0, 0, 4), ALLOW_REPLACE);
+		*/
 	}
 
 	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath)

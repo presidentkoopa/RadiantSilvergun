@@ -406,7 +406,7 @@ class RS_RevEgg : Actor
 		BAL1 A 12 { A_SetScale(2, 1.5); }
 		BAL1 B 12 { A_SetScale(1.5, 2); }
 		BAL1 A 12 { A_SetScale(2, 1.5); }
-		BAL1 C 2 { A_PainAttack("RS_Revenant", 0, PAF_NOSKULLATTACK); }
+		BAL1 C 2 { A_PainAttack("Revenant", 0, PAF_NOSKULLATTACK); }
 		Goto Death;
 	Death:
 		BAL1 DE 3 Bright;
@@ -434,7 +434,7 @@ class RS_HKEgg : RS_RevEgg
 		BAL1 A 12 { A_SetScale(2, 1.5); }
 		BAL1 B 12 { A_SetScale(1.5, 2); }
 		BAL1 A 12 { A_SetScale(2, 1.5); }
-		BAL1 C 2 { A_PainAttack("RS_HellKnight", 0, PAF_NOSKULLATTACK); }
+		BAL1 C 2 { A_PainAttack("HellKnight", 0, PAF_NOSKULLATTACK); }
 		Goto Death;
 	Death:
 		BAL1 DE 3 Bright;
@@ -624,11 +624,11 @@ class RS_SkullWSoulEX1 : Actor
 		TNT1 A 0
 		{
 			if (rsHatchKind == 1)
-				A_SpawnItemEx("RS_Revenant", -2, 0, 3, 0, 0, 1, 0, SXF_NOCHECKPOSITION);
+				A_SpawnItemEx("Revenant", -2, 0, 3, 0, 0, 1, 0, SXF_NOCHECKPOSITION);
 			else if (rsHatchKind == 2)
-				A_SpawnItemEx("RS_HellKnight", -2, 0, 3, 0, 0, 1, 0, SXF_NOCHECKPOSITION);
+				A_SpawnItemEx("HellKnight", -2, 0, 3, 0, 0, 1, 0, SXF_NOCHECKPOSITION);
 			else if (rsHatchKind == 3)
-				A_SpawnItemEx("RS_Cacodemon", -2, 0, 3, 0, 0, 1, 0, SXF_NOCHECKPOSITION);
+				A_SpawnItemEx("Cacodemon", -2, 0, 3, 0, 0, 1, 0, SXF_NOCHECKPOSITION);
 		}
 		SKUL IJK 5;
 		Stop;

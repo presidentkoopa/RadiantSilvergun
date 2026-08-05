@@ -2024,7 +2024,7 @@ class RS_CloneSummonMOT : Actor
 	Death:
 		MISL BCD 3 Bright { A_SetScale(1.0); }
 		TNT1 AAAAAAAAAAAAAAAA 2 { A_SpawnItemEx("RS_ClockMOT", 0, 0, 0, 0, 0, 6, 0, SXF_NOCHECKPOSITION); }
-		TNT1 A 0 { A_SpawnItemEx("RS_ArchvileCloneMOT", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
+		TNT1 A 0 { A_SpawnItemEx("", 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION); }
 		Stop;
 	}
 }

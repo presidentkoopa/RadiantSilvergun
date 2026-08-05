@@ -557,7 +557,7 @@ class RS_SkullBundle3 : FastProjectile
 		Loop;
 	Death:
 		FIRE ABCDEF 2 Bright { A_Fire(); }
-		FIRE GGHH 1 { A_PainAttack("RS_LostSoul", random(-180, 180)); }
+		FIRE GGHH 1 { A_PainAttack("LostSoul", random(-180, 180)); }
 		FIRE H 0 { A_Scream(); }
 		Stop;
 	}
@@ -658,15 +658,15 @@ class RS_BufferWhitePE : Actor
 	See:
 		TNT1 A 0 A_Jump(256, "A1", "A2", "A3");
 	A1:
-		RNGG A 0 { A_RadiusGive("RS_PERage", 526, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_PainElemental"); }
+		RNGG A 0 { A_RadiusGive("RS_PERage", 526, RGF_MONSTERS|RGF_EXFILTER, 1, "PainElemental"); }
 		TNT1 AAAAA 0 { A_SpawnParticle(0xFF0000, SPF_FULLBRIGHT|SPF_RELATIVE, random(27, 74), random(1, 13), frandom(0, 360), 0, 0, 24, frandom(0.1, 11.0), frandom(-0.15, 0.25), frandom(-6.9, 6.9), 0, 0, -0.1, 0.98, -1, 0); }
 		Stop;
 	A2:
-		RNGG A 0 { A_RadiusGive("RS_PEHulk", 526, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_PainElemental"); }
+		RNGG A 0 { A_RadiusGive("RS_PEHulk", 526, RGF_MONSTERS|RGF_EXFILTER, 1, "PainElemental"); }
 		TNT1 AAAAA 0 { A_SpawnParticle(0x00FF00, SPF_FULLBRIGHT|SPF_RELATIVE, random(27, 74), random(1, 13), frandom(0, 360), 0, 0, 24, frandom(0.1, 11.0), frandom(-0.15, 0.25), frandom(-6.9, 6.9), 0, 0, -0.1, 0.98, -1, 0); }
 		Stop;
 	A3:
-		RNGG A 0 { A_RadiusGive("RS_PESpeedBuff", 526, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_PainElemental"); }
+		RNGG A 0 { A_RadiusGive("RS_PESpeedBuff", 526, RGF_MONSTERS|RGF_EXFILTER, 1, "PainElemental"); }
 		TNT1 AAAAA 0 { A_SpawnParticle(0x0000FF, SPF_FULLBRIGHT|SPF_RELATIVE, random(27, 74), random(1, 13), frandom(0, 360), 0, 0, 24, frandom(0.1, 11.0), frandom(-0.15, 0.25), frandom(-6.9, 6.9), 0, 0, -0.1, 0.98, -1, 0); }
 		Stop;
 	}
