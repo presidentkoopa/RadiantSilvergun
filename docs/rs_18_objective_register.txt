@@ -377,6 +377,56 @@ PART J -- HOUSEKEEPING.
       Condition bands are live). That file says of itself that it rots fast.
 
 ================================================================================
+================================================================================
+PART L -- THE CHP ACS REBUILD.  Owner decision 2026-08-04: BUILD IT.
+Full audit in docs/rs_19_acs_inventory.txt. 943 defs -> 125 distinct ->
+30 real behaviours; the other 95 (announcers, cvar readers) were correctly
+dropped. THE MONSTERS ARE NOT BEING RE-PORTED -- 38 files, 45,482 lines,
+963 RS_ classes and 16 tier clusters already exist. This is filling
+enumerated holes in a port that is substantially built.
+================================================================================
+
+  L1. PACK BUFFS.  -- DONE 2026-08-04 (e5e1b78a).
+      RS_MonsterCommands.zs: PESPEED, BrownImpCommand, BrownVileCommand,
+      BrownMindCommand as Powerups. Abyss Caco's Missile.T06 rewired.
+      Three CH bugs fixed rather than reproduced (see the file header).
+
+  L2. REWIRE THE REMAINING PACK-BUFF CALL SITES.
+      The classes exist; three monsters still have the stripped call.
+      RS_Spectre T08 (BrownImpCommand + SpeedBuffPE, header line 64),
+      RS_Revenant T08, RS_demon_projectiles:384. Read each against its
+      CHP source file before wiring -- do not pattern-match.
+
+  L3. THE REVENANT SPEED LINE.  brownrevspeed / brownrevspeed2 /
+      revbuffex / revbuffexchp / revkillex. brownrevspeed2 juggles
+      RevSpeedBuff2 / RevSpeedBuff3 tokens and HALVES speed on one
+      branch; CH's own comment on it is "THIS SCRIPT CAN GO BURN IN
+      HELL!!!". Read it properly before porting.
+
+  L4. THE PAIN ELEMENTAL LINE.  pehulk, perage. Same Powerup shape as L1.
+
+  L5. MISSILE SELECTION.  baronmissile, cybmissile, fatmissile,
+      impmissile -- 16 tier copies each for baron and cyb, so these are
+      load-bearing across the whole ladder, not edge cases.
+      RS_LostSoul.zs:1179 already flags baronmissile as called-and-stripped.
+
+  L6. ARCHVILE EX -- ITS OWN PROJECT, SCOPE SEPARATELY.
+      wvileextimer (~120 lines x 15 copies, the timed-phase engine),
+      wvileextimer2, wvileextimestop, wvileexarmorsteal. Bigger than
+      everything in L1-L5 combined. RS_Archvile.zs:91 and :1983-84
+      already describe both from the outside.
+
+  L7. TIER EFFECTS + MISC.  ch_icyscript 1/3/4, ch_abyssyeffectscript,
+      bbaronslow, damagescript, resistancescript, rawkettypech,
+      browndinner, makescoutcry, cybiespecialkill.
+
+  L8. CORRECT THE WRONG REASON WHEREVER IT STILL SITS.
+      RS_Spectre.zs:64, RS_Revenant.zs:73, RS_demon_projectiles.zs:384
+      still assert that porting these "imports nothing". Fix the comment
+      as each is rebuilt. Leaving a wrong reason in place is exactly how
+      this survived three sessions.
+
+================================================================================
 PART K -- THE CORRECTION rs_17 FORCED ON THIS LIST.
 Kept as an entry rather than a silent edit, because the reasoning is the
 useful part.
@@ -400,9 +450,9 @@ useful part.
 END OF REGISTER.  Generated 2026-08-04.
 55 entries: 49 objectives, plus Part H's 5 standing constraints (tests, not
 tasks) and Part K's single correction record.
-Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1.
-CLOSED SO FAR: A1, A2, A3, A4, A6, D5, J1 -- seven, all on 2026-08-04.
-REMAINING OPEN: 42.
+Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1 L8.
+CLOSED SO FAR: A1, A2, A3, A4, A6, D5, J1, L1 -- eight, all on 2026-08-04.
+REMAINING OPEN: 49.
 
   REVISION, same day: first draft was built from a 451-line WORKING COPY of
   rs_17 read while its authoring lane was still editing. The committed file
