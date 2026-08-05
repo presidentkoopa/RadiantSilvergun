@@ -6118,3 +6118,16 @@ Model RS_GH_GrenadeLaunched
 	FrameIndex JGRN E 0 20
 	FrameIndex JGRN F 0 21
 }
+
+// No More Hitscans tracer -- the bullet that replaces every monster
+// hitscan. Sprite AMRK is a frame anchor only; the model is what draws.
+Model RS_HitscanReplacer
+{
+	Path "models/btracer"
+	Model 0 "btracer.obj"
+	DontCullBackfaces
+	UseActorPitch
+	UseActorRoll
+
+	FrameIndex AMRK A 0 0
+}

@@ -465,6 +465,15 @@ user int  rs_hpbar_bossframe = 0;
 // 2000 -- so it catches the genuine long fights and nothing else.
 user int  rs_hpbar_boss_hp   = 1000;
 
+// --- No More Hitscans (zscript/systems/RS_NoHitscan.zs) -------------
+// Server-scope, not user: whether monster bullets travel is a rule of
+// the match, not a client preference.
+server bool  rs_nohitscan_enabled = true;
+// Units per tic. 80 crosses a 2048-unit shot in ~26 tics; lower is more
+// dodgeable, higher approaches the old instant behaviour.
+server float rs_nohitscan_speed   = 80.0;
+server float rs_nohitscan_alpha   = 0.5;
+
 // --- Only when damaged ---
 // Bars appear the first time a monster is hit, not from the moment it
 // spawns. ON by default: this is an owner decision, not upstream's --

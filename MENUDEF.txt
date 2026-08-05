@@ -387,6 +387,12 @@ OptionMenu "RS_MonsterOptions"
 	StaticText "Tier Changes", 1
 	Option "Keep health fraction on retier", "rs_mon_retier_preserve_fraction", "OnOff"
 	Option "Staggered transform (flash + delay)",  "rs_mon_transform_tell", "OnOff"
+
+	StaticText " "
+	StaticText "No More Hitscans", 1
+	Option "Monster bullets travel", "rs_nohitscan_enabled", "OnOff"
+	Slider "Bullet speed", "rs_nohitscan_speed", 8, 1024, 8, 0
+	Slider "Bullet opacity", "rs_nohitscan_alpha", 0.0, 1.0, 0.1, 1
 }
 
 

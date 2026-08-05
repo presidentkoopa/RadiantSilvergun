@@ -36,6 +36,11 @@ version "4.14"
 // anything yet.
 #include "zscript/systems/RS_MonsterAim.zs"
 
+// RS_NoHitscan: intercepts WorldHitscanPreFired and flies a projectile
+// down the line the hitscan would have taken. Touches none of the 163
+// hitscan call sites in this tree -- see the file header.
+#include "zscript/systems/RS_NoHitscan.zs"
+
 // --- Monsters ---
 // RS_MonsterMaster: the monster-side parallel of RS_Weapon. Owns tier,
 // the per-tier body-sprite/TRNSLATE table, the per-tier attack slot,
