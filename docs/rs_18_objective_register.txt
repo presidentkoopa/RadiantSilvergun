@@ -293,9 +293,13 @@ PART I -- EXPLICITLY DEFERRED.  Do not start these.
 PART J -- HOUSEKEEPING.
 ================================================================================
 
-  J1. COMMIT docs/rs_17_attack_grammar.txt.
-      It is the newest design doc in the project and was the only untracked
-      file in the tree when this register was written.
+  J1. COMMIT docs/rs_17_attack_grammar.txt.  -- DONE, BY ANOTHER LANE.
+      Landed as 2201caee DURING the writing of this register: untracked at
+      the first status check, committed by the time this file was staged.
+      Kept as a worked example rather than deleted -- this is the shared
+      tree behaving exactly as CLAUDE.md warns, and it is the reason to
+      stage explicit paths and to re-check state right before committing
+      rather than trusting a status read from earlier in a session.
 
   J2. PRUNE THE STALE next-priorities MEMORY NOTE.
       Two of its six items are already done (sockets are enforced, the
