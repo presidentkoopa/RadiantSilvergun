@@ -115,9 +115,18 @@ class RS_MonsterMaster : Actor abstract
 	// SILVER pulse that also doubles as a health readout: the closer to
 	// death, the faster it blinks. Silver, never gold -- gold is already
 	// the transform tell above and one colour must not mean two things.
-	private bool rsEnraged;
-	private int  rsEnrageBeat;         // next pulse beat
-	private int  rsEnragePhase;        // even = silver, odd = the tier's own tint
+	// NAMED FOR THE TELL, NOT THE STATE, and not merely to dodge a
+	// collision. The plain name was already taken TWICE by subclasses
+	// meaning two different things: RS_Imp.zs:48 marks the T10 Primal's
+	// real speed-up (which never calls Enrage()), and RS_Revenant.zs:97
+	// is CH's User_Enrage carried over as a two-stage MISSILE gate, not
+	// an enrage at all. Three meanings on one name is how a codebase
+	// stops being readable, so these three own the narrowest one: the
+	// visual. ZScript has no shadowing -- a subclass field silently
+	// colliding with a base field is a hard redefinition error.
+	private bool rsEnrageTellOn;
+	private int  rsEnrageTellBeat;     // next pulse beat
+	private int  rsEnrageTellPhase;    // even = silver, odd = the tier's own tint
 
 	// --- Attacks ---
 	RS_AttackSlot CurrentAttacks;
@@ -309,20 +318,20 @@ class RS_MonsterMaster : Actor abstract
 	// a tier change is the more important thing to be able to see.
 	private void RS_TickEnrageTell()
 	{
-		if (!rsEnraged)
+		if (!rsEnrageTellOn)
 			return;
 
 		// Dead: hand the body back its own colour so a corpse is never
 		// left frozen mid-flash, and stop.
 		if (health <= 0)
 		{
-			rsEnraged = false;
+			rsEnrageTellOn = false;
 			RS_ApplyTint();
 			return;
 		}
 
 		// The transform tell owns the translation while it runs.
-		if (rsTransforming || level.time < rsEnrageBeat)
+		if (rsTransforming || level.time < rsEnrageTellBeat)
 			return;
 
 		// Opt-out. Restore the tier colour on the way out so switching it
@@ -330,9 +339,9 @@ class RS_MonsterMaster : Actor abstract
 		let cv = CVar.GetCVar("rs_monster_enragetell", null);
 		if (cv && !cv.GetBool())
 		{
-			if ((rsEnragePhase & 1) == 0)
+			if ((rsEnrageTellPhase & 1) == 0)
 				RS_ApplyTint();
-			rsEnrageBeat = level.time + 35;
+			rsEnrageTellBeat = level.time + 35;
 			return;
 		}
 
@@ -347,10 +356,10 @@ class RS_MonsterMaster : Actor abstract
 		// 35 tics per beat at full health down to 3 at death. Enrage fires
 		// at the half-health threshold, so in practice this opens around
 		// 19 and tightens from there -- a visibly quickening pulse.
-		rsEnrageBeat = level.time + clamp(int(3 + frac * 32), 3, 35);
+		rsEnrageTellBeat = level.time + clamp(int(3 + frac * 32), 3, 35);
 
-		rsEnragePhase++;
-		if ((rsEnragePhase & 1) == 0)
+		rsEnrageTellPhase++;
+		if ((rsEnrageTellPhase & 1) == 0)
 			A_SetTranslation("rs_enrage_flash");
 		else
 			RS_ApplyTint();   // back to whatever this tier actually wears
@@ -972,8 +981,8 @@ class RS_MonsterMaster : Actor abstract
 
 		// Turn on the silver pulse. Every caller already plays
 		// SND_Enrage() on the next line; this is the half you can see.
-		rsEnraged    = true;
-		rsEnrageBeat = level.time;   // first flash immediately, with the roar
+		rsEnrageTellOn    = true;
+		rsEnrageTellBeat = level.time;   // first flash immediately, with the roar
 	}
 
 	// --- TIMED PULSE -------------------------------------------------
