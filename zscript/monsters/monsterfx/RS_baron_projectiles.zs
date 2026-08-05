@@ -37,7 +37,7 @@ class RS_GreeniesBR : Actor
 	Default
 	{
 		Radius 2; Height 2; Speed 15; Mass 5;
-		Damage 1; DamageType "Poison";
+		/* CH: Damage (random(1,2))  Barons.txt:2175 -- was flattened to `Damage 1`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,2)); DamageType "Poison";
 		Projectile; +RANDOMIZE; +BOUNCEONFLOORS; +EXPLODEONWATER;
 		RenderStyle "Add"; Alpha 0.75; BounceType "Hexen"; BounceCount 3;
 		BounceFactor 1.1; WallBounceFactor 1.1; Scale 0.25;
@@ -65,7 +65,7 @@ class RS_Spspit2 : Actor
 	Default
 	{
 		Radius 6; Height 16; Speed 25;
-		Damage 40; DamageType "Plasma";
+		/* CH: Damage (Random(10,72))  Barons.txt:2243 -- was flattened to `Damage 40`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,72)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.85;
 		SeeSound "baron/attack"; DeathSound "imp/shotx";
 	}
@@ -85,7 +85,7 @@ class RS_Spspit3 : Actor
 	Default
 	{
 		Radius 8; Height 16; Speed 12;
-		Damage 36; DamageType "Plasma";
+		/* CH: Damage (random(15,60))  Barons.txt:2213 -- was flattened to `Damage 36`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(15,60)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85; Scale 1.33;
 		SeeSound "baron/attack"; DeathSound "imp/shotx";
 		Translation "168:191=112:127";
@@ -126,7 +126,7 @@ class RS_STracerBlue : Actor
 	Default
 	{
 		Radius 5; Height 5; Speed 2;
-		Damage 11; DamageType "Fire";
+		/* CH: Damage (random(5,17))  Barons.txt:2439 -- was flattened to `Damage 11`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,17)); DamageType "Fire";
 		RenderStyle "Add"; Alpha 0.67; Projectile; +FLOORHUGGER; +THRUGHOST; -NOGRAVITY; +DONTSPLASH;
 		DeathSound "weapons/firex4";
 		Translation "0:255=%[0.00,0.00,0.57]:[1.02,1.15,1.99]";
@@ -150,7 +150,7 @@ class RS_SmashBall4 : Actor
 	Default
 	{
 		Radius 12; Height 18; Speed 24; Mass 4;
-		Damage 35; DamageType "Plasma";
+		/* CH: Damage (random(5,65))  Barons.txt:2496 -- was flattened to `Damage 35`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,65)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; +EXPLODEONWATER; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 0.75; Scale 1.8;
 		SeeSound "caco/attack"; DeathSound "caco/shotx";
@@ -175,7 +175,7 @@ class RS_SmashBalls2 : Actor
 	Default
 	{
 		Radius 12; Height 18; Speed 11; Mass 4;
-		Damage 20; DamageType "Plasma"; Gravity 0.1;
+		/* CH: Damage (random(5,35))  Barons.txt:2387 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,35)); DamageType "Plasma"; Gravity 0.1;
 		Projectile; -NOGRAVITY; +RANDOMIZE; +BOUNCEONFLOORS; +USEBOUNCESTATE; +EXPLODEONWATER; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 0.88; BounceType "Hexen"; BounceCount 7; BounceFactor 2; WallBounceFactor 0.1; Scale 1.5;
 		SeeSound "caco/attack"; BounceSound "Bomb/bounce"; DeathSound "caco/shotx";
@@ -217,7 +217,7 @@ class RS_BaronWave : Actor
 	Default
 	{
 		Radius 9; Height 10; Speed 21; FastSpeed 50;
-		Damage 11; DamageType "Fire";
+		/* CH: Damage (random(5,17))  Barons.txt:2666 -- was flattened to `Damage 11`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,17)); DamageType "Fire";
 		Projectile; +RANDOMIZE; +DONTHARMCLASS; +EXPLODEONWATER;
 		RenderStyle "Add"; Alpha 0.75; BounceType "Hexen"; BounceCount 2; WallBounceFactor 0.7; Scale 0.7;
 		SeeSound "caco/attack"; BounceSound "Bomb/bounce"; DeathSound "caco/shotx";
@@ -259,7 +259,7 @@ class RS_Spear11 : Actor
 	Default
 	{
 		Radius 6; Height 16; Speed 42; FastSpeed 68;
-		Damage 47; DamageType "Plasma";
+		/* CH: Damage (Random(10,85))  Barons.txt:2702 -- was flattened to `Damage 47`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,85)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85;
 		SeeSound "baron/attack"; DeathSound "Litn/litn3";
 		Translation "112:127=250:254", "0:0=250:254", "112:113=224:224", "192:193=224:224", "192:207=250:254";
@@ -291,7 +291,7 @@ class RS_BaronStar : Actor
 	Default
 	{
 		Radius 5; Height 7; Speed 28; FastSpeed 38;
-		Damage 15; DamageType "Fire"; Species "BaronOfHell";
+		/* CH: Damage (random(5,25))  Barons.txt:3030 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); DamageType "Fire"; Species "BaronOfHell";
 		Projectile; +RANDOMIZE; +DONTHARMCLASS; +SEEKERMISSILE; RenderStyle "Add"; Alpha 1; Scale 1.3;
 		SeeSound "caco/attack"; DeathSound "spell/Impact1";
 	}
@@ -314,7 +314,7 @@ class RS_BaronStar2 : Actor
 	Default
 	{
 		Radius 5; Height 7; Speed 28; FastSpeed 38;
-		Damage 15; DamageType "Fire"; Species "BaronOfHell";
+		/* CH: Damage (random(5,25))  Barons.txt:3064 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); DamageType "Fire"; Species "BaronOfHell";
 		Projectile; +RANDOMIZE; +SEEKERMISSILE; +DONTHARMCLASS; RenderStyle "Add"; Alpha 1; Scale 1.3;
 		SeeSound "caco/attack"; DeathSound "spell/Impact1";
 	}
@@ -343,7 +343,7 @@ class RS_BluPowerBomb : Actor
 	Default
 	{
 		Radius 8; Height 8; Speed 10;
-		Damage 40; DamageType "Plasma";
+		/* CH: Damage (random(10,70))  Barons.txt:1891 -- was flattened to `Damage 40`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,70)); DamageType "Plasma";
 		Projectile; +SEEKERMISSILE; +EXTREMEDEATH; +BOUNCEONWALLS;
 		BounceType "Hexen"; BounceCount 4; BounceFactor 1.25; WallBounceFactor 1.25;
 		RenderStyle "Add"; Alpha 1.0; Scale 0.55;
@@ -395,7 +395,7 @@ class RS_RedPowerBomb : Actor
 	Default
 	{
 		Radius 6; Height 8; Speed 21;
-		Damage 40; DamageType "Melee";
+		/* CH: Damage (random(10,80))  Barons.txt:3153 -- was flattened to `Damage 40`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,80)); DamageType "Melee";
 		Projectile; +NOGRAVITY; +SEEKERMISSILE; +DONTHARMCLASS; +DONTHARMSPECIES; Species "BaronOfHell";
 		RenderStyle "Add"; Alpha 0.75;
 		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4";
@@ -471,7 +471,7 @@ class RS_WDRock3 : Actor
 	Default
 	{
 		Radius 9; Height 9; Speed 36;
-		Damage 40; DamageType "Melee";
+		/* CH: Damage (Random(15,65))  Demons.txt:2638 -- was flattened to `Damage 40`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(15,65)); DamageType "Melee";
 		Projectile; Scale 0.7;
 		SeeSound "monster/hamflr"; DeathSound "Butcher/melee";
 	}
@@ -488,7 +488,7 @@ class RS_WDRock3 : Actor
 }
 class RS_ZombieRock : RS_WDRock3
 {
-	Default { Damage 6; Scale 0.25; }
+	Default { /* CH: Damage (Random(1,12))  Zombies.txt:616 -- was flattened to `Damage 6`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,12)); Scale 0.25; }
 }
 class RS_WDRock1 : Actor
 {
@@ -536,7 +536,7 @@ class RS_BaronOfDirtCH2 : Actor
 	Default
 	{
 		Radius 16; Height 16; Speed 16; Gravity 0.10;
-		Damage 120; DamageType "Melee";
+		/* CH: Damage (Random(70,170))  Barons.txt:1666 -- was flattened to `Damage 120`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(70,170)); DamageType "Melee";
 		Projectile; -NOGRAVITY; +SEEKERMISSILE; BounceType "Hexen"; BounceCount 6; BounceFactor 1.15; Scale 1.75;
 		SeeSound "monster/hamflr"; DeathSound "moloch/thud";
 	}
@@ -567,7 +567,7 @@ class RS_BaronOfDirtCH3 : Actor
 	Default
 	{
 		Radius 16; Height 16; Speed 20;
-		Damage 115; DamageType "Melee";
+		/* CH: Damage (Random(75,155))  Barons.txt:1710 -- was flattened to `Damage 115`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(75,155)); DamageType "Melee";
 		Projectile; -NOGRAVITY; +BOUNCEONFLOORS; BounceType "Hexen"; BounceCount 10; BounceFactor 0.95; Gravity 0.8; Scale 1.2;
 		SeeSound "monster/hamflr"; DeathSound "moloch/thud";
 	}
@@ -609,7 +609,7 @@ class RS_BrownBaronFlame : Actor
 }
 class RS_BrownBaronFlame2 : Actor
 {
-	Default { Radius 2; Height 2; Speed 0; RenderStyle "Add"; Alpha 0.9; Damage 12; Projectile; Scale 0.6;
+	Default { Radius 2; Height 2; Speed 0; RenderStyle "Add"; Alpha 0.9; /* CH: Damage (random(5,20))  Barons.txt:235 -- was flattened to `Damage 12`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,20)); Projectile; Scale 0.6;
 		Translation "0:255=%[0.28,0.16,0.12]:[1.69,1.17,0.83]"; }
 	States
 	{
@@ -627,7 +627,7 @@ class RS_BaronBrownRock : Actor
 	Default
 	{
 		Radius 7; Height 7; Speed 28;
-		Damage 25; DamageType "Melee";
+		/* CH: Damage (Random(10,40))  Barons.txt:176 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); DamageType "Melee";
 		Projectile; +SEEKERMISSILE; Scale 0.5;
 		SeeSound "monster/hamflr"; DeathSound "Butcher/melee";
 	}
@@ -772,7 +772,7 @@ class RS_BaronCyanBomb : Actor
 	Default
 	{
 		Radius 5; Height 5; Speed 38;
-		Damage 60; DamageType "Ice";
+		/* CH: Damage (random(33,99))  Barons.txt:775 -- was flattened to `Damage 60`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(33,99)); DamageType "Ice";
 		Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.95; Scale 0.5;
 		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4";
 		Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]";
@@ -798,7 +798,7 @@ class RS_BaronStarCyan : Actor
 	Default
 	{
 		Radius 5; Height 5; Speed 38;
-		Damage 15; DamageType "Ice";
+		/* CH: Damage (random(5,25))  Barons.txt:724 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); DamageType "Ice";
 		Projectile; RenderStyle "Add"; Alpha 1; Scale 1.1;
 		SeeSound "caco/attack"; DeathSound "spell/Impact1";
 		Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]";
@@ -836,7 +836,7 @@ class RS_IceSeekerBaron : Actor
 	Default
 	{
 		Radius 2; Height 2; Speed 26;
-		Damage 15; DamageType "Ice";
+		/* CH: Damage (random(5,25))  Barons.txt:670 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); DamageType "Ice";
 		Projectile; +SEEKERMISSILE; RenderStyle "Add"; Scale 0.45; Alpha 0.5;
 		SeeSound "ice/Cast"; DeathSound "Ice/Hit2";
 		Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]";
@@ -870,7 +870,7 @@ class RS_IceSeekerBaron : Actor
 // (RS_Zap88 already defined above in Purple's section -- reused by Abyss.)
 class RS_AbyssCacoZap2 : Actor
 {
-	Default { Radius 2; Height 2; Speed 2; Species "Caco"; Damage 3; DamageType "Plasma";
+	Default { Radius 2; Height 2; Speed 2; Species "Caco"; /* CH: Damage (random(1,5))  Cacodemons.txt:758 -- was flattened to `Damage 3`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,5)); DamageType "Plasma";
 		Projectile; +DONTHARMSPECIES; +DONTHARMCLASS; +THRUSPECIES; RenderStyle "Add"; Alpha 1.0; Translation "Ice"; }
 	States
 	{
@@ -998,7 +998,7 @@ class RS_AbyssBaronHandFire3 : Actor
 }
 class RS_AbyssBaronFlare : Actor
 {
-	Default { Radius 5; Height 5; Speed 28; Damage 44; DamageType "Plasma"; RenderStyle "Add"; Alpha 0.85; XScale 2.0; YScale 1.25;
+	Default { Radius 5; Height 5; Speed 28; /* CH: Damage (random(13,75))  Barons.txt:1422 -- was flattened to `Damage 44`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(13,75)); DamageType "Plasma"; RenderStyle "Add"; Alpha 0.85; XScale 2.0; YScale 1.25;
 		Projectile; +THRUGHOST; +DONTHARMCLASS; SeeSound "weapons/firmfi"; DeathSound "weapons/firex4";
 		Translation "0:255=%[0.02,0.02,0.03]:[0.29,0.49,0.65]"; }
 	States
@@ -1020,7 +1020,7 @@ class RS_AbyssBaronFlare : Actor
 }
 class RS_AbyssBaronLightning : Actor
 {
-	Default { Radius 16; Height 6; Speed 76; Damage 70; DamageType "Plasma"; Projectile; +RANDOMIZE;
+	Default { Radius 16; Height 6; Speed 76; /* CH: Damage (Random(20,125))  Barons.txt:1319 -- was flattened to `Damage 70`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,125)); DamageType "Plasma"; Projectile; +RANDOMIZE;
 		RenderStyle "Add"; Alpha 0.85; SeeSound "baron/attack"; DeathSound "Litn/litn3";
 		Translation "0:255=%[0.02,0.02,0.03]:[0.29,0.49,0.65]"; }
 	States
@@ -1038,7 +1038,7 @@ class RS_AbyssBaronLightning : Actor
 }
 class RS_AbyssBaronSoulCharge : Actor
 {
-	Default { Radius 16; Height 8; Speed 17; Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; Damage 50; DamageType "Melee";
+	Default { Radius 16; Height 8; Speed 17; Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; /* CH: Damage (random(20,90))  Barons.txt:1175 -- was flattened to `Damage 50`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,90)); DamageType "Melee";
 		Alpha 0.75; SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4"; Translation "0:255=%[0.02,0.02,0.03]:[0.29,0.49,0.65]"; }
 	States
 	{
@@ -1059,7 +1059,7 @@ class RS_AbyssBaronSoulCharge : Actor
 // ---------- BLACK: Deep-One -- tentacle summoners + railgun beam ----------
 class RS_TentacleBall1 : Actor
 {
-	Default { Radius 4; Height 4; Speed 25; Damage 35; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.75;
+	Default { Radius 4; Height 4; Speed 25; /* CH: Damage (random(10,60))  Barons.txt:4186 -- was flattened to `Damage 35`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,60)); RenderStyle "Add"; DamageType "Plasma"; Alpha 0.75;
 		SeeSound "monster/tenatk"; DeathSound "weapons/plasmax"; Projectile; +RANDOMIZE; }
 	States { Spawn: OLDP AB 3 Bright; Loop; Death: OLDP CDEF 4 Bright; Stop; }
 }
@@ -1085,7 +1085,7 @@ class RS_DeepCharge1 : Actor
 }
 class RS_DeepOneBall : Actor
 {
-	Default { Radius 13; Height 8; Speed 25; Damage 50; Projectile; +RANDOMIZE; +ROCKETTRAIL; +SEEKERMISSILE;
+	Default { Radius 13; Height 8; Speed 25; /* CH: Damage (random(25,75))  Barons.txt:4154 -- was flattened to `Damage 50`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(25,75)); Projectile; +RANDOMIZE; +ROCKETTRAIL; +SEEKERMISSILE;
 		RenderStyle "Add"; DamageType "Plasma"; Alpha 0.75; SeeSound "deepone/fire"; DeathSound "deepone/firehit"; }
 	States
 	{
@@ -1199,7 +1199,7 @@ class RS_WhiteBaronSliceTrail : Actor
 }
 class RS_WhiteBaronSlice : Actor
 {
-	Default { Radius 5; Height 5; Speed 38; Projectile; +NOGRAVITY; RenderStyle "Add"; Damage 27; DamageType "Fire";
+	Default { Radius 5; Height 5; Speed 38; Projectile; +NOGRAVITY; RenderStyle "Add"; /* CH: Damage (random(11,44))  Barons.txt:4486 -- was flattened to `Damage 27`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(11,44)); DamageType "Fire";
 		Alpha 0.95; XScale 0.9; YScale 1.1; SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4"; }
 	States
 	{
@@ -1216,7 +1216,7 @@ class RS_WhiteBaronSlice : Actor
 }
 class RS_WhiteBaronSliceHoming : Actor
 {
-	Default { Radius 5; Height 5; Speed 15; Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; Damage 15; DamageType "Fire";
+	Default { Radius 5; Height 5; Speed 15; Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; /* CH: Damage (random(5,25))  Barons.txt:4541 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); DamageType "Fire";
 		Alpha 0.95; XScale 0.9; YScale 1.1; SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4"; }
 	States
 	{
@@ -1234,7 +1234,7 @@ class RS_WhiteBaronSliceHoming : Actor
 }
 class RS_WhiteBaronStar : Actor
 {
-	Default { Radius 5; Height 7; Speed 33; Damage 15; DamageType "Fire"; Species "BaronOfHell"; Projectile;
+	Default { Radius 5; Height 7; Speed 33; /* CH: Damage (random(5,25))  Barons.txt:4570 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); DamageType "Fire"; Species "BaronOfHell"; Projectile;
 		+RANDOMIZE; +DONTHARMCLASS; +SEEKERMISSILE; RenderStyle "Add"; Alpha 1; Scale 1.3;
 		SeeSound "caco/attack"; DeathSound "spell/Impact1"; }
 	States
@@ -1259,7 +1259,7 @@ class RS_WhiteBaronStar : Actor
 }
 class RS_VileGroundSpikeBrown2 : Actor
 {
-	Default { Speed 1; Damage 5; DamageType "Melee"; Projectile; +FLOORHUGGER; +THRUACTORS; }
+	Default { Speed 1; /* CH: Damage (random(1,10))  Archviles.txt:273 -- was flattened to `Damage 5`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,10)); DamageType "Melee"; Projectile; +FLOORHUGGER; +THRUACTORS; }
 	States
 	{
 	Spawn:

@@ -50,7 +50,7 @@ class RS_RevenantTracer2 : RS_RevenantTracerHoming { Default { DamageType "Fire"
 // ---------- GREEN: seeking acid blast ----------
 class RS_AcidBlast1 : Actor
 {
-	Default { Radius 6; Height 16; Speed 14; FastSpeed 25; Damage 30; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 1;
+	Default { Radius 6; Height 16; Speed 14; FastSpeed 25; /* CH: Damage (random(5,55))  Revenants.txt:1602 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,55)); DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 1;
 		SeeSound "baron/attack"; DeathSound "baron/shotx"; Decal "BaronScorch"; Translation "0:255=%[0.10,0.40,0.10]:[0.40,1.60,0.40]"; }
 	States
 	{
@@ -66,16 +66,16 @@ class RS_AcidBlast1 : Actor
 // ---------- BLUE: zap bolts ----------
 class RS_Zap7 : Actor
 {
-	Default { Radius 6; Height 16; Speed 15; FastSpeed 32; Damage 35; DamageType "Plasma"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.75;
+	Default { Radius 6; Height 16; Speed 15; FastSpeed 32; /* CH: Damage (random(20,50))  Revenants.txt:1862 -- was flattened to `Damage 35`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,50)); DamageType "Plasma"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.75;
 		SeeSound "weapons/plasmaf"; DeathSound "weapons/plasmax"; Translation "0:255=%[0.10,0.10,0.50]:[0.40,0.40,2.00]"; }
 	States { Spawn: PLSE AB 2 Bright; Loop; Death: PLSE BCDE 4 Bright; Stop; }
 }
-class RS_Zap8 : RS_Zap7 { Default { Radius 3; Height 8; FastSpeed 38; Damage 22; Scale 0.5; } }
+class RS_Zap8 : RS_Zap7 { Default { Radius 3; Height 8; FastSpeed 38; /* CH: Damage (random(11,33))  Revenants.txt:1888 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(11,33)); Scale 0.5; } }
 
 // ---------- CYAN: big ball + chain-whip + ice orbs (SREV body) ----------
 class RS_BigBallCrev : Actor
 {
-	Default { Radius 10; Height 10; Speed 38; XScale 1.25; YScale 0.75; RenderStyle "Add"; Alpha 0.95; Damage 16; DamageType "Ice"; Projectile; +SEEKERMISSILE; +DONTHARMCLASS;
+	Default { Radius 10; Height 10; Speed 38; XScale 1.25; YScale 0.75; RenderStyle "Add"; Alpha 0.95; /* CH: Damage (random(3,30))  Revenants.txt:416 -- was flattened to `Damage 16`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(3,30)); DamageType "Ice"; Projectile; +SEEKERMISSILE; +DONTHARMCLASS;
 		SeeSound "imp/attack"; DeathSound "Ice/Hit2"; Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]"; }
 	States
 	{
@@ -89,13 +89,13 @@ class RS_BigBallCrev : Actor
 }
 class RS_ChainWhipRev : Actor
 {
-	Default { Radius 2; Height 2; Speed 29; Mass 500; Damage 22; Projectile; DamageType "Melee"; +NOGRAVITY; +THRUGHOST; Gravity 1.25; Scale 0.25;
+	Default { Radius 2; Height 2; Speed 29; Mass 500; /* CH: Damage (random(11,33))  Revenants.txt:511 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(11,33)); Projectile; DamageType "Melee"; +NOGRAVITY; +THRUGHOST; Gravity 1.25; Scale 0.25;
 		DeathSound "weapons/boom1"; Translation "144:151=90:95"; }
 	States { Spawn: BLL9 AB 2 Bright; Loop; Death: BLL9 CDE 3 Bright A_Explode(22,48); Stop; }
 }
 class RS_IceORBCyanRev : Actor
 {
-	Default { Radius 5; Height 5; Speed 20; Damage 14; DamageType "Ice"; Projectile; Scale 0.75; SeeSound "ice/Cast"; DeathSound "Ice/Hit2";
+	Default { Radius 5; Height 5; Speed 20; /* CH: Damage (random(5,21))  Revenants.txt:479 -- was flattened to `Damage 14`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,21)); DamageType "Ice"; Projectile; Scale 0.75; SeeSound "ice/Cast"; DeathSound "Ice/Hit2";
 		Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]"; }
 	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY FGHI 4 Bright A_Explode(14,48); Stop; }
 }
@@ -103,7 +103,7 @@ class RS_IceORBCyanRev : Actor
 // ---------- PURPLE: seeking purp + zap99 lightning ----------
 class RS_Purp1 : Actor
 {
-	Default { Radius 6; Height 16; Speed 13; FastSpeed 14; Damage 20; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.85;
+	Default { Radius 6; Height 16; Speed 13; FastSpeed 14; /* CH: Damage (random(10,30))  Revenants.txt:2130 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,30)); DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.85;
 		SeeSound "baron/attack"; DeathSound "weapons/plasmax"; Translation "16:47=250:254","128:143=250:254","152:191=250:254"; }
 	States
 	{
@@ -126,7 +126,7 @@ class RS_Zap99 : Actor
 // ---------- ABYSS: cracked-abyss + ice orbs (SplashAbyss2 shared) ----------
 class RS_CrackedAbyssRev : Actor
 {
-	Default { Radius 4; Species "Revenant"; Height 4; Speed 18; Damage 36; DamageType "Plasma"; Projectile; +SEEKERMISSILE; Scale 0.85; RenderStyle "Add"; Alpha 1;
+	Default { Radius 4; Species "Revenant"; Height 4; Speed 18; /* CH: Damage (random(6,66))  Revenants.txt:728 -- was flattened to `Damage 36`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(6,66)); DamageType "Plasma"; Projectile; +SEEKERMISSILE; Scale 0.85; RenderStyle "Add"; Alpha 1;
 		SeeSound "Crack/see"; DeathSound "Crack/death"; Translation "Ice"; }
 	States
 	{
@@ -140,7 +140,7 @@ class RS_CrackedAbyssRev : Actor
 }
 class RS_IceOrbAbyssRev : Actor
 {
-	Default { Radius 12; Height 12; Speed 15; Damage 30; DamageType "Ice"; Projectile; +SEEKERMISSILE; -NOGRAVITY; +BOUNCEONFLOORS; +USEBOUNCESTATE; BounceType "Doom"; BounceCount 2;
+	Default { Radius 12; Height 12; Speed 15; /* CH: Damage (random(6,55))  Revenants.txt:767 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(6,55)); DamageType "Ice"; Projectile; +SEEKERMISSILE; -NOGRAVITY; +BOUNCEONFLOORS; +USEBOUNCESTATE; BounceType "Doom"; BounceCount 2;
 		RenderStyle "Add"; Alpha 0.85; Scale 1.5; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
 	States
 	{
@@ -165,7 +165,7 @@ class RS_FBSkelCH01 : Actor
 // ---------- BROWN: seeking brown balls (INCA body) ----------
 class RS_BrownRevBall : Actor
 {
-	Default { Radius 8; Height 8; Speed 20; Damage 27; DamageType "Plasma"; Projectile; ProjectileKickBack 500; +RANDOMIZE; +DONTHARMCLASS; +SEEKERMISSILE;
+	Default { Radius 8; Height 8; Speed 20; /* CH: Damage (random(5,40))  Revenants.txt:174 -- was flattened to `Damage 27`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,40)); DamageType "Plasma"; Projectile; ProjectileKickBack 500; +RANDOMIZE; +DONTHARMCLASS; +SEEKERMISSILE;
 		SeeSound "imp/attack"; DeathSound "weapons/rocklx"; Translation "0:255=%[0.31,0.23,0.18]:[1.10,0.74,0.40]"; }
 	States
 	{
@@ -181,7 +181,7 @@ class RS_BrownRevBall : Actor
 // ---------- GRAY: bone-to-pick (RASK/ZKEL body) ----------
 class RS_BoneToPickGrey : Actor
 {
-	Default { Radius 4; Height 4; Damage 25; Speed 36; DamageType "Melee"; Projectile; +BLOODLESSIMPACT; +SKYEXPLODE; +FORCEPAIN; Scale 0.75;
+	Default { Radius 4; Height 4; /* CH: Damage (random(10,40))  Revenants.txt:1290 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); Speed 36; DamageType "Melee"; Projectile; +BLOODLESSIMPACT; +SKYEXPLODE; +FORCEPAIN; Scale 0.75;
 		Translation "0:255=[129,129,129]:[255,255,255]"; SeeSound "skeleton/attack"; DeathSound "spike/spiked"; }
 	States { Spawn: BBBN AB 2 Bright; Loop; Death: BBBN CD 3 Bright; Stop; }
 }
@@ -189,7 +189,7 @@ class RS_BoneToPickGrey : Actor
 // ---------- RED: red death + mega (RASK body; MegaRedRev/HKRedDeath shared) ----------
 class RS_RedDeathRev : Actor
 {
-	Default { Radius 5; Height 7; Speed 24; FastSpeed 38; Damage 55; DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.75; Scale 0.65;
+	Default { Radius 5; Height 7; Speed 24; FastSpeed 38; /* CH: Damage (random(25,85))  Revenants.txt:2923 -- was flattened to `Damage 55`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(25,85)); DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.75; Scale 0.65;
 		SeeSound "Forgotten/Attack"; DeathSound "weapons/rocklx"; Translation "0:255=%[0.50,0.00,0.00]:[2.00,0.40,0.40]"; }
 	States
 	{
@@ -206,7 +206,7 @@ class RS_RedDeathRev : Actor
 // ---------- WHITE: coils + frost bolts + ice-to-meet (REVW/WRTH body, HP8866) ----------
 class RS_WhiteRevCoil : Actor
 {
-	Default { Radius 6; Height 6; Speed 24; Damage 55; DamageType "Melee"; Projectile; +THRUACTORS; +SEEKERMISSILE; Scale 0.15;
+	Default { Radius 6; Height 6; Speed 24; /* CH: Damage (random(40,90))  Revenants.txt:4767 -- was flattened to `Damage 55`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(40,90)); DamageType "Melee"; Projectile; +THRUACTORS; +SEEKERMISSILE; Scale 0.15;
 		SeeSound "baron/attack"; DeathSound "weapons/rocklx"; Translation "0:255=%[0.49,0.51,1.52]:[1.10,2.00,1.97]"; }
 	States { Spawn: BAL1 AB 2 Bright A_SeekerMissile(4,4); Loop; Death: BAL1 CDE 4 Bright A_Explode(55,48); Stop; }
 }
@@ -273,7 +273,7 @@ class RS_Firespe1 : Actor
 }
 class RS_FirespeNewYel : Actor
 {
-	Default { Radius 4; Height 4; Speed 24; Mass 2; Damage 16; DamageType "Fire"; Projectile; RenderStyle "Add"; Alpha 0.8;
+	Default { Radius 4; Height 4; Speed 24; Mass 2; /* CH: Damage (random(8,24))  Revenants.txt:2649 -- was flattened to `Damage 16`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(8,24)); DamageType "Fire"; Projectile; RenderStyle "Add"; Alpha 0.8;
 		SeeSound "vile/firestrt"; }
 	States
 	{
@@ -481,7 +481,7 @@ class RS_RevShieldWalk : Actor
 }
 class RS_ShieldBlastRev : Actor
 {
-	Default { Radius 6; Height 8; Speed 12; Damage 37; DamageType "Fire";
+	Default { Radius 6; Height 8; Speed 12; /* CH: Damage (random(10,65))  Revenants.txt:3153 -- was flattened to `Damage 37`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,65)); DamageType "Fire";
 		Projectile; +SEEKERMISSILE; +MTHRUSPECIES; RenderStyle "Add";
 		Alpha 0.75; XScale 1.0; YScale 1.45; SeeSound "fire/fire3";
 		DeathSound "spell/Impact1";
@@ -551,7 +551,7 @@ class RS_DKShield : Actor
 // CH Revenants.txt RevSol / DKFire2 / DKFire / SoulSeekerRev.
 class RS_RevSol : Actor
 {
-	Default { Radius 3; Height 12; Speed 32; Damage 30; RenderStyle "Add";
+	Default { Radius 3; Height 12; Speed 32; /* CH: Damage (random(10,50))  Revenants.txt:3608 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); RenderStyle "Add";
 		DamageType "Fire"; Alpha 0.85; Projectile; +THRUGHOST;
 		SeeSound "monster/dkndrt"; DeathSound "weapons/firex2";
 		Translation "175:191=160:167"; }
@@ -611,7 +611,7 @@ class RS_DKFire2 : Actor
 }
 class RS_SoulSeekerRev : Actor
 {
-	Default { Radius 4; Height 8; Speed 22; Damage 12; RenderStyle "Add";
+	Default { Radius 4; Height 8; Speed 22; /* CH: Damage (random(5,20))  Revenants.txt:3576 -- was flattened to `Damage 12`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,20)); RenderStyle "Add";
 		DamageType "Melee"; Alpha 0.85; Scale 0.45; Projectile;
 		+THRUGHOST; +MTHRUSPECIES; +SEEKERMISSILE;
 		SeeSound "skull/melee"; DeathSound "weapons/firex2";
@@ -637,7 +637,7 @@ class RS_SoulSeekerRev : Actor
 // CH Zombies.txt MrBones; CH CYBIES.txt PortalSummons.
 class RS_EvilShadeWhiteRev : Actor
 {
-	Default { Radius 20; Height 56; Speed 14; Damage 4; DamageType "Melee";
+	Default { Radius 20; Height 56; Speed 14; /* CH: Damage (random(2,7))  Revenants.txt:5135 -- was flattened to `Damage 4`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(2,7)); DamageType "Melee";
 		Projectile; +NOCLIP; +DONTHARMCLASS; }
 	States
 	{

@@ -61,7 +61,7 @@ class RS_IceToMeetVile1 : RS_IceStartVile1 { Default { Speed 18; Damage 35; }
 // ---------- ABYSS: fast ice bolt (ICEY) ----------
 class RS_IceABVile : Actor
 {
-	Default { Radius 6; Height 8; Speed 46; Damage 30; DamageType "Ice"; Projectile; RenderStyle "Add"; Alpha 0.9; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
+	Default { Radius 6; Height 8; Speed 46; /* CH: Damage (random(9,45))  Archviles.txt:1524 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(9,45)); DamageType "Ice"; Projectile; RenderStyle "Add"; Alpha 0.9; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
 	States { Spawn: ICEY AB 2 Bright; Loop; Death: ICEY FGHI 4 Bright A_Explode(30,64); Stop; }
 }
 
@@ -87,14 +87,14 @@ class RS_DFire : Actor
 }
 class RS_DFlare : Actor
 {
-	Default { Radius 12; Height 12; Speed 25; Damage 24; RenderStyle "Add"; DamageType "Fire"; Alpha 0.85; Projectile; +THRUGHOST; SeeSound "vile/start"; DeathSound "vile/stop"; }
+	Default { Radius 12; Height 12; Speed 25; /* CH: Damage (random(10,38))  Archviles.txt:3932 -- was flattened to `Damage 24`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,38)); RenderStyle "Add"; DamageType "Fire"; Alpha 0.85; Projectile; +THRUGHOST; SeeSound "vile/start"; DeathSound "vile/stop"; }
 	States { Spawn: CBAL AB 3 Bright; Loop; Death: VBA3 AB 4 Bright A_Explode(50,80); Stop; }
 }
 
 // ---------- BLACK: dark-flame cloud swarm (VILE-tinted) ----------
 class RS_BVileCloud : Actor
 {
-	Default { Radius 8; Height 8; Speed 14; Damage 2; DamageType "Fire"; Projectile; +SEEKERMISSILE; +RIPPER; RenderStyle "Add"; Alpha 0.6; Scale 1.4;
+	Default { Radius 8; Height 8; Speed 14; /* CH: Damage (random(1,2))  Archviles.txt:3972 -- was flattened to `Damage 2`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,2)); DamageType "Fire"; Projectile; +SEEKERMISSILE; +RIPPER; RenderStyle "Add"; Alpha 0.6; Scale 1.4;
 		SeeSound "vile/start"; DeathSound "vile/stop"; Translation "0:255=%[0.10,0.00,0.20]:[0.50,0.20,0.70]"; }
 	States { Spawn: VILE OPQ 4 Bright A_SeekerMissile(4,4); Loop; Death: VILE R 3 Bright; Stop; }
 }
@@ -102,7 +102,7 @@ class RS_BVileCloud : Actor
 // ---------- WHITE: floating-eye bolts (FATB/BFE2) ----------
 class RS_WVileBolt1 : Actor
 {
-	Default { Radius 6; Height 8; Speed 21; Damage 30; DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.95;
+	Default { Radius 6; Height 8; Speed 21; /* CH: Damage (random(10,50))  Archviles.txt:4647 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.95;
 		SeeSound "vile/start"; DeathSound "vile/stop"; Translation "0:255=%[0.80,0.80,1.00]:[2.00,2.00,2.00]"; }
 	States { Spawn: FATB AB 3 Bright A_SeekerMissile(3,3); Loop; Death: BFE2 ABCDE 4 Bright A_Explode(30,64); Stop; }
 }

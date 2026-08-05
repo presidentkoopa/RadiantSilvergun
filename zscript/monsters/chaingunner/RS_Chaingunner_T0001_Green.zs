@@ -120,6 +120,25 @@
 //   * The Spawn.T00/See.T00/... alias block at the end of States. See
 //     the comment there -- without it MissileState is nulled and this
 //     captain never fires a shot.
+//
+//
+// SOUNDS: RESOLVED 2026-08-05. Any note below saying a sound name is
+// NOT in this repo SNDINFO is STALE. CH sound library was imported
+// that day -- 693 lumps into sounds/ch/ and 804 SNDINFO definitions,
+// including the $random directives. Every sound name this file uses
+// now resolves end to end to a real lump. Verified, not assumed.
+// TIER ICONS: RESTORED 2026-08-05, and NOT from this file.
+// CH pastes an A_SpawnItemEx("ColorTierIconCH<n>") line into Spawn,
+// See, Missile and Pain of every actor. Those lines are 0-tic, and
+// `Goto X+N` offsets COUNT FRAMES -- so adding or removing one silently
+// retargets every jump after it in that state. That hazard already cost
+// two placeholder frames in this family.
+// RS_MonsterMaster emits the icon on a timer instead (RS_EmitTierIcon).
+// Identical on screen, cannot shift an offset, and every one of the
+// seventeen families gets it rather than just the ones edited by hand.
+// Gated on rs_mon_tiericons, off by default exactly as CH ships it.
+// Anything below claiming the icons were dropped is superseded by this.
+
 // =====================================================================
 
 class RS_CG_T0001 : RS_MonsterMaster
@@ -223,9 +242,13 @@ class RS_CG_T0001 : RS_MonsterMaster
 	// captain. Chaingunners.txt:1170.
 	Grow:
 		CPOS MLKJIH 5;
-		CPOS A 0 A_SpawnItemEx("RS_CG_T0002", 0, 0, 6, 0, 0, 0, 0,
-		                       SXF_NOCHECKPOSITION | SXF_SETTARGET);
-		TNT1 A 0 A_Die;
+		// CH spawns the next creature and calls A_Die (Chaingunners.txt
+		// Grow). That loses everything -- the promoted monster forgets its
+		// target and returns at full health, which reads as "a new monster
+		// appeared" rather than "that one changed". RS_PromoteTo runs the
+		// COPPER promotion tell and carries target/master/vel/threshold and
+		// health AS A FRACTION across the swap.
+		CPOS A 0 { RS_PromoteTo("RS_CG_T0002"); }
 		Stop;
 	// The Abyss Pain Elemental converts what it hits. Chaingunners.txt:1125.
 	Pain.AbyssPE:

@@ -22,7 +22,7 @@
 // ---------- BLUE: seeking plasma ----------
 class RS_PlasmaPE : Actor
 {
-	Default { Radius 8; Height 16; Speed 14; FastSpeed 26; Damage 16; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.85; Scale 0.8;
+	Default { Radius 8; Height 16; Speed 14; FastSpeed 26; /* CH: Damage (random(10,23))  thepains.txt:1460 -- was flattened to `Damage 16`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,23)); DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.85; Scale 0.8;
 		SeeSound "spell/spellcast1"; DeathSound "weapons/plasmax"; }
 	States
 	{
@@ -38,7 +38,7 @@ class RS_PlasmaPE : Actor
 // ---------- CYAN: bouncing ice orbs ----------
 class RS_IceOrbCyanAra1 : Actor
 {
-	Default { Radius 8; Height 8; Speed 20; Damage 27; DamageType "Ice"; Projectile; +SEEKERMISSILE; +BOUNCEONFLOORS; +USEBOUNCESTATE; RenderStyle "Add";
+	Default { Radius 8; Height 8; Speed 20; /* CH: Damage (random(10,45))  Spiders.txt:428 -- was flattened to `Damage 27`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,45)); DamageType "Ice"; Projectile; +SEEKERMISSILE; +BOUNCEONFLOORS; +USEBOUNCESTATE; RenderStyle "Add";
 		BounceType "Doom"; BounceCount 7; BounceFactor 1.25; WallBounceFactor 1.25; Alpha 0.85; Scale 1.5; Gravity 0.5; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; }
 	States
 	{
@@ -55,7 +55,7 @@ class RS_IceOrbCyanAra2 : RS_IceOrbCyanAra1 { Default { Speed 14; Scale 1.0; } }
 // ---------- YELLOW: bouncing lava balls ----------
 class RS_LavaballPE : Actor
 {
-	Default { Radius 8; Height 8; Speed 17; Damage 35; DamageType "Fire"; Scale 1.0; Projectile; RenderStyle "Add"; Alpha 0.95; +THRUGHOST;
+	Default { Radius 8; Height 8; Speed 17; /* CH: Damage (random(15,60))  thepains.txt:1727 -- was flattened to `Damage 35`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(15,60)); DamageType "Fire"; Scale 1.0; Projectile; RenderStyle "Add"; Alpha 0.95; +THRUGHOST;
 		SeeSound "weapons/firmfi"; DeathSound "weapons/firex3"; BounceType "Doom"; BounceCount 3; WallBounceFactor 1.25; }
 	States
 	{
@@ -87,7 +87,7 @@ class RS_BoomPEBlu : Actor
 // ---------- BROWN: flesh shot (BAL7 tinted) ----------
 class RS_BrownPEShot : Actor
 {
-	Default { Radius 6; Height 14; Speed 18; Damage 27; DamageType "Plasma"; Projectile; +RANDOMIZE; SeeSound "baron/attack"; DeathSound "baron/shotx";
+	Default { Radius 6; Height 14; Speed 18; /* CH: Damage (Random(10,45))  thepains.txt:190 -- was flattened to `Damage 27`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,45)); DamageType "Plasma"; Projectile; +RANDOMIZE; SeeSound "baron/attack"; DeathSound "baron/shotx";
 		Translation "0:255=%[0.00,0.00,0.31]:[0.20,0.20,2.00]"; }
 	States
 	{
@@ -103,7 +103,7 @@ class RS_BrownPEShot : Actor
 // ---------- ABYSS: coil seekers + pulse + volley (AYPE) ----------
 class RS_AbyPECoil : Actor
 {
-	Default { Radius 6; Height 6; Speed 12; Damage 50; DamageType "Melee"; Projectile; +RANDOMIZE; +THRUACTORS; +SEEKERMISSILE; Scale 0.3;
+	Default { Radius 6; Height 6; Speed 12; /* CH: Damage (random(30,80))  thepains.txt:768 -- was flattened to `Damage 50`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(30,80)); DamageType "Melee"; Projectile; +RANDOMIZE; +THRUACTORS; +SEEKERMISSILE; Scale 0.3;
 		SeeSound "baron/attack"; DeathSound "weapons/rocklx"; Translation "Ice"; }
 	States
 	{
@@ -138,7 +138,7 @@ class RS_AbyssPEPulse : Actor
 }
 class RS_VollreyAbyPE : Actor
 {
-	Default { Radius 6; Height 8; Speed 27; FastSpeed 38; Damage 22; DamageType "Plasma"; Projectile; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.75; Scale 0.55;
+	Default { Radius 6; Height 8; Speed 27; FastSpeed 38; /* CH: Damage (random(5,40))  thepains.txt:810 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,40)); DamageType "Plasma"; Projectile; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.75; Scale 0.55;
 		SeeSound "Forgotten/Attack"; DeathSound "spell/Impact1"; Translation "Ice"; }
 	States
 	{
@@ -154,7 +154,7 @@ class RS_VollreyAbyPE : Actor
 // ---------- RED: corpse breath + spike bomb (TORT/MISL) ----------
 class RS_CorpseBreathPE : Actor
 {
-	Default { Radius 18; Height 18; Speed 15; Damage 8; DamageType "Melee"; Projectile; +THRUACTORS; -NOGRAVITY; +BOUNCEONFLOORS; RenderStyle "Add";
+	Default { Radius 18; Height 18; Speed 15; /* CH: Damage (random(5,12))  thepains.txt:1920 -- was flattened to `Damage 8`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,12)); DamageType "Melee"; Projectile; +THRUACTORS; -NOGRAVITY; +BOUNCEONFLOORS; RenderStyle "Add";
 		BounceType "Doom"; BounceCount 3; BounceFactor 0.8; Gravity 0.24; Alpha 0.85; Scale 0.8; }
 	States
 	{
@@ -168,7 +168,7 @@ class RS_CorpseBreathPE : Actor
 }
 class RS_SbombPE : Actor
 {
-	Default { Radius 20; Height 20; Mass 600; Speed 9; Damage 30; DamageType "Plasma"; Projectile; Scale 2; RenderStyle "Add"; Alpha 0.95;
+	Default { Radius 20; Height 20; Mass 600; Speed 9; /* CH: Damage (random(10,50))  thepains.txt:1888 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Plasma"; Projectile; Scale 2; RenderStyle "Add"; Alpha 0.95;
 		SeeSound "Spell/spellCast1"; DeathSound "Crack/death"; Translation "208:223=176:191","224:231=176:176"; }
 	States
 	{
@@ -197,7 +197,7 @@ class RS_OverBall3 : Actor
 }
 class RS_StormShot1 : Actor
 {
-	Default { Radius 12; Height 6; Speed 30; Damage 90; Projectile; RenderStyle "Add"; Alpha 0.80; DamageType "Plasma"; +THRUGHOST; +NODAMAGETHRUST; +FORCEXYBILLBOARD; DeathSound "weapons/devexp"; }
+	Default { Radius 12; Height 6; Speed 30; /* CH: Damage (random(40,150))  thepains.txt:2487 -- was flattened to `Damage 90`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(40,150)); Projectile; RenderStyle "Add"; Alpha 0.80; DamageType "Plasma"; +THRUGHOST; +NODAMAGETHRUST; +FORCEXYBILLBOARD; DeathSound "weapons/devexp"; }
 	States { Spawn: LFX1 STUVW 1 Bright; Loop; Death: LFX1 XY 3 Bright A_Explode(90,128); Stop; }
 }
 class RS_BEESHOT : Actor
@@ -268,7 +268,7 @@ class RS_PurplePE1 : FastProjectile
 	Default
 	{
 		Radius 8; Height 10; Speed 24; FastSpeed 24; Mass 23; Gravity 0.3;
-		Damage 28;
+		/* CH: Damage (random(10,47))  thepains.txt:1581 -- was flattened to `Damage 28`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,47));
 		Projectile; +RANDOMIZE; +EXPLODEONWATER; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 0.88; Scale 1.0;
 		SeeSound "caco/attack"; DeathSound "Bomb/boom";
@@ -290,7 +290,7 @@ class RS_PurplePE2 : FastProjectile
 	Default
 	{
 		Radius 8; Height 10; Speed 28; FastSpeed 50; Mass 23; Gravity 0.3;
-		Damage 15;
+		/* CH: Damage (random(5,25))  thepains.txt:1613 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25));
 		Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.65; Scale 0.75;
 		SeeSound "caco/attack"; DeathSound "holy/holy2";
 		Translation "168:191=250:254", "208:223=250:252", "128:143=250:252",
@@ -519,7 +519,7 @@ class RS_SkullDeathPE : FastProjectile
 	Default
 	{
 		Radius 5; Height 7; Speed 32; FastSpeed 38;
-		Damage 30; DamageType "Fire";
+		/* CH: Damage (random(10,50))  thepains.txt:2176 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Fire";
 		Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85; Scale 0.65;
 		SeeSound "Forgotten/Attack"; DeathSound "spell/Impact1";
 		Translation "76:79=44:47", "136:143=184:191", "128:136=175:183",
@@ -596,7 +596,7 @@ class RS_DFlarePE : FastProjectile
 {
 	Default
 	{
-		Radius 3; Height 3; Speed 25; Damage 15;
+		Radius 3; Height 3; Speed 25; /* CH: Damage (random(10,20))  thepains.txt:2925 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,20));
 		RenderStyle "Stencil"; StencilColor "red"; DamageType "Fire"; Alpha 0.85;
 		Projectile; +THRUGHOST; +MTHRUSPECIES; +THRUSPECIES;
 		Species "PE";

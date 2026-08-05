@@ -32,7 +32,7 @@ class RS_BaronsBlueBalls : Actor
 	Default
 	{
 		Radius 6; Height 16; Speed 18; FastSpeed 25;
-		Damage 27; DamageType "Plasma";
+		/* CH: Damage (Random(10,45))  Hellknights.txt:1498 -- was flattened to `Damage 27`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,45)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85;
 		SeeSound "baron/attack"; DeathSound "weapons/plasmax";
 		Translation "112:127=192:207";
@@ -54,7 +54,7 @@ class RS_HKBolt2 : Actor
 	Default
 	{
 		Radius 6; Height 8; Speed 19; FastSpeed 38;
-		Damage 30; DamageType "Plasma";
+		/* CH: Damage (random(10,50))  Hellknights.txt:1649 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 1; Scale 0.7;
 		SeeSound "caco/attack"; DeathSound "caco/shotx";
@@ -78,7 +78,7 @@ class RS_PurpFire2 : Actor
 	Default
 	{
 		Radius 8; Height 8; Speed 16;
-		Damage 7; DamageType "Fire";
+		/* CH: Damage (random(5,10))  Shotgunners.txt:1381 -- was flattened to `Damage 7`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,10)); DamageType "Fire";
 		Projectile; RenderStyle "Add"; Alpha 0.85; Scale 1.1;
 		SeeSound "fire/fire1"; DeathSound "Imp/shotx";
 		Translation "192:207=250:254";
@@ -100,7 +100,7 @@ class RS_FireBluHKBall2 : Actor
 	Default
 	{
 		Radius 6; Height 6; Speed 20;
-		Damage 7; DamageType "Plasma";
+		/* CH: Damage (random(5,10))  Hellknights.txt:973 -- was flattened to `Damage 7`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,10)); DamageType "Plasma";
 		Projectile; RenderStyle "Add"; Alpha 0.75; Scale 1;
 		SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "208:223=195:207", "225:231=192:195";
@@ -120,7 +120,7 @@ class RS_FireBluHKBall3 : Actor
 	Default
 	{
 		Radius 6; Height 6; Speed 12;
-		Damage 7; DamageType "Plasma";
+		/* CH: Damage (random(5,10))  Hellknights.txt:999 -- was flattened to `Damage 7`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,10)); DamageType "Plasma";
 		Projectile; RenderStyle "Add"; Alpha 0.75; Scale 0.5;
 		SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "208:223=195:207", "225:231=192:195";
@@ -141,7 +141,7 @@ class RS_FireBluHKBall1 : Actor
 	Default
 	{
 		Radius 20; Height 20; Mass 600; Speed 15;
-		Damage 27; DamageType "Plasma";
+		/* CH: Damage (random(5,50))  Hellknights.txt:944 -- was flattened to `Damage 27`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,50)); DamageType "Plasma";
 		Projectile; Scale 1; RenderStyle "Add"; Alpha 0.95;
 		SeeSound "Spell/spellCast1"; DeathSound "Crack/death";
 		Translation "216:223=199:207", "208:214=193:201", "231:231=194:194", "168:175=198:201";
@@ -166,7 +166,7 @@ class RS_MinesHK : Actor
 	Default
 	{
 		Radius 12; Height 12; Speed 32;
-		Damage 12; DamageType "Fire";
+		/* CH: Damage (random(5,20))  Hellknights.txt:1131 -- was flattened to `Damage 12`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,20)); DamageType "Fire";
 		RenderStyle "SoulTrans"; Alpha 0.95;
 		Projectile; -NOGRAVITY; +BOUNCEONWALLS; +THRUGHOST;
 		Gravity 0.3; BounceType "Doom"; BounceCount 25;
@@ -203,7 +203,7 @@ class RS_SpikeCyanRev : Actor
 	Default
 	{
 		Radius 2; Height 2; Speed 9; Mass 500;
-		Damage 2; DamageType "Ice";
+		/* CH: Damage (random(1,3))  Revenants.txt:452 -- was flattened to `Damage 2`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,3)); DamageType "Ice";
 		Projectile; -NOGRAVITY; +THRUGHOST; Gravity 1.5;
 		Scale 0.25; RenderStyle "Add"; Alpha 0.80;
 		Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]";
@@ -222,7 +222,7 @@ class RS_IceCacoTrail : Actor
 	Default
 	{
 		Radius 3; Height 2; Speed 42;
-		Damage 9; DamageType "Ice";
+		/* CH: Damage (random(2,16))  Cacodemons.txt:439 -- was flattened to `Damage 9`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(2,16)); DamageType "Ice";
 		Projectile; RenderStyle "Add"; Alpha 0.5;
 		Scale 1.0;
 		SeeSound "Ice/Hit2"; DeathSound "spike/spiked";
@@ -241,7 +241,7 @@ class RS_IceHKShot : Actor
 	Default
 	{
 		Radius 5; Height 5; Speed 34;
-		Damage 18; DamageType "Ice";
+		/* CH: Damage (random(9,27))  Hellknights.txt:462 -- was flattened to `Damage 18`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(9,27)); DamageType "Ice";
 		Projectile; RenderStyle "Add"; Alpha 0.65; Scale 1.5;
 		SeeSound "Ice/Hit2"; DeathSound "spike/spiked";
 	}
@@ -287,7 +287,7 @@ class RS_IceOrbCyanHK : Actor
 	Default
 	{
 		Radius 8; Height 8; Speed 42;
-		Damage 30; DamageType "Ice";
+		/* CH: Damage (random(7,60))  Hellknights.txt:519 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(7,60)); DamageType "Ice";
 		Projectile; Scale 2;
 		SeeSound "ice/Cast"; DeathSound "Ice/Hit2";
 		Translation "0:255=%[0.07,0.35,0.87]:[1.01,2.00,2.00]";
@@ -319,7 +319,7 @@ class RS_BrownHKShieldCheck : Actor
 	Default
 	{
 		Radius 8; Height 8; Speed 20;
-		Damage 35; DamageType "Melee";
+		/* CH: Damage (random(10,60))  Hellknights.txt:186 -- was flattened to `Damage 35`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,60)); DamageType "Melee";
 		Projectile; Alpha 0.85; Scale 1.5; Gravity 0.5;
 	}
 	States
@@ -356,6 +356,10 @@ class RS_REDTHINGSHK : Actor
 }
 class RS_HKRedDeath : Actor
 {
+	// CH: decorate/Hellknights.txt:2231 (ACTOR HKREdDeath). A free-standing delayed
+	// blast -- it is spawned already dead (Spawn falls straight through to Death),
+	// so it is a "detonation placed at a point", not a travelling projectile.
+	// SHARED by 13 CH families; 22 files reference it here. See the A_Burst note below.
 	Default
 	{
 		Radius 10; Height 42; +DONTGIB; +NOGRAVITY;
@@ -367,8 +371,18 @@ class RS_HKRedDeath : Actor
 		BAR1 AB 0 A_PlaySound("world/barrelx");
 		Goto Death;
 	Death:
-		MISL B 8 Bright A_Explode(7,42);
+		MISL B 8 Bright A_Explode(random(5,10),42);   // CH: A_Explode(random(5,10),42) -- was flattened to 7
 		MISL C 6 Bright A_PlaySound("world/barrelx");
+		// DIVERGENCE FROM CH, LEFT IN PLACE ON PURPOSE -- NOT AN OVERSIGHT.
+		// CH is:  MISL D 3 Bright A_Burst("REDTHINGSHK")
+		// A_Burst spawns MAX(24, radius*height/32) + 1 = 25 chunks and destroys self.
+		// Ours spawns exactly ONE. Restoring A_Burst is a 25x particle multiplier at
+		// every one of the 22 call sites in this tree, and the worst of them fire 10-22
+		// RS_HKRedDeath in a single frame line (RS_Cyberdemon.zs SUPR OOOO...x22,
+		// RS_Archvile.zs LMWX). That is 550 actors from one frame. Owner decision:
+		// restore only with a perf check. A_Burst also overwrites each chunk's
+		// RenderStyle/Alpha with the burster's (Normal/1.0), so RS_REDTHINGSHK's own
+		// Add/0.8 would stop applying.
 		MISL D 3 Bright A_SpawnItemEx("RS_REDTHINGSHK", 0,0,0, frandom(-4,4),frandom(-4,4),frandom(2,8));
 		Stop;
 	}
@@ -377,6 +391,9 @@ class RS_HKRedDeath : Actor
 // ---------- YELLOW: FireHKBall1 (BRB2) + BigHK -> BigHK2/BigHK3 (XXBF) ----------
 class RS_SparkPuff1 : Actor
 {
+	// CH: decorate/Archviles.txt:3045 (ACTOR SparkPuff1). Diffed against CH 2026-08-05:
+	// exact match, no edit needed. Pure cosmetic ember -- no damage, no collision.
+	// SHARED by 11 CH families; 17 files reference it here.
 	Default
 	{
 		+NOBLOCKMAP; +NOGRAVITY; +SPAWNFLOAT; +NOINTERACTION;
@@ -394,7 +411,7 @@ class RS_FireHKBall1 : Actor
 	Default
 	{
 		Radius 8; Height 8; Speed 15;
-		Damage 25; DamageType "Fire";
+		/* CH: Damage (random(10,40))  Hellknights.txt:1807 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); DamageType "Fire";
 		Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9;
 		SeeSound "imp/attack"; DeathSound "imp/shotx"; Decal "BaronScorch";
 	}
@@ -413,7 +430,7 @@ class RS_BigHK2 : Actor
 	Default
 	{
 		Radius 1; Height 1; Speed 0;
-		Damage 30; DamageType "Fire";
+		/* CH: Damage (random(15,45))  Hellknights.txt:1861 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(15,45)); DamageType "Fire";
 		Projectile; RenderStyle "Add"; Scale 1.33; Alpha 0.9; +NOCLIP;
 		SeeSound "fire/fire3";
 	}
@@ -431,7 +448,7 @@ class RS_BigHK3 : Actor
 	Default
 	{
 		Radius 1; Height 1; Speed 12;
-		Damage 30; DamageType "Fire";
+		/* CH: Damage (random(15,45))  Hellknights.txt:1884 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(15,45)); DamageType "Fire";
 		Projectile; RenderStyle "Add"; Scale 1.33; Alpha 0.9; +NOCLIP;
 		SeeSound "fire/fire3";
 	}
@@ -449,7 +466,7 @@ class RS_BigHK : Actor
 	Default
 	{
 		Radius 8; Height 8; Speed 18;
-		Damage 43; DamageType "Fire";
+		/* CH: Damage (random(10,77))  Hellknights.txt:1832 -- was flattened to `Damage 43`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,77)); DamageType "Fire";
 		Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Scale 2;
 		SeeSound "imp/attack"; DeathSound "weapons/rocklx"; Decal "BaronScorch";
 	}
@@ -491,7 +508,7 @@ class RS_AbyssHKBall : Actor
 	Default
 	{
 		Radius 12; Height 9; Speed 28; Scale 1.42;
-		Damage 32; DamageType "Plasma";
+		/* CH: Damage (Random(10,55))  Hellknights.txt:742 -- was flattened to `Damage 32`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,55)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; +DONTHARMCLASS; RenderStyle "Add"; Alpha 1.0;
 		SeeSound "baron/attack"; DeathSound "spit/spit2";
 		Translation "0:255=%[0.02,0.02,0.03]:[0.29,0.49,0.65]";
@@ -517,7 +534,7 @@ class RS_THEBEEHK2 : Actor
 	Default
 	{
 		Radius 4; Height 4; Speed 8;
-		Damage 2; DamageType "Fire";
+		/* CH: Damage (random(1,2))  Hellknights.txt:2162 -- was flattened to `Damage 2`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,2)); DamageType "Fire";
 		Projectile; +THRUGHOST; RenderStyle "Add"; Alpha 0.85; Scale 1.2;
 		DeathSound "weapons/firex4";
 	}
@@ -533,7 +550,7 @@ class RS_THEBEEHK : Actor
 	Default
 	{
 		Radius 5; Height 5; Speed 36;
-		Damage 2; DamageType "Fire";
+		/* CH: Damage (random(1,3))  Hellknights.txt:2136 -- was flattened to `Damage 2`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,3)); DamageType "Fire";
 		RenderStyle "Add"; Alpha 0.85; Projectile; +THRUGHOST; +SEEKERMISSILE;
 		Scale 1.7; SeeSound "weapons/firmfi"; DeathSound "weapons/firex4";
 	}
@@ -566,7 +583,7 @@ class RS_BloodBoltHK : Actor
 	Default
 	{
 		Radius 12; Height 12; Mass 25; Speed 17;
-		Damage 32; DamageType "Plasma";
+		/* CH: Damage (random(10,54))  Hellknights.txt:2066 -- was flattened to `Damage 32`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,54)); DamageType "Plasma";
 		Projectile; Scale 0.75; RenderStyle "Add"; Alpha 0.95;
 		SeeSound "Spell/spellCast1"; DeathSound "fire/Fire4";
 		Translation "208:223=176:191", "224:231=176:176";
@@ -601,7 +618,7 @@ class RS_HellionBall : Actor
 	Default
 	{
 		Radius 12; Height 16; Speed 19;
-		Damage 32; DamageType "Fire";
+		/* CH: Damage (random(10,60))  Imps.txt:3076 -- was flattened to `Damage 32`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,60)); DamageType "Fire";
 		Alpha 0.80; Scale 1.3;
 		Projectile; +THRUGHOST; +FORCEXYBILLBOARD; +SEEKERMISSILE; RenderStyle "Add";
 		SeeSound "Monster/hlnatk"; DeathSound "Monster/hlnexp"; Decal "DoomImpScorch";
@@ -629,7 +646,7 @@ class RS_MolochNail : Actor
 	Default
 	{
 		Radius 4; Height 6; Speed 30; Scale 1.1;
-		Damage 20; DamageType "Fire";
+		/* CH: Damage (random(10,30))  CYBIES.txt:3962 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,30)); DamageType "Fire";
 		Decal "BulletChip";
 		AttackSound "moloch/nailhitbleed"; DeathSound "weapons/firex4";
 		Projectile; +SPAWNSOUNDSOURCE; +EXTREMEDEATH; +BLOODSPLATTER; +ROCKETTRAIL;
@@ -660,7 +677,7 @@ class RS_BaronStar3 : Actor
 	Default
 	{
 		Radius 5; Height 7; Speed 27; FastSpeed 38;
-		Damage 17; DamageType "Fire"; Species "BaronOfHell";
+		/* CH: Damage (random(5,30))  Barons.txt:2995 -- was flattened to `Damage 17`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,30)); DamageType "Fire"; Species "BaronOfHell";
 		Projectile; +RANDOMIZE; +DONTHARMCLASS; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 1; Scale 1.3;
 		SeeSound "caco/attack"; DeathSound "spell/Impact1";
@@ -684,7 +701,7 @@ class RS_BaronNade : Actor
 	Default
 	{
 		Radius 8; Height 8; Speed 25;
-		Damage 47; DamageType "Fire";
+		/* CH: Damage (random(20,75))  Hellknights.txt:2530 -- was flattened to `Damage 47`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,75)); DamageType "Fire";
 		Projectile; -NOGRAVITY; +GRENADETRAIL;
 		BounceType "Doom"; Gravity 0.29; BounceCount 15; BounceFactor 1.15; WallBounceFactor 0.7;
 		SeeSound "weapons/grenlf"; DeathSound "weapons/grenlx"; BounceSound "prox/beep";
@@ -724,7 +741,7 @@ class RS_BruiserMissile : Actor
 	Default
 	{
 		Radius 8; Height 12; Speed 20; Scale 1.15;
-		Damage 47; DamageType "Fire";
+		/* CH: Damage (random(20,75))  Hellknights.txt:2595 -- was flattened to `Damage 47`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,75)); DamageType "Fire";
 		Projectile; RenderStyle "Normal"; +THRUGHOST; DamageType "Fire";
 		SeeSound "monster/brufir"; DeathSound "weapons/hellex"; Decal "Scorch";
 	}
@@ -744,6 +761,11 @@ class RS_BruiserMissile : Actor
 }
 
 // --- MegaRedRev: fast revenant-style bolt + load FX ---
+// CH: RedRevLoad at decorate/Revenants.txt:2898, RedRevLoad2 at Revenants.txt:2880.
+// Diffed against CH 2026-08-05: both exact matches, no edit needed. Pure muzzle-glow
+// decoration -- NOINTERACTION, no damage. SHARED: chaingunner, hell knight, lost soul,
+// revenant. NOT YET PORTED: CH also has RedRevLoad3 (Cacodemons.txt:2892) and
+// RedRevLoad4 (Cacodemons.txt:2911); neither exists in this tree.
 class RS_RedRevLoad : Actor
 {
 	Default { Radius 1; Height 1; +NOCLIP; +NOGRAVITY; +NOINTERACTION; RenderStyle "Add"; Alpha 0.75; SeeSound "Weapons/BFGF"; }
@@ -769,7 +791,7 @@ class RS_MegaRedRev : Actor
 	Default
 	{
 		Radius 11; Height 9; Speed 90; Scale 1.5;
-		Damage 60; DamageType "Plasma";
+		/* CH: Damage (random(35,95))  Revenants.txt:2860 -- was flattened to `Damage 60`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(35,95)); DamageType "Plasma";
 		Projectile; RenderStyle "Add"; Alpha 0.8;
 		SeeSound "Crack/see"; DeathSound "Litn/litn3";
 		Translation "192:207=171:191", "240:247=191:191";
@@ -847,7 +869,7 @@ class RS_SwooshCBBar1 : Actor
 	Default
 	{
 		Radius 13; Height 8; Speed 36; Scale 0.6;
-		Damage 25; DamageType "Plasma";
+		/* CH: Damage (random(10,40))  Hellknights.txt:2474 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.75;
 		SeeSound "Litn/litn3"; DeathSound "weapons/bfgx";
 		Translation "112:127=192:207";
@@ -883,7 +905,7 @@ class RS_SpreadMisBar1 : Actor
 	Default
 	{
 		Radius 11; Height 8; Speed 17; Scale 1.25;
-		Damage 25; DamageType "Fire";
+		/* CH: Damage (random(10,40))  Hellknights.txt:2567 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); DamageType "Fire";
 		Projectile;
 		SeeSound "weapons/hominglaunch"; DeathSound "weapons/homingexplode";
 	}
@@ -938,7 +960,7 @@ class RS_SoulTrail : Actor
 }
 class RS_PhantomEgg : Actor
 {
-	Default { Damage 40; Projectile; DamageType "Plasma"; Radius 13; Height 8; Speed 22;
+	Default { /* CH: Damage (random(20,60))  Hellknights.txt:3439 -- was flattened to `Damage 40`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,60)); Projectile; DamageType "Plasma"; Radius 13; Height 8; Speed 22;
 		SeeSound "phantom/spirit1"; RenderStyle "Add"; Translation "192:207=84:95"; Scale 1.2; }
 	States
 	{
@@ -953,7 +975,7 @@ class RS_PhantomEgg : Actor
 }
 class RS_SoulBomb : Actor
 {
-	Default { Radius 12; Height 8; Speed 11; Damage 50; Projectile; RenderStyle "Add"; Alpha 0.67; Scale 0.95;
+	Default { Radius 12; Height 8; Speed 11; /* CH: Damage (random(20,80))  Hellknights.txt:3480 -- was flattened to `Damage 50`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,80)); Projectile; RenderStyle "Add"; Alpha 0.67; Scale 0.95;
 		MissileType "RS_SoulTrail"; SeeSound "phantom/bomb"; DeathSound "phantom/explode";
 		Translation "128:143=80:95","168:191=80:95","208:223=80:88","48:63=80:95"; }
 	States
@@ -1019,7 +1041,7 @@ class RS_HKEXFastBeam : FastProjectile
 }
 class RS_BruiserMissileEx : FastProjectile
 {
-	Default { Radius 8; Height 12; Speed 33; Damage 67; Scale 1.15; DamageType "Fire"; Projectile;
+	Default { Radius 8; Height 12; Speed 33; /* CH: Damage (random(40,95))  Hellknights.txt:3029 -- was flattened to `Damage 67`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(40,95)); Scale 1.15; DamageType "Fire"; Projectile;
 		RenderStyle "Normal"; +THRUGHOST; SeeSound "monster/brufir"; DeathSound "weapons/hellex";
 		DamageType "Fire"; Decal "Scorch"; }
 	States
@@ -1037,7 +1059,7 @@ class RS_BruiserMissileEx : FastProjectile
 }
 class RS_BruiserMissileEx2 : FastProjectile
 {
-	Default { Radius 8; Height 12; Speed 29; Damage 100; Scale 1.15; DamageType "Fire"; Projectile;
+	Default { Radius 8; Height 12; Speed 29; /* CH: Damage (random(80,125))  Hellknights.txt:3059 -- was flattened to `Damage 100`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(80,125)); Scale 1.15; DamageType "Fire"; Projectile;
 		RenderStyle "Normal"; +THRUGHOST; +SEEKERMISSILE; SeeSound "monster/brufir"; DeathSound "weapons/hellex";
 		DamageType "Fire"; Decal "Scorch"; }
 	States
@@ -1056,7 +1078,7 @@ class RS_BruiserMissileEx2 : FastProjectile
 }
 class RS_SpreadMisBarEX : FastProjectile
 {
-	Default { Radius 9; Height 6; Speed 41; Damage 25; DamageType "Fire"; Projectile; Scale 1.1;
+	Default { Radius 9; Height 6; Speed 41; /* CH: Damage (random(10,40))  Hellknights.txt:3005 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); DamageType "Fire"; Projectile; Scale 1.1;
 		SeeSound "weapons/hominglaunch"; DeathSound "weapons/homingexplode"; }
 	States
 	{
@@ -1072,7 +1094,7 @@ class RS_SpreadMisBarEX : FastProjectile
 }
 class RS_BaronHellNade : Actor
 {
-	Default { Speed 28; Damage 57; Projectile; +SEEKERMISSILE; +USEBOUNCESTATE; BounceType "Doom"; BounceCount 12;
+	Default { Speed 28; /* CH: Damage (random(30,85))  Hellknights.txt:3163 -- was flattened to `Damage 57`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(30,85)); Projectile; +SEEKERMISSILE; +USEBOUNCESTATE; BounceType "Doom"; BounceCount 12;
 		Scale 0.5; SeeSound "weapons/grenlf"; DeathSound "weapons/grenlx"; BounceSound "prox/beep"; RenderStyle "Add"; }
 	States
 	{
@@ -1109,7 +1131,7 @@ class RS_ZapOrbHKEX : Actor
 }
 class RS_ZapOrbHKEX2 : FastProjectile
 {
-	Default { Radius 12; Height 6; Speed 41; Damage 7; DamageType "Plasma"; Projectile; +RIPPER; Scale 1.1; }
+	Default { Radius 12; Height 6; Speed 41; /* CH: Damage (random(10,40))  Hellknights.txt:2954 -- was flattened to `Damage 7`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); DamageType "Plasma"; Projectile; +RIPPER; Scale 1.1; }
 	States
 	{
 	Spawn:

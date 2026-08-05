@@ -28,7 +28,7 @@ class RS_ZapZapCB : Actor
 // ---------- ABYSS: "Hell Hound" seeking fire (FRFX) ----------
 class RS_AbyssDogFire : Actor
 {
-	Default { Radius 4; Height 3; Speed 18; Damage 30; Projectile; +SEEKERMISSILE; DamageType "Fire"; RenderStyle "Add"; Alpha 1; XScale 1.4; YScale 0.5;
+	Default { Radius 4; Height 3; Speed 18; /* CH: Damage (random(5,45))  Demons.txt:797 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,45)); Projectile; +SEEKERMISSILE; DamageType "Fire"; RenderStyle "Add"; Alpha 1; XScale 1.4; YScale 0.5;
 		SeeSound "hellhound/attack"; DeathSound "hellhound/shotx"; Translation "Ice"; }
 	States { Spawn: FRFX AB 3 Bright A_SeekerMissile(4,4); Loop; Death: FRFX CDE 4 Bright A_Explode(30,48); Stop; }
 }
@@ -36,7 +36,7 @@ class RS_AbyssDogFire : Actor
 // ---------- BROWN: kickback orb (BAL1) ----------
 class RS_BrownOrbDemon : Actor
 {
-	Default { Radius 3; Height 3; Speed 28; ProjectileKickBack 2000; Mass 100; Species "Demon1"; Damage 22; Projectile; DamageType "Fire"; +MTHRUSPECIES; +RANDOMIZE;
+	Default { Radius 3; Height 3; Speed 28; ProjectileKickBack 2000; Mass 100; Species "Demon1"; /* CH: Damage (random(13,33))  Demons.txt:338 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(13,33)); Projectile; DamageType "Fire"; +MTHRUSPECIES; +RANDOMIZE;
 		RenderStyle "Add"; SeeSound "imp/attack"; DeathSound "imp/shotx"; Translation "0:255=%[0.31,0.23,0.18]:[1.10,0.74,0.40]"; }
 	States { Spawn: BAL1 AB 3 Bright; Loop; Death: BAL1 CDE 4 Bright A_Explode(22,48); Stop; }
 }
@@ -44,7 +44,7 @@ class RS_BrownOrbDemon : Actor
 // ---------- RED: blood bolts (BAL1 / falling BLUD) ----------
 class RS_RedDemonBloodBolt1 : Actor
 {
-	Default { Radius 7; Height 7; Mass 5; Speed 19; Projectile; Scale 0.95; RenderStyle "Add"; Damage 16; DamageType "Fire"; Alpha 0.95;
+	Default { Radius 7; Height 7; Mass 5; Speed 19; Projectile; Scale 0.95; RenderStyle "Add"; /* CH: Damage (random(2,27))  Demons.txt:1714 -- was flattened to `Damage 16`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(2,27)); DamageType "Fire"; Alpha 0.95;
 		SeeSound "imp/attack"; DeathSound "imp/shotx"; Translation "0:255=%[0.60,0.00,0.00]:[2.00,0.30,0.30]"; }
 	States
 	{
@@ -82,7 +82,7 @@ class RS_ButcherHammer : Actor
 // ---------- GRAY: leech-worm bite (WormLewd) ----------
 class RS_WormLewd : Actor
 {
-	Default { Radius 8; Height 16; Speed 14; FastSpeed 26; Scale 0.75; Species "Demon1"; Damage 14; DamageType "Melee"; Projectile; +DONTHARMCLASS; +DONTHARMSPECIES;
+	Default { Radius 8; Height 16; Speed 14; FastSpeed 26; Scale 0.75; Species "Demon1"; /* CH: Damage (random(5,23))  Demons.txt:1003 -- was flattened to `Damage 14`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,23)); DamageType "Melee"; Projectile; +DONTHARMCLASS; +DONTHARMSPECIES;
 		RenderStyle "Add"; Alpha 0.25; Translation "168:191=112:127"; }
 	States { Spawn: BAL1 A 1 Bright; Goto Death; Death: BAL1 CDE 2 Bright A_Explode(5,32,0); Stop; }
 }

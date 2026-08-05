@@ -24,7 +24,7 @@ class RS_DKDart : Actor
 }
 class RS_MinesRev : Actor
 {
-	Default { Radius 12; Height 12; Speed 24; Damage 25; RenderStyle "Translucent"; Alpha 0.95; Projectile; DamageType "Fire"; -NOGRAVITY; +BOUNCEONWALLS; +MTHRUSPECIES;
+	Default { Radius 12; Height 12; Speed 24; /* CH: Damage (random(10,40))  Revenants.txt:3240 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); RenderStyle "Translucent"; Alpha 0.95; Projectile; DamageType "Fire"; -NOGRAVITY; +BOUNCEONWALLS; +MTHRUSPECIES;
 		BounceCount 4; BounceFactor 0.7; SeeSound "imp/attack"; DeathSound "weapons/rocklx"; }
 	States { Spawn: MISL A 4 Bright; Loop; Death: MISL BCD 4 Bright A_Explode(40,96); Stop; }
 }

@@ -200,6 +200,26 @@ PART 5 -- NAMES
 PART 6 -- WHAT "DONE" REQUIRES. EVERY LINE GETS A DENOMINATOR.
 --------------------------------------------------------------------------------
 
+  THE OWNER'S DEFINITION, VERBATIM, 2026-08-05. THIS IS THE ONLY ONE THAT
+  COUNTS, AND IT IS THE REPORT FORMAT:
+
+      "get the chaingunner done" means
+          VISUALS, SOUNDS, ATTACKS, BEHAVIORS, ICONS
+
+  He had to say this more than once, and the reason is worth recording because
+  it is a reporting failure, not a work failure: every progress report was
+  written about WHICHEVER SLICE HAD JUST BEEN FINISHED -- "the bodies are done,
+  the bullets aren't" -- instead of against the whole definition. Reporting a
+  slice makes the OWNER do the integration and forces him to restate the goal
+  every single time.
+
+  So: report all five lines, every time, whether or not you touched them.
+  A line you did not work on still gets its number. "ATTACKS: 0 of 38
+  checked" is a report. Silence on attacks is how eight attempts looked
+  finished.
+
+
+
   Before a family is reported at all:
 
       [ ] N of N CH bodies transcribed, each header citing its CH actor + line

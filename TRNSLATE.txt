@@ -208,3 +208,27 @@ rs_cgun_tex = "0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]"
 // Cool desaturated white-blue so it reads against every tier tint,
 // including the gray T09 and white T12 bodies.
 rs_enrage_flash = "0:255=%[0.18,0.20,0.26]:[1.85,1.92,2.00]"
+
+// --- PROMOTION TELL --------------------------------------------------
+// COPPER. Owner's call, 2026-08-05. Third and last member of the flash
+// vocabulary, and it exists because a PROMOTION is not a TIER-UP:
+//
+//     GOLD    rs_gold_flash     tier transform -- same creature, moved
+//                               along its own ladder (SetTier)
+//     SILVER  rs_enrage_flash   enrage pulse -- same creature, angrier
+//     COPPER  rs_copper_flash   PROMOTION -- the creature BECOMES A
+//                               DIFFERENT CREATURE (RS_PromoteTo, an
+//                               actor swap). CH's own Grow ladder, the
+//                               Abyss conversion, and the floor-glow /
+//                               hotspot promotions all land here.
+//
+// The rule this obeys is already written above rs_enrage_flash: one
+// signal must not carry two meanings. A player who learns copper learns
+// "that thing is turning into something else", which is a different
+// piece of information from "that thing is levelling up".
+//
+// Warm orange-red, deliberately far from both gold (yellow-white, high
+// green) and silver (cool blue-white): the green channel is held low so
+// it cannot be mistaken for gold at a glance or in peripheral vision,
+// which is where these tells actually get read.
+rs_copper_flash = "0:255=%[0.34,0.10,0.02]:[2.00,0.95,0.40]"

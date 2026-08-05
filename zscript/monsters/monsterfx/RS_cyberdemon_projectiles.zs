@@ -120,7 +120,7 @@ class RS_SwooshCBTR3 : RS_SwooshCBTR { Default { Speed 13; } }
 class RS_PlasmaBallSP5 : RS_PlasmaBallSP4 { Default { Species "Cybie"; +DONTHARMSPECIES; } }
 class RS_SwooshCB : Actor
 {
-	Default { Radius 13; Height 8; Speed 36; Damage 35; Projectile; +RANDOMIZE; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.75; Scale 0.6;
+	Default { Radius 13; Height 8; Speed 36; /* CH: Damage (random(10,60))  CYBIES.txt:2561 -- was flattened to `Damage 35`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,60)); Projectile; +RANDOMIZE; RenderStyle "Add"; DamageType "Plasma"; Alpha 0.75; Scale 0.6;
 		SeeSound "Litn/litn3"; DeathSound "weapons/bfgx"; Translation "112:127=192:207"; }
 	States
 	{
@@ -136,7 +136,7 @@ class RS_SwooshCB : Actor
 }
 class RS_SwooshCB2 : Actor
 {
-	Default { Radius 15; Height 9; Speed 15; Damage 45; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; +EXTREMEDEATH;
+	Default { Radius 15; Height 9; Speed 15; /* CH: Damage (random(20,70))  CYBIES.txt:2590 -- was flattened to `Damage 45`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,70)); DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; +EXTREMEDEATH;
 		RenderStyle "Add"; Alpha 0.95; Scale 0.8; SeeSound "Litn/litn3"; DeathSound "weapons/bfgx"; Translation "112:127=192:207"; }
 	States
 	{
@@ -155,7 +155,7 @@ class RS_SwooshCB2 : Actor
 }
 class RS_BluCybArt : Actor
 {
-	Default { Radius 8; Height 8; Speed 20; Damage 35; DamageType "Plasma"; Projectile; +SEEKERMISSILE; +EXTREMEDEATH; +BOUNCEONWALLS; +USEBOUNCESTATE;
+	Default { Radius 8; Height 8; Speed 20; /* CH: Damage (random(10,60))  CYBIES.txt:2521 -- was flattened to `Damage 35`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,60)); DamageType "Plasma"; Projectile; +SEEKERMISSILE; +EXTREMEDEATH; +BOUNCEONWALLS; +USEBOUNCESTATE;
 		BounceType "Hexen"; BounceCount 2; BounceFactor 1.5; Scale 0.65; SeeSound "Litn/litn3"; DeathSound "weapons/bfgx"; Translation "112:127=192:207"; }
 	States
 	{
@@ -177,7 +177,7 @@ class RS_BluCybArt : Actor
 // ---------- PURPLE: caco-fire waves + seeking orbs + propane rockets ----------
 class RS_CBWave : Actor
 {
-	Default { Radius 10; Height 10; Speed 4; Damage 20; Projectile; +DONTHARMCLASS; +EXPLODEONWATER; +FLOATBOB;
+	Default { Radius 10; Height 10; Speed 4; /* CH: Damage (random(10,30))  CYBIES.txt:2876 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,30)); Projectile; +DONTHARMCLASS; +EXPLODEONWATER; +FLOATBOB;
 		RenderStyle "Add"; Alpha 0.75; Scale 0.85; DamageType "Fire"; SeeSound "Fire/fire4"; DeathSound "Spell/Impact1";
 		Translation "168:223=250:254","224:231=250:250"; }
 	States
@@ -211,7 +211,7 @@ class RS_OrbCB2 : Actor
 }
 class RS_OrbCB : Actor
 {
-	Default { Radius 3; Height 4; Speed 125; Damage 10; Projectile; +RANDOMIZE; +MTHRUSPECIES; +SEEKERMISSILE;
+	Default { Radius 3; Height 4; Speed 125; /* CH: Damage (random(5,15))  CYBIES.txt:2907 -- was flattened to `Damage 10`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,15)); Projectile; +RANDOMIZE; +MTHRUSPECIES; +SEEKERMISSILE;
 		RenderStyle "Add"; DeathSound "Fire/fire5"; Alpha 0.85; Scale 0.3;
 		Translation "16:47=250:254","128:143=250:254","152:191=250:254"; }
 	States
@@ -276,7 +276,7 @@ class RS_CyanCybieHower : Actor
 }
 class RS_CyanCybieSprayIce : Actor
 {
-	Default { Radius 2; Height 2; Speed 42; Mass 500; Damage 7; Projectile; DamageType "Ice"; +THRUGHOST; Gravity 1.5; Scale 0.33;
+	Default { Radius 2; Height 2; Speed 42; Mass 500; /* CH: Damage (random(3,12))  CYBIES.txt:950 -- was flattened to `Damage 7`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(3,12)); Projectile; DamageType "Ice"; +THRUGHOST; Gravity 1.5; Scale 0.33;
 		Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]"; }
 	States
 	{
@@ -340,7 +340,7 @@ class RS_GlowBack : Actor
 }
 class RS_Vollrey : Actor
 {
-	Default { Radius 6; Height 8; Speed 27; FastSpeed 38; Damage 30; DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE;
+	Default { Radius 6; Height 8; Speed 27; FastSpeed 38; /* CH: Damage (random(10,50))  CYBIES.txt:3257 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 0.75; Scale 1.15; SeeSound "Forgotten/Attack"; DeathSound "spell/Impact1"; Translation "168:191=220:223"; }
 	States
 	{
@@ -358,7 +358,7 @@ class RS_Vollrey : Actor
 }
 class RS_Vollrey2 : Actor
 {
-	Default { Radius 6; Height 8; Speed 27; FastSpeed 38; Damage 35; DamageType "Fire"; Projectile; +RANDOMIZE;
+	Default { Radius 6; Height 8; Speed 27; FastSpeed 38; /* CH: Damage (random(10,60))  CYBIES.txt:3225 -- was flattened to `Damage 35`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,60)); DamageType "Fire"; Projectile; +RANDOMIZE;
 		RenderStyle "Add"; Alpha 0.75; Scale 1.15; SeeSound "Forgotten/Attack"; DeathSound "spell/Impact1"; Translation "168:191=220:223"; }
 	States
 	{
@@ -376,7 +376,7 @@ class RS_Vollrey2 : Actor
 }
 class RS_CybieRain : Actor
 {
-	Default { Radius 6; Height 8; Speed 10; FastSpeed 15; Mass 50; Damage 30; DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE;
+	Default { Radius 6; Height 8; Speed 10; FastSpeed 15; Mass 50; /* CH: Damage (random(15,50))  CYBIES.txt:3166 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(15,50)); DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE;
 		RenderStyle "Add"; Gravity 5; Alpha 1; Scale 1.3; SeeSound "caco/attack"; DeathSound "fire/fire5"; }
 	States
 	{
@@ -394,7 +394,7 @@ class RS_CybieRain : Actor
 }
 class RS_CybieRainMaker : Actor
 {
-	Default { Radius 6; Height 8; Speed 15; FastSpeed 38; Mass 50; Damage 22; DamageType "Fire"; Projectile;
+	Default { Radius 6; Height 8; Speed 15; FastSpeed 38; Mass 50; /* CH: Damage (random(5,40))  CYBIES.txt:3129 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,40)); DamageType "Fire"; Projectile;
 		+CEILINGHUGGER; +FLOAT; +NOGRAVITY; +RANDOMIZE; +INVISIBLE; RenderStyle "Add"; Gravity 7; Alpha 1; Scale 1.3;
 		SeeSound "caco/attack"; DeathSound "fire/fire5"; }
 	States
@@ -420,8 +420,11 @@ class RS_CybieRainMaker : Actor
 // ---------- GRAY: vile-targeted rockslides + ground-spikes ----------
 class RS_CHBSTarget : Actor
 {
+	// CH: decorate/Shotgunners.txt:1813 (Actor CHBSTarget).
 	// the targeting beacon a vile-target lands on (beeps + flashes)
-	Default { Radius 1; Height 1; Projectile; +NOCLIP; +NOGRAVITY; +NOINTERACTION; Speed 1; RenderStyle "Add"; Alpha 1.0; Scale 1.1; }
+	// SHARED: arachnotron, archvile, cyberdemon, imp, shotgunner and chaingunner all
+	// A_VileTarget this. CH defines it once; all six get the same beacon.
+	Default { Radius 1; Height 1; Projectile; +NOCLIP; +NOGRAVITY; +NOINTERACTION; Speed 1; RenderStyle "Add"; Alpha 1.25; Scale 1.1; }
 	States
 	{
 	Spawn:
@@ -434,6 +437,8 @@ class RS_CHBSTarget : Actor
 		CHTA A 4 Bright;
 		TNT1 A 4 Bright A_PlaySound("prox/beep",7,2,false,ATTN_NONE);
 		CHTA A 4 Bright;
+		TNT1 A 3 Bright;
+		CHTA A 3 Bright;   // CH: these last two frames were missing here
 		TNT1 A 3 Bright;
 		Stop;
 	}
@@ -477,7 +482,7 @@ class RS_RockSlideCH1 : Actor
 }
 class RS_VileGroundSpikes2 : Actor
 {
-	Default { Speed 1; Damage 5; DamageType "Melee"; Projectile; +FLOORHUGGER; +THRUACTORS; }
+	Default { Speed 1; /* CH: Damage (random(1,10))  Archviles.txt:1992 -- was flattened to `Damage 5`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,10)); DamageType "Melee"; Projectile; +FLOORHUGGER; +THRUACTORS; }
 	States
 	{
 	Spawn:
@@ -522,7 +527,7 @@ class RS_VileGroundSpike : Actor
 // ---------- FIREBLU: bouncing caco-balls + seeking missiles ----------
 class RS_FireBluCacoBall2 : Actor
 {
-	Default { Radius 12; Height 16; Speed 1; Damage 14; DamageType "Fire"; Projectile; +RANDOMIZE; +THRUACTORS;
+	Default { Radius 12; Height 16; Speed 1; /* CH: Damage (random(5,23))  Cacodemons.txt:1072 -- was flattened to `Damage 14`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,23)); DamageType "Fire"; Projectile; +RANDOMIZE; +THRUACTORS;
 		RenderStyle "Add"; Alpha 0.85; SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "161:161=200:200","163:163=204:204","165:165=204:204","167:167=207:207"; }
 	States
@@ -538,7 +543,7 @@ class RS_FireBluCacoBall2 : Actor
 }
 class RS_FireBluCacoBall : Actor
 {
-	Default { Radius 12; Height 18; Speed 16; Damage 22; DamageType "Plasma"; Projectile; +BOUNCEONWALLS;
+	Default { Radius 12; Height 18; Speed 16; /* CH: Damage (random(5,40))  Cacodemons.txt:1034 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,40)); DamageType "Plasma"; Projectile; +BOUNCEONWALLS;
 		BounceType "Hexen"; WallBounceFactor 0.9; BounceFactor 0.9; BounceCount 4; BounceSound "Bomb/bounce";
 		RenderStyle "Add"; Alpha 0.45; Scale 1.5; SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "208:223=195:207","225:231=192:195"; }
@@ -554,7 +559,7 @@ class RS_FireBluCacoBall : Actor
 }
 class RS_FireBluCybMiss : Actor
 {
-	Default { Radius 20; Height 20; Mass 600; Speed 20; Damage 55; DamageType "Plasma"; Projectile; +SEEKERMISSILE;
+	Default { Radius 20; Height 20; Mass 600; Speed 20; /* CH: Damage (random(20,90))  CYBIES.txt:2083 -- was flattened to `Damage 55`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,90)); DamageType "Plasma"; Projectile; +SEEKERMISSILE;
 		Scale 1.5; RenderStyle "Add"; Alpha 0.95; SeeSound "Spell/spellCast1"; DeathSound "Crack/death";
 		Translation "216:223=199:207","208:214=193:201","168:175=198:201"; }
 	States
@@ -574,7 +579,7 @@ class RS_FireBluCybMiss : Actor
 // ---------- BROWN: drilling goo-balls + sharp green basics ----------
 class RS_GreenBalb2 : Actor
 {
-	Default { Radius 6; Height 4; Speed 11; Gravity 0.2; Damage 22; DamageType "Plasma"; Projectile; +RANDOMIZE; -NOGRAVITY;
+	Default { Radius 6; Height 4; Speed 11; Gravity 0.2; /* CH: Damage (random(15,30))  CYBIES.txt:603 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(15,30)); DamageType "Plasma"; Projectile; +RANDOMIZE; -NOGRAVITY;
 		RenderStyle "Add"; Alpha 0.9; Scale 0.7; SeeSound "spit/spit"; DeathSound "spit/spit2";
 		Translation "168:191=112:127","208:223=112:118","144:151=125:127"; }
 	States
@@ -589,7 +594,7 @@ class RS_GreenBalb2 : Actor
 }
 class RS_BrownCybBasic : Actor
 {
-	Default { Radius 9; Height 9; Speed 25; Damage 90; DamageType "Plasma"; Projectile; +DONTHARMCLASS;
+	Default { Radius 9; Height 9; Speed 25; /* CH: Damage (random(60,120))  CYBIES.txt:632 -- was flattened to `Damage 90`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(60,120)); DamageType "Plasma"; Projectile; +DONTHARMCLASS;
 		SeeSound "SHARPST1"; DeathSound "shadowbeast/pr1death";
 		Translation "0:255=%[0.13,0.22,0.14]:[0.79,1.34,0.28]"; }
 	States
@@ -633,13 +638,13 @@ class RS_Splash11 : Actor
 // ---------- ABYSS (TERM body, HP12000): void bubbles + holy waves + seeking rockets ----------
 class RS_AbyCybBub : Actor
 {
-	Default { Radius 3; Height 3; Speed 12; Damage 5; DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 0.75; Scale 0.3;
+	Default { Radius 3; Height 3; Speed 12; /* CH: Damage (random(1,8))  CYBIES.txt:1362 -- was flattened to `Damage 5`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,8)); DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 0.75; Scale 0.3;
 		Translation "0:255=%[0.02,0.02,0.03]:[0.29,0.49,0.65]"; }
 	States { Spawn: BAL1 AB 8 Bright; Goto Death; Death: BAL1 CDE 6 Bright; TNT1 A 0 A_Explode(7,32,0); Stop; }
 }
 class RS_AbyCybBubProj : Actor
 {
-	Default { Radius 2; Height 2; Speed 28; Damage 7; DamageType "Plasma"; Projectile; +THRUACTORS; RenderStyle "Add"; Alpha 0.75; Scale 0.3;
+	Default { Radius 2; Height 2; Speed 28; /* CH: Damage (random(1,12))  CYBIES.txt:1333 -- was flattened to `Damage 7`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,12)); DamageType "Plasma"; Projectile; +THRUACTORS; RenderStyle "Add"; Alpha 0.75; Scale 0.3;
 		Translation "0:255=%[0.02,0.02,0.03]:[0.29,0.49,0.65]"; }
 	States
 	{
@@ -656,13 +661,13 @@ class RS_AbyCybBubProj : Actor
 }
 class RS_AbyCybWave2 : Actor
 {
-	Default { Radius 6; Height 6; Speed 20; Damage 10; DamageType "Melee"; Projectile; +DONTHARMCLASS; Species "Cybie";
+	Default { Radius 6; Height 6; Speed 20; /* CH: Damage (random(4,16))  CYBIES.txt:1422 -- was flattened to `Damage 10`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(4,16)); DamageType "Melee"; Projectile; +DONTHARMCLASS; Species "Cybie";
 		RenderStyle "Add"; Alpha 0.25; Scale 0.45; SeeSound "holy3/holy3"; DeathSound "holy2/holy2"; }
 	States { Spawn: SSBL I 6 Bright; Death: SSBL J 12 Bright; Stop; }
 }
 class RS_AbyCybWave : Actor
 {
-	Default { Radius 6; Height 6; Speed 28; ProjectileKickBack 7000; Damage 25; DamageType "Melee"; Projectile; +DONTHARMCLASS; Species "Cybie";
+	Default { Radius 6; Height 6; Speed 28; ProjectileKickBack 7000; /* CH: Damage (random(10,40))  CYBIES.txt:1390 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); DamageType "Melee"; Projectile; +DONTHARMCLASS; Species "Cybie";
 		RenderStyle "Add"; Alpha 0.25; Scale 0.45; SeeSound "holy3/holy3"; DeathSound "holy2/holy2"; }
 	States
 	{
@@ -730,7 +735,7 @@ class RS_STracerPuff : Actor
 }
 class RS_STracer : Actor
 {
-	Default { Radius 5; Height 5; Speed 15; Damage 22; RenderStyle "Add"; DamageType "Fire"; Alpha 0.67; Projectile;
+	Default { Radius 5; Height 5; Speed 15; /* CH: Damage (random(11,33))  CYBIES.txt:4733 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(11,33)); RenderStyle "Add"; DamageType "Fire"; Alpha 0.67; Projectile;
 		+FLOORHUGGER; +THRUGHOST; -NOGRAVITY; +DONTSPLASH; SeeSound "weapons/diasht"; DeathSound "weapons/firex3"; }
 	States
 	{
@@ -745,7 +750,7 @@ class RS_STracer : Actor
 }
 class RS_BigHellshot : Actor
 {
-	Default { Radius 12; Height 20; Speed 7; Damage 110; Projectile; RenderStyle "Add"; DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex";
+	Default { Radius 12; Height 20; Speed 7; /* CH: Damage (random(40,180))  CYBIES.txt:4809 -- was flattened to `Damage 110`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(40,180)); Projectile; RenderStyle "Add"; DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex";
 		+THRUGHOST; Decal "Scorch"; Scale 1.75; }
 	States
 	{
@@ -760,7 +765,7 @@ class RS_BigHellshot : Actor
 }
 class RS_Hellshot2 : Actor
 {
-	Default { Radius 8; Height 12; Speed 25; Damage 80; Projectile; RenderStyle "Add"; DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex";
+	Default { Radius 8; Height 12; Speed 25; /* CH: Damage (random(40,120))  CYBIES.txt:5077 -- was flattened to `Damage 80`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(40,120)); Projectile; RenderStyle "Add"; DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex";
 		+THRUGHOST; Decal "Scorch"; }
 	States
 	{
@@ -776,7 +781,7 @@ class RS_Hellshot2 : Actor
 }
 class RS_HammerShot : Actor
 {
-	Default { Radius 9; Height 14; Speed 32; Scale 1.45; Damage 85; Projectile; DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex";
+	Default { Radius 9; Height 14; Speed 32; Scale 1.45; /* CH: Damage (random(30,140))  CYBIES.txt:5029 -- was flattened to `Damage 85`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(30,140)); Projectile; DamageType "Fire"; Alpha 0.95; DeathSound "weapons/hellex";
 		+THRUGHOST; Decal "Scorch"; }
 	States
 	{
@@ -796,7 +801,7 @@ class RS_SmithHammer : Actor
 }
 class RS_MolochQuake : Actor
 {
-	Default { Speed 8; Damage 16; DamageType "Melee"; Radius 12; Height 16; RenderStyle "Translucent"; Alpha 0.1; Projectile;
+	Default { Speed 8; /* CH: Damage (random(5,27))  CYBIES.txt:4008 -- was flattened to `Damage 16`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,27)); DamageType "Melee"; Radius 12; Height 16; RenderStyle "Translucent"; Alpha 0.1; Projectile;
 		+DROPOFF; -NOGRAVITY; +FORCERADIUSDMG; +BLOODLESSIMPACT; +FLOORHUGGER; +RIPPER; SeeSound "moloch/thud"; }
 	States
 	{
@@ -859,12 +864,12 @@ class RS_SmithDFSpawner : Actor
 }
 class RS_SmithGhost2 : Actor
 {
-	Default { Radius 40; Height 70; Speed 1; Damage 25; DamageType "Melee"; RenderStyle "Translucent"; Alpha 0.5; Projectile; }
+	Default { Radius 40; Height 70; Speed 1; /* CH: Damage (random(12,34))  CYBIES.txt:4535 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(12,34)); DamageType "Melee"; RenderStyle "Translucent"; Alpha 0.5; Projectile; }
 	States { Spawn: BSMT O 35; BSMT O 2 A_FadeOut(0.10); Loop; }
 }
 class RS_ZappersCB : Actor
 {
-	Default { Radius 6; Height 8; Speed 15; FastSpeed 38; Mass 50; Damage 20; DamageType "Plasma"; Projectile;
+	Default { Radius 6; Height 8; Speed 15; FastSpeed 38; Mass 50; /* CH: Damage (random(5,35))  CYBIES.txt:4462 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,35)); DamageType "Plasma"; Projectile;
 		+CEILINGHUGGER; +FLOAT; +NOGRAVITY; +RANDOMIZE; RenderStyle "Add"; Gravity 7; Alpha 1; Scale 1.3;
 		SeeSound "caco/attack"; DeathSound "fire/fire5"; Translation "112:127=192:207"; }
 	States
@@ -895,7 +900,7 @@ class RS_TrailSPRomero : Actor
 }
 class RS_RomeroCHScatter : Actor
 {
-	Default { Radius 7; Height 7; Speed 38; Damage 55; DamageType "Plasma"; Projectile; +RANDOMIZE; +DONTHARMCLASS; +THRUSPECIES; Species "Daikatana";
+	Default { Radius 7; Height 7; Speed 38; /* CH: Damage (random(20,90))  CYBIES.txt:5879 -- was flattened to `Damage 55`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,90)); DamageType "Plasma"; Projectile; +RANDOMIZE; +DONTHARMCLASS; +THRUSPECIES; Species "Daikatana";
 		RenderStyle "Add"; Alpha 0.85; Scale 0.95; SeeSound "ELECTRO8"; DeathSound "Crack/death";
 		Translation "0:255=%[0.00,0.40,0.00]:[2.00,2.00,1.01]"; }
 	States
@@ -913,7 +918,7 @@ class RS_RomeroCHScatter : Actor
 }
 class RS_RomeroCHSeekBall : Actor
 {
-	Default { Radius 5; Height 5; Speed 30; Damage 55; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; +DONTHARMCLASS; +THRUSPECIES; Species "Daikatana";
+	Default { Radius 5; Height 5; Speed 30; /* CH: Damage (random(20,90))  CYBIES.txt:5914 -- was flattened to `Damage 55`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,90)); DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; +DONTHARMCLASS; +THRUSPECIES; Species "Daikatana";
 		RenderStyle "Add"; Alpha 0.75; Scale 0.85; SeeSound "ELECTRO8"; DeathSound "Crack/death";
 		Translation "0:255=%[0.00,0.40,0.00]:[2.00,2.00,1.01]"; }
 	States
@@ -1041,7 +1046,7 @@ class RS_SuperDemonArm : Actor
 // =====================================================================
 class RS_VolcanoBall1 : Actor
 {
-	Default { Radius 8; Height 8; Speed 18; Damage 20; DamageType "Fire";
+	Default { Radius 8; Height 8; Speed 18; /* CH: Damage (random(5,35))  CYBIES.txt:3878 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,35)); DamageType "Fire";
 		Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Scale 1.0;
 		SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx"; }
 	States
@@ -1056,7 +1061,7 @@ class RS_VolcanoBall1 : Actor
 }
 class RS_VolcanoBall2 : RS_VolcanoBall1
 {
-	Default { Speed 16; Damage 25; +SEEKERMISSILE; }
+	Default { Speed 16; /* CH: Damage (random(10,40))  CYBIES.txt:3809 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); +SEEKERMISSILE; }
 	States
 	{
 	Spawn:
@@ -1069,7 +1074,7 @@ class RS_VolcanoBall2 : RS_VolcanoBall1
 }
 class RS_VolcanoBall3 : RS_VolcanoBall1
 {
-	Default { Speed 16; Damage 25; }
+	Default { Speed 16; /* CH: Damage (random(10,40))  CYBIES.txt:3845 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); }
 	States
 	{
 	Spawn:
@@ -1082,7 +1087,7 @@ class RS_VolcanoBall3 : RS_VolcanoBall1
 }
 class RS_SoulBomb4 : Actor
 {
-	Default { Radius 12; Height 12; Speed 12; Damage 40; DamageType "Fire";
+	Default { Radius 12; Height 12; Speed 12; /* CH: Damage (random(10,70))  CYBIES.txt:3617 -- was flattened to `Damage 40`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,70)); DamageType "Fire";
 		Projectile; +SEEKERMISSILE; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Scale 1.2;
 		SeeSound "moloch/attack"; DeathSound "weapons/rocklx"; }
 	States
@@ -1124,7 +1129,7 @@ class RS_RedCybieVolcano1 : Actor
 // =====================================================================
 class RS_BCybieGreenWave : Actor
 {
-	Default { Radius 8; Height 8; Speed 1; Damage 20; DamageType "Fire";
+	Default { Radius 8; Height 8; Speed 1; /* CH: Damage (random(9,39))  CYBIES.txt:286 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(9,39)); DamageType "Fire";
 		+NOGRAVITY; +NOBLOCKMAP; RenderStyle "Add"; Alpha 0.9; }
 	States
 	{
@@ -1146,7 +1151,7 @@ class RS_BCybieGreenWave : Actor
 }
 class RS_BCybieGreenWave2 : Actor
 {
-	Default { Radius 8; Height 8; Speed 1; Damage 20; DamageType "Fire";
+	Default { Radius 8; Height 8; Speed 1; /* CH: Damage (random(6,35))  CYBIES.txt:414 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(6,35)); DamageType "Fire";
 		+NOGRAVITY; +NOBLOCKMAP; RenderStyle "Add"; Alpha 0.9;
 		SeeSound "weapons/rocklx"; DeathSound "weapons/rocklx"; }
 	States
@@ -1260,7 +1265,7 @@ class RS_BCybAcidPuddle : Actor
 // The slime drill: half of them home, half wander, both leave a trail.
 class RS_BCybSlimeSet : Actor
 {
-	Default { Radius 8; Height 8; Speed 18; Damage 22; DamageType "Fire";
+	Default { Radius 8; Height 8; Speed 18; /* CH: Damage (random(11,33))  CYBIES.txt:664 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(11,33)); DamageType "Fire";
 		Projectile; +FLOORHUGGER; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85; Scale 0.7; }
 	States
 	{
@@ -1292,7 +1297,7 @@ class RS_BCybSlimeSet : Actor
 // =====================================================================
 class RS_RomeroGroundCH : Actor
 {
-	Default { Radius 20; Height 40; Speed 10; Damage 60; DamageType "Fire";
+	Default { Radius 20; Height 40; Speed 10; /* CH: Damage (random(20,100))  CYBIES.txt:6020 -- was flattened to `Damage 60`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,100)); DamageType "Fire";
 		Projectile; +NOCLIP; +NOGRAVITY; RenderStyle "Add"; Alpha 0.95;
 		DeathSound "weapons/rocklx"; }
 	States
@@ -1309,7 +1314,7 @@ class RS_RomeroGroundCH : Actor
 }
 class RS_RomeroBeamCH : FastProjectile
 {
-	Default { Radius 20; Height 20; Speed 50; Damage 100; DamageType "Plasma";
+	Default { Radius 20; Height 20; Speed 50; /* CH: Damage (random(20,180))  CYBIES.txt:6088 -- was flattened to `Damage 100`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,180)); DamageType "Plasma";
 		Projectile; +DONTHARMSPECIES; +THRUSPECIES; Species "Daikatana";
 		RenderStyle "Add"; Alpha 1.0; Scale 2.25;
 		SeeSound "ELECTRO7"; DeathSound "weapons/bfgx";
@@ -1338,7 +1343,7 @@ class RS_RomeroBeamCH : FastProjectile
 }
 class RS_RomeroRocketCH : FastProjectile
 {
-	Default { Radius 12; Height 8; Speed 33; Damage 60; DamageType "Fire";
+	Default { Radius 12; Height 8; Speed 33; /* CH: Damage (random(20,200))  CYBIES.txt:6203 -- was flattened to `Damage 60`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,200)); DamageType "Fire";
 		Projectile; +DONTHARMSPECIES; +THRUSPECIES; Species "Daikatana"; Scale 0.95;
 		SeeSound "weapons/hominglaunch"; DeathSound "weapons/rocklx"; }
 	States
@@ -1381,7 +1386,7 @@ class RS_RomeroRocketCH3 : RS_RomeroRocketCH
 }
 class RS_RomeroSkyCH : Actor
 {
-	Default { Radius 20; Height 40; Speed 10; Damage 60; DamageType "Plasma";
+	Default { Radius 20; Height 40; Speed 10; /* CH: Damage (random(20,100))  CYBIES.txt:6056 -- was flattened to `Damage 60`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,100)); DamageType "Plasma";
 		Projectile; +NOCLIP; +NOGRAVITY; RenderStyle "Add"; Alpha 0.95; }
 	States
 	{
@@ -1397,7 +1402,7 @@ class RS_RomeroSkyCH : Actor
 }
 class RS_SpamShotsRomeroCH : Actor
 {
-	Default { Radius 14; Height 10; Speed 25; Damage 90; DamageType "Plasma";
+	Default { Radius 14; Height 10; Speed 25; /* CH: Damage (random(50,150))  CYBIES.txt:5981 -- was flattened to `Damage 90`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(50,150)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; +SEEKERMISSILE; +DONTHARMSPECIES; +THRUSPECIES;
 		Species "Daikatana"; RenderStyle "Add"; Alpha 0.85; Scale 0.82;
 		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx"; }

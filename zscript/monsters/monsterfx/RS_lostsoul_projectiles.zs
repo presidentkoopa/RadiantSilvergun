@@ -24,14 +24,14 @@
 // ---------- GREEN: poison "splasher soul" (BAL7) ----------
 class RS_SplasherSoul : Actor
 {
-	Default { Radius 6; Height 16; Speed 5; FastSpeed 5; Damage 10; DamageType "Poison"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 1; Scale 1.6; DeathSound "baron/shotx"; }
+	Default { Radius 6; Height 16; Speed 5; FastSpeed 5; /* CH: Damage (random(5,15))  lostsouls.txt:832 -- was flattened to `Damage 10`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,15)); DamageType "Poison"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 1; Scale 1.6; DeathSound "baron/shotx"; }
 	States { Spawn: BAL7 CDE 5 Bright A_Explode(10,48); Stop; }
 }
 
 // ---------- ABYSS: "beetle" bouncing poison spit (BLVB) ----------
 class RS_BeetleSpitAbyss : Actor
 {
-	Default { Radius 4; Height 4; Speed 20; Damage 5; PoisonDamage 1; RenderStyle "Add"; Alpha 0.67; DamageType "Poison"; Projectile; Gravity 0.02; -NOGRAVITY;
+	Default { Radius 4; Height 4; Speed 20; /* CH: Damage (random(1,8))  lostsouls.txt:500 -- was flattened to `Damage 5`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,8)); PoisonDamage 1; RenderStyle "Add"; Alpha 0.67; DamageType "Poison"; Projectile; Gravity 0.02; -NOGRAVITY;
 		+USEBOUNCESTATE; BounceType "Hexen"; BounceFactor 1.25; BounceCount 4; Scale 0.25; DeathSound "imp/shotx"; Translation "0:255=%[0.20,0.40,0.00]:[0.70,1.30,0.20]"; }
 	States { Spawn: BLVB AB 3 Bright; Loop; Death: BLVB CD 3 Bright; Stop; }
 }
@@ -39,7 +39,7 @@ class RS_BeetleSpitAbyss : Actor
 // ---------- RED: spit bolt (BAL1) ----------
 class RS_SpitBoltLS : Actor
 {
-	Default { Radius 11; Height 11; Mass 25; Speed 21; Damage 23; DamageType "Plasma"; Projectile; Scale 0.6; RenderStyle "Add"; Alpha 0.95;
+	Default { Radius 11; Height 11; Mass 25; Speed 21; /* CH: Damage (random(5,42))  lostsouls.txt:1197 -- was flattened to `Damage 23`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,42)); DamageType "Plasma"; Projectile; Scale 0.6; RenderStyle "Add"; Alpha 0.95;
 		SeeSound "Spell/spellCast1"; DeathSound "fire/Fire4"; Translation "208:223=176:191","224:231=176:176"; }
 	States { Spawn: BAL1 AB 4 Bright; Loop; Death: BAL1 CDE 4 Bright A_Explode(23,48); Stop; }
 }
@@ -47,16 +47,16 @@ class RS_SpitBoltLS : Actor
 // ---------- BLACK "hornet" (WASP): seeking sting-swarm + stingers ----------
 class RS_BSoulHellNo : Actor
 {
-	Default { Radius 6; Height 6; Speed 16; Damage 2; DamageType "Melee"; Projectile; +SEEKERMISSILE; Scale 0.45; SeeSound "baron/attack"; DeathSound "baron/shotx"; }
+	Default { Radius 6; Height 6; Speed 16; /* CH: Damage (random(1,2))  lostsouls.txt:1632 -- was flattened to `Damage 2`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,2)); DamageType "Melee"; Projectile; +SEEKERMISSILE; Scale 0.45; SeeSound "baron/attack"; DeathSound "baron/shotx"; }
 	States { Spawn: WASP AB 2 Bright A_SeekerMissile(10,10,SMF_PRECISE); Loop; Death: WASP C 3 Bright; Stop; }
 }
 class RS_BSoulStinger1 : Actor
 {
-	Default { Radius 2; Height 2; Damage 15; DamageType "Melee"; PoisonDamage 6; PoisonDamageType "Poison"; Speed 35; YScale 0.6; XScale 1.4; Decal "BulletChip"; Species "Hornet";
+	Default { Radius 2; Height 2; /* CH: Damage (random(5,25))  lostsouls.txt:1697 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); DamageType "Melee"; PoisonDamage 6; PoisonDamageType "Poison"; Speed 35; YScale 0.6; XScale 1.4; Decal "BulletChip"; Species "Hornet";
 		SeeSound "Jam/Jamd"; AttackSound "moloch/nailhitbleed"; DeathSound "gas/gas1"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; }
 	States { Spawn: 6PUF AB 2 Bright; Loop; Death: BLAD AAA 3 Bright; Stop; }
 }
-class RS_BSoulStinger2 : RS_BSoulStinger1 { Default { Speed 28; Damage 20; } }
+class RS_BSoulStinger2 : RS_BSoulStinger1 { Default { Speed 28; /* CH: Damage (random(5,25))  lostsouls.txt:1732 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); } }
 
 // ---------- WHITE MIMIC: ghost-form transform burst (SPIR) ----------
 class RS_WSSmore : Actor
@@ -68,13 +68,13 @@ class RS_WSSmore : Actor
 // ---------- WHITE MIMIC arch-form: vile big bolt + arc rings + homer ----------
 class RS_BigBolt2 : Actor
 {
-	Default { Radius 6; Height 8; Speed 17; Damage 60; DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.9;
+	Default { Radius 6; Height 8; Speed 17; /* CH: Damage (random(25,95))  Archviles.txt:2758 -- was flattened to `Damage 60`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(25,95)); DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.9;
 		SeeSound "vile/start"; DeathSound "vile/stop"; }
 	States { Spawn: BFE1 AB 3 Bright A_SeekerMissile(2,2); Loop; Death: BFE1 CDEF 4 Bright A_Explode(60,80); Stop; }
 }
 class RS_Homer1 : Actor
 {
-	Default { Radius 6; Height 16; Speed 11; FastSpeed 22; Damage 30; DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.75;
+	Default { Radius 6; Height 16; Speed 11; FastSpeed 22; /* CH: Damage (random(8,52))  Revenants.txt:2534 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(8,52)); DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.75;
 		SeeSound "fire/fire1"; DeathSound "fire/fire5"; }
 	States
 	{
@@ -111,13 +111,13 @@ class RS_LSCacodemonBall : Actor
 // (RS_HKBolt2 already defined in hf_hk_projectiles.zs -- shared)
 class RS_ReAComet : Actor
 {
-	Default { Radius 12; Height 12; Speed 28; Damage 50; RenderStyle "Add"; DamageType "Fire"; Alpha 0.85; Projectile; +BOUNCEONWALLS; BounceType "Doom"; BounceCount 2;
+	Default { Radius 12; Height 12; Speed 28; /* CH: Damage (random(15,88))  Archviles.txt:3637 -- was flattened to `Damage 50`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(15,88)); RenderStyle "Add"; DamageType "Fire"; Alpha 0.85; Projectile; +BOUNCEONWALLS; BounceType "Doom"; BounceCount 2;
 		BounceFactor 1.05; WallBounceFactor 1.1; SeeSound "vile/start"; DeathSound "vile/stop"; }
 	States { Spawn: CBAL AB 3 Bright; Loop; Death: VBA3 AB 4 Bright A_Explode(80,96); Stop; }
 }
 class RS_SoulexBeam : Actor
 {
-	Default { Radius 8; Height 8; Speed 69; Damage 20; DamageType "Ice"; Projectile; +DONTHARMCLASS; +THRUSPECIES; +FULLVOLDEATH; Species "whitelsoul"; Scale 0.77;
+	Default { Radius 8; Height 8; Speed 69; /* CH: Damage (random(10,30))  lostsouls.txt:2670 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,30)); DamageType "Ice"; Projectile; +DONTHARMCLASS; +THRUSPECIES; +FULLVOLDEATH; Species "whitelsoul"; Scale 0.77;
 		SeeSound "ILLSHEAR"; DeathSound "NETHERDE"; RenderStyle "Add"; Alpha 0.9; Translation "Ice"; }
 	States { Spawn: BAL2 AB 2 Bright; Loop; Death: PUFI ABCD 3 Bright A_Explode(20,32); Stop; }
 }
@@ -125,7 +125,7 @@ class RS_SoulexBeam2 : RS_SoulexBeam { Default { Speed 55; } }
 class RS_SoulexBeam3 : RS_SoulexBeam { Default { Speed 80; Scale 1.0; } }
 class RS_SOULEXSoulCharge : Actor
 {
-	Default { Radius 16; Height 8; Speed 21; Projectile; +NOGRAVITY; +SEEKERMISSILE; +THRUSPECIES; Species "whitelsoul"; RenderStyle "Add"; Damage 50; DamageType "Melee"; Alpha 0.75; Scale 0.5;
+	Default { Radius 16; Height 8; Speed 21; Projectile; +NOGRAVITY; +SEEKERMISSILE; +THRUSPECIES; Species "whitelsoul"; RenderStyle "Add"; /* CH: Damage (random(20,90))  lostsouls.txt:2779 -- was flattened to `Damage 50`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,90)); DamageType "Melee"; Alpha 0.75; Scale 0.5;
 		SeeSound "Spell/spellCast1"; DeathSound "skull/death"; }
 	States { Spawn: SPIR FGH 3 Bright A_SeekerMissile(3,3); Loop; Death: ETHS ABC 4 Bright A_Explode(90,96); Stop; }
 }

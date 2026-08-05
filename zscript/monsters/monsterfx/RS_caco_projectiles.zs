@@ -29,7 +29,7 @@ class RS_CacoBallBase : Actor
 // ---------- GREEN: cacospit (BAL7) ----------
 class RS_Cacospit1 : Actor
 {
-	Default { Radius 6; Height 16; Speed 17; FastSpeed 20; Damage 27; DamageType "Plasma"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.65;
+	Default { Radius 6; Height 16; Speed 17; FastSpeed 20; /* CH: Damage (Random(10,45))  Cacodemons.txt:1306 -- was flattened to `Damage 27`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,45)); DamageType "Plasma"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.65;
 		SeeSound "baron/attack"; DeathSound "baron/shotx"; Decal "BaronScorch"; }
 	States
 	{
@@ -45,7 +45,7 @@ class RS_Cacospit1 : Actor
 // ---------- BLUE: holy bolt (SSBL) ----------
 class RS_CacoFire2 : Actor
 {
-	Default { Radius 12; Height 12; Speed 18; Damage 20; DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 0.73; Scale 0.7;
+	Default { Radius 12; Height 12; Speed 18; /* CH: Damage (random(6,35))  Cacodemons.txt:1439 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(6,35)); DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 0.73; Scale 0.7;
 		SeeSound "holy3/holy3"; DeathSound "holy2/holy2"; }
 	States
 	{
@@ -62,7 +62,7 @@ class RS_CacoFire2 : Actor
 // ---------- PURPLE: seeking fire balls (SBS4) ----------
 class RS_CacoFire3 : Actor
 {
-	Default { Radius 6; Height 8; Speed 15; FastSpeed 28; Damage 30; DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 1;
+	Default { Radius 6; Height 8; Speed 15; FastSpeed 28; /* CH: Damage (Random(10,50))  Cacodemons.txt:1583 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 1;
 		SeeSound "caco/attack"; DeathSound "caco/shotx"; }
 	States
 	{
@@ -76,7 +76,7 @@ class RS_CacoFire3 : Actor
 }
 class RS_CacoFire4 : Actor
 {
-	Default { Radius 4; Height 6; Speed 16; FastSpeed 29; Damage 15; DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 1; Scale 0.5;
+	Default { Radius 4; Height 6; Speed 16; FastSpeed 29; /* CH: Damage (Random(5,25))  Cacodemons.txt:1619 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 1; Scale 0.5;
 		SeeSound "caco/attack"; DeathSound "caco/shotx"; }
 	States
 	{
@@ -92,7 +92,7 @@ class RS_CacoFire4 : Actor
 // ---------- YELLOW: bouncing fire spit (FLUM) ----------
 class RS_SpitFireCaco : Actor
 {
-	Default { Radius 6; Height 6; Speed 20; Damage 35; DamageType "Fire"; Projectile; +VISIBILITYPULSE; +BOUNCEONWALLS; RenderStyle "Add";
+	Default { Radius 6; Height 6; Speed 20; /* CH: Damage (Random(10,65))  Cacodemons.txt:1780 -- was flattened to `Damage 35`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,65)); DamageType "Fire"; Projectile; +VISIBILITYPULSE; +BOUNCEONWALLS; RenderStyle "Add";
 		SeeSound "CacoFlame/Attack"; DeathSound "Fire/fire5"; WallBounceFactor 0.8; BounceCount 8; BounceType "Doom"; Alpha 0.9; Scale 0.7; }
 	States
 	{
@@ -108,7 +108,7 @@ class RS_SpitFireCaco : Actor
 // ---------- CYAN: big & small ice (CHCY / ICEY) ----------
 class RS_BigIceCaco : Actor
 {
-	Default { Radius 12; Height 12; Speed 32; Scale 0.95; RenderStyle "Add"; Alpha 0.95; Damage 24; DamageType "Ice"; Projectile; +DONTHARMCLASS;
+	Default { Radius 12; Height 12; Speed 32; Scale 0.95; RenderStyle "Add"; Alpha 0.95; /* CH: Damage (random(8,40))  Cacodemons.txt:385 -- was flattened to `Damage 24`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(8,40)); DamageType "Ice"; Projectile; +DONTHARMCLASS;
 		SeeSound "imp/attack"; DeathSound "Ice/Hit2"; }
 	States
 	{
@@ -124,7 +124,7 @@ class RS_BigIceCaco : Actor
 }
 class RS_SmallIceCaco : Actor
 {
-	Default { Radius 3; Height 2; Speed 42; Damage 14; DamageType "Ice"; Projectile; RenderStyle "Add"; Alpha 0.75; XScale 1.55; YScale 0.25;
+	Default { Radius 3; Height 2; Speed 42; /* CH: Damage (random(8,21))  Cacodemons.txt:414 -- was flattened to `Damage 14`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(8,21)); DamageType "Ice"; Projectile; RenderStyle "Add"; Alpha 0.75; XScale 1.55; YScale 0.25;
 		SeeSound "Ice/Hit2"; DeathSound "spike/spiked"; Decal "BulletChip"; }
 	States
 	{
@@ -140,7 +140,7 @@ class RS_SmallIceCaco : Actor
 // ---------- GRAY: rock breath (JUBD/DIRT) ----------
 class RS_WDRock4 : Actor
 {
-	Default { Radius 4; Height 4; Speed 42; Damage 12; DamageType "Melee"; Projectile; Scale 0.4; SeeSound "monster/hamflr"; DeathSound "Butcher/melee"; }
+	Default { Radius 4; Height 4; Speed 42; /* CH: Damage (Random(5,20))  Demons.txt:2615 -- was flattened to `Damage 12`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,20)); DamageType "Melee"; Projectile; Scale 0.4; SeeSound "monster/hamflr"; DeathSound "Butcher/melee"; }
 	States
 	{
 	Spawn:
@@ -175,7 +175,7 @@ class RS_GrellBallBrown : Actor
 // ---------- ABYSS: void balls + hidi (BLL9/SPIR) ----------
 class RS_AbyssCacoBalls : Actor
 {
-	Default { Radius 8; Species "Caco"; Height 6; Speed 21; Damage 30; DamageType "Ice"; Projectile; +THRUSPECIES; +DONTHARMSPECIES; +DONTHARMCLASS; Scale 1.25;
+	Default { Radius 8; Species "Caco"; Height 6; Speed 21; /* CH: Damage (random(5,55))  Cacodemons.txt:647 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,55)); DamageType "Ice"; Projectile; +THRUSPECIES; +DONTHARMSPECIES; +DONTHARMCLASS; Scale 1.25;
 		RenderStyle "Add"; Alpha 0.8; SeeSound "Crack/see"; DeathSound "Crack/death"; Translation "Ice"; }
 	States
 	{
@@ -189,7 +189,7 @@ class RS_AbyssCacoBalls : Actor
 }
 class RS_AbyssCacoHidi : Actor
 {
-	Default { Radius 4; Height 3; Speed 55; Damage 60; Projectile; +SEEKERMISSILE; +THRUSPECIES; +DONTHARMSPECIES; +DONTHARMCLASS; Species "Caco"; DamageType "Plasma";
+	Default { Radius 4; Height 3; Speed 55; /* CH: Damage (random(30,95))  Cacodemons.txt:681 -- was flattened to `Damage 60`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(30,95)); Projectile; +SEEKERMISSILE; +THRUSPECIES; +DONTHARMSPECIES; +DONTHARMCLASS; Species "Caco"; DamageType "Plasma";
 		RenderStyle "Add"; Alpha 0.95; XScale 1.4; YScale 0.35; SeeSound "weapons/bigbrn"; DeathSound "weapons/bigbrn"; Translation "Ice"; }
 	States
 	{
@@ -205,7 +205,7 @@ class RS_AbyssCacoHidi : Actor
 // ---------- RED: crackodemon ball + spike bomb + effect (BLL9/BAL1) ----------
 class RS_CrackodemonBall : Actor
 {
-	Default { Radius 8; Species "Caco"; Height 6; Speed 15; Damage 30; DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 0.8;
+	Default { Radius 8; Species "Caco"; Height 6; Speed 15; /* CH: Damage (random(5,55))  Cacodemons.txt:2036 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,55)); DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 0.8;
 		SeeSound "Crack/see"; DeathSound "Crack/death"; Translation "192:207=171:191","240:247=191:191"; }
 	States
 	{
@@ -219,7 +219,7 @@ class RS_CrackodemonBall : Actor
 }
 class RS_SBombCaco : Actor
 {
-	Default { Radius 20; Height 20; Mass 600; Speed 11; Damage 45; DamageType "Plasma"; Projectile; Scale 2; RenderStyle "Add"; Alpha 0.95;
+	Default { Radius 20; Height 20; Mass 600; Speed 11; /* CH: Damage (random(5,80))  Cacodemons.txt:2005 -- was flattened to `Damage 45`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,80)); DamageType "Plasma"; Projectile; Scale 2; RenderStyle "Add"; Alpha 0.95;
 		SeeSound "Spell/spellCast1"; DeathSound "Crack/death"; Translation "208:223=176:191","224:231=176:176"; }
 	States
 	{
@@ -235,11 +235,11 @@ class RS_SBombCaco : Actor
 // ---------- BLACK: the "Hades" caco -- eye-beam, hades balls/bolt (HEFX/HADE/LITN) ----------
 class RS_HadesBall : RS_CacoBallBase
 {
-	Default { Damage 18; Speed 17; Alpha 0.80; DamageType "Plasma"; +THRUGHOST; +FORCEXYBILLBOARD; SeeSound "Monster/hadtel"; DeathSound "Monster/hadsit"; Decal "CacoScorch"; }
+	Default { /* CH: Damage (random(5,30))  Cacodemons.txt:3103 -- was flattened to `Damage 18`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,30)); Speed 17; Alpha 0.80; DamageType "Plasma"; +THRUGHOST; +FORCEXYBILLBOARD; SeeSound "Monster/hadtel"; DeathSound "Monster/hadsit"; Decal "CacoScorch"; }
 	States { Spawn: HEFX AB 4 Bright; Loop; Death: HEFX CDE 5 Bright A_Explode(18,64); Stop; }
 }
-class RS_HadesBall2 : RS_HadesBall { Default { Damage 30; Speed 12; Scale 1.5; } }
-class RS_HadesBall3 : RS_HadesBall { Default { Damage 30; Speed 4; Radius 12; Height 8; Scale 1.25; } }
+class RS_HadesBall2 : RS_HadesBall { Default { /* CH: Damage (random(5,50))  Cacodemons.txt:3010 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,50)); Speed 12; Scale 1.5; } }
+class RS_HadesBall3 : RS_HadesBall { Default { /* CH: Damage (random(5,50))  Cacodemons.txt:2978 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,50)); Speed 4; Radius 12; Height 8; Scale 1.25; } }
 class RS_HadesBolt : Actor
 {
 	Default { Radius 8; Height 8; Speed 5; Damage 1; DamageType "Plasma"; Projectile; SeeSound "weapons/none"; DeathSound "weapons/gntidl";

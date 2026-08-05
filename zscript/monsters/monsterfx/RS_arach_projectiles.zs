@@ -37,7 +37,7 @@ class RS_ArachnotronPlasma : FastProjectile
 // ---------- GREEN: spider spit (BAL7) ----------
 class RS_SpSpit : FastProjectile
 {
-	Default { Radius 6; Height 16; Speed 20; FastSpeed 30; Damage 29; DamageType "Plasma"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85;
+	Default { Radius 6; Height 16; Speed 20; FastSpeed 30; /* CH: Damage (Random(8,50))  Spiders.txt:1728 -- was flattened to `Damage 29`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(8,50)); DamageType "Plasma"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85;
 		SeeSound "baron/attack"; DeathSound "weapons/plasmax"; }
 	States { Spawn: BAL7 AB 3 Bright; Loop; Death: BAL7 CDE 4 Bright A_Explode(29,48); Stop; }
 }
@@ -59,7 +59,7 @@ class RS_AbyssSPBolt : FastProjectile
 }
 class RS_AbyssSPBreath : FastProjectile
 {
-	Default { Radius 12; Height 12; Speed 24; Damage 8; DamageType "Ice"; Projectile; +THRUACTORS; RenderStyle "Add"; Alpha 0.85; Scale 0.75;
+	Default { Radius 12; Height 12; Speed 24; /* CH: Damage (random(5,12))  Spiders.txt:821 -- was flattened to `Damage 8`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,12)); DamageType "Ice"; Projectile; +THRUACTORS; RenderStyle "Add"; Alpha 0.85; Scale 0.75;
 		SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
 	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY FGHI 4 Bright; Stop; }
 }
@@ -93,7 +93,7 @@ class RS_BrownSpamSP : FastProjectile
 // ---------- GRAY: stone rockets (reuses RS_CHBSTarget for targeting) ----------
 class RS_SpiderStoneRocket : FastProjectile
 {
-	Default { Radius 8; Height 8; Speed 83; Damage 75; XScale 1.2; Projectile; +NOGRAVITY; SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx"; }
+	Default { Radius 8; Height 8; Speed 83; /* CH: Damage (random(60,95))  Spiders.txt:1405 -- was flattened to `Damage 75`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(60,95)); XScale 1.2; Projectile; +NOGRAVITY; SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx"; }
 	States { Spawn: MISL A 2 Bright A_SpawnItemEx("RS_StoneRockTrail",0,0,0,0,0,0,0,128); Loop; Death: MISL BCD 4 Bright A_Explode(75,96); Stop; }
 }
 class RS_StoneRockTrail : Actor
@@ -105,7 +105,7 @@ class RS_StoneRockTrail : Actor
 // ---------- RED: seeking red bombs + fatso rockets (BSP2) ----------
 class RS_RedBombSP : FastProjectile
 {
-	Default { Radius 6; Height 8; Mass 5; Speed 27; Projectile; +SEEKERMISSILE; Scale 0.6; RenderStyle "Add"; Damage 22; Alpha 0.95; DamageType "Plasma";
+	Default { Radius 6; Height 8; Mass 5; Speed 27; Projectile; +SEEKERMISSILE; Scale 0.6; RenderStyle "Add"; /* CH: Damage (random(5,40))  Spiders.txt:2443 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,40)); Alpha 0.95; DamageType "Plasma";
 		SeeSound "weapons/hominglaunch"; DeathSound "weapons/firex4"; Translation "208:223=176:191","224:231=176:176"; }
 	States { Spawn: APLS AB 3 Bright A_SeekerMissile(4,4); Loop; Death: APBX ABCDE 4 Bright A_Explode(40,80); Stop; }
 }
@@ -148,7 +148,7 @@ class RS_RocketShotFatso : Actor
 // ---------- BLACK: "Macross Missile Spam" -- big ball + missile swarm + rockets (MSPI) ----------
 class RS_BBSP1 : FastProjectile
 {
-	Default { Radius 8; Height 12; Speed 31; Damage 45; DamageType "Plasma"; Projectile; RenderStyle "Add"; SeeSound "baby/attack"; DeathSound "weapons/rocklx"; }
+	Default { Radius 8; Height 12; Speed 31; /* CH: Damage (random(20,75))  Spiders.txt:3174 -- was flattened to `Damage 45`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,75)); DamageType "Plasma"; Projectile; RenderStyle "Add"; SeeSound "baby/attack"; DeathSound "weapons/rocklx"; }
 	States
 	{
 	Spawn:
@@ -161,7 +161,7 @@ class RS_BBSP1 : FastProjectile
 }
 class RS_SPMM1 : FastProjectile
 {
-	Default { Radius 8; Height 12; Speed 26; Damage 40; Scale 1.15; DamageType "Fire"; Projectile; RenderStyle "Normal"; +SEEKERMISSILE;
+	Default { Radius 8; Height 12; Speed 26; /* CH: Damage (random(20,65))  Spiders.txt:3416 -- was flattened to `Damage 40`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,65)); Scale 1.15; DamageType "Fire"; Projectile; RenderStyle "Normal"; +SEEKERMISSILE;
 		SeeSound "monster/brufir"; DeathSound "weapons/hellex"; Decal "Scorch"; }
 	States { Spawn: MISL A 3 Bright A_SeekerMissile(4,4); Loop; Death: MISL BCD 4 Bright A_Explode(40,64); Stop; }
 }
@@ -171,7 +171,7 @@ class RS_SPMM4 : RS_SPMM1 { Default { Speed 30; } }
 class RS_SPMM5 : RS_SPMM1 { Default { Speed 22; Scale 1.3; } }
 class RS_SpRocket3 : FastProjectile
 {
-	Default { Radius 8; Height 8; Speed 37; Damage 27; XScale 1.2; Projectile; SeeSound "fire/fire3"; DeathSound "fire/fire1"; DamageType "Fire"; }
+	Default { Radius 8; Height 8; Speed 37; /* CH: Damage (random(10,45))  Spiders.txt:3526 -- was flattened to `Damage 27`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,45)); XScale 1.2; Projectile; SeeSound "fire/fire3"; DeathSound "fire/fire1"; DamageType "Fire"; }
 	States { Spawn: MISL A 3 Bright; Loop; Death: MISL BCD 4 Bright A_Explode(35,80); Stop; }
 }
 class RS_SpRocket4 : RS_SpRocket3 { Default { Speed 42; } }
@@ -230,7 +230,7 @@ class RS_WhiteSpiderWebShot : FastProjectile
 // ---------- BLACK EX "Macross Missile Spam EX" extras ----------
 class RS_BlackSpideSpiralShot : FastProjectile
 {
-	Default { Radius 6; Height 6; Speed 15; Damage 50; DamageType "Plasma"; Projectile; +DONTHARMCLASS; +THRUACTORS; +ROLLSPRITE; RenderStyle "Add"; Alpha 0.8; Scale 0.8;
+	Default { Radius 6; Height 6; Speed 15; /* CH: Damage (random(20,80))  Spiders.txt:2945 -- was flattened to `Damage 50`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,80)); DamageType "Plasma"; Projectile; +DONTHARMCLASS; +THRUACTORS; +ROLLSPRITE; RenderStyle "Add"; Alpha 0.8; Scale 0.8;
 		SeeSound "baby/attack"; DeathSound "weapons/plasmax"; }
 	States { Spawn: APLS AB 3 Bright A_SetAngle(angle+30,SPF_INTERPOLATE); Loop; Death: APBX ABCDE 4 Bright A_Explode(50,64); Stop; }
 }
@@ -242,13 +242,13 @@ class RS_BubblegumBombEXSpidie : FastProjectile
 }
 class RS_ExSpideLaser1 : FastProjectile
 {
-	Default { Radius 6; Height 6; Speed 38; Damage 30; DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 0.85; Scale 0.6;
+	Default { Radius 6; Height 6; Speed 38; /* CH: Damage (Random(10,50))  Spiders.txt:3120 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 0.85; Scale 0.6;
 		SeeSound "incubus/shot"; DeathSound "weapons/plasmax"; Translation "0:255=%[0.00,0.00,1.29]:[2.00,1.01,2.00]"; }
 	States { Spawn: PLSS AB 2 Bright; Loop; Death: PLSE CDE 3 Bright A_Explode(30,48); Stop; }
 }
 class RS_SpRocket4EX : FastProjectile
 {
-	Default { Radius 11; Height 8; Speed 30; Damage 50; DamageType "Fire"; Projectile; +SEEKERMISSILE; Scale 1.25; SeeSound "weapons/hominglaunch"; DeathSound "weapons/rocklx"; }
+	Default { Radius 11; Height 8; Speed 30; /* CH: Damage (random(20,80))  Spiders.txt:3495 -- was flattened to `Damage 50`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,80)); DamageType "Fire"; Projectile; +SEEKERMISSILE; Scale 1.25; SeeSound "weapons/hominglaunch"; DeathSound "weapons/rocklx"; }
 	States { Spawn: MISL A 3 Bright A_SeekerMissile(4,4); Loop; Death: MISL BCD 4 Bright A_Explode(80,128); Stop; }
 }
 // Harmless afterimage the black EX spider sheds when it opens up -- CH
@@ -555,6 +555,8 @@ class RS_AraBoom3 : Actor
 }
 
 // ---------- T03 CYAN: the death easter egg CH drops on the ice spider ----------
+// CH: Gibs.txt:131 (Actor CH_cirno). CH spawns this from all 17 family files;
+// we currently only call it from RS_Arachnotron + chaingunner T0003.
 class RS_CH_Cirno : Actor
 {
 	Default
@@ -569,7 +571,7 @@ class RS_CH_Cirno : Actor
 	{
 	Spawn:
 		TNT1 A 0;
-		TNT1 A 0 { vel.z += 0.625; }   // CH: ThrustThingZ(0,5,0,1) -- add, not set
+		TNT1 A 0 ThrustThingZ(0, 5, 0, 1);   // CH: Gibs.txt:138, verbatim (was hand-converted to vel.z += 0.625)
 		Goto Wee;
 	Wee:
 		CIRN A 5;

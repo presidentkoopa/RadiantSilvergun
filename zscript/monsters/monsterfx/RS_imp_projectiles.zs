@@ -26,7 +26,7 @@ class RS_RedMessImp2 : Actor
 		+SEEKERMISSILE;
 		Scale 0.55;
 		RenderStyle "Add";
-		Damage 10;
+		/* CH: Damage (random(2,19))  Imps.txt:1813 -- was flattened to `Damage 10`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(2,19));
 		DamageType "Fire";
 		Alpha 0.95;
 		SeeSound "imp/attack";
@@ -86,7 +86,7 @@ class RS_GreenIBall : Actor
 	Default
 	{
 		Radius 8; Height 16; Speed 14; FastSpeed 26;
-		Damage 13; DamageType "Plasma";
+		/* CH: Damage (random(5,23))  Imps.txt:1186 -- was flattened to `Damage 13`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,23)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 0.85;
 		SeeSound "imp/attack"; DeathSound "imp/shotx";
@@ -109,7 +109,7 @@ class RS_BluFier1 : Actor
 	Default
 	{
 		Radius 6; Height 8; Speed 16; FastSpeed 28;
-		Damage 11; DamageType "Fire";
+		/* CH: Damage (random(17,38))  Imps.txt:1321 -- was flattened to `Damage 11`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(17,38)); DamageType "Fire";
 		Projectile; +RANDOMIZE;
 		RenderStyle "Add"; Alpha 0.9;
 		SeeSound "imp/attack"; DeathSound "imp/shotx";
@@ -132,7 +132,7 @@ class RS_Bounc11 : Actor
 	Default
 	{
 		Radius 15; Height 8; Speed 18;
-		Damage 18; DamageType "Fire";
+		/* CH: Damage (random(5,35))  Imps.txt:1485 -- was flattened to `Damage 18`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,35)); DamageType "Fire";
 		Projectile; +BOUNCEONWALLS;
 		RenderStyle "Add"; Alpha 0.75;
 		BounceType "Hexen"; WallBounceFactor 0.7; BounceFactor 0.7;
@@ -165,7 +165,7 @@ class RS_FrostLong : Actor
 	Default
 	{
 		Radius 3; Height 4; Speed 76;
-		Damage 8; DamageType "Ice";
+		/* CH: Damage (random(5,12))  MASTERMINDS.txt:2616 -- was flattened to `Damage 8`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,12)); DamageType "Ice";
 		Projectile; +RANDOMIZE; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 0.85; Scale 0.3;
 		DeathSound "Ice/Hit2";
@@ -189,7 +189,7 @@ class RS_FrostLong2 : RS_FrostLong
 	Default
 	{
 		-SEEKERMISSILE;
-		Damage 6;
+		/* CH: Damage (random(3,9))  MASTERMINDS.txt:2643 -- was flattened to `Damage 6`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(3,9));
 	}
 	States
 	{
@@ -226,7 +226,7 @@ class RS_SplashAbyss2 : RS_SplashAbyss
 	Default
 	{
 		Height 6; Speed 34;
-		Damage 4; DamageType "Ice";
+		/* CH: Damage (random(1,9))  Imps.txt:667 -- was flattened to `Damage 4`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,9)); DamageType "Ice";
 		-THRUACTORS; +MTHRUSPECIES; +DONTHARMCLASS;
 	}
 }
@@ -235,7 +235,7 @@ class RS_AbyssBallCH : Actor
 	Default
 	{
 		Radius 8; Height 16; Speed 21;
-		Damage 22; DamageType "Plasma";
+		/* CH: Damage (random(5,40))  Imps.txt:680 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,40)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; +DONTHARMCLASS;
 		SeeSound "Roach/Fire"; DeathSound "imp/shotx";
 	}
@@ -273,7 +273,7 @@ class RS_CGNail : Actor
 	Default
 	{
 		Radius 2; Height 2; Speed 45; Scale 0.5;
-		Damage 3; DamageType "Melee";
+		/* CH: Damage (random(1,5))  Chaingunners.txt:802 -- was flattened to `Damage 3`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,5)); DamageType "Melee";
 		Decal "BulletChip";
 		AttackSound "moloch/nailhitbleed"; DeathSound "weapons/firex4";
 		Projectile; +SPAWNSOUNDSOURCE; +EXTREMEDEATH; +BLOODSPLATTER;
@@ -298,7 +298,7 @@ class RS_WimpBall1 : Actor
 	Default
 	{
 		Radius 7; Height 14; Speed 14; FastSpeed 26;
-		Damage 15; DamageType "Plasma";
+		/* CH: Damage (random(5,25))  Imps.txt:2988 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); DamageType "Plasma";
 		Projectile; +RANDOMIZE; RenderStyle "Add"; Scale 0.8; Alpha 0.85;
 		SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "168:191=112:127";
@@ -330,7 +330,7 @@ class RS_SpitFireImp : Actor
 	Default
 	{
 		Radius 6; Height 6; Speed 19;
-		Damage 22; DamageType "Fire";
+		/* CH: Damage (Random(2,42))  Imps.txt:1668 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(2,42)); DamageType "Fire";
 		Projectile; RenderStyle "Add";
 		SeeSound "Imp/Attack"; DeathSound "Fire/fire5";
 		Alpha 0.9; Scale 0.85;
@@ -366,7 +366,7 @@ class RS_RedBBall : Actor
 	Default
 	{
 		Radius 8; Height 12; Speed 25;
-		Damage 25; DamageType "Plasma";
+		/* CH: Damage (random(10,50))  Barons.txt:3528 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Plasma";
 		Scale 0.5;
 		Projectile; +THRUGHOST; +DONTHARMCLASS;
 		SeeSound "weapons/firbfi"; DeathSound "weapons/hellex";
@@ -396,7 +396,7 @@ class RS_CyanImpBall : Actor
 	Default
 	{
 		Radius 8; Height 8; Speed 28; Scale 0.75;
-		Damage 11; DamageType "Ice";
+		/* CH: Damage (random(2,20))  Imps.txt:470 -- was flattened to `Damage 11`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(2,20)); DamageType "Ice";
 		Projectile; +DONTHARMCLASS;
 		SeeSound "imp/attack"; DeathSound "Ice/Hit2";
 	}
@@ -505,7 +505,7 @@ class RS_AgauresBall1 : Actor
 	Default
 	{
 		Radius 10; Height 18; Speed 9;
-		Damage 22; DamageType "Fire";
+		/* CH: Damage (random(5,40))  Imps.txt:2474 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,40)); DamageType "Fire";
 		Scale 1.45; RenderStyle "Add"; Alpha 0.67;
 		Projectile; +THRUGHOST;
 		SeeSound "imp/attack"; DeathSound "imp/shotx";
@@ -528,7 +528,7 @@ class RS_AgauresBall2 : Actor
 	Default
 	{
 		Radius 8; Height 16; Speed 19;
-		Damage 15; DamageType "Fire";
+		/* CH: Damage (random(5,25))  Imps.txt:2500 -- was flattened to `Damage 15`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,25)); DamageType "Fire";
 		RenderStyle "Add"; Alpha 0.67;
 		Projectile; +THRUGHOST;
 		SeeSound "imp/attack"; DeathSound "imp/shotx";
@@ -592,7 +592,7 @@ class RS_AgauresBallTrailEX : Actor
 }
 class RS_BlackImpEXBall1 : FastProjectile
 {
-	Default { Radius 10; Height 10; Speed 14; Damage 22; Scale 1.15; RenderStyle "Add"; DamageType "Fire";
+	Default { Radius 10; Height 10; Speed 14; /* CH: Damage (random(5,40))  Imps.txt:2018 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,40)); Scale 1.15; RenderStyle "Add"; DamageType "Fire";
 		Alpha 0.67; Projectile; +THRUGHOST; SeeSound "imp/attack"; DeathSound "imp/shotx"; WeaveIndexXY 54; }
 	States
 	{
@@ -617,7 +617,7 @@ class RS_BlackImpEXBall1 : FastProjectile
 }
 class RS_BlackImpEXBall2 : Actor
 {
-	Default { Radius 8; Height 8; Speed 19; Damage 5; Scale 1.0; RenderStyle "Add"; DamageType "Fire"; Alpha 0.67;
+	Default { Radius 8; Height 8; Speed 19; /* CH: Damage (random(1,10))  Imps.txt:2268 -- was flattened to `Damage 5`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,10)); Scale 1.0; RenderStyle "Add"; DamageType "Fire"; Alpha 0.67;
 		Projectile; +SEEKERMISSILE; +USEBOUNCESTATE; BounceType "Hexen"; BounceCount 4;
 		SeeSound "imp/attack"; DeathSound "imp/shotx"; }
 	States
@@ -637,7 +637,7 @@ class RS_BlackImpEXBall2 : Actor
 }
 class RS_BlackImpEXBigOne : Actor
 {
-	Default { Radius 13; Height 13; Speed 9; Damage 85; Scale 1.2; RenderStyle "Add"; DamageType "Fire"; Alpha 0.85;
+	Default { Radius 13; Height 13; Speed 9; /* CH: Damage (random(50,120))  Imps.txt:2062 -- was flattened to `Damage 85`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(50,120)); Scale 1.2; RenderStyle "Add"; DamageType "Fire"; Alpha 0.85;
 		Projectile; +SEEKERMISSILE; SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4";
 		Translation "0:255=%[0.05,0.05,0.05]:[0.55,0.55,0.55]"; }
 	States

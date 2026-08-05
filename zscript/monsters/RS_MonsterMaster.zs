@@ -567,6 +567,103 @@ class RS_MonsterMaster : Actor abstract
 			RS_ApplyTint();   // back to whatever this tier actually wears
 	}
 
+	// =================================================================
+	// PROMOTION BY ACTOR SWAP -- the CH-native retier.
+	//
+	// SetTier() moves a monster along a ladder inside ONE class. That is
+	// not how CH promotes and it is not how this tree is built any more:
+	// under the CH rebuild each creature is its OWN class, so becoming
+	// the next creature means becoming a different actor.
+	//
+	// CH does exactly this itself. Its `Grow` state spawns the next
+	// colour and calls A_Die; its Abyss conversion plays an animation and
+	// spawns the abyss body. Every previous import copied that as a raw
+	// A_SpawnItemEx + A_Die, which loses EVERYTHING -- the promoted
+	// monster forgets who it was fighting and comes back at full health,
+	// which reads as "a fresh monster appeared", not "that one changed".
+	//
+	// This routes the swap through the SAME gold-flash tell as SetTier,
+	// so a promotion looks like a promotion. It is also what the floor-
+	// glow / hotspot promotions need: one helper, one visual language.
+	// =================================================================
+	private Class<Actor> rsSwapTo;
+
+	void RS_PromoteTo(Class<Actor> nc, bool instant = false)
+	{
+		if (!nc || health <= 0 || TierLocked())
+			return;
+
+		if (instant || !RS_MonOpt("rs_mon_transform_tell", true))
+		{
+			RS_DoActorSwap(nc);
+			return;
+		}
+
+		// Re-targetable exactly like SetTier's tell: a second call mid-
+		// stagger changes the destination rather than queueing a second
+		// transform.
+		rsSwapTo = nc;
+		if (!rsTransforming)
+		{
+			rsTransforming   = true;
+			rsXfOldTier      = Tier;
+			rsPendingTier    = Tier;      // no ladder move; the CLASS changes
+			rsTransformStart = level.time;
+			rsPendingTic     = level.time + random(45, 105);
+			rsFlashPhase     = -1;
+			rsNextBeat       = level.time;
+		}
+	}
+
+	// Carry the fight across the swap. Without this the promotion reads as
+	// a teleport-in: new monster, full health, no idea who shot it.
+	private void RS_DoActorSwap(Class<Actor> nc)
+	{
+		let a = RS_MonsterMaster(Actor.Spawn(nc, pos, ALLOW_REPLACE));
+		if (!a)
+		{
+			// No room. Better to stay what we are than vanish.
+			rsSwapTo = null;
+			rsTransforming = false;
+			A_SetTranslation("");
+			return;
+		}
+
+		a.angle    = angle;
+		a.pitch    = pitch;
+		a.vel      = vel;
+		a.target   = target;
+		a.master   = master;
+		a.tracer   = tracer;
+		a.threshold = threshold;
+		a.bAMBUSH  = bAMBUSH;
+		a.bFRIENDLY = bFRIENDLY;
+		a.special  = special;
+		// tid is READ-ONLY in ZScript -- assigning it is a compile error
+		// ("Expression must be a modifiable value"). ChangeTid is the
+		// only legal way to move it, and it keeps the tid hash correct,
+		// which a raw assignment would not have done anyway.
+		if (tid != 0)
+			a.ChangeTid(tid);
+
+		// Health as a FRACTION, not an absolute -- the creatures either
+		// side of a promotion have wildly different maxima (CH's common
+		// captain is 70, its General is 4500), so copying the number
+		// either one-shots the new body or heals it to nothing.
+		if (RS_MonOpt("rs_mon_retier_preserve_fraction", true))
+		{
+			let def = GetDefaultByType(nc);
+			int mx = def ? def.Health : a.health;
+			double frac = (SpawnHealth() > 0)
+			            ? double(health) / double(SpawnHealth()) : 1.0;
+			a.health = max(1, int(mx * clamp(frac, 0.0, 1.0)));
+		}
+
+		rsSwapTo = null;
+		A_SetTranslation("");
+		Destroy();
+	}
+
 	private void RS_TickTransform()
 	{
 		if (!rsTransforming)
@@ -583,17 +680,41 @@ class RS_MonsterMaster : Actor abstract
 			rsNextBeat = level.time + beat;
 
 			rsFlashPhase++;
-			// Even phases are gold; odd phases show a real body,
-			// alternating old / new / old / new.
+			// Even phases flash; odd phases show a real body.
+			//
+			// COLOUR CARRIES THE MEANING, and the three do not overlap:
+			//   GOLD   = tier transform (same creature, moved along its
+			//            own ladder)
+			//   COPPER = PROMOTION (this creature is about to become a
+			//            DIFFERENT creature -- an actor swap)
+			//   SILVER = enrage, handled separately in RS_TickEnrageTell
+			// See TRNSLATE.txt. One signal, one meaning.
 			if ((rsFlashPhase & 1) == 0)
 			{
-				A_SetTranslation("rs_gold_flash");
+				A_SetTranslation(rsSwapTo ? "rs_copper_flash"
+				                          : "rs_gold_flash");
 			}
 			else
 			{
 				A_SetTranslation("");
-				RS_ShowBody(((rsFlashPhase >> 1) & 1) == 0 ? rsXfOldTier : rsPendingTier);
+				// A class swap has no "new body" on THIS actor to flick
+				// to -- the new creature is a different class entirely --
+				// so a promotion pulses copper against its own body
+				// instead of alternating. The acceleration still carries
+				// the "something is about to happen" signal.
+				if (!rsSwapTo)
+					RS_ShowBody(((rsFlashPhase >> 1) & 1) == 0 ? rsXfOldTier : rsPendingTier);
 			}
+			return;
+		}
+
+		// A pending class swap ends the tell by BECOMING the other
+		// creature, not by moving along this one's ladder.
+		if (rsSwapTo)
+		{
+			rsTransforming = false;
+			rsFlashPhase   = -1;
+			RS_DoActorSwap(rsSwapTo);
 			return;
 		}
 
@@ -1801,9 +1922,56 @@ class RS_MonsterMaster : Actor abstract
 	// TICK
 	// =================================================================
 
+	// How often a live monster emits its tier icon, in tics. CH re-spawns
+	// the icon from inside Spawn/See/Missile/Pain, so the rate is however
+	// often those states cycle; 35 is a steady once-a-second that reads the
+	// same without depending on which state the monster happens to be in.
+	const RS_TIERICON_PERIOD = 35;
+
+	// CH's tier icon, emitted here rather than from each monster's states.
+	//
+	// CH spawns it with an A_SpawnItemEx line pasted into Spawn, See,
+	// Missile and Pain of EVERY actor -- roughly 3,500 copies of one line.
+	// Doing it that way here would be actively dangerous: those lines are
+	// 0-tic, and `Goto X+N` offsets COUNT FRAMES, so inserting or removing
+	// one silently retargets every jump after it in that state. That
+	// exact hazard already forced two placeholder frames in this family.
+	//
+	// One emitter in the base class is identical on screen, cannot shift a
+	// single offset, and gives all seventeen families the icon for free.
+	private int rsIconTic;
+	private void RS_EmitTierIcon()
+	{
+		if (health <= 0) return;
+
+		let cv = CVar.FindCVar("rs_mon_tiericons");
+		if (!cv || !cv.GetBool()) return;
+
+		if (level.time < rsIconTic) return;
+		rsIconTic = level.time + RS_TIERICON_PERIOD;
+
+		// One icon class per tier. Tier 0 is the base class; 1..12 are the
+		// numbered subclasses. Clamped rather than trusted -- a family
+		// whose ladder runs past 12 must not resolve to a null class.
+		int t = clamp(Tier, 0, 12);
+		string cls = (t == 0) ? "RS_ColorTierIcon"
+		                      : ("RS_ColorTierIcon" .. t);
+		Class<Actor> ic = cls;
+		if (!ic) return;
+
+		// CH's own spawn parameters, verbatim: z+32, a small upward drift
+		// and a random facing so repeated icons scatter instead of
+		// stacking into one blob over the monster's head.
+		A_SpawnItemEx(ic, 0, 0, 32,
+		              random(1, 4), 0, random(0, 2),
+		              random(0, 359), SXF_NOCHECKPOSITION);
+	}
+
 	override void Tick()
 	{
 		Super.Tick();
+
+		RS_EmitTierIcon();
 
 		// Deferred tier-body jump (set by ApplyTier). Only while alive --
 		// a corpse must never be yanked back into See.

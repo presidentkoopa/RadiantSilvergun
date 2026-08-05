@@ -21,16 +21,16 @@
 // ---------- BLACK: "Shadow" -- shadow balls (SBAL) ----------
 class RS_ShadowBall : Actor
 {
-	Default { Radius 6; Height 8; Speed 18; Damage 38; Projectile; +RANDOMIZE; DamageType "Plasma"; RenderStyle "Add"; Alpha 0.75;
+	Default { Radius 6; Height 8; Speed 18; /* CH: Damage (random(20,55))  spectres.txt:1303 -- was flattened to `Damage 38`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,55)); Projectile; +RANDOMIZE; DamageType "Plasma"; RenderStyle "Add"; Alpha 0.75;
 		SeeSound "shadowbeast/pr1sit"; DeathSound "shadowbeast/pr1death"; Translation "0:255=%[0.10,0.05,0.20]:[0.60,0.30,0.90]"; }
 	States { Spawn: SBAL AB 3 Bright; Loop; Death: SBAL CDE 4 Bright A_Explode(38,64); Stop; }
 }
-class RS_ShadowBall2 : RS_ShadowBall { Default { Speed 8; Damage 60; DamageType "Fire"; Scale 1.75; } }
+class RS_ShadowBall2 : RS_ShadowBall { Default { Speed 8; /* CH: Damage (random(30,90))  spectres.txt:1275 -- was flattened to `Damage 60`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(30,90)); DamageType "Fire"; Scale 1.75; } }
 
 // ---------- GRAY: bouncing ice orb (ICEY/ROSX) ----------
 class RS_IceOrbCH2 : Actor
 {
-	Default { ProjectileKickBack 1999; Radius 8; Height 8; Speed 15; Damage 22; DamageType "Melee"; Projectile; +SEEKERMISSILE; +BOUNCEONWALLS; +USEBOUNCESTATE;
+	Default { ProjectileKickBack 1999; Radius 8; Height 8; Speed 15; /* CH: Damage (random(11,33))  spectres.txt:474 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(11,33)); DamageType "Melee"; Projectile; +SEEKERMISSILE; +BOUNCEONWALLS; +USEBOUNCESTATE;
 		BounceType "Doom"; BounceCount 4; BounceFactor 1.1; RenderStyle "Add"; Alpha 0.85; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
 	States { Spawn: ICEY AB 3 Bright A_SeekerMissile(2,2); Loop; Death: ICEY FGHI 4 Bright A_Explode(22,48); Stop; }
 }
@@ -152,7 +152,7 @@ class RS_TeleporterSpotSH : SpecialSpot
 // CH spectres.txt SpecSlime1/2/3. A_SpawnParticle trails stripped.
 class RS_SpecSlime1 : Actor
 {
-	Default { Radius 4; Height 4; Speed 17; Damage 40; PoisonDamage 15;
+	Default { Radius 4; Height 4; Speed 17; /* CH: Damage (random(10,70))  spectres.txt:1570 -- was flattened to `Damage 40`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,70)); PoisonDamage 15;
 		SeeSound "Shadow/attack"; DeathSound "imp/shotx"; Scale 0.75;
 		Projectile; +BOUNCEONWALLS; WallBounceFactor 1; BounceCount 3; }
 	States
@@ -170,7 +170,7 @@ class RS_SpecSlime1 : Actor
 }
 class RS_SpecSlime2 : Actor
 {
-	Default { Radius 4; Height 4; Speed 24; Damage 25; PoisonDamage 5;
+	Default { Radius 4; Height 4; Speed 24; /* CH: Damage (random(10,40))  spectres.txt:1604 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,40)); PoisonDamage 5;
 		SeeSound "Shadow/attack"; DeathSound "imp/shotx"; Scale 0.4; Projectile; }
 	States
 	{
@@ -185,7 +185,7 @@ class RS_SpecSlime2 : Actor
 class RS_SpecSlime3 : Actor
 {
 	Default { Alpha 1.0; RenderStyle "Add"; Speed 7; Radius 14; Height 9;
-		Damage 30; XScale 0.1; YScale 1.8; DamageType "Plasma"; Projectile;
+		/* CH: Damage (random(10,50))  spectres.txt:1628 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); XScale 0.1; YScale 1.8; DamageType "Plasma"; Projectile;
 		+SEEKERMISSILE; +RIPPER; +FLOORHUGGER;
 		SeeSound "shadowbeast/pr1sight"; DeathSound "shadowbeast/pr1death"; }
 	States

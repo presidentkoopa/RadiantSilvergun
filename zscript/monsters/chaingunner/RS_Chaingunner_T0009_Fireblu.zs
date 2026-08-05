@@ -75,6 +75,25 @@
 // into the other, so the actor flip-flops between A_Chase and
 // A_FastChase roughly a third of the time. That is CH's fireblu, not a
 // bug; do not "unify" the two loops.
+//
+//
+// SOUNDS: RESOLVED 2026-08-05. Any note below saying a sound name is
+// NOT in this repo SNDINFO is STALE. CH sound library was imported
+// that day -- 693 lumps into sounds/ch/ and 804 SNDINFO definitions,
+// including the $random directives. Every sound name this file uses
+// now resolves end to end to a real lump. Verified, not assumed.
+// TIER ICONS: RESTORED 2026-08-05, and NOT from this file.
+// CH pastes an A_SpawnItemEx("ColorTierIconCH<n>") line into Spawn,
+// See, Missile and Pain of every actor. Those lines are 0-tic, and
+// `Goto X+N` offsets COUNT FRAMES -- so adding or removing one silently
+// retargets every jump after it in that state. That hazard already cost
+// two placeholder frames in this family.
+// RS_MonsterMaster emits the icon on a timer instead (RS_EmitTierIcon).
+// Identical on screen, cannot shift an offset, and every one of the
+// seventeen families gets it rather than just the ones edited by hand.
+// Gated on rs_mon_tiericons, off by default exactly as CH ships it.
+// Anything below claiming the icons were dropped is superseded by this.
+
 // =====================================================================
 
 class RS_CG_T0009 : RS_MonsterMaster

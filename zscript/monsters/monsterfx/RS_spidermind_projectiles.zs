@@ -53,7 +53,7 @@ class RS_ZManTrail : Actor
 // ---------- GREEN: poison spider-shot spread/sweep ----------
 class RS_SpidieShot1 : Actor
 {
-	Default { Radius 2; Height 2; Speed 65; FastSpeed 80; Damage 6; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85; Scale 0.15;
+	Default { Radius 2; Height 2; Speed 65; FastSpeed 80; /* CH: Damage (random(3,8))  MASTERMINDS.txt:2462 -- was flattened to `Damage 6`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(3,8)); Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.85; Scale 0.15;
 		DamageType "Poison"; SeeSound "spider/attack"; DeathSound "imp/shotx"; Translation "168:191=112:127"; }
 	States
 	{
@@ -74,7 +74,7 @@ class RS_SpidieShot1 : Actor
 // ---------- BLUE: frost breath + bouncing ice orbs ----------
 class RS_FrostMind : Actor
 {
-	Default { Radius 18; Height 18; Speed 19; Damage 8; DamageType "Ice"; Projectile; +THRUACTORS; RenderStyle "Add"; Alpha 0.85; Scale 1.1;
+	Default { Radius 18; Height 18; Speed 19; /* CH: Damage (random(5,12))  MASTERMINDS.txt:2703 -- was flattened to `Damage 8`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,12)); DamageType "Ice"; Projectile; +THRUACTORS; RenderStyle "Add"; Alpha 0.85; Scale 1.1;
 		SeeSound "ice/Breath"; DeathSound "Ice/Splode"; Translation "192:207=250:254"; }
 	States
 	{
@@ -88,7 +88,7 @@ class RS_FrostMind : Actor
 }
 class RS_IceOrb : Actor
 {
-	Default { Radius 16; Height 15; Speed 14; Damage 30; DamageType "Ice"; Projectile; +SEEKERMISSILE; +BOUNCEONFLOORS; +USEBOUNCESTATE;
+	Default { Radius 16; Height 15; Speed 14; /* CH: Damage (random(10,55))  MASTERMINDS.txt:2659 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,55)); DamageType "Ice"; Projectile; +SEEKERMISSILE; +BOUNCEONFLOORS; +USEBOUNCESTATE;
 		RenderStyle "Add"; BounceType "Doom"; BounceCount 7; BounceFactor 1.5; WallBounceFactor 0.2; Alpha 0.85; Scale 2;
 		SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; BounceSound "Ice/Splode"; WeaveIndexXY 9; }
 	States
@@ -108,7 +108,7 @@ class RS_IceOrb : Actor
 // ---------- CYAN: ice bombs + orbiting ice orbs ----------
 class RS_SpiderCyanBomb : Actor
 {
-	Default { Radius 3; Height 3; Speed 45; Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; Damage 27; DamageType "Ice"; Alpha 0.85; Scale 0.33;
+	Default { Radius 3; Height 3; Speed 45; Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; /* CH: Damage (random(11,44))  Spiders.txt:397 -- was flattened to `Damage 27`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(11,44)); DamageType "Ice"; Alpha 0.85; Scale 0.33;
 		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4"; Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]"; }
 	States
 	{
@@ -125,7 +125,7 @@ class RS_SpiderCyanBomb : Actor
 }
 class RS_IceOrbCyanMind : Actor
 {
-	Default { Radius 8; Height 8; Speed 42; Damage 30; DamageType "Ice"; Projectile; +THRUSPECIES; Alpha 0.85; Scale 1.5;
+	Default { Radius 8; Height 8; Speed 42; /* CH: Damage (random(5,55))  MASTERMINDS.txt:998 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,55)); DamageType "Ice"; Projectile; +THRUSPECIES; Alpha 0.85; Scale 1.5;
 		SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]"; }
 	States
 	{
@@ -161,7 +161,7 @@ class RS_DemoMissile : Actor
 }
 class RS_OrbPurpleMind : Actor
 {
-	Default { Radius 3; Height 2; Speed 30; Damage 20; DamageType "Plasma"; Projectile; +RANDOMIZE; +MTHRUSPECIES; +FLOATBOB;
+	Default { Radius 3; Height 2; Speed 30; /* CH: Damage (random(10,30))  MASTERMINDS.txt:2922 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,30)); DamageType "Plasma"; Projectile; +RANDOMIZE; +MTHRUSPECIES; +FLOATBOB;
 		RenderStyle "Add"; Alpha 0.85; Scale 0.25; SeeSound "Weapons/Plasmaf"; DeathSound "weapons/plasmax";
 		Translation "16:47=250:254","128:143=250:254","152:191=250:254"; }
 	States
@@ -195,7 +195,7 @@ class RS_BuffTrailSP : Actor
 // ---------- YELLOW: arachnorb balls + fiend plasma + remote bombs ----------
 class RS_AracnorbBall : Actor
 {
-	Default { Radius 13; Height 8; Speed 11; Damage 30; RenderStyle "Add"; Alpha 0.75; SeeSound "baby/attack"; DeathSound "baby/shotx";
+	Default { Radius 13; Height 8; Speed 11; /* CH: Damage (random(10,50))  Spiders.txt:2274 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); RenderStyle "Add"; Alpha 0.75; SeeSound "baby/attack"; DeathSound "baby/shotx";
 		Projectile; +STRIFEDAMAGE; +SEEKERMISSILE; +RANDOMIZE; }
 	States
 	{
@@ -209,7 +209,7 @@ class RS_AracnorbBall : Actor
 }
 class RS_FiendPlasmaBall : Actor
 {
-	Default { Radius 6; Height 16; Speed 24; Damage 22; DamageType "Plasma"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.95;
+	Default { Radius 6; Height 16; Speed 24; /* CH: Damage (Random(10,35))  MASTERMINDS.txt:3338 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,35)); DamageType "Plasma"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.95;
 		SeeSound "Weapons/Plasmaf"; DeathSound "Weapons/Plasmax"; Scale 1.1; }
 	States
 	{
@@ -223,13 +223,18 @@ class RS_FiendPlasmaBall : Actor
 }
 class RS_PlasmaBallSP3 : Actor
 {
+	// CH: decorate/Spiders.txt:1886 (ACTOR PlasmaBallSP3). Diffed against CH 2026-08-05:
+	// exact match, no edit needed. Plain reskin of the vanilla arachnotron plasma bolt.
+	// `Damage 5` is a bare constant in CH too, so the engine's random(1,8) multiply is
+	// intended here -- do NOT "fix" it into a DamageFunction.
+	// SHARED: arachnotron, chaingunner, mastermind, zombieman.
 	Default { DamageType "Plasma"; Radius 13; Height 8; Speed 25; Damage 5; Projectile; +RANDOMIZE; +MTHRUSPECIES; RenderStyle "Add"; Alpha 0.75;
 		SeeSound "weapons/plasmaf"; DeathSound "weapons/plasmax"; }
 	States { Spawn: PLSS AB 6 Bright; Loop; Death: PLSE ABCDE 4 Bright; Stop; }
 }
 class RS_RemoteBombV2 : Actor
 {
-	Default { Radius 20; Height 20; Mass 20; Speed 15; Damage 25; SeeSound "prox/fire"; AttackSound "prox/beep"; DeathSound "weapons/rocklx";
+	Default { Radius 20; Height 20; Mass 20; Speed 15; /* CH: Damage (random(5,45))  MASTERMINDS.txt:3257 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,45)); SeeSound "prox/fire"; AttackSound "prox/beep"; DeathSound "weapons/rocklx";
 		DamageType "Fire"; Projectile; +FLOATBOB; +SEEKERMISSILE; }
 	States
 	{
@@ -248,23 +253,42 @@ class RS_RemoteBombV2 : Actor
 // ---------- FIREBLU: vile-targeted flame fields + flame waves (FIRE sprite) ----------
 class RS_FireBCGguy : Actor
 {
-	Default { Radius 6; Height 6; Speed 45; FastSpeed 26; Damage 12; DamageType "Fire"; Projectile; +RANDOMIZE; +THRUACTORS;
+	// CH: decorate/Chaingunners.txt:963 (ACTOR FireBCGguy). Also used by CH's
+	// MASTERMINDS.txt:2215-2217 (not yet ported here).
+	//
+	// THE MECHANIC: +THRUACTORS means this bolt never collides with a monster or
+	// the player -- it only dies on geometry. While it flies it sits in the Fly
+	// state, an 8-frame A_Explode loop that repeats until impact, so it burns a
+	// 64-unit corridor through everything it passes THROUGH rather than hitting
+	// one target. The multi-frame A_Explode is DELIBERATE (8 blasts per loop);
+	// do not collapse it to a single frame.
+	//
+	// Previously here: the whole Fly state was missing (Spawn just looped), so the
+	// bolt did no in-flight damage at all and the burn corridor never existed;
+	// Fly's frames had been pasted into Death instead.
+	Default { Radius 6; Height 6; Speed 45; FastSpeed 26;
+		DamageFunction (random(5,20));   // CH: Damage (random(5,20)) -- was flattened to `Damage 12`,
+		                                 // which the engine then multiplied by random(1,8) -> 12..96
+		DamageType "Fire"; Projectile; +RANDOMIZE; +THRUACTORS;
 		RenderStyle "Add"; Alpha 0.85; Scale 0.65; SeeSound "imp/attack"; DeathSound "imp/shotx";
-		Translation "161:161=200:200","163:163=204:204","165:165=204:204","167:167=207:207"; }
+		Translation "161:161=200:200","160:160=177:177","162:162=184:184","163:163=204:204",
+			"164:164=186:186","165:165=204:204","166:166=189:189","167:167=207:207"; }
 	States
 	{
 	Spawn:
-		FIRE AB 2 Bright;
+		FIRE AB 4 Bright;
+		Goto Fly;
+	Fly:
+		FIRE CDEEDCDE 3 A_Explode(random(4,15),64);
 		Loop;
 	Death:
-		FIRE CDEEDCDE 5 A_Explode(8,64);
-		FIRE FGH 4 Bright;
+		FIRE FGH 6 Bright A_Explode(random(5,15),64);
 		Stop;
 	}
 }
 class RS_FireBluMindFlame1 : Actor
 {
-	Default { Radius 12; Height 16; Speed 1; Damage 14; DamageType "Fire"; Projectile; +RANDOMIZE; +THRUACTORS; RenderStyle "Add"; Alpha 0.85;
+	Default { Radius 12; Height 16; Speed 1; /* CH: Damage (random(5,23))  MASTERMINDS.txt:2242 -- was flattened to `Damage 14`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,23)); DamageType "Fire"; Projectile; +RANDOMIZE; +THRUACTORS; RenderStyle "Add"; Alpha 0.85;
 		SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "161:161=200:200","163:163=204:204","165:165=204:204","167:167=207:207"; }
 	States
@@ -280,7 +304,7 @@ class RS_FireBluMindFlame1 : Actor
 }
 class RS_FireBluMindFlame3 : Actor
 {
-	Default { Radius 14; Height 14; Speed 14; Damage 10; DamageType "Fire"; Projectile; +RANDOMIZE; +THRUACTORS; +SEEKERMISSILE; +FLOORHUGGER;
+	Default { Radius 14; Height 14; Speed 14; /* CH: Damage (random(5,15))  MASTERMINDS.txt:2304 -- was flattened to `Damage 10`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(5,15)); DamageType "Fire"; Projectile; +RANDOMIZE; +THRUACTORS; +SEEKERMISSILE; +FLOORHUGGER;
 		RenderStyle "Add"; Alpha 0.85; XScale 1.5; YScale 0.7; SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "161:161=200:200","163:163=204:204","165:165=204:204","167:167=207:207"; }
 	States
@@ -298,7 +322,7 @@ class RS_FireBluMindFlame3 : Actor
 // ---------- GRAY: needles + moloch-nails + bouncing gray shots ----------
 class RS_GrayMindNeedle : Actor
 {
-	Default { Radius 6; Height 4; Damage 30; DamageType "Melee"; Speed 5; XScale 1.1; YScale 0.45; Decal "BulletChip";
+	Default { Radius 6; Height 4; /* CH: Damage (random(10,50))  MASTERMINDS.txt:1975 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Melee"; Speed 5; XScale 1.1; YScale 0.45; Decal "BulletChip";
 		AttackSound "moloch/nailhitbleed"; DeathSound "spike/spiked"; Projectile; +SPAWNSOUNDSOURCE; +BLOODSPLATTER; +SEEKERMISSILE; }
 	States
 	{
@@ -316,7 +340,7 @@ class RS_GrayMindNeedle : Actor
 }
 class RS_SpidieShotGray : Actor
 {
-	Default { Radius 3; Height 3; Speed 46; Damage 6; Projectile; +USEBOUNCESTATE; BounceType "Hexen"; BounceCount 3; BounceFactor 1; WallBounceFactor 1;
+	Default { Radius 3; Height 3; Speed 46; /* CH: Damage (random(1,11))  MASTERMINDS.txt:2081 -- was flattened to `Damage 6`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(1,11)); Projectile; +USEBOUNCESTATE; BounceType "Hexen"; BounceCount 3; BounceFactor 1; WallBounceFactor 1;
 		Scale 0.25; DamageType "Melee"; SeeSound "moloch/nailhitbleed"; DeathSound "spike/spiked";
 		Translation "0:255=%[0.14,0.25,0.32]:[0.79,0.79,0.79]"; }
 	States
@@ -338,7 +362,7 @@ class RS_SpidieShotGray : Actor
 // ---------- BROWN: ground-spikes + brown orbs (B05P body) ----------
 class RS_MindGroundSpikeBrown : Actor
 {
-	Default { Speed 1; Radius 24; Height 8; Damage 18; DamageType "Melee"; Projectile; +FLOORHUGGER; +THRUACTORS; }
+	Default { Speed 1; Radius 24; Height 8; /* CH: Damage (random(10,25))  MASTERMINDS.txt:655 -- was flattened to `Damage 18`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,25)); DamageType "Melee"; Projectile; +FLOORHUGGER; +THRUACTORS; }
 	States
 	{
 	Spawn:
@@ -359,7 +383,7 @@ class RS_BrownOrbMindTrail : Actor
 }
 class RS_BrownOrbMind : Actor
 {
-	Default { Radius 3; Height 3; Speed 38; ProjectileKickBack 333; Mass 100; Damage 18; Projectile; DamageType "Fire"; +MTHRUSPECIES; +THRUGHOST;
+	Default { Radius 3; Height 3; Speed 38; ProjectileKickBack 333; Mass 100; /* CH: Damage (random(3,33))  MASTERMINDS.txt:356 -- was flattened to `Damage 18`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(3,33)); Projectile; DamageType "Fire"; +MTHRUSPECIES; +THRUGHOST;
 		SeeSound "fire/fire3"; DeathSound "weapons/boom1"; Translation "0:255=@74[77,52,26]"; Scale 0.33; }
 	States
 	{
@@ -377,7 +401,7 @@ class RS_BrownOrbMind : Actor
 // Brown extras: bone-throw + wind-blast pushes (BBBN/BAL1/BBOM)
 class RS_BrownMindBone2 : Actor
 {
-	Default { Radius 5; Height 5; Speed 20; ProjectileKickBack 500; Mass 100; Damage 30; Projectile; DamageType "Melee";
+	Default { Radius 5; Height 5; Speed 20; ProjectileKickBack 500; Mass 100; /* CH: Damage (random(20,40))  MASTERMINDS.txt:622 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(20,40)); Projectile; DamageType "Melee";
 		+MTHRUSPECIES; +THRUGHOST; +SEEKERMISSILE; DeathSound "MEATIMPB"; Scale 2.25; }
 	States
 	{
@@ -413,7 +437,7 @@ class RS_WindBlastMasterMind2 : Actor
 // ---------- RED (APYT body, HP10000): spiral-saws + damage rings + red bombs ----------
 class RS_SpiralSawMind1 : Actor
 {
-	Default { Radius 6; Height 8; Speed 18; Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; Damage 35; DamageType "Fire"; Alpha 0.75;
+	Default { Radius 6; Height 8; Speed 18; Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; /* CH: Damage (random(10,60))  MASTERMINDS.txt:3540 -- was flattened to `Damage 35`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,60)); DamageType "Fire"; Alpha 0.75;
 		SeeSound "Weapons/BFGF"; DeathSound "Fire/Fire4"; }
 	States
 	{
@@ -430,7 +454,7 @@ class RS_SpiralSawMind1 : Actor
 class RS_RedMindRingNew : Actor
 {
 	Default { Radius 6; Height 8; Speed 1; Mass 999999; Gravity 10; Projectile; +BOUNCEONFLOORS; +THRUACTORS; +RANDOMIZE; +SEEKERMISSILE; +USEBOUNCESTATE; +DONTTHRUST;
-		BounceCount 999; BounceType "Hexen"; BounceFactor 0.5; RenderStyle "Add"; SeeSound "Fire/fire3"; Damage 45; DamageType "Melee"; Alpha 0.95; Scale 1;
+		BounceCount 999; BounceType "Hexen"; BounceFactor 0.5; RenderStyle "Add"; SeeSound "Fire/fire3"; /* CH: Damage (random(30,90))  MASTERMINDS.txt:3618 -- was flattened to `Damage 45`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(30,90)); DamageType "Melee"; Alpha 0.95; Scale 1;
 		Translation "208:223=176:191","224:231=176:176"; }
 	States
 	{
@@ -477,7 +501,7 @@ class RS_AbyssMindWave2 : Actor
 }
 class RS_AbyssMindWave : Actor
 {
-	Default { Radius 18; Height 18; Speed 34; ProjectileKickBack 9000; Damage 50; DamageType "Melee"; Projectile; +DONTHARMCLASS;
+	Default { Radius 18; Height 18; Speed 34; ProjectileKickBack 9000; /* CH: Damage (random(30,80))  MASTERMINDS.txt:1385 -- was flattened to `Damage 50`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(30,80)); DamageType "Melee"; Projectile; +DONTHARMCLASS;
 		RenderStyle "Add"; Alpha 0.25; Scale 0.85; SeeSound "queen/fire"; DeathSound "holy2/holy2"; }
 	States
 	{
@@ -493,7 +517,7 @@ class RS_AbyssMindWave : Actor
 }
 class RS_CrackedAbyssMindFall : Actor
 {
-	Default { Radius 1; Height 1; Speed 18; Damage 30; DamageType "Plasma"; Projectile; +NOGRAVITY; +CEILINGHUGGER; Scale 0.85; RenderStyle "Add"; Alpha 1.0;
+	Default { Radius 1; Height 1; Speed 18; /* CH: Damage (random(10,60))  MASTERMINDS.txt:1496 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,60)); DamageType "Plasma"; Projectile; +NOGRAVITY; +CEILINGHUGGER; Scale 0.85; RenderStyle "Add"; Alpha 1.0;
 		SeeSound "Crack/see"; DeathSound "Crack/death"; Translation "Ice"; }
 	States
 	{
@@ -511,7 +535,7 @@ class RS_CrackedAbyssMindFall : Actor
 }
 class RS_CrackedAbyssMindFloor : Actor
 {
-	Default { Radius 4; Species "Revenant"; Height 4; Speed 24; Damage 20; DamageType "Plasma"; Projectile; +FLOORHUGGER; Scale 0.85; RenderStyle "Add"; Alpha 1.0;
+	Default { Radius 4; Species "Revenant"; Height 4; Speed 24; /* CH: Damage (random(10,30))  MASTERMINDS.txt:1426 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,30)); DamageType "Plasma"; Projectile; +FLOORHUGGER; Scale 0.85; RenderStyle "Add"; Alpha 1.0;
 		SeeSound "Crack/see"; DeathSound "Crack/death"; Translation "Ice"; }
 	States
 	{
@@ -530,7 +554,7 @@ class RS_CrackedAbyssMindFloor : Actor
 // ---------- BLACK (ARNQ "Pseudo Old God", HP11111): psychic waves, queen plasma, shades ----------
 class RS_PsychicAra2 : Actor
 {
-	Default { Projectile; +NOBLOCKMAP; +NOGRAVITY; +ALLOWPARTICLES; RenderStyle "Stencil"; StencilColor "Black"; Alpha 0.95; Damage 7; DamageType "Plasma";
+	Default { Projectile; +NOBLOCKMAP; +NOGRAVITY; +ALLOWPARTICLES; RenderStyle "Stencil"; StencilColor "Black"; Alpha 0.95; /* CH: Damage (random(2,12))  MASTERMINDS.txt:4116 -- was flattened to `Damage 7`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(2,12)); DamageType "Plasma";
 		Scale 1.8; DeathSound "deepone/active"; Mass 50; }
 	States
 	{
@@ -546,7 +570,7 @@ class RS_PsychicAra2 : Actor
 }
 class RS_ZWAVE3 : Actor
 {
-	Default { Radius 10; Height 10; Speed 15; SeeSound "queen/fire"; Projectile; Damage 20; DamageType "Melee"; RenderStyle "Stencil"; StencilColor "Black"; Alpha 0.65; Scale 0.3; }
+	Default { Radius 10; Height 10; Speed 15; SeeSound "queen/fire"; Projectile; /* CH: Damage (random(10,30))  MASTERMINDS.txt:4329 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,30)); DamageType "Melee"; RenderStyle "Stencil"; StencilColor "Black"; Alpha 0.65; Scale 0.3; }
 	States
 	{
 	Spawn:
@@ -563,7 +587,7 @@ class RS_ZWAVE3 : Actor
 }
 class RS_QueenMindWave : Actor
 {
-	Default { Radius 8; Height 8; Speed 24; Damage 50; Projectile; +SEEKERMISSILE; DamageType "Plasma"; RenderStyle "Add"; SeeSound "queen/fire"; DeathSound "queen/hit"; Decal "SwordLightning"; }
+	Default { Radius 8; Height 8; Speed 24; /* CH: Damage (random(30,80))  MASTERMINDS.txt:4274 -- was flattened to `Damage 50`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(30,80)); Projectile; +SEEKERMISSILE; DamageType "Plasma"; RenderStyle "Add"; SeeSound "queen/fire"; DeathSound "queen/hit"; Decal "SwordLightning"; }
 	States
 	{
 	Spawn:
@@ -580,7 +604,7 @@ class RS_QueenMindWave : Actor
 }
 class RS_QueenPlasmaBlast : Actor
 {
-	Default { Radius 13; Height 8; Speed 32; Damage 25; Projectile; DamageType "Plasma"; Scale 0.75; +RANDOMIZE; +BLOODLESSIMPACT; +NOEXTREMEDEATH; +BOUNCEONFLOORS; +USEBOUNCESTATE;
+	Default { Radius 13; Height 8; Speed 32; /* CH: Damage (random(8,45))  MASTERMINDS.txt:4196 -- was flattened to `Damage 25`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(8,45)); Projectile; DamageType "Plasma"; Scale 0.75; +RANDOMIZE; +BLOODLESSIMPACT; +NOEXTREMEDEATH; +BOUNCEONFLOORS; +USEBOUNCESTATE;
 		BounceType "Doom"; BounceCount 3; BounceFactor 1.25; RenderStyle "Add"; Alpha 0.75; SeeSound "electricplasma/shoot"; }
 	States
 	{
@@ -598,7 +622,7 @@ class RS_QueenPlasmaBlast : Actor
 class RS_BlackSpidShade : Actor
 {
 	// the drifting black shade (CH SpecialSpot-based summon decoration; here a damaging drifter)
-	Default { Radius 32; Height 32; Speed 8; Damage 30; DamageType "Melee"; Projectile; +FLOATBOB; +SEEKERMISSILE; +NOGRAVITY; RenderStyle "Translucent"; Alpha 0.5;
+	Default { Radius 32; Height 32; Speed 8; /* CH: Damage (random(10,58))  MASTERMINDS.txt:4156 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,58)); DamageType "Melee"; Projectile; +FLOATBOB; +SEEKERMISSILE; +NOGRAVITY; RenderStyle "Translucent"; Alpha 0.5;
 		Translation "0:255=%[0.45,0.45,0.45]:[0.01,0.01,0.01]"; }
 	States
 	{
@@ -614,7 +638,7 @@ class RS_BlackSpidShade : Actor
 // ---------- WHITE (W5PD "Everlasting White Spidey", HP15000): crackle-orbs + tracers + winders ----------
 class RS_STracerWhiteSP : Actor
 {
-	Default { Radius 5; Height 5; Speed 20; Damage 22; RenderStyle "Add"; DamageType "Fire"; Alpha 0.67; Projectile; +FLOORHUGGER; +THRUGHOST; -NOGRAVITY; +DONTSPLASH;
+	Default { Radius 5; Height 5; Speed 20; /* CH: Damage (random(11,33))  MASTERMINDS.txt:4810 -- was flattened to `Damage 22`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(11,33)); RenderStyle "Add"; DamageType "Fire"; Alpha 0.67; Projectile; +FLOORHUGGER; +THRUGHOST; -NOGRAVITY; +DONTSPLASH;
 		SeeSound "ELECTRO8"; DeathSound "Crack/death"; Translation "0:255=%[0.49,0.51,1.52]:[1.10,2.00,1.97]"; }
 	States
 	{
@@ -628,7 +652,7 @@ class RS_STracerWhiteSP : Actor
 }
 class RS_WhiteMindCrackleOrb : Actor
 {
-	Default { Radius 16; Height 16; Speed 9; Projectile; +NOGRAVITY; +SEEKERMISSILE; Scale 2.35; Damage 80; DamageType "Plasma";
+	Default { Radius 16; Height 16; Speed 9; Projectile; +NOGRAVITY; +SEEKERMISSILE; Scale 2.35; /* CH: Damage (random(50,120))  MASTERMINDS.txt:4711 -- was flattened to `Damage 80`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(50,120)); DamageType "Plasma";
 		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4"; Translation "0:255=%[0.21,0.29,0.68]:[1.07,2.00,2.00]"; }
 	States
 	{
@@ -642,7 +666,7 @@ class RS_WhiteMindCrackleOrb : Actor
 }
 class RS_WhiteMindCrackleOrb2 : Actor
 {
-	Default { Radius 16; Height 16; Speed 0; Projectile; +NOGRAVITY; +SEEKERMISSILE; Scale 1; Damage 80; DamageType "Plasma";
+	Default { Radius 16; Height 16; Speed 0; Projectile; +NOGRAVITY; +SEEKERMISSILE; Scale 1; /* CH: Damage (random(50,120))  MASTERMINDS.txt:4745 -- was flattened to `Damage 80`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(50,120)); DamageType "Plasma";
 		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4"; Translation "0:255=%[0.21,0.29,0.68]:[1.07,2.00,2.00]"; }
 	States
 	{
@@ -657,7 +681,7 @@ class RS_WhiteMindCrackleOrb2 : Actor
 }
 class RS_WhiteMindshot1 : Actor
 {
-	Default { Radius 6; Height 6; Speed 45; Damage 30; DamageType "Plasma"; Projectile; +BOUNCEONWALLS; +USEBOUNCESTATE; BounceType "Doom"; BounceCount 2;
+	Default { Radius 6; Height 6; Speed 45; /* CH: Damage (Random(10,50))  MASTERMINDS.txt:4547 -- was flattened to `Damage 30`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,50)); DamageType "Plasma"; Projectile; +BOUNCEONWALLS; +USEBOUNCESTATE; BounceType "Doom"; BounceCount 2;
 		XScale 1.1; YScale 0.75; RenderStyle "Add"; SeeSound "weapons/plasmaf"; DeathSound "weapons/plasmax";
 		Translation "0:255=%[0.49,0.51,1.52]:[1.10,2.00,1.97]"; }
 	States
@@ -675,7 +699,7 @@ class RS_WhiteMindshot1 : Actor
 }
 class RS_WhiteSpidWinder : Actor
 {
-	Default { Radius 5; Height 5; Speed 30; Damage 40; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; +DONTHARMCLASS; +THRUSPECIES; +FLOORHUGGER;
+	Default { Radius 5; Height 5; Speed 30; /* CH: Damage (random(10,70))  MASTERMINDS.txt:4893 -- was flattened to `Damage 40`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(10,70)); DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; +DONTHARMCLASS; +THRUSPECIES; +FLOORHUGGER;
 		RenderStyle "Add"; Alpha 0.9; Scale 0.85; SeeSound "ELECTRO8"; DeathSound "Crack/death"; Translation "0:255=%[0.49,0.51,1.52]:[1.10,2.00,1.97]"; }
 	States
 	{
@@ -933,7 +957,7 @@ class RS_ESZapper2 : RS_ESZapper {}
 // EyeBeam railgun puffs: the trail spark and the impact burst.
 class RS_WhiteMindRB4 : Actor
 {
-	Default { Radius 4; Height 4; Speed 11; Damage 20; Projectile; +NOGRAVITY;
+	Default { Radius 4; Height 4; Speed 11; /* CH: Damage (random(15,30))  MASTERMINDS.txt:4609 -- was flattened to `Damage 20`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(15,30)); Projectile; +NOGRAVITY;
 		+MTHRUSPECIES; Species "MMind"; RenderStyle "Add"; Alpha 0.9;
 		SeeSound "Spell/spellCast1"; DeathSound "Crack/death"; }
 	States
@@ -954,7 +978,7 @@ class RS_WhiteMindRB4 : Actor
 }
 class RS_WhiteMindRB3 : Actor
 {
-	Default { Radius 4; Height 4; Speed 1; Damage 60; Projectile; +NOGRAVITY;
+	Default { Radius 4; Height 4; Speed 1; /* CH: Damage (random(30,95))  MASTERMINDS.txt:4581 -- was flattened to `Damage 60`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(30,95)); Projectile; +NOGRAVITY;
 		+MTHRUSPECIES; Species "MMind"; RenderStyle "Add"; DeathSound "NETHERDE"; }
 	States
 	{
@@ -1104,7 +1128,7 @@ class RS_WhiteFatNukeShow : FastProjectile
 }
 class RS_WhiteFatNuke : FastProjectile
 {
-	Default { Radius 12; Height 12; Speed 25; Mass 8000; Damage 150; DamageType "Fire";
+	Default { Radius 12; Height 12; Speed 25; Mass 8000; /* CH: Damage (random(100,200))  Fatsos.txt:3887 -- was flattened to `Damage 150`. A bare constant is multiplied by random(1,8) by the engine and a DamageFunction is not, so that also inflated the top end. */ DamageFunction (random(100,200)); DamageType "Fire";
 		Projectile; -NOGRAVITY; +DONTHARMSPECIES; Species "MMind";
 		Scale 1.0; XScale 1.2; YScale 2.6; RenderStyle "Add"; Alpha 1.0;
 		SeeSound "ARCAZAP7"; DeathSound "NETHERDE";
