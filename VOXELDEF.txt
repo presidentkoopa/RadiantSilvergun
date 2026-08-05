@@ -2,6 +2,14 @@
 // VOXELDEF -- 3D voxel world-pickups.
 // ---------------------------------------------------------------------
 // VOXELDEF binds to a SPRITE name + frame letter, not to an actor class.
+//
+// SINGLE SOURCE OF VOXELS -- every .kvx under voxels/ comes from
+// Environmental_Voxels_PickupAndDecoration, and nothing else. A second pack
+// (li-gnrcwpn-vox) was once merged in on top of it; that left 22 foreign
+// lumps plus 26 files that shared an ENV name while holding a different
+// model, so half the pickup set was silently the wrong pack. All of it has
+// been reverted to the ENV pack. Do not merge a second voxel pack in here --
+// if a lump isn't in that folder, it doesn't belong in voxels/.
 // =====================================================================
 
 // --- Ammo pickups ---
@@ -12,13 +20,6 @@
 
 CLIPA = "CLIPA"        // Clip                            [ENV pack]
 {
-	DroppedSpin = 0
-	PlacedSpin = 0
-}
-
-CLIPB = "CLIPB"        // Clip (box variant)              [GNRCWPN]
-{
-	Scale = 0.5
 	DroppedSpin = 0
 	PlacedSpin = 0
 }
@@ -48,7 +49,7 @@ ROCKA = "ROCKA"        // RocketAmmo                      [ENV pack]
 }
 
 // =====================================================================
-// Full pickup/decoration voxel set -- baked in from li-gnrcwpn-vox.
+// Full pickup/decoration voxel set.
 // ---------------------------------------------------------------------
 // Everything below binds to a stock Doom pickup sprite, so these apply
 // project-wide regardless of weapon set: any map's health, armor, ammo,
@@ -56,15 +57,13 @@ ROCKA = "ROCKA"        // RocketAmmo                      [ENV pack]
 //
 // Spin settings follow the existing convention above: weapons spin,
 // pickups don't (vanilla Doom items don't rotate, and spinning every
-// bonus on a busy map reads as noise in a headset).
+// bonus on a busy map reads as noise in a headset). This is a deliberate
+// departure from the ENV pack's own VOXELDEF, which spins keys and
+// bonuses at 92 and offsets the rest by AngleOffset = 270.
 //
-// Deliberately NOT registered, though the files are present:
-//   BNO2, MSTI  -- not stock Doom sprite names; no actor in this project
-//                  or the IWAD draws them. Kept rather than guessed at.
-//   BROKA       -- the source's broken-launcher prop, part of its
-//                  ditched-weapon system, which this project doesn't port.
-//   EMNGA       -- empty-minigun world pickup, same reason (the empty
-//                  state is a hand-sprite swap here, not a dropped actor).
+// Deliberately NOT registered, though the file is present:
+//   BROKA -- the pack's broken-launcher prop, part of its ditched-weapon
+//            system, which this project doesn't port.
 // =====================================================================
 
 // --- Health / armor ---
@@ -83,12 +82,9 @@ ARM1B = "ARM1B" { DroppedSpin = 0  PlacedSpin = 0 }
 ARM2A = "ARM2A" { DroppedSpin = 0  PlacedSpin = 0 }   // Blue armor
 ARM2B = "ARM2B" { DroppedSpin = 0  PlacedSpin = 0 }
 
-// --- Ammo (joins CLIPA/CLIPB/SHELA/CELLA/CELPA/ROCKA above) ---
+// --- Ammo (joins CLIPA/SHELA/CELLA/CELPA/ROCKA above) ---
 AMMOA = "AMMOA" { DroppedSpin = 0  PlacedSpin = 0 }   // Box of bullets
 SBOXA = "SBOXA" { DroppedSpin = 0  PlacedSpin = 0 }   // Box of shells
-SHELB = "SHELB" { DroppedSpin = 0  PlacedSpin = 0 }
-SHELC = "SHELC" { DroppedSpin = 0  PlacedSpin = 0 }
-SHELD = "SHELD" { DroppedSpin = 0  PlacedSpin = 0 }
 BPAKA = "BPAKA" { DroppedSpin = 0  PlacedSpin = 0 }   // Backpack
 
 // --- Powerups ---
@@ -102,9 +98,18 @@ PMAPC = "PMAPC" { DroppedSpin = 0  PlacedSpin = 0 }
 PMAPD = "PMAPD" { DroppedSpin = 0  PlacedSpin = 0 }
 
 // --- Keys ---
-BKEY = "BKEY" { DroppedSpin = 0  PlacedSpin = 0 }     // Blue keycard
-RKEY = "RKEY" { DroppedSpin = 0  PlacedSpin = 0 }     // Red keycard
-YKEY = "YKEY" { DroppedSpin = 0  PlacedSpin = 0 }     // Yellow keycard
-BSKU = "BSKU" { DroppedSpin = 0  PlacedSpin = 0 }     // Blue skull key
-RSKU = "RSKU" { DroppedSpin = 0  PlacedSpin = 0 }     // Red skull key
-YSKU = "YSKU" { DroppedSpin = 0  PlacedSpin = 0 }     // Yellow skull key
+// Bound per frame, not per sprite: the ENV pack ships an A and a B voxel for
+// every key, and Doom's key sprites blink between those two frames. Binding
+// only the sprite root would leave one half of the blink as a flat sprite.
+BKEYA = "BKEYA" { DroppedSpin = 0  PlacedSpin = 0 }   // Blue keycard
+BKEYB = "BKEYB" { DroppedSpin = 0  PlacedSpin = 0 }
+RKEYA = "RKEYA" { DroppedSpin = 0  PlacedSpin = 0 }   // Red keycard
+RKEYB = "RKEYB" { DroppedSpin = 0  PlacedSpin = 0 }
+YKEYA = "YKEYA" { DroppedSpin = 0  PlacedSpin = 0 }   // Yellow keycard
+YKEYB = "YKEYB" { DroppedSpin = 0  PlacedSpin = 0 }
+BSKUA = "BSKUA" { DroppedSpin = 0  PlacedSpin = 0 }   // Blue skull key
+BSKUB = "BSKUB" { DroppedSpin = 0  PlacedSpin = 0 }
+RSKUA = "RSKUA" { DroppedSpin = 0  PlacedSpin = 0 }   // Red skull key
+RSKUB = "RSKUB" { DroppedSpin = 0  PlacedSpin = 0 }
+YSKUA = "YSKUA" { DroppedSpin = 0  PlacedSpin = 0 }   // Yellow skull key
+YSKUB = "YSKUB" { DroppedSpin = 0  PlacedSpin = 0 }
