@@ -18,6 +18,11 @@ class RS_Weapon : Weapon abstract
 	double Accuracy;         // rolled, 0-100 scale
 	double Velocity;         // rolled
 	double CritChance;       // rolled, 0-1
+	double CritMult;         // rolled -- what a crit multiplies by. The
+	                         // twelfth stat (took TimeBetweenShots' sheet
+	                         // slot, owner ruling 2026-08-05). 0 = weapon
+	                         // never rolled it; dispatch falls back to the
+	                         // legacy 2.0.
 	int    Capacity;         // rolled
 
 	int    RateOfFire;       // assigned by weapon identity, fixed by the
@@ -183,6 +188,7 @@ class RS_Weapon : Weapon abstract
 		if (!owner || !owner.player) return;
 		if (owner.player.ReadyWeapon != self && owner.player.OffhandWeapon != self)
 			return;
+		RetimeReload();
 		if (NextFireTic == 0 || Level.maptime != NextFireTic) return;
 		// Held-trigger guard (rs_14 survey, F1): a held full-auto weapon
 		// refires the instant its cadence reopens -- a beep every cycle
@@ -267,9 +273,56 @@ class RS_Weapon : Weapon abstract
 	// bonus rounds loaded instantly on top of whatever the animation's
 	// guaranteed fill already did -- the visual stays frame-exact, the
 	// stat still does something real.
+	// Bonus rounds are ReloadSpeed's OVERFLOW (owner ruling, rs_32 D1):
+	// the stat's first stretch buys visible animation speed (clamped
+	// [0.7, 1.5] in RetimeReload), everything past the visual cap buys
+	// ammo instead -- hands so fast they thumb in an extra round. With
+	// stock rolls capping ~1.4 this pays only once reload cards push the
+	// stat past 1.5; that is the ruling, not an accident.
 	action int GetReloadBonusRounds()
 	{
-		return max(0, int((invoker.ReloadSpeed - 1.0) * 3));
+		return max(0, int((invoker.ReloadSpeed - 1.5) * 4));
+	}
+
+	// --- ReloadSpeed -> reload animation retimer (owner rulings, rs_32
+	// D1: "clamp the animation not the stat"). While this weapon's
+	// psprite walks its own Reload sequence, each new frame's duration
+	// is rescaled by the clamped stat -- a 1.3 roll visibly reloads
+	// ~30% faster, a 0.85 roll slower, and the 3D model tracks because
+	// the frames themselves are unchanged. Drives BOTH hands: the fork
+	// renders the offhand through its own psprite layer
+	// (PSP_OFFHANDWEAPON, engine p_pspr.h), same ticking machinery.
+	// v1 is retime-only: a 1-tic frame can't be shortened further and
+	// is left alone rather than skipped -- arsenal reload frames are
+	// 2-6 tics, so the clamp's full range is expressible without
+	// mid-tick state surgery.
+	state RS_ReloadTrackState;
+
+	void RetimeReload()
+	{
+		bool isOff = owner.player.OffhandWeapon == self;
+		let psp = owner.player.FindPSprite(isOff ? PSP_OFFHANDWEAPON : PSP_WEAPON);
+		if (!psp)
+		{
+			RS_ReloadTrackState = null;
+			return;
+		}
+
+		state reload = FindState("Reload");
+		if (!reload || !InStateSequence(psp.CurState, reload))
+		{
+			RS_ReloadTrackState = null;
+			return;
+		}
+
+		// Retime each frame once, on entry.
+		if (psp.CurState == RS_ReloadTrackState)
+			return;
+		RS_ReloadTrackState = psp.CurState;
+
+		double speed = clamp(ReloadSpeed, 0.7, 1.5);
+		if (psp.Tics > 0 && speed != 1.0)
+			psp.Tics = max(1, int(round(psp.Tics / speed)));
 	}
 
 	action void A_RS_ClearTriggerGate()
@@ -337,7 +390,10 @@ class RS_Weapon : Weapon abstract
 		GiveInventory(invoker.AmmoType2, 1);
 		TakeInventory(reserve, 1);
 
-		if (invoker.GetReloadBonusRounds() > 0 && FRandom(0, 1) < bonusChance
+		// Overflow feeds the shell chance too: past the animation cap,
+		// each point of stat adds itself to the free-shell odds.
+		if (invoker.GetReloadBonusRounds() > 0
+			&& FRandom(0, 1) < (bonusChance + max(0, invoker.ReloadSpeed - 1.5))
 			&& CountInv(invoker.AmmoType2) < invoker.Capacity && CountInv(reserve) > 0)
 		{
 			GiveInventory(invoker.AmmoType2, 1);
@@ -507,7 +563,7 @@ class RS_Weapon : Weapon abstract
 		// whether a pull actually critted.
 		if (FRandom(0, 1) < (invoker.CritChance + p.CritBonus + mods.CritAdd))
 		{
-			dmg *= 2.0;
+			dmg *= invoker.CritMult > 0 ? invoker.CritMult : 2.0;
 			invoker.RS_CritStreak++;
 		}
 		else
@@ -516,10 +572,30 @@ class RS_Weapon : Weapon abstract
 		int pellets = (p.PelletOverride > 0) ? p.PelletOverride : invoker.PelletCount;
 		pellets = max(1, int(pellets * pelletMult));
 
-		double choke = p.UsesChoke ? (1.0 - invoker.Choke * 0.5) : 1.0;
+		// Choke keys off the RESOLVED volley, not a per-profile opt-in --
+		// owner ruling 2026-08-05: "choke should work on anything with
+		// more than 1 pellet for any reason" (rolled, promoted,
+		// affix-split, condition-doubled). UsesChoke is no longer read.
+		double choke = (pellets >= 2 && invoker.Choke > 0) ? (1.0 - invoker.Choke * 0.5) : 1.0;
 		double spread = (100.0 - invoker.Accuracy) * p.SpreadScale * choke + p.SpreadBonus;
 		if (p.UsesCadence)
-			spread += invoker.GetCadenceOvershoot() * 0.15;
+		{
+			int overshoot = invoker.GetCadenceOvershoot();
+			if (overshoot > 0)
+			{
+				// Fired before the sequence finished: the standing penalty.
+				spread += overshoot * 0.15;
+			}
+			else
+			{
+				// Waited the full firing sequence out: the patience bonus
+				// (owner ruling 2026-08-05 -- 40% tighter by default,
+				// scalable). Semi-auto only by construction: full-auto
+				// profiles leave UsesCadence false because the hard gate
+				// does their pacing, so they can't collect this for free.
+				spread *= 1.0 - clamp(CVar.FindCVar("rs_cadence_patience").GetInt(), 0, 90) / 100.0;
+			}
+		}
 		spread *= mods.SpreadMult;
 
 		// Hitscan and melee run inline because A_FireBullets/A_CustomPunch
@@ -586,10 +662,18 @@ class RS_Weapon : Weapon abstract
 	action void A_RS_Backfire()
 	{
 		A_PlaySound("rs_fx_weapon_empty", CHAN_WEAPON);
-		double dmg = invoker.DamagePerShot;
+		// The price reads the VOLLEY the jam ate, not the per-pellet
+		// number: DamagePerShot is per-pellet on the shotgun family and
+		// per-round on the heavies, so the raw stat made a backfire cost
+		// an SSG 5-12 and a launcher 110-320 at identical odds -- a free
+		// gamble on one end of the arsenal and a death sentence on the
+		// other. A quarter of the volley's worth lands both in the same
+		// survivable band and keeps the price proportional to what the
+		// shot would have been.
+		double dmg = invoker.DamagePerShot * max(1, invoker.PelletCount) * 0.25;
 		if (FRandom(0, 1) < invoker.CritChance)
-			dmg *= 2.0;
-		player.mo.DamageMobj(invoker, player.mo, int(dmg), 'BackfireDamage');
+			dmg *= invoker.CritMult > 0 ? invoker.CritMult : 2.0;
+		player.mo.DamageMobj(invoker, player.mo, max(1, int(dmg)), 'BackfireDamage');
 	}
 
 	// Bullet volley. Damage/pellets/spread are resolved by the dispatch

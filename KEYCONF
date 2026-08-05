@@ -30,3 +30,8 @@ addmenukey "Twin Weapon Wheel (Hold)" +rs_wheel
 alias +rs_wheel "netevent rs-wheel-on"
 alias -rs_wheel "netevent rs-wheel-off"
 defaultbind V +rs_wheel
+
+// One-key door into the UI Debug page -- no console needed.
+addmenukey "UI Debug Menu" rs_ui_debug
+alias rs_ui_debug "openmenu RS_UIDebug"
+defaultbind U rs_ui_debug

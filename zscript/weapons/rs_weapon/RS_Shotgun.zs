@@ -113,6 +113,7 @@ class VR_Shotgun : RS_Weapon
 
 		RateOfFire       = 1;   // real cadence, fixed
 		ReloadSpeed       = RS_Roll.RollDouble(0.8 + idx * 0.03, 1.0 + idx * 0.05);
+		CritMult          = RS_Roll.RollDouble(1.4 + idx * 0.15, 1.6 + idx * 0.4);
 		PelletCount       = 7;  // real pellet count
 		Choke             = RS_Roll.RollDouble(0.4, 0.6); // real stat now, since this weapon has multiple pellets
 		GunBonaiSockets   = RS_Roll.SocketsForTier(t);

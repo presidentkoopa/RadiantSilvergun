@@ -116,6 +116,7 @@ class VR_SuperShotgun : RS_Weapon
 
 		RateOfFire       = 1;   // real cadence, fixed
 		ReloadSpeed       = RS_Roll.RollDouble(0.8 + idx * 0.03, 1.0 + idx * 0.05);
+		CritMult          = RS_Roll.RollDouble(1.4 + idx * 0.15, 1.6 + idx * 0.4);
 		PelletCount       = 20; // real pellet count, both barrels together
 		Choke             = RS_Roll.RollDouble(0.3, 0.5);
 		GunBonaiSockets   = RS_Roll.SocketsForTier(t);

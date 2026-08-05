@@ -4,21 +4,23 @@
 // KEYCONF block. Delete all four and it never existed.
 //
 // What it does: hold the bind and each hand grows a ring of your owned
-// weapons -- miniature display actors orbiting OffhandPos (left) and
-// AttackPos (right), the VR controller positions the engine already
-// exports (flat play falls back to two anchors ahead of you). Left
-// stick picks on the left ring, right stick on the right ring; when a
-// stick is idle, that hand's aim direction picks instead. Release the
-// bind and both hands equip their selections.
+// weapons -- miniature display actors around where OffhandPos (left)
+// and AttackPos (right) sat at that moment; the rings stay put and the
+// hand moves against them (flat play falls back to two anchors ahead
+// of you). Selection per hand, in priority order: (1) MOVE the
+// controller toward an entry -- the flick, no sticks needed; (2) that
+// side's stick; (3) with both idle, that hand's aim direction. Release
+// the bind and both hands equip their selections.
 //
 // INPUT CAPTURE (the part the affix screens will reuse): while open,
 // raw stick state is read from original_cmd and then cmd is ZEROED in
 // WorldTick -- WorldTick runs before player thinkers, so the engine
-// never sees the input. No angle-restore hacks. VR turn that bypasses
-// cmd is silenced by the vr_snapTurn=360 guard: above 10 that cvar is
-// an edge-triggered snap angle, and a 360-degree snap is a null turn.
-// Saved and restored on close, level load, AND level unload, so a
-// crash mid-wheel can't mangle the user's comfort setting.
+// never sees the input. No angle-restore hacks. KNOWN LIMIT: VR turn
+// that bypasses cmd (engine-side snap/smooth turn) is NOT captured --
+// ZScript cannot touch vr_snapTurn (SetFloat outside menu code is a VM
+// abort, found 2026-08-05). Proper capture is queued as engine work
+// with the C++ lane; until then the right stick may still turn the
+// view in VR while the wheel is open.
 //
 // Hand routing on select: the engine assigns a selected weapon to the
 // offhand iff the INSTANCE's bOffhandWeapon flag is set when it becomes
@@ -31,6 +33,7 @@ class RS_WheelHandler : EventHandler
 	const RING_RADIUS = 26;
 	const CURSOR_MAX = 80;
 	const DEADZONE = 30;
+	const HAND_FULL = 18;   // map units of hand travel = full deflection
 
 	bool mOpen;
 	Array<class<Weapon> > mListL;
@@ -40,8 +43,10 @@ class RS_WheelHandler : EventHandler
 	int mSelL, mSelR;
 	Vector2 mCurL, mCurR;
 
-	double mSavedSnap;
-	bool mSnapChanged;
+	// Ring centers, FROZEN where each hand was when the wheel opened --
+	// the hand then moves against them, and that displacement is the
+	// primary selector (flick toward the entry, no sticks needed).
+	Vector3 mAnchorL, mAnchorR;
 
 	class<Weapon> mDeferredMain;
 	int mDeferredTics;
@@ -82,19 +87,12 @@ class RS_WheelHandler : EventHandler
 		mCurL = SectorCenter(mSelL, mListL.Size()) * 50;
 		mCurR = SectorCenter(mSelR, mListR.Size()) * 50;
 
+		mAnchorL = Anchor(pawn, 0);
+		mAnchorR = Anchor(pawn, 1);
 		for (int i = 0; i < mListL.Size(); i++)
 			mRingL.Push(SpawnIcon(mListL[i], RingPos(pawn, 0, i, mListL.Size())));
 		for (int i = 0; i < mListR.Size(); i++)
 			mRingR.Push(SpawnIcon(mListR[i], RingPos(pawn, 1, i, mListR.Size())));
-
-		// VR turn silencer -- see file header.
-		let sc = CVar.FindCVar("vr_snapTurn");
-		if (sc)
-		{
-			mSavedSnap = sc.GetFloat();
-			sc.SetFloat(360);
-			mSnapChanged = true;
-		}
 
 		mOpen = true;
 		pawn.A_StartSound("menu/activate");
@@ -122,8 +120,6 @@ class RS_WheelHandler : EventHandler
 		for (int i = 0; i < mRingL.Size(); i++) if (mRingL[i]) mRingL[i].Destroy();
 		for (int i = 0; i < mRingR.Size(); i++) if (mRingR[i]) mRingR[i].Destroy();
 		mRingL.Clear(); mRingR.Clear();
-
-		RestoreSnap();
 
 		PlayerPawn pawn = players[pnum].mo;
 		if (!apply || !pawn) return;
@@ -172,14 +168,6 @@ class RS_WheelHandler : EventHandler
 		pawn.A_StartSound("menu/choose");
 	}
 
-	void RestoreSnap()
-	{
-		if (!mSnapChanged) return;
-		let sc = CVar.FindCVar("vr_snapTurn");
-		if (sc) sc.SetFloat(mSavedSnap);
-		mSnapChanged = false;
-	}
-
 	// -----------------------------------------------------------------
 	// Geometry. Ring lives in the camera-facing vertical plane around
 	// the hand anchor; entry 0 sits at the top, then clockwise.
@@ -200,11 +188,24 @@ class RS_WheelHandler : EventHandler
 
 	Vector3 RingPos(PlayerPawn pawn, int hand, int i, int n)
 	{
-		Vector3 anchor = Anchor(pawn, hand);
+		Vector3 anchor = hand == 0 ? mAnchorL : mAnchorR;
 		double a = pawn.angle;
 		Vector3 rightv = (sin(a), -cos(a), 0);
 		double phi = 90 - i * (360.0 / max(1, n));
 		return anchor + rightv * (cos(phi) * RING_RADIUS) + (0, 0, sin(phi) * RING_RADIUS);
+	}
+
+	// The hand's displacement from its frozen anchor, projected into the
+	// ring plane (right/up) and scaled so HAND_FULL map units of travel
+	// equals full cursor deflection.
+	Vector2 HandCursor(PlayerPawn pawn, int hand)
+	{
+		Vector3 disp = Anchor(pawn, hand) - (hand == 0 ? mAnchorL : mAnchorR);
+		double a = pawn.angle;
+		Vector2 rightv = (sin(a), -cos(a));
+		Vector2 cur = (disp.xy dot rightv, disp.z) * (double(CURSOR_MAX) / HAND_FULL);
+		if (cur.Length() > CURSOR_MAX) cur = cur.Unit() * CURSOR_MAX;
+		return cur;
 	}
 
 	int PickSelection(PlayerPawn pawn, int hand, int n, Vector2 cursor, int current)
@@ -227,7 +228,7 @@ class RS_WheelHandler : EventHandler
 		double ha = hand == 0 ? pawn.OffhandAngle : pawn.AttackAngle;
 		double hp = hand == 0 ? pawn.OffhandPitch : pawn.AttackPitch;
 		Vector3 aim = (cos(ha) * cos(hp), sin(ha) * cos(hp), -sin(hp));
-		Vector3 origin = Anchor(pawn, hand);
+		Vector3 origin = hand == 0 ? mAnchorL : mAnchorR;
 		int best = current;
 		double bestDot = 0.85;   // don't steal selection on a slack wrist
 		for (int i = 0; i < n; i++)
@@ -273,9 +274,17 @@ class RS_WheelHandler : EventHandler
 		if (mCurL.Length() > CURSOR_MAX) mCurL = mCurL.Unit() * CURSOR_MAX;
 		if (mCurR.Length() > CURSOR_MAX) mCurR = mCurR.Unit() * CURSOR_MAX;
 
+		// Hand displacement from where the wheel opened is the PRIMARY
+		// selector: flick the controller toward an entry, no sticks
+		// needed. Sticks (and, failing both, hand aim) remain fallbacks.
+		Vector2 posL = HandCursor(pawn, 0);
+		Vector2 posR = HandCursor(pawn, 1);
+
 		int oldL = mSelL, oldR = mSelR;
-		mSelL = PickSelection(pawn, 0, mListL.Size(), mCurL, mSelL);
-		mSelR = PickSelection(pawn, 1, mListR.Size(), mCurR, mSelR);
+		mSelL = PickSelection(pawn, 0, mListL.Size(),
+			posL.Length() > DEADZONE ? posL : mCurL, mSelL);
+		mSelR = PickSelection(pawn, 1, mListR.Size(),
+			posR.Length() > DEADZONE ? posR : mCurR, mSelR);
 		if (mSelL != oldL || mSelR != oldR)
 			pawn.A_StartSound("menu/change");
 
@@ -322,22 +331,15 @@ class RS_WheelHandler : EventHandler
 	}
 
 	// -----------------------------------------------------------------
-	// A save mid-wheel or a level change must never leak ring actors or
-	// the user's real snap-turn setting.
+	// A save mid-wheel or a level change must never leak ring actors.
 	override void WorldLoaded(WorldEvent e)
 	{
-		if (mOpen || mSnapChanged)
+		if (mOpen)
 		{
 			mOpen = false;
 			for (int i = 0; i < mRingL.Size(); i++) if (mRingL[i]) mRingL[i].Destroy();
 			for (int i = 0; i < mRingR.Size(); i++) if (mRingR[i]) mRingR[i].Destroy();
 			mRingL.Clear(); mRingR.Clear();
-			RestoreSnap();
 		}
-	}
-
-	override void WorldUnloaded(WorldEvent e)
-	{
-		RestoreSnap();
 	}
 }

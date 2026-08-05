@@ -118,8 +118,12 @@ class VR_Revolver : RS_Weapon
 
 		RateOfFire       = 2;   // 2 shots/sec real cadence, fixed by the fire animation length
 		ReloadSpeed      = RS_Roll.RollDouble(0.8 + int(t) * 0.03, 1.0 + int(t) * 0.05); // rolled, tier-scaled
+		int idx = int(t >= VRT_Basic ? t : VRT_Basic);   // cross-lane compile fix 2026-08-05:
+		// the tier-scaled-roll sweep uses idx below but only the pistol
+		// declared it (RS_Pistol.zs:33); same declaration, verbatim.
+		CritMult          = RS_Roll.RollDouble(1.4 + idx * 0.15, 1.6 + idx * 0.4);
 		PelletCount      = 1;
-		Choke            = 0;
+		Choke            = RS_Roll.RollDouble(0.2 + idx * 0.03, 0.4 + idx * 0.04);
 		GunBonaiSockets  = RS_Roll.SocketsForTier(t);
 
 		if (!bStatsRolled)

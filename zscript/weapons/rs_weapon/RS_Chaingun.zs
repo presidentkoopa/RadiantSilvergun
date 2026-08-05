@@ -113,7 +113,7 @@ class VR_Chaingun : RS_Weapon
 		RateOfFire       = 17;  // real cadence, fixed -- ~2 tics/shot from the real animation
 		ReloadSpeed       = 1.0; // no reload exists for this weapon, field unused but present for consistency
 		PelletCount       = 1;
-		Choke             = 0;
+		Choke             = RS_Roll.RollDouble(0.2 + idx * 0.03, 0.4 + idx * 0.04);
 		GunBonaiSockets   = RS_Roll.SocketsForTier(t);
 
 		if (!bStatsRolled)

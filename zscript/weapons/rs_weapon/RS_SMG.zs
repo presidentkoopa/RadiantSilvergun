@@ -110,8 +110,9 @@ class VR_SMG : RS_Weapon
 
 		RateOfFire       = 10;  // real cadence, fixed
 		ReloadSpeed       = RS_Roll.RollDouble(0.8 + idx * 0.03, 1.0 + idx * 0.05);
+		CritMult          = RS_Roll.RollDouble(1.4 + idx * 0.15, 1.6 + idx * 0.4);
 		PelletCount       = 1;
-		Choke             = 0;
+		Choke             = RS_Roll.RollDouble(0.2 + idx * 0.03, 0.4 + idx * 0.04);
 		GunBonaiSockets   = RS_Roll.SocketsForTier(t);
 
 		if (!bStatsRolled)

@@ -1,0 +1,10 @@
+// =====================================================================
+// RS canvas textures -- drawable surfaces for in-world UI billboards.
+// ZScript draws on these with the full Font/Screen API
+// (TexMan.GetCanvas in RS_UI.zs), and the engine's billboard renderer
+// displays them in the world as depth-sorted camera-facing quads
+// (payload BB_TEXTURE). One canvas per concurrently-visible panel.
+// =====================================================================
+
+// The weapon card -- 2:3 portrait, drawn by RS_UIHandler.RenderOverlay.
+canvastexture "RSCARDA" 256 384

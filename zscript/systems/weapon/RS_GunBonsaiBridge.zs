@@ -72,6 +72,18 @@ class RS_GunBonsaiBridge : Object play
 		return n;
 	}
 
+	// Read a weapon's Condition for UI (the GunBonsai HUD's CND readout).
+	// Takes a plain Weapon so callers never name RS types -- the cast
+	// lives here, the one sanctioned coupling point. -1 = not an RS
+	// weapon. clearscope: called from ui draw code, reads only.
+	clearscope static int ConditionFor(Weapon w)
+	{
+		let rw = RS_Weapon(w);
+		if (!rw)
+			return -1;
+		return int(rw.Condition);
+	}
+
 	// Called by A_RS_FireSlot, on the acting player, the instant a shot is
 	// committed -- before any mode-specific firing path runs. Attribution
 	// by direct declaration, not detection: this is why it works

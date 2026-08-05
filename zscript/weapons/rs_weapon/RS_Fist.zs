@@ -62,6 +62,9 @@ class VR_Fist : RS_Weapon
 	override void RollStats(EVR_Tier t)
 	{
 		Tier = t;
+		int idx = int(t >= VRT_Basic ? t : VRT_Basic);   // cross-lane compile fix 2026-08-05:
+		// the tier-scaled-roll sweep uses idx here (line ~110) but only the
+		// pistol declared it (RS_Pistol.zs:33); same declaration, verbatim.
 
 		// Deliberately under VR_Chainsaw at every tier: the chainsaw is a
 		// weapon, this is what you have when you have nothing.
@@ -107,7 +110,7 @@ class VR_Fist : RS_Weapon
 		RateOfFire      = 6;   // matches the punch animation below
 		ReloadSpeed     = 1.0; // nothing to reload
 		PelletCount     = 1;
-		Choke           = 0;
+		Choke           = RS_Roll.RollDouble(0.2 + idx * 0.03, 0.4 + idx * 0.04);
 		GunBonaiSockets = RS_Roll.SocketsForTier(t);
 
 		if (t == VRT_Cursed)

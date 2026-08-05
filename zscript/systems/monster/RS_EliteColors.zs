@@ -831,10 +831,14 @@ class RS_EliteC11_Pink : RS_EliteColorController
 		Actor mo;
 		while (mo = Actor(think.Next()))
 		{
+			// Owner ruling 2026-08-05: dead elites of OTHER types are fair
+			// game to raise -- only fellow C11s and clones are off the
+			// menu. (An earlier pass excluded every elite corpse; reverted.)
+			let dtok = RS_EliteToken(mo.FindInventory("RS_EliteToken"));
 			if (mo.Distance2D(elite) < (elite.radius * radfactor) &&
 				mo.bISMONSTER && mo.health < 1 &&
 				mo.FindState("Raise") &&
-				!mo.CountInv("RS_EliteToken") &&
+				!(dtok && dtok.colorId == RSET_C11_Pink) &&
 				!mo.CountInv("RS_EliteNullToken"))
 			{
 				if (mo.RaiseActor(mo))

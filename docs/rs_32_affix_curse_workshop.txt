@@ -1,0 +1,566 @@
+================================================================================
+rs_32 -- AFFIX & CURSE WORKSHOP (2026-08-05)
+================================================================================
+Output of a three-lane design swarm over the owner's 35 brainstormed weapon
+properties. Lane 1 converted the keepers into GunBonsai affixes with power
+levels. Lane 2 built the curse pool (new / converted / inverted). Lane 3 ran
+adversarial review + a field-by-field gap analysis of RS_Weapon/RS_AttackProfile.
+
+STATUS: DESIGN ONLY. Nothing here is built. Owner picks; sessions build.
+
+Prior art this must not duplicate (all live in zscript/GunBonsai/rs_upgrades/,
+registered in BONSAIRC): Splitter, Slugger, Overcharged, Giant, Seeker, Ghost,
+Cacospit, Bonecaller, PainOrb, Echo, ArachPlasma, Swarm, Nova, PainTrain,
+Momentum, Overkill, Scavenger, 6 stat Cards, 5 Combo cards, TwinBarrel,
+Assembled. Stock GunBonsai additionally owns HazardSuit, Intuition, Juggler,
+BlastShaping, Bandoliers, ECM, Thorns, AggressiveDefence, Revivification,
+elementals, leeches.
+
+--------------------------------------------------------------------------------
+0. SHIPPED-CODE DEFECTS FOUND DURING THE PASS (all verified by grep, all
+   flagged as separate task chips -- weapons-lane work, listed here for record)
+--------------------------------------------------------------------------------
+D1. ReloadSpeed unwired -- RULED per owner, three statements 2026-08-05:
+    (a) the stat drives the reload animation by FRAME REPEAT/SKIP in the
+    sprite sequence (MODELDEF follows frame letters, model tracks free);
+    (b) "clamp the animation not the stat" -- animation multiplier hard-
+    clamps [0.7, 1.5], the stat itself never clamps; (c) stat value past
+    the animation cap OVERFLOWS into bonus rounds (retune the
+    GetReloadBonusRounds coefficient so overflow is real). Two consumers,
+    one stat, no dead investment at any promotion count. Also ruled: keep
+    ReloadSpeed on the sheet; TimeBetweenShots leaves the sheet (replaced
+    by CritMult, R4).
+    BUILT 2026-08-05 in-session: RS_Weapon.RetimeReload() rescales each
+    reload frame's tics by clamp(ReloadSpeed, 0.7, 1.5) on frame entry,
+    per hand -- the fork renders the offhand through its own psprite
+    layer (PSP_OFFHANDWEAPON, verified in engine p_pspr.h + exported to
+    ZScript), same ticking machinery, so both hands retime identically.
+    v1 is retime-only (1-tic frames left alone, not skipped; reload
+    frames are 2-6 tics arsenal-wide so the full clamp range expresses).
+    GetReloadBonusRounds retuned to the overflow rule: (stat - 1.5) * 4,
+    and the shell-weapon incremental path adds the same overflow to its
+    free-shell odds. Below 1.5 the stat buys ONLY animation speed --
+    bonus rounds unlock via reload cards pushing past the cap, which is
+    the ruling, not a regression.
+D2. Choke unreachable -- RULED per owner 2026-08-05: "choke should work on
+    anything with more than 1 pellet for any reason." Fire-time rule: choke
+    factor applies whenever the RESOLVED volley has >=2 pellets (rolled,
+    promoted, affix-split, condition-doubled), UsesChoke flag becomes
+    derived. Weapons hardcoding Choke=0 get a real roll. Task rechipped.
+    (G3's PATTERN PLATE affix is obsoleted as a functionality-grant -- the
+    baseline now grants it; only its Mastery idea, distance-adaptive cone,
+    survives as a possible card.)
+D3. A_RS_Backfire asymmetry -- FIXED 2026-08-05 (owner confirmed it was
+    killing him in play). Was raw DamagePerShot: per-PELLET on shotguns
+    (5-12 self-hit), per-ROUND on heavies (110-320 crit-doubled). Now reads
+    a quarter of the resolved volley (DamagePerShot * PelletCount * 0.25):
+    SSG ~25-60, launcher ~27-40 (54-80 crit) -- one survivable band, price
+    proportional to the shot's worth. The 0.25 is the tuning knob.
+D4. Condition degradation unwired -- BUILT 2026-08-05 per owner directive
+    ("weapons need to be able to degrade due to damage, def when standing in
+    a hazard for sure"). zscript/systems/weapon/RS_Condition.zs +
+    RS_ConditionHandler (MAPINFO-registered): (1) player damage -> both
+    equipped weapons via OnPlayerDamaged (numbers stay in RS_Roll: 20+ hit
+    -> -3); (2) damaging floors grind rs_condition_hazard_rate (1.0/sec)
+    while grounded; radsuit dial rs_condition_hazard_suited (0=seals guns,
+    0.25 default, 1=no shielding) per the owner's "or even if radsuit?"
+    follow-up. Master switch rs_condition_degrade. Grey Bits and the sub-50
+    gamble band are now live content.
+
+Also recorded: RS_Bit_Curse actor EXISTS in RS_Bits.zs (line ~396), drop roll
+stubbed with `false &&` at line ~173. Cursebits are one word from live.
+
+--------------------------------------------------------------------------------
+1. HARD IMPLEMENTATION FACTS (bind every design below)
+--------------------------------------------------------------------------------
+- ModifyDamageDealt / Tick / OnProjectileCreated reach the MAINHAND bag only.
+  Hand-correct hooks: OnDamageDealt, OnKill (RS graft), and the shot resolver
+  RS_ShotKeywordMods.Resolve (best hook: runs both hands, every mode).
+- Per-tic player reads need a helper Inventory granted OnActivate (DoEffect).
+- A_RS_FireSlot resolves keywords BEFORE NotifyFired stamps RS_LastFiredWeapon
+  (RS_Weapon.zs ~476 vs ~502). At resolve time the field = PREVIOUS shot's
+  weapon = the cross-hand signal. Load-bearing ordering; comment both sites.
+- There is NO monster tier system in code. Live difficulty ladder =
+  SpawnHealth(), gates already picked by RS_Score: fodder <150, giant >=700
+  (rs_score_giantslayer_hp). Never invent a second ladder.
+- SetPieces do not exist in code. Anything gated on them is held, not approximated.
+- Score is a walled currency (RS_Score.zs header law). Anything converting
+  score/streak into damage/economy needs an explicit owner ruling. (Conflict C1.)
+- Budget law (rs_09): +/-30% net DPS at L5 unconditional; ~+55% if condition
+  live under half the time; up to ~+90-110% only for genuine emergencies.
+- Never static const arrays; switch chains. New .zs files go in zscript.txt.
+
+--------------------------------------------------------------------------------
+2. AFFIX SLATE -- 23 (lane 1). Format: mechanic | archetypes | L1->L5.
+--------------------------------------------------------------------------------
+A-1  BIG GAME (ex tier-hunter). Bonus XP from big kills, OnDamageDealt,
+     SpawnHealth bands. FOR launcher/bfg/rail/ssg/revolver; pays nothing <150.
+     L1 +25% XP >=400 ... L5 +150% >=400 / +60% >=150. XP-ECONOMY excl group.
+A-2  SCRAP INTAKE (ex bit-magnet). Helper-inv pull radius on RS_Bit_*; from L3
+     Grey Bits route straight into holder's RepairWithGreyBits. 96u -> 384u;
+     L5 every pulled Grey repairs directly.
+A-3  FAST BURN (ex promo-greedy). +XP now, deeper Promotion cut later. Needs a
+     promotion-cut multiplier field replacing the hardcoded *0.8. +20%/24%cut
+     -> +120%/44% cut. XP-ECONOMY excl group.
+A-4  HIGH ROLLER (ex dakka-fed; renamed + reworked per owner ruling
+     2026-08-05). EATS POINTS: each committed shot burns score for bonus
+     damage; can't pay = no bonus, never goes negative. Score stays a walled
+     currency -- this is a third PAYOUT mode (lives / regen / damage), not a
+     leak: every point burned is a point not climbing the reward bar toward
+     the next extra life. Self-balancing per archetype: high-ROF guns drain
+     the bank fastest. Inert when score disabled.
+     L1 5 pts/shot +10% ... L3 12 pts +25% ... L5 20 pts +40%; Mastery: a
+     kill while burning refunds that shot's points.
+A-5  LAST RITES (ex swan-song). Below 34%/15% max health -> x dmg. MUST go
+     inert under CF_BUDDHA (banked-life 1hp exploit). x1.15 -> x1.55/x1.90.
+A-6  BONE DRY. Reserve (AmmoType1) empty -> x1.20 dmg ... L5 x1.90 + spread
+     x0.70. Gate out no-reserve weapons. (Scavenger owns low-MAGAZINE.)
+A-7  CROSSDRAW (ex switch-hitter). First pull after the OTHER hand fired
+     (reads RS_LastFiredWeapon pre-stamp), 105-tic window. +20% -> +80% and
+     L5 waives cadence-overshoot spread. Chassis signature card.
+A-8  RAGE FEED (ex berserk-sympathy). While PowerStrength held: every Nth pull
+     becomes a buttstroke beat (PadTo/Replace, Echo's shape), free ammo,
+     x2.0..x4.0 weapon dmg, 64u. Melee archetypes gated out. OnPickup
+     reliability must be verified.
+A-9  BAD BLOOD (ex infighting-instigator). On-hit chance to re-point victim's
+     target at nearest monster (bJUSTHIT). 10%/256u -> 45%/512u + 105-tic
+     grudge token. Useless on revealed Elites (bNOINFIGHTING) -- say so.
+A-10 SYMPATHETIC DETONATION (ex barrel-sympathetic). Hit detonates barrels in
+     radius, barrels re-targeted to player first (Overkill's trick) so kills
+     attribute. Once per PULL, never per pellet. 128u/1 -> 448u/all + selfsafe.
+     Openly map-dependent; card face must say so.
+A-11 SLUDGE-FED (ex nukage-powered). Standing in damaging sector repairs held
+     weapon's Condition. +0.5/s -> +4.0/s, L5 lingers 3s after exit. The
+     enabler for deliberate sub-50 gamble builds. (Depends on D4 fix.)
+A-12 CONTACT SHOT (ex telefrag-capable). Execute: contact-range (64u edge-to-
+     edge, MultPointBlank's math) hit kills target under 10%..30% max health,
+     kill carries 'Telefrag' damagetype (MultTelefrag finally reachable).
+     Excludes bBOSS and SpawnHealth>700 (L5 relaxes to 1000). FOR ssg/shotgun/
+     melee/flamer.
+A-13 REEL (MERGE chainsaw-tether + lost-soul-magnet). On-hit pull toward
+     impact point; L3+ drags bFLOAT monsters down; L4+ 96u->160u vortex; L5
+     arrivals bFORCEPAIN-stunned. Never bBOSS/bDONTTHRUST (revealed Elite
+     bosses immune -- say so). GATED OUT on launcher/bfg (pulls into own
+     splash). Excl group vs Giant's kickback Mastery (KINETICS).
+A-14 CYBER-SLAYER (MERGE cyber-slayer + icon-scale). Smooth SpawnHealth-scaled
+     bonus with an honest fodder penalty. +12%/-8% -> +55%/-25% (L5 smooth
+     ramp 150->700). Must be OnDamageDealt second-DamageMobj (resolver can't
+     see target; ModifyDamageDealt is mainhand-only).
+A-15 BLAST RIDER (ex rocket-jump-rated). Self-splash converts to upward thrust
+     (stock BlastShaping already owns plain reduction). 25% -> 85% + doubled
+     thrust. launcher/bfg only. NEEDS D4 hook. VR comfort cvar mandatory.
+A-16 BUFFER (ex plasma-buffer). Holding trigger past cadence banks charges;
+     release dumps bank as one beat, full ammo cost, truncated by magazine.
+     2 charges/12t -> 6/8t + dump waives overshoot. Full-auto gated out; cap
+     dump at 3 where PelletCount>8. VR-native (physical trigger).
+A-17 OVERFLOW (ex soulsphere-fed). Overheal above max converts to weapon XP,
+     scaled by Condition/100 (convergence fix). 40% -> 200% + Green-Bit-armor
+     over cap converts. OnPickup verify. XP-ECONOMY excl group.
+A-18 BLOODHOUND (ex secret-sniffer). Audio-only proximity chirp for secrets
+     (Intuition owns map-reveal; this never reveals) + combat half: bonus dmg
+     vs monsters that cannot see you (MultCurveball's CheckSight condition).
+     256u/+10% -> 768u rising-pitch/+45%.
+A-19 SLAUGHTER-TUNED. Damage per 10 LIVE monsters, cached count (35-tic
+     helper refresh, never per-shot iterator). +2%/10 cap14% -> +6%/10 cap45%.
+     MAP-POPULATION excl group. *** CONFLICT C2 vs lane 3's LAST STAND.
+A-20 HUNDRED PERCENT. Damage scales with blended kills/items/secrets
+     completion (zero-total categories excluded), x PromotionCount flavor
+     scaling. +10% -> +45% at 100%, doubled past 90%. Excl w/ SLAUGHTER-TUNED
+     (same axis, opposite ends -- they cancel into a constant).
+A-21 TYSON (ex tyson-honor). MELEE ONLY ramp: +dmg per 2s since ANY ammo
+     weapon fired, one shot half-resets (L5). +6%/2s cap30% -> +15%/2s
+     cap110%. CONTENT BLOCKER: no melee weapon can currently reach a
+     socket-bearing tier -- fists ship Basic. Needs an answer first.
+A-22 KEYRING (ex blue-key-hungry). Per-key-color payouts: RED=dmg,
+     YELLOW=crit, BLUE=ammo-refund-chance (check card AND skull classes).
+     +8%/+2%/6% -> +35%/+11%/30%; L5 all-three = pierce 1 body @0.8.
+A-23 ROUT (ex demon-fear). On-hit bFRIGHTENED under health fraction + coward's
+     tax (bonus dmg to fleeing). Never bBOSS / revealed Elites (bNOFEAR).
+     <25%/+15% -> <50%/+50% + death-fright pulse 192u. Anti-synergy with
+     REEL/SLAUGHTER-TUNED noted. *** CONFLICT C3 (three demon-fear takes).
+
+CUT by lane 1 (10): setpiece-bound (system absent), gib-fed (Scavenger+Overkill
+own it), archvile-proof (situational; sabotages own Revivification),
+pain-locked-always (== PainTrain; "never" half went to curses), crusher-safe
+(nothing to protect), door-opener (breaks maps), rad-shielded (== HazardSuit),
+pistol-start-blessed (pays you to refuse the loop), map-eater (no resource to
+spend), doomguy-grin (no HUD face in VR).
+
+New exclusion groups: XP-ECONOMY (BigGame/FastBurn/Overflow), MAP-POPULATION
+(SlaughterTuned/HundredPercent), KINETICS (Reel/Giant-Mastery), CROWD-CONTROL
+(Rout/PainTrain).
+
+--------------------------------------------------------------------------------
+3. CURSE POOL -- 30 (lane 2). Curse = real cost, lifted via objective / gold /
+   points / Cursebits. Lifted-boon rule: lifting grants a matched boon on the
+   attacked axis (UnlockStat's 1.5x precedent).
+--------------------------------------------------------------------------------
+CURSEBIT ECONOMY (proposed): rare per-kill roll (rs_bits_curse_chance, exists);
+revealed-Elite death pays 3-5 guaranteed (pre-reveal kill pays 0, matching the
+Elite contract); every 25 kills UNDER an active curse mints 1 (time under the
+curse is the guaranteed exit; objectives/gold are the fast lanes); each
+backfire mints 1; Condition-0 destruction salvages 20-40.
+
+GROUP A -- NEW (14):
+A01 DINNER BELL. Every shot A_AlertMonsters, 512u -> whole map + arrive
+    pre-targeted. Melee gated out. Lift: exit a map at 100% kills w/ it held
+    (or 60 CB). KEEPER for spree builds.
+A02 METAL FATIGUE. -1 Condition per 60..8 shots (firing-driven wear; visuals
+    already exist below 50). Lift: 300 Grey in one transaction at Condition
+    100 only.
+A03 CORROSION. Condition CEILING falls 1 per 40..4 kills; sev5 floor stops at
+    10 (declines to self-destruct -- the tempting one). Lift: 120 CB,
+    restores ceiling. KEEPER (deliberate gamble-band residency).
+A04 VERDIGRIS. Reload costs x1.5..x3 reserve (sev5: charged full Capacity
+    regardless of need). Gate out melee/no-mag heavies. Lift: 500 Gold.
+A05 GLUTTON. No tactical reload -- starting one destroys the magazine
+    (sev1 half .. sev5 refuses reload above 25% mag). Lift: 100 kills w/ the
+    last round in the mag.
+A06 THE OTHER MOUTH (dual-wield). Each shot drains the OTHER hand's magazine
+    (1 per 4 shots .. every shot; sev5 refuses to fire if other mag empty).
+    Severity is a LOADOUT question. Lift: 50 kills with the other hand while
+    this one sits empty.
+A07 WELDED (dual-wield). Hand cannot swap (5s post-fire .. never; sev5 locks
+    the archetype out of the other hand too). Mercy rule REQUIRED: no-ammo ->
+    fist filler. Lift: 40 CB.
+A08 NUMB (dual-wield-adjacent). Victims gain pain-immunity window 8..70 tics,
+    refreshed per hit -- suppresses BOTH hands' stagger and PainTrain. Lift:
+    bank one full reward bar with it as killer.
+A09 VILE FAVOUR. Its kills never gib, corpses tagged; viles prefer + cross
+    rooms for tagged corpses (sev4 raised return at full HP w/ reveal
+    aggression; sev5 first tagged corpse on vile-less map SUMMONS one). Lift:
+    kill 15 Archviles with it. Needs corpse-tag + vile-targeting build (Elite
+    token pattern). KEEPER.
+A10 WITNESSED. Every kill permanently enrages all monsters with sightline to
+    the victim (+10% speed .. rage spreads on sight). Inverse of Curveball.
+    Lift: 40 Curveball-condition kills (victim couldn't see you).
+A11 FOULING. Persistent WORLD-SPACE muzzle smoke, 1s..5s; sev5 blocks monster
+    sight too (deliberate inversion). VR-native; NEVER a screen-space effect.
+    Lift: 3 full reward bars.
+A12 MUTE ACTION. AllClear beep dead + overshoot penalty x2..x5 (+1 Condition
+    per early shot at 5). Gate out shotgun/ssg/melee (no beep by design;
+    free roll otherwise). Lift: 25 CB.
+A13 FALSE PLATE. Sheet/compare-card stats display +/-10%..35% noise, re-rolled
+    per open; sev4 "???"; sev5 tier label lies too. Combat untouched. Lift:
+    250 Gold (buy an honest inspection). Per-PLAYER severity, label it so.
+A14 NEARSIGHTED. XP only from point-blank kills (64u, MultPointBlank's math);
+    sev climbs to non-qualifying kills COSTING XP/Condition. Gate out
+    launcher/bfg (or wider band) + melee. Lift: 200 point-blank kills.
+
+GROUP B -- CONVERTED FROM THE OWNER'S LIST (10):
+B01 TIER-HUNGRY (tier-hunter). Damage x0.7..x0.2 below the giant gate
+    (rs_score_giantslayer_hp); sev5 small kills pay no XP/Bits either.
+    Archetype-weighted roll REQUIRED (free on bfg, catastrophe on smg). Lift:
+    5 solo 1000+HP kills, one per map, other hand clean.
+B02 SETPIECE-BOUND. All five Locked* set + dmg x0.8..x0.3 outside a SetPiece;
+    full power + XP multiple inside. HOLD until SetPieces exist -- never
+    approximate with "any boss". Lift: 1500 Gold or clear 3 SetPieces.
+    Never co-rolls with B01.
+B03 PROMO-GREEDY. Past level threshold (15..6 above last promotion) the gun
+    rots (Condition, then stats) until Promote() resets it; sev5 refuses new
+    GB cards. The ONLY self-lifting curse (Promote twice) -- keep it unique.
+B04 THE OATH. Rolls a quarry species at creation; every quarry death to
+    anything OTHER than this weapon = permanent stat cut + Condition loss
+    (1%..5% + locked stat; quarry rarity climbs Zombieman->Cyberdemon).
+    Quarry roll must respect the weapon's range band. Lift: 20 quarry kills
+    with it. RANKED #2.
+B05 MAP-EATER. Stats scale with map kill% -- floor x0.85..x0.25 at 0%,
+    linear to x1.0 at 100%. NEEDS a live sheet row or it reads as broken.
+    Lift: three 100%-kill map exits carrying it.
+B06 TYSON'S HONOR. Blue Bits refuse to pick up while held (sev climbs: Green,
+    reserve drain 1/s, Red at 5). Melee gated out (free there). Lift: 300
+    kills at zero reserve, or 30 CB.
+B07 PISTOL-START-BOUND (pistol-start-blessed). Every map load: reserve
+    emptied (sev1 25% cut), Condition to 50 (sev3+), magazine kept (emptied
+    sev4; stats 60% until 10 kills at sev5). Exempt no-magazine heavies or
+    grant a token mag. Lift: 3 reward bars, or 5 consecutive maps never
+    refilling its reserve above half.
+B08 ROCKET-JUMP-RATED. Recoil thrusts the PLAYER 2..22u/shot (vertical from
+    sev3). Full-auto = unplayable at 3+ (gate or normalize per-second).
+    VR: THE miserable one -- sev3+ behind a comfort cvar, drop vertical
+    first. Lift: reach 10 secrets carrying it.
+B09 DEMON-FEAR. The GUN is afraid: spread x1.5..x5 as the nearest monster
+    closes (falloff starts 256..1024u). Gate out ssg/melee entirely. Lift:
+    75 point-blank kills.
+B10 PAIN-LOCKED. Player pain locks THIS hand out 10..50 tics (reload
+    cancelled; +1 Condition per hit at 5). Other hand unaffected. MUST have
+    audio+haptic tell (rs_fx_weapon_empty) or it reads as dropped input.
+    Lift: bank Untouchable 20 times with it held.
+
+GROUP C -- INVERSIONS (6):
+C01 BIT-REPELLENT (bit-magnet inv). Its kills' Bits scatter AWAY along the
+    player->corpse vector, 6..24u/tic (sev5 half bit_life too). Needs the
+    shared which-weapon-killed helper. Lift: collect 500 Bits while held.
+C02 PEACEMAKER (infighting-instigator inv). Nothing it damages will infight
+    -- retaliation forced onto the player; sev5 map-wide suppression while
+    held. Lift: 50 Infighter bonuses scored with the OTHER hand.
+C03 JEALOUS IRON (switch-hitter inv, dual-wield). Other hand firing within 2s
+    puts this one on spread x1.5..x3 + Condition loss for 3..10s (sev5
+    punishes both hands). Charges for exactly what Switcharoo pays for.
+    Lift: bank 40 Switcharoo bonuses with it as one of the pair.
+C04 NOTHING LEFT (gib-fed inv). Everything it kills gibs, and its kills pay
+    NO Bits (sev1 no Gold .. sev5 destroys loose Bits in 256u). Score/XP
+    still pay. Universal gibbing = vile-proof, the keeper's temptation.
+    Lift: 80 CB (the only currency it can't destroy). RANKED #5, KEEPER.
+C05 WIDOW'S CUT (swan-song inv). Every player death: one rolled stat -5%..
+    -12% AND locked; Condition to 25; stacks forever (sev5 also eats one
+    Promotion pellet). Roll must skip stats the archetype doesn't use. Lift:
+    three consecutive deathless maps carrying it.
+C06 SYMPATHETIC BLAST (barrel-sympathetic inv). Barrels within 128..512u of
+    anything it kills detonate on their own (sev5: barrels respawn once per
+    map). Gate melee out at 4+. Lift: 300 Gold, or destroy 100 barrels
+    deliberately at range.
+
+Lane 2's top five: A01 Dinner Bell, B04 The Oath, A03 Corrosion, A06 The
+Other Mouth, C04 Nothing Left.
+Set rationale: a curse's price is ammo/information/mobility/economy/the other
+hand/the room's attention -- never just a smaller damage number, because only
+those prices can be PLAYED AROUND.
+
+--------------------------------------------------------------------------------
+4. GAP ANALYSIS (lane 3) -- gun aspects the 35 never touched, each with a
+   worked affix and/or curse. 14 gaps.
+--------------------------------------------------------------------------------
+G1  RELOAD/ReloadSpeed (dead stat, see D1): TOP-OFF (affix: raise the bonus-
+    rounds coefficient K 5..18; Mastery: empty-mag reload fills free) /
+    SPEED PLATE (per-shell reload free-shell chance 0.35..0.80, shotgun
+    family) / SWOLLEN CASE (curse: reload pass loads nothing 8%..40%, audible
+    jam; gate no-mag archetypes).
+G2  MAGAZINE POSITION: HOT BOTTOM (affix: bottom third of mag x1.08..x1.40;
+    Mastery last round x2.0) / DEEP WELL (curse disguised as buff: +3..+22
+    Capacity, paid in real reload-loop length -- gift to smg, punishment to
+    ssg; per-family meaning flip is the design).
+G3  CHOKE (unreachable, see D2): PATTERN PLATE (affix: grants Choke
+    0.20..0.70 + UsesChoke wherever PelletCount>=2 incl. promoted; Mastery:
+    distance-adaptive cone) / BLOWN CHOKE (curse: choke factor inverts --
+    the better the roll, the worse the scatter, x1.15..x2.50).
+G4  VELOCITY (perceptually nil, unconsumed): LEAD ON (affix: velocity ->
+    ProjectileKickback 120..800, bullet-mode gated; Mastery: kickback kills
+    launch the corpse as a projectile) / WET POWDER (curse: x0.85..x0.40
+    velocity + real gravity arc from sev3; floor needed for shotguns).
+G5  CRIT (multiplier hardcoded 2.0; rolled ONCE PER PULL pre-pellet-loop ->
+    worth 20x more on SSG than pistol; Momentum silently a shotgun card):
+    EXECUTIONER (affix: introduces CritMult field 2.3..4.0; Mastery: crit
+    kill refunds round + holds cursor) / TWITCH (affix: per-PELLET crit roll
+    at 0.5x..1.0x rolled chance -- floor up, peak down, fixes the imbalance;
+    Mastery: streak inside one volley) / GLASS HAMMER (curse: dmg x0.90..
+    x0.45, CritMult 2.6..7.0 -- the lottery gun).
+G6  ROTATION (whole AttackSlot API used only by Echo): RHYTHM (affix: cursor
+    advances on HIT not pull, L5 kill jumps to payoff beat; Mastery: hold
+    the payoff beat by pausing one cadence) / THIRD SHELL (affix: generic
+    authored payoff beat every 6th..3rd pull from the family palette --
+    launcher gets grenade, energy gets heavy bolt, shotgun gets slug;
+    exclusive with Echo; Mastery every 2nd + free) / STUTTER (curse: cursor
+    advances 1-2 randomly, 10%..60%; MUST be ineligible on 1-beat guns).
+G7  SECOND SLOT (SecondarySlot populated on ZERO of the six class weapons;
+    GH/PS have authored alts): SECOND BARREL (affix: installs an alt-fire
+    derived from own primary, one axis pushed -- slug/burst/fan/braced;
+    x1.3/2 ammo .. x2.8/4; gate GetSlotCount(1)==0; Mastery: alt within one
+    cadence of primary costs nothing) / CROSSWIRED (curse: both slots share
+    one cursor, sev5 randomizes both on select; ineligible without two
+    populated slots).
+G8  MUZZLE/CASING (highest-bandwidth VR surface, 8 affix part fields + \
+    palette, untouched): BRASS HUNGER (affix: ejected casings collectible ->
+    Grey Bits 1-per-8 .. 1-per-2; Mastery auto-collect = self-repairing gun;
+    palette decides eligibility) / FOULING (curse: heavy smoke threshold
+    drags up from 50 to always; punishes sustained fire; overlaps lane 2's
+    A11 -- same instinct from two lanes, merge on build).
+G9  ALLCLEAR (13-pitch one-sound language, one bit of info): PERFECT PITCH
+    (affix: second quiet tone reports magazine third -> Condition band ->
+    payoff-beat-next -> other-hand-ready; eligibility = AllClearPitch>0) /
+    TINNITUS (curse: the beep lies by +/-2..14 tics, randomized per cycle --
+    firing on the tell eats the overshoot penalty; pairs viciously with
+    ITCHY).
+G10 BACKFIRE (see D3; band currently unreachable via D4): VENTED (affix:
+    backfire redirects outward as muzzle blast, self-damage 80%..20%
+    retained; Mastery: backfire costs no ammo/cursor; makes the low band a
+    build) / HAIR TRIGGER (curse: permanent backfire floor 1%..12% at ANY
+    Condition -- maintenance can no longer buy certainty; DO NOT SHIP before
+    D3 fix).
+G11 WEAPON SWITCHING (draw moment unmodelled): QUICK DRAW (affix: first shot
+    within 20..35 tics of raise x1.2..x2.3; Mastery: draw shot ignores
+    overshoot; slow archetypes only or burst variant) / HOLSTER WEIGHT
+    (curse: raise/lower x0.85..x0.25 -- costs the six-weapon game its verb;
+    VR-felt as your own slow hand).
+G12 OFFHAND RELATIONSHIP (the identity; hooks: resolver + RS_LastShotTic on
+    the other weapon): CROSSFIRE (affix: bonus while other hand fired within
+    35 tics, x1.10..x1.50; Mastery both hands + 70 tics; the corrected
+    switch-hitter -- "both hands working", no swap event needed) / SHARED
+    CHAMBER (affix: crit streaks pool across hands 25%..100%; Mastery: crit
+    in one hand = guaranteed next crit in the other; exclusive w/ Momentum;
+    fist-filler check exists) / JEALOUS (curse: same as lane 2 C03 --
+    convergent, merge on build).
+G13 CADENCE OVERSHOOT (VR-unique, currently pure penalty): METRONOME (affix:
+    firing ON the beat within 6..10 tics of NextFireTic pays x1.10..x1.40;
+    Mastery: 3 consecutive on-beat -> 4th x2.0 free; makes AllClear load-
+    bearing; UsesCadence-gated) / ITCHY (curse: overshoot coefficient
+    0.30..2.00 instead of 0.15; ineligible where UsesCadence false) /
+    HELD BREATH (affix, lane 3's plasma-buffer rebuild: an early pull is
+    STORED and fires the instant cadence reopens at full accuracy, 1..3
+    stored / 4..14 tics early; Mastery: stored shot fires from the other
+    hand. Overlaps lane 1's BUFFER -- two takes on one idea, pick one:
+    BUFFER = hold-and-release burst; HELD BREATH = single stored shot QoL.)
+G14 RANGE (MinRange/MaxRange/InRange built, never called on weapons):
+    STANDOFF (affix: x1.15..x1.90 at 1024u+; Mastery: inverts below 256u --
+    real cost; rifle/rail/revolver) / MYOPIA (curse: x0.90..x0.30 at 1024u;
+    near-free on ssg/melee so archetype-priced via RequiredArchetype, which
+    exists and is unused).
+
+LANE 3 REPLACEMENTS for its kills (absorbing the originals):
+  DEAD MAN'S CLICK (bone-dry -> last round in MAGAZINE x1.5..x4.0, cursor
+    holds; Mastery: kill on it = instant reload). vs lane 1's BONE DRY
+    (reserve-empty) -- CONFLICT C4, pick the pool or ship both distinctly.
+  COLD HANDS (switch-hitter -> idle hand banks x1.4..x3.0 for its first shot
+    back, 140..100 tics to charge; makes slow offhands real).
+  GRAVE ROBBER (archvile-proof made LOUD -> kills cremate visibly 30%..100%,
+    burning corpse can't be raised; Mastery: adjacent corpses catch).
+  BUTCHER'S BILL (cyber-slayer w/ unsidesteppable price -> +20%..+120% vs
+    700+HP, decays per fodder kill BY THIS WEAPON, only its own big hits
+    restore; Mastery: earned bonus goes permanent).
+  ANCHOR (= REEL, convergent with lane 1 -- merge; Mastery: pulled targets
+    collide for damage).
+  WATCH THIS (infighting w/ XP attribution -> redirected monster's kills
+    credit the weapon via a bridge hook; DO NOT ship without it or the affix
+    starves its own gun).
+  LAST STAND (slaughter-tuned inverted -> +3%..+8% per monster actively
+    TARGETING you, capped; reads the ambush not the map; kills the BUDDHA
+    exploit by ignoring health entirely). CONFLICT C2 with lane 1's
+    SLAUGHTER-TUNED.
+  COOK-OFF (barrel-sympathetic de-mapped -> hits detonate BURNING targets
+    (own ground-fire/ignite states), 20/64u .. 100/128u; build-dependent
+    not map-dependent; Mastery: detonation ignites the radius).
+  IRON THROAT (pain-locked's unclaimed half -> hits SUPPRESS pain 30%..100%
+    + small dmg while suppressed; multi-pellet/high-ROF gate; exclusive w/
+    PainTrain; Mastery: suppressed target can't turn).
+  PILGRIM (tier-hunter keyed to GB LEVEL not tier -> XP floor rises with the
+    gun's own level, x1.3..x3.5 on qualifying kills; Mastery: junk kills
+    feed the OTHER hand).
+  MAGNETIC BORE (bit-magnet as a weapon property -> bits pull to the MUZZLE,
+    partial Grey conversion 0..30%; per-hand so the second copy matters;
+    Mastery: bits feed weapon XP).
+  HUNTING PARTY (demon-fear inverted -> routed monsters flee TOWARD each
+    other into a huddle, 15%..50% threshold; the rout is a crowd-control
+    reward; Mastery: the huddle damages itself). CONFLICT C3.
+  BLAST PLATE (rocket-jump-rated w/ the loophole closed -> Condition
+    degradation computed from PRE-reduction damage; 75%..15% retained /
+    x1.3..x3.2 thrust; Mastery: non-lethal self-blast refunds the round).
+
+MAP-DEPENDENCY RULE (lane 3, adopted wording):
+  A map-dependent property must have a floor: the map feature is the
+  AMPLIFIER, never the ENABLER. Something real on a bare corridor; at most
+  ~40% of total value from furniture. Three-question test: availability
+  (majority of maps, seekable), recurrence (not spent once), visibility of
+  absence (player can tell it's idle). Properties whose ONLY hook is map
+  furniture (barrels, crushers, telefrags, secrets) belong in RS_Score as
+  bonuses, not on weapons.
+
+--------------------------------------------------------------------------------
+5. CROSS-LANE CONFLICTS -- OWNER CALLS NEEDED
+--------------------------------------------------------------------------------
+C1. RESOLVED (owner, 2026-08-05): renamed HIGH ROLLER, and it EATS points --
+    a score sink, not a score read. The wall stands: score never passively
+    feeds power, but it may be SPENT on damage the same way it is spent on
+    lives and regen. See A-4 for the reworked card.
+C2. RESOLVED (owner, 2026-08-05): LAST STAND wins -- scales with monsters
+    actively targeting the player (ambush-local, exploit-proof, ignores
+    health so the banked-life 1hp trick has no purchase). SLAUGHTER-TUNED
+    is cut; its cached-count infrastructure (35-tic sweep) carries over.
+    A-19 superseded; MAP-POPULATION exclusion group dissolves (HUNDRED
+    PERCENT stands alone).
+C3. RESOLVED (owner, 2026-08-05): HUNTING PARTY + the curse. Affix: wounded
+    monsters rout TOWARD each other into a huddle (fear as crowd-control).
+    Curse: DEMON-FEAR stays as lane 2's B09 (the gun shakes as enemies
+    close). ROUT (A-23) is cut -- scattering packs fights the crowd
+    archetypes it was aimed at.
+C4. bone-dry's two takes: BONE DRY (reserve empty, lane 1) vs DEAD MAN'S
+    CLICK (last round in magazine, lane 3). Different pools, different
+    feels; could ship both, but decide deliberately.
+C5. plasma-buffer's two takes: BUFFER (banked burst, lane 1) vs HELD BREATH
+    (stored single shot, lane 3). Pick one identity.
+C6. FOULING appears as a curse in two lanes (A11 world-smoke vs G8 threshold-
+    smoke) -- merge on build.
+C7. REEL/ANCHOR convergent -- merge on build (numbers differ slightly).
+
+--------------------------------------------------------------------------------
+6. BUILD-BLOCKER SUMMARY (systems that must exist first)
+--------------------------------------------------------------------------------
+1. Player-damage hook walking both equipped weapons (D4) -- unblocks
+   Condition loop, Blast Rider, backfire band.
+2. Curse model: per-weapon array of curse records (id, severity, progress,
+   lifted) -- five Locked* bools cannot express this pool. Switch-chain
+   tables, zscript.txt include.
+3. Per-weapon kill/objective counters (nearly every objective lift).
+4. Shared "which RS_Weapon made this kill" helper (RS_Score already does the
+   walk; RS_Bits does not) -- C01/C04/A03/A09/A10/A14/B04/B06 all want it.
+5. Cursebit minting (drop roll is one `false &&` from live) + earn routes.
+6. S6 Curse & Repair UI rows (spec'd in rs_10, disabled).
+7. Corpse tagging + vile targeting override (A09) -- Elite token pattern.
+8. Monster rage tokens (A10/C02).
+9. Cached live-monster count, 35-tic refresh (A-19 / LAST STAND).
+10. Helper-Inventory pattern, built once, shared (Scrap Intake, Sludge-Fed,
+    Bloodhound, Buffer, the cache).
+11. Promotion-cut multiplier field on RS_Weapon (Fast Burn).
+12. OnPickup reliability verification vs Berserk/Soulsphere/Megasphere/
+    HealthBonus (Rage Feed, Overflow).
+13. A melee weapon that can reach a socketed tier, or TYSON never offers.
+14. resolver branches in RS_KeywordEffects for every keyword card (normal
+    extension path, not new infrastructure).
+15. Live-modifier sheet row for any curse whose effect is invisible mid-
+    fight (B05 especially).
+
+VR flags collected: B08 sev3+ needs a comfort cvar (forced translation);
+A11/FOULING must be world actors, never screen effects; B10/A07 need audio/
+haptic tells and a mercy rule; BLAST RIDER needs a comfort cvar; doomguy-grin
+dead (no HUD face); rocket-jump vertical component drops first.
+
+--------------------------------------------------------------------------------
+7. ELITE DROP SYSTEM -- OWNER RULINGS (2026-08-05, consolidated)
+--------------------------------------------------------------------------------
+The drop is a DATA PACKAGE, not a weapon actor (post-set-completion). The six
+class weapons are permanent chassis; a package applies to one of them via the
+compare card. Package carries: Tier, Damage, Accuracy, Velocity, CritChance,
+Capacity, Condition, ReloadSpeed, RateOfFire, magazine, attack pattern.
+Chassis keeps: PelletCount, PromotionCount, GunBonsai level/XP/upgrades.
+(RoF/reload animation changes obey the clamp-the-animation rule, D1.)
+
+R1. SET COMPLETION ORDER: before the set is complete, elite drops ARE the
+    missing class weapons, fixed sequence _2 -> _5 -> _3 -> _6 (alternating
+    mainhand/offhand), rolled stats, default attack profile. Tier pool
+    Cursed/Trash/Basic until all six owned.
+R2. AFTER COMPLETION: full ladder Cursed->Prototype, weighted by the eight
+    rs_elite_dropweight_* sliders (defaults descending), +0/1/2 tier-bonus
+    slider applied post-roll capped at Prototype. All drops random family.
+    Killed before the 50% reveal = no drop, ever.
+R3. THE CARD: cannot be banked -- but a rejected package DOES NOT despawn;
+    it stays in the world. Third option on the card: RECYCLE for gold (or
+    points), paying MORE for higher-tier cards you turn down.
+R4. TWELVE STATS -- RULED (owner, 2026-08-05): TimeBetweenShots is REMOVED
+    from the sheet (was derived-only in code anyway) and CRITMULT takes its
+    slot as the twelfth stat. Rolled per tier (shape: Basic ~1.8-2.4x,
+    scaling to ~4-5x top rolls at Prototype), rides with the data package,
+    and replaces the hardcoded 2.0 at the fire dispatch. Crit becomes a
+    two-dice moment: CritChance rolls whether, CritMult rolls how hard.
+    Feeds/is fed by: Momentum (streaks), EXECUTIONER (raises it), GLASS
+    HAMMER (trades base damage for it), and the per-pull-vs-per-pellet
+    crit imbalance (G5) now has a real stat to resolve against. Reserved
+    (ex-Divinity) remains the sheet's one open slot.
+R5. CURSED PACKAGES (PROVISIONAL -- owner explicitly unsure, revisit):
+    up to X curses per Cursed package; each LIFTED curse raises the weapon
+    ONE TIER, max Prototype. Makes Cursed the only package whose tier can
+    GROW -- the long-game gamble vs. the instant clean high-tier card.
+    Open math: Cursed->Prototype through the full ladder is 7 steps; X and
+    whether lifts skip the junk tiers are both undecided. Cursebit earn
+    model (section 3) remains proposed, not yet ratified.
+R6. C11 Pink raise-exclusion REVERTED to source behavior: only fellow C11
+    corpses and clones are unraisable; other elite corpses are fair game.
+    (Applied in RS_EliteColors.zs same day.) Violet's -130.0 stays as
+    preserved source behavior until ruled otherwise.
+R7. BULLET TIME (owner ruling 2026-08-05): NOT a SetPiece requirement.
+    It arrives later as a USER-TOGGLEABLE option, consent-gated, default
+    OFF -- the owner is explicitly cautious about time dilation without
+    player opt-in (VR comfort). Every encounter (incl. the Captain
+    SetPiece and its 2x escalation) must be fair and beatable with it
+    off; toggled on, it layers onto the same fight beats as an
+    enhancement. An existing bullet-time mod will be integrated for the
+    dilation itself when the time comes.
+================================================================================

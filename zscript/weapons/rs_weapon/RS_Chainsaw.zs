@@ -80,7 +80,7 @@ class VR_Chainsaw : RS_Weapon
 		RateOfFire      = 9;   // matches the real 4-tic swing animation
 		ReloadSpeed     = 1.0; // no reload exists for this weapon
 		PelletCount     = 1;
-		Choke           = 0;
+		Choke           = RS_Roll.RollDouble(0.2 + idx * 0.03, 0.4 + idx * 0.04);
 		GunBonaiSockets = RS_Roll.SocketsForTier(t);
 
 		if (t == VRT_Cursed)

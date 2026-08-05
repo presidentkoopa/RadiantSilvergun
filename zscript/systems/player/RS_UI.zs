@@ -114,6 +114,19 @@ class RS_UIHandler : EventHandler
 	// sheets, and stay inert on confirm/repair screens.
 	bool mCycleNav;
 
+	// --- The world card: first consumer of the billboard renderer. ---
+	// A canvas texture (RSCARDA, ANIMDEFS) drawn in RenderOverlay from
+	// this model, displayed in-world by an engine billboard attached to
+	// the showcase stand. Separate arrays from the menu model on
+	// purpose -- opening a sheet must not clobber the floating card.
+	bool mCardActive;
+	int mCardBB;
+	string mCardTitle;  int mCardTitleColor;
+	string mCardSub;    int mCardSubColor;
+	Array<string> mCardKey;
+	Array<string> mCardVal;
+	Array<int>    mCardColor;
+
 	// Reroll cost escalation: 5 << rsRerolls (5/10/20/40...), tracked on
 	// the giver itself (fresh giver per offer = automatic reset).
 	const REROLL_BASE_COST = 5;
@@ -386,7 +399,6 @@ class RS_UIHandler : EventHandler
 		}
 
 		int dps = int(rsw.DamagePerShot * max(1, rsw.PelletCount) * max(1, rsw.RateOfFire));
-		double tbs = rsw.GetTimeBetweenShots();
 		int magNow = wep.AmmoType2 ? pawn.CountInv(wep.AmmoType2) : 0;
 
 		AddRow("DAMAGE", string.format("%d  (ceiling %d)", rsw.DamagePerShot, rsw.GetDamageCeiling()),
@@ -403,9 +415,47 @@ class RS_UIHandler : EventHandler
 		AddRow("VELOCITY", string.format("%d", int(rsw.Velocity)),
 			rsw.LockedVelocity ? Font.CR_DARKRED : Font.CR_TAN);
 		AddRow("BONSOC", string.format("%d / %d", held, rsw.GunBonaiSockets), Font.CR_LIGHTBLUE);
-		AddRow("TIME BTWN", tbs > 0 ? string.format("%.2fs", tbs) : "--", Font.CR_TAN);
+		// CRIT MULT took TIME BTWN's sheet slot (owner ruling 2026-08-05):
+		// TBS was always derived from ROF, already shown one row up.
+		AddRow("CRIT MULT", string.format("x%.1f", rsw.CritMult > 0 ? rsw.CritMult : 2.0), Font.CR_TAN);
 		AddRow("CONDITION", string.format("%d%%", int(rsw.Condition)),
 			RS_UIStyle.ConditionColor(rsw.Condition));
+	}
+
+	// -----------------------------------------------------------------
+	// The floating drop card's model -- the compact readout, built into
+	// its own arrays (never the menu model). Content is the drop-card
+	// subset: name, tier, pips, the numbers that sell the gun.
+	// -----------------------------------------------------------------
+	void BuildShowcaseCard(PlayerPawn pawn, Weapon wep)
+	{
+		mCardKey.Clear(); mCardVal.Clear(); mCardColor.Clear();
+
+		mCardTitle = wep.GetTag();
+		mCardTitleColor = Font.CR_WHITE;
+		mCardSub = "";
+		mCardSubColor = Font.CR_WHITE;
+
+		let rsw = RS_Weapon(wep);
+		if (!rsw)
+		{
+			mCardKey.Push("(not an RS weapon)"); mCardVal.Push(""); mCardColor.Push(Font.CR_DARKGRAY);
+			return;
+		}
+
+		mCardTitleColor = RS_UIStyle.TierColor(rsw.Tier);
+		mCardSub = RS_UIStyle.TierName(rsw.Tier) .. "   " .. RS_UIStyle.Pips(rsw.PromotionCount);
+		mCardSubColor = RS_UIStyle.TierColor(rsw.Tier);
+
+		int dps = int(rsw.DamagePerShot * max(1, rsw.PelletCount) * max(1, rsw.RateOfFire));
+		mCardKey.Push("DAMAGE");   mCardVal.Push(string.format("%d", rsw.DamagePerShot));       mCardColor.Push(Font.CR_TAN);
+		mCardKey.Push("DPS");      mCardVal.Push(string.format("%d", dps));                      mCardColor.Push(Font.CR_TAN);
+		mCardKey.Push("ROF");      mCardVal.Push(string.format("%d/s", rsw.RateOfFire));         mCardColor.Push(Font.CR_TAN);
+		mCardKey.Push("ACCURACY"); mCardVal.Push(string.format("%d", int(rsw.Accuracy)));        mCardColor.Push(Font.CR_TAN);
+		mCardKey.Push("CRIT");     mCardVal.Push(string.format("%.1f%%", rsw.CritChance * 100)); mCardColor.Push(Font.CR_TAN);
+		mCardKey.Push("PELLETS");  mCardVal.Push(string.format("%d", rsw.PelletCount));          mCardColor.Push(Font.CR_TAN);
+		mCardKey.Push("CONDITION"); mCardVal.Push(string.format("%d%%", int(rsw.Condition)));
+		mCardColor.Push(RS_UIStyle.ConditionColor(rsw.Condition));
 	}
 
 	// -----------------------------------------------------------------
@@ -478,6 +528,41 @@ class RS_UIHandler : EventHandler
 	}
 
 	// -----------------------------------------------------------------
+	// The canvas painter. Runs ui-side each frame while a card is up:
+	// repaints RSCARDA from the card model, and the engine billboard
+	// showing that texture updates in-world for free. Doom-toned dark
+	// panel, gold frame, rows in the sheet's color language.
+	// -----------------------------------------------------------------
+	override void RenderOverlay(RenderEvent e)
+	{
+		if (!mCardActive) return;
+		let cv = TexMan.GetCanvas("RSCARDA");
+		if (!cv) return;
+
+		cv.Clear(0, 0, 256, 384, Color(255, 20, 15, 12));
+		cv.DrawLineFrame(Color(255, 106, 88, 54), 2, 2, 252, 380);
+		cv.DrawLineFrame(Color(255, 58, 46, 30), 5, 5, 246, 374);
+
+		cv.DrawText(BigFont, mCardTitleColor, 14, 14, mCardTitle);
+		cv.DrawText(SmallFont, mCardSubColor, 14, 44, mCardSub);
+		cv.Clear(14, 62, 242, 63, Color(255, 74, 64, 56));
+
+		int y = 76;
+		for (int i = 0; i < mCardKey.Size(); i++)
+		{
+			cv.DrawText(SmallFont, mCardColor[i], 14, y, mCardKey[i]);
+			cv.DrawText(SmallFont, mCardColor[i],
+				242 - SmallFont.StringWidth(mCardVal[i]), y, mCardVal[i]);
+			y += 20;
+		}
+	}
+
+	// (No WorldLoaded cleanup here on purpose: the engine serializes
+	// billboards -- persistent, attached, and transient -- as of
+	// b073c20cb7, so a save mid-showcase restores the stand, the card,
+	// and their attachment intact. A mod-side rebuild would double them.)
+
+	// -----------------------------------------------------------------
 	// Netevents -- every game mutation the UI can cause.
 	// -----------------------------------------------------------------
 	override void NetworkProcess(ConsoleEvent evt)
@@ -533,10 +618,20 @@ class RS_UIHandler : EventHandler
 		}
 		else if (evt.name == "rs-showcase")
 		{
-			// Dev/preview toggle: spin this hand's weapon 96 units ahead.
-			// No args = offhand slot; falls back to the ready weapon.
+			// Dev/preview toggle: spin this hand's weapon 96 units ahead
+			// with its drop card floating above -- the first in-world
+			// panel. No args = offhand slot; falls back to ready weapon.
 			if (mShowcase)
 			{
+				// CROSS-LANE COMPILE FIX 2026-08-05 (billboard lane, please
+				// re-own): level.RemoveBillboard does not exist in the current
+				// DoomXR build (v0.1-4-g9184e97352-m) -- AttachBillboard below
+				// compiles, only the removal entry point is missing. The card
+				// is attached to mShowcase, destroyed on the next line, so the
+				// attachment goes down with its owner. Restore the explicit
+				// call when the engine exports it:
+				// if (mCardActive) level.RemoveBillboard(mCardBB);
+				mCardActive = false;
 				mShowcase.Destroy();
 				mShowcase = null;
 			}
@@ -549,6 +644,19 @@ class RS_UIHandler : EventHandler
 					Vector3 spot = pawn.Vec3Angle(96, pawn.angle);
 					spot.z = pawn.pos.z + 40;
 					mShowcase = RS_ShowcaseStand.Create(spot, wep.GetClass());
+
+					let tex = TexMan.CheckForTexture("RSCARDA", TexMan.Type_Any);
+					if (mShowcase && tex.IsValid())
+					{
+						BuildShowcaseCard(pawn, wep);
+						// BB_TEXTURE: the canvas card painted each frame in
+						// RenderOverlay. col modulates texels -- full white
+						// + full alpha = untinted. Needs engine d9f35d40f3+
+						// (TextureID.GetIndex is a compiler intrinsic).
+						mCardBB = level.AttachBillboard(mShowcase, (0, 0, 56),
+							44, 1, tex.GetIndex(), Color(255, 255, 255, 255));
+						mCardActive = true;
+					}
 				}
 			}
 		}

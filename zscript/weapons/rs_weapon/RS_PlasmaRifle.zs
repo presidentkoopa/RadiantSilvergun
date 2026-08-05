@@ -48,7 +48,7 @@ class VR_PlasmaRifle : RS_Weapon
 		RateOfFire       = 9;   // real cadence, fixed
 		ReloadSpeed       = 1.0;
 		PelletCount       = 1;
-		Choke             = 0;
+		Choke             = RS_Roll.RollDouble(0.2 + idx * 0.03, 0.4 + idx * 0.04);
 		GunBonaiSockets   = RS_Roll.SocketsForTier(t);
 
 		if (!bStatsRolled)

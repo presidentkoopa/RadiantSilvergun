@@ -79,5 +79,7 @@ class TFLV_OffhandHUD : TFLV_HUD {
     Text(
       string.format("Lv.%d (%d/%d)", level, int(xp), int(maxxp)),
       weapon_rgb, HUD_INFOTEXT_X, HUD_INFOTEXT_Y, HUD_GRAV_SW);
+
+    DrawCondition(ohwep);
   }
 }

@@ -7050,3 +7050,51 @@ Model RS_PS_BFG6
 	FrameIndex BFGA E 0 9
 	FrameIndex BFGA F 0 10
 }
+
+// ---------------------------------------------------------------------
+// World/pickup models for the four RS weapons whose spawn sprites have
+// no lumps (BFP1/PSP1/PLP1/RLP1) -- without these entries the weapons
+// are INVISIBLE anywhere they exist in the world: drops, showcase
+// stands, wheel rings. The W- meshes are the world-form models shipped
+// beside the HUD ones; the pistol has no W- mesh, so it reuses its HUD
+// mesh at pickup scale.
+// ---------------------------------------------------------------------
+Model VR_Pistol
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PSP1 A 0 0
+}
+
+Model VR_BFG9000
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
+	Model 0 "W-BFG.md3"
+	Skin 0 "BFG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex BFP1 A 0 0
+}
+
+Model VR_PlasmaRifle
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
+	Model 0 "W-PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PLP1 A 0 0
+}
+
+Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
+	Model 0 "W-RocketLauncher.md3"
+	Skin 0 "RPG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RLP1 A 0 0
+}
