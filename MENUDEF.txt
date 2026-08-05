@@ -26,6 +26,7 @@ OptionMenu "RS_MainOptions"
 	Option "GunBonsai: Classic Upgrade Pool", "rs_gb_legacy_affixes", "OnOff"
 	Submenu "Kill Rewards", "RS_BitsSettings"
 	Submenu "Arcade Score", "RS_ScoreOptions"
+	Submenu "Monster Health Bars", "RS_HPBarOptions"
 	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
 }
 
@@ -691,3 +692,49 @@ OptionMenu "RS_ScoreHUDOptions"
 // from TEXTCOLO.txt, so there is nothing left for a flat preset colour to
 // apply to. Removed along with the cvars rather than left as a menu page
 // that silently does nothing.
+
+// ---------------------------------------------------------------------
+// Monster Health Bars -- zscript/systems/RS_HealthBars.zs
+//
+// Ported from coldcite's "Top HP Bars". The Style list is where new
+// looks go; Default (A/B) is deliberately 1:1 with upstream and its
+// defaults are not up for retuning. See the file header.
+// ---------------------------------------------------------------------
+OptionValue "RS_HPBarStyles"
+{
+	0, "A -- Green / Yellow / Red"
+	1, "B -- Red"
+}
+
+OptionMenu "RS_HPBarOptions"
+{
+	Title "Monster Health Bars"
+	StaticText " "
+
+	Option "Show Health Bars", "rs_hpbar_enable", "OnOff"
+	StaticText " "
+
+	Option "Style", "rs_hpbar_style", "RS_HPBarStyles"
+	Slider "Bar Size", "rs_hpbar_scale", 0.01, 1.0, 0.01, 2
+	Slider "Height Above Monster", "rs_hpbar_offset", -0.5, 0.5, 0.01, 2
+	StaticText " "
+
+	Option "Ignore Sector Lighting", "rs_hpbar_fullbright", "OnOff"
+	StaticText "A spectre's bar fades with the spectre.", "DarkGray"
+	Option "Match Monster Transparency", "rs_hpbar_stealth", "OnOff"
+	StaticText " "
+
+	StaticText "Chip Damage", "GOLD"
+	StaticText "Trailing bar showing where health just was.", "DarkGray"
+	StaticText "Layered reads better; Underline cannot flicker.", "DarkGray"
+	Option "Chip Damage", "rs_hpbar_chip", "RS_HPBarChipModes"
+	Slider "Chip Drain Speed -- % Per Second", "rs_hpbar_chip_speed", 5, 300, 5, 0
+	Slider "Chip Hold Before Draining -- Tics", "rs_hpbar_chip_hold", 0, 70, 1, 0
+}
+
+OptionValue "RS_HPBarChipModes"
+{
+	0, "Off"
+	1, "Underline"
+	2, "Layered"
+}

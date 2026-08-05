@@ -408,3 +408,42 @@ user bool rs_score_hud_barnumbers = false;    // "1240 / 5000" under the bar
 // How long a bonus popup stays on screen, in tics (35 = 1 second).
 // An earlier pass tripled this to 105 without saying why.
 user int rs_score_bonustime = 35;
+
+// =====================================================================
+// MONSTER HEALTH BARS -- zscript/systems/RS_HealthBars.zs
+//
+// All user scope: these are purely how the bar looks on your own
+// screen, they change no gameplay and need not match between players.
+//
+// Defaults are UPSTREAM'S defaults, unchanged, so Default style is 1:1
+// with the Top HP Bars mod this came from. Don't retune these to taste
+// -- add a style instead.
+// =====================================================================
+user bool  rs_hpbar_enable     = true;
+user int   rs_hpbar_style      = 0;      // 0 = A (green/yellow/red), 1 = B (red)
+user float rs_hpbar_scale      = 0.3;
+user float rs_hpbar_offset     = 0.1;    // vertical nudge, -0.5 .. 0.5
+user bool  rs_hpbar_fullbright = false;
+// "Allow Stealth": inherit the owner's alpha/renderstyle, so a spectre's
+// bar is as hard to see as the spectre is.
+user bool  rs_hpbar_stealth    = true;
+
+// --- Chip damage ---
+// The trailing bar that shows where health just was. OFF by default:
+// Default style is 1:1 with upstream and this is an addition.
+//
+// Two builds, because they trade differently:
+//   1 Underline -- its own thin band below the main bar. No overlap, so
+//                  no sprite-sort question at all. Safe.
+//   2 Layered   -- directly behind the main bar, showing through the
+//                  hollow part of the art. Reads better, but the two
+//                  bars are coplanar and their frame rows can z-fight.
+//                  The chip only draws while there IS chip to show,
+//                  which keeps that window short. If it flickers, this
+//                  is why -- use Underline.
+user int   rs_hpbar_chip       = 0;
+// Percent of MAX health the chip drains per second -- proportional, so
+// a 5000 HP boss's chip falls as fast as a zombieman's.
+user float rs_hpbar_chip_speed = 60.0;
+// Tics the chip holds before it starts draining (35 = 1 second).
+user int   rs_hpbar_chip_hold  = 10;
