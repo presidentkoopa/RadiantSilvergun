@@ -389,6 +389,15 @@ OptionMenu "RS_MonsterOptions"
 	Option "Staggered transform (flash + delay)",  "rs_mon_transform_tell", "OnOff"
 
 	StaticText " "
+	StaticText "Readability", 1
+	// Colourful Hell's own colourblind aid, rebuilt. CH encodes its whole
+	// difficulty ladder as a palette tint, so a player who cannot separate
+	// the colours cannot read how dangerous an approaching monster is.
+	// This shows the tier as a SHAPE instead. Off by default, exactly as
+	// CH ships it. See zscript/monsters/chaingunner/RS_ColorTierIcon.zs.
+	Option "Tier icons over monsters", "rs_mon_tiericons", "OnOff"
+
+	StaticText " "
 	StaticText "Aggression", 1
 	// 0.0625 is CH's own value where it stacks both missile flags, and
 	// it makes a monster stand still and hose. 0 = raw CHP.

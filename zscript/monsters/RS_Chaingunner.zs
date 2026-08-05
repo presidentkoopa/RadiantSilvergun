@@ -69,7 +69,18 @@
 //    those A_PlaySound calls are dropped rather than left dangling.
 // =====================================================================
 
-class RS_Chaingunner : RS_MonsterMaster replaces ChaingunGuy
+// REPLACEMENT MOVED OFF THIS CLASS 2026-08-05. `replaces ChaingunGuy`
+// now lives on RS_CG_C0001 (zscript/monsters/chaingunner/), the CH-only
+// rebuild. Two actors replacing the same thing is ambiguous, so only one
+// may carry it.
+//
+// THIS CLASS IS NOT DEAD AND MUST NOT BE DELETED YET -- six files still
+// name it: RS_rev_projectiles.zs:805 (a drop-table entry),
+// RS_Cyberdemon.zs:202, RS_Zombieman.zs:1074 and its own :928
+// (A_CheckProximity ancestor tests), RS_MonsterCatalog.zs:57 and
+// RS_MonsterDebug.zs:35. Those six move to the new classes when the
+// family is finished; until then this stays, unreplaced and unspawned.
+class RS_Chaingunner : RS_MonsterMaster
 {
 	// CHP's abyss captain hides once per approach; the lady scientist's
 	// phase change fires once. Both are user_ vars in CHP.

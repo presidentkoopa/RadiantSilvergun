@@ -1,0 +1,246 @@
+================================================================================
+   RS_29 -- THE CH IMPORT LAW.
+   Written 2026-08-05 at the owner's direction, after the ninth attempt began
+   and he had to ask, out loud, for the monsters' SOUNDS to be imported.
+
+   THIS SUPERSEDES THE PORT BRIEFS IN rs_21 AND rs_23.
+   Read this before touching any family. It is not advice. Every line in it
+   is a defect that actually shipped.
+================================================================================
+
+
+PART 0 -- WHAT WE ARE ACTUALLY DOING
+--------------------------------------------------------------------------------
+
+  IMPORTING COLOURFUL HELL. CH ONLY. NOT CHP.
+
+  CH is one mod: 17 families x ~14 monsters = 242 creatures. That is the
+  whole job.
+
+  CHP is a SEPARATE, LATER job. It is an add-on that inherits CH's actors and
+  re-stats each one into 15 strength copies (242 x 15 = 3,630). Building CH
+  first is not just smaller, it is the correct order: CHP inherits FROM CH, so
+  with CH right, CHP later becomes a stat overlay. The previous eight attempts
+  built from CHP and used CH only to fill gaps, which is why our numbers are
+  CHP's and our CH parent properties were missing.
+
+  DO NOT OPEN CHP WHILE IMPORTING CH. If a value differs, CH wins, because CH
+  is what we are building.
+
+
+PART 1 -- THE SOURCE OF TRUTH IS THE WHOLE CH TREE, NOT ITS DECORATE
+--------------------------------------------------------------------------------
+
+  E:\New folder\ART SOURCE\CH\
+      decorate\*.txt      the 17 family files -- the actors
+      DECORATE.txt        SHARED actors: tier icons, gibs, common effects.
+                          NOT optional. Easy to miss because the family files
+                          look complete on their own.
+      sounds\             785 lumps
+      SNDINFO.txt         1,187 lines of definitions
+      sprites\            8,965 files in 73 folders
+      TRNSLATE.txt        palette remaps
+      CVARINFO.txt        the player-facing toggles
+      MENUDEF.txt         what those toggles are CALLED, and their values
+      source\*.acs        the ACS -- see docs/rs_28_ch_acs_breakdown.txt
+
+  A MONSTER IS NOT ITS ACTOR BLOCK. It is the actor PLUS its sprites, its
+  sounds, its SNDINFO entries, its drops, its translation and its icons.
+
+  THE CASE THAT PROVES IT: 87% of CH's sound library had never been imported.
+  693 of 785 lumps and 804 SNDINFO definitions absent -- while every actor in
+  the tree carried CH's sound STRINGS correctly. Eight passes copied
+  `SeeSound "gen/see"` and nobody ever copied gen/see.
+
+  It survived because AN UNRESOLVED SOUND NAME IS COMPLETELY INERT. No error,
+  no warning, no log line. The compiler passes. The game runs. The monster is
+  silent. There is no check that can fail -- the only detector is a human who
+  already knows what it should sound like.
+
+
+PART 2 -- FILE SHAPE. ONE CLASS PER CREATURE.
+--------------------------------------------------------------------------------
+
+  zscript/monsters/<family>/RS_<Family>_<ROLE><nnnn>_<Name>.zs
+
+  ROLE LETTERS -- a role means the same thing in all 17 families, whether the
+  family has 13 creatures or 17. This is the whole point: `B0001` is the boss
+  everywhere, where `case 11` was the boss in some families and mid-pack in
+  others.
+
+      C   common / vanilla-derived      (future vanilla-sprite imports land here)
+      T   the CH ladder
+      B   boss
+      X   EX / megaboss                 (EX sits ABOVE both bosses -- verified:
+                                         chaingunner 4500 / 6666 / 8999. NOT
+                                         universal: revenant's EX is BELOW its
+                                         second boss. Do not assume, read.)
+
+  FOUR DIGITS, zero-padded. `TEX` IS RETIRED -- a letter tier is invisible to
+  any numeric loop, and that exact bug shipped: a loop ran t = 1..12 and
+  STRUCTURALLY COULD NOT SEE the EX tier, so a gibbed EX chaingunner played
+  vanilla frames on the wrong body.
+
+  Every class extends RS_MonsterMaster. Not Actor. Eight other systems read it
+  (health bars, score, bits, elites, debug menu, catalog, keyword index,
+  attack profiles) and they all break otherwise.
+
+
+PART 3 -- THE ENGINE TRAPS. ALL OF THESE HAVE SHIPPED BROKEN.
+--------------------------------------------------------------------------------
+
+  1. `r.flags` IN TierData IS MANDATORY.
+     RS_ApplyTierProperties assigns flags ABSOLUTELY --
+     `bAVOIDMELEE = (f & RS_TF_AVOIDMELEE) != 0;` -- and its own comment says
+     the row is "a complete statement of the tier, not a delta". Leave r.flags
+     at 0 and every flag in your Default block is SILENTLY STRIPPED at spawn.
+     FLOORCLIP and MISSILEMORE are NOT managed by it and survive; do not put
+     them in the word.
+
+  2. THE `.T00` STATE ALIASES ARE LOAD-BEARING.
+     RS_MonsterMaster dispatches every state through
+     FindStateByString(prefix..".T00", EXACT). A plain `Missile:` label DOES
+     NOT SATISFY AN EXACT LOOKUP -- MissileState resolves NULL and
+     THE MONSTER NEVER FIRES A SHOT. Every file needs:
+         Spawn.T00: Goto Spawn;   See.T00:    Goto See;
+         Missile.T00: Goto Missile;  Pain.T00: Goto Pain;
+         Death.T00: Goto Death;   XDeath.T00: Goto XDeath;
+         Raise.T00: Goto Raise;
+     ONLY for states the creature actually has.
+
+  3. NEVER DECLARE Melee.T00 ON A MELEE-LESS MONSTER.
+     A null MeleeState is what earns the engine's
+     `if (MeleeState == NULL) dist -= 128` in P_CheckMissileRange. Declaring an
+     empty one traps the monster at point-blank. Fixed family-wide once
+     already; do not reintroduce it by "completing the set".
+
+  4. `Game "Doom";` DOES NOT EXIST IN ZSCRIPT. DECORATE-only. Record it in the
+     header comment, do not declare it. Five files failed to compile on this.
+
+  5. NEVER FLATTEN A DAMAGE ROLL. `Damage (random(40,125))` -> `Damage 60` is
+     silent data loss: no `random(` survives for any later sweep to find.
+     `Damage (random(a,b))` in a Default block DOES NOT COMPILE -- that is the
+     `damage: non-constant parameter` error. Use
+     `DamageFunction (random(a,b));`, which compiles AND keeps the spread.
+     Worse than it looks: a bare `Damage N` on a projectile is multiplied by
+     random(1,8) by the engine and a DamageFunction is not, so flattening also
+     inflates by ~8x at the top end.
+
+  6. `Goto X+N` MUST KEEP ITS OFFSET, AND OFFSETS COUNT FRAMES.
+     Rendering `Goto Missile+2` as `Goto Missile` has bitten this project
+     THREE times. AND: deleting a 0-tic line (an icon spawn, an ACS call)
+     SHIFTS EVERY OFFSET AFTER IT. If you drop a line inside a state that any
+     `Goto X+N` targets, leave an explicit `TNT1 A 0;` placeholder and say so
+     in a comment. One boss would otherwise have stopped rolling its attacks
+     and lobbed the same bomb forever.
+
+  7. ALWAYS `grep -i`. CH mixes `Actor` and `ACTOR`, `CallACS` and `callacs`.
+     Case-sensitive searches produced FOUR confident false negatives in one
+     session.
+
+  8. ZSCRIPT CLASS NAMES ARE CASE-INSENSITIVE. RS_Foo and RS_foo are the SAME
+     class and defining both is a fatal redefinition. Same for a subclass field
+     shadowing a base field -- ZScript has no shadowing, so that is a
+     redefinition too.
+
+  9. DO NOT LINE-ANCHOR SEARCHES OVER CH. Most of it is inline one-line state
+     blocks, so `^\s*THING` matches almost nothing. Strip `//` lines before any
+     bulk pass or you will read prose as code.
+
+ 10. `static const TYPE name[] = {...}` DOES NOT RESOLVE on this build. Found
+     three times in unrelated files. Use a switch or a `||` chain.
+
+ 11. A NEW .zs NOT IN zscript.txt SILENTLY DOES NOT EXIST. No error, no
+     warning, the classes are just absent. Forgotten twice.
+
+ 12. ONLY ONE ACTOR MAY `replaces` A GIVEN CLASS. Moving a replacement means
+     removing the old one in the SAME change.
+
+
+PART 4 -- SOUNDS. THE ONE WITH NO ERROR MESSAGE.
+--------------------------------------------------------------------------------
+
+  * Import CH's SNDINFO entries AND the lumps from CH\sounds\.
+  * INCLUDE THE `$` DIRECTIVES. `$random Foo { A B }` and `$alias` DEFINE
+    names. A first pass here filtered out every line starting with `$` and
+    silently dropped 88 definitions while believing it was finished. That is
+    the same class of bug as the thing it was fixing.
+  * FOLLOW THE CHAIN TO A REAL LUMP. `Science/Atk` -> `$random {Sci/atk1 ...}`
+    -> `Sci/atk1  SCIAT1` -> the file SCIAT1.ogg. A `$random` pointing at
+    undefined names is as silent as no definition at all.
+  * Keep CH's sound STRING on the actor even when the lump is missing. An
+    unresolved name is inert; deleting it destroys the only record of what the
+    creature is supposed to sound like.
+
+
+PART 5 -- NAMES
+--------------------------------------------------------------------------------
+
+  A NAME COMES FROM CH OR THERE IS NO NAME. CH's own obituary, tag and actor
+  names are fair game -- "The General", "Jetpack Larry", "Benellus", "Warface",
+  "Moloch", "the crazy lady scientist" are all literally in the source.
+
+  INVENTED BY PREVIOUS PASSES, ALL REMOVED: "STOMPER", "BLACK SHADOW BEAST",
+  "SLIME GOLEM", "BLACK HADES", "the Smith". None appears anywhere in CH or
+  CHP. A 20-line sweep over the source settles any name in seconds; do it
+  rather than write flavour.
+
+  AND: STOP NAMING TIERS BY COLOUR IN OUR OWN SYSTEM. The glow system makes
+  four environment colours a live gameplay signal, so "green" becomes ambiguous
+  between the monster and the light. Colour survives ONLY as the source
+  citation in a header. Class names, filenames, docs and menus use role+number.
+
+  Beware the double meaning that caused the worst defect in this project's
+  history: in CH a colour is WHICH MONSTER; in CHP the same colour word is HOW
+  STRONG. `GreenBlackCGuy2` is the BLACK monster at GREEN strength. Four
+  families were ported off the wrong actor because of it, and it passed two
+  review passes.
+
+
+PART 6 -- WHAT "DONE" REQUIRES. EVERY LINE GETS A DENOMINATOR.
+--------------------------------------------------------------------------------
+
+  Before a family is reported at all:
+
+      [ ] N of N CH bodies transcribed, each header citing its CH actor + line
+      [ ] every sprite prefix present in sprites/            (count / count)
+      [ ] every sound name resolves END TO END to a lump     (count / count)
+      [ ] SNDINFO entries imported, `$` directives included  (count / count)
+      [ ] DropItems carried, or itemised with CH line if the pickup class
+          does not exist here yet -- never a silently gutted table
+      [ ] TRNSLATE entry where CH sets one
+      [ ] tier icons restored (see RS_ColorTierIcon.zs)
+      [ ] all files in zscript.txt
+      [ ] COMPILES -- zero script errors, from the engine, not from a script
+      [ ] BOOTS, and every creature spawned and looked at in-game
+      [ ] the differ run against CH and its output pasted
+
+  NEVER WRITE "DONE". Write what was CHECKED and what was NOT OPENED. Those
+  are different sentences and only the second one is honest. "Shotgunner: 14 of
+  14 bodies state-diffed, 0 of 19 projectiles checked against CH, never booted"
+  is a report. "Shotgunner done" is how eight attempts all looked finished.
+
+  A NUMBER WITHOUT A DENOMINATOR IS NOT A RESULT.
+
+
+PART 7 -- WHY EVERY CHECK THIS PROJECT EVER HAD WAS WORTHLESS
+--------------------------------------------------------------------------------
+
+  verify.py, verify_all.py, dedupe_check.py, crosscheck.py and
+  build_art_index.py were deleted 2026-08-04. EVERY ONE OF THEM COMPARED THIS
+  TREE AGAINST ITSELF. A lint over our own code cannot tell "faithful to CH"
+  from "internally consistent and wrong", and the second is what kept shipping.
+
+  A GREEN CHECK HERE HAS ONLY EVER MEANT "CONSISTENT WITH ITSELF."
+
+  A tool is only allowed if it can say "CH's actor does X, ours does Y" and
+  cite both files and both lines. chpdiff.py does this. And note what happened
+  the first time it ran: it reported three mismatches and ALL THREE WERE BUGS
+  IN THE DIFFER, accusing correct code -- a regex that parsed 1 of 14 rows, a
+  positional off-by-one, and a lookahead one line too short. Hand-open every
+  finding before believing it. Its first "323 of 333 match" was garbage.
+
+  THE ONLY AUTHORITIES ARE THE COMPILER, THE RUNNING GAME, AND CH ITSELF.
+  Including over this file.
+
+================================================================================

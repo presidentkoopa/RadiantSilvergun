@@ -7,6 +7,34 @@ version "4.14"
 #include "zscript/systems/RS_Bits.zs"
 #include "zscript/systems/RS_Score.zs"
 
+// Hidden elites -- mark at level load, reveal at 50% health. Reads
+// RS_MonsterMaster.Tier for the tier-boss axis, so it depends on the
+// monster include below in the same "for readers, not the compiler" sense
+// as RS_HealthBars. RS_EliteHandler must also be in MAPINFO.txt's
+// AddEventHandlers. Design of record: docs/rs_25_elites_design.txt.
+// TEMPORARILY DISABLED 2026-08-05. These six files were written last
+// session and never compiled once. Between them they produce 114 script
+// errors -- type mismatches, Color vs int returns, play functions called
+// from a data context -- and a single script error stops the WHOLE MOD
+// from loading, so nothing else in the tree could be tested while they
+// were in. Commented out, NOT deleted: the files are untouched on disk.
+// PAIRED WITH MAPINFO.txt. RS_EliteHandler was still listed in that
+// file's AddEventHandlers after these were commented out, and an event
+// handler naming a class that does not exist is a HARD CRASH AT MAP
+// LOAD -- not a warning. The owner hit it. It has been removed there;
+// PUT IT BACK IN THE SAME CHANGE that uncomments these lines.
+// Re-enable by uncommenting, once the 114 are fixed.
+//   rs_eliteprofiles_exotic.zs     45      rs_eliteprofiles_simple.zs 19
+//   rs_eliteprofiles_field.zs      23      rs_eliteprofiles_creep.zs   7
+//   rs_eliteprofiles_projectile.zs 19      rs_elites.zs                1
+// #include "zscript/systems/RS_Elites.zs"
+// #include "zscript/systems/RS_EliteShared.zs"
+// #include "zscript/systems/RS_EliteProfiles_Simple.zs"
+// #include "zscript/systems/RS_EliteProfiles_Projectile.zs"
+// #include "zscript/systems/RS_EliteProfiles_Creep.zs"
+// #include "zscript/systems/RS_EliteProfiles_Field.zs"
+// #include "zscript/systems/RS_EliteProfiles_Exotic.zs"   <- same batch, 45 errors
+
 // World-space health bars over monsters. Reads
 // RS_MonsterMaster.TierMaxHealth when the owner is one of ours, so it
 // depends on the monster include below -- ZScript is one translation
@@ -108,6 +136,36 @@ version "4.14"
 // The Crew Commander's squad -- a distinct actor with a five-stance AI,
 // not a lower-tier shotgunner. See the file header.
 #include "zscript/monsters/RS_BlackSGTrooper.zs"
+// --- CH-only rebuild, one class per creature ------------------------
+// Family 04. Fourteen files, fourteen of CH's own Chaingunners.txt
+// actors, one apiece. These are CH's numbers, NOT CHP's -- CHP is a
+// separate layer that lands on top later, deliberately.
+//
+// RS_Chaingunner.zs below still ships and still `replaces ChaingunGuy`.
+// It is the OLD one-class-holds-14-tiers build with CHP's numbers.
+// The two do not collide (RS_Chaingunner vs RS_CG_*) and nothing spawns
+// the new ones yet -- when the CH spawner lands, the old file goes, and
+// it must go in the same commit or two actors will fight over the
+// ChaingunGuy replacement.
+// CH's floating tier marker -- its COLOURBLIND AID, not decoration.
+// Off by default exactly as CH ships it; rs_mon_tiericons turns it on.
+// Family-agnostic, so it sits at the top of the family block.
+#include "zscript/monsters/chaingunner/RS_ColorTierIcon.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_C0001_Common.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_T0001_Green.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_T0002_Blue.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_T0003_Cyan.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_T0004_Purple.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_T0005_Yellow.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_T0006_Brown.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_T0007_Gray.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_T0008_Abyss.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_T0009_Fireblu.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_T0010_Red.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_B0001_Black.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_B0002_White.zs"
+#include "zscript/monsters/chaingunner/RS_Chaingunner_X0001_BlackEX.zs"
+
 #include "zscript/monsters/RS_Chaingunner.zs"
 #include "zscript/monsters/RS_Imp.zs"
 #include "zscript/monsters/RS_Demon.zs"
@@ -185,6 +243,19 @@ version "4.14"
 // rebuilt on RS_Weapon + attack profiles, attacks sourced from RS_Catalog.
 #include "zscript/weapons/rs_gh_weapon/RS_GH_Ammo.zs"
 #include "zscript/weapons/rs_gh_weapon/RS_GH_Projectiles.zs"
+
+// MeatGrinder set -- imported projectile / effect database. Must load
+// before any RS_PS_ weapon file that references these classes.
+#include "zscript/weapons/rs_ps_weapon/RS_PS_FX.zs"
+#include "zscript/weapons/rs_ps_weapon/RS_PS_Fist.zs"
+#include "zscript/weapons/rs_ps_weapon/RS_PS_Chainsaw.zs"
+#include "zscript/weapons/rs_ps_weapon/RS_PS_Machinegun.zs"
+#include "zscript/weapons/rs_ps_weapon/RS_PS_AutoShotgun.zs"
+#include "zscript/weapons/rs_ps_weapon/RS_PS_SSG.zs"
+#include "zscript/weapons/rs_ps_weapon/RS_PS_Chaingun.zs"
+#include "zscript/weapons/rs_ps_weapon/RS_PS_RocketLauncher.zs"
+#include "zscript/weapons/rs_ps_weapon/RS_PS_Plasma.zs"
+#include "zscript/weapons/rs_ps_weapon/RS_PS_BFG.zs"
 #include "zscript/weapons/rs_gh_weapon/RS_GH_AssaultShotgun.zs"
 #include "zscript/weapons/rs_gh_weapon/RS_GH_BFG10k.zs"
 #include "zscript/weapons/rs_gh_weapon/RS_GH_BFG9000.zs"
@@ -235,6 +306,12 @@ version "4.14"
 #include "zscript/weapons/weaponfx/RS_FX_Smoke.zs"
 #include "zscript/weapons/weaponfx/RS_FX_Ricochet.zs"
 #include "zscript/weapons/weaponfx/RS_FX_Puffs.zs"
+// Re-enabled 2026-08-05 -- the Cross() collision the skip note described
+// is fixed: `cross` is a built-in ZScript operator, so the hand-written
+// helper is gone and the native operator is used instead. Thanks to
+// whoever parked this rather than editing the file out from under me.
+#include "zscript/weapons/weaponfx/RS_FX_Streak.zs"
+#include "zscript/weapons/weaponfx/RS_FX_StreakMech.zs"
 #include "zscript/weapons/weaponfx/RS_FX_Rocket.zs"
 #include "zscript/weapons/weaponfx/RS_FX_Plasma.zs"
 #include "zscript/weapons/weaponfx/RS_FX_BFG.zs"

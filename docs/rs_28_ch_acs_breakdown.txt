@@ -1,0 +1,1443 @@
+================================================================================
+   RS_28 -- COLOURFUL HELL: THE COMPLETE ACS BREAKDOWN.  2026-08-05.
+   Every script and every function in CH's ACS, what it does, who calls it,
+   and what a ZScript rebuild would have to contain.
+================================================================================
+
+WHY THIS DOCUMENT EXISTS
+
+  Every previous import of this mod stripped ACS calls without recording
+  what they did, and real mechanics were lost each time. rs_19 established
+  THAT this happened and estimated the scale across CH *and* CHP. This file
+  is the other half: the exhaustive, line-level pass over CH's ACS only, so
+  that no future import has to guess.
+
+  RELATIONSHIP TO rs_19_acs_inventory.txt
+    rs_19 is the survey and the decision record (what is worth porting, in
+    what order, and why the "empty DECORATE wrapper" reasoning was wrong).
+    rs_28 is the reference. Where the two disagree on a detail, rs_28 was
+    measured directly against the source on 2026-08-05 and the disagreement
+    is called out in-line. rs_19's *conclusions* are not overturned by
+    anything here.
+    THIS FILE COVERS CH ONLY. CHP's ACS (CHACS2, CHSett2, WVileEX, Bosses,
+    NICEICE, commonFuncs2, miscFuncs2) is NOT in scope and is NOT documented
+    here. rs_19 remains the only record of those.
+
+================================================================================
+0.  PROVENANCE -- WHAT WAS READ, IN FULL
+================================================================================
+
+  Read completely, start to finish, no sampling:
+
+    E:\New folder\ART SOURCE\CH\source\CHACS.acs           61 lines
+    E:\New folder\ART SOURCE\CH\source\CHSett.acs         404 lines
+    E:\New folder\ART SOURCE\CH\source\commonFuncs.acs   1243 lines
+    E:\New folder\ART SOURCE\CH\source\miscFuncs.acs      173 lines
+    E:\New folder\ART SOURCE\CH\source\mathFuncs.acs       40 lines
+    E:\New folder\ART SOURCE\CH\source\Announcers.acs     330 lines
+    E:\New folder\ART SOURCE\CH\CVARINFO.txt               21 lines
+    E:\New folder\ART SOURCE\CH\MENUDEF.txt               240 lines
+                                                        ---------
+                                                         2512 lines
+
+  Also read, for the caller map and for branch semantics:
+    CH\DECORATE.txt and all 17 files in CH\decorate\ were SEARCHED
+    exhaustively (see method below) and the ~40 regions containing ACS call
+    sites were read in context. The decorate tree was not read cover to
+    cover -- it is ~2 MB -- and no claim in this document depends on a part
+    of it that was not opened.
+
+  Opened to confirm they contain no ACS calls (they do not):
+    CH\Bloods.txt, CH\Gibs.txt, CH\TRNSLATE.txt, CH\BUGFABLS.dat,
+    CH\SAMPLEDE.dat, CH\nonusednash.dat, CH\LOADACS.txt
+
+  NOT opened: CH\acs\*.o (the six compiled objects), CH\sprites\,
+  CH\graphics\, CH\sounds\, CH\SNDINFO.txt, CH\CREDITS.txt.
+
+  LOADACS.txt contains exactly one line: `CHACS`. CHACS.acs `#import`s the
+  other five libraries, so all six compiled objects are live at run time.
+
+  SEARCH METHOD FOR THE CALLER MAP -- stated because CLAUDE.md records two
+  traps that have produced false negatives on this codebase before:
+    * Every search was CASE-INSENSITIVE. CH writes `Actor`/`ACTOR` and
+      `CallACS`/`callacs` interchangeably.
+    * No pattern was anchored to line start. Most of CH's decorate is inline
+      one-line state entries, so `^\s*THING` matches almost nothing.
+    * Call verbs searched: CallACS, ACS_NamedExecute, ACS_NamedExecuteAlways,
+      ACS_NamedExecuteWithResult, ACS_NamedTerminate, ACS_NamedSuspend,
+      ACS_Execute and every ACS_Execute* variant.
+    * 338 call sites found by a raw `grep -o` count; 338 attributed to an
+      enclosing actor by a separate brace-free actor-tracking pass. The two
+      numbers agreeing is the only cross-check available and it is a weak
+      one -- it proves the attribution pass saw every site, not that every
+      attribution is right. Twelve attributions were then verified by hand
+      against the file; all twelve were correct.
+    * Zero numeric `ACS_Execute(<number>)` calls exist anywhere in CH.
+
+================================================================================
+1.  HEADLINE COUNTS -- EVERY COUNT WITH ITS DENOMINATOR
+================================================================================
+
+  DEFINITIONS FOUND AND DOCUMENTED
+
+    file              lines   scripts  functions   documented below
+    CHACS.acs            61       4         0        4/4 scripts
+    CHSett.acs          404      35         0       35/35 scripts
+    Announcers.acs      330      41         0       41/41 scripts
+    commonFuncs.acs    1243       0       110      110/110 functions
+    mathFuncs.acs        40       0         6        6/6 functions
+    miscFuncs.acs       173       0         1        1/1 function
+                      -----   -----     -----
+                       2251      80       117      80/80 and 117/117
+
+  NOTE ON THE 110 IN commonFuncs.acs. A naive `grep -c "^function "` returns
+  112. Two of those -- `round` (line 1013) and `ceil` (line 1018) -- sit
+  inside a `/* ... */` block and are not compiled. 110 is the live count.
+  Both counts are recorded so the discrepancy does not get re-derived.
+
+  The task brief estimated "112 scripts/functions" for commonFuncs.acs;
+  the measured figure is 110 live + 2 commented out. The brief's other
+  per-file figures (35, 41, 4) match exactly.
+
+  CLASSIFICATION OF THE 80 SCRIPTS
+
+    (a) READS A USER SETTING          19 of 80
+    (b) REAL GAMEPLAY LOGIC           15 of 80
+    (c) PRESENTATION                  44 of 80
+    (d) DEAD -- no caller anywhere     3 of 80   (FatMissile, ImpMissile,
+                                                  CH_SpawnSet)
+                                      -------
+                                       81 slots for 80 distinct scripts.
+
+    THE ONE OVERLAP: RawketTypeCH is counted in BOTH (a) and (b), and is
+    discussed in both places. It reads a CVar *and* mutates an actor, so
+    neither category alone describes it. Every other script sits in exactly
+    one category.
+    CH_SpawnSet is a CVar reader by shape but is filed under (d), because
+    "dead" is the fact that matters for the port; it is not also counted
+    in (a).
+    Arithmetic: 19 + 15 + 44 + 3 = 81 slots, minus 1 for the RawketTypeCH
+    double-count = 80 scripts.
+
+  CLASSIFICATION OF THE 117 FUNCTIONS
+
+    Reachable from any of CH's own 80 scripts        4 of 117
+      -- ProjInt_Brute, and the three helpers it calls: abs, sq, FixedAngMod
+    Not reachable from any CH script              113 of 117
+
+    This was computed, not eyeballed: a call graph was built from the
+    stripped-of-comments bodies of all 80 scripts and all 117 functions, and
+    breadth-first reachability was run from the scripts. See section 5(d)
+    for what "not reachable" does and does not mean -- these are `#library`
+    exports and CH ships them whole; they are dead *within CH*.
+
+================================================================================
+2.  INVENTORY -- ALL 80 SCRIPTS
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1  CHACS.acs -- 4 of 4
+--------------------------------------------------------------------------------
+
+  CybMissile              CHACS.acs:9    (int rand)
+      Fires one Rocket at 20.0 speed through ProjInt_Brute's lead-prediction
+      solver; `rand` chooses between an exact intercept solution (rand==0)
+      and a randomised time-of-flight solution (rand!=0).
+
+  FatMissile              CHACS.acs:17   (int rand, int which)
+      Fires a symmetric pair of FatShot projectiles at 20.0 speed from
+      +/-28 lateral offset; `which` (1,2,other) selects which of the two
+      shots gets a +/-0.015625 angle offset, giving three spread patterns.
+      DEAD -- see 5(d). No caller anywhere in CH.
+
+  ImpMissile              CHACS.acs:44   (int rand)
+      Fires one DoomImpBall through the intercept solver at 20.0 speed if
+      sv_fastmonsters is set, 10.0 otherwise.
+      DEAD -- see 5(d). No caller anywhere in CH.
+
+  BaronMissile            CHACS.acs:54   (int rand)
+      Fires one BaronBall through the intercept solver at 20.0 speed if
+      sv_fastmonsters is set, 15.0 otherwise.
+
+  NOTE ON `rand` IN ALL FOUR. The convention is inverted between CybMissile
+  and Imp/BaronMissile. CybMissile: `if(!rand)` takes the exact branch.
+  Imp/BaronMissile: `if(rand == 1)` takes the exact branch. The single
+  DECORATE call site for CybMissile passes 1, and four of the five for
+  BaronMissile pass 1. Do not assume a shared meaning for the argument.
+
+--------------------------------------------------------------------------------
+2.2  CHSett.acs -- 35 of 35
+--------------------------------------------------------------------------------
+
+  The first twenty are one-line CVar readers. Body in every case is
+  `SetResultValue(GetCVar("<name>"));` -- nothing else.
+
+  CH_SpawnSet             CHSett.acs:4    (void)
+      Returns CVar CH_spawnmultiplier.  DEAD -- no caller, and the CVar has
+      no MENUDEF entry either.
+
+  RawketTypeCH            CHSett.acs:9    (void)
+      Reads CVar CH_Rawket; if it is 1, sets the ACTIVATOR's damage type to
+      "Normal". Does not SetResultValue. The activator is the rocket.
+
+  CH_AbyssMark            CHSett.acs:19   (void)   returns CH_AbyssMark
+  CH_ColorBlind           CHSett.acs:24   (void)   returns CH_ColorBlind
+  CH_Red                  CHSett.acs:29   (void)   returns CH_NerfRedBoss
+  CH_BlackBossy           CHSett.acs:34   (void)   returns CH_BlackBoss
+  CH_FireBLUES            CHSett.acs:39   (void)   returns CH_FireBLU
+  CH_GrayScale            CHSett.acs:44   (void)   returns CH_Gray
+  CH_Abyssmal             CHSett.acs:49   (void)   returns CH_Abyss
+  CH_Cyan                 CHSett.acs:54   (void)   returns CH_Cyan
+  CH_CyanBounce           CHSett.acs:59   (void)   returns CH_CyanBounce
+  CH_Brown                CHSett.acs:64   (void)   returns CH_Brown
+  CH_WhiteBossy           CHSett.acs:69   (void)   returns CH_WhiteBoss
+  CH_ExBoss               CHSett.acs:74   (void)   returns CH_EXBoss
+  CH_YellowRev            CHSett.acs:79   (void)   returns CH_YellowRev
+  CH_Intercept            CHSett.acs:84   (void)   returns CH_Intercept
+  CH_Health               CHSett.acs:89   (void)   returns CH_HealthDrops
+  CH_BackPack             CHSett.acs:94   (void)   returns CH_BackPackDrops
+  CH_AmmoUps              CHSett.acs:99   (void)   returns CH_AmmoDrops
+  CH_Extras               CHSett.acs:104  (void)   returns CH_ExtraDrops
+
+      NOTE: the script name and the CVar name differ in nine of twenty
+      cases (CH_Red/CH_NerfRedBoss, CH_BlackBossy/CH_BlackBoss,
+      CH_FireBLUES/CH_FireBLU, CH_GrayScale/CH_Gray, CH_Abyssmal/CH_Abyss,
+      CH_WhiteBossy/CH_WhiteBoss, CH_Health/CH_HealthDrops,
+      CH_BackPack/CH_BackPackDrops, CH_AmmoUps/CH_AmmoDrops,
+      CH_Extras/CH_ExtraDrops). Searching for the CVar name will not find
+      the DECORATE call sites and vice versa.
+
+  DirectionMind1          CHSett.acs:109  (void)
+      Draws HUD font EYETARG1 as a single character at 640x480 screen
+      coords (320.4, 185.0), fade in/out, hold 3.5s, fade 1.0s, msg id
+      54244.
+  DirectionMind2          CHSett.acs:116  (void)   same, font EYETARG2
+  DirectionMind3          CHSett.acs:123  (void)   same, font EYETARG3
+
+  MakeScoutCry            CHSett.acs:132  (void)
+      DoomRL Arsenal detection. If the cached map-scope bool isDoomRLA is
+      false, tries SpawnForced("RLArsenalThingo") at (0,0,0) on a UniqueTID;
+      if the spawn succeeds it immediately Thing_Removes it and latches
+      isDoomRLA true. Returns isDoomRLA. Used to decide whether a dropped
+      weapon should be the DRLA version.
+
+  BrownMindCommand        CHSett.acs:148  (void)
+      Defensive pack buff, 300 tics. Bails immediately if the activator has
+      +BOSS. Otherwise: saves APROP_DamageFactor, sets +ALWAYSFAST if not
+      already set, sets DamageFactor to 0.50, throws the activator with
+      ThrustThing(random angle 0-255, force 1-12) and ThrustThingZ(force
+      1-12, random up/down), waits 300 tics, restores the saved
+      DamageFactor, then clears +ALWAYSFAST if set.
+
+  BrownDinner             CHSett.acs:182  (void)
+      Sets +FLOAT on the activator, then ThrustThingZ(0, 30, up, additive)
+      -- an upward launch -- holds 30 tics, clears +FLOAT. The activator
+      falls once FLOAT is gone.
+
+  BrownVileCommand        CHSett.acs:193  (void)
+      As BrownMindCommand but DamageFactor 0.65, no ALWAYSFAST, and the
+      thrust happens immediately rather than after a delay. 300 tics.
+
+  BrownImpCommand         CHSett.acs:219  (void)
+      Offensive/mobility pack buff, 180 tics. Non-boss only. Sets
+      +ALWAYSFAST, sets APROP_SPEED to `normal+10`, thrusts the activator
+      horizontally and vertically by the same random amounts, waits 180
+      tics, restores speed, clears +ALWAYSFAST.
+      SEE 5(b) FOR WHY `normal+10` IS NOT A SPEED INCREASE.
+
+  BBaronSlow              CHSett.acs:249  (void)
+      As written this script does nothing. Its entire body is guarded by
+      `if (Nope == 3)` where `Nope` is an uninitialised script-local, and
+      ZDoom zero-initialises script locals -- so the condition is 0 == 3
+      and the body is never entered. The intended body halves APROP_SPEED
+      for 210 tics. See 5(b).
+
+  BrownRevSPEED           CHSett.acs:265  (void)
+      Non-boss only. Saves APROP_SPEED, sets it to `normal+7`, waits 210
+      tics, restores. See 5(b) -- `normal+7` is not a speed increase.
+
+  PERAGE                  CHSett.acs:289  (void)
+      Non-boss only. Sets +NOPAIN if not already set, sets
+      APROP_DamageMultiplier to 1.5, waits 600 tics (~17s), restores the
+      saved multiplier, clears +NOPAIN. This one's arithmetic IS correct --
+      1.5 is a fixed-point literal and DamageMultiplier is fixed-point.
+
+  PESPEED                 CHSett.acs:317  (void)
+      Non-boss only. Sets +ALWAYSFAST, sets APROP_SPEED to `normal+10`,
+      waits 600 tics, restores, clears +ALWAYSFAST. The ALWAYSFAST flag is
+      the real effect; see 5(b).
+
+  PEHULK                  CHSett.acs:345  (void)
+      Non-boss only, 600 tics. Sets +QUICKTORETALIATE, CLEARS +NODROPOFF,
+      sets +DONTTHRUST, sets APROP_DAMAGEFACTOR to 0.25 (takes quarter
+      damage), waits 600 tics, restores the damage factor, then clears
+      QUICKTORETALIATE, re-sets NODROPOFF and clears DONTTHRUST.
+
+  RevBuffEx               CHSett.acs:383  (void)
+      No boss check. Sets APROP_SPEED to 18.0 (a correct fixed-point
+      literal -- this one really is a speed change) and
+      APROP_DamageMultiplier to 1.5, waits 300 tics, restores speed to the
+      saved value and sets DamageMultiplier to `1`. The trailing `1` is an
+      integer, not `1.0`; see 5(b).
+
+  RevKillEx               CHSett.acs:401  (void)
+      `thing_damage(0, 999999)` -- kills the activator outright.
+
+--------------------------------------------------------------------------------
+2.3  Announcers.acs -- 41 of 41
+--------------------------------------------------------------------------------
+
+  Every one of the 41 has an identical three-call body: SetFont(...),
+  SetHudSize(640,480,0), Hudmessagebold(s:"<line>"; HUDMSG_FADEINOUT|
+  HUDMSG_LOG, 0, <colour>, 320.4, <y>, 3.5, 1.0). No parameters, no
+  gameplay effect, no sound. All take (void).
+
+  The table gives line, font, colour, y-position. The message strings are
+  CH's own writing and are quoted only where the y/colour would otherwise
+  be ambiguous; they are all one line of banter naming the monster tier.
+
+    script                  line   font        colour     y
+    AnnounceWhiteBaron         5   smallfont   CR_White   150.0
+    AnnounceWhiteRev          13   smallfont   CR_White   325.0
+    AnnounceSpidie4           21   smallfont   CR_white   330.0
+    AnnounceWvile             29   smallfont   CR_White   315.0
+    AnnounceWhiteCybie        37   smallfont   CR_White   140.0
+    AnnounceWhiteFatso        45   smallfont   CR_White   150.0
+    AnnounceCaco2             53   smallfont   CR_White   320.0
+    AnnounceWhiteSpectre      61   smallfont   CR_White   155.0
+    AnnounceBvile             69   smallfont   CR_Black   310.0
+    AnnounceWhiteDemon        77   smallfont   CR_White   305.0
+    AnnounceWhiteZombie       85   smallfont   CR_White   300.0
+    AnnounceSpidie3           93   smallfont   CR_Black   295.0
+    AnnounceWhiteImp         101   smallfont   CR_white   290.0
+    AnnounceWhiteSoul        109   smallfont   CR_white   285.0
+    AnnounceWhiteSpider      117   smallfont   CR_white   280.0
+    AnnounceBlackSpider      125   smallfont   CR_Black   275.0
+    AnnounceBlackPE          133   smallfont   CR_Black   270.0
+    AnnounceWhiteCG          141   smallfont   CR_White   265.0
+    AnnounceBlackFatso       149   smallfont   CR_Black   260.0
+    AnnounceBlackCguy        157   smallfont   CR_Black   255.0
+    AnnounceWhiteHK          165   smallfont   CR_White   250.0
+    AnnounceBlackHK          173   smallfont   CR_Black   245.0
+    AnnounceBlackSoul        181   smallfont   CR_Black   240.0
+    AnnounceBlackDemon       189   smallfont   CR_Black   235.0
+    AnnounceVile             197   smallfont   CR_RED     230.0
+    AnnounceBaron            205   smallfont   CR_RED     225.0
+    AnnounceCybie1           213   smallfont   CR_Yellow  220.0
+    AnnounceSpidie1          221   smallfont   CR_Yellow  215.0
+    AnnounceSpidie2          229   smallfont   CR_Red     210.0
+    AnnounceCybie2           237   smallfont   CR_Red     205.0
+    CybieSpecialKill         245   smallfont   CR_Red     180.0
+    AnnounceBlackRev         253   smallfont   CR_Black   200.0
+    AnnounceBlackSG          261   smallfont   CR_Black   195.0
+    AnnounceWhiteSG          269   smallfont   CR_White   190.0
+    AnnounceBlackZombie      277   smallfont   CR_Black   185.0
+    AnnounceBlackSpectre     285   smallfont   CR_Black   180.0
+    AnnounceBlackImp         293   smallfont   CR_Black   175.0
+    AnnounceCaco             301   smallfont   CR_Black   170.0
+    AnnounceBlackCybie       309   Largefont   CR_Black   165.0
+    AnnounceBaronBlack       317   Largefont   CR_Black   160.0
+    AnnounceWhitePE          325   Largefont   CR_White   145.0
+
+  Two collisions worth noting if the layout is ever reproduced:
+  AnnounceWhiteBaron and AnnounceWhiteFatso both sit at y=150.0, and
+  CybieSpecialKill and AnnounceBlackSpectre both sit at y=180.0.
+
+  CybieSpecialKill is filed here rather than under gameplay because its
+  body is a HUD message and nothing else -- see the caller map for what
+  triggers it.
+
+================================================================================
+3.  INVENTORY -- ALL 117 FUNCTIONS
+================================================================================
+
+  ACS functions cannot be called from DECORATE. Nothing in the caller map
+  reaches this section directly; these exist for other ACS to call.
+
+--------------------------------------------------------------------------------
+3.1  miscFuncs.acs -- 1 of 1
+--------------------------------------------------------------------------------
+
+  ProjInt_Brute  miscFuncs.acs:6
+      (int stid, int ttid, int spd, int ptid, int xoff, int yoff, int zoff,
+       str ptype, int axoff, int ayoff, int azoff, int angoff, int rand,
+       int input_t) -> int
+      The lead-prediction projectile launcher. THE ONE REAL LIBRARY
+      FUNCTION IN CH. Full description in 5(b).
+
+--------------------------------------------------------------------------------
+3.2  mathFuncs.acs -- 6 of 6
+--------------------------------------------------------------------------------
+
+  arcsin       mathFuncs.acs:5   (int x)        Arcsine of fixed-point x, as a ZDoom byte-angle, via VectorAngle(sqrt(1-x^2), x).
+  arccos       mathFuncs.acs:10  (int x)        Arccosine of fixed-point x, same trick with the arguments swapped.
+  arctan       mathFuncs.acs:15  (int x)        Arctangent of fixed-point x, as VectorAngle(1.0, x).
+  sq           mathFuncs.acs:20  (int x)        Fixed-point square: FixedMul(x, x).
+  t_ang        mathFuncs.acs:25  (int x)        abs(x % 0.5) -- folds a ZDoom angle into the 0..180-degree half.
+  FixedAngMod  mathFuncs.acs:30  (int fAngle)   Wraps a fixed-point angle into [0, 1.0) i.e. 0-360 degrees, handling negatives.
+
+--------------------------------------------------------------------------------
+3.3  commonFuncs.acs -- 110 of 110 live (+2 commented out, listed at the end)
+--------------------------------------------------------------------------------
+
+  This is a general-purpose Zandronum/ZDoom ACS helper library that CH
+  bundles wholesale. It also defines four module-scope arrays that no
+  function in the file reads: TeamNames[8], TeamColors[8],
+  TeamColorCodes[8] (lines 16-29) and msgColors[22] (line 31), plus five
+  #defines (PLAYERMAX 64, TEAMCOUNT 8, DEFAULTTID_SCRIPT 471, SECOND_TICS,
+  UNIT_CM) and DAMAGE_NORANDOM. PLAYERMAX and TEAMCOUNT are used;
+  DEFAULTTID_SCRIPT, SECOND_TICS, UNIT_CM and DAMAGE_NORANDOM are not.
+
+  ARITHMETIC AND FIXED POINT
+  itof         :37   (int x)                      Integer to fixed-point: x << 16.
+  ftoi         :38   (int x)                      Fixed-point to integer: x >> 16 (truncating).
+  abs          :40   (int x)                      Absolute value.
+  sign         :46   (int x)                      -1 if x < 0, else +1. Note zero returns +1.
+  randSign     :52   (void)                       Randomly -1 or +1.
+  mod          :57   (int x, int y)               Modulo that always returns a non-negative result.
+  pow          :64   (int x, int y)               Integer x raised to integer power y.
+  powFloat     :71   (int x, int y)               Fixed-point x raised to integer power y via repeated FixedMul.
+  gcf          :78   (int a, int b)               Greatest common factor, Euclid's algorithm.
+  min          :92   (int x, int y)               Smaller of two values.
+  max          :98   (int x, int y)               Larger of two values.
+  middle      :104   (int x, int y, int z)        Clamp-ish: returns the middle of three values.
+  percFloat   :110   (int intg, int frac)         Builds a fixed-point number from an integer part and a two-digit fraction.
+  percFloat2  :115   (int intg, int frac1, int frac2)  Same with a four-digit fraction.
+  inRange     :372   (int low, int high, int x)   True if low <= x < high.
+  intcmp     :1204   (int x, int y)               Three-way compare: -1, 0, +1.
+  roundZero   :999   (int toround)                Truncates a fixed-point number toward zero, returns an integer.
+  roundAway  :1005   (int toround)                Rounds a fixed-point number away from zero, returns an integer.
+  intFloat   :1023   (int toround)                Truncates the fractional part but stays fixed-point.
+
+  SQUARE ROOTS, VECTORS, QUADRATICS
+  sqrt_i           :275  (int number)             Integer square root, Newton's method. From the ZDoom wiki.
+  zan_sqrt         :292  (int number)             Fixed-point square root, 15 fixed iterations from a 150.0 seed.
+  magnitudeTwo     :302  (int x, int y)           Integer 2D vector length via sqrt_i.
+  magnitudeTwo_f   :307  (int x, int y)           Fixed-point 2D length, computed by angle+trig rather than sqrt.
+  magnitudeThree   :318  (int x, int y, int z)    Integer 3D vector length via sqrt_i.
+  magnitudeThree_f :323  (int x, int y, int z)    Fixed-point 3D length, applying the 2D angle trick twice.
+  quadPos          :338  (int a, int b, int c)    Positive root of ax^2+bx+c, fixed-point.
+  quadNeg          :347  (int a, int b, int c)    Negative root of the same.
+  quad             :357  (int a, int b, int c, int y)  Evaluates a*y^2 + b*y + c + y. The trailing `+ y` looks like a typo but is what the source says.
+  quadHigh         :362  (int a,int b,int c,int x)     quadPos with c shifted by x -- solves for a given output.
+  quadLow          :367  (int a,int b,int c,int x)     quadNeg with c shifted by x.
+  quadSlope       :1170  (int orgX,int orgY,int pntX,int pntY,int floatY)  Derives a parabolic slope between two points, preserving sign of the height difference.
+  HeightFromJumpZ  :988  (int jumpz, int gravFactor)   Peak height reachable from a given JumpZ under a gravity factor.
+  JumpZFromHeight  :994  (int height, int gravFactor)  Inverse of the above.
+  distance        :1028  (six coords)            3D distance between two explicit points.
+  distance_tid    :1033  (int tid1, int tid2)    3D distance between two actors.
+  distance_ftoi   :1046  (six coords)            As distance, returned as an integer.
+  actorVelMagnitude :1194 (int tid)              Speed of an actor: 3D magnitude of its velocity.
+
+  BIT PACKING AND RANGE ADJUSTMENT
+  packShorts   :382  (int left, int right)        Packs two 16-bit values into one int.
+  leftShort    :387  (int packed)                 Upper 16 bits, sign-extended.
+  rightShort   :388  (int packed)                 Lower 16 bits, sign-extended.
+  adjustBottom :226  (int tmin, int tmax, int i)  Slides a [min,max] window so it contains i; returns the new minimum.
+  adjustTop    :239  (int tmin, int tmax, int i)  Same, returns the new maximum.
+  adjustShort  :252  (int tmin, int tmax, int i)  Same, returns both packed into one int.
+
+  PLAYER INPUT
+  keyUp          :120  (int key)     True if ALL bits of `key` are released (INPUT_BUTTONS).
+  keyUp_any      :128  (int key)     True if ANY bit of `key` is released.
+  keyDown        :136  (int key)     True if ALL bits of `key` are held.
+  keyDown_any    :144  (int key)     True if ANY bit of `key` is held.
+  keysPressed    :152  (void)        Bitmask of buttons newly pressed this tic.
+  keyPressed     :161  (int key)     True if ALL bits of `key` were newly pressed.
+  keyPressed_any :167  (int key)     True if ANY bit was newly pressed.
+  inputUp        :173  (int input)   As keyUp but on MODINPUT_BUTTONS (the mod-visible input set).
+  inputUp_any    :181  (int input)   As keyUp_any, MODINPUT.
+  inputDown      :189  (int input)   As keyDown, MODINPUT.
+  inputDown_any  :197  (int input)   As keyDown_any, MODINPUT.
+  inputsPressed  :205  (void)        Newly-pressed bitmask, MODINPUT.
+  inputPressed   :214  (int input)   As keyPressed, MODINPUT.
+  inputPressed_any :220 (int input)  As keyPressed_any, MODINPUT.
+  getDirection   :869  (void)        Reads the four movement keys and returns one of eight DIR_* constants (or 0 for no input). The DIR_E..DIR_SE #defines are at lines 860-867.
+
+  STRINGS (all require StrParam and are marked as such in the source)
+  cleanString    :392  (int string)                       Strips control and non-printable characters; also honours character 28 as an escape that eats the next character.
+  cvarFromString :420  (int prefix, int newname)          Concatenates prefix+name and strips everything that is not [A-Za-z0-9_], producing a legal CVar name.
+  padStringR     :446  (int baseStr, int padChar, int len) Right-pads to `len` with the first character of padChar.
+  padStringL     :468  (int baseStr, int padChar, int len) Left-pads likewise.
+  changeString   :490  (int string, int repl, int where)  Overwrites `repl` into `string` starting at index `where`.
+  sliceString    :516  (int string, int start, int end)   Python-style slice, negative indices count from the end.
+  zand_strcmp    :542  (int str1, int str2)               strcmp: -1, 0, +1 by first differing character then by length.
+  strstr         :562  (int string, int from, int to)     Find-and-replace of substring `from` with `to`. Despite the C name it substitutes rather than locating.
+  lower         :1089  (int chr)                          Lowercases one character code.
+  upper         :1094  (int chr)                          Uppercases one character code.
+  strLower      :1101  (int string)                       Lowercases a whole string.
+  strUpper      :1115  (int string)                       Uppercases a whole string.
+
+  CVARS
+  saveCVar          :821  (int cvar, int val)        ConsoleCommand "set" then "archivecvar" -- writes and persists a CVar.
+  defaultCVar       :828  (int cvar, int defaultVal) Returns the CVar, or writes and returns the default if it currently reads 0.
+  saveStringCVar    :917  (int string, int cvarname) Stores a string one character per CVar as <name>_char0, _char1, ... and unsets any leftover trailing chars from a longer previous value.
+  loadStringCVar    :940  (int cvarname)             Reads that character-per-CVar encoding back into a string.
+  Zand_GetCVarFixed:1231  (int cvarname)             Reads a float CVar as fixed-point by round-tripping it through a randomly named temporary CVar and a console `eval * $cvar 65536` -- a Zandronum workaround for GetCVar truncating floats.
+
+  ACTORS, HEALTH, TIDS
+  unusedTID     :622  (int start, int end)           Scans a TID range and returns the first TID with no actors on it, or -1.
+  getMaxHealth  :640  (void)                         APROP_SpawnHealth of the activator, defaulting to 100 for players reporting 0.
+  giveHealth    :652  (int amount)                   Heals up to the activator's spawn health.
+  giveHealthFactor :657 (int amount, int maxFactor)  Heals up to spawn health times a fixed-point factor.
+  giveHealthMax :662  (int amount, int maxHP)        Heals up to an explicit cap; refuses if already over the cap; returns the amount actually healed.
+  isDead        :680  (int tid)                      APROP_Health <= 0.
+  onGround      :837  (int tid)                      True if the actor's Z equals its floor Z exactly.
+  ThingCounts   :842  (int start, int end)           Sums ThingCount over a TID range.
+  PlaceOnFloor  :852  (int tid)                      Snaps an actor to its floor Z; returns 1 and does nothing if the TID is not unique.
+  isInvulnerable:909  (void)                         APROP_Invulnerable or a PowerInvulnerable item.
+  defaultTID    :959  (int def)                      Wrapper for _defaulttid(def, 0).
+  _defaulttid   :964  (int def, int alwaysPropagate) Ensures the activator has a unique TID: returns 0 for the world, keeps an existing unique TID, otherwise assigns `def` or, if def <= 0, hunts a free TID in a random 10000-wide band between 1200 and 32000.
+  AddActorProperty :1129 (int tid,int prop,int amount) Reads a property, adds, writes back, returns the new value.
+  HasRoom       :1148  (int actorname,int x,int y,int z) Tries to spawn the actor at a point, removes it if it worked, returns whether it fit.
+  spawnDistance :727  (int item, int dist, int tid)  Spawns `item` at `dist` units along the activator's facing angle AND pitch, inheriting the activator's angle.
+
+  INVENTORY AND AMMO
+  AddAmmoCapacity  :377  (int type, int add)             Raises an ammo type's capacity by `add`.
+  SetInventory     :743  (int item, int amount)          Gives or takes so the activator ends with exactly `amount`.
+  ToggleInventory  :759  (int inv)                       Removes the item if held, gives one if not; returns the new state.
+  GiveAmmo         :771  (int type, int amount)          Gives ammo, and if sv_doubleammo is on, claws back the engine's automatic doubling so the amount given is exact.
+  GiveActorAmmo    :787  (int tid,int type,int amount)   Same for a specific actor.
+  isAmmo          :1199  (int name)                      True if the class has a non-zero ammo capacity.
+  RaiseAmmoCapacity :1212 (int ammoname,int newcapacity,int raiseammo)  Raises capacity if the new value is higher, and optionally tops the ammo up to the new cap. Its return statement reads `CheckInventory(ammo)` where `ammo` is a count, not a name -- almost certainly meant to be `ammoname`. The return value is therefore not meaningful.
+
+  GAME MODE AND PLAYER QUERIES
+  isSinglePlayer  :685  (void)   GameType() == GAME_SINGLE_PLAYER.
+  isLMS           :690  (void)   lastmanstanding or teamlms.
+  isCoop          :695  (void)   GAME_NET_COOPERATIVE, or any of cooperative/invasion/survival.
+  isInvasion      :703  (void)   The invasion CVar.
+  isFreeForAll    :708  (void)   terminator or duel; else deathmatch/possession/lastmanstanding with teamplay off.
+  isTeamGame      :721  (void)   teamplay, teamgame or teamlms.
+  PlayerTeamCount:1079  (int teamNo)  Counts players on a team across all 64 player slots.
+  ClientCount    :1136  (void)   Counts players in game or spectating.
+  RealPlayerCount:1158  (void)   Counts players in game excluding bots.
+
+  CONTROL FLOW AND DEBUG
+  cond          :803  (int test, int trueRet, int falseRet)  Ternary as a function. NOTE: both branches are evaluated before the call, so it is not a short-circuit substitute.
+  condTrue      :809  (int test, int trueRet)   Returns trueRet if test, else test.
+  condFalse     :815  (int test, int falseRet)  Returns test if test, else falseRet.
+  printDebugInfo:1051 (void)  Logs a block: tic, level number, TID and how many actors share it, XYZ position, health/maxhealth for players and monsters, and player number and class for players.
+
+  COMMENTED OUT -- present in the file, not compiled
+  round  :1013  (int toround)  Would round a fixed-point value to the nearest integer.
+  ceil   :1018  (int toround)  Would round up. Its body reads `ftoi(toround + (1.0-1))`, which is not a ceiling; this may be why both were commented out.
+
+================================================================================
+4.  CALLER MAP -- WHICH DECORATE ACTORS CALL WHICH SCRIPT
+================================================================================
+
+  338 call sites, 100% attributed. Script names are given in their
+  definition casing; DECORATE's casing varies and was matched
+  case-insensitively.
+
+  Reading the "sites" column: it counts CALL SITES, not actors. A script
+  branched on with three `A_JumpIf(CallACS(...) == n)` lines in one actor is
+  three sites in one actor.
+
+  script                sites  calling actors
+  --------------------  -----  --------------------------------------------
+  CH_Abyssmal              34  AbyssArch AbyssBaron AbyssCaco AbyssCGuy
+                               AbyssCybie AbyssDemon AbyssFatso AbyssHK
+                               AbyssImp AbyssLsoul AbyssMind AbyssPE
+                               AbyssRevenant AbyssSG AbyssSP1 AbyssSpectre
+                               AbyssZombie                    (17 x 2 sites)
+  CH_Brown                 34  BrownArch BrownBaron BrownCaco BrownCGuy
+                               BrownCybie BrownDemon BrownFatso BrownHK
+                               BrownImp BrownLSoul BrownMind BrownPE
+                               BrownRevenant BrownSG BrownSP1 BrownSpectre
+                               BrownZombie                    (17 x 2 sites)
+  CH_Cyan                  34  CyanArch CyanBaron CyanCaco CyanCGuy
+                               CyanCybie CyanDemon CyanFatso CyanHK CyanImp
+                               CyanLSoul CyanMind CyanPE CyanRevenant
+                               CyanSG CyanSP1 CyanSpectre CyanZombie
+                                                              (17 x 2 sites)
+  CH_ExBoss                30  BlackCaco BlackCGuy BlackFatso BlackHK
+                               Blackimp BlackRevenant BlackSP1 BlackZombie
+                               WhiteLSoul WhiteSG            (10 x 3 sites)
+  CH_Extras                26  CH_Berserk CH_BFG9000 CH_BlueArmor
+                               CH_BlurSphere CH_ChainSaw CH_GreenArmor
+                               CH_Medikit CH_MegaSphere CH_PlasmaRifle
+                               CH_RocketLauncher CH_SoulSphere
+                               CH_SuperShotgun DropBaseItem  (13 x 2 sites)
+  CH_BlackBossy            17  BlackArch BlackBaron BlackCaco BlackCGuy
+                               BlackCybie BlackDemon BlackFatso BlackHK
+                               Blackimp BlackLSoul Blackmind BlackPE
+                               BlackRevenant BlackSG BlackSP1 BlackSpectre
+                               BlackZombie                    (17 x 1 site)
+  CH_FireBLUES             17  FireBluArch FireBluBaron FireBluCaco
+                               FireBluCGuy FireBluCybie FireBLUDemon
+                               FireBluFatso FireBluHK FireBLUImp
+                               FireBluLSoul FireBluMind FireBluPE
+                               FireBLURevenant FireBLUSG FireBluSP1
+                               FireBLUSpectre FireBLUZombie
+  CH_GrayScale             17  GrayArch GrayBaron GrayCaco GrayCguy
+                               GrayCybie GrayDemon GrayFatso GrayHK GrayImp
+                               GrayLSoul GrayMind GrayPE GrayRevenant
+                               GraySG GraySP1 GraySpectre GrayZombie
+  CH_WhiteBossy            17  WhiteArch WhiteBaron WhiteCaco WhiteCguy
+                               WhiteCybie WhiteDemon WhiteFatso WhiteHK
+                               WhiteImp WhiteLSoul Whitemind WhitePE
+                               WhiteRevenant WhiteSG WhiteSP1 WhiteSpectre
+                               WhiteZombie
+  CH_CyanBounce            10  CyanBaron2 CyanCGuy2(x3) CyanFatso2 CyanHK2
+                               CyanImp2 CyanRevenant2 CyanSG2 CyanVile
+  CH_Health                 8  ArmorBundle HealthBundle       (2 x 4 sites)
+  BaronMissile              5  CommonBaron GreenHK WhiteLSoul2
+                               WhiteLSoulEX(x2)
+  CH_BackPack               4  BackPackBundle                 (1 x 4 sites)
+  CH_Red                    4  RedArch RedBaron               (2 x 2 sites)
+  CH_AmmoUps                3  DropBaseAmmo                   (1 x 3 sites)
+  CH_Intercept              3  CommonBaron CommonCybie GreenHK
+  CH_YellowRev              2  YellowRevenant                 (1 x 2 sites)
+  CybieSpecialKill          2  BlackCybie2 RedCybie
+  CH_AbyssMark              1  AbyssShotIdentifier
+  CH_ColorBlind             1  ColorTierIconCH
+  CybMissile                1  CommonCybie
+  BBaronSlow                1  BBaronSlowDown
+  BrownDinner               1  BrownWarriorsStrifeFor
+  BrownImpCommand           1  BrownImpCommand   (actor and script share a name)
+  BrownMindCommand          1  ShieldUpMind
+  BrownRevSPEED             1  RevSpeedBuff
+  BrownVileCommand          1  ShieldUpVile
+  DirectionMind1            1  EyeSeePsychic1
+  DirectionMind2            1  EyeSeePsychic2
+  DirectionMind3            1  EyeSeePsychic3
+  MakeScoutCry              1  ScootDropChecker
+  PEHULK                    1  HulkBuffPE
+  PERAGE                    1  RageBuffPE
+  PESPEED                   1  SpeedBuffPE
+  RawketTypeCH              1  Rocket2
+  RevBuffEx                 1  PowerRevEx2
+  RevKillEx                 1  PowerRevEx
+
+  ANNOUNCERS -- one or two actors each, 52 sites over 40 scripts. (The
+  41st Announcers.acs script, CybieSpecialKill, is in the table above
+  because it is not a spawn banner.)
+    AnnounceBaron          RedBaron3
+    AnnounceBaronBlack     BlackBaron2
+    AnnounceBlackCguy      BlackCGuy2, BlackCGuyEX
+    AnnounceBlackCybie     BlackCybie2
+    AnnounceBlackDemon     BlackDemon3
+    AnnounceBlackFatso     BlackFatso2, BlackFatsoEX
+    AnnounceBlackHK        BlackHK2, BlackHKEX
+    AnnounceBlackImp       BlackImp1, BlackImpEX
+    AnnounceBlackPE        BlackPE2
+    AnnounceBlackRev       BlackRevenant3, BlackRevenantEX
+    AnnounceBlackSG        BlackSG3
+    AnnounceBlackSoul      BlackLSoul3, BlackLSoulOld3
+    AnnounceBlackSpectre   BlackSpectre2
+    AnnounceBlackSpider    BlackSP2, BlackSPEX
+    AnnounceBlackZombie    BlackZombie1, BlackZombieEX
+    AnnounceBvile          BlackVile
+    AnnounceCaco           BlackCaco2, BlackCacoEX
+    AnnounceCaco2          WhiteCaco2
+    AnnounceCybie1         Yellowcybie
+    AnnounceCybie2         RedCybie
+    AnnounceSpidie1        YellowMind
+    AnnounceSpidie2        RedMind
+    AnnounceSpidie3        Blackmind2
+    AnnounceSpidie4        WhiteMind2
+    AnnounceVile           RedArch3
+    AnnounceWhiteBaron     WhiteBaron2
+    AnnounceWhiteCG        WhiteCguy2
+    AnnounceWhiteCybie     WhiteCybie2
+    AnnounceWhiteDemon     WhiteDemon2
+    AnnounceWhiteFatso     WhiteFatso2
+    AnnounceWhiteHK        WhiteHK3
+    AnnounceWhiteImp       WhiteImp2
+    AnnounceWhitePE        WhitePE2
+    AnnounceWhiteRev       WhiteRevenant2
+    AnnounceWhiteSG        WhiteSG2, WhiteSGEX
+    AnnounceWhiteSoul      WhiteLSoul2, WhiteLSoulEX
+    AnnounceWhiteSpectre   WhiteSpectre2
+    AnnounceWhiteSpider    WhiteSP11, WhiteSP11Old
+    AnnounceWhiteZombie    WhiteZombie1
+    AnnounceWvile          Whitevile
+
+  NO CALLERS AT ALL:  FatMissile, ImpMissile, CH_SpawnSet.
+
+--------------------------------------------------------------------------------
+4.1  SECOND-ORDER REACH -- THE MAP ABOVE UNDERSTATES SOME AND OVERSTATES OTHERS
+--------------------------------------------------------------------------------
+
+  The caller map lists the actor whose state contains the call. Four cases
+  where that is not the whole story, and one where it is misleading:
+
+  INHERITANCE WIDENS THE REACH.
+    DropBaseAmmo (CH_AmmoUps) is a base class. Eight subclasses inherit its
+    `Scripted` state without redefining it: CH_ClipBox, CH_ShellBox,
+    CH_Shell, CH_CellPack, CH_Cell, CH_RocketBox, CH_RocketAmmo, CH_Clip.
+    So CH_AmmoUps effectively gates nine ammo drop classes, not one.
+    DropBaseItem (CH_Extras) has twelve subclasses, but all twelve override
+    `Scripted` themselves and so already appear in the map by name.
+    ScootDropChecker (MakeScoutCry) is likewise a base class: it is never
+    itself a DropItem anywhere. Its subclass `implyingclip` inherits the
+    check and IS dropped -- by Barons, Cacodemons and Chaingunners among
+    others. MakeScoutCry therefore runs on many clip drops, not once.
+
+  BUFF TOKENS ARE HANDED OUT AT RANGE -- THE REAL CALLER IS THE THROWER.
+    Every buff/debuff script is reached through a CustomInventory whose only
+    body is the ACS call. The script's ACTIVATOR is the RECEIVING monster,
+    not the thrower. The thrower is:
+      SpeedBuffPE   -> PESPEED       given by A_RadiusGive from six sites:
+                                     Cacodemons.txt:109 (r=1200, species
+                                     Caco), Cacodemons.txt:558 (r=800),
+                                     spectres.txt:98-99 (r=320),
+                                     thepains.txt:663 (r=700),
+                                     thepains.txt:3008 (r=526)
+      RageBuffPE    -> PERAGE        thepains.txt:3000, r=526
+      HulkBuffPE    -> PEHULK        thepains.txt:3004, r=526
+      ShieldUpVile  -> BrownVileCommand   Archviles.txt:161, r=420
+      ShieldUpMind  -> BrownMindCommand   MASTERMINDS.txt:257, r=732
+      RevSpeedBuff  -> BrownRevSPEED      Revenants.txt:113,121 (r=256),
+                                          158 (r=1200)
+      BrownImpCommand -> BrownImpCommand  Cacodemons.txt:110 (r=200),
+                                          Demons.txt:285 (r=320),
+                                          Imps.txt:129 (r=200),
+                                          spectres.txt:96-97 (r=320)
+      BBaronSlowDown -> BBaronSlow    Barons.txt:270,273,276 -- note
+                                      RGF_MISSILES, so this one is thrown at
+                                      PROJECTILES, not monsters
+      PowerRevEx    -> RevKillEx     Revenants.txt:4416, r=9999, in the
+                                     Black Revenant EX's Death state
+      PowerRevEx2   -> RevBuffEx     Revenants.txt:4397, r=2800, in the
+                                     Black Revenant EX's Pain state
+      BrownWarriorsStrifeFor -> BrownDinner   MASTERMINDS.txt:238, given by
+                                     A_GiveInventory(...,AAPTR_TARGET) --
+                                     this one goes to the Mastermind's
+                                     TARGET, i.e. very likely the player.
+
+  ROCKET2 REPLACES ROCKET.
+    CYBIES.txt:2119 declares `ACTOR Rocket2 replaces rocket`. RawketTypeCH
+    therefore runs once per rocket for EVERY rocket in the game, including
+    the player's rocket launcher, not just monster rockets.
+
+  ONE CHAIN IS ORPHANED -- DirectionMind1/2/3 NEVER RUN.
+    Their only callers are EyeSeePsychic1/2/3 (Spiders.txt:2184, 2200,
+    2216). Those three CustomInventory items are defined and are never
+    spawned, given, dropped or referenced by anything in CH -- an
+    exhaustive case-insensitive search over DECORATE.txt and decorate\*.txt
+    returns only their own three definition lines. So the three
+    DirectionMind scripts are unreachable in play even though they are not
+    technically uncalled. They are filed under PRESENTATION in section 5,
+    not DEAD, because the brief defines DEAD as "never called by anything"
+    and they are called -- but do not spend port effort on them.
+
+================================================================================
+5.  BEHAVIOUR CLASSIFICATION
+================================================================================
+
+--------------------------------------------------------------------------------
+5(a)  READS A USER SETTING -- 19 of 80
+--------------------------------------------------------------------------------
+
+  THE BRIEF ASKED WHETHER CHSett.acs IS ALMOST ENTIRELY THIS. IT IS NOT.
+  Measured: 20 of CHSett.acs's 35 scripts touch a CVar (57%), and 19 of
+  those are pure one-line readers. The other 15 scripts are 11 real
+  gameplay scripts, 3 HUD scripts and 1 detection helper -- and the
+  detection helper and one gameplay script are the two that most obviously
+  do not survive a mechanical "it's just a settings file" dismissal.
+
+  These 19 have no body beyond `SetResultValue(GetCVar("..."))`:
+
+    CH_SpawnSet      CH_AbyssMark     CH_ColorBlind    CH_Red
+    CH_BlackBossy    CH_FireBLUES     CH_GrayScale     CH_Abyssmal
+    CH_Cyan          CH_CyanBounce    CH_Brown         CH_WhiteBossy
+    CH_ExBoss        CH_YellowRev     CH_Intercept     CH_Health
+    CH_BackPack      CH_AmmoUps       CH_Extras
+
+  Of those 19, CH_SpawnSet is DEAD and is filed under 5(d) instead, leaving
+  18 live pure readers. The 19th member of category (a) is RawketTypeCH,
+  which reads CH_Rawket but acts on it rather than returning it; it is
+  documented under 5(b) as well. 18 + 1 = 19.
+
+  ALL EIGHTEEN LIVE READERS ARE TRIVIALLY REPLACEABLE. In ZScript a DECORATE
+  `A_JumpIf(CallACS("CH_Cyan") == 3, "fifty")` becomes
+  `if (CVar.GetCVar("CH_Cyan", players[consoleplayer].mo).GetInt() == 3)`
+  -- or, for a server CVar read outside a player context,
+  `CVar.FindCVar("CH_Cyan").GetInt()`. There is no mechanic here to lose.
+
+  WHAT IS WORTH KEEPING IS NOT THE SCRIPTS BUT THE BRANCH TABLES. What each
+  return value MEANS lives in DECORATE, not in the ACS, and it is not
+  obvious. Recorded here so it does not have to be re-derived:
+
+    CH_WhiteBossy / CH_BlackBossy   1 -> spawn the White/Black actor.
+                                    anything else -> fall through to the
+                                    ordinary tier ladder.
+
+    CH_FireBLUES / CH_GrayScale     1 -> spawn `colourset3`, i.e. re-roll on
+                                    the normal ladder (tier OFF).
+                                    anything else -> spawn the FireBlu/Gray
+                                    actor. NOTE THE INVERSION: 1 is OFF for
+                                    these two, but 1 is ON for White/Black.
+
+    CH_Abyssmal / CH_Cyan / CH_Brown
+                                    1 -> spawn `colourset11`/equivalent
+                                         (tier OFF)
+                                    3 -> A_Jump(128) between OFF and the
+                                         tier actor -- a literal 50% "less
+                                         spawns"
+                                    2 or anything else -> the tier actor.
+
+    CH_ExBoss                       1 -> A_Jump(232,"EX1No"): 232/256 chance
+                                         of the ordinary Black actor, so
+                                         ~9.4% EX. MENUDEF calls this
+                                         "Classic (10%)".
+                                    2 -> A_Jump(128): 50/50.
+                                    3 -> always EX.
+                                    4 or other -> never EX.
+
+    CH_Red                          1 -> the boss variant (e.g. RedArch3)
+                                    2 -> A_Jump(256,"First","Third"), a
+                                         coin flip between boss and non-boss
+                                    else -> the non-boss variant (RedArch2)
+
+    CH_YellowRev                    1 -> "Combat": A_SetSpeed(24), normal
+                                         render style, translation
+                                         YellowRev01 -- a SOLID revenant
+                                    2 -> A_Jump(128) between the two
+                                    0/else -> "Classic": +NOCLIP and four
+                                         SpecialSoul escorts spawned as
+                                         children
+
+    CH_CyanBounce                   1 -> jump to "Dodger" (the reduced
+                                         reaction)
+                                    else -> ThrustThingZ(72) then either a
+                                         backward ThrustThing(18) or, 102/256
+                                         of the time, ThrustThing(90) --
+                                         the big bounce
+
+    CH_Health                       1 Classic (12 bonuses, tapering
+                                      probability), 2 Scarce (4),
+                                      3 A lot (12 at higher probability),
+                                      4 All RNG (12 at random(1,255)),
+                                      else nothing. Applies identically to
+                                      HealthBundle and ArmorBundle.
+
+    CH_BackPack                     1/2/3/4 -> four hand-written backpack
+                                      spawn lists of 14, 16, 30 and more
+                                      entries at differing probabilities;
+                                      else nothing.
+
+    CH_AmmoUps                      1 First, 2 Rare, 3 Dub(le), else nothing.
+
+    CH_Extras                       1 First, 2 Rare, else nothing. Note the
+                                      per-item subclasses invert `Rare` to
+                                      an empty state in some cases -- read
+                                      the specific subclass, not the base.
+
+    CH_Intercept                    TRUE -> jump to the plain
+                                      A_CustomMissile branch. FALSE (the
+                                      default) -> use the ACS intercept
+                                      solver. The menu labels this
+                                      backwards-looking pair "On"=false /
+                                      "Off"=true, which is correct but reads
+                                      wrong at a glance.
+
+    CH_ColorBlind                   1 -> ColorTierIconCH shows its sprite
+                                      frame. else -> the icon actor goes
+                                      straight to Death and shows nothing.
+
+    CH_AbyssMark                    1 -> AbyssShotIdentifier shows and
+                                      shrinks over 30 tics. else -> Stop
+                                      immediately.
+
+--------------------------------------------------------------------------------
+5(b)  REAL GAMEPLAY LOGIC -- 15 of 80.  THIS IS THE SECTION THAT MATTERS.
+--------------------------------------------------------------------------------
+
+  Fifteen scripts change what happens in the world:
+    CybMissile  BaronMissile  RawketTypeCH  MakeScoutCry
+    BrownMindCommand  BrownVileCommand  BrownImpCommand  BrownRevSPEED
+    BrownDinner  BBaronSlow  PERAGE  PESPEED  PEHULK
+    RevBuffEx  RevKillEx
+
+  Plus one function, ProjInt_Brute, which carries more real logic than any
+  of them and is described first.
+
+  FatMissile and ImpMissile are DEAD (5(d)) and are NOT among the fifteen,
+  but their parameters are recorded at the end of this section because if
+  the port ever rebuilds CybMissile/BaronMissile it will want its siblings'
+  numbers, and they exist nowhere else.
+
+  A STRUCTURAL DEFECT SHARED BY EIGHT OF THEM -- READ THIS FIRST.
+    BrownMindCommand, BrownVileCommand, BrownImpCommand, BrownRevSPEED,
+    BBaronSlow, PERAGE, PESPEED, PEHULK and RevBuffEx all open with
+    `int Nope;` and guard their body with `if (Nope == 0)`, setting
+    `Nope = 1` partway through as if it were a re-entrancy lock. It is not.
+    `Nope` is a SCRIPT-LOCAL, zero-initialised on every execution, so the
+    guard always passes and the "lock" is never observed by any other copy
+    of the script. Consequence: a monster that receives the token twice runs
+    two overlapping copies; the second reads the ALREADY-BUFFED value as
+    `normal`, and when the first expires it restores the pre-buff value
+    while the second later restores the buffed one. The base stat drifts.
+    A ZScript rebuild must use a real per-actor field or a Powerup's own
+    stacking rules; do not transliterate the `Nope` pattern.
+
+    BBaronSlow takes this further: its guard reads `if (Nope == 3)`, which
+    with a zero-initialised local is never true. THE SCRIPT'S BODY NEVER
+    EXECUTES. It is called (Barons.txt:270/273/276) and does nothing.
+
+  A SECOND DEFECT -- FIXED-POINT CONFUSION IN THE SPEED BUFFS.
+    APROP_SPEED and APROP_DamageMultiplier are FIXED-POINT properties: 1.0
+    is 65536. Where a script writes a bare integer it is writing 1/65536 of
+    what it appears to write.
+      PESPEED, BrownImpCommand:  SetActorProperty(APROP_SPEED, normal+10)
+        adds 10 raw units = 10/65536 ~= 0.00015 map units per tic.
+        Imperceptible. THE REAL EFFECT OF THESE TWO SCRIPTS IS THE
+        +ALWAYSFAST FLAG (which makes the actor use its FastSpeed) AND, for
+        BrownImpCommand, THE THRUST. Not the arithmetic.
+      BrownRevSPEED:  `normal+7` -- same, and this script sets NO flag and
+        applies NO thrust, so as written it is effectively a 210-tic no-op.
+      BBaronSlow:  `normal*0.5` is an integer multiply by 32768, not a
+        FixedMul -- it would overflow rather than halve. Moot, since the
+        body never runs.
+      RevBuffEx:  sets APROP_SPEED to 18.0 (correct fixed-point) and
+        DamageMultiplier to 1.5 (correct), but RESTORES DamageMultiplier to
+        the integer `1`, i.e. 1/65536. As written, a revenant that receives
+        this buff ends up doing effectively zero damage after the 300 tics
+        elapse. (It restores speed correctly, from the saved value.)
+      PERAGE and the DamageFactor scripts (0.50, 0.65, 0.25) use proper
+        fixed-point literals and are correct.
+
+    THIS IS AN INFERENCE FROM ZDoom's DOCUMENTED APROP SEMANTICS, not
+    something CH states, and it was not verified in-engine. It is stated
+    here with its reasoning so the owner can weigh it. rs_19 described
+    PESPEED as "+10 speed"; that description is repeated in this project's
+    ZScript comments and, on this reading, is wrong about the mechanism
+    while right that the script matters.
+
+  THE THIRTEEN, IN DESCENDING ORDER OF HOW MUCH THERE IS TO REBUILD:
+
+  1. ProjInt_Brute  (miscFuncs.acs:6) -- the function under CybMissile,
+     BaronMissile, FatMissile and ImpMissile. Not a script, but it is the
+     single largest piece of real logic in CH's ACS and nothing else here
+     comes close.
+     WHAT IT DOES. Solves for the time-of-flight `t` at which a projectile
+     of fixed speed `spd`, launched from the shooter, will meet a target
+     that keeps its current velocity. It does this by BRUTE-FORCE SEARCH,
+     not algebra:
+       - Establishes shooter TID and target TID, minting UniqueTIDs and
+         restoring the originals afterwards if it had to.
+       - Reads shooter XYZ and angle; applies `zoff` to Z, then `xoff`
+         laterally (along angle -/+ 90 degrees depending on sign) and
+         `yoff` forward/back.
+       - Reads target XYZ + 36.0 (an eye-height offset; a commented line
+         records 26.5 as the value that matches ZDoom's own
+         Thing_ProjectileIntercept) and target velocity. IF THE TARGET
+         LACKS +NOGRAVITY, Z VELOCITY IS ZEROED -- gravity-bound targets are
+         predicted as if they will not rise or fall.
+       - Then six successive refinement passes over `t`: pass 0 starts at
+         t=1.0 with step 10.0 and 40 samples; pass 1 uses step 1.0 and 10
+         samples, and BAILS OUT ENTIRELY if the best t so far exceeds 400.0
+         ("stop trying to get closer if it's out of range, it's just a
+         waste"); passes 2-4 use steps 0.1, 0.01, 0.001 with 10 samples;
+         pass 5 uses a step of ONE RAW UNIT with 66 samples. Each pass
+         re-centres on the best t found and keeps the sample minimising
+         |spd - required_speed|.
+       - `input_t` overrides the solved t entirely -- this is how FatMissile
+         makes its second shot use the first shot's solution so the pair
+         stays coherent.
+       - `rand` requests a randomised solution. NOTE A BUG: the branch reads
+         `if(rand){ random(1, sml_t); }` -- the random value is DISCARDED,
+         never assigned to `t`, so `t` keeps whatever it held. The
+         randomised path therefore does not randomise.
+       - Applies the after-offsets axoff/ayoff/azoff (note axoff SUBTRACTS
+         where xoff ADDED), then `angoff` rotates the final velocity vector
+         -- and applies angoff TWICE, once to p_ang and once inside the
+         cos/sin, so the effective rotation is 2*angoff.
+       - Spawns the projectile, sets its target pointer to the shooter (so
+         it does not collide with it) and its tracer to the victim,
+         positions it, sets its angle and its full XYZ velocity, then
+         restores the borrowed TIDs and returns `t`.
+
+  2. BrownImpCommand -- pack mobility buff, 180 tics. Non-boss only.
+     +ALWAYSFAST, a horizontal ThrustThing at a random angle with force
+     1-12, a ThrustThingZ with force 1-12 in a random vertical direction,
+     then restore. Thrown by Brown Imps, Brown Demons, Brown Spectres and
+     Brown Cacos at 200-320 units. It scatters and hastens the pack.
+
+  3. BrownMindCommand -- pack DEFENSIVE buff, 300 tics. Non-boss only.
+     DamageFactor 0.50 (half damage taken), +ALWAYSFAST, and the same random
+     scatter thrust. Thrown by the Brown Mastermind at 732 units. The
+     delivering item is called ShieldUpMind and the Mastermind also spawns
+     four BrownMindBone1 children alongside it.
+
+  4. BrownVileCommand -- pack DEFENSIVE buff, 300 tics. Non-boss only.
+     DamageFactor 0.65, random scatter thrust, no flag change. Thrown by the
+     Brown Archvile at 420 units; the delivering item also spawns four
+     BrownVileRock4 children with SXF_SETMASTER.
+
+  5. PEHULK -- single-target defensive transformation, 600 tics.
+     Non-boss only. DamageFactor 0.25 plus three flag changes:
+     +QUICKTORETALIATE, -NODROPOFF (it will now walk off ledges) and
+     +DONTTHRUST (it stops being knocked around). Delivered by HulkBuffPE
+     from thepains.txt:3004 at 526 units, filtered to exclude WhitePE2 and
+     species PE.
+     NOTE THE RESTORE IS NOT A RESTORE. At the end it clears
+     QUICKTORETALIATE, sets NODROPOFF and clears DONTTHRUST unconditionally
+     -- so a monster that natively had any of those loses it permanently.
+     Same shape of bug in PESPEED (clears ALWAYSFAST at the end) and
+     BrownMindCommand.
+
+  6. PERAGE -- single-target offensive buff, 600 tics. Non-boss only.
+     +NOPAIN and DamageMultiplier 1.5. The one buff whose arithmetic is
+     entirely correct. Delivered by RageBuffPE from thepains.txt:3000 at
+     526 units.
+
+  7. PESPEED -- pack speed buff, 600 tics. Non-boss only. +ALWAYSFAST (the
+     real effect) plus the ineffective `normal+10`. This is the script
+     rs_19 identified as the case that surfaced the whole problem; the six
+     A_RadiusGive sites are listed in 4.1.
+
+  8. BrownDinner -- an UPWARD LAUNCH applied to the Mastermind's target,
+     which in practice is usually the player. +FLOAT, then
+     ThrustThingZ(0, 30, up, additive) -- 30 in ThrustThingZ's eighths-of-a-
+     unit scale, so 3.75 units per tic upward -- held for 30 tics, then
+     -FLOAT and the victim drops. Delivered by A_GiveInventory to
+     AAPTR_TARGET at MASTERMINDS.txt:238. THE ONLY SCRIPT IN CH's ACS THAT
+     DELIBERATELY TARGETS THE PLAYER.
+
+  9. RevKillEx -- `thing_damage(0, 999999)`. Instantly kills whoever
+     receives the PowerRevEx token. Fired from the Black Revenant EX's Death
+     state via A_RadiusGive at radius 9999 with RGF_MONSTERS|RGF_NOSIGHT.
+     INTENT vs LETTER: the call passes "BlackRevex3" in the filter slot, but
+     neither RGF_EXFILTER nor RGF_INCLUSIVEFILTER is set. On the reading
+     that GZDoom ignores the filter argument unless one of those flags is
+     present, this kills EVERY monster within 9999 units when the EX
+     Revenant dies -- effectively a map-wide wipe. On the reading that the
+     filter applies anyway, it kills only the EX Revenant's shadows.
+     I DID NOT VERIFY WHICH. The shadow actor (BlackRevEx2's minion, the
+     "Black Knight's shadow") independently checks
+     `A_JumpIfInventory("PowerRevEx",1,"Death")` in its See loop
+     (Revenants.txt:4261, 4265), which strongly suggests the INTENT is
+     "clean up my summons", but the DECORATE as written does not say that.
+     Flagged for the owner rather than resolved.
+
+ 10. RevBuffEx -- Black Revenant EX self/ally buff, 300 tics. Speed 18.0
+     and DamageMultiplier 1.5. Fired from the EX Revenant's PAIN state via
+     A_RadiusGive at radius 2800 -- so hurting it buffs the room. Carries
+     the integer-`1` restore bug described above.
+
+ 11. BBaronSlow -- intended as a projectile slow. Delivered with
+     RGF_MISSILES (not RGF_MONSTERS) from the Black Baron's attack at radii
+     64/84/64, so the recipients are PROJECTILES. As written the body never
+     executes; the intended effect was to halve APROP_SPEED for 210 tics.
+     A port that wants the mechanic has to write it fresh -- there is no
+     working behaviour here to copy.
+
+ 12. BrownRevSPEED -- intended Revenant pack speed buff, 210 tics. As
+     written, no observable effect (see the fixed-point note). Delivered
+     from Revenants.txt:113/121 at radius 256 and :158 at radius 1200.
+
+ 13. RawketTypeCH -- sets the activating rocket's damage type to "Normal"
+     when CH_Rawket == 1. Because Rocket2 `replaces rocket`, this runs once
+     for every rocket fired by anyone, player included. Rocket2's declared
+     DamageType is "Fire"; this script is the switch that turns that off.
+     Also counted in 5(a).
+
+ 14. MakeScoutCry -- decides which weapon a drop turns into. It probes for
+     DoomRL Arsenal by SpawnForced-ing an "RLArsenalThingo" at the map
+     origin on a UniqueTID and immediately Thing_Removing it; success
+     latches a map-scope bool and the script returns it thereafter. The
+     caller (ScootDropChecker, and by inheritance implyingclip) then drops
+     RLChaingunPickup / RLClip instead of Chaingun / CH_Clip.
+     IT IS CLASSIFIED AS GAMEPLAY, NOT AS A HELPER, because it spawns and
+     removes a real actor in the level and it changes what item the player
+     picks up. Two defects worth noting: the latch never re-checks once
+     true, and if the probe FAILS the script re-runs the whole spawn-and-
+     remove on every subsequent drop rather than caching the negative.
+
+  ITEM 1 IS A FUNCTION, SO ITEMS 2-14 ARE ONLY 13 OF THE 15 SCRIPTS. The
+  remaining two -- CybMissile and BaronMissile -- are thin wrappers around
+  item 1 and are covered by the parameter block below, together with their
+  two dead siblings.
+
+  THE FOUR MISSILE SCRIPTS, PARAMETERS PRESERVED (two live, two dead):
+     CybMissile:  ProjInt_Brute(0,0, 20.0, 0, xoff=-25.0, yoff=1.0,
+                  zoff=60.0, "Rocket", 0,0,0,0, rand, 0)
+     BaronMissile: speed 20.0 if sv_fastmonsters else 15.0, offsets
+                  xoff=16.0 yoff=1.0 zoff=32.0, "BaronBall"
+     ImpMissile:  speed 20.0 if sv_fastmonsters else 10.0, same offsets,
+                  "DoomImpBall"                              [DEAD]
+     FatMissile:  two shots, speed 20.0, zoff=28.0, "FatShot",
+                  axoff=+/-28.0, ayoff=14.0, angoff +0.015625 / 0 /
+                  -0.015625 depending on `which`; the second shot is fed the
+                  first shot's returned `t` so the pair converges.  [DEAD]
+
+--------------------------------------------------------------------------------
+5(c)  PRESENTATION -- 44 of 80
+--------------------------------------------------------------------------------
+
+  All 41 Announcers.acs scripts (section 2.3), plus DirectionMind1/2/3.
+  41 + 3 = 44. HudMessage only. No sound, no gameplay effect.
+
+  FORTY of the 41 are boss-spawn banners fired from the spawning monster's
+  own state. THE ONE EXCEPTION:
+    CybieSpecialKill -- fired from `Death.Telefrag` on BlackCybie2
+      (CYBIES.txt:3529) and RedCybie (CYBIES.txt:4372). It is the "you
+      telefragged the boss" line, "Wow. Way to be anticlimatic". The
+      RedCybie site also calls A_KillMaster immediately afterwards, which
+      IS gameplay, but that is DECORATE and not part of the script.
+
+  TWELVE of the 40 banners fire from two actors each -- normally a monster
+  and its EX or "Old" variant -- so the same line can appear for two
+  different spawns. They are listed with both actors in the caller map.
+
+  DirectionMind1, DirectionMind2, DirectionMind3 -- HUD messages using the
+  EYETARG1/2/3 fonts as a directional indicator (a "the psychic is over
+  there" arrow, on the evidence of the font names and the carrier actors
+  called EyeSeePsychic). See 4.1: their carrier actors are never given to
+  anyone, so they never run. Their intended trigger is not determinable.
+
+  Plus, arguably, the two CVar readers that gate purely cosmetic actors
+  (CH_ColorBlind for the tier icons, CH_AbyssMark for the shot markers) --
+  but those are one-line CVar readers and are filed under (a), where they
+  belong structurally.
+
+  rs_19's decision stands: this layer is not ported. What is worth taking
+  from it is the FORM (one line, tier-coloured, HUDMSG_FADEINOUT with a log
+  copy, y between 140 and 330, 3.5s hold / 1.0s fade), for whenever RS
+  builds its own encounter announcements.
+
+--------------------------------------------------------------------------------
+5(d)  DEAD -- 3 of 80 scripts, 113 of 117 functions
+--------------------------------------------------------------------------------
+
+  THE THREE DEAD SCRIPTS. Proof of death for each: an exhaustive
+  case-insensitive, unanchored search for the bare name across
+  CH\DECORATE.txt, all 17 files in CH\decorate\, and every other text lump
+  in the CH tree (Bloods.txt, Gibs.txt, TRNSLATE.txt, CVARINFO.txt,
+  MENUDEF.txt, SNDINFO.txt, LOADACS.txt, and the three .dat files) returns
+  NOTHING but the definition line in source\. There is no numeric
+  ACS_Execute anywhere in CH that could reach them by ID.
+
+    FatMissile    CHACS.acs:17   only hit: source/CHACS.acs:17
+    ImpMissile    CHACS.acs:44   only hit: source/CHACS.acs:44
+    CH_SpawnSet   CHSett.acs:4   only hit: source/CHSett.acs:4
+
+    CH_SpawnSet is doubly orphaned: the CVar it reads,
+    CH_spawnmultiplier, is the only entry in CVARINFO.txt with no MENUDEF
+    option. Nothing sets it and nothing reads the result.
+
+    FatMissile and ImpMissile are the interesting pair -- their siblings
+    CybMissile and BaronMissile ARE called. CH gave the Mancubus and the Imp
+    an intercept attack and then never wired it up. A port that omits them
+    is not losing behaviour; it is matching CH.
+
+  THE 113 UNREACHABLE FUNCTIONS. Computed by call-graph reachability from
+  all 80 scripts. Only ProjInt_Brute and the three helpers it calls (abs,
+  sq, FixedAngMod) are reachable.
+
+  BE PRECISE ABOUT WHAT THIS MEANS. commonFuncs.acs and mathFuncs.acs are
+  general-purpose `#library` exports -- a third-party library CH bundles,
+  not code CH wrote for this mod. Other libraries CAN import and call them,
+  and CHP's commonFuncs2.acs is the same family. Within CH nothing does.
+  The correct port conclusion is: DO NOT PORT THE LIBRARY. Port the four
+  reachable pieces, and reach for a ZScript equivalent the day some other
+  script actually needs one of the other 113 -- which, in CH, is never.
+
+  The 113, for completeness (grouped as in section 3):
+    itof ftoi sign randSign mod pow powFloat gcf min max middle percFloat
+    percFloat2 inRange intcmp roundZero roundAway intFloat sqrt_i zan_sqrt
+    magnitudeTwo magnitudeTwo_f magnitudeThree magnitudeThree_f quadPos
+    quadNeg quad quadHigh quadLow quadSlope HeightFromJumpZ JumpZFromHeight
+    distance distance_tid distance_ftoi actorVelMagnitude packShorts
+    leftShort rightShort adjustBottom adjustTop adjustShort keyUp keyUp_any
+    keyDown keyDown_any keysPressed keyPressed keyPressed_any inputUp
+    inputUp_any inputDown inputDown_any inputsPressed inputPressed
+    inputPressed_any getDirection cleanString cvarFromString padStringR
+    padStringL changeString sliceString zand_strcmp strstr lower upper
+    strLower strUpper saveCVar defaultCVar saveStringCVar loadStringCVar
+    Zand_GetCVarFixed unusedTID getMaxHealth giveHealth giveHealthFactor
+    giveHealthMax isDead onGround ThingCounts PlaceOnFloor isInvulnerable
+    defaultTID _defaulttid AddActorProperty HasRoom spawnDistance
+    AddAmmoCapacity SetInventory ToggleInventory GiveAmmo GiveActorAmmo
+    isAmmo RaiseAmmoCapacity isSinglePlayer isLMS isCoop isInvasion
+    isFreeForAll isTeamGame PlayerTeamCount ClientCount RealPlayerCount
+    cond condTrue condFalse printDebugInfo arcsin arccos arctan t_ang
+    -- 113.
+
+================================================================================
+6.  THE CVAR LIST
+================================================================================
+
+  Twenty CVars in CH\CVARINFO.txt. Nineteen have a MENUDEF option; one does
+  not. All are `server` scope, so in a ZScript port they belong in
+  CVARINFO as `server` too if the same multiplayer behaviour is wanted.
+
+  cvar (default)            menu label                    value table
+  ------------------------  ----------------------------  --------------------
+  CH_spawnmultiplier (1.00) *** NO MENU ENTRY ***          float
+     server float. Read only by CH_SpawnSet, which nothing calls. Dead end
+     to end.
+
+  CH_Intercept (false)      "Intercepting missiles"       MonsterAim
+     false = "On", true = "Off". Sub-caption: "Can Cybie & Baron Aim where
+     you go?"  Note this is an OptionString, not an OptionValue.
+
+  CH_ColorBlind (0)         "Colour Blind Mode"           GrayScaleCH
+     0 = Off, 1 = On. Caption: "Makes enemies emit icons to tell their
+     tier". The table is named GrayScaleCH but has nothing to do with the
+     gray tier -- a misnomer in CH, not a mistake here.
+
+  CH_Rawket (1)             "Rocket Fire Damage"          RawketFire
+     1 = Off, 2 = On. Caption: "Keep off if using vanilla weapons".
+     Default 1 means rockets are forced to damage type Normal.
+
+  CH_NerfRedBoss (1)        "Red Monster Specials"        RedNerf
+     1 = "Always Boss", 2 = "Randomize", 3 = "Never Boss".
+     Caption: "Only affects Archvile and Baron".
+
+  CH_YellowRev (0)          "Orange Revenant Special"     YellowRevNerf
+     0 = "Classic (noclip)", 1 = "Combat (collision)", 2 = "random".
+     Caption: "For slaughter maps, might want to put on combat".
+
+  CH_BlackBoss (1)          "Black spawns"                BackInBlack
+     1 = On, 2 = Off.
+
+  CH_WhiteBoss (1)          "White spawns"                WhiteGuy
+     1 = On, 2 = Off.
+
+  CH_EXBoss (1)             "EX bosses"                   ExBossy
+     1 = "Classic (10%)", 2 = "50/50", 3 = "Always", 4 = "Never".
+
+  CH_HealthDrops (1)        "Health & Armor Bonuses"      CHDrops1
+     1 Classic, 2 Scarce, 3 A lot, 4 All RNG, 5 None.
+     Caption: "Only affects bundle drops".
+
+  CH_BackPackDrops (1)      "Boss Extra Backpacks"        CHBPDrops
+     1 Classic, 2 RNG fest, 3 A lot, 4 Scarce, 0 None.
+     Caption: "How rewarding are the backpack drops from bosses?"
+
+  CH_AmmoDrops (1)          "Extra Ammo drops"            CHAmmoDrops
+     1 Classic, 2 Rare, 3 Double, 0 Nothing.
+     Caption: "Effects mostly drops from non formers".
+
+  CH_ExtraDrops (1)         "Other Bonus Drops"           CHExtraDrops
+     1 Classic, 2 Lowered Chance, 0 Nothing.
+     Caption: "Drops such as berserk packs and power ups".
+
+  CH_FireBLU (1)            "FireBlu Monsters"            FireBluBrothers
+     1 = Off, 2 = On. Caption: "FireBlu are AoE focused enemies".
+
+  CH_Gray (1)               "Gray monsters"               GrayGuya
+     1 = Off, 2 = On. Caption: "Grays are Awareness focused enemies".
+
+  CH_Abyss (1)              "Abyss monsters"              Abysmal
+     1 = Off, 2 = "On, with classic spawn", 3 = "On, but less spawns".
+     Caption: "Abyss Are Extra challenging enemies".
+
+  CH_AbyssMark (0)          "Abyss shot extra markers"    AbyssMarkers
+     0 = Off, 1 = On.
+
+  CH_Cyan (1)               "Cyan monsters"               CyanCy
+     1 = Off, 2 = "On, with classic spawn", 3 = "On, but less spawns".
+     Caption: "Cyan enemies are slippery dodging foes with ice".
+
+  CH_CyanBounce (0)         "Cyan monster bounciness"     CyanBounciness
+     0 = Classic, 1 = Less Bounce.
+
+  CH_Brown (1)              "Brown Monsters"              BrowniePoints
+     1 = Off, 2 = "On, with classic spawn", 3 = "On, but less spawns".
+     Caption: "Brown enemies support & distrupt".
+
+  MENU STRUCTURE, if the owner wants the same shape.
+    MENUDEF adds one line to the stock OptionsMenu:
+      StaticText " " then SubMenu "Colourful Hell Options" -> "Colourful Hell"
+    The "Colourful Hell" menu is titled "COLOURFUL SETTINGS" and orders the
+    options exactly as listed above, with StaticText spacers between groups
+    and three trailing notes:
+      "Note: Certain monsters have specific drops"
+      "Which are not affected by these options"
+      "Boss monsters always drop atleast 1 backpack"
+    It then declares a group header "Optional monsters" before the five
+    tier toggles, closing with:
+      "These are optional not straight defined"
+      "monster tiers that are for extra challenge"
+    Two sub-menus hang off it:
+      "InfoColorIcon" -- titled "Short and simple", a pure legend for the
+        colour-blind icons: BASIC I..VI = Common/Green/Blue/Purple/Orange/
+        Red; BOSS Normal Skull = Black, Horned Skull = White; OPTIONAL
+        FB = FireBlue, G = Gray, A = Abyssal, C = Cyan, B = Brown.
+      "OtherModsCH" -- titled "TO ARMS, MEN!", which only forwards to the
+        "LegenDoom" and "DoomRLA" menus. Those menus are NOT defined in
+        CH's MENUDEF; they come from those mods. If neither is loaded the
+        submenu leads nowhere.
+
+  ENGINE / ZANDRONUM CVARS ALSO READ BY THIS ACS, for completeness:
+    sv_fastmonsters   -- CHACS.acs:47 and :57, chooses missile speed.
+                         THE ONLY ENGINE CVAR READ BY LIVE CH CODE.
+    sv_doubleammo, lastmanstanding, teamlms, cooperative, invasion,
+    survival, terminator, duel, deathmatch, possession, teamplay, teamgame
+                      -- all in commonFuncs.acs, all in functions that are
+                         unreachable from CH. Listed so a future search for
+                         "what CVars does CH read" does not report them as
+                         live.
+
+================================================================================
+7.  PORTING NOTE PER GAMEPLAY SCRIPT
+================================================================================
+
+  One line each for all fifteen scripts in 5(b), plus ProjInt_Brute.
+  Grouped where the same rebuild covers several.
+
+  ProjInt_Brute
+     Do NOT port the brute-force search. ZScript has the algebra: solve the
+     quadratic |targetPos + targetVel*t - shooterPos| = spd*t for t
+     (a*t^2 + b*t + c with a = |tv|^2 - spd^2, b = 2*dot(rel, tv),
+     c = |rel|^2), take the smaller positive root, and aim at
+     targetPos + targetVel*t. Six refinement passes and 146 samples become
+     one sqrt. Preserve the QUIRKS deliberately or drop them deliberately,
+     but decide: the +36 unit eye offset, the zeroing of target Z velocity
+     for non-NOGRAVITY targets, and the 400-unit bail-out are all
+     behaviour the player feels. The `rand` path is a no-op in CH (the
+     random value is discarded) -- do not reproduce the bug, and if a
+     spread is wanted, add it explicitly. This project already has
+     RS_MonsterAim per rs_19; check it against this description before
+     assuming it matches.
+
+  CybMissile / BaronMissile / FatMissile / ImpMissile
+     These are four thin wrappers around the above with different speeds,
+     offsets and projectile classes. In ZScript they are four calls to one
+     shared `A_LeadingMissile(class, speed, xoff, yoff, zoff, angoff)`
+     helper on the monster base class, not four functions. Two of the four
+     are dead in CH; port the two live ones and keep the dead pair's
+     parameters in a comment.
+
+  PESPEED / BrownImpCommand / BrownRevSPEED  (the speed family)
+     A Powerup subclass with a duration and, in the ZScript port, an
+     explicit speed multiplier -- NOT an additive raw number. Give the
+     powerup a real `Speed` factor rather than trying to reproduce
+     ALWAYSFAST; +ALWAYSFAST on a monster mid-fight is a blunt instrument
+     and ZScript can set `Speed` directly with a saved original on the
+     actor. Duration 600 / 180 / 210 tics respectively. Use the Powerup's
+     own stacking behaviour instead of the broken `Nope` guard, and restore
+     from a per-actor saved field so overlapping applications cannot drift
+     the base stat. BrownImpCommand additionally needs the two thrusts:
+     `Thrust(frandom(1,12), random(0,359))` and a Z velocity kick.
+
+  PERAGE
+     Powerup with a 600-tic duration that sets DamageMultiplier 1.5 and
+     +NOPAIN, restoring both from saved values. The most faithful of the
+     family -- port it as written. Remember that CH clears NOPAIN
+     unconditionally at the end; save the original flag state instead.
+
+  PEHULK
+     Powerup, 600 tics, DamageFactor 0.25 plus three flag changes
+     (+QUICKTORETALIATE, -NODROPOFF, +DONTTHRUST). In ZScript, snapshot all
+     three bools on apply and restore the snapshot on expiry rather than
+     CH's unconditional set/clear. This is the one buff whose flags do real
+     work -- DONTTHRUST in particular changes how the monster reads in a
+     firefight.
+
+  BrownMindCommand / BrownVileCommand  (the shield family)
+     Powerup, 300 tics, DamageFactor 0.50 / 0.65. Trivial in ZScript.
+     Keep the four spawned children (BrownMindBone1 / BrownVileRock4) as
+     part of the DELIVERING actor, not the powerup -- in CH they are
+     spawned by the CustomInventory, not by the script, and moving them
+     would change who owns them.
+
+  BrownDinner
+     No clean 1:1: ThrustThingZ's additive semantics and the temporary
+     +FLOAT do not map to a single ZScript call. Build it as a short-lived
+     Powerup on the victim that sets bNOGRAVITY (or bFLOAT) on apply,
+     applies `vel.z += 3.75` once, and clears the flag after 30 tics. The
+     tricky part is that it targets the PLAYER; RS will want to decide
+     whether a monster is allowed to launch the player at all before
+     porting this one. That is a design call, not a porting call.
+
+  RevBuffEx
+     Powerup, 300 tics, Speed 18.0 and DamageMultiplier 1.5. Straight to
+     port EXCEPT: do not reproduce the integer-`1` restore. Restore the
+     saved multiplier. Also note the trigger is the EX Revenant's PAIN
+     state, which in ZScript means overriding the Pain state or hooking
+     DamageMobj -- the latter is cleaner and fires reliably even when
+     PainChance does not.
+
+  RevKillEx
+     One line in ZScript: `recipient.DamageMobj(null, null, 999999,
+     'None')` or simply `A_Die`. The porting question is not HOW but WHO --
+     see 5(b) item 9. Resolve the A_RadiusGive filter question in-engine
+     before building it, because "kills my summons" and "kills everything
+     within 9999 units" are very different features.
+
+  BBaronSlow
+     Nothing to port -- the body never executes. If the mechanic is wanted,
+     it must be designed fresh: a Powerup applied to PROJECTILES (the
+     A_RadiusGive uses RGF_MISSILES) that halves their Speed for 210 tics.
+     ZScript can do that cleanly by iterating a BlockThingsIterator for
+     missiles and scaling their `vel`, which is more direct than an
+     inventory token on a projectile.
+
+  RawketTypeCH
+     Delete it. In ZScript the rocket class reads the CVar in
+     PostBeginPlay and sets its own DamageType, or -- better -- RS defines
+     two rocket classes and picks one at spawn. Running a script per rocket
+     to set one property is the ACS-shaped solution to a problem ZScript
+     does not have.
+
+  MakeScoutCry
+     `bool(PlayerPawn.FindClass("RLArsenalThingo"))` -- or in modern
+     ZScript, `(class<Actor>)("RLArsenalThingo") != null`. No spawn, no
+     removal, no caching needed, no map-scope latch. CH's version spawns and
+     removes a real actor at the map origin to test for a class's existence;
+     ZScript can just ask.
+
+================================================================================
+8.  WHAT I COULD NOT DETERMINE -- STATED RATHER THAN GUESSED
+================================================================================
+
+  1. THE A_RadiusGive FILTER QUESTION (RevKillEx). Whether
+     `A_RadiusGive("PowerRevEx",9999,RGF_MONSTERS|RGF_NOSIGHT,1,
+     "BlackRevex3")` applies the "BlackRevex3" filter without RGF_EXFILTER
+     or RGF_INCLUSIVEFILTER set. This decides whether the Black Revenant
+     EX's death kills its own summons or every monster on the map. It needs
+     the engine, not the source. Same question applies to the PowerRevEx2 /
+     RevBuffEx site at radius 2800.
+
+  2. THE FIXED-POINT READING. Section 5(b) argues that `normal+10` on
+     APROP_SPEED is a no-op and that RevBuffEx's trailing `1` nearly zeroes
+     a revenant's damage. That follows from ZDoom documenting APROP_Speed
+     and APROP_DamageMultiplier as fixed-point, but I did not observe it in
+     game. If it is wrong, PESPEED and BrownRevSPEED are larger buffs than
+     I have described and RevBuffEx has no bug. Everything else in this
+     document is independent of that reading.
+
+  3. WHAT `quad()` IS FOR. commonFuncs.acs:357 evaluates
+     `a*y^2 + b*y + c + y`. The trailing `+ y` makes it not a quadratic
+     evaluation and no caller exists to disambiguate. Recorded as written;
+     not guessed at.
+
+  4. WHY `round` AND `ceil` ARE COMMENTED OUT. `ceil`'s body is
+     `ftoi(toround + (1.0-1))`, which is not a ceiling operation. That is
+     suggestive but it is not proof, and CH leaves no comment.
+
+  5. WHETHER THE 41 ANNOUNCER STRINGS MATTER TO THE OWNER. rs_19 records
+     the decision not to port them. I have preserved their fonts, colours
+     and screen positions here but have NOT transcribed all 41 strings
+     into this document -- they are CH's own writing, they are one line
+     each, and they are three greps away in Announcers.acs if they are ever
+     wanted.
+
+  6. WHY EyeSeePsychic1/2/3 ARE ORPHANED. The three carrier actors exist,
+     are well-formed, and nothing gives them out. Whether this is an
+     abandoned feature or a feature whose delivery lives in a lump I did
+     not open (I searched every text lump in the CH tree, so it would have
+     to be somewhere outside CH entirely) is not determinable from the
+     source.
+
+  7. LOAD-ORDER INTERACTION WITH CHP. CH and CHP both define ACS libraries
+     and CHP's CHSett2.acs contains scripts with overlapping names. Which
+     definition wins at load time, and therefore which body actually runs
+     when a DECORATE actor calls e.g. a shared name, is a load-order
+     question this document does not answer. Every claim above is about
+     CH's own source, read in isolation.
+
+================================================================================
+   END. Read in full and documented: 80/80 scripts, 117/117 functions,
+   338/338 DECORATE call sites, 20/20 CVars.
+   Not opened: CH\acs\*.o, CH\sprites\, CH\graphics\, CH\sounds\,
+   CH\SNDINFO.txt, CH\CREDITS.txt, and the ~2 MB of CH\decorate\ outside
+   the ~40 regions containing ACS call sites.
+================================================================================

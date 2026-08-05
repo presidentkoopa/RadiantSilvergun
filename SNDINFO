@@ -753,3 +753,932 @@ $random rs_foley_fist_straight { rs_foley_fist_straight1 rs_foley_fist_straight2
 
 $volume rs_foley_shotgun_rattle 0.7
 $volume rs_foley_swing 0.8
+
+// =====================================================================
+// RS_Elites -- reveal cues. See docs/rs_25_elites_design.txt.
+// PLACEHOLDER ASSETS, to be replaced once the calls are confirmed firing
+// in game. $limit 0 = unlimited simultaneous instances; the boss sting
+// gets no random pitch variation so it always lands the same.
+// =====================================================================
+rs_elite_loop                Sounds/elites/RSELOOP.ogg
+rs_elite_reveal              Sounds/elites/RSEREVL.ogg
+rs_elite_reveal_boss         Sounds/elites/RSEBOSS.ogg
+$limit rs_elite_reveal       0
+$limit rs_elite_reveal_boss  0
+$pitchshift rs_elite_reveal_boss 0
+
+// =====================================================================
+// MeatGrinder set (RS_PS_) -- logical names referenced by RS_Catalog's
+// SND_PS_* entries. The pack shipped five fire sounds for nine weapons,
+// so several share one; that sharing is the source's own, not a shortcut.
+// =====================================================================
+rs_ps/fist_fire            STGPUMP
+rs_ps/chainsaw_fire        MINIGUN
+rs_ps/machinegun_fire      MGFIRE
+rs_ps/autoshotgun_fire     SGFIRE
+rs_ps/ssg_fire             SSGFIRE
+rs_ps/chaingun_fire        MINIGUN
+rs_ps/rocketlauncher_fire  SGFIRE
+rs_ps/plasma_fire          MGFIRE
+rs_ps/bfg_fire             SSGFIRE
+rs_ps/shotgun_pump         STGPUMP
+
+$volume rs_ps/ssg_fire 0.5
+$volume rs_ps/bfg_fire 0.5
+
+// =====================================================================
+// Streak set (RS_ST_) -- logical names referenced by RS_Catalog's
+// SND_ST_* entries. Imported as PACK resources only: sounds + sprites,
+// no weapon code. Assets live in sounds/rs_st_weapon/.
+// The flame trio (start/loop/stop) is a three-beat set -- a sustained
+// flame attack plays start once, loops the middle, and plays stop on
+// release. $limit 1 on the loops so a held trigger can't stack them.
+// =====================================================================
+rs_st/bfg_fire             rs_st_weapon/BFGFIRE.ogg
+rs_st/bfg_altfire          rs_st_weapon/BFGALT.ogg
+rs_st/bfg_explode          rs_st_weapon/BFGEXPL.ogg
+rs_st/bfg_loop             rs_st_weapon/BFGLOOP.ogg
+rs_st/chaingun_fire        rs_st_weapon/CGFIRE.ogg
+rs_st/chaingun_altfire     rs_st_weapon/CGALT.ogg
+rs_st/chaingun_detonate    rs_st_weapon/CGDET.ogg
+rs_st/explode              rs_st_weapon/EXPLODE.ogg
+rs_st/rocket_fire          rs_st_weapon/RKTFIRE.ogg
+rs_st/rocket_altfire       rs_st_weapon/RKTALT.ogg
+rs_st/rocket_fly           rs_st_weapon/RKTFLY.ogg
+rs_st/rocket_explode1      rs_st_weapon/RKTEXP1.ogg
+rs_st/rocket_explode2      rs_st_weapon/RKTEXP2.ogg
+rs_st/rocket_explode3      rs_st_weapon/RKTEXP3.ogg
+rs_st/minigun_fast         rs_st_weapon/MGFAST.ogg
+rs_st/minigun_slow         rs_st_weapon/MGSLOW.ogg
+rs_st/minigun_spinup       rs_st_weapon/MGSPINU.ogg
+rs_st/minigun_spindown     rs_st_weapon/MGSPIND.ogg
+rs_st/minigun_firepuff     rs_st_weapon/MGPUFF.ogg
+rs_st/flame_start          rs_st_weapon/FLMSTRT.ogg
+rs_st/flame_loop           rs_st_weapon/FLMLOOP.ogg
+rs_st/flame_stop           rs_st_weapon/FLMSTOP.ogg
+rs_st/pistol_fire          rs_st_weapon/PISFIRE.ogg
+rs_st/pistol_altfire       rs_st_weapon/PISALT.ogg
+rs_st/plasma_fire          rs_st_weapon/PLSFIRE.ogg
+rs_st/plasma_altfire       rs_st_weapon/PLSALT.ogg
+rs_st/plasma_explode       rs_st_weapon/PLSEXPL.ogg
+rs_st/arc_fire1            rs_st_weapon/ARCFIR1.ogg
+rs_st/arc_fire2            rs_st_weapon/ARCFIR2.ogg
+rs_st/arc_fire3            rs_st_weapon/ARCFIR3.ogg
+rs_st/arc_fire4            rs_st_weapon/ARCFIR4.ogg
+rs_st/arc_charge           rs_st_weapon/ARCCHRG.ogg
+rs_st/arc_altfire          rs_st_weapon/ARCALT.ogg
+rs_st/arc_fry1             rs_st_weapon/ARCFRY1.ogg
+rs_st/arc_fry2             rs_st_weapon/ARCFRY2.ogg
+rs_st/arc_fry3             rs_st_weapon/ARCFRY3.ogg
+rs_st/shotgun_fire1        rs_st_weapon/SGFIRE1.ogg
+rs_st/shotgun_fire2        rs_st_weapon/SGFIRE2.ogg
+rs_st/shotgun_fire3        rs_st_weapon/SGFIRE3.ogg
+rs_st/shotgun_grenade      rs_st_weapon/SGGREN.ogg
+rs_st/ssg_fire1            rs_st_weapon/SSGFIR1.ogg
+rs_st/ssg_fire2            rs_st_weapon/SSGFIR2.ogg
+rs_st/ssg_altfire          rs_st_weapon/SSGALT.ogg
+rs_st/gyrojet_fire         rs_st_weapon/GYROFIR.ogg
+rs_st/gyrojet_explode      rs_st_weapon/GYROEXP.ogg
+rs_st/punch                rs_st_weapon/PUNCH.ogg
+rs_st/fist_wall            rs_st_weapon/FISTWAL.ogg
+rs_st/hammer_wall          rs_st_weapon/HAMRWAL.ogg
+
+$limit rs_st/flame_loop 1
+$limit rs_st/bfg_loop   1
+$random rs_st/rocket_explode { rs_st/rocket_explode1 rs_st/rocket_explode2 rs_st/rocket_explode3 }
+$random rs_st/shotgun_fire   { rs_st/shotgun_fire1 rs_st/shotgun_fire2 rs_st/shotgun_fire3 }
+$random rs_st/arc_fire       { rs_st/arc_fire1 rs_st/arc_fire2 rs_st/arc_fire3 rs_st/arc_fire4 }
+$random rs_st/arc_fry        { rs_st/arc_fry1 rs_st/arc_fry2 rs_st/arc_fry3 }
+
+
+// =====================================================================
+// COLOURFUL HELL SOUND IMPORT -- 2026-08-05
+// ---------------------------------------------------------------------
+// 716 sound definitions transcribed from CH's own SNDINFO.txt
+//   (E:\New folder\ART SOURCE\CH\SNDINFO.txt)
+// with their 693 lumps copied to sounds/ch/.
+//
+// WHY THIS WAS MISSING FOR EIGHT PORT ATTEMPTS: an unresolved sound name
+// in ZScript/DECORATE is INERT. No error, no warning, no log line -- the
+// monster is simply silent. Every pass transcribed CH's sound STRINGS
+// onto the actors faithfully, and none imported the lumps or these
+// definitions, because nothing in the engine or in this tree can report
+// the difference. The only detector was a human noticing a monster made
+// no noise, which requires already knowing what it should sound like.
+//
+// Entries already defined above are NOT repeated -- 92 of CH's lumps
+// were already in sounds/ and their definitions already present. This
+// block is only what was absent, APPENDED rather than merged, so the
+// diff stays readable and nothing another lane added is disturbed.
+// =====================================================================
+STALR1	VSTALRT1
+STALR2	VSTALRT2
+STATK1	VSTATCK1
+STATK2	VSTATCK2
+STATK3	VSTATCK3
+STDIE1	VSTDETH1
+STDIE2	VSTDETH2
+STIDL1	VSTIDLE1
+STIDL2	VSTIDLE2
+STMEL1	VSTMELE1
+STMEL2	VSTMELE2
+STPAI1	VSTPAIN1
+STPAI2	VSTPAIN2
+STPAI4	VSTPAIN3
+STPAI3	VSTPAIN4
+STSWI1	VSTSWIP1
+STSWI2	VSTSWIP2
+STMIS1	VSTMISS1
+STMIS2	VSTMISS2
+STMIS3	VSTMISS3
+STMIS4	VSTMISS4
+STBAL1	VSTBALL1
+STBAL2	VSTBALL2
+STBAL3	VSTBALL3
+STBAL4	VSTBALL4
+STRPD1	VSTRAPD1
+STRPD2	VSTRAPD2
+STRPS1	VSTRAPS1
+STRPS2	VSTRAPS2
+slgmsee		slgmsee
+slgmdie		slgmdie
+slgmbite	slgmbite
+BROCYBDD	BROCYBDD
+BROCYBA1	BROCYBA1
+BROCYBA2	BROCYBA2
+BROCYBHU	BROCYBHU
+BROCYBHI	BROCYBHI
+CRAWLST1	CRAWLST1
+CRAWLST2	CRAWLST2
+CRAWLST3	CRAWLST3
+SWOOP001	SWOOP001
+SHARPST1	SHARPST1
+DEEPSHO1	DEEPSHO1
+DEEPSHO2	DEEPSHO2
+DEEPSHO3	DEEPSHO3
+WMINDAGR	WMINDAGR
+WMINDSE1	WMINDSE1
+WMINDSE2	WMINDSE2
+WMINDSE3	WMINDSE3
+WMINDSE4	WMINDSE4
+WMINDSE5	WMINDSE5
+WMINDDED	WMINDDED
+monster/incsit                dsincsit
+monster/incdth                dsincdth
+monster/incexp                dsincexp
+monster/incact                dsincact
+monster/incatk                dsincatk
+monster/inchit                dsinchit
+monster/hadsit                dshadsit
+monster/haddth                dshaddth
+monster/hadexp                dshadexp
+monster/hadtel                dshadtel
+monster/hadwlk                dshadwlk
+midstep1	midstep1
+midstep2	midstep2
+midstep3	midstep3
+ICKSTEP1	ICKSTEP1
+ICKSTEP2	ICKSTEP2
+CUCHUM01	CUCHUM01
+MEATIMPB	MEATIMPB
+BONEBR3K	BONEBR3K
+ECHOIMPB	ECHOIMPB
+HEAVIMPB	HEAVIMPB
+PUSHBMIN	PUSHBMIN
+BR0SPIDA	BR0SPIDA
+BR0SPDED	BR0SPDED
+BR0SPS1 	BR0SPS1
+BR0SPS2		BR0SPS2
+BR0SPS3		BR0SPS3
+BR0SPOW1	BR0SPOW1
+BR0SPOW2	BR0SPOW2
+BR0SPOW3	BR0SPOW3
+BBARO002	BBARO002
+BBARO003	BBARO003
+BPinky/Death BPDEATH
+BPinky/Pain BPPAIN
+BPinky/Bite BPBITE
+BPinky/Sight BPSEE
+BPinky/Idle BPGRUMBL
+BPBark	BPBark
+BPBark2 BPBark2
+COCONUTT	COCONUTT
+ELECFATT	ELECFATT
+BASSFFAT	BASSFFAT
+ICKYPEBR	ICKYPEBR
+BLUMINS1	BLUMINS1
+BLUMINS2	BLUMINS2
+BLUMINS3	BLUMINS3
+BLUMINS4	BLUMINS4
+monster/wiksit                  dswiksit
+monster/wikac1                  dswikac1
+monster/wikac2                  dswikac2
+monster/wikatk                  dswikatk
+monster/wikpai                  dswikpai
+monster/wikdth                  dswikdth
+weapons/firmfi                  dsfirmfi
+weapons/firex5                  dsfirex5
+monster/tenpn1                  dstenpn1
+monster/tenpn2                  dstenpn2
+flesh/sight		flspnsit
+flesh/melee		flspnatk
+flesh/pain		flspnhit
+flesh/death		flspndth
+flesh/active		flspnact
+VILEBOI1	VILEBOI1
+ROCKHIT1	ROCKHIT1
+CASTBROW	CASTBROW
+MUFFLE01	MUFFLE01
+MUFFLE02	MUFFLE02
+ATKBROWV	ATKBROWV
+grell/sight     dsgresit
+grell/active    dsgreact
+grell/attack    dsgreatk
+grell/pain      dsgrepai
+grell/death     dsgredth
+grell/thud      dsgrethd
+grell/projhit   dsvulhit
+AUTOBOT1	AUTOBOT1
+AUTOBOT2	AUTOBOT2
+AUTOBOT3	AUTOBOT3
+AUTOBOT4	AUTOBOT4
+BKFuKINV	BKFuKINV
+ELECTRO7	ELECTRO7
+ELECTRO8	ELECTRO8
+FLICKER3	FLICKER3
+AHeadSee	AHeadSee
+AHEADDED	AHEADDED
+HEALSIEL	HEALSIEL
+ROACSIG1	ROACSIG1
+ROACSIG2	ROACSIG2
+ROACSIG3	ROACSIG3
+ROACACT1	ROACACT1
+ROACACT2	ROACACT2
+Roach/Fire	ROACFIRE
+Roach/Hit	ROACHIT
+ROACPAI1	ROACPAI1
+ROACPAI2	ROACPAI2
+Roach/Death	ROACDEAT
+ZQuTag00	ZQuTag00
+ZQuTag01	ZQuTag01
+LICHVOID	LICHVOID
+LICHLMAO	LICHLMAO
+LICHDEAD	LICHDEAD
+LICHENDU	LICHENDU
+LICHPRAY	LICHPRAY
+LICHESCA	LICHESCA
+GRALSEE1	GRALSEE1
+GRALSEE2	GRALSEE2
+GRALHONO	GRALHONO
+GRALWEAK	GRALWEAK
+GRALPITY	GRALPITY
+GRALDEAD	GRALDEAD
+GRALPAI1	GRALPAI1
+GRALPAI2	GRALPAI2
+ROMEBADS	ROMEBADS
+ROMEBITH	ROMEBITH
+ROMEDOOM	ROMEDOOM
+ROMEMOWS	ROMEMOWS
+ROMEATAR	ROMEATAR
+ROMEISSU	ROMEISSU
+ROMERUNF	ROMERUNF
+ROMESORC	ROMESORC
+ROMSTIME	ROMSTIME
+ROMTHISW	ROMTHISW
+ROMENOPE	ROMENOPE
+ROMERHIT	ROMERHIT
+ROMERGOD	ROMERGOD
+ROMSANIT	ROMSANIT
+ROMESHOW	ROMESHOW
+ROMEDSIM	ROMEDSIM
+ROMNAILT	ROMNAILT
+ROMBURNT	ROMBURNT
+ROMETAKT	ROMETAKT
+ROMEHERE	ROMEHERE
+ROMEFUND	ROMEFUND
+ROMDEST0	ROMDEST0
+ROMENUKE	ROMENUKE
+ROMELAFF	ROMELAFF
+ROMSSHOT	ROMSSHOT
+ROMTHATL	ROMTHATL
+ROMKICKS	ROMKICKS
+AHEDATK1	AHEDATK1
+AHEDATK2	AHEDATK2
+AHEDACT1	AHEDACT1
+AHEDACT2	AHEDACT2
+AHEDACT3	AHEDACT3
+AHEDACT4	AHEDACT4
+AHEDPAI1	AHEDPAI1
+AHEDPAI2	AHEDPAI2
+AHEDPAI3	AHEDPAI3
+BETLEOW1	BETLEOW1
+BETLEOW2	BETLEOW2
+BETLEDED	BETLEDED
+BETLEACT	BETLEACT
+BETLESEE	BETLESEE
+BETLEAT1	BETLEAT1
+BETLEAT2	BETLEAT2
+AbyDogSe	AbyDogSe
+abydogac	abydogac
+abydogde	abydogde
+abydoghu	abydoghu
+eatiidle	eatiidle
+eatidown	eatidown
+eatipain	eatipain
+eatirun1	eatirun1
+eatirun2	eatirun2
+eatirun3	eatirun3
+BHKEXSTP	BHKEXSTP
+BLCKHKEX	BLCKHKEX
+STEPACY1	STEPACY1
+STEPACY2	STEPACY2
+STEPACY3	STEPACY3
+STEPACY4	STEPACY4
+STEPACY5	STEPACY5
+ABCYPAI1	ABCYPAI1
+ABCYPAI2	ABCYPAI2
+ABYCYAC1	ABYCYAC1
+ABYCYAC2	ABYCYAC2
+ABYCYAC3	ABYCYAC3
+ABCYATK1	ABCYATK1
+ABCYATK2	ABCYATK2
+ABCYATK3	ABCYATK3
+ABYCYSEE	ABYCYSEE
+ABYCYDIE	ABYCYDIE
+WFATAGRO 	WFATAGRO
+WFATDEAD	WFATDEAD
+WarpHKEX	WarpHKEX
+SYNTPORT	SYNTPORT
+brnaby1		barnaby1
+brnaby2		barnaby2
+brnaby3 	barnaby3
+brnaby4 	barnaby4
+SpidHigh	SpidHigh
+WFATATK1	WFATATK1
+WFATATK2	WFATATK2
+WFATATK3	WFATATK3
+WFATACT1	WFATACT1
+WFATACT2	WFATACT2
+WFATHIT1 	WFATHIT1
+WFATHIT2	WFATHIT2
+WFATHIT3	WFATHIT3
+WFATCRI1	WFATCRI1
+WFATCRI2	WFATCRI2
+WFATCRI3	WFATCRI3
+WFATCRI4	WFATCRI4
+WFATCRI5	WFATCRI5
+ARCAZAP7	ARCAZAP7
+NETHERDE	NETHERDE
+ILLSHEA1	ILLSHEA1
+ILLSHEA2	ILLSHEA2
+PRIEINF1	PRIEINF1
+PRIEINF2	PRIEINF2
+PRIEINF3	PRIEINF3
+CybLow		CybLow
+BWorm/Sight B_SIGHT
+BWorm/Flinch B_FLINCH
+BWorm/Idle B_IDLE
+BWorm/Bite B_BITE
+TWorm/Sight T_SIGHT
+TWorm/Flinch T_FLINCH
+TWorm/Idle T_IDLE
+TWorm/Bite T_BITE
+AWorm/Sight A_SIGHT
+AWorm/Flinch A_FLINCH
+AWorm/Idle A_IDLE
+AWorm/Bite A_BITE
+EWorm/Sight E_SIGHT
+EWorm/Flinch E_FLINCH
+EWorm/Idle E_IDLE
+EWorm/Bite E_BITE
+Worm/Death DEATH
+Worm/Hurt HIT
+Worm/Burrow BURROW
+Worm/Digging DIGGIN
+Worm/Splat SPLAT
+Worm/Rock dspunch
+cacobaldsee  BALDS
+cacobalddeath  BALDD
+cacobaldpain  BALDP
+cacobaldidle1 BALDI
+cacobaldidle2 BALDI2
+cacobaldidle3 BALDI3
+ResistCH	ResistCH
+BEDsee		BEDsee
+BEDpain		BEDpain
+BEDded		BEDded
+WHPEACT		WHPEACT
+WHPEPAIN	WHPEPAIN
+WHPESEE		WHPESEE
+bloodsplat1 dsblud01
+bloodsplat2 dsblud02
+bloodsplat3 dsblud03
+wizard/tele1                    dwiztel1
+wizard/tele2                    dwiztel2
+wizard/pain                     dwizpain
+wizard/sight                    dwizact
+wizard/death                    dwizdth
+Wvile/scream 		            WVILESC2
+WVILEID1 WVILEID1
+wvileid2 wvileid2
+wvileid3 wvileid3
+WVILESC2 WVILESC2
+Bvile/Air1 AirDED
+Bvile/Air2 AirAtkb
+Bvile/Air3 AirAg
+Bvile/Air4 AirHur1
+Bvile/Air5 AirHur2
+Bvile/Air6 AirAg2
+Bvile/Air7 AirHur3
+DSJUGDI1	DSJUGDI1
+DSJUGDI2	DSJUGDI2
+DSJUGDI3	DSJUGDI3
+DSJUGDI4	DSJUGDI4
+DSJUGDI5	DSJUGDI5
+DSJUGPN1	DSJUGPN1
+DSJUGPN2	DSJUGPN2
+DSJUGPN3	DSJUGPN3
+DSJUGPN4	DSJUGPN4
+DSJUGPN5	DSJUGPN5
+DSJUGPN6	DSJUGPN6
+Juggernaut/Thud		DSJUGTHD
+Juggernaut/Attack	DSJUGATK
+Juggernaut/Hit		DSJUGHIT
+Juggernaut/Sight	DSJUGSEE
+Juggernaut/Step	DSJUGSTP
+raiseske	raiseske
+sklsrs1		sklsrs1
+sklsrs2		sklsrs2
+attack1		attack1
+attack2		attack2
+attack3		attack3
+attack4		attack4
+attack5		attack5
+attack6		attack6
+death1 		death1
+death2		death2
+death3		death3
+death4		death4
+death5		death5
+sklsrd1		sklsrd1
+sklsrd2		sklsrd2
+sword1		sword1
+sword2		sword2
+sword3		sword3
+sword4		sword4
+sword5		sword5
+sword6		sword6
+queen/pain quepain
+queen/death quedie
+queen/active queact
+queen/scream bqegg1a
+electricplasma/shoot		PZAPSEE
+electricplasma/hit		PZAPHIT
+queen/hit		qbfghit
+queen/melee		quebit
+monster/tensit                  dstensit
+monster/tenact                  dstenact
+monster/tenatk                  dstenatk
+monster/tenpn1                  dstenpn1
+monster/tenpn2                  dstenpn2
+monster/tenpn3                  dstenpn3
+monster/tendth                  dstendth
+deepone/hurt3  	Yogg3
+deepone/hurt4 	DEEPSTTH
+deepone/melee		DSCLAW
+deepone/stealth		DEEPSTTH
+deepone/fire 	DEEPFIRE
+deepone/firehit 	DEEPFHIT
+Bomb/Bounce  BOUNCE2
+Ratata/Rata1 GNOMEAT
+Bomb/boom SORBLEXP
+Spit/spit SPIT6
+Spit/spit2 CNTSHLD4
+Holy3/holy3 HOLY3
+Holy2/holy2 BISHDTH1
+Bite/bite4 BITE4
+Litn/litn2 LIGTN2
+Litn/litn3 LIGTN3
+monster/hlnsit                  dshlnsit
+monster/hlnact                  dshlnact
+monster/hlnpai                  dshlnpai
+monster/hlndth                  dshlndth
+monster/hlnatk                  dshlnatk
+monster/hlnexp                  dshlnexp
+WSOUL/hurt GEO
+WSOUL/death DARGO
+WSOUL/Sight KRAKK
+WSOUL/form CONSM
+Kawai/death PUMP2
+Kawai/hurt PUMP1
+Kawai/sight PUMP3
+Kawai/active SPIDD
+weapons/devexp                dsdevexp
+weapons/devzap                dsdevzap
+monster/ovlsit                  dsovlsit
+monster/ovlact                  dsovlact
+monster/ovlpai                  dsovlpai
+monster/ovldth                  dsovldth
+monster/hadsit                dshadsit
+monster/haddth                dshaddth
+monster/hadexp                dshadexp
+monster/hadtel                dshadtel
+monster/hadwlk                dshadwlk
+monster/heltel                  dsheltel
+caco/melee                    dsdembit
+weapons/gntidl                dsgntidl
+weapons/chaofi                dschaofi
+weapons/shock                 dsshock
+weapons/hellfi		      dshellfi
+weapons/hellex	              dshellex
+weapons/firex3                dsfirex3
+weapons/suldth                dssuldth
+weapons/diasht                dsdiasht
+weapons/bigbrn                dsbigbrn
+monster/smiths                dssmiths
+monster/smitha                dssmitha
+monster/smitht                dssmitht
+monster/smithp                dssmithp
+monster/smithd                dssmithd
+monster/smithr                dssmithr
+monster/smithw                dssmithw
+monster/hamflr                dshamflr
+monster/hamsht                dshamsht
+monster/dash                  dshdash
+Bcyb/Aggro                   niba1
+weapons/devzap                dsdevzap
+monster/hadsit                dshadsit
+monster/haddth                dshaddth
+monster/hadexp                dshadexp
+monster/hadtel                dshadtel
+monster/hadwlk                dshadwlk
+monster/helpai                dshelpai
+monster/heldth                dsheldth
+monster/heltel                dsheltel
+caco/melee                    dsdembit
+act1			SHDACT1
+act2			SHDACT2
+pain1			SHDPAIN1
+pain2			SHDPAIN2
+Shadow/attack		SHDATTAK
+Shadow/death		SHDDEATH
+Gen/Hurt MALE2
+Gen/huh MALE4
+Gen/See BRUTE3
+DSVOMIT1	DSVOMIT1
+DSVOMIT2	DSVOMIT2
+DSVOMIT3	DSVOMIT2
+SlimeBall/Splat	DSSICKEX
+DSWORMP1	DSWORMP1
+DSWORMP2	DSWORMP2
+slimeworm/sight		DSWORMSE
+slimeworm/death		DSWORMDI
+slimeworm/active	DSWORMID
+Science/Enuff   SCIENU
+Science/Devi   SCISDE
+Sci/atk1   SCIAT1
+Sci/atk2   SCIAT2
+Sci/Hu1   SCIHU1
+Sci/Hu2   SCIHU2
+Science/Die SCIDIE
+BabyCaco/Sight CACOBSIT
+BabyCaco/Pain CACOBPAI
+BabyCaco/Death CACOBDTH
+BabyCaco/Active BABYACT
+BabyCaco/Melee	BABYBITE
+arachnobaron/death dsabrdth
+shadowbeast/attack	BDMATK1
+shadowbeast/death	BDMDTH1
+shadowbeast/idle1	BDMIDL1
+shadowbeast/idle2	BDMIDL2
+shadowbeast/pain	BDMPAN1
+shadowbeast/sight	BDMSIT1
+shadowbeast/pr1death	BDPD1
+shadowbeast/pr1sight	BDPS1
+shadowbeast/pr2death	BDPD2
+shadowbeast/pr2sight	BDPS2
+shadowbeast/spread	BDPSPR
+shadowbeast/spiritsit	BDSPR2
+shadowbeast/spiritdth	BDSPR1
+phantom/spirit1 DSSPIRT1
+phantom/death BUILD
+phantom/bomb FIREBALL
+phantom/explode DSCMTEXP
+GENTLES1	GENTLES1
+monster/brufir dsbrufir
+weapons/hellex dshellex
+monster/dogsit dsdogsit
+monster/dogatk dsdogatk
+monster/dogbit dsdogbit
+monster/dogpai dsdogpai
+monster/dogdt1 dsdogdt1
+monster/dogdt2 dsdogdt2
+monster/dogact dsdogact
+weapons/bigbrn dsbigbrn
+monster/dogsht dsdogsht
+monster/doghit dsdoghit
+WASPDIE1	WASPDIE1
+WASPDIE2	WASPDIE2
+WASPDIE3	WASPDIE3
+WASPDIE4	WASPDIE4
+Hornet/Fly		WASPFLY
+Hornet/Splat	WASPSPLT
+Butcher/Sight	BCHRSIGH
+Butcher/Active	BCHRACTI
+BCHRSTP1	BCHRSTP1
+BCHRSTP2	BCHRSTP2
+BCHRSTP3	BCHRSTP3
+BCHRSTP4	BCHRSTP4
+Butcher/Miss	BCHRMISS
+Butcher/Pain	BCHRPAIN
+Butcher/Death	BCHRDEAT
+Butcher/Explode	BCHREXPL
+BK/Pass BKpass
+BK/Invi BKInvi
+BK/Phase2 BKBones
+BK/die BKdie
+monster/dknhit dsdknhit
+monster/dknsit dsdknsit
+monster/dknpai dsdknpai
+monster/dkndth dsdkndth
+monster/dknswg dsdknswg
+weapons/firex2 dsfirex2
+weapons/boom1 dsboom1
+weapons/boltfi dsboltfi
+weapons/scorch dsscorch
+ZSPCSIG1	ZSPCSIG1
+ZSPCSIG2	ZSPCSIG2
+ZSPCSIG3	ZSPCSIG3
+ZSPCMGN1	ZSPCMGN1
+ZSPCMGN2	ZSPCMGN2
+ZSPCMGN3	ZSPCMGN3
+ZSPCPAI1	ZSPCPAI1
+ZSPCPAI2	ZSPCPAI2
+ZSPCPAI3	ZSPCPAI3
+ZSPCDEA1	ZSPCDEA1
+ZSPCDEA2	ZSPCDEA2
+ZSPCDEA3	ZSPCDEA3
+ZSPCDEA4	ZSPCDEA4
+moloch/grenade dsmolgrn
+moloch/grenexp dsgrexpl
+moloch/scorch dsswoosh
+moloch/scorchhit dsscrexp
+moloch/wraith dswrasee
+moloch/wraithdie dswradth
+moloch/emberexp dsembexp
+moloch/thunder dsmobolt
+moloch/thundercrash dsbolhit
+moloch/flash dsmolfls
+moloch/flashhit dsflshit
+moloch/death dsmoldth
+moloch/thud dsmothud
+moloch/step dsmstep1
+moloch/wraith dsmolwra
+moloch/wraithdie dswradie
+moloch/nail dsmonail
+moloch/wraithattack dswrtchg
+moloch/wraithmelle dswrtatt
+ricochet1 dsnailr1
+ricochet2 dsnailr2
+msight3 dsmolsi3
+mact1 dsmolac1
+mact2 dsmolac2
+mact3 dsmolac3
+mact4 dsmolac4
+mpain1 dsmolpa1
+mpain2 dsmolpa2
+mpain3 dsmolpa3
+mattack2 dsmolat2
+mattack3 dsmolat3
+mattack4 dsmolat4
+moloch/phase2 dsmolat3
+arachnophyte/sight dsaphsit
+arachnophyte/pain1 dsaphpn1
+arachnophyte/pain2 dsaphpn2
+arachnophyte/pain3 dsaphpn3
+arachnophyte/death dsaphdth
+monster/falsit DRAGSIT1
+monster/falpai dsfalpai
+monster/faldth dsfaldth
+monster/falact dsfalact
+monster/falwng dsfalwng
+weapons/firmfi dsfirmfi
+weapons/firex5 dsfirex5
+monster/ar2sit dsar2sit
+monster/ar2dth dsar2dth
+weapons/firbfi dsfirbfi
+weapons/hellex dshellex
+horn/sight		dshrnsit
+horn/attack		woosh3
+horn/shotx		strike1
+horn/death		dshrndie
+cracko/see s_cracko
+cracko/pain p_cracko
+crack/see cracksee
+crack/death crackdth
+fiend/hover		  DSHOVER
+fiend/see		  DSFIEND
+fiend/bfg		  DSFBFG1
+fiend/bfg2		  DSFBFG2
+prox/fire		  DSIGPRXF
+bomb/beep DSBEEEP
+superdemon/death	DSSUPDTH
+superdemon/snarl	DSSUPSNA
+superdemon/crash	DSSUPLND
+aracnorb/sight		dsaracst
+aracnorb/death		dsaracdt
+aracnorb/attack		dsaracfr
+aracnorb/melee		dsaracml
+monster/infsit dsinfsit
+monster/infpai dsinfpai
+monster/infdth dsinfdth
+caco/melee2 dsdembit
+weapons/firmfi dsfirmfi
+weapons/firex3 dsfirex3
+monster/diasit dsdiasit
+monster/diapai dsdiapai
+monster/diadth dsdiadth
+monster/diaact dsdiaact
+weapons/firbfi dsfirbfi
+weapons/firmfi dsfirmfi
+weapons/diasht dsdiasht
+weapons/firex3 dsfirex3
+PE2/Die  D64PED1
+PE2/Hurt  D64PEHU
+PE2/See  D64PESE
+ClericFlameFire         dshellfi
+ClericFlameExplode      dshellex
+ClericFlameCircle       dsfirex5
+blooddemon/sight DSBLDSIT
+blooddemon/pain DSBLDPAI
+blooddemon/death DSBLDDTH
+blooddemon/active DSBLDACT
+blooddemon/melee DSBLDATK
+blooddemon/walk DSBLDWAL
+superbaron/scream dssbsit
+superbaron/pain dssbpain
+superbaron/death dssbdth
+superbaron/act dssbact
+Fire/fire1 FIREBFL
+Fire/fire2 FIERR
+Fire/fire3 FIERFLY
+monster/demsit dsdemsit
+Spell/Impact1 FUNGL1
+Spell/Lightn GNTACT1
+Frost/frost 1FROSTY2
+Wraith/Wraith1 RAITH3
+Wraith/Wraith2 RAITH5A
+Wraith/Wraith4 RAITH4A
+Wraith/Wraith3 RAITH1B
+Wraith/Wraith5 RATHDTH2
+CacoFlame/Attack LICHFLAM
+CacoLich/Sight INSSIT
+CacoLich/Active DSTRTACT
+CacoLich/Pain NESSPN
+CacoLich/Death DSDMDETH
+CGUY2/See D64FORME
+CGuy2/Die D64FORD3
+SGuy2/See2 D64FORMS
+HK2/Die  D64BAROD
+HK2/See  D64BAROS
+HK2/hurt D64BAROH
+Ice/Fly VORTEX
+Ice/Cast ICECAST
+Ice/inhale ETH
+Ice/Breath ETH2
+Ice/Splode FROSTNN
+FRGOATK1	FRGOATK1
+FRGOATK2	FRGOATK2
+FRGOATK3	FRGOATK3
+FRGOACT1	FRGOACT1
+FRGOACT2	FRGOACT2
+FRGOACT3	FRGOACT3
+FRGOACT4	FRGOACT4
+FRGOPAI1	FRGOPAI1
+FRGOPAI2	FRGOPAI2
+FRGOPAI3	FRGOPAI3
+FRGODEA1	FRGODEA1
+FRGODEA2	FRGODEA2
+FRGODEA3	FRGODEA3
+incubus/sight			dsincsit2
+incubus/attack1			dsincat1
+incubus/attack2			dsincat2
+incubus/pain			dsincpai
+incubus/death			dsincdth2
+incubus/active			dsincact2
+incubus/shot			dsincsht
+incubus/hit			dsinchit2
+weapons/hominglaunch		dshomlnc
+weapons/homingexplode		dshomxpl
+dsinwlk1	dsinwlk1
+dsinwlk2	dsinwlk2
+dsinwlk3	dsinwlk3
+dsinwlk4	dsinwlk4
+incubus2/sight			dsgicsit
+incubus2/attack1	        dsgicat1
+incubus2/attack2		dsgicat2
+incubus2/pain			dsgicpai
+incubus2/death			dsgicdth
+incubus2/active			dsgicact
+dsgiwlk1	dsgiwlk1
+dsgiwlk2	dsgiwlk2
+dsgiwlk3	dsgiwlk3
+dsgiwlk4	dsgiwlk4
+dsflbxp1        dsflbxp1
+dsflbxp2        dsflbxp2
+dsflbxp3        dsflbxp3
+
+// --- CH $-directives ($random / $alias / $limit / $pitchshift) ---
+// 88 of them. MISSED BY THE FIRST PASS OF THIS IMPORT: the filter
+// skipped every line beginning with $, which is exactly how CH
+// declares its multi-take sound sets. $random Foo { A B } DEFINES
+// the name Foo -- dropping these left names like genEx/see and
+// Science/Atk unresolved even though their lumps had been copied.
+$random	Obsidian/Alert { STALR1 STALR2 }
+$random	Obsidian/Attack { STATK1 STATK2 STATK2 }
+$random Obsidian/Death { STDIE1 STDIE2 }
+$random Obsidian/Idle { STIDL1 STIDL2 }
+$random Obsidian/Melee { STMEL1 STMEL2 }
+$random Obsidian/Pain { STPAI1 STPAI2 STPAI3 STPAI4 }
+$random Obsidian/Swipe { STSWI1 STSWI2 }
+$random Obsidian/Missile { STMIS1 STMIS2 STMIS3 STMIS4 }
+$random Obsidian/Impact { STBAL1 STBAL2 STBAL3 STBAL4 }
+$random Obsidian/TrapDeath { STRPD1 STRPD2 }
+$random Obsidian/TrapSpawn { STRPS1 STRPS2 }
+$random  brownCybie/step { CRAWLST1 CRAWLST2 CRAWLST3 }
+$random  brownCybie/DeepShot { DEEPSHO1 DEEPSHO2 DEEPSHO3 }
+$random  WMIND/IDLE { WMINDSE1 WMINDSE2 WMINDSE3 WMINDSE4 WMINDSE5 }
+$random  brownBaron/step { midstep1 midstep2 midstep3 }
+$random  brownMind/step { ICKSTEP1 ICKSTEP2}
+$random  brownMind/Angry { BR0SPS1 BR0SPS2 BR0SPS3 }
+$random  brownMind/ouch { BR0SPOW1 BR0SPOW2 BR0SPOW3 }
+$random Barks { BPBark BPBark2 }
+$random  bluemind/step { BLUMINS1 BLUMINS2 BLUMINS3 BLUMINS4 }
+$random monster/wikact		{ monster/wikac1    monster/wikac2 }
+$Random BrownDemon/Step { AUTOBOT1 AUTOBOT2 AUTOBOT3 AUTOBOT4 }
+$Random Roach/Sight { ROACSIG1 ROACSIG2 ROACSIG3 }
+$Random Roach/Active { ROACACT1 ROACACT2 }
+$Random Roach/Pain { ROACPAI1 ROACPAI2 }
+$random Lich/Cast { LICHENDU LICHPRAY LICHESCA }
+$random GenEx/See { GRALSEE1 GRALSEE2 }
+$random GenEx/pain { GRALPAI1 GRALPAI2 }
+$random Rome/see { ROMEBADS ROMEBITH }
+$random Rome/Act { ROMEDOOM  ROMEMOWS  ROMEATAR  ROMEISSU  ROMERUNF }
+$random Rome/Ded { ROMESORC ROMSTIME  }
+$random Rome/PH2 { ROMENOPE ROMERHIT ROMTHISW }
+$random Rome/PH3 { ROMERGOD ROMSANIT }
+$random Rome/ATK1 { ROMESHOW ROMEDSIM ROMNAILT ROMBURNT ROMETAKT ROMEHERE ROMEFUND }
+$random Rome/ATK2 { ROMDESTO ROMENUKE ROMELAFF ROMSSHOT ROMTHAIL ROMKICKS  }
+$random Ahead/at { AHEDATK1 AHEDATK2 }
+$random Ahead/ac { AHEDACT1 AHEDACT2 AHEDACT3 AHEDACT4 }
+$random Ahead/ow { AHEDPAI1 AHEDPAI2 AHEDPAI3 }
+$random beetl/ow { BETLEOW1 BETLEOW2 }
+$random eati/run { eatirun1 eatirun2 eatirun3 }
+$random AbyCyb/step { STEPACY1 STEPACY2 STEPACY3 STEPACY4 STEPACY5 }
+$random  AbyCyb/Pain { ABCYPAI1 ABCYPAI2 }
+$random  AbyCyb/Act { ABYCYAC1 ABYCYAC2 ABYCYAC3 }
+$random  AbyCyb/Atk { ABCYATK1 ABCYATK2 ABCYATK3 }
+$random WFATATTACK { WFATATK1 WFATATK2 WFATATK3 }
+$random WFATACTI { WFATACT1 WFATACT2 }
+$random WFATHURT { WFATHIT1 WFATHIT2 WFATHIT3 }
+$random WFATCRIT { WFATCRI1 WFATCRI2 WFATCRI3 WFATCRI4 WFATCRI5 }
+$random ILLSHEAR { ILLSHEA1 ILLSHEA2 }
+$random prieinfu { PRIEINF1 PRIEINF2 PRIEINF3 }
+$RANDOM cacobaldidle { cacobaldidle1 cacobaldidle2 cacobaldidle3 }
+$random bloodsplat { bloodsplat1 bloodsplat2 bloodsplat3 }
+$limit bloodsplat 1
+$random wizard/tele 		{ wizard/tele1  wizard/tele2 }
+$random wizard/active        { dwizact  WVILEID1 wvileid2 wvileid3 }
+$random Juggernaut/Death	{ DSJUGDI1 DSJUGDI2 DSJUGDI3 DSJUGDI4 DSJUGDI5 }
+$random Juggernaut/Pain	{ DSJUGPN1 DSJUGPN2 DSJUGPN3 DSJUGPN4 DSJUGPN5 DSJUGPN6 }
+$random skelsit { raiseske sklsrs1 sklsrs2 }
+$random skelatt { attack1 attack2 attack3 attack4 attack5 attack6 }
+$random skeldth { death1 death2 death3 death4 death5 sklsrd1 sklsrd2 }
+$random swordhit { sword1 sword2 sword3 sword4 sword5 sword6 }
+$random monster/tenpai	{ monster/tenpn1 monster/tenpn2 monster/tenpn3 }
+$random Shadow/active { act1 act2 }
+$random Shadow/pain { pain1 pain2 }
+$random SlimeBall/Shoot		{ DSVOMIT1 DSVOMIT2 DSVOMIT3 }
+$random slimeworm/pain		{ DSWORMP1 DSWORMP2 }
+$random Science/Atk {Sci/atk1 Sci/Atk2}
+$Random Science/Pain {Sci/Hu1 Sci/hu2}
+$random shadowbeast/active { shadowbeast/idle2 shadowbeast/idle1 }
+$RANDOM monster/dogdth { monster/dogdt1 monster/dogdt2 }
+$random Hornet/Death	{ WASPDIE1 WASPDIE2 WASPDIE3 WASPDIE4 }
+$Random Butcher/Step { BCHRSTP1 BCHRSTP2 BCHRSTP3 BCHRSTP4 }
+$Random ZSpecOps/MGun	{ ZSPCMGN1 ZSPCMGN2 ZSPCMGN3 }
+$Limit ZSpecOps/MGun	0
+$RANDOM moloch/nailhit { ricochet1 ricochet2 }
+$RANDOM moloch/sight { msight3 }
+$RANDOM moloch/active { mact1 mact2 mact3 mact4 }
+$RANDOM moloch/pain { mpain1 mpain2 mpain3 }
+$RANDOM moloch/attack {mattack2 mattack4 }
+$RANDOM arachnophyte/pain { arachnophyte/pain1 arachnophyte/pain2 arachnophyte/pain3 }
+$Random Forgotten/Attack { FRGOATK1 FRGOATK2 FRGOATK3 }
+$Random Forgotten/Active { FRGOACT1 FRGOACT2 FRGOACT3 }
+$Random Forgotten/Pain { FRGOPAI1 FRGOPAI2 FRGOPAI3 }
+$Random Forgotten/Death { FRGODEA1 FRGODEA2 FRGODEA3 }
+$limit weapons/rocklf     32
+$random incubus/walk	{ dsinwlk1 dsinwlk2 dsinwlk3 dsinwlk4 }
+$random incubus2/walk	{ dsgiwlk1 dsgiwlk2 dsgiwlk3 dsgiwlk4 }
+$random weapons/flameballexplode { dsflbxp1 dsflbxp2 dsflbxp3 }

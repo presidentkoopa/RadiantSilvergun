@@ -495,3 +495,91 @@ user bool rs_hpbar_onlydamaged = true;
 // tier tables keep CH's real value; this is the floor applied at use.
 // 0 = no floor, full CHP fidelity. Higher = calmer.
 user float rs_mon_missilechance_floor = 0.125;
+
+// =====================================================================
+// RS_Elites -- hidden elites. docs/rs_25_elites_design.txt is the spec.
+// =====================================================================
+server bool  rs_elites_enable = true;
+
+// HOW MANY. One honest number: elites per 100 monsters.
+// 0 = off, 100 = every eligible monster.
+server int   rs_elites_per_100 = 5;
+
+// HEALTH AT MARKING, not at reveal -- the overlong fight IS the tell.
+// The bonus is capped rather than the total: a total cap could land below
+// a big monster's base health and silently nerf it. Our largest actors are
+// 9999 HP, where an uncapped x3 means ~45,000 damage to kill.
+server int   rs_elite_health_pct = 300;
+server int   rs_elite_health_pct_boss = 200;
+server int   rs_elite_health_bonus_cap = 2000;
+
+// Monsters above this spawn health are never marked at all -- they are
+// already set-pieces and the dormant phase would never end. 0 = no ceiling.
+server int   rs_elite_mark_health_ceiling = 4000;
+
+// WHEN IT WAKES UP. Percent of boosted health. Flat across the board on
+// purpose: a fixed threshold is a rule the player can learn.
+server int   rs_elite_reveal_pct = 50;
+
+server float rs_elite_damage = 2.0;
+server float rs_elite_damage_boss = 1.5;
+
+// BOSS AXES. Two of them, and it is not a preference -- no tier in this
+// tree sets +BOSS, it is a family property only. So the tier axis has to
+// be a number. -1 disables it and leaves bBOSS as the sole test.
+// Mode: 0 normal, 1 bosses never marked, 2 bosses always marked.
+server int   rs_elite_tier_boss_at = 10;
+server int   rs_elite_boss_mode = 0;
+
+// AGGRESSION. +MISSILEMORE and +MISSILEEVENMORE are deprecated on this
+// engine build, so they are applied as MissileChanceMult and pass through
+// rs_mon_missilechance_floor above. Stacking both is what turns a revealed
+// zombieman into a turret, so the first one defaults OFF.
+server bool  rs_elite_missilemore = false;
+server bool  rs_elite_missileevenmore = true;
+
+server bool  rs_elite_friendlies = false;
+
+// Re-sweep the map on a timer so more monsters keep becoming elite as the
+// level runs. Off by default: one sweep at load is the designed shape.
+server bool  rs_elite_resweep = false;
+server int   rs_elite_resweep_secs = 60;
+
+// THE REVEAL VISUAL. The pentagram emits light. Colour either follows the
+// elite's own shade (once profiles exist) or uses the fixed RGB below.
+// Default red is 179/0/0.
+server bool  rs_elite_pentagram = true;
+server bool  rs_elite_pentagram_follow_shade = false;
+server int   rs_elite_light_r = 179;
+server int   rs_elite_light_g = 0;
+server int   rs_elite_light_b = 0;
+server float rs_elite_light_intensity = 1.0;
+
+// The trailing after-image aura on a revealed elite.
+server bool  rs_elite_glow = true;
+
+// Chance a reveal ALSO bumps the monster's tier. Off until asked for --
+// it changes art, attacks and health mid-fight on top of everything else
+// the reveal already does.
+server int   rs_elite_tierbump_chance = 0;
+
+server bool  rs_elite_debug = false;
+
+// Chance a revealed elite ALSO gets a behaviour profile. A failed roll is
+// a complete elite -- boosted and mean, no behaviour layer -- and that is
+// the common case on purpose.
+server int   rs_elite_profile_chance = 50;
+
+// =====================================================================
+// Colourful Hell tier icons -- CH's COLOURBLIND AID, not decoration.
+// CH encodes its whole difficulty ladder as a palette tint, so a player
+// who cannot separate the colours cannot read how dangerous the thing
+// walking at them is. This puts the tier on screen as a SHAPE.
+//
+// CH gates it on its own CH_ColorBlind cvar and ships it OFF; we keep
+// that default. Matters more here than in CH, because the glow system
+// makes the environment itself coloured and a monster's tint competes
+// with the floor for the same channel. A shape does not.
+// See zscript/monsters/chaingunner/RS_ColorTierIcon.zs.
+// =====================================================================
+server bool rs_mon_tiericons = false;

@@ -163,6 +163,49 @@ share `E:\RS_Main`.** That failure mode is recorded above because it happened.
   flashes from the name prefix alone and were unrelated voxel-pack content.
   Look at the file; don't pattern-match the name.
 
+## IMPORTING A MONSTER MEANS THE WHOLE MONSTER, NOT THE ACTOR TEXT
+
+Added 2026-08-05, after the owner had to ask for it out loud.
+
+A monster is not its DECORATE block. It is the actor **plus its sprites,
+its sounds, its SNDINFO entries, its translations, its drop items, and its
+icons**. Eight import attempts transcribed the actor text and stopped, and
+every one of them shipped monsters that were partly missing.
+
+The sound case is the sharpest, and it is why this rule exists:
+**87% of CH's sound library had never been imported.** 693 of 785 lumps
+absent, 804 SNDINFO definitions absent. Every pass copied CH's sound
+*strings* onto the actors correctly — `SeeSound "gen/see"` — and nobody
+ever copied the sounds.
+
+It survived eight passes because **an unresolved sound name is completely
+inert.** No error, no warning, no log line. The compiler passes, the game
+runs, the monster is just silent. There is no check that can fail. The
+only detector is a human who already knows what the monster should sound
+like, listening for a noise that never comes.
+
+So, before any family is called imported, each of these gets a count with
+a denominator:
+
+  * sprites   -- every prefix the actor names, present in `sprites/`
+  * sounds    -- every sound name resolves to a real lump, END TO END.
+                 `$random Foo { A B }` is only as good as A and B; follow
+                 the chain to the lump. A missing lump is silent, not an
+                 error.
+  * SNDINFO   -- CH's own entries, INCLUDING the `$` directives.
+                 `$random`/`$alias` DEFINE names. A first pass here
+                 filtered out every line starting with `$` and dropped 88
+                 definitions while believing it was done.
+  * drops     -- CH's DropItem lines. Where the pickup class does not
+                 exist here yet, itemise it with its CH line so it is
+                 restorable; do not silently ship a gutted table.
+  * TRNSLATE  -- the palette remap, where CH sets one
+  * icons/fx  -- the tier icons and death effects are CH content too
+
+Source of truth for all of it: `E:\New folder\ART SOURCE\CH\` — its
+`sounds/`, `sprites/`, `SNDINFO.txt`, `TRNSLATE.txt` and `DECORATE.txt`,
+not just `decorate/*.txt`.
+
 ## Prefer additive changes
 
 Superseded 2026-08-05: this used to describe several sessions running at once.
