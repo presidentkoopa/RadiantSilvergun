@@ -43,16 +43,21 @@ list. Don't re-derive project state from scratch — it's already written down.
   2. **ZScript itself is case-insensitive.** `RS_FireHand1` and
      `RS_Firehand1` are the SAME class, and defining both is a fatal
      redefinition that stops the mod compiling. A case-sensitive grep says
-     they're two different classes. Run `python dedupe_check.py` (repo root)
-     after adding any class — it checks this properly.
+     they're two different classes. The COMPILER catches this — it is a hard
+     error naming both sites, and it is what caught a base-class field
+     colliding with two subclasses' on 2026-08-04. Build; don't script it.
+     The same applies to a subclass field shadowing a base field: ZScript has
+     no shadowing, so that is a redefinition too.
 - **A passing check is not a correct result — know what it actually proves.**
-  `dedupe_check.py` proves no name is defined twice. It does NOT prove the
+  A duplicate-name check proves no name is defined twice. It does NOT prove the
   surviving copy is the right actor. A mechanical de-duplication that keeps
   whichever definition comes first in load order got 5 of 15 wrong here, and
   every one of those five passed every check in the repo. The sharpest was
   `RS_ZAPFFAT2`, whose surviving copy had `A_Explode` on a *looping* state —
   unbounded damage, forever, silently. When two definitions collide, open
   both and diff them against CH/CHP; don't let position decide.
+  This is the general disease, not an anecdote: **a green check here has
+  repeatedly meant "consistent with itself", never "correct".**
 - **Correct a body in place; don't move a definition between files.** When a
   class is wrong, edit it where it lives. Relocating it to a "better" file
   produces a diff no human can read and makes every later merge harder to
@@ -81,23 +86,42 @@ list. Don't re-derive project state from scratch — it's already written down.
   count.
 - **Don't line-anchor a search over this codebase.** Most of monsterfx is inline
   `States { Spawn: ...; Death: ...; }` on one line, so `^\s*THING` silently
-  matches almost nothing. `verify.py`'s sprite check had this bug and reported
-  OK on files it never read; the sweep script written to fix the damage bug then
-  made the identical mistake and missed 21 sites. Also strip `//` lines before a
-  bulk rewrite, or it edits prose.
-- **"The lint says that sprite doesn't exist" is not evidence that it doesn't.**
-  `art_index.json` is a catalogue of what exists in `E:\New folder\ART SOURCE`
-  and could be *copied in* — not a list of what the mod ships, and not the IWAD.
-  The old index scanned only `CH/` and `CHP/`, so it could not see the top-level
-  weapon pack, and `verify.py`'s vanilla table listed no *pickup* lumps. Between
-  them, three separate lanes concluded `SHOT`, `GRND` and `HMIS` were missing
-  and started replacing them with `MISL`. All three were real: `SHOT` is the
-  IWAD shotgun pickup, `GRND` is a 10-frame grenade, `HMIS` is the Cyberdemon
-  homing missile. Rebuild with `build_art_index.py` before believing a
-  not-found. And never add a token to the vanilla table to silence a failure —
-  a fabricated `'GRND':'A'` hid a broken reference there for a whole session.
-  Conversely a token that resolves *only* through art_index is a file that was
-  never copied in: it passes the lint and still fails at load.
+  matches almost nothing. Also strip `//` lines before any bulk pass, or it
+  reads prose as code — a scan that skipped this "found" four undefined classes
+  that were words inside comments, and a second one invented a defect by
+  matching `Death.T08` inside `XDeath.T08`.
+
+## THE REPO'S OWN CHECKING TOOLS ARE GONE. READ THIS BEFORE WRITING ANOTHER.
+
+`verify.py`, `verify_all.py`, `dedupe_check.py`, `crosscheck.py` and
+`build_art_index.py` were **deleted by the owner on 2026-08-04**, after the
+third failed port, and they are not to be reinstated in the same shape.
+
+**Why: every one of them compared this tree against itself.** A lint that reads
+our code, or a table someone typed by hand, can only report that our code agrees
+with itself — which is a property all three broken ports also had. That is not a
+gap in those scripts, it is what they were.
+
+Their measured record:
+- `verify.py`'s sprite check was `^`-anchored and reported OK on files it never
+  opened. Its label check read raw source including comments. Both were found
+  *after* they had signed off on work.
+- `dedupe_check.py` proved no class name was defined twice. The compiler proves
+  the same thing, fatally, in one second — it is what caught `rsEnraged`.
+- `art_index.json` is a catalogue of art that *could be copied in* from
+  `E:\New folder\ART SOURCE` — not what the mod ships and not the IWAD. Three
+  lanes read a not-found from it and started replacing real sprites (`SHOT`,
+  `GRND`, `HMIS` are all genuine). A token resolving *only* through art_index is
+  a file that was never copied in: it passes a lint and still fails at load.
+
+**THE GROUND TRUTH IS `E:\New folder\ART SOURCE\CHP\DECORATE\NN\NN_<code>.txt`,
+AND THE GAME.** CHP always wins; CH fills only what CHP leaves undefined. If a
+tool is written again it must be a **differ against CHP**, not a lint over us —
+it must be able to say "CHP's actor does X, ours does Y" and cite both. Anything
+that can only inspect our own tree tells you nothing you did not already believe.
+
+Between the compiler, a boot, and CHP's own files, everything those five scripts
+claimed to cover is covered by something that cannot flatter us.
 
 ## Parallel lanes
 
@@ -114,9 +138,13 @@ in their own worktrees. Consequences that have already bitten:
 - **Two lanes making the *identical* edit is not a conflict.** Git's three-way
   merge absorbs it. Test with `git merge-tree --write-tree A B` before asking
   anyone to back work out.
-- `crosscheck.py` at the repo root projects every lane onto `main` and reports
-  the damage that only exists in the union — duplicate class names, classes one
-  lane deletes that another calls, files missing from `zscript.txt`.
+- **Cross-lane damage is found by building, not by a script.** `crosscheck.py`
+  used to claim it projected every lane onto `main` and reported union-only
+  breakage. It went with the rest of the tooling on 2026-08-04. Duplicate class
+  names, a class one lane deletes that another calls, and a file missing from
+  `zscript.txt` are all things the compiler reports at once, by name, with the
+  line — and unlike the script, it cannot be wrong about them. Merge, then
+  build.
 
 ## Design rules that keep getting re-derived — don't re-litigate
 
