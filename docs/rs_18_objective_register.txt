@@ -472,6 +472,45 @@ vanilla compared to their CHP tiers."
   already right. Do NOT recreate 16,666 actors; put the per-tier values
   in the state clusters that already exist.
 
+  M4. TIER BODY SPRITES -- MEASURED 2026-08-04, AND THEY ARE FINE.
+      Owner from play: "seriously concerned monster sprites aren't tier
+      accurate ... some tiers have all coloured monsters, some seem
+      inconsistent, some seem like partial sets."
+      Measured against rs_monsternotes' own per-family body table:
+        234 tier bodies required, 234 present in repo sprites/ or IWAD
+            (BOSF is the IWAD Baron fireball lump, not a gap)
+        234 Spawn.T* clusters checked, 231 use the exact CHP body token
+        See 233/233 OK, Missile 206/209, Pain 226/230, Death 210/223
+      EVERY apparent mismatch was checked by hand and EVERY ONE is
+      legitimate. Three separate false-positive classes, recorded so the
+      next pass does not "fix" working code:
+        a) CH USES A SEPARATE SHEET PER STATE. BPWA walk / BPPA pain /
+           BPDE death are three lumps for one monster; likewise AZEW /
+           AZEA / AZEP / AZED, and FATT / FAT2 / FAT3 / FAT4.
+        b) CONTINUATION SHEETS. A Doom lump name holds 26 frames, so long
+           animations spill into a second name: AMIN is A-I and ANIM is
+           J-Y, one creature across two lumps. ANIM appears 582 times in
+           CHP 16_A. It is not a transposition typo, though it reads
+           exactly like one.
+        c) CH'S OWN CROSS-FAMILY REUSE. RS_Demon Death.T07 draws ZOMF --
+           a Zombieman sheet on a demon corpse -- and CHP 06_F.txt:58,60
+           does precisely the same. Faithful, not a bug.
+
+      SO WHAT IS THE OWNER SEEING? Most likely CHP'S OWN REUSE, which
+      rs_monsternotes already documents: "a repeated token means CHP
+      re-wears an earlier body for that tier -- that is CHP's choice, not
+      a shortcut." Concretely: Demon and Spectre share an IDENTICAL body
+      list T00-T07, several families re-wear their apex art at TEX
+      (Shotgunner BENE, Imp AGUR, Cacodemon HELE, LostSoul ETHS,
+      Revenant DKNT, Mancubus BDEM), and FOUR families have no TEX body
+      at all because CHP ships those KX/WX files as empty 2-byte stubs
+      (Demon, PainElemental, Baron, Mastermind).
+      NEXT STEP IS VISUAL, NOT ANALYTICAL. The tokens are provably right;
+      what is unverified is whether the FILES behind them are complete
+      (all 8 rotations, all frames). Spawn one of each family at each
+      tier and screenshot. Do not start editing state clusters -- this
+      measurement says the states are not where the problem is.
+
 ================================================================================
 PART K -- THE CORRECTION rs_17 FORCED ON THIS LIST.
 Kept as an entry rather than a silent edit, because the reasoning is the
@@ -496,8 +535,9 @@ useful part.
 END OF REGISTER.  Generated 2026-08-04.
 55 entries: 49 objectives, plus Part H's 5 standing constraints (tests, not
 tasks) and Part K's single correction record.
-Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1 L8 M3.
-CLOSED SO FAR: A1, A2, A3, A4, A6, D5, J1, L1 -- eight, all on 2026-08-04.
+Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1 L8 M4.
+CLOSED SO FAR: A1 A2 A3 A4 A6 D1 D5 J1 L1 L2 -- ten. C1 killed (WONT DO,
+the premise was wrong); C2 answered by CHP itself, no decision needed.
 REMAINING OPEN: 49.
 
   REVISION, same day: first draft was built from a 451-line WORKING COPY of
