@@ -180,36 +180,95 @@ BUILT SAME DAY: C04 Yellow's missing retime floor (0-tic states) fixed in
    RS_EliteColors.zs -- the audit's one live-code find.
 
 --------------------------------------------------------------------------------
-4. GLOW CHOREOGRAPHY (owner direction 2026-08-05; gitd-lane consult PENDING
-   on capabilities -- fold answers here when they arrive)
+4. GLOW CHOREOGRAPHY (owner direction + gitd-lane engine consult, both
+   2026-08-05 -- capabilities below are the engine lane's own answers)
 --------------------------------------------------------------------------------
 Owner: "it is a great way to control color, and take advantage of glow,
 shapes, monster tiers, elite profiles, and fun custom group behaviors to
-keep the player on their toes." The glow/billboard primitives become the
-encounter's choreography layer:
+keep the player on their toes."
 
-  PROMOTION STATIONS -- a glow shape on the floor monsters RUN TO; crossing
-  or standing in it tiers them up / re-colors them. SetPiece use: the
-  Muster sigil doubles as a station the trash tries to reach -- every
-  grunt that crosses gets a tier or a type tint. The subgame: intercept
-  the runners before they cross. (Group behavior: the squad HERDS trash
-  toward the station.)
-  PAINTER LINES -- elites draw type-colored lines on the floor; a monster
-  crossing a line takes that color/type/buff. C17's Midas as a line
-  instead of an aura; C05/C14 creep trails already ARE proto-painter
-  lines. Player counter-play: cut the line's painter, or bait crossings.
-  THE 4x8 GLOW AXES -- owner's phrase for the glow system's structure;
-  encounter logic reading/writing those axes at runtime to choreograph
-  combat FLOW: lanes of danger, safe channels, pulse rhythms that
-  telegraph waves, gradients that herd player or monsters. Awaiting the
-  gitd lane's answer on what is readable/writable per tic.
-  ENTRY METHODS (same consult): glowspots that saturate and birth
-  monsters; reversed-deathfx arrivals (assembling from gibs); BILLBOARD
-  GATES -- a standing billboard plane as a portal monsters step through;
-  ceiling drops / floor eruptions. Summon-ceremony options list.
+THE TOOLBOX (shipped today, per the engine lane):
+  GLOW SPOTS -- world decal stamps, 17 pattern shapes (bloom, seam,
+  stroke, ring, hex field/rings, spiral, square rings, star, sunburst,
+  grid, invert-flash, SDF digits, 10-glyph SDF pack x 8 colours, caustic
+  pool), per-tic animatable colour/radius/progress/direction, floor/
+  ceiling/wall anchoring. BUDGET: 256/scene ranked nearest-camera --
+  ceremonies stay ~30-60 spots so combat FX keep slots.
+  SECTOR GLOW, THE 4x8 -- four axes PER SECTOR (walls-from-floor,
+  walls-from-ceiling, floor-inward, ceiling-inward), each with an 8-slot
+  colour ramp across the glow depth; Gradient/Tide (colours physically
+  travel)/Contour modes; MEET MODES incl. MENISCUS (a hot line where
+  rising and falling wall glow collide -- and it CLIMBS when coverage
+  animates); a coupling dial (unison/cascade/chaos across axes).
+  WRITE: total, per sector, per tic, cheap (SetGlow*/SetFlatGlow*/
+  SetGlowAxisDial natives). READ: never -- one-way street by design.
+  BILLBOARDS -- BB_RING (clockwise progress gauge), BB_DIGITS (floor
+  countdown), BB_GLYPH (mark stamp), BB_TEXTURE (mod-painted canvas
+  card). All camera-facing BY CONSTRUCTION.
+  VOLUMETRIC BEAM -- one spotlight actor pointing down = a god-ray
+  column, per-eye, bloom-haloed. "The light picks the spot." The
+  cheapest spectacle in the kit.
 
-Grades scale choreography: Picket = sigil only; Honor Guard + painter
-lines; Dead Detail = full flow choreography.
+DESIGN LAW (engine lane's, adopted as ours): THE GLOW IS ONLY THE VIEW OF
+A MECHANIC, NEVER ITS STATE. The 256-spot budget silently drops
+furthest-from-camera -- a dropped line must never stop being a tripwire.
+All gameplay state lives in the encounter handler; glow publishes its
+picture.
+
+THE CHOREOGRAPHY, rebuilt on real capabilities:
+  MUSTER upgrades -- sigil assembles stroke by stroke (progress-driven),
+  constricting rings, the Captain announced by a volumetric beam before
+  the body arrives; the arena's Meniscus line CLIMBS THE WALLS as the
+  summon cooks (the engine lane's top VR-legibility recommendation: a
+  liquid-level countdown readable in stereo from anywhere, no HUD).
+  ARRIVALS -- glowspot saturate-then-birth recipes; reversed-deathfx as
+  the premium tier (arrival = the death recipe authored with t reversed,
+  identical cost; converging gib actors are mod-side, moderate effort,
+  strong payoff). BILLBOARD GATES: honest engine no (camera-facing quads
+  can't be doorways) -- instead the HERALD: a canvas card at the spawn
+  that fills and flips as the monster teleports in behind it. Drop-ins /
+  floor eruptions: actor + impact stamp + wall spill, shipped.
+  PROMOTION STATIONS -- station = ring + interior glyph + VOLUMETRIC
+  BEAM overhead (monsters converging on a light column needs no
+  explanation) + BB_RING gauge filling as promotion charges. Monsters
+  path via A_Chase-to-invisible-target (glow has zero gameplay
+  presence); intent drawn as ember-trail breadcrumbs tinting toward the
+  station colour as distance closes. On promotion: stamp the tier glyph,
+  SNAP the station's ramp to a depleted palette -- the station visibly
+  SPENDS itself.
+  PAINTER LINES -- line = stroke spot (width coarse; if the mechanic
+  becomes central, a dedicated line wipeType is a SMALL engine ask --
+  request it, never fake with 40 strokes). Crossing detection is ours: a
+  two-dot-product segment test per monster per tic, trivial. C05/C14
+  creep trails are already proto-painter-lines; C17 Midas-as-a-line.
+  COMBAT FLOW via the 4x8 -- danger lanes = per-SECTOR floor colour
+  (resolution limit: axes are per-sector; sub-sector shapes use spots);
+  wave telegraph = one-tic full ramp SNAP (reads as an alarm) or Tide
+  speed-up; herding = Tide DIRECTION (eyes follow colour flow) and
+  darkness-as-wall (players avoid dark in a dark game); the room-wide
+  threat gauge = the climbing Meniscus.
+  TIER LANGUAGE -- engine lane's closing move, adopted: ALIGN TIER
+  COLOURS WITH RAMP SLOTS EARLY. If tier colours ARE the 8 ramp slots,
+  every room can speak tier through its walls with zero new mechanics.
+
+ENGINE ASKS (small, request deliberately when a design demands them):
+yaw-locked billboard panel (real gates); explicit-width line wipeType;
+per-linedef seam substrate (designed, unbuilt). Expensive/never: true
+see-through portals; reading render state back.
+
+VR COMFORT RULES (held up in the engine lane's testing): floor/wall-
+anchored motion over head-height swarms; never full-screen flashes
+(invert-flash is floor-anchored punctuation, use that); steady rotation
+over close-up acceleration.
+
+BULLET-TIME NOTE: actor-published FX strobe under duty-cycled freeze
+(confirmed by the engine lane, recorded in their handoff as binding);
+handler-published sector axes are naturally immune. When BT lands:
+NOTIMEFREEZE on FX thinkers or publish handler-side.
+
+Grades scale choreography: Picket = sigil + beam; Honor Guard + painter
+lines + station; Dead Detail = full flow choreography (Tide herding,
+Meniscus gauge, ramp snaps).
 
 --------------------------------------------------------------------------------
 5. V1 -- MINIMAL SHIPPABLE (audit lane's cut, adopted)
@@ -254,4 +313,10 @@ token/controller, re-marks with the forced type. Everything in v1 needs it.
 (f) Severed elite: feral-harmless (current) vs "unleashed" (personal
     escalation on sever) -- second is meaner, first is cleaner.
 (g) Bucket for the new file: systems/encounter/ vs systems/monster/.
+(h) ROTATION VOCABULARY COLLISION (engine lane's flag): in GITD the owner
+    reserved COUNTER-CLOCKWISE rotation exclusively as the Hellmouth's
+    verb ("something is coming up"). If SetPiece pentagram/spiral
+    ceremonies spin CCW, the same word is being spoken in a different
+    mod. Deliberate ruling needed: share the verb, or SetPiece ceremonies
+    spin clockwise (BB_RING is already clockwise, which leans CW).
 ================================================================================
