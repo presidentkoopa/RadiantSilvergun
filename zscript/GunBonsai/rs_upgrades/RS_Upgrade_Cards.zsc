@@ -22,6 +22,61 @@ class TFLV_Upgrade_RS_CardBase : TFLV_Upgrade_BaseUpgrade abstract
 
 	virtual void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info) {}
 
+	// -----------------------------------------------------------------
+	// PROMOTION SCALES STAT CARDS. Owner's law, 2026-08-04:
+	//
+	//   "promotion levels dictate the range of stat boosts (each
+	//    promotion increases boost minimum and maximum, and ceiling cap
+	//    for that given stat - if relevant, bc accuracy and CND only go
+	//    to 100)"
+	//
+	// Two things move per promotion, and they are separate:
+	//   1. THE ROLL. A boost is a RANGE, not a fixed number, and both
+	//      ends widen. An unpromoted gun rolls the base band; a
+	//      three-promotion gun rolls a band shifted three steps up. This
+	//      is why PromoRoll exists rather than a flat `+2 + count`, which
+	//      is what CardDamage alone used to do.
+	//   2. THE CEILING. How far the stat can ever climb also rises --
+	//      otherwise a promoted gun rolls bigger numbers into the same
+	//      wall and the promotion buys nothing.
+	//
+	// EXCEPT WHERE THE STAT IS A PERCENTAGE. Accuracy and Condition are
+	// 0-100 by definition and their ceilings do NOT move; promotion still
+	// widens their roll, so a promoted gun reaches the cap faster rather
+	// than past it. Choke and ReloadSpeed are likewise bounded by what
+	// the mechanic can mean, not by tier.
+	// -----------------------------------------------------------------
+
+	// Roll a boost whose band shifts up by `perPromo` for each promotion.
+	double PromoRoll(RS_Weapon wpn, double baseMin, double baseMax, double perPromo)
+	{
+		int p = wpn ? wpn.PromotionCount : 0;
+		return frandom(baseMin + perPromo * p, baseMax + perPromo * p);
+	}
+
+	// Integer form, for stats that are whole numbers (damage, capacity).
+	// Rounds rather than truncates so the band's top end is reachable.
+	int PromoRollInt(RS_Weapon wpn, int baseMin, int baseMax, int perPromo)
+	{
+		int p = wpn ? wpn.PromotionCount : 0;
+		return random(baseMin + perPromo * p, baseMax + perPromo * p);
+	}
+
+	// NO PromoCeiling HELPER, and the absence is deliberate -- I wrote one
+	// and then found nothing to call it with. Every stat here already
+	// resolves the ceiling half of the law on its own:
+	//   Damage    ceiling ALREADY scales -- GetDamageCeiling() is
+	//             PromotionDamageBaseline * 1.8, and that baseline is
+	//             re-taken on every Promote(). Nothing to add.
+	//   Accuracy  0-100 by definition; the cap must NOT move.
+	//   Capacity  no ceiling exists.
+	//   Crit      no ceiling exists.
+	//   Choke     0.8 is a MECHANICAL bound -- a cone that tight stops
+	//             being a shotgun -- not a tier one.
+	//   Reload    1.4 is what the animation can absorb, same reasoning.
+	// A helper with no callers is a lie waiting to be believed. If a
+	// future stat genuinely needs a scaling ceiling it is four lines.
+
 	override void OnActivate(TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
 	{
 		super.OnActivate(stats, info);
@@ -45,8 +100,11 @@ class TFLV_Upgrade_RS_CardDamage : TFLV_Upgrade_RS_CardBase
 {
 	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
 	{
+		// Band 2-4 unpromoted, +1 to both ends per promotion. The ceiling
+		// already scales -- GetDamageCeiling() is PromotionDamageBaseline
+		// * 1.8 and that baseline is re-taken on every Promote().
 		wpn.DamagePerShot = min(wpn.GetDamageCeiling(),
-			wpn.DamagePerShot + 2 + wpn.PromotionCount);
+			wpn.DamagePerShot + PromoRollInt(wpn, 2, 4, 1));
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -61,7 +119,10 @@ class TFLV_Upgrade_RS_CardAccuracy : TFLV_Upgrade_RS_CardBase
 {
 	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
 	{
-		wpn.Accuracy = min(98.0, wpn.Accuracy + 2.0);
+		// PERCENTAGE STAT -- the 98 ceiling does NOT move with promotion.
+		// The roll widens, so a promoted gun reaches the cap faster
+		// rather than climbing past it.
+		wpn.Accuracy = min(98.0, wpn.Accuracy + PromoRoll(wpn, 1.5, 2.5, 0.5));
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -75,7 +136,8 @@ class TFLV_Upgrade_RS_CardCapacity : TFLV_Upgrade_RS_CardBase
 {
 	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
 	{
-		wpn.Capacity += 1;
+		// No natural ceiling; the band alone carries the promotion.
+		wpn.Capacity += PromoRollInt(wpn, 1, 1, 1);
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -88,7 +150,9 @@ class TFLV_Upgrade_RS_CardCrit : TFLV_Upgrade_RS_CardBase
 {
 	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
 	{
-		wpn.CritChance += 0.005;
+		// Crit has no hard cap in the roll tables, so promotion widens
+		// the band and nothing clamps it.
+		wpn.CritChance += PromoRoll(wpn, 0.004, 0.007, 0.002);
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -101,7 +165,9 @@ class TFLV_Upgrade_RS_CardChoke : TFLV_Upgrade_RS_CardBase
 {
 	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
 	{
-		wpn.Choke = min(0.8, wpn.Choke + 0.05);
+		// Choke's 0.8 is a MECHANICAL bound (a cone that tight stops
+		// being a shotgun), not a tier one -- it does not move. Band only.
+		wpn.Choke = min(0.8, wpn.Choke + PromoRoll(wpn, 0.04, 0.06, 0.01));
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -117,7 +183,9 @@ class TFLV_Upgrade_RS_CardReload : TFLV_Upgrade_RS_CardBase
 {
 	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
 	{
-		wpn.ReloadSpeed = min(1.4, wpn.ReloadSpeed + 0.05);
+		// Same as Choke: 1.4 is what the animation can absorb, not a tier
+		// ceiling. Band scales, cap does not.
+		wpn.ReloadSpeed = min(1.4, wpn.ReloadSpeed + PromoRoll(wpn, 0.04, 0.06, 0.01));
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -161,7 +229,9 @@ class TFLV_Upgrade_RS_ComboChamber : TFLV_Upgrade_RS_ComboCardBase
 	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
 	{
 		wpn.Capacity += 2;
-		wpn.ReloadSpeed = min(1.4, wpn.ReloadSpeed + 0.05);
+		// Same as Choke: 1.4 is what the animation can absorb, not a tier
+		// ceiling. Band scales, cap does not.
+		wpn.ReloadSpeed = min(1.4, wpn.ReloadSpeed + PromoRoll(wpn, 0.04, 0.06, 0.01));
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -174,13 +244,18 @@ class TFLV_Upgrade_RS_ComboHotLoads : TFLV_Upgrade_RS_ComboCardBase
 {
 	override void ApplyOnce(RS_Weapon wpn, TFLV_PerPlayerStats stats, TFLV_WeaponInfo info)
 	{
+		// Band 2-4 unpromoted, +1 to both ends per promotion. The ceiling
+		// already scales -- GetDamageCeiling() is PromotionDamageBaseline
+		// * 1.8 and that baseline is re-taken on every Promote().
 		wpn.DamagePerShot = min(wpn.GetDamageCeiling(),
-			wpn.DamagePerShot + 2 + wpn.PromotionCount);
+			wpn.DamagePerShot + PromoRollInt(wpn, 2, 4, 1));
 		// The price side splits by family: shotguns tighten (a bonus of
 		// a different flavor), everything else loses a little accuracy
 		// -- hot loads kick.
 		if (wpn.Choke > 0)
-			wpn.Choke = min(0.8, wpn.Choke + 0.05);
+			// Choke's 0.8 is a MECHANICAL bound (a cone that tight stops
+		// being a shotgun), not a tier one -- it does not move. Band only.
+		wpn.Choke = min(0.8, wpn.Choke + PromoRoll(wpn, 0.04, 0.06, 0.01));
 		else
 			wpn.Accuracy = max(30.0, wpn.Accuracy - 2.0);
 	}
@@ -202,7 +277,8 @@ class TFLV_Upgrade_RS_ComboWinterKit : TFLV_Upgrade_RS_ComboCardBase
 	{
 		info.upgrades.AddUpgrade(
 			TFLV_Upgrade_BaseUpgrade(new("TFLV_Upgrade_RS_PainOrb"))).OnActivate(stats, info);
-		wpn.Capacity += 1;   // offsets the Pain Orb's own capacity price a step
+		// No natural ceiling; the band alone carries the promotion.
+		wpn.Capacity += PromoRollInt(wpn, 1, 1, 1);   // offsets the Pain Orb's own capacity price a step
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -218,7 +294,10 @@ class TFLV_Upgrade_RS_ComboTwinDiscipline : TFLV_Upgrade_RS_ComboCardBase
 	{
 		info.upgrades.AddUpgrade(
 			TFLV_Upgrade_BaseUpgrade(new("TFLV_Upgrade_RS_Splitter"))).OnActivate(stats, info);
-		wpn.Accuracy = min(98.0, wpn.Accuracy + 2.0);
+		// PERCENTAGE STAT -- the 98 ceiling does NOT move with promotion.
+		// The roll widens, so a promoted gun reaches the cap faster
+		// rather than climbing past it.
+		wpn.Accuracy = min(98.0, wpn.Accuracy + PromoRoll(wpn, 1.5, 2.5, 0.5));
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)

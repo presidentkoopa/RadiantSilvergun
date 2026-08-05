@@ -4,6 +4,13 @@
 // #namespace TFLV;
 
 class TFLV_WeaponInfo : Object play {
+  // RS: the top of an affix's power ladder. Levels 1-5 are magnitude;
+  // 6 is MASTERY, which changes a RULE rather than a number (rs_16).
+  // Reached either by re-picking the same card six times, or by picking
+  // it fresh on a weapon promoted five times -- see the promotion block
+  // in LevelUp() below.
+  const RS_AFFIX_MAX_LEVEL = 6;
+
   // At the moment "wpn" is used both as a convenient way to remember a reference
   // to the weapon itself, and as the key for the info lookup when the caller has
   // a weapon but not the WeaponInfo.
@@ -250,21 +257,48 @@ class TFLV_WeaponInfo : Object play {
     if (upgrade) {
       upgrades.AddUpgrade(upgrade).OnActivate(stats, self);
 
-      // RS GRAFT (rs_11): promoted picks land +1. On a promoted weapon,
-      // every slate-affix pick advances one extra level -- new affixes
-      // enter at L2, re-picks jump 2 -- CAPPED at L5: the bonus never
-      // carries into level 6, Mastery is always a deliberate 6th pick.
-      // Flat +1 regardless of promotion count (scaling is a tuning
-      // dial, deliberately not v1). This replaced the bundle-card idea.
+      // RS GRAFT: PROMOTION COUNT SETS AN AFFIX'S STARTING POWER LEVEL.
+      //
+      // Owner's law, 2026-08-04, and it REPLACES the flat +1 this used to
+      // do. Sockets say how MANY affixes a weapon may hold; promotions
+      // say how STRONG one arrives:
+      //
+      //   unpromoted   pick a new affix -> level 1. Re-picking the same
+      //                card on a later level-up takes it to 2, 3 ... That
+      //                is the only way an affix grows.
+      //   promoted X   pick a new affix -> level X + 1.
+      //
+      // So a weapon promoted five times picks a fresh affix straight into
+      // level 6 -- MASTERY. That is deliberate and it is the point: it is
+      // the reward for having taken a gun round the promotion loop five
+      // times, and it is why the old L5 clamp is gone.
+      //
+      // The previous version tested `PromotionCount > 0` and added ONE
+      // level regardless, so a five-promotion gun and a one-promotion gun
+      // got the same bonus and promotion stopped mattering after the
+      // first. The old comment called scaling "a tuning dial, deliberately
+      // not v1"; it is v1 now.
+      //
+      // AddUpgrade on an already-held class raises its level by one, so
+      // the loop is the natural spelling. The clamp is against
+      // RS_AFFIX_MAX_LEVEL (6 = Mastery) and is checked every iteration,
+      // because a re-pick starts partway up the ladder already.
       let rsw = RS_Weapon(wpn);
       if (rsw && rsw.PromotionCount > 0
           && upgrade is "TFLV_Upgrade_RS_SlateBase") {
         string cls = upgrade.GetClassName() .. "";
-        if (upgrades.Level(cls) < 5) {
+        int granted = 0;
+        for (int i = 0; i < rsw.PromotionCount; i++) {
+          if (upgrades.Level(cls) >= RS_AFFIX_MAX_LEVEL) break;
           upgrades.AddUpgrade(
             TFLV_Upgrade_BaseUpgrade(new(upgrade.GetClassName()))
           ).OnActivate(stats, self);
-          wpn.owner.A_Log("Promoted weapon: the pick lands +1.", true);
+          ++granted;
+        }
+        if (granted > 0) {
+          wpn.owner.A_Log(string.format(
+            "Promoted weapon: the pick lands at power %d.",
+            upgrades.Level(cls)), true);
         }
       }
 
