@@ -122,6 +122,139 @@ class RS_Chaingunner : RS_MonsterMaster replaces ChaingunGuy
 			case 13: hp = 11249; spd = 25; r.painChance = 10; r.dmgMul = 3.5; break;
 			default: return false;
 		}
+
+		// =============================================================
+		// THE CH PARENT PROPERTIES.  CH/decorate/Chaingunners.txt.
+		// See docs/rs_24_ch_parent_properties.txt for why these were
+		// missing everywhere. Parent name and line on every case.
+		//
+		// THIS FAMILY HAS SIX SPECIES STRINGS. CH splits it across
+		// "CGuy" (T00), "Cguy" (T02 -- ONE LETTER'S CASE apart from
+		// T00, copied through as CH spells it rather than tidied),
+		// "Cguy2" (T04), "Cguy3" (T05, T07), "BrownCguy" (T08) and
+		// "Science" (T12). SEVEN TIERS STATE NONE AT ALL, which is not
+		// the same as sharing one. With +DONTHARMSPECIES that is a
+		// deliberate infighting web -- do not normalise it.
+		//
+		// SEVEN TIERS HAVE +AVOIDMELEE and seven do not, and T03/T08/T10
+		// carry AVOIDMELEE *and* MISSILEMORE together -- back off and
+		// keep firing.
+		//
+		// The two +MISSILEEVENMORE actors are MID-TIER (T05, T06), not
+		// the bosses. The "bosses get evenmore" rule is true of the Imp
+		// family and false here; it is not a family-agnostic pattern.
+		// =============================================================
+		r.mass = 100; r.scale = 1.0; r.renderStyle = -1;
+		switch (t)
+		{
+			case 0:   // CommonCGuy : ChaingunGuy  Chaingunners.txt:995
+				r.species = "CGuy";
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_DONTHARMSPECIES;
+				break;
+			case 1:   // GreenCGuy                Chaingunners.txt:1077
+				// CH states NO Species here -- it breaks the chain.
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_DONTHARMSPECIES;
+				break;
+			case 2:   // BlueCGuy                 Chaingunners.txt:1178
+				r.species = "Cguy";     // CH's own casing, cf. T00
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_DONTHARMSPECIES;
+				break;
+			case 3:   // CyanCGuy2                 Chaingunners.txt:256
+				// Mass 3500 and the only tier with BOTH AVOIDMELEE and
+				// MISSILEMORE plus a real alpha.
+				r.radius = 20; r.height = 56; r.mass = 3500;
+				r.alpha = 0.95; r.renderStyle = STYLE_Add;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_DONTHARMSPECIES
+				        | RS_TF_NOFEAR | RS_TF_NOICEDEATH
+				        | RS_TF_LAXTELEFRAGDMG;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 4:   // PurpleCGuy               Chaingunners.txt:1348
+				r.species = "Cguy2";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_DONTHARMSPECIES;
+				break;
+			case 5:   // YellowCGuy               Chaingunners.txt:1511
+				// BOTH missile flags on a mid-tier grunt, and NO
+				// AvoidMelee -- it closes and hoses.
+				r.species = "Cguy3";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_DONTHARMSPECIES;
+				r.missileChance = 0.0625;   // MORE *and* EVENMORE
+				break;
+			case 6:   // AbyssCGuy2                Chaingunners.txt:434
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_DONTHARMSPECIES;
+				r.missileChance = 0.0625;   // MORE *and* EVENMORE
+				break;
+			case 7:   // FireBluCGuy2              Chaingunners.txt:827
+				r.species = "Cguy3";      // allied with the yellow
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_DONTHARMSPECIES;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 8:   // BrownCGuy2                 Chaingunners.txt:40
+				// Its OWN species, so it infights the whole family, and
+				// the only tier with +NOINFIGHTING to stop it retaliating.
+				r.species = "BrownCguy";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_DONTHARMSPECIES
+				        | RS_TF_NOINFIGHTING | RS_TF_NOFEAR
+				        | RS_TF_NOTARGET;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 9:   // CommonGrayCGuy -- NO CH PARENT AT ALL.
+				// Declared with no colon in CHP/DECORATE/04/04_GY.txt;
+				// the whole property block is CHP's. Radius 18, not 20.
+				// (There is an orphan copy at CHP/DECORATE/04GY.txt with
+				// DIFFERENT values -- DECORATE.txt:704 includes the
+				// FOLDER copy, so that one is dead. Do not read it.)
+				r.radius = 18; r.height = 56; r.mass = 400;
+				r.scale = 0.9; r.gibHealth = -100;
+				r.flags = RS_TF_DONTHARMSPECIES;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 10:  // RedCGuy                  Chaingunners.txt:1707
+				r.mass = 1000;
+				r.flags = RS_TF_AVOIDMELEE | RS_TF_DONTHARMSPECIES
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 11:  // BlackCGuy2               Chaingunners.txt:2280
+				// No DONTHARMSPECIES -- it uses DONTHARMCLASS instead.
+				r.radius = 20; r.height = 56; r.mass = 1000;
+				r.flags = RS_TF_BOSS | RS_TF_TAKESRADIUSDMG
+				        | RS_TF_DONTHARMCLASS | RS_TF_DONTMORPH
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 12:  // WhiteCguy2               Chaingunners.txt:2520
+				// Species "Science". Smallest body in the family at
+				// 19/52 and Mass 90 -- the scientist is frail and light.
+				r.species = "Science";
+				r.radius = 19; r.height = 52; r.mass = 90;
+				r.radiusDamageFactor = 0.5;
+				r.flags = RS_TF_BOSS | RS_TF_TAKESRADIUSDMG
+				        | RS_TF_THRUSPECIES | RS_TF_DONTHARMSPECIES
+				        | RS_TF_DONTHARMCLASS | RS_TF_DONTMORPH
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 13:  // BlackCGuyEX              Chaingunners.txt:1909
+				// +MISSILEMORE only. The EX turns MISSILEEVENMORE on at
+				// phase 2 from its own states -- that is a state-layer
+				// change and does not belong in this row.
+				r.radius = 20; r.height = 56; r.mass = 1000;
+				r.flags = RS_TF_BOSS | RS_TF_TAKESRADIUSDMG
+				        | RS_TF_DONTHARMCLASS | RS_TF_DONTMORPH
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			default:
+				break;
+		}
 		// Default Health is 70, Default Speed 8 -- express CHP's absolute
 		// numbers as multipliers so the base class's recompute-from-
 		// defaults contract still holds.
