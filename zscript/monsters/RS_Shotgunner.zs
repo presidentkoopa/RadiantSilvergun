@@ -38,12 +38,15 @@
 //                                         blinks away when hurt
 //
 // TEX SHARES T12's BENE ARTWORK -- CHP ships no separate EX sprite set
-// for Benellus and distinguishes it with a green palette remap instead,
-// so TEX is the one tier in this family with a real TintTable entry
-// (rs_sgun_tex). CHP's FloatSpeed 39 and scale 1.00 are Default-only
-// properties with no per-tier setter in this template; Speed carries,
-// those two do not -- the same simplification T12 already ships (its
-// +FLOAT/+NOGRAVITY/+FLOATBOB are likewise not reproduced per-tier).
+// for Benellus and distinguishes it with a green palette remap. THAT
+// REMAP IS CUT, owner's call 2026-08-05: TEX wears BENE untinted, the
+// same as T12. A deliberate divergence from CHP, not an omission; see
+// TintTable() below.
+//
+// +FLOAT/+NOGRAVITY/+FLOATBOB DO now carry per-tier on both Benellus
+// rungs -- they moved into TierData's row on 2026-08-05, which also
+// fixed TEX walking. CHP's FloatSpeed 39 and scale 1.00 remain
+// Default-only in this template; Speed carries, those two do not.
 //
 // RS mechanics preserved from the previous file: the T07+ squad summon
 // (RS_CallSquad / RS_SG_TIER_SQUAD), GetBaseKeywords(), and
@@ -326,16 +329,25 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
-	// TEX is the ONE exception in this family: it shares T12's BENE
-	// artwork (CHP ships no separate EX sprite set for Benellus) and CHP
-	// distinguishes it with a real green palette remap
-	// ("0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]" on GreenWhiteSGEX2), so
-	// TEX carries a translation while every other tier stays "-".
-	// Recipe lives in TRNSLATE.txt as rs_sgun_tex.
+	// TEX USED TO CARRY A GREEN REMAP AND THE OWNER CUT IT, 2026-08-05.
+	// CHP ships no separate EX sprite set for Benellus, so it reuses
+	// T12's BENE artwork and distinguishes the EX with a palette remap
+	// ("0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]" on GreenWhiteSGEX2).
+	// Owner's call: the green reads badly and the plain art is the good
+	// art. TEX now wears BENE untinted, exactly as T12 does.
+	//
+	// This is a DELIBERATE DIVERGENCE FROM CHP, not an omission. The
+	// recipe stays in TRNSLATE.txt as rs_sgun_tex -- unused, so putting
+	// it back is one word here rather than a re-derivation.
+	//
+	// Consequence, stated so nobody "fixes" it later: T12 and TEX are now
+	// visually identical. They are told apart by scale (CHP gives TEX
+	// 1.25 against T12's 1.0), by size and speed, and by TEX's extra
+	// roster -- shrines, the focused volley, the blink. Not by colour.
 	override string TintTable()
 	{
 		//      T00 T01 T02 T03 T04 T05 T06 T07 T08 T09 T10 T11 T12 TEX
-		return "- - - - - - - - - - - - - rs_sgun_tex";
+		return "- - - - - - - - - - - - - -";
 	}
 
 	override string GetBaseKeywords()
