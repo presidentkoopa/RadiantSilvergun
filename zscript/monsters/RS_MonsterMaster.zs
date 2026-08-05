@@ -1896,6 +1896,70 @@ class RS_MonsterMaster : Actor abstract
 	Raise:
 		TNT1 A 0 { return TierState("Raise"); }
 		Goto See;
+
+	// =================================================================
+	// THE ABYSS CONVERSION -- family-agnostic, added 2026-08-05.
+	//
+	// CH defines Pain.AbyssPE on nearly every low-tier parent in nearly
+	// every family and CHP overrides it nowhere, so it is live and
+	// inherited across the whole bestiary. It was ported to family 01
+	// only. A sweep of family 04 found it on SIX of seven parents there
+	// (Chaingunners.txt:1041, 1125, 1247, 374, 1414, 1627) and absent
+	// from our tree entirely.
+	//
+	// IT LIVES HERE RATHER THAN IN SEVENTEEN FAMILY FILES because CH's
+	// bodies are byte-identical and, more importantly, OUR conversion is
+	// the same everywhere. CH must spawn a different class per family
+	// (AbyssCGuy2, AbyssZombie2, ...) and A_die the original, because
+	// its tiers ARE separate classes. Ours are one class with a tier, so
+	// every family's conversion is the same two words: SetTier(6).
+	//
+	// TRIGGER: DamageType "AbyssPE", dealt only by the Abyss Pain
+	// Elemental's pulse (RS_AbyssPEPulse, RS_PainElemental.zs). That
+	// pulse was typed "Plasma" until 2026-08-04, which made this
+	// unreachable from BOTH ends at once -- the state was missing and so
+	// was its trigger, and each hid the other.
+	//
+	// A family that needs a different conversion overrides this label;
+	// RS_Zombieman does exactly that, because its version also has to
+	// handle the sprite scale its own tier table sets.
+	Pain.AbyssPE:
+		TNT1 A 0
+		{
+			// Already Abyss or beyond -- nothing to convert to. CH needs
+			// no such guard because a T06 there is simply a different
+			// class that never carries this state.
+			if (Tier >= 6)
+				return ResolveState("Pain");
+			bNOPAIN = true;
+			A_SetScale(0.8);
+			return ResolveState(null);
+		}
+		"AYPB" AAB 5 Bright;
+		"AYPB" B 5 Bright { A_StartSound("AbyssForm", CHAN_VOICE); }
+		"AYPB" BBACDE 5 Bright;
+		TNT1 A 0
+		{
+			// CH throws 45 + 45 SplashAbyss at two velocities. One loop
+			// rather than two 45-character frame runs; same count.
+			for (int i = 0; i < 45; i++)
+			{
+				A_SpawnItemEx("RS_SplashAbyss", random(-16, 16), random(-16, 16), random(4, 32),
+				              16, 0, 3, random(-359, 359), SXF_NOCHECKPOSITION|SXF_TRANSFERSPECIAL|SXF_TRANSFERAMBUSHFLAG);
+				A_SpawnItemEx("RS_SplashAbyss", random(-16, 16), random(-16, 16), random(4, 32),
+				              12, 0, 8, random(-359, 359), SXF_NOCHECKPOSITION|SXF_TRANSFERSPECIAL|SXF_TRANSFERAMBUSHFLAG);
+			}
+		}
+		"AYPB" FGH 3 Bright;
+		"AYPB" I 5 Bright;
+		"AYPB" H 5 Bright;
+		TNT1 A 0
+		{
+			bNOPAIN = false;
+			A_SetScale(1.0);
+			SetTier(6, true);
+		}
+		Goto See;
 	}
 }
 

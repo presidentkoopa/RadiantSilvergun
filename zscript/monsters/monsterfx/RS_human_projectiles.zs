@@ -1109,8 +1109,15 @@ class RS_SpliceBaron : Actor
 		Goto See;
 	Missile:
 		ARBR A 1 Bright A_Jump(128, "Missile2");
-	MissileLoop:
+		// THE LOOP TARGET IS THE SHOT, NOT THE AIM FRAME.
+		// CHP is `Goto Missile+2` (04_W.txt:4067), and Missile+2 is the
+		// ARBR G 3 firing frame -- +1 is the 20-tic A_FaceTarget. The
+		// label used to sit on +1, so every refire cycle re-paid twenty
+		// tics of aiming: 26 tics per shot against CHP's 6, i.e. this
+		// minion's gun ran at roughly a QUARTER speed.
+		// Exactly the Goto X+N class that has now bitten three times.
 		ARBR A 20 Bright A_FaceTarget();
+	MissileLoop:
 		ARBR G 3 Bright A_SpawnProjectile("ArachnotronPlasma", 15, 0, 0);
 		ARBR H 2 Bright;
 		ARBR H 1 Bright A_SpidRefire();
