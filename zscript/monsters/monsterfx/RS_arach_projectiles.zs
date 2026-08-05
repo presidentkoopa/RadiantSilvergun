@@ -681,10 +681,10 @@ class RS_MiniSP1 : Actor
 	See:
 		TRIT A 20;
 	See.Walk:
-		TRIT AABB 3 A_Chase("Melee", "", CHF_STOPIFBLOCKED);
+		TRIT AABB 3 A_Chase("Melee", null, CHF_STOPIFBLOCKED);
 		TRIT E 0 { bNOCLIP = false; }
 		TRIT A 0 A_CheckBlock("IStuck", CBF_DROPOFF);
-		TRIT CCDD 3 A_Chase("Melee", "", CHF_STOPIFBLOCKED);
+		TRIT CCDD 3 A_Chase("Melee", null, CHF_STOPIFBLOCKED);
 		TRIT A 0 A_CheckBlock("IStuck", CBF_DROPOFF);
 		Goto See.Walk;
 	IStuck:

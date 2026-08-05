@@ -22,8 +22,19 @@ class RS_MonsterAim : Object
 	// projectile, or moving directly away faster than it can close) if
 	// no positive real root exists; callers should fall back to aiming
 	// at the target's current position in that case.
-	static bool PredictInterceptPoint(Vector3 shooterPos, Vector3 targetPos, Vector3 targetVel, double projSpeed, out Vector3 aimPoint)
+	// RETURNS the aim point rather than filling an `out Vector3`. That is
+	// not a style choice: GZDoom's JIT cannot emit a vector out-parameter,
+	// and the earlier signature made this function's CALLER fail to JIT
+	// with "Unknown REGT value passed to EmitPARAM" -- silently dropping
+	// GetLeadAngle to the interpreter. Scalar out-params (out bool, out
+	// double) are fine; only vectors break. Vector RETURNS are proven here
+	// -- see Leech.zsc:8's WigglePos.
+	// `solved` is false when no positive real root exists; aim point is
+	// then the target's present position and the shot simply does not lead.
+	static Vector3 PredictInterceptPoint(Vector3 shooterPos, Vector3 targetPos, Vector3 targetVel, double projSpeed, out bool solved)
 	{
+		solved = false;
+		Vector3 aimPoint = targetPos;
 		Vector3 d = targetPos - shooterPos;
 
 		// |d + v*t|^2 = (speed*t)^2
@@ -39,14 +50,14 @@ class RS_MonsterAim : Object
 			// Linear case (target speed ~= projectile speed on the
 			// closing axis) -- b*t + c = 0.
 			if (abs(b) < 1e-6)
-				return false;
+				return aimPoint;
 			t = -c / b;
 		}
 		else
 		{
 			double disc = (b * b) - (4.0 * a * c);
 			if (disc < 0)
-				return false;
+				return aimPoint;
 
 			double sq = sqrt(disc);
 			double t1 = (-b + sq) / (2.0 * a);
@@ -60,11 +71,12 @@ class RS_MonsterAim : Object
 			else if (t2 > 0)
 				t = t2;
 			else
-				return false;
+				return aimPoint;
 		}
 
 		aimPoint = targetPos + targetVel * t;
-		return true;
+		solved = true;
+		return aimPoint;
 	}
 
 	// Convenience wrapper for the common case: lead a shot at another
@@ -74,10 +86,12 @@ class RS_MonsterAim : Object
 	// aiming.
 	static void GetLeadAngle(Actor shooter, Actor target, double projSpeed, out double angle, out double pitch)
 	{
-		Vector3 aimPoint;
-		bool ok = PredictInterceptPoint(shooter.pos, target.pos, target.vel, projSpeed, aimPoint);
-		if (!ok)
-			aimPoint = target.pos;
+		// No fallback branch needed: PredictInterceptPoint already returns
+		// the target's present position when it cannot solve, which is
+		// exactly the fallback this used to write by hand. `solved` is kept
+		// so a caller that wants to know can ask.
+		bool solved;
+		Vector3 aimPoint = PredictInterceptPoint(shooter.pos, target.pos, target.vel, projSpeed, solved);
 
 		Vector3 delta = aimPoint - shooter.pos;
 		angle = VectorAngle(delta.x, delta.y);

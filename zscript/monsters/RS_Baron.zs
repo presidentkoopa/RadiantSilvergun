@@ -293,7 +293,7 @@ class RS_Baron : RS_KnightBase replaces BaronOfHell
 		"BOSG" R 6 { A_SpawnProjectile("RS_Spspit2", 32, 5, random(-1, 1)); }
 		Goto See;
 	Missile.T01.Spit:
-		TNT1 A 0 A_JumpIfHigherOrLower("", "Missile.T01.Puke", 0, -32);
+		TNT1 A 0 A_JumpIfHigherOrLower(null, "Missile.T01.Puke", 0, -32);
 		"BOSG" HEF 5 { A_FaceTarget(); }
 		"BOSG" G 8 { A_SpawnProjectile("RS_Spspit3", 32, 0, random(-1, 1)); }
 		"BOSG" HPQ 4 { A_FaceTarget(); }
@@ -347,7 +347,7 @@ class RS_Baron : RS_KnightBase replaces BaronOfHell
 	Missile.T02:
 		"BOSB" EF 12 { A_FaceTarget(); }
 		"BOSB" G 2 Bright;
-		"BOSB" G 0 A_JumpIfHigherOrLower("Missile.T02.Cometto", "", 28, 0, true);
+		"BOSB" G 0 A_JumpIfHigherOrLower("Missile.T02.Cometto", null, 28, 0, true);
 		"BOSB" G 0 A_JumpIfCloser(1000, "Missile.T02.Atk1", true);
 		"BOSB" G 0 A_Jump(256, "Missile.T02.Cometto");
 		Goto See;

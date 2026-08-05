@@ -649,7 +649,7 @@ class RS_HealthFountainWhitePE : Actor
 		Goto See;
 	See:
 		RNGG A 0 { A_RadiusGive("Health", 252, RGF_MONSTERS, 25); }
-		RNGG AB 6 Bright { A_Chase("", "", CHF_RESURRECT); }
+		RNGG AB 6 Bright { A_Chase(null, null, CHF_RESURRECT); }
 		RNGG CD 6 Bright { A_Wander(); }
 		Loop;
 	Heal:

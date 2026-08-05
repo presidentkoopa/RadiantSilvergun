@@ -321,7 +321,11 @@ class RS_ScoreHandler : EventHandler
 		}
 	}
 
-	RS_ScorePlayer Get(int pln)
+	// clearscope for the same reason CVInt/CVBool below are: this is called
+	// from play code (scoring) AND from ui code (RenderOverlay). An
+	// unqualified method on an EventHandler defaults to play scope, which
+	// makes the ui caller a compile error. It only reads the array.
+	clearscope RS_ScorePlayer Get(int pln)
 	{
 		if (pln < 0 || pln >= scorePlayers.Size())
 			return null;
@@ -1163,7 +1167,9 @@ class RS_ScoreHandler : EventHandler
 		// The cone.
 		if (CVBool("rs_score_revive_cone", true))
 		{
-			Actor cone = Spawn("RS_ReviveExplosion", mo.pos + (0, 0, 32), ALLOW_REPLACE);
+			// Actor.Spawn, qualified: this is an EventHandler, not an
+			// Actor, so there is no unqualified Spawn in scope here.
+			Actor cone = Actor.Spawn("RS_ReviveExplosion", mo.pos + (0, 0, 32), ALLOW_REPLACE);
 			if (cone)
 			{
 				cone.target = mo;
