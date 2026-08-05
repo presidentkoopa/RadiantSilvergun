@@ -178,7 +178,7 @@
 
 // =====================================================================
 
-class RS_CG_X0001 : RS_MonsterMaster
+class RS_CG_X0001 : RS_Chaingunner
 {
 	Default
 	{

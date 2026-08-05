@@ -153,7 +153,7 @@
 
 // =====================================================================
 
-class RS_CG_T0008 : RS_MonsterMaster
+class RS_CG_T0008 : RS_Chaingunner
 {
 	// CH's `var int user_hide` (Chaingunners.txt:467). One-shot per
 	// approach: the fade checks it, the fade sets it, firing and taking

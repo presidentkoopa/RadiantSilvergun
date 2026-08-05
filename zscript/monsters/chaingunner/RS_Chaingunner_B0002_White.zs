@@ -161,7 +161,7 @@
 
 // =====================================================================
 
-class RS_CG_B0002 : RS_MonsterMaster
+class RS_CG_B0002 : RS_Chaingunner
 {
 	// CH's `Var Int User_Ph2;` (line 2550), rebuilt as a real field.
 	// Named for this family so it cannot collide with RS_MonsterMaster's

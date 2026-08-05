@@ -61,7 +61,7 @@
 // colour -- every map chaingunner becomes this one until the tier dial
 // drives the choice. Moved here from RS_Chaingunner.zs, which carried it
 // until 2026-08-05; only one actor may replace a given class.
-class RS_CG_C0001 : RS_MonsterMaster replaces ChaingunGuy
+class RS_CG_C0001 : RS_Chaingunner replaces ChaingunGuy
 {
 	Default
 	{
