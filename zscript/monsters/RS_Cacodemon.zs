@@ -348,7 +348,15 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 		"HEAA" AA 2 { A_Chase(); }
 		Loop;
 	Missile.T06:
-		"HEAA" B 1 { A_RadiusGive("RS_PainSentinel", 800, RGF_MONSTERS, 1); }
+		// CH: A_radiusgive("SpeedBuffPE",800,RGF_MONSTERS,1,"Nothin","Caco").
+		// SpeedBuffPE's ENTIRE body is ACS_NamedExecuteAlways("PESPEED") --
+		// no properties, no powerup, nothing else -- so porting it would
+		// import nothing. Dropped, the same call the Spectre, Revenant and
+		// demon-projectile lanes already made for this family of CH tokens
+		// (see RS_Spectre.zs:64). RS_PainSentinel was never the right class
+		// here: it is a MONSTER, and A_RadiusGive takes an Inventory.
+		// The frame stays -- it is a real 1-tic beat before the range check.
+		"HEAA" B 1;
 		TNT1 A 0 A_JumpIfCloser(1000, "Missile.T06.Choice");
 		Goto Missile.T06.Hideous;
 	Missile.T06.Choice:
