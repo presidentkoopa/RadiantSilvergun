@@ -706,6 +706,14 @@ class RS_Demon : RS_DemonBase replaces Demon
 		"IFIN" J 4 { A_Explode(random(5, 32), 64); }
 		"IFIN" K 4 { A_NoBlocking(); }
 		"IFIN" LM 4;
+		// RESTORED (rs_19 / L2). CHP 06_BR.txt:111 fires this from the DEATH
+		// state -- a dying roar that hastens the surrounding pack. Dropped by
+		// the import as an "empty ACS wrapper"; the ACS gives +10 speed,
+		// ALWAYSFAST and a shove for 180 tics. See RS_MonsterCommands.zs.
+		// EXFILTER on our own class so the corpse does not buff other
+		// Brown Demons' corpses; CHP additionally scopes it to species
+		// "Demon1", which this tree does not set.
+		TNT1 A 0 { A_RadiusGive("RS_BrownImpCommand", 320, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_Demon"); }
 		"IFIN" N -1;
 		Stop;
 	XDeath.T08:

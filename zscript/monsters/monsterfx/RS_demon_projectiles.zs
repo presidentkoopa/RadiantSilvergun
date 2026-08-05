@@ -380,6 +380,10 @@ class RS_HKEXProtect : PowerProtection { Default { DamageFactor 0.6; Powerup.Dur
 //   * CH_Cirno_C (T03's death easter-egg spawn) is referenced all over
 //     CH/CHP but DEFINED NOWHERE in either tree -- that one cosmetic
 //     A_SpawnItemEx line is dropped, not substituted.
-//   * BrownImpCommand (T08's death radiusgive) is a CustomInventory whose
-//     only body is ACS_NamedExecuteAlways("BrownImpCommand") -- stripped
-//     with the rest of the ACS.
+//   * BrownImpCommand (T08's death radiusgive) WAS stripped here as "a
+//     CustomInventory whose only body is ACS_NamedExecuteAlways". That
+//     reasoning was wrong and is REVERSED as of rs_19: the wrapper is empty
+//     BECAUSE the behaviour lives in the ACS -- +10 speed, ALWAYSFAST and a
+//     physical shove for 180 tics. Rebuilt as RS_BrownImpCommand in
+//     zscript/monsters/RS_MonsterCommands.zs and wired back into
+//     RS_Demon.zs's Death.T08, where CHP 06_BR.txt:111 has it.

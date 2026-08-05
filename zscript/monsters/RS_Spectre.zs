@@ -61,10 +61,18 @@
 //     "Grow"/GrowRaisin promotion, Death.Nocorpse,
 //     CHRandom_GibGenerator, RandomLetterSpawner, A_SpawnParticle walls,
 //     ACS_NamedExecuteAlways announcers -- CHP infrastructure cruft.
-//   * T08's A_RadiusGive("BrownImpCommand") and ("SpeedBuffPE"): both CH
-//     items are pure ACS_NamedExecuteAlways wrappers with no other body,
-//     so porting them would import nothing. The heal + medi-orb half of
-//     Scatter IS ported.
+//   * [REVERSED 2026-08-04 -- this entry was WRONG and is kept, corrected,
+//     rather than deleted, because a deleted claim gets rediscovered.]
+//     T08's A_RadiusGive("BrownImpCommand") and ("SpeedBuffPE") were
+//     dropped on the reasoning that both CH items "are pure
+//     ACS_NamedExecuteAlways wrappers with no other body, so porting them
+//     would import nothing." The wrapper is empty BECAUSE the behaviour
+//     lives in the ACS script -- PESPEED and BrownImpCommand give +10
+//     speed, ALWAYSFAST and a shove for 600/180 tics. Dropping the wrapper
+//     dropped the mechanic, invisibly. Both are rebuilt in
+//     RS_MonsterCommands.zs and wired back into See.T08.Scatter, which is
+//     what makes the Prowler's rally an actual rally rather than a heal.
+//     See docs/rs_19_acs_inventory.txt for the full audit.
 //   * T07's Pain.Fire -- a damage-type pain state; the tier dispatch has
 //     no per-damage-type channel.
 //   * SLGM frame F and SLGM frame '\' (used by CHP's Idle and PeekUp)
@@ -603,6 +611,18 @@ class RS_Spectre : RS_DemonBase replaces Spectre
 		"BPWA" AABBCCDD 2 { A_Wander(); }
 		Goto See;
 	See.T08.Scatter:
+		// RESTORED (rs_19 / L2). CHP 07_BR.txt:38-41 opens Scatter with FOUR
+		// A_RadiusGive lines that this port dropped, on the since-disproven
+		// reasoning that BrownImpCommand and SpeedBuffPE were empty ACS
+		// wrappers. They are not: their ACS gives +10 speed, ALWAYSFAST and
+		// a physical shove for 180/600 tics. Rebuilt in RS_MonsterCommands.zs.
+		// This is what makes the Prowler a RALLY -- without it, "scatter"
+		// only healed and threw medi-orbs, and the pack never sped up.
+		// CHP splits each buff across species "Demon1" and "Spectre"; our
+		// monsters do not set Species, so one call covers both -- the same
+		// simplification the Health line below already makes.
+		"BPBI" A 0 { A_RadiusGive("RS_BrownImpCommand", 320, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_Spectre"); }
+		"BPBI" A 0 { A_RadiusGive("RS_PESpeedBuff",     320, RGF_MONSTERS|RGF_EXFILTER, 1, "RS_Spectre"); }
 		"BPBI" A 0 { A_StartSound("BPinky/Sight", CHAN_VOICE); }
 		"BPBI" AC 3 { A_SpawnItemEx("RS_MediCacoBrown", random(-164, 164), random(-164, 164), random(8, 64), random(1, 9), 0, random(-5, 5), random(0, 359), SXF_NOCHECKPOSITION); }
 		"BPBI" A 3 { A_RadiusGive("Health", 1200, RGF_MONSTERS|RGF_EXFILTER, 200, "RS_Spectre"); }
