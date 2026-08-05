@@ -37,6 +37,14 @@ server bool rs_vp_randombfg = false;
 // weapon, mainhand only, same slots 5/6/7 as before.
 server bool rs_dualclass_allowbigguns = false;
 
+// The silver enrage pulse. An enraged monster is 20-35% faster, stops
+// flinching, and fires more often, but its only signal was the
+// vile/sight roar -- inaudible in a firefight. The pulse also doubles as
+// a health readout: slow while healthy, frantic near death. Silver
+// deliberately, since gold already means "tier transform".
+// Off switch here rather than nowhere; it is a strong visual.
+server bool rs_monster_enragetell = true;
+
 // =====================================================================
 // GunBonsai (zscript/GunBonsai/) -- weapon leveling/upgrade system,
 // offhand-aware fork. Cvars kept under upstream's own bonsai_ prefix

@@ -109,6 +109,16 @@ class RS_MonsterMaster : Actor abstract
 	private int    rsFlashPhase;       // beat counter: even=gold, odd=a real body
 	private int    rsNextBeat;         // next flicker beat, shrinks as the snap nears
 
+	// --- Enrage tell ---
+	// The enrage roar (vile/sight) is the only signal an enraged monster
+	// gives, and the owner cannot hear it mid-firefight. These drive a
+	// SILVER pulse that also doubles as a health readout: the closer to
+	// death, the faster it blinks. Silver, never gold -- gold is already
+	// the transform tell above and one colour must not mean two things.
+	private bool rsEnraged;
+	private int  rsEnrageBeat;         // next pulse beat
+	private int  rsEnragePhase;        // even = silver, odd = the tier's own tint
+
 	// --- Attacks ---
 	RS_AttackSlot CurrentAttacks;
 	private int   rsAttacksBuiltFor;
@@ -283,6 +293,69 @@ class RS_MonsterMaster : Actor abstract
 	//
 	// Beat length shrinks from ~10 tics to 1 as the deadline nears; the
 	// acceleration IS the signal that something is about to change.
+	// --- ENRAGE TELL ---------------------------------------------------
+	//
+	// A silver pulse whose RATE IS THE HEALTH BAR: slow while the monster
+	// is still healthy, frantic as it dies. Owner's spec, 2026-08-04 --
+	// "if it is enraged and hasn't taken damage, there is a slow flash,
+	// and as it takes damage it flashes more and more."
+	//
+	// Reuses the accelerating-beat shape already proven by the transform
+	// tell above, but drives the beat from HEALTH rather than from a
+	// countdown, so it reads continuously instead of announcing once.
+	//
+	// It yields to the transform tell rather than competing with it: two
+	// systems writing A_SetTranslation on the same actor would fight, and
+	// a tier change is the more important thing to be able to see.
+	private void RS_TickEnrageTell()
+	{
+		if (!rsEnraged)
+			return;
+
+		// Dead: hand the body back its own colour so a corpse is never
+		// left frozen mid-flash, and stop.
+		if (health <= 0)
+		{
+			rsEnraged = false;
+			RS_ApplyTint();
+			return;
+		}
+
+		// The transform tell owns the translation while it runs.
+		if (rsTransforming || level.time < rsEnrageBeat)
+			return;
+
+		// Opt-out. Restore the tier colour on the way out so switching it
+		// off mid-fight cannot strand a monster wearing silver.
+		let cv = CVar.GetCVar("rs_monster_enragetell", null);
+		if (cv && !cv.GetBool())
+		{
+			if ((rsEnragePhase & 1) == 0)
+				RS_ApplyTint();
+			rsEnrageBeat = level.time + 35;
+			return;
+		}
+
+		// SAME denominator CheckThreshold uses. A tiered monster's
+		// TierMaxHealth is not its SpawnHealth, so measuring against the
+		// wrong one would make the pulse disagree with the very threshold
+		// that started it -- fast at full health on a high tier, or barely
+		// moving at death on a low one.
+		int maxhp = TierMaxHealth > 0 ? TierMaxHealth : SpawnHealth();
+		double frac = (maxhp > 0) ? clamp(double(health) / double(maxhp), 0.0, 1.0) : 1.0;
+
+		// 35 tics per beat at full health down to 3 at death. Enrage fires
+		// at the half-health threshold, so in practice this opens around
+		// 19 and tightens from there -- a visibly quickening pulse.
+		rsEnrageBeat = level.time + clamp(int(3 + frac * 32), 3, 35);
+
+		rsEnragePhase++;
+		if ((rsEnragePhase & 1) == 0)
+			A_SetTranslation("rs_enrage_flash");
+		else
+			RS_ApplyTint();   // back to whatever this tier actually wears
+	}
+
 	private void RS_TickTransform()
 	{
 		if (!rsTransforming)
@@ -896,6 +969,11 @@ class RS_MonsterMaster : Actor abstract
 		Speed *= speedMult;
 		if (noPain)      bNOPAIN = true;
 		if (missileMore) MissileChanceMult *= 0.5;   // == +MISSILEMORE
+
+		// Turn on the silver pulse. Every caller already plays
+		// SND_Enrage() on the next line; this is the half you can see.
+		rsEnraged    = true;
+		rsEnrageBeat = level.time;   // first flash immediately, with the roar
 	}
 
 	// --- TIMED PULSE -------------------------------------------------
@@ -1192,6 +1270,7 @@ class RS_MonsterMaster : Actor abstract
 		}
 
 		RS_TickTransform();
+		RS_TickEnrageTell();
 		RS_TickPulse();
 		RS_TickDodge();
 

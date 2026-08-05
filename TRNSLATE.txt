@@ -199,3 +199,12 @@ rs_gold_flash = "0:255=%[0.30,0.22,0.00]:[2.00,1.70,0.45]"
 rs_sgun_tex = "0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]"
 rs_imp_tex  = "0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]"
 rs_cgun_tex = "0:255=%[0.00,0.00,0.00]:[0.18,1.32,0.18]"
+
+// --- ENRAGE TELL ---------------------------------------------------
+// Silver, deliberately NOT gold: gold is already the tier-transform
+// flash (rs_gold_flash above) and one signal must not carry two
+// meanings. Owner's call, 2026-08-04 -- the enrage roar (vile/sight) is
+// inaudible in a firefight, so the state needs to be visible.
+// Cool desaturated white-blue so it reads against every tier tint,
+// including the gray T09 and white T12 bodies.
+rs_enrage_flash = "0:255=%[0.18,0.20,0.26]:[1.85,1.92,2.00]"
