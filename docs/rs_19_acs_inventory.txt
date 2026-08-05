@@ -67,6 +67,19 @@ FILE-BY-FILE, MEASURED 2026-08-04. READ THIS BEFORE COSTING ANY ACS WORK.
   gameplay) goes with it. Between them that is 765 of the 943 scripts and
   205KB of the corpus, for one screen shake.
 
+  AND IT IS NOT A GAP -- IT IS SOMEBODY ELSE'S JOB. Owner: "we will
+  eventually build our own encounters and setpieces with some of these
+  monsters and announce shit ourselves." So the announcement layer belongs
+  to the SetPieces / encounter system (register I3), not to the monster
+  port, and it should be authored against OUR encounters rather than
+  transliterated from CH's per-tier spawn banners. Porting 765 banners for
+  spawns we are going to stage differently would be work done twice and
+  wrong the first time.
+  WHAT IS WORTH KEEPING FROM IT, when that system is built: the FORM.
+  CH's banners are one line, colour-coded to the tier, HUDMSG_FADEINOUT
+  with a log copy, positioned around y=180-268. That is a usable template
+  for an encounter announcement even though none of the strings are.
+
   SO THE REAL ACS JOB IS ~90 SCRIPTS, NOT 943, and several are already
   rebuilt (PESPEED, BrownImpCommand, BrownVileCommand, BrownMindCommand,
   BrownRevSPEED2, PERAGE, PEHULK, plus ProjInt_Brute as RS_MonsterAim).
