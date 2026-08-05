@@ -132,10 +132,10 @@ version "4.14"
 #include "zscript/monsters/Zombieman/RS_Zombieman.zs"
 
 // --- families not yet ported under rs_21 -- flat, one file each -------
-#include "zscript/monsters/RS_Shotgunner.zs"
+#include "zscript/monsters/_chp_legacy/RS_Shotgunner.zs"
 // The Crew Commander's squad -- a distinct actor with a five-stance AI,
 // not a lower-tier shotgunner. See the file header.
-#include "zscript/monsters/RS_BlackSGTrooper.zs"
+#include "zscript/monsters/_chp_legacy/RS_BlackSGTrooper.zs"
 // --- CH-only rebuild, one class per creature ------------------------
 // Family 04. Fourteen files, fourteen of CH's own Chaingunners.txt
 // actors, one apiece. These are CH's numbers, NOT CHP's -- CHP is a
@@ -167,35 +167,35 @@ version "4.14"
 #include "zscript/monsters/chaingunner/RS_Chaingunner_X0001_BlackEX.zs"
 
 #include "zscript/monsters/RS_Chaingunner.zs"
-#include "zscript/monsters/RS_Imp.zs"
-#include "zscript/monsters/RS_Demon.zs"
-#include "zscript/monsters/RS_Spectre.zs"
-#include "zscript/monsters/RS_LostSoul.zs"
-#include "zscript/monsters/RS_Cacodemon.zs"
-#include "zscript/monsters/RS_PainElemental.zs"
-#include "zscript/monsters/RS_Baron.zs"
-#include "zscript/monsters/RS_HellKnight.zs"
-#include "zscript/monsters/RS_Revenant.zs"
-#include "zscript/monsters/RS_Mancubus.zs"
-#include "zscript/monsters/RS_Arachnotron.zs"
-#include "zscript/monsters/RS_Archvile.zs"
-#include "zscript/monsters/RS_Mastermind.zs"
-#include "zscript/monsters/RS_Cyberdemon.zs"
+#include "zscript/monsters/_chp_legacy/RS_Imp.zs"
+#include "zscript/monsters/_chp_legacy/RS_Demon.zs"
+#include "zscript/monsters/_chp_legacy/RS_Spectre.zs"
+#include "zscript/monsters/_chp_legacy/RS_LostSoul.zs"
+#include "zscript/monsters/_chp_legacy/RS_Cacodemon.zs"
+#include "zscript/monsters/_chp_legacy/RS_PainElemental.zs"
+#include "zscript/monsters/_chp_legacy/RS_Baron.zs"
+#include "zscript/monsters/_chp_legacy/RS_HellKnight.zs"
+#include "zscript/monsters/_chp_legacy/RS_Revenant.zs"
+#include "zscript/monsters/_chp_legacy/RS_Mancubus.zs"
+#include "zscript/monsters/_chp_legacy/RS_Arachnotron.zs"
+#include "zscript/monsters/_chp_legacy/RS_Archvile.zs"
+#include "zscript/monsters/_chp_legacy/RS_Mastermind.zs"
+#include "zscript/monsters/_chp_legacy/RS_Cyberdemon.zs"
 
 // Summoned monsters. Real RS_MonsterMaster monsters (they carry a tier
 // and can be retiered), deliberately not throwaway actors -- see the
 // file header. Excluded from the level kill count.
-#include "zscript/monsters/RS_Minions.zs"
+#include "zscript/monsters/_chp_legacy/RS_Minions.zs"
 
 // Multi-stage boss bodies (shrink chains, shades) and pack minions that
 // belong to no single family file. Referenced through RS_MonsterCatalog.
-#include "zscript/monsters/RS_MonsterStages.zs"
+#include "zscript/monsters/_chp_legacy/RS_MonsterStages.zs"
 
 // EX tier -- set-piece boss encounters, TierLocked so the ambient dial
 // leaves them alone. Rebuilt from CHP's BlackEX/WhiteEX variants; these
 // replace the removed RS_TEX_* files, which were still HF_-prefixed
 // classes from an older import and could not have compiled.
-#include "zscript/monsters/RS_ExBosses.zs"
+#include "zscript/monsters/_chp_legacy/RS_ExBosses.zs"
 
 // Monster diagnostics. Registered in MAPINFO.txt's AddEventHandlers --
 // without that line this file compiles but never runs.
