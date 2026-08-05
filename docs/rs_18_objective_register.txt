@@ -607,6 +607,18 @@ block anything and none should be started unasked.
       become things the Vanilla+ player FINDS. This is the first concrete
       job for F1 (weapon drops above Basic) to feed -- the two are one
       feature, not two.
+      STARTING LOADOUT, owner 2026-08-04:
+        Fist, offhand Fist, RS_GH_Pistol1, RS_GH_Pistol2
+      i.e. the same fist-pair-plus-class-pair shape as the VR_Dual_*
+      classes (see F9), which is the confirmation that shape is general
+      and not a VR_ quirk.
+      START CHOICE: the player may elect to begin with RS_GH_Rifle instead
+      of the pistols. That is the seed of "a whole slew of Vanilla+
+      options later when we organize our menus" -- so this is not one
+      class, it is a class TEMPLATE with a selectable opening pair.
+      SEQUENCING: the menu organisation is the gate, not the code. Do not
+      author a pile of one-off start classes before that pass; the whole
+      point of the template is that options are data.
 
   N2. PERCENTAGE WEAPON REPLACEMENT ON PICKUP.
       Owner: "% chance to replace chaingun with minigun or machinegun, %
