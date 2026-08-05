@@ -1399,5 +1399,28 @@ class RS_Chaingunner : RS_MonsterMaster replaces ChaingunGuy
 		"HCPO" KL 5;
 		"HCPO" L -1;
 		Stop;
+	// THE T00 FALLBACK WAS FIRING FOR TIER 13.
+	//
+	// TierState falls back to "<prefix>.T00" when a tier has no cluster.
+	// TEX defined no XDeath and no Raise, so a gibbed or resurrected
+	// green EX general -- 11249 HP, HCPO body -- resolved through
+	// XDeath.T00 / Raise.T00 and played VANILLA CPOS CAPTAIN FRAMES.
+	// That is precisely the wrong-creature bug this rebuild exists to
+	// kill, surviving in the one tier nothing checked: RS_AuditClusters
+	// loops t = 1..12 and structurally cannot see tier 13.
+	//
+	// CHP and CH both genuinely give the EX no XDeath and no Raise, so
+	// the fix is NOT to invent one from CHP -- it is the same call
+	// already made for T03/T11/T12: route them to bodies that are at
+	// least the right creature. Death.Ice likewise: every CHP actor in
+	// this family aliases it onto its own Death, and ours had none, so
+	// an ice-shattered TEX fell to T00 as well.
+	XDeath.TEX:
+	Death.Ice.TEX:
+		Goto Death.TEX;
+	Raise.TEX:
+		"HCPO" LKJ 5;
+		"HCPO" IH 5;
+		Goto See;
 	}
 }

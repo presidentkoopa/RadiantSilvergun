@@ -151,7 +151,7 @@ class RS_BlueChainPuff3 : Actor
 }
 class RS_BrownOrbCguy : Actor
 {
-	Default { Radius 3; Height 3; Speed 32; Damage 9; DamageType "Fire"; Projectile; +THRUGHOST; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Scale 0.5;
+	Default { Radius 3; Height 3; Speed 32; DamageFunction (random(3,9)); /* CHP 04_BR.txt:1445 - roll restored */ DamageType "Fire"; Projectile; +THRUGHOST; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Scale 0.5;
 		SeeSound "imp/attack"; DeathSound "imp/shotx"; Translation "0:255=%[0.31,0.23,0.18]:[1.10,0.74,0.40]"; }
 	States { Spawn: BAL1 AB 2 Bright; Loop; Death: RIP1 A 3 Bright A_Explode(27, 40, XF_HURTSOURCE, false, 13); RIP1 BC 3 Bright; Stop; }
 }
@@ -197,11 +197,11 @@ class RS_GenShield : Actor
 }
 class RS_NeedlesCg1 : Actor
 {
-	Default { Radius 2; Height 2; Speed 35; Damage 12; DamageType "Melee"; Projectile; +SPAWNSOUNDSOURCE; +BLOODSPLATTER; +RANDOMIZE; YScale 0.6; XScale 1.4;
+	Default { Radius 2; Height 2; Speed 35; DamageFunction (random(5,25)); /* CHP 04_W.txt:6604 - roll restored */ DamageType "Melee"; Projectile; +SPAWNSOUNDSOURCE; +BLOODSPLATTER; +RANDOMIZE; YScale 0.6; XScale 1.4;
 		SeeSound "Jam/Jamd"; DeathSound "gas/gas1"; }
 	States { Spawn: 6PUF AB 2 Bright; Loop; Death: BLAD AAA 3 Bright; Stop; }
 }
-class RS_NeedlesCg2 : RS_NeedlesCg1 { Default { Damage 8; DamageType "Poison"; PoisonDamage 6; } }
+class RS_NeedlesCg2 : RS_NeedlesCg1 { Default { DamageFunction (random(5,45)); /* CHP 04_W.txt:6091 - roll restored */ DamageType "Poison"; PoisonDamage 6; } }
 class RS_Puddle1 : Actor
 {
 	Default { Radius 8; Height 4; Speed 0; Damage 4; DamageType "Poison"; Projectile; +NOCLIP +FLOORHUGGER; RenderStyle "Translucent"; Alpha 0.5; Scale 0.8;
@@ -412,17 +412,43 @@ class RS_DetoPuffCG : Actor
 		MISL BC 4 Bright;
 	Melee:
 	Death:
-		MISL D 4 Bright A_Explode(4, 42);
+		MISL D 4 Bright A_Explode(random(2,6), 42) /* CHP 04_R.txt:1757 */;
 		MISL E 4 Bright;
 		Stop;
 	}
 }
-class RS_DetoPuff2 : RS_DetoPuffCG { Default { Scale 0.30; } }
-class RS_DetoPuff3 : RS_DetoPuffCG { Default { Scale 0.25; } }
+// T10's three range grades. These used to differ ONLY by Scale, which
+// made all three detonate identically -- the whole point of the tier is
+// that closing trades reach for splash. CHP gives each its own roll AND
+// its own radius: DetoPuffCG r42, DetoPuff2 r38, DetoPuff3 r32
+// (CH Chaingunners.txt:1847, :1860). Overriding the Death state is the
+// only way to change the A_Explode arguments.
+class RS_DetoPuff2 : RS_DetoPuffCG
+{
+	Default { Scale 0.30; }
+	States
+	{
+	Death:
+		MISL D 4 Bright { A_Explode(random(1,4), 38); }
+		MISL E 4 Bright;
+		Stop;
+	}
+}
+class RS_DetoPuff3 : RS_DetoPuffCG
+{
+	Default { Scale 0.25; }
+	States
+	{
+	Death:
+		MISL D 4 Bright { A_Explode(random(1,3), 32); }
+		MISL E 4 Bright;
+		Stop;
+	}
+}
 // The General's seeking plasma bombs (BFS1/BFE1 are IWAD BFG sprites).
 class RS_SpamShotsCguy : Actor
 {
-	Default { Radius 14; Height 9; Speed 25; Damage 25; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE;
+	Default { Radius 14; Height 9; Speed 25; DamageFunction (random(10,60)); /* CHP 04_K.txt:1479 - roll restored */ DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE;
 		RenderStyle "Add"; Alpha 0.75; Scale 0.55; SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx"; }
 	States
 	{
@@ -431,7 +457,7 @@ class RS_SpamShotsCguy : Actor
 		Loop;
 	Death:
 		BFE1 AB 8 Bright A_SetScale(1.15);
-		BFE1 C 8 Bright A_Explode(25, 128);
+		BFE1 C 8 Bright A_Explode(random(5,45), 128) /* CHP 04_K.txt:1502 */;
 		BFE1 DEF 8 Bright;
 		Stop;
 	}
@@ -804,7 +830,7 @@ class RS_BrownSandBagCGuy : Actor
 // T09 GRAY -- the hopping gunner's fast tracer (CHP 04_GY GrayPewPew_C).
 class RS_GrayPewPew : Actor
 {
-	Default { Radius 4; Height 5; Speed 60; Damage 16; DamageType "Fire"; Projectile; +RANDOMIZE;
+	Default { Radius 4; Height 5; Speed 60; DamageFunction (random(8,24)); /* CHP 04/04_GY.txt:1549 - roll restored */ DamageType "Fire"; Projectile; +RANDOMIZE;
 		SeeSound "weapons/rocklf"; DeathSound "weapons/rocklx"; Scale 0.28;
 		Translation "0:255=%[0.28,0.25,0.22]:[1.01,1.01,1.01]"; }
 	States
@@ -827,7 +853,7 @@ class RS_GrayKaboom : Actor
 {
 	private int rsFuse;
 
-	Default { Radius 8; Height 12; Speed 6; Damage 45; Scale 1.15; DamageType "Fire"; Projectile;
+	Default { Radius 8; Height 12; Speed 6; DamageFunction (random(20,75)); /* CHP 04/04_GY.txt:1721 - roll restored */ Scale 1.15; DamageType "Fire"; Projectile;
 		RenderStyle "Normal"; +THRUGHOST; +NOEXPLODEFLOOR; Decal "Scorch"; SeeSound "weapons/rocklf"; }
 	States
 	{
