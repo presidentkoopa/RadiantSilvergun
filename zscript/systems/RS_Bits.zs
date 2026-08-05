@@ -55,7 +55,7 @@ class RS_KillRewardsHandler : EventHandler
 		// --- RS monster payout policy --------------------------------
 		// This gate lives HERE, not on the monster: deciding what pays
 		// out is this system's job, and a monster shouldn't know the
-		// loot system exists. RS_MonsterMaster only reports facts about
+		// loot system exists. The systems contract only reports facts about
 		// itself; the rules below are ours to change.
 		//
 		// Two cases must not pay out today:
@@ -72,7 +72,7 @@ class RS_KillRewardsHandler : EventHandler
 		// (Note the check above gates on bIsMonster only and never
 		// looked at bCOUNTKILL, which is why both cases paid out before
 		// this existed.)
-		let rsmon = RS_MonsterMaster(a);
+		let rsmon = RS_SystemsMaster(a);
 		if (rsmon && (rsmon.IsSummonedMinion() || rsmon.IsTransientStage()))
 			return;
 

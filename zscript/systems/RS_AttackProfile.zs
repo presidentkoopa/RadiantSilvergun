@@ -544,7 +544,7 @@ class RS_AttackProfile : Object
 	}
 
 	// Temporary self stat spike. Reverts itself -- see
-	// RS_MonsterMaster.PulseStats.
+	// a monster-side pulse, when one exists.
 	static RS_AttackProfile MakeSelfBuff(
 		double speedMult = 1.5,
 		double damageMult = 1.0,

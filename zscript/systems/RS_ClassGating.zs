@@ -8,7 +8,7 @@
 // chaingun, shotgun, SSG and rifle pickups become Clip. It used to
 // simply destroy the pickup, which stripped items out of maps and left
 // nothing in their place. Player.StartItem
-// grants and GiveInventory calls (Elite drops, "Allow Big Guns", console
+// grants and GiveInventory calls (monster drops, "Allow Big Guns", console
 // give) never go through WorldThingSpawned, so this only ever touches
 // actual floor pickups -- it can't clobber anything already handed to
 // the player directly.
@@ -117,7 +117,7 @@ class RS_ClassGating : EventHandler
 // ---------------------------------------------------------------------
 // The six swap-chance sliders and the Random BFG toggle (CVARINFO.txt,
 // MENUDEF.txt's RS_VanillaPlusOptions) apply HERE -- to whatever spawns
-// in the actual game world (map placements, Elite drops, anything that
+// in the actual game world (map placements, monster drops, anything that
 // goes through WorldThingSpawned) -- not to direct grants, which
 // stays deterministic on purpose (press the Chainsaw button, get a
 // Chainsaw, always).

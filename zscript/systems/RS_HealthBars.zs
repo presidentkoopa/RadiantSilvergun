@@ -5,7 +5,7 @@
 // SpriteShadow. Released with "feel free to use this in your mods, you
 // don't have to ask my permission". Pulled in rather than run as a
 // side-loaded mod so it can (a) be versioned with everything else and
-// (b) read RS_MonsterMaster.TierMaxHealth, which is the number it was
+// (b) read RS_SystemsMaster.TierMaxHealth, which is the number it was
 // getting wrong.
 //
 // WHY A WORLD ACTOR AND NOT A HUD DRAW
@@ -70,7 +70,7 @@
 //
 // NOTHING IN THIS FEATURE TOUCHES A MONSTER FILE, and it should stay
 // that way. The only thing it reads from the monster side is
-// RS_MonsterMaster's own public TierMaxHealth and ThresholdFired(),
+// RS_SystemsMaster's own public TierMaxHealth and ThresholdFired(),
 // both already there for other reasons.
 // =====================================================================
 
@@ -272,7 +272,7 @@ class RS_HPBarBase : Actor
 	// The health ceiling. This is the fix; see the file header.
 	//
 	// Two sources, in order:
-	//   1. RS_MonsterMaster.TierMaxHealth -- exact for our own monsters,
+	//   1. RS_SystemsMaster.TierMaxHealth -- exact for our own monsters,
 	//      and it MOVES when one retiers, so it is read live every tic
 	//      rather than latched. A monster that tiers up mid-fight gets a
 	//      correct bar against its new ceiling immediately.
@@ -291,10 +291,10 @@ class RS_HPBarBase : Actor
 		if (!ownerRef)
 			return 1;
 
-		let mm = RS_MonsterMaster(ownerRef);
-		if (mm && mm.TierMaxHealth > 0)
-			return mm.TierMaxHealth;
-
+		// TIER LOOKUP REMOVED 2026-08-05. There is no tier system and the
+		// mod ships no monsters of its own -- these are vanilla Doom
+		// monsters, whose SpawnHealth() IS the truth. The peak-HP tracker
+		// below already handles anything that gets buffed at runtime.
 		if (rsPeakHP <= 0)
 			rsPeakHP = max(1, ownerRef.SpawnHealth());
 		rsPeakHP = max(rsPeakHP, ownerRef.Health);
@@ -319,7 +319,7 @@ class RS_HPBarBase : Actor
 	// Lives on the base so EVERY bar applies it TO ITSELF. A_SetRenderStyle
 	// is an action function, and this repo has already been bitten by
 	// calling one from a plain method or on another actor (see the note in
-	// RS_MonsterMaster.ApplyTier). The main bar driving the chip's
+	// RS_SystemsMaster.ApplyTier). The main bar driving the chip's
 	// renderstyle from its own Tick would be exactly that; each actor
 	// doing it in its own Tick is the shape upstream shipped and knows
 	// works.
@@ -590,7 +590,7 @@ class RS_HPBar : RS_HPBarBase
 	// -----------------------------------------------------------------
 	const RS_GATE_SLOTS = 4;
 
-	private void RS_LearnThresholds(RS_MonsterMaster mm, int maxhp)
+	private void RS_LearnThresholds(RS_SystemsMaster mm, int maxhp)
 	{
 		if (!mm || maxhp <= 0)
 			return;
@@ -743,7 +743,7 @@ class RS_HPBar : RS_HPBarBase
 			// --- threshold mark ---
 			// Only our own monsters have gates at all; anything else
 			// simply never gets a mark.
-			let mm = RS_MonsterMaster(ownerRef);
+			let mm = RS_SystemsMaster(ownerRef);
 			bool wantMark = mm && cvMarks && cvMarks.GetInt();
 
 			// Gated on the toggle, not just on being one of our monsters:
@@ -889,7 +889,7 @@ class RS_HPBarToken : Inventory
 
 // One learned phase gate: "monsters of class X have a gate in slot N at
 // fraction F". Plain Object holder, same shape RS_MonsterTierRow uses in
-// RS_MonsterMaster -- that pattern is known to work on this build.
+// RS_SystemsMaster -- that pattern is known to work on this build.
 class RS_HPLearnedGate
 {
 	Name   cls;

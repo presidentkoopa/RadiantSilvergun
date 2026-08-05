@@ -463,7 +463,7 @@ class RS_ScoreHandler : EventHandler
 	//
 	// Tier is the real difficulty signal in this project, so it drives
 	// the value -- HP alone would rank a bullet-sponge above a genuinely
-	// dangerous elite. Non-RS monsters (other mods, plain Doom actors)
+	// dangerous monster. Plain Doom actors and other mods
 	// fall back to SpawnHealth, so the system still works on an
 	// unmodified or foreign bestiary.
 	// -----------------------------------------------------------------
@@ -472,24 +472,13 @@ class RS_ScoreHandler : EventHandler
 		if (!mo)
 			return 0;
 
-		int hp = mo.SpawnHealth();
-
-		let rsmon = RS_MonsterMaster(mo);
-		if (rsmon)
-		{
-			if (rsmon.TierMaxHealth > 0)
-				hp = rsmon.TierMaxHealth;
-
-			// Tier weighting: each tier above T00 is worth a little
-			// more than its hit points suggest. Multiplicative and
-			// gentle -- at the default 0.12 a TEX (13) monster is
-			// worth ~2.5x its HP, a T03 ~1.36x.
-			double per = CVFloat("rs_score_tierweight", 0.12);
-			double mult = 1.0 + (per * rsmon.Tier);
-			return int(hp * mult);
-		}
-
-		return hp;
+		// TIER WEIGHTING REMOVED 2026-08-05. It multiplied a kill's value
+		// by the monster's tier, and there is no tier system. A vanilla
+		// monster's SpawnHealth() is its real maximum, and hit points are
+		// now the whole measure of what a kill was worth -- which reads
+		// correctly across the vanilla bestiary on its own: an Imp is 60,
+		// a Cyberdemon is 4000.
+		return mo.SpawnHealth();
 	}
 
 	// -----------------------------------------------------------------
@@ -509,7 +498,7 @@ class RS_ScoreHandler : EventHandler
 		// transient boss stage become a score farm. RS_Bits documents
 		// this gate; score has to honor it or the two systems disagree
 		// about what a kill is.
-		let rsmon = RS_MonsterMaster(victim);
+		let rsmon = RS_SystemsMaster(victim);
 		if (rsmon && (rsmon.IsSummonedMinion() || rsmon.IsTransientStage()))
 			return;
 
@@ -551,7 +540,7 @@ class RS_ScoreHandler : EventHandler
 		double mPointBlank  = MultPointBlank(victim, killer);
 		double mBrawler     = MultBrawler(pi);
 		double mTelefrag    = MultTelefrag(e);
-		double mGiantSlayer = MultGiantSlayer(rsmon);
+		double mGiantSlayer = MultGiantSlayer(victim);
 
 		int pSpree       = int(basePoints * mSpree);
 		int pUntouchable = int(basePoints * mUntouchable);
@@ -860,23 +849,31 @@ class RS_ScoreHandler : EventHandler
 		return CVFloat("rs_score_m_telefrag", 1.0);
 	}
 
-	// The tier ladder is this project's own difficulty statement, so
-	// killing far up it should read as an achievement in its own right
-	// rather than only as more hit points.
-	double MultGiantSlayer(RS_MonsterMaster rsmon)
+	// GIANT SLAYER, REBUILT FOR VANILLA 2026-08-05.
+	//
+	// It used to read "is this monster's TIER >= N", which was this
+	// project's own difficulty statement. There is no tier system, so
+	// the bonus now measures the thing it was always a proxy for: how
+	// big was the thing you killed. Vanilla's own health values are a
+	// perfectly good difficulty ladder --
+	//     Imp 60 | Cacodemon 400 | Baron 1000 | Mastermind 3000 | Cyber 4000
+	// so the gate is hit points, and the payout scales with how far past
+	// the gate it was.
+	double MultGiantSlayer(Actor mon)
 	{
-		if (!rsmon)
+		if (!mon)
 			return 0;
 
 		if (!RS_ScoreDefs.BonusEnabled(RS_ScoreDefs.RS_SB_GIANTSLAYER))
 			return 0;
 
-		int minTier = CVInt("rs_score_giantslayer_tier", 8);
-		if (rsmon.Tier < minTier)
+		int gate = CVInt("rs_score_giantslayer_hp", 700);
+		int hp   = mon.SpawnHealth();
+		if (hp < gate)
 			return 0;
 
 		double per = CVFloat("rs_score_m_giantslayer", 0.15);
-		return per * (rsmon.Tier - minTier + 1);
+		return per * (1.0 + double(hp - gate) / double(max(1, gate)));
 	}
 
 	// -----------------------------------------------------------------
