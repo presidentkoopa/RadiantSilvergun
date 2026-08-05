@@ -35,12 +35,15 @@ class RS_EX_Archvile : RS_MonsterMaster
 
 	Default
 	{
+		// Stats corrected to CommonBlackArchEX2 (14_KX.txt:10-14) 2026-08-05.
+		// Health 2700 was already right; Speed/PainChance/Radius/Height/
+		// Mass were RS drift matching no actor in the file.
 		Health 2700;
-		Radius 24;
-		Height 60;
-		Mass 1000;
-		Speed 18;
-		PainChance 24;
+		Radius 20;
+		Height 56;
+		Mass 500;
+		Speed 20;
+		PainChance 8;
 		Monster;
 		+BOSS +FLOORCLIP +QUICKTORETALIATE +NORADIUSDMG
 		+DONTMORPH +NOTARGET
@@ -187,12 +190,14 @@ class RS_EX_ArchvilePhantom : RS_MonsterMaster
 
 	Default
 	{
+		// Stats corrected to CommonBlackArchEX3 (14_KX.txt:4416-4420)
+		// 2026-08-05. Mass 99999 is CHP's -- it is meant to be immovable.
 		Health 4166;
-		Radius 24;
-		Height 60;
-		Mass 1000;
-		Speed 22;
-		PainChance 40;
+		Radius 20;
+		Height 56;
+		Mass 99999;
+		Speed 20;
+		PainChance 8;
 		Monster;
 		+BOSS +FLOAT +NOGRAVITY +NORADIUSDMG +DONTMORPH MissileChanceMult 0.5;
 		RenderStyle "Translucent";

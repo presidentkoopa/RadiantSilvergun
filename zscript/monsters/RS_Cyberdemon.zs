@@ -142,7 +142,12 @@ class RS_Cyberdemon : RS_MonsterMaster replaces Cyberdemon
 			case 2:  hp = 5800;  spd = 18; r.painChance = 12; r.dmgMul = 1.2; break;
 			case 3:  hp = 5280;  spd = 31; r.painChance = 32; r.dmgMul = 1.3; break;
 			case 4:  hp = 6400;  spd = 13; r.painChance = 16; r.dmgMul = 1.4; break;
-			case 5:  hp = 7777;  spd = 19; r.painChance = 20; r.dmgMul = 1.5; break;
+			// PainChance 0, NOT 20. Neither CommonYellowCybie (17_Y.txt:1)
+			// nor its CH parent Yellowcybie (CYBIES.txt:2991) states
+			// PainChance at all, so CHP's effective value is the engine
+			// default 0. The 20 was this class's own Default leaking
+			// through the row.
+			case 5:  hp = 7777;  spd = 19; r.painChance = 0;  r.dmgMul = 1.5; break;
 			case 6:  hp = 12000; spd = 15; r.painChance = 8;  r.dmgMul = 1.8; break;
 			case 7:  hp = 6561;  spd = 19; r.painChance = 16; r.dmgMul = 1.5; break;
 			case 8:  hp = 6001;  spd = 17; r.painChance = 12; r.dmgMul = 1.5; break;
