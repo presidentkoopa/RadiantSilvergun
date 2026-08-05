@@ -101,6 +101,33 @@ class RS_MonsterTierRow
 	// Benellus is a balloon), which is a wider spread than any stat in the
 	// hp table. 0 = leave alone.
 	double radiusDamageFactor;
+
+	// --- Added for families 05/07/09 (LostSoul, Spectre, Cacodemon) ---
+	//
+	// RS_TF_* ran out of bits at 23, so the ghost/floater flags live in a
+	// second word. Both are assigned absolutely, same rule as flags.
+	int    flags2;        // RS_TF2_* bitmask
+
+	// TRANSPARENCY IS IDENTITY IN THESE FAMILIES, not decoration. CH's
+	// gray spectre sits at Alpha 0.05 and the black at 0.45 -- one is
+	// nearly invisible and the other is merely dim, and they are the same
+	// creature otherwise. 0 = leave alone.
+	double alpha;
+	// -1 = leave alone. Use the STYLE_* constants.
+	int    renderStyle;
+
+	// CH varies these per tier and they change the fight: the red spectre
+	// reaches 78 where the common reaches 54. 0 = leave alone.
+	double meleeRange;
+	double meleeThreshold;
+	double maxTargetRange;
+	double floatSpeed;
+
+	// DamageFactor None -- the untyped-damage multiplier, i.e. most
+	// weapons. CH's black cacodemon carries None,1.5 and CHP neutralises
+	// it to 1.0; missing that override makes the boss half again as
+	// fragile as intended. 0 = leave alone.
+	double noneDamageFactor;
 }
 
 // Tier flag bits. Plain file-scope consts, NOT a static const array --
@@ -138,6 +165,21 @@ const RS_TF_BOSSDEATH        = 2097152;
 const RS_TF_SEEINVISIBLE     = 4194304;
 const RS_TF_NOTIMEFREEZE     = 8388608;
 
+// SECOND FLAG WORD. RS_TF_* stops at bit 23 and int is signed 32-bit, so
+// the ghost/floater set added for families 05/07/09 lives here rather
+// than risking the sign bit. Assigned absolutely, same as RS_TF_*.
+const RS_TF2_STEALTH            = 1;
+const RS_TF2_SHADOW             = 2;
+const RS_TF2_VISIBILITYPULSE    = 4;
+const RS_TF2_SHORTMISSILERANGE  = 8;
+const RS_TF2_SPAWNCEILING       = 16;
+const RS_TF2_SPAWNFLOAT         = 32;
+const RS_TF2_DONTFALL           = 64;
+const RS_TF2_NOPAIN             = 128;
+const RS_TF2_DONTOVERLAP        = 256;
+const RS_TF2_NOBLOODDECALS      = 512;
+const RS_TF2_NOTARGETSWITCH     = 1024;
+
 class RS_MonsterMaster : Actor abstract
 {
 	// --- Tier ---
@@ -146,6 +188,8 @@ class RS_MonsterMaster : Actor abstract
 	// This tier's CH GibHealth, 0 = unstated. Held rather than assigned
 	// because the engine's GibHealth is readonly; GetGibHealth() serves it.
 	int    rsTierGibHealth;
+	// DamageFactor None -- the untyped multiplier. 0 = unstated.
+	double rsTierNoneFactor;
 
 	// The health ceiling for our CURRENT tier. Tracked ourselves rather
 	// than read back from the engine: we rescale health per tier, so the
@@ -715,6 +759,30 @@ class RS_MonsterMaster : Actor abstract
 			A_SetSize(r.radius > 0 ? r.radius : radius,
 			          r.height > 0 ? r.height : height);
 		}
+		// THE GHOST / FLOATER SET (families 05, 07, 09).
+		int g = r.flags2;
+		bSTEALTH           = (g & RS_TF2_STEALTH)           != 0;
+		bSHADOW            = (g & RS_TF2_SHADOW)            != 0;
+		bVISIBILITYPULSE   = (g & RS_TF2_VISIBILITYPULSE)   != 0;
+		bSHORTMISSILERANGE = (g & RS_TF2_SHORTMISSILERANGE) != 0;
+		bSPAWNCEILING      = (g & RS_TF2_SPAWNCEILING)      != 0;
+		bSPAWNFLOAT        = (g & RS_TF2_SPAWNFLOAT)        != 0;
+		bDONTFALL          = (g & RS_TF2_DONTFALL)          != 0;
+		bNOPAIN            = (g & RS_TF2_NOPAIN)            != 0;
+		bDONTOVERLAP       = (g & RS_TF2_DONTOVERLAP)       != 0;
+		bNOBLOODDECALS     = (g & RS_TF2_NOBLOODDECALS)     != 0;
+
+		// TRANSPARENCY IS IDENTITY HERE. CH's gray spectre is Alpha 0.05
+		// and the black is 0.45 -- near-invisible versus merely dim.
+		if (r.renderStyle >= 0) A_SetRenderStyle(r.alpha > 0 ? r.alpha : alpha,
+		                                         r.renderStyle);
+		else if (r.alpha > 0)   A_SetRenderStyle(r.alpha, GetRenderStyle());
+
+		if (r.meleeRange      > 0) MeleeRange     = r.meleeRange;
+		if (r.meleeThreshold  > 0) MeleeThreshold = r.meleeThreshold;
+		if (r.maxTargetRange  > 0) MaxTargetRange = r.maxTargetRange;
+		if (r.floatSpeed      > 0) FloatSpeed     = r.floatSpeed;
+
 		if (r.mass  > 0) Mass = int(r.mass);
 		if (r.scale > 0) A_SetScale(r.scale);
 		// GibHealth IS READONLY on the instance -- "Expression must be a
@@ -722,6 +790,7 @@ class RS_MonsterMaster : Actor abstract
 		// GetGibHealth() instead, so the row's value is stashed and the
 		// override below serves it. Same shape as TierDamageFactor.
 		rsTierGibHealth = r.gibHealth;
+		rsTierNoneFactor = r.noneDamageFactor;
 		// r.bloodColor is deliberately not applied -- see the field.
 	}
 
@@ -752,6 +821,13 @@ class RS_MonsterMaster : Actor abstract
 	                        Name mod, int flags, double angle)
 	{
 		double fac = TierDamageFactor(Tier, mod);
+		// CH writes `DamageFactor None,x` -- the multiplier for UNTYPED
+		// damage, i.e. most weapons. The black cacodemon carries None,1.5
+		// and CHP neutralises it to 1.0; the gray mancubus carries a bare
+		// global 0.65 that CHP likewise cancels. Missing either override
+		// misprices the monster by a third or more.
+		if (fac == 1.0 && rsTierNoneFactor > 0 && mod == 'None')
+			fac = rsTierNoneFactor;
 		if (fac != 1.0)
 		{
 			damage = int(damage * fac);
