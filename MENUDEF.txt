@@ -32,7 +32,7 @@ OptionMenu "RS_MainOptions"
 // Weapon Sound Assignment -- pick each main-arsenal weapon's fire sound
 // from whatever alternate takes exist for it. See
 // zscript/weapons/RS_Weapon.zs (GetEffectiveFireSound/SoundChoiceKey)
-// and zscript/systems/RS_Catalog.zs. One row per weapon FAMILY, not per
+// and zscript/systems/shot/RS_Catalog.zs. One row per weapon FAMILY, not per
 // numbered variant (Revolver through Revolver6 all share one
 // BuildAttackProfiles() and so already share one fire sound today --
 // picking here changes all six at once, same as it already works).
@@ -99,7 +99,7 @@ OptionMenu "RS_VanillaPlusOptions"
 }
 
 // ---------------------------------------------------------------------
-// Kill Rewards (Bits) -- zscript/systems/RS_Bits.zs. Labels rewritten
+// Kill Rewards (Bits) -- zscript/systems/world/RS_Bits.zs. Labels rewritten
 // from the source mod's own wording ("HP Ratio Mode", "Base Drop
 // Chance") to plain language.
 // ---------------------------------------------------------------------
@@ -588,7 +588,7 @@ OptionMenu "RS_ScoreHUDOptions"
 // that silently does nothing.
 
 // ---------------------------------------------------------------------
-// Monster Health Bars -- zscript/systems/RS_HealthBars.zs
+// Monster Health Bars -- zscript/systems/monster/RS_HealthBars.zs
 //
 // Ported from coldcite's "Top HP Bars". The Style list is where new
 // looks go; Default (A/B) is deliberately 1:1 with upstream and its

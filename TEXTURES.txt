@@ -1,5 +1,5 @@
 // =====================================================================
-// TEXTURES -- monster health bar sprites (zscript/systems/RS_HealthBars.zs)
+// TEXTURES -- monster health bar sprites (zscript/systems/monster/RS_HealthBars.zs)
 // ---------------------------------------------------------------------
 // Ported from coldcite's "Top HP Bars" 1.04. Two styles, 22 frames each:
 // XX = invulnerable, 99 = full, then 95..00 in 5% steps. The art is

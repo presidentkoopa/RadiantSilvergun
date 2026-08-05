@@ -131,7 +131,7 @@ server bool bonsai_ignore_gun_rarity = false;
 server bool rs_gb_legacy_affixes = false;
 
 // =====================================================================
-// Kill Rewards (Bits) -- zscript/systems/RS_Bits.zs. Ported from
+// Kill Rewards (Bits) -- zscript/systems/world/RS_Bits.zs. Ported from
 // "SoM Universal(ish?) Kill Rewards". Health/Armor/Ammo pickups dropped
 // by monsters on death. See MENUDEF.txt's "Kill Rewards" branch.
 // =====================================================================
@@ -164,7 +164,7 @@ server bool rs_bits_ammo_usetype2 = false;
 // cost, not a routine drop like health/armor/ammo/repair.
 server int rs_bits_curse_chance = 5;			// per-kill percent chance, independent of the batch above
 
-// zscript/systems/RS_Keywords.zs -- logs unknown keys in a weapon's
+// zscript/systems/shot/RS_Keywords.zs -- logs unknown keys in a weapon's
 // GetBaseKeywords() string once per class, on first PostBeginPlay. Off by
 // default, cheap enough to leave on during content work.
 
@@ -249,7 +249,7 @@ server int rs_bits_ratio_gold = 8;
 user bool rs_allclear_enable = true;
 
 // =====================================================================
-// RS_Score -- arcade scoring (zscript/systems/RS_Score.zs, RS_ScoreHUD.zs,
+// RS_Score -- arcade scoring (zscript/systems/score/RS_Score.zs, RS_ScoreHUD.zs,
 // RS_ScoreRevival.zs). See the header comment in RS_Score.zs for the
 // shape of the system and what each knob actually moves.
 //
@@ -410,7 +410,7 @@ user bool rs_score_hud_barnumbers = false;    // "1240 / 5000" under the bar
 user int rs_score_bonustime = 35;
 
 // =====================================================================
-// MONSTER HEALTH BARS -- zscript/systems/RS_HealthBars.zs
+// MONSTER HEALTH BARS -- zscript/systems/monster/RS_HealthBars.zs
 //
 // All user scope: these are purely how the bar looks on your own
 // screen, they change no gameplay and need not match between players.
@@ -465,7 +465,7 @@ user int  rs_hpbar_bossframe = 0;
 // 2000 -- so it catches the genuine long fights and nothing else.
 user int  rs_hpbar_boss_hp   = 1000;
 
-// --- No More Hitscans (zscript/systems/RS_NoHitscan.zs) -------------
+// --- No More Hitscans (zscript/systems/monster/RS_NoHitscan.zs) -----
 // Server-scope, not user: whether monster bullets travel is a rule of
 // the match, not a client preference.
 server bool  rs_nohitscan_enabled = true;

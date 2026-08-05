@@ -2,7 +2,7 @@ GameInfo
 {
 	PlayerClasses = "RS_GH_Weaponset", "RS_PS_Weaponset", "VR_Dual_Pistol", "VR_Dual_Revolver", "VR_Dual_Rifle", "VR_Dual_SMG", "VR_Dual_Shotgun", "VR_Dual_SSG", "VR_Dual_Chaingun"
 	// Registers GunBonsai's (zscript/GunBonsai/) event handler and the
-	// Kill Rewards (Bits) handler (zscript/systems/RS_Bits.zs).
+	// Kill Rewards (Bits) handler (zscript/systems/world/RS_Bits.zs).
 	// An EventHandler subclass that is not listed here does not exist at
 	// missing from this list, which is why its entire menu was dead.
 	// whose class does not exist is a HARD CRASH AT MAP LOAD, not a

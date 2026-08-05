@@ -2,10 +2,10 @@ version "4.14"
 
 #include "zscript/player/VR_PlayerClasses.zs"
 
-//#include "zscript/systems/RS_OffhandSeat.zs" // disabled -- see plan history, offhand system needs rebuilding
+//#include "zscript/systems/world/RS_OffhandSeat.zs" // disabled -- see plan history, offhand system needs rebuilding
 #include "zscript/systems/RS_Roll.zs"
-#include "zscript/systems/RS_Bits.zs"
-#include "zscript/systems/RS_Score.zs"
+#include "zscript/systems/world/RS_Bits.zs"
+#include "zscript/systems/score/RS_Score.zs"
 
 // RS_MonsterMaster.Tier for the tier-boss axis, so it depends on the
 // monster include below in the same "for readers, not the compiler" sense
@@ -26,24 +26,24 @@ version "4.14"
 // depends on the monster include below -- ZScript is one translation
 // unit, so this ordering is for readers, not the compiler.
 // RS_HealthBarHandler must also be in MAPINFO.txt's AddEventHandlers.
-#include "zscript/systems/RS_HealthBars.zs"
+#include "zscript/systems/monster/RS_HealthBars.zs"
 
 // Must load after RS_Weapon.zs and VR_PlayerClasses.zs (needs GetFamily()
 // on both) -- ZScript compiles as one unit so include order doesn't
 // actually matter for this, but keeping it last for readability.
-#include "zscript/systems/RS_ClassGating.zs"
+#include "zscript/systems/world/RS_ClassGating.zs"
 
 // Ammo must precede the weapons -- their AmmoType2 strings resolve against these.
 #include "zscript/weapons/rs_weapon/RS_Ammo.zs"
 
 // Attack-assembly bricks (RS_AttackProfile / RS_AttackSlot) -- RS_Weapon
 // holds two slots built out of these. See the file header for why.
-#include "zscript/systems/RS_AttackProfile.zs"
+#include "zscript/systems/shot/RS_AttackProfile.zs"
 
 // Projectile / sound / effect database -- see docs/catalog_notes.txt.
 // Weapons reference entries here instead of hardcoding their attacks.
-#include "zscript/systems/RS_Catalog.zs"
-#include "zscript/systems/RS_Keywords.zs"
+#include "zscript/systems/shot/RS_Catalog.zs"
+#include "zscript/systems/shot/RS_Keywords.zs"
 
 // Predictive-lead-fire utility (ZScript port of the useful half of CH's
 // anything yet.
@@ -51,7 +51,7 @@ version "4.14"
 // RS_NoHitscan: intercepts WorldHitscanPreFired and flies a projectile
 // down the line the hitscan would have taken. Touches none of the 163
 // hitscan call sites in this tree -- see the file header.
-#include "zscript/systems/RS_NoHitscan.zs"
+#include "zscript/systems/monster/RS_NoHitscan.zs"
 
 // --- Monsters ---
 // RS_MonsterMaster: the monster-side parallel of RS_Weapon. Owns tier,
@@ -70,7 +70,7 @@ version "4.14"
 // and the same rule: no monster file names a raw class inline.
 // #include "zscript/systems/RS_MonsterCatalog.zs"
 // The systems contract -- what a monster must offer the health
-#include "zscript/systems/SYSTEMS_MASTER.zs"
+#include "zscript/systems/monster/RS_SystemsMaster.zs"
 
 // CH/CHP's pack-buff ACS, rebuilt as ZScript Powerups. The import
 // dropped these as "empty ACS wrappers"; the behaviour lived in the ACS
@@ -191,16 +191,16 @@ version "4.14"
 // The unified UI's play-scope half: screen models + rs-ui-* netevents.
 // Also MAPINFO-registered. UI-scope half lives in the GunBonsai tree
 // (rs_menu/RS_UIMenus.zsc). Spec: docs/rs_10_ui_spec.txt.
-#include "zscript/systems/RS_UI.zs"
+#include "zscript/systems/ui/RS_UI.zs"
 
 // Archetype -> eligible Catalog slice, the fence PACK assembly reads so
 // a Shotgun stays a Shotgun instead of pooling the entire Catalog flat.
-#include "zscript/systems/RS_FamilyPalette.zs"
+#include "zscript/systems/shot/RS_FamilyPalette.zs"
 
 // Granted-keyword -> live shot multipliers. The generic resolver: an
 // affix's whole job becomes wpn.GrantKeyword(...), A_RS_FireSlot reads
 // this every shot. See the file header for exactly what's real.
-#include "zscript/systems/RS_KeywordEffects.zs"
+#include "zscript/systems/shot/RS_KeywordEffects.zs"
 
 // Weapon tempaltes moved here for file organization
 #include "zscript/weapons/RS_Weapon.zs"
@@ -209,8 +209,8 @@ version "4.14"
 // assembles them -- picks eligible ingredients, tracks a running power
 // cost, never lets a bundle net positive. Must load after RS_Weapon.zs
 // (RS_AffixIngredient.IsEligible reads wpn.GetPaletteArchetype()).
-#include "zscript/systems/RS_AffixIngredients.zs"
-#include "zscript/systems/RS_AffixGenerator.zs"
+#include "zscript/systems/affix/RS_AffixIngredients.zs"
+#include "zscript/systems/affix/RS_AffixGenerator.zs"
 
 // --- RS set (original Dual_Class weapons, basically our main focus for the 'game') ---
 #include "zscript/weapons/rs_weapon/RS_Fist.zs"
@@ -319,11 +319,11 @@ version "4.14"
 // RS <-> GunBonsai integration layer -- the only file allowed to
 // reference both RS_Weapon and TFLV_* types directly. Must load after
 // both RS_Weapon.zs and GunBonsai/main.zsc.
-#include "zscript/systems/RS_GunBonsaiBridge.zs"
+#include "zscript/systems/affix/RS_GunBonsaiBridge.zs"
 
 // Arcade scoring. RS_Score.zs itself is included further up (with the
 // other systems); these are its other two halves -- the HUD and the
 // revival fire cone. RS_ScoreHandler must ALSO be listed in MAPINFO's
 // AddEventHandlers or none of it runs.
-#include "zscript/systems/RS_ScoreHUD.zs"
-#include "zscript/systems/RS_ScoreRevival.zs"
+#include "zscript/systems/score/RS_ScoreHUD.zs"
+#include "zscript/systems/score/RS_ScoreRevival.zs"

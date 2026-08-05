@@ -46,7 +46,7 @@ class RS_Keywords
 				results.Push(tokens[i].Mid(prefix.Length()));
 	}
 
-	// The documented key set -- see RS_KeywordIndex.zs -- plus "curse" and
+	// The documented key set -- see docs/rs_keyword_index_draft.txt -- plus "curse" and
 	// "characteristic" from RS_Weapon.zs's own GetKeywordValue(s) doc
 	// comment. Purely a typo net: a key that's missing from this list
 	// doesn't stop anything from working, it just means Validate() below
