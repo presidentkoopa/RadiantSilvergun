@@ -1,0 +1,329 @@
+================================================================================
+   RS_18 -- THE OBJECTIVE REGISTER.  2026-08-04.
+   Every objective gleaned from the handoff chain, large and small.
+   Companion to rs_16 (law + state) and rs_17 (attack grammar).
+   Supersedes neither. This is an INDEX, not a design doc -- each entry
+   points at the doc that actually owns it.
+================================================================================
+
+HOW THIS WAS BUILT, AND WHAT IT IS WORTH
+  Sources read in full: rs_16, rs_17, rs_15, rs_monsternotes, rs_09 (head),
+  CLAUDE.md, and the session memory notes. Every claim that could be checked
+  against the tree WAS checked -- counts, includes, stub gates, callers. Where
+  a source doc and the tree disagreed, the TREE WON and the discrepancy is
+  recorded inline.
+
+  THREE CLAIMS FROM THE SOURCES WERE STALE AND ARE CORRECTED HERE:
+    * "GunBonaiSockets is read by NOTHING" -- FALSE as of now. Read at
+      RS_Upgrade_Slate.zsc:45 (gate) and :71 (breadth cap). Done, not open.
+    * "RS_Roll.GetConditionEffects() is gated behind if (false)" -- FALSE.
+      The band logic is live; RS_Roll.zs runs its 80/70/60 ladder normally.
+    * "the rotation machinery is idle" (rs_17 s3) -- TRUE ONLY OF THE AFFIX
+      LANE. Append is load-bearing across the monster roster. See entry 44.
+
+  This file rots. Prune completed entries; do not let it accumulate.
+
+================================================================================
+PART A -- THE GATE.  Nothing else moves until this does.
+================================================================================
+
+  A1. GET ONE COMPILE LOG FROM THE OWNER.
+      The single blocking dependency for the entire project. No lane can
+      compile; the owner boots and pastes.
+
+  A2. VALIDATE DamageFunction.
+      75 sites across 12 files, zero `Damage (random(` remaining -- all
+      stand or fall together. Fallback if rejected is flattening to
+      constants, which destroys CH's damage spreads, so this needs to work.
+
+  A3. VALIDATE RS_Score.zs.
+      Parses clean per the 6f032dca log -- the compiler passed zscript.txt
+      line 8 and said nothing, while errors began at line 52. Full compile
+      is still unconfirmed; reverts via 9716f909.
+
+  A4. VALIDATE RS_ScoreHUD.zs + RS_ScoreRevival.zs.
+      Genuinely never through a compiler; this is where first-boot breakage
+      should be expected. Reverts by deleting two include lines at
+      zscript.txt:228-229 without touching the core.
+
+  A5. SPOT-CHECK MissileChanceMult DIRECTION IN PLAY.
+      The 0.5 / 0.125 / 0.0625 values are reasoned from the old flags'
+      semantics, not compiler-confirmed. If enraged monsters feel passive,
+      that is the line to check.
+
+================================================================================
+PART B -- THE BOOT WALKTHROUGH.  Agreed protocol, still owed.
+================================================================================
+
+  B1. RUN THE PHASE 3 CYCLE.
+      Cycle bind through all three sheets, level something, take a card,
+      reroll (Right), buy a card (Left), Esc, listen for the beep. ONE
+      punch-list, ONE fix batch -- do not iterate blind on UI.
+
+  B2. LOOK AT THE SCORE HUD FOR THE FIRST TIME.
+      Nobody has ever seen it; every default is a guess made without a
+      screenshot (85%/10% position, 105-tic popups, 360-tic spree window).
+      All cvar-driven, so this is a tuning conversation -- reach for
+      rs_score_bonustime first.
+
+  B3. SETTLE REWARD PACING BY PLAYING IT.
+      The per-map bar uses dakka's formula (rs_score_monsterscalar 0.30,
+      clamped 30-400 monsters) against an untuned bestiary. A bar might land
+      every 30 seconds or once per map; only a playthrough answers it.
+
+================================================================================
+PART C -- DECISIONS ONLY THE OWNER CAN MAKE.
+================================================================================
+
+  C1. SIGN OFF THE EXPLOSION PASS.
+      14 files left of 15; ~164 multi-frame A_Explode statements to convert,
+      ~55 that must NOT be. The protected patterns are AGAS, LITN,
+      B5P1 ABCDABCDABCD, FIRE CDEEDCDE, RIP1 ABCABCABCBA -- gas, lightning
+      and lingering fire, where the repeat IS the mechanic.
+
+  C2. RS_DIBigOne -- EXPLICIT YES OR NO.
+      SPIR ABCDEDCBA, 9 frames, radius 178. Flagged for a decision either
+      way rather than being resolved by a default.
+
+  C3. THE SCORE CASH-IN.
+      Score pays out only in extra lives and ammo regen; there is no spend
+      and the owner raised wanting one. The LAW is settled (never gold,
+      never an exchange rate, its own price list if it exists at all) --
+      whether a spend exists, and priced on what, is not.
+
+  C4. STRIKE THE CANDIDATE POOL.
+      ~50 named cards at rs_16 line 217. Anything unstruck is approved to
+      build; nothing from it should be built unasked.
+
+  C5. CAN A ROTATION MIX TRIGGER SHAPES?
+      Beat 1 instant, beat 3 a charge -- the slot machinery allows it
+      mechanically. Whether it is legible to a player pulling a trigger is a
+      design call, and it is the rotation layer's first real player-side use.
+
+  C6. LOADOUT UI -- LAYOUT A OR B, AND THE SHARED-WEAPON RULE.
+      Paused mid-comparison; everything else on that screen is settled.
+      Second half of the question: can both hands equip the SAME weapon, or
+      does equipping one side grey it out of the other's list.
+
+================================================================================
+PART D -- MONSTER AND LINT CORRECTNESS.
+================================================================================
+
+  D1. FIX 11 OF 37 MONSTER FILES WITH BROKEN SPRITE REFS.
+      One dominant defect class explains most of it: death frames written
+      CDE on tokens that only carry A or AB, because someone assumed every
+      ball sprite had BAL1's five frames. Live list is in rs_16's appendix.
+
+  D2. RESOLVE `SPRY` ON DEMON.
+      The token is missing ENTIRELY, not merely short of frames. Different
+      problem from the frame-overrun class above and needs its own answer.
+
+  D3. SPLIT "RESOLVED" FROM "SHIPPED" IN verify.py.
+      The lint counts an art_index hit as resolved, but under the standalone
+      law that is a file that was never copied in and fails at load. A real
+      improvement that will light up a long list.
+
+  D4. NEVER RE-ADD `if tok in VAN: continue` TO verify.py.
+      It made `PUFF DE` -- the literal typo the lint lane was opened to fix
+      -- invisible, along with any bad frame on MISL, BAL1, TROO, POSS. If
+      the vanilla table gives a false failure, FIX THE TABLE.
+
+================================================================================
+PART E -- THE ATTACK GRAMMAR (rs_17).  Nothing built. Lands on a green
+build, not before one -- a third unproven change makes a failed build
+unattributable.
+================================================================================
+
+  E1. PROVE INHERITED STATE LABELS RESOLVE ON THIS ENGINE.
+      One weapon, end to end, before touching a second. If they do not,
+      rs_17 section 4's landing site is wrong and the whole proposal needs
+      rethinking before a single field is added.
+
+  E2. ADD WindupTics + FireOnRelease TO THAT ONE WEAPON.
+      Simplest real case is a charge shot. Every proposed field defaults to
+      today's behavior, so nothing existing changes.
+
+  E3. ADD BurstCount / BurstDelayTics.
+      Retires RS_GH_Pistol's fake state-chain burst and makes its declared
+      `trigger:burst` keyword mean something. MUST be documented against
+      VolleyCount at the field -- the two will otherwise be confused, and
+      someone will build the wrong one or build the second one twice.
+
+  E4. ADD RoFMult.
+      Makes an AutoShotgun-style card writable at all, and retires
+      RS_GH_Minigun's Overdrive apology comment.
+
+  E5. ADD WindupProfile LAST.
+      It carries the recursion hazard. The guard ships in the field comment:
+      a WindupProfile's own trigger shape is ignored, always.
+
+  E6. MAKE CANCEL A UNIVERSAL RULE, NOT A FIELD.
+      Any windup cancellable by reload or weapon switch, always a full
+      refund. One line instead of one field per profile, and it stops a
+      20-ammo commitment from being a trap.
+
+  E7. RENAME 19 ProfileName STRINGS.
+      All of the form "Gunstar <thing>" -- provenance belongs in the `set:`
+      axis, not the display string. Display strings only, no class names or
+      includes, so THIS IS THE ONE ITEM THAT CAN JUMP THE COMPILE GATE.
+
+  E8. DERIVE NAMES FOR GENERATED PROFILES FROM THEIR AXES.
+      Hand-naming does not scale to rolled profiles; trigger:fullauto +
+      archetype:shotgun + payload:multi -> "Auto Buckshot". Hand-name
+      authored profiles, derive rolled ones -- two paths, one vocabulary.
+
+  E9. ADOPT THE COVERAGE TEST AS A STANDING PROTOCOL.
+      Take a weapon from a feature-rich set, ask "can we build this," roll
+      what is missing into an AXIS proposal. The output of a coverage test
+      is a GAP LIST, NEVER CODE -- if a session finds itself pasting, it has
+      stopped running one.
+
+================================================================================
+PART F -- BUILT BUT INERT, OR UNFINISHED.
+================================================================================
+
+  F1. MAKE WEAPONS DROP ABOVE BASIC.
+      Every gun currently rolls Basic, so the tier gates gate a value almost
+      nothing raises. rs_10's S7 compare screen waits on this.
+
+  F2. UNSTUB CURSES.
+      The mechanism exists and is switched off at RS_Bits.zs:173
+      (`if (false && curseChance > 0 ...`). Verified still stubbed.
+
+  F3. EXERCISE THE PART-SWAP `Affix*` OVERRIDE LAYER.
+      Build one real part-swap affix end to end, the way Twin Barrel proved
+      the keyword-grant layer. Nothing tests it today.
+
+  F4. ADD POOL ENTRIES FOR behavior:piercing, drawback:sluggish,
+      drawback:wild.
+      The resolver math and the RequiredModeMask eligibility gate already
+      exist for all three; the RS_AffixIngredients entries using them do
+      not. Small and mechanical.
+
+  F5. WIRE THE `element:` KEYWORD AXIS.
+      thermal / corrosive / shock / plasma / void currently have zero
+      effects. Cheap once F7's catalog merge lands, since the FX inventory
+      already found ready-made colour-variant families.
+
+  F6. MELEE-MODE PACK CATCH-UP.
+      The thinnest of the four attack modes -- only damage multipliers reach
+      it, with no palette fencing, no melee-flavoured ingredients, and a
+      puff that is not affix-overridable.
+
+  F7. HEAVY-MODE EXACT DAMAGE.
+      Named as unbuilt in rs_16 alongside melee mode. Bullet and hitscan
+      already deal exact damage through the DoSpecialDamage override.
+
+  F8. DO THE PER-CARD TAILORING PASS.
+      The owner has already asked for it once and it never ran. Listed in
+      rs_16's NOT BUILT block.
+
+================================================================================
+PART G -- CONTENT BACKLOG.
+================================================================================
+
+  G1. BUILD MORE MONSTER SIGNATURES FROM rs_13.
+      ~25 ranked candidates carrying IWAD / REPO / CH-EXT flags. The survey
+      was the expensive part and it is already banked.
+
+  G2. RUN THE FOLEY IMPORT PASS.
+      rs_14 lists 18 files with exact source paths and destination names.
+      Purely mechanical.
+
+  G3. MERGE THE ART SOURCE FX INVENTORY INTO rs_MASTER_FX_CATALOG.txt.
+      ~743 visually-described sequences across five reports; the merge agent
+      died before writing Sections 1-6. Data-ready and needs no re-viewing.
+      (That catalog is a PROTECTED file -- append to it, never clean it up.)
+
+  G4. GENERALISE THE CADENCE SYSTEM -- AND NOTE IT IS THE SAME JOB AS E2.
+      AllClearPitch() (RS_Weapon.zs:155) is already pitched per archetype
+      and fires at the exact tic cadence reopens; rs_17 identifies that same
+      function, run upward across a windup, AS the charge sound ladder. Two
+      backlog items, one mechanism -- build them together.
+
+================================================================================
+PART H -- STANDING CONSTRAINTS ON EVERYTHING IN F AND G.
+rs_17 section 8. These are not tasks; they are the tests a task must pass.
+================================================================================
+
+  H1. NO ELEMENTALS. Stock GunBonsai already owns fire/ice/poison/acid and
+      this mod's identity is Doom's own guts. An RS version is kinetic,
+      explosive, or a MONSTER SIGNATURE -- say the cut out loud rather than
+      quietly shipping a reskin.
+
+  H2. NO DUAL-WIELD BY DUPLICATION. Duplicating a whole weapon for the off
+      hand is precisely what the DUAL-WIELD QUARANTINE exists to prevent:
+      one-way only, A buffs B never back, no loops, prototype exactly one,
+      LAST.
+
+  H3. NEVER RAISE PelletOverride FROM AN IMPORTED SHAPE. It is Promotion's
+      own reward lane and the banned move. LIVE INSTANCES TO AUDIT:
+      RS_GH_Revolver.zs:61 and RS_GH_SSG.zs:61 both set PelletOverride = 10
+      absolutely -- check both against the host's roll before any profile
+      work copies the pattern.
+
+  H4. PROFILES MULTIPLY THE HOST'S ROLL; THEY ARE NEVER ABSOLUTE STATLINES.
+      Otherwise every shotgun offered the same card becomes the same gun.
+      Echo is the precedent -- built from SavedOriginal.Clone(), so an SSG's
+      echo and an SMG's echo genuinely differ because the rolls do.
+
+  H5. RUN rs_16'S FIVE-TEST AUDIT ON ANYTHING THAT SURVIVES. Does a rolled
+      stat stop mattering (dead) or matter more (best); do two guns now play
+      the same (dead); ask similar/opposite/synergistic/antagonistic BEFORE
+      coding; never duplicate Promotion's lane.
+
+================================================================================
+PART I -- EXPLICITLY DEFERRED.  Do not start these.
+================================================================================
+
+  I1. DUAL-WIELD AFFIXES -- CROSSFIRE, SOUTHPAW, TWIN LINK. Quarantined by
+      rs_16; prototype exactly one, and last.
+
+  I2. DECONSTRUCT DAKKA'S NINE WEAPONS INTO PROFILES AND CARDS. The agreed
+      shape was mining the MECHANICS as profiles/cards, never importing the
+      weapons. Tabled by the owner before anything was written.
+
+  I3. THE GOLD / SETPIECES / ELITE-DROPS MEGA-PROJECT. The GAME half of
+      rs_00 does not exist yet -- that is sequencing, not neglect, but it
+      means the acquisition loop is not playable, only its pieces are.
+
+  I4. THE SYSTEMATIC CODE-REVIEW PASS. Owner's call, never ran.
+
+================================================================================
+PART J -- HOUSEKEEPING.
+================================================================================
+
+  J1. COMMIT docs/rs_17_attack_grammar.txt.
+      It is the newest design doc in the project and was the only untracked
+      file in the tree when this register was written.
+
+  J2. PRUNE THE STALE next-priorities MEMORY NOTE.
+      Two of its six items are already done (sockets are enforced, the
+      Condition bands are live). That file says of itself that it rots fast.
+
+================================================================================
+PART K -- THE CORRECTION rs_17 FORCED ON THIS LIST.
+Kept as an entry rather than a silent edit, because the reasoning is the
+useful part.
+================================================================================
+
+  K1. "RETIRE THE IDLE ROTATION MACHINERY" WAS A WRONG OBJECTIVE. CUT.
+      rs_17 records that PadTo, InsertAt and Replace have one caller between
+      them and calls the rotation layer "built, correct, and idle." That is
+      true ONLY of the affix lane -- Echo is indeed the sole affix touching
+      slot contents. But Append is load-bearing across the monster roster
+      (RS_Baron, RS_Archvile, RS_Arachnotron, RS_ExBosses all build their
+      rotations with it), so the machinery is neither idle nor a candidate
+      for retirement. Its player-side future use is exactly C5.
+      THE GENERAL LESSON, which is the reason this entry exists: a scoped
+      observation in a doc reads as a whole-tree claim unless the scope is
+      restated. Same disease as rs_16's "the compiler reports one instance
+      of a whole-tree defect and stops" -- grep before believing a count,
+      and grep before believing an absence.
+
+================================================================================
+END OF REGISTER.  Generated 2026-08-04.
+51 entries: 45 objectives, plus Part H's 5 standing constraints (tests, not
+tasks) and Part K's single correction record.
+Counts by part -- A5 B3 C6 D4 E9 F8 G4 H5 I4 J2 K1.
+================================================================================
