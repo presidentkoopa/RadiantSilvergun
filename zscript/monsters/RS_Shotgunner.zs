@@ -1084,10 +1084,19 @@ class RS_Shotgunner : RS_MonsterMaster replaces ShotgunGuy
 		"ZSP2" G 3 Bright { A_StartSound("ZSpecOps/Sight", 7, 0, 1.0, ATTN_NONE); }
 		"ZSP2" G 3 Bright { A_StartSound("ZSpecOps/Sight", 7, 0, 1.0, ATTN_NONE); }
 		"ZSP2" A 9 Bright { A_FaceTarget(); }
-		"ZSP2" A 0 Bright { SummonMinion("RS_Shotgunner", -4, 48.0); }
-		"ZSP2" A 1 Bright { SummonMinion("RS_Shotgunner", -4, 48.0); }
-		"ZSP2" A 1 Bright { SummonMinion("RS_Shotgunner", -4, 64.0); }
-		"ZSP2" A 1 Bright { SummonMinion("RS_Shotgunner", -4, 64.0); }
+		// FOUR SPEC-OPS TROOPERS, NOT FOUR LOWER-TIER SHOTGUNNERS.
+		// This used to read SummonMinion("RS_Shotgunner", -4, ...) --
+		// T11 minus four is T07, the FIREBLU KAMIKAZE. Wrong body,
+		// wrong stats, no squad behaviour, and it trailed fire.
+		// CHP spawns CommonBlackSG2 (02_K.txt:43-46), a distinct actor
+		// with a five-stance AI; ours is RS_BlackSGTrooper.
+		// CHP's offsets are +/-5 units -- they arrive right on top of
+		// the commander and fan out under their own AI, so the wide
+		// 48/64 radius the old call used is dropped too.
+		"ZSP2" A 0 Bright { SummonMinion("RS_BlackSGTrooper", 0, 5.0); }
+		"ZSP2" A 1 Bright { SummonMinion("RS_BlackSGTrooper", 0, 5.0); }
+		"ZSP2" A 1 Bright { SummonMinion("RS_BlackSGTrooper", 0, 7.0); }
+		"ZSP2" A 1 Bright { SummonMinion("RS_BlackSGTrooper", 0, 7.0); }
 		Goto See;
 	Missile.T11.Shotgunned:
 		"ZSP2" EEE 4 { A_FaceTarget(); }

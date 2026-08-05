@@ -105,6 +105,9 @@ version "4.14"
 
 // --- families not yet ported under rs_21 -- flat, one file each -------
 #include "zscript/monsters/RS_Shotgunner.zs"
+// The Crew Commander's squad -- a distinct actor with a five-stance AI,
+// not a lower-tier shotgunner. See the file header.
+#include "zscript/monsters/RS_BlackSGTrooper.zs"
 #include "zscript/monsters/RS_Chaingunner.zs"
 #include "zscript/monsters/RS_Imp.zs"
 #include "zscript/monsters/RS_Demon.zs"
