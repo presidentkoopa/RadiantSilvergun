@@ -1,0 +1,257 @@
+================================================================================
+rs_33 -- SETPIECE / CAPTAIN ENCOUNTERS -- CONSOLIDATED DESIGN OF RECORD
+================================================================================
+Assembled 2026-08-05 from three parallel design/audit lanes (spatial tech,
+encounter design, adversarial integration audit) plus owner rulings given in
+session. Nothing here is built except where marked BUILT. The Elite system
+(rs_32, zscript/systems/monster/RS_Elite*.zs) is the substrate everything
+below composes from.
+
+The one-sentence concept, owner's own framing: encounters are sentences in a
+grammar -- [monster tier] x [elite type loadout] x [command structure] -- and
+a SetPiece is a purchased sentence. "It's the difference between a Prototype
+drop and an Uncommon drop."
+
+--------------------------------------------------------------------------------
+1. THE CAPTAIN FIGHT (chosen shape: B + E + F, with D as nightmare seasoning)
+--------------------------------------------------------------------------------
+B  ROUND-ROBIN CONDUIT -- one tether burns hot at a time; damage dealt to the
+   Captain lands on the hot conduit elite. Rotation every ~175 tics or on
+   conduit death. Empty chain = Captain raw until the next gate re-forms it.
+C  (cut -- pure-wager shape lost the flush moment)
+E  STAIRCASE -- hidden squad elites reveal as the Captain crosses health
+   quarters (75/50/25), each reveal announced in its type's pentagram color.
+F  SEVERABLE TETHERS -- each tether carries a shootable KNOT; severing strips
+   that elite's power off the Captain WITHOUT killing the elite. The elite
+   goes feral (ordinary revealed elite, bits only), its package is FORFEIT,
+   and (audit fix) the OFFICER'S package tier also steps down per sever --
+   severing is a trade, never a discount code.
+D  FIELD PROMOTION -- Grade III only: the dying Captain's soul flies as a
+   shootable comet toward the nearest living unsevered elite. Intercept =
+   fight ends now, +1 tier bonus. Miss = the elite becomes the new Captain
+   and the fight continues, +1 tier to the eventual pot per succession.
+   [Name collision with weapon Promotion flagged; owner may rename.]
+
+THE FIGHT, BEAT BY BEAT (full detail in the encounter lane's report):
+  0 CHALLENGE COIN -- gold buys a physical coin via the world-card vendor;
+    the player CRUSHES it (VR grip) where they want the fight. Refusal in
+    unfit rooms; coin not consumed on refusal.
+  1 THE MUSTER (~8s) -- bell tone, light drop, room-scale pentagram
+    (RS_ElitePentagram scaled up), trash muster arrives first, squad elites
+    arrive hidden INSIDE the trash, Captain erupts last, tethers snap out,
+    one burning. Fight grammar taught in one look.
+  2 OPENING -- Captain revealed (boss-branch Reveal flags), one conduit
+    revealed, reserves hidden on the staircase. TEMPO ORBS orbit the
+    Captain (C07 leaf-orbit tech, shootable) -- see Stolen Time.
+  3 DOUBLE-TIME -- every squad takedown puts survivors on ~2x speed
+    (Grade III stacks to 3x) + the Reveal aggression flag set. ONE
+    encounter-owned retimer, total factor clamped, floor max(1,tics) --
+    never stacked on C04/C15/C17 carriers (audit: compounding + 0-tic
+    defect class). 1.5s grace after each takedown.
+  4 STOLEN TIME (R7-GATED: bullet time is opt-in, default off, consent
+    cvar; fight must be fair with it OFF -- Double-Time tuned raw) --
+    when enabled: takedowns 4s, orb busts 3s (glowing conduit orb 4s),
+    gate breaks 2.5s of world-slow (world 0.30x, player 1.0x). Spend
+    shooting the Captain, or sustain by scything trash (+1s/kill, orb
+    chains); 10s cap, 75% chain fatigue. Grant windows defined in
+    MAPTIME so the toggle cannot buy damage throughput (audit-verified:
+    maptime runs during freeze; cadence is maptime-gated).
+  5 THE KILL -- chain empty, quarters spent, Captain dies elite-style
+    plus reverse-Muster; fixed 5s ceremony slow (not extendable).
+  6 MUSTER PAY -- killed-unsevered elites re-ignite in their type color
+    and their packages rise; the Captain's package descends center-sigil
+    with tier announced as orbiting rings (1=Cursed..7+crown=Prototype).
+    Bits shower contains NO gold (anti-laundering invariant). R3 card
+    rules apply: no banking, rejected cards persist, recycle pays gold.
+
+GRADES (prices are placeholders until a gold-income counter exists):
+  I   PICKET       250g  Lieutenant + 2 squad, floors Common/+0
+  II  HONOR GUARD  750g  Captain + 3 squad, floors Uncommon/+1;
+                          Ghost Stripes + One More Grave live
+  III DEAD DETAIL 2000g  Captain + 4 squad, floors Advanced/+2;
+                          3x Double-Time, C01 permitted, Field Promotion;
+                          CLEAN SWEEP (all 4 killed unsevered) = guaranteed
+                          PROTOTYPE officer package
+  Composition rules: NO SAFE CORNER slot (every squad guarantees one of
+  C06/C10/C16 -- the anti-camping kit); heavyweights (C15/C16/C17) max 1;
+  retimer types max 1; C01 Grade III only. One live SetPiece per map.
+
+D FLAVORINGS (Grade II+):
+  GHOST STRIPES -- a slain conduit's power haunts the Captain 8-12s
+  (controller re-created on the Captain with a self-destruct timer).
+  Burst denial exactly on the takedown beat.
+  ONE MORE GRAVE -- at the 25% gate the Captain raises ONE dead squad
+  elite (C11's RaiseActor machinery, 15% boostedHealth cost, once ever;
+  raised elite pays nothing again). Countered by gibbing corpses --
+  thirty-year-old archvile instincts, zero new rules.
+
+--------------------------------------------------------------------------------
+2. SPATIAL TECH (verified against the fork's source; full citations in the
+   spatial lane's report)
+--------------------------------------------------------------------------------
+ROOM SCAN (purchase-time only, never per tic): 16 LineTrace rays at 22.5
+degrees (TRF_THRUACTORS, z+32), r_free = 4th-smallest distance, corridor
+axis test, median headroom via sector planes. Classification:
+  corridor < 176 free / small 176-319 / arena >= 320 (headroom >= 120).
+All thresholds cvars (rs_setpiece_*).
+
+PLACEMENT: the engine's own summon idiom (Hexen Dark Servant: spawn the
+real actor, TestMobjLocation, destroy + REFUND on failure) -- gold is never
+taken unless the whole squad placed. Ring layout: Captain forward at
+0.6*r_free, elites at +/-70 and +/-140 (nothing dead-behind: VR courtesy).
+Per-candidate: IsPointInLevel -> same-floor rule (2x MaxStepHeight) ->
+spawn-probe-destroy -> CheckSight gate. Shrink ladder 1.0/0.8/0.64 with
+angle jitter. All-or-nothing; Captain places first.
+
+STAGING: spawn parked (the C01 hiding flag set -- known good), gold sigils
++ TeleportFog + incoming sound, unpark after 35 tics with re-validation,
+face player, target player, second fog.
+
+REFUSAL: the summoning circle draws at the player's feet AT THE SIZE THE
+ROOM ACTUALLY OFFERS, dull red, sputters, dies + refuse sound. Wordless.
+
+CONTAINMENT: no arena locks ever (softlock-proof by construction). Soft
+leash: >~1200u from squad centroid (Level.Vec2Diff -- portal-aware) for
+~10s = reverse-Muster collapse + partial refund (~50%, cvar). v2:
+Captain-only teleport-tether pursuit before collapse. Doorway cheese:
+Captain gets the C06 no-LOS blink (shipped tech); unengaged Captain
+regens 5%/s; conduits leash 512u to the Captain.
+
+DIRECTOR SHAPE: RS_SetPieceHandler (EventHandler, netevent entry
+rs_setpiece_buy/scan/test; MAPINFO-registered) + RS_SetPieceController
+(Thinker per live encounter: Staging->Live->Complete/Collapsed) +
+RS_SetPieceToken (membership marker) + encounter catalog as a switch.
+File: zscript/systems/encounter/RS_SetPiece.zs (bucket placement =
+owner's call). Four-point wiring per the standing checklist.
+
+--------------------------------------------------------------------------------
+3. AUDIT LEDGER -- must-address findings (adversarial lane; build gates)
+--------------------------------------------------------------------------------
+A1 DESIGN CONTRADICTION: pure conduit redirect means Captain health never
+   moves, so staircase gates never trip. RESOLVE BEFORE BUILD: partial
+   passthrough (recommended ~20-25% reaches the Captain -- also gives the
+   health-bar system a live pacing bar) or pooled encounter health.
+   OWNER CALL (a).
+A2 REDIRECT TOOL: Inventory.AbsorbDamage on the Captain (fork calls it for
+   monsters, pre-application) -- zero there, DamageMobj the conduit with
+   ORIGINAL INFLICTOR + PLAYER AS SOURCE. Never refund-and-redeal from
+   WorldThingDamaged: it double-fires damage events = silent 2x GunBonsai
+   XP farm + doubled affix procs. The source pointer is load-bearing:
+   source=Captain would zero all GunBonsai XP and drop score to the 0.2x
+   infighter consolation for the whole fight.
+A3 DESIGNATION IS THE REVEAL: an elite becomes conduit -> tok.Reveal()
+   fires. Never routes forced damage into a hidden elite (which would
+   forfeit its drop with zero player agency), the full-heal becomes the
+   "conduit charging" tell, and the routing target is legible in VR.
+A4 SPAWN-ROLL RACE: WorldThingSpawned's ambient 5% roll fires DURING
+   Actor.Spawn -- squad members can be claimed with wrong types. Fix:
+   spawn bFRIENDLY (roll skips friendlies) -> mark -> unflip. Every
+   SetPiece actor that must never roll carries RS_EliteNullToken.
+A5 TOKEN AUTO-REVEAL vs STAIRCASE: the 50% auto-reveal races the gates;
+   add a suppress bool on RS_EliteToken (small additive edit, my lane).
+A6 SCORE LAUNDERING: gold->SetPiece->score->extra lives crosses the walled
+   currencies. SetPiece monsters carry a marker; RS_Score zero-rates them
+   (Bits still pay -- part of the purchased reward). Note IsSummonedMinion
+   can't cover this (squad are vanilla actors).
+A7 SAVESCUM: roll the ENTIRE payout at purchase, store on the controller;
+   the kill only delivers. Post-purchase saves already contain the outcome.
+A8 MULTI-POWER CAPTAIN IS A REFACTOR, NOT A LOOP: token holds one
+   colorId/controller; handler missile-riders and on-hit payloads switch
+   on one id; HP mults compound (C02xC17xC15 = 20x); C07+C16 opposed
+   thrust on the player is a VR comfort violation; C01 BUDDHA deadlocks
+   other death paths. v1 Captain wears EXACTLY ONE power. Multi-power =
+   controller array + handler loops + compatibility matrix, week-class.
+A9 BULLET TIME ENGINE FACTS (for the later opt-in integration): native
+   TimeScale exists but is console-only, netgame-blocked, and slows the
+   avatar against 1:1 VR hands -- unusable. PowerTimeFreezer is FREEZE;
+   maptime keeps running during freeze (all cadence/beep timers proceed).
+   Revealed elites carry bNOTIMEFREEZE (their bodies act at full speed
+   while their controllers pause on isFrozen) -- an integration pass must
+   reconcile, or the paid encounter is immune to its own slowdown.
+   Duty-cycled freeze is the only mechanism that gets projectiles right;
+   glow publishers strobe under it (per-tic republish) and need exemption.
+   Score spree timers + Condition hazard grind run in real time under
+   freeze -- both need one-line isFrozen skips when BT ships.
+A10 BUDDHA/banked lives: a SetPiece cannot kill a banked player -- tune as
+   a LIVES TAX, and remember each burned life hands ~2s invulnerable
+   burst. Abandon-regen (no contact ~45s = squad heals full, staircase
+   resets, nothing despawns) closes flee-and-heal.
+BUILT SAME DAY: C04 Yellow's missing retime floor (0-tic states) fixed in
+   RS_EliteColors.zs -- the audit's one live-code find.
+
+--------------------------------------------------------------------------------
+4. GLOW CHOREOGRAPHY (owner direction 2026-08-05; gitd-lane consult PENDING
+   on capabilities -- fold answers here when they arrive)
+--------------------------------------------------------------------------------
+Owner: "it is a great way to control color, and take advantage of glow,
+shapes, monster tiers, elite profiles, and fun custom group behaviors to
+keep the player on their toes." The glow/billboard primitives become the
+encounter's choreography layer:
+
+  PROMOTION STATIONS -- a glow shape on the floor monsters RUN TO; crossing
+  or standing in it tiers them up / re-colors them. SetPiece use: the
+  Muster sigil doubles as a station the trash tries to reach -- every
+  grunt that crosses gets a tier or a type tint. The subgame: intercept
+  the runners before they cross. (Group behavior: the squad HERDS trash
+  toward the station.)
+  PAINTER LINES -- elites draw type-colored lines on the floor; a monster
+  crossing a line takes that color/type/buff. C17's Midas as a line
+  instead of an aura; C05/C14 creep trails already ARE proto-painter
+  lines. Player counter-play: cut the line's painter, or bait crossings.
+  THE 4x8 GLOW AXES -- owner's phrase for the glow system's structure;
+  encounter logic reading/writing those axes at runtime to choreograph
+  combat FLOW: lanes of danger, safe channels, pulse rhythms that
+  telegraph waves, gradients that herd player or monsters. Awaiting the
+  gitd lane's answer on what is readable/writable per tic.
+  ENTRY METHODS (same consult): glowspots that saturate and birth
+  monsters; reversed-deathfx arrivals (assembling from gibs); BILLBOARD
+  GATES -- a standing billboard plane as a portal monsters step through;
+  ceiling drops / floor eruptions. Summon-ceremony options list.
+
+Grades scale choreography: Picket = sigil only; Honor Guard + painter
+lines; Dead Detail = full flow choreography.
+
+--------------------------------------------------------------------------------
+5. V1 -- MINIMAL SHIPPABLE (audit lane's cut, adopted)
+--------------------------------------------------------------------------------
+Buy (netevent + gold check + fit test BEFORE spend) -> summon (friendly-
+flip marking; Captain = ONE forced type via the ForceElite seam, revealed;
+2 revealed clean-type squad elites -- C05/C08/C10/C13 have no death-path or
+retimer entanglements) -> fight (no conduit, no staircase, no tethers, no
+escalation, no bullet time; C06 blink anti-doorway; abandon-regen) -> pay
+(pre-rolled package delivered on Captain death via marker).
+Bookkeeping: RS_SetPieceToken + score zero-rate + RS_EliteNullToken.
+Estimate: 1-2 build sessions + 1 tuning. NOTE: the SetPiece package is the
+FIRST implementation of the weapon-drop payout -- the elite drop system
+(rs_32 s.7) should land first or together.
+
+RETURN ORDER for cut pieces, each gated on the last:
+  1 escalation (one clamped encounter retimer)      1-2 sessions
+  2 staircase + passthrough + reveal-suppress flag  2-3 sessions
+  3 round-robin conduit (AbsorbDamage, A2/A3 rules) build 1 session,
+    attribution play-verification is the real cost  ~week honest
+  4 tether knots + sever scaling                    2-3 sessions
+  5 multi-power Captain (A8 refactor)               ~week
+  6 bullet time integration (A9, R7)                last, ~week
+
+PREREQ SEAM (my lane, one method, owner nod needed): public
+RS_EliteHandler.ForceElite(mon, typeId, revealNow) -- strips any existing
+token/controller, re-marks with the forced type. Everything in v1 needs it.
+
+--------------------------------------------------------------------------------
+6. OPEN OWNER CALLS
+--------------------------------------------------------------------------------
+(a) Conduit passthrough: ~20-25% reaches the Captain (recommended) vs
+    pooled encounter health. Decides pacing + health-bar legibility.
+(b) SetPieces before class-set completion: locked ("NO CONTRACTS FOR AN
+    UNARMED MAN", recommended) vs allowed paying Basic-only.
+(c) Bullet-time mechanism ruling when integration comes: duty-cycled
+    freeze assumed; bNOTIMEFREEZE handling on encounter actors needs a
+    ruling (strip-for-fight vs manage).
+(d) FIELD PROMOTION name vs weapon Promotion vocabulary.
+(e) Prices placeholder until a gold-income counter ships (first build
+    task after the system exists).
+(f) Severed elite: feral-harmless (current) vs "unleashed" (personal
+    escalation on sever) -- second is meaner, first is cleaner.
+(g) Bucket for the new file: systems/encounter/ vs systems/monster/.
+================================================================================
