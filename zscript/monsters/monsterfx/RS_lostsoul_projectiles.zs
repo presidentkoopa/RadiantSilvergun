@@ -54,7 +54,7 @@ class RS_BSoulStinger1 : Actor
 {
 	Default { Radius 2; Height 2; Damage 15; DamageType "Melee"; PoisonDamage 6; PoisonDamageType "Poison"; Speed 35; YScale 0.6; XScale 1.4; Decal "BulletChip"; Species "Hornet";
 		SeeSound "Jam/Jamd"; AttackSound "moloch/nailhitbleed"; DeathSound "gas/gas1"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; }
-	States { Spawn: 6PUF AB 2 Bright; Loop; Death: BLAD ABC 3 Bright; Stop; }
+	States { Spawn: 6PUF AB 2 Bright; Loop; Death: BLAD AAA 3 Bright; Stop; }
 }
 class RS_BSoulStinger2 : RS_BSoulStinger1 { Default { Speed 28; Damage 20; } }
 
@@ -70,7 +70,7 @@ class RS_BigBolt2 : Actor
 {
 	Default { Radius 6; Height 8; Speed 17; Damage 60; DamageType "Fire"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.9;
 		SeeSound "vile/start"; DeathSound "vile/stop"; }
-	States { Spawn: BFE1 AB 3 Bright A_SeekerMissile(2,2); Loop; Death: BFS1 CDEFG 4 Bright A_Explode(60,80); Stop; }
+	States { Spawn: BFE1 AB 3 Bright A_SeekerMissile(2,2); Loop; Death: BFE1 CDEF 4 Bright A_Explode(60,80); Stop; }
 }
 class RS_Homer1 : Actor
 {
@@ -113,7 +113,7 @@ class RS_ReAComet : Actor
 {
 	Default { Radius 12; Height 12; Speed 28; Damage 50; RenderStyle "Add"; DamageType "Fire"; Alpha 0.85; Projectile; +BOUNCEONWALLS; BounceType "Doom"; BounceCount 2;
 		BounceFactor 1.05; WallBounceFactor 1.1; SeeSound "vile/start"; DeathSound "vile/stop"; }
-	States { Spawn: CBAL AB 3 Bright; Loop; Death: VBA3 ABCDE 4 Bright A_Explode(80,96); Stop; }
+	States { Spawn: CBAL AB 3 Bright; Loop; Death: VBA3 AB 4 Bright A_Explode(80,96); Stop; }
 }
 class RS_SoulexBeam : Actor
 {

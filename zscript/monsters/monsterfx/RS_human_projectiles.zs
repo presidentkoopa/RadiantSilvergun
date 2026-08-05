@@ -30,12 +30,12 @@ class RS_Gas11 : Actor
 {
 	Default { Radius 6; Height 8; Speed 12; Damage 8; DamageType "Poison"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.7; Scale 0.8;
 		SeeSound "grenade/fuse"; DeathSound "weapons/grenade"; Translation "0:255=%[0.20,0.40,0.00]:[0.70,1.20,0.20]"; }
-	States { Spawn: PSBG ABCD 4 Bright; Loop; Death: PSBG E 4 Bright A_Explode(24, 48, XF_HURTSOURCE, false, 16); PSBG FG 4 Bright; Stop; }
+	States { Spawn: PSBG CDE 4 Bright; Loop; Death: PSBG E 4 Bright A_Explode(24, 48, XF_HURTSOURCE, false, 16); PSBG FG 4 Bright; Stop; }
 }
 class RS_IceZombieShot : Actor
 {
 	Default { Radius 6; Height 8; Speed 33; Damage 11; DamageType "Ice"; Projectile; RenderStyle "Add"; Alpha 0.9; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
-	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY C 4 Bright A_Explode(33, 40, XF_HURTSOURCE, false, 13); ICEY DE 4 Bright; Stop; }
+	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY C 4 Bright A_Explode(33, 40, XF_HURTSOURCE, false, 13); ICEY FG 4 Bright; Stop; }
 }
 class RS_IceZombieShot2 : RS_IceZombieShot { Default { Speed 28; Damage 9; } }
 class RS_Orbb11 : Actor
@@ -72,7 +72,7 @@ class RS_SGshot1 : Actor
 class RS_SGLance1 : Actor
 {
 	Default { Radius 6; Height 8; Speed 20; Damage 35; DamageType "Plasma"; Projectile; +RANDOMIZE; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.9; SeeSound "weapons/plasmaf"; DeathSound "weapons/plasmax"; }
-	States { Spawn: PLSE AB 3 Bright A_SeekerMissile(2,2); Loop; Death: PLSS C 4 Bright A_Explode(105, 64, XF_HURTSOURCE, false, 21); PLSS DE 4 Bright; Stop; }
+	States { Spawn: PLSE AB 3 Bright A_SeekerMissile(2,2); Loop; Death: PLSE C 4 Bright A_Explode(105, 64, XF_HURTSOURCE, false, 21); PLSE DE 4 Bright; Stop; }
 }
 class RS_RedMessImp3 : Actor
 {
@@ -156,19 +156,19 @@ class RS_CGBigOne : Actor
 	States { Spawn: SPIR FGH 3 Bright A_SeekerMissile(3,3); Loop;
 		Death: RED9 A 4 Bright A_Explode(280, 64, XF_HURTSOURCE, false, 24);
 		RED9 B 4 Bright A_Explode(120, 160, XF_HURTSOURCE);
-		RED9 CDE 4 Bright; Stop; }
+		RED9 C 4 Bright; Stop; }
 }
 class RS_GenShield : Actor
 {
 	// orbiting shield bubble (cosmetic-ish, low damage)
 	Default { Radius 8; Height 8; Speed 1; Damage 0; Projectile; +RANDOMIZE; +NOGRAVITY +THRUACTORS; RenderStyle "Add"; Alpha 0.4; Scale 1.2; }
-	States { Spawn: BFE1 ABCD 4 Bright; Loop; Death: BFS1 CDE 3 Bright; Stop; }
+	States { Spawn: BFE1 ABCD 4 Bright; Loop; Death: BFE1 EF 3 Bright; Stop; }
 }
 class RS_NeedlesCg1 : Actor
 {
 	Default { Radius 2; Height 2; Speed 35; Damage 12; DamageType "Melee"; Projectile; +SPAWNSOUNDSOURCE; +BLOODSPLATTER; +RANDOMIZE; YScale 0.6; XScale 1.4;
 		SeeSound "Jam/Jamd"; DeathSound "gas/gas1"; }
-	States { Spawn: 6PUF AB 2 Bright; Loop; Death: BLAD ABC 3 Bright; Stop; }
+	States { Spawn: 6PUF AB 2 Bright; Loop; Death: BLAD AAA 3 Bright; Stop; }
 }
 class RS_NeedlesCg2 : RS_NeedlesCg1 { Default { Damage 8; DamageType "Poison"; PoisonDamage 6; } }
 class RS_Puddle1 : Actor

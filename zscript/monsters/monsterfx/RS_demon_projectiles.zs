@@ -60,7 +60,7 @@ class RS_RedDemonBloodBolt3 : Actor
 {
 	Default { Speed 15; Alpha 0.75; RenderStyle "Translucent"; Projectile; -NOGRAVITY; Mass 5; Gravity 0.2; DamageType "Fire"; Damage 3; Scale 0.95;
 		Translation "0:255=%[0.60,0.00,0.00]:[2.00,0.30,0.30]"; }
-	States { Spawn: BLUD AB 4; Loop; Death: SPRY ABC 4; Stop; }
+	States { Spawn: BLUD AB 4; Loop; Death: BLUD C 4; Stop; }
 }
 
 // ---------- WHITE: "Juggernaut" -- MolochQuake + rocks (shared RS_MolochQuake/WDRock) ----------

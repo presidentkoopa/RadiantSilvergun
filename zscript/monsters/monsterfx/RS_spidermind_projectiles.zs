@@ -100,7 +100,7 @@ class RS_IceOrb : Actor
 		ICEY B 3 Bright A_Weave(2,0,2,0);
 		Loop;
 	Death:
-		ICEY CDE 4 Bright A_Explode(20,64);
+		ICEY FGHI 4 Bright A_Explode(20,64);
 		Stop;
 	}
 }
@@ -136,7 +136,7 @@ class RS_IceOrbCyanMind : Actor
 		ICEY B 2 Bright A_Weave(2,1,2,1);
 		Loop;
 	Death:
-		ICEY CDE 4 Bright A_Explode(20,48);
+		ICEY FGHI 4 Bright A_Explode(20,48);
 		Stop;
 	}
 }

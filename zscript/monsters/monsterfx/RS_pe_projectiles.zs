@@ -46,7 +46,7 @@ class RS_IceOrbCyanAra1 : Actor
 		ICEY AB 3 Bright A_SeekerMissile(2,2);
 		Loop;
 	Death:
-		ICEY CDE 4 Bright A_Explode(27,64);
+		ICEY FGHI 4 Bright A_Explode(27,64);
 		Stop;
 	}
 }

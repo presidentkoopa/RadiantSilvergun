@@ -32,7 +32,7 @@ class RS_IceOrbCH2 : Actor
 {
 	Default { ProjectileKickBack 1999; Radius 8; Height 8; Speed 15; Damage 22; DamageType "Melee"; Projectile; +SEEKERMISSILE; +BOUNCEONWALLS; +USEBOUNCESTATE;
 		BounceType "Doom"; BounceCount 4; BounceFactor 1.1; RenderStyle "Add"; Alpha 0.85; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
-	States { Spawn: ICEY AB 3 Bright A_SeekerMissile(2,2); Loop; Death: ICEY CDE 4 Bright A_Explode(22,48); Stop; }
+	States { Spawn: ICEY AB 3 Bright A_SeekerMissile(2,2); Loop; Death: ICEY FGHI 4 Bright A_Explode(22,48); Stop; }
 }
 
 // =====================================================================

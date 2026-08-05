@@ -603,7 +603,7 @@ class RS_BrownCybBasic : Actor
 		TNT1 AAA 0 A_SpawnItemEx("RS_GreeniesBR",random(-3,3),random(-3,3),random(1,3),random(2,8),0,1,random(-359,359));
 		Loop;
 	Death:
-		MANF CD 4 Bright A_Explode(45,128);
+		MISL BCD 4 Bright A_Explode(45,128);
 		Stop;
 	}
 }

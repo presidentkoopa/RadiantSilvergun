@@ -25,7 +25,7 @@ class RS_Greenening : Actor
 {
 	Default { Radius 6; Height 8; Speed 5; Damage 20; DamageType "Poison"; Projectile; RenderStyle "Add"; Alpha 0.9; SeeSound "vile/start"; DeathSound "vile/stop";
 		Translation "0:255=%[0.10,0.50,0.00]:[0.50,1.50,0.20]"; }
-	States { Spawn: GBLL AB 4 Bright; Loop; Death: GBLL CDE 4 Bright A_Explode(20,64); Stop; }
+	States { Spawn: GBLL AB 4 Bright; Loop; Death: GBLL C 4 Bright A_Explode(20,64); Stop; }
 }
 class RS_Greenening2 : RS_Greenening { Default { Speed 8; Damage 30; }
 	States { Spawn: GBLL AB 3 Bright; Loop; Death: BFE2 ABCDE 4 Bright A_Explode(40,80); Stop; } }
@@ -34,7 +34,7 @@ class RS_Greenening2 : RS_Greenening { Default { Speed 8; Damage 30; }
 class RS_BlueGash3 : Actor
 {
 	Default { Radius 6; Height 8; Speed 12; Damage 35; DamageType "Plasma"; Projectile; +NOGRAVITY; RenderStyle "Add"; Alpha 0.9; SeeSound "vile/start"; DeathSound "vile/stop"; }
-	States { Spawn: PLSE AB 3 Bright; Loop; Death: PLSS CDE 4 Bright A_Explode(35,64); Stop; }
+	States { Spawn: PLSE AB 3 Bright; Loop; Death: PLSE CDE 4 Bright A_Explode(35,64); Stop; }
 }
 
 // ---------- PURPLE: hovering "worry" soul-fire (SBFX) ----------
@@ -42,7 +42,7 @@ class RS_PurpleWorry : Actor
 {
 	Default { Radius 6; Height 8; Speed 12; Damage 30; DamageType "Fire"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; +SEEKERMISSILE;
 		SeeSound "vile/start"; DeathSound "vile/stop"; Translation "0:255=%[0.40,0.00,0.60]:[1.30,0.30,1.70]"; }
-	States { Spawn: SBFX AB 3 Bright A_SeekerMissile(2,2); Loop; Death: SBFX CDE 4 Bright A_Explode(30,48); Stop; }
+	States { Spawn: SBFX HIJK 3 Bright A_SeekerMissile(2,2); Loop; Death: SBFX L 4 Bright A_Explode(30,48); Stop; }
 }
 class RS_PurpleWorry2 : RS_PurpleWorry { Default { Speed 16; Damage 40; } }
 
@@ -56,13 +56,13 @@ class RS_IceStartVile2 : RS_IceStartVile1 { Default { Speed 20; } }
 class RS_IceStartVile3 : RS_IceStartVile1 { Default { Speed 12; Damage 25; } }
 class RS_IceStartVile4 : RS_IceStartVile1 { Default { Speed 24; Scale 1.2; } }
 class RS_IceToMeetVile1 : RS_IceStartVile1 { Default { Speed 18; Damage 35; }
-	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY CDE 4 Bright A_Explode(35,80); Stop; } }
+	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY FGHI 4 Bright A_Explode(35,80); Stop; } }
 
 // ---------- ABYSS: fast ice bolt (ICEY) ----------
 class RS_IceABVile : Actor
 {
 	Default { Radius 6; Height 8; Speed 46; Damage 30; DamageType "Ice"; Projectile; RenderStyle "Add"; Alpha 0.9; SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
-	States { Spawn: ICEY AB 2 Bright; Loop; Death: ICEY CDE 4 Bright A_Explode(30,64); Stop; }
+	States { Spawn: ICEY AB 2 Bright; Loop; Death: ICEY FGHI 4 Bright A_Explode(30,64); Stop; }
 }
 
 // ---------- GRAY: rock-drop airstrike (BAL1) ----------
@@ -88,7 +88,7 @@ class RS_DFire : Actor
 class RS_DFlare : Actor
 {
 	Default { Radius 12; Height 12; Speed 25; Damage 24; RenderStyle "Add"; DamageType "Fire"; Alpha 0.85; Projectile; +THRUGHOST; SeeSound "vile/start"; DeathSound "vile/stop"; }
-	States { Spawn: CBAL AB 3 Bright; Loop; Death: VBA3 ABCDE 4 Bright A_Explode(50,80); Stop; }
+	States { Spawn: CBAL AB 3 Bright; Loop; Death: VBA3 AB 4 Bright A_Explode(50,80); Stop; }
 }
 
 // ---------- BLACK: dark-flame cloud swarm (VILE-tinted) ----------

@@ -61,7 +61,7 @@ class RS_AbyssSPBreath : FastProjectile
 {
 	Default { Radius 12; Height 12; Speed 24; Damage 8; DamageType "Ice"; Projectile; +THRUACTORS; RenderStyle "Add"; Alpha 0.85; Scale 0.75;
 		SeeSound "ice/Cast"; DeathSound "Ice/Hit2"; Translation "Ice"; }
-	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY CDE 4 Bright; Stop; }
+	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY FGHI 4 Bright; Stop; }
 }
 
 // ---------- FIREBLU: seeking fireblu plasma (4 variants) ----------
@@ -81,13 +81,13 @@ class RS_BrownOrbSpiderCH : FastProjectile
 {
 	Default { Radius 3; Height 3; Speed 28; Mass 100; Species "Spider1"; Damage 8; Projectile; DamageType "Plasma"; +MTHRUSPECIES; +THRUGHOST; +HITTARGET;
 		SeeSound "baby/attack"; DeathSound "Litn/litn3"; Translation "0:255=#[169,232,23]"; Scale 0.45; }
-	States { Spawn: PLSS AB 2 Bright; Loop; Death: PLSS CDE 3 Bright A_Explode(8,40); Stop; }
+	States { Spawn: PLSS AB 2 Bright; Loop; Death: PLSE CDE 3 Bright A_Explode(8,40); Stop; }
 }
 class RS_BrownSpamSP : FastProjectile
 {
 	Default { Radius 6; Height 6; Speed 8; Species "Spider1"; Damage 7; RenderStyle "Add"; Projectile; DamageType "Plasma"; +MTHRUSPECIES; +THRUGHOST;
 		SeeSound "baby/attack"; DeathSound "weapons/plasmax"; Translation "0:255=%[0.31,0.23,0.18]:[1.10,0.74,0.40]"; Scale 0.6; }
-	States { Spawn: PLSS AB 2 Bright; Loop; Death: PLSS CD 3 Bright; Stop; }
+	States { Spawn: PLSS AB 2 Bright; Loop; Death: PLSE CD 3 Bright; Stop; }
 }
 
 // ---------- GRAY: stone rockets (reuses RS_CHBSTarget for targeting) ----------
@@ -244,7 +244,7 @@ class RS_ExSpideLaser1 : FastProjectile
 {
 	Default { Radius 6; Height 6; Speed 38; Damage 30; DamageType "Plasma"; Projectile; RenderStyle "Add"; Alpha 0.85; Scale 0.6;
 		SeeSound "incubus/shot"; DeathSound "weapons/plasmax"; Translation "0:255=%[0.00,0.00,1.29]:[2.00,1.01,2.00]"; }
-	States { Spawn: PLSS AB 2 Bright; Loop; Death: PLSS CDE 3 Bright A_Explode(30,48); Stop; }
+	States { Spawn: PLSS AB 2 Bright; Loop; Death: PLSE CDE 3 Bright A_Explode(30,48); Stop; }
 }
 class RS_SpRocket4EX : FastProjectile
 {

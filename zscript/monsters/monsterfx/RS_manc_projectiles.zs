@@ -30,7 +30,7 @@ class RS_FatsoShotYE : Actor
 		MANF AB 4 Bright A_SeekerMissile(3,3);
 		Loop;
 	Death:
-		MANF CDE 5 Bright A_Explode(25,48);
+		MISL BCD 5 Bright A_Explode(25,48);
 		Stop;
 	}
 }
@@ -101,13 +101,13 @@ class RS_HBeastShot : Actor
 	// FLOOR-HUGGER (pattern #4) -- crawls the ground toward the target
 	Default { Radius 2; Height 3; Speed 23; Alpha 0.8; Projectile; RenderStyle "Add"; DamageType "Fire"; Damage 22; +FLOORHUGGER; -NOBLOCKMAP;
 		SeeSound "horn/attack"; DeathSound "horn/shotx"; }
-	States { Spawn: BFS1 AB 3 Bright; Loop; Death: BFS1 CDE 4 Bright A_Explode(22,48); Stop; }
+	States { Spawn: BFS1 AB 3 Bright; Loop; Death: BFE1 ABC 4 Bright A_Explode(22,48); Stop; }
 }
 class RS_Shot2Fatso : Actor
 {
 	Default { Radius 7; Height 9; Scale 1.15; Speed 24; Damage 8; Projectile; DamageType "Fire"; RenderStyle "Add"; Alpha 0.95;
 		SeeSound "fatso/attack"; DeathSound "fatso/shotx"; }
-	States { Spawn: MANF AB 4 Bright; Loop; Death: MANF CDE 5 Bright A_Explode(20,64); Stop; }
+	States { Spawn: MANF AB 4 Bright; Loop; Death: MISL BCD 5 Bright A_Explode(20,64); Stop; }
 }
 // (RS_SparkPuff1 already defined in hf_hk_projectiles.zs -- shared)
 
@@ -117,13 +117,13 @@ class RS_BlackFatShotLongRange : Actor
 {
 	Default { Radius 7; Height 6; Speed 42; Damage 50; DamageType "Fire"; Projectile; RenderStyle "Add"; Alpha 1; Scale 1.25;
 		SeeSound "fatso/attack"; DeathSound "fatso/shotx"; }
-	States { Spawn: MANF AB 3 Bright; Loop; Death: MANF CDE 4 Bright A_Explode(50,80); Stop; }
+	States { Spawn: MANF AB 3 Bright; Loop; Death: MISL BCD 4 Bright A_Explode(50,80); Stop; }
 }
 class RS_ShadowBeast_Ball1 : Actor
 {
 	Default { Alpha 1.0; RenderStyle "Add"; Speed 15; Radius 10; Height 6; Damage 35; DamageType "Poison"; Projectile; SeeSound "shadowbeast/pr1sit"; DeathSound "shadowbeast/pr1death";
 		Translation "0:255=%[0.30,0.00,0.40]:[1.20,0.40,1.60]"; }
-	States { Spawn: BDP1 AB 3 Bright; Loop; Death: BDP1 CDE 4 Bright A_Explode(35,64); Stop; }
+	States { Spawn: BDP1 DE 3 Bright; Loop; Death: BDP1 FGHI 4 Bright A_Explode(35,64); Stop; }
 }
 class RS_ShadowBeast_Ball2 : RS_ShadowBeast_Ball1 { Default { Radius 8; Speed 16; Damage 27; DamageType "Plasma"; } }
 class RS_ShadowBeast_Ball3 : RS_ShadowBeast_Ball1 { Default { Scale 1.4; Radius 8; Speed 20; Damage 40; DamageType "Plasma"; } }
@@ -144,7 +144,7 @@ class RS_ShadowSplash : Actor
 	// floor-hugging bouncing splash
 	Default { Radius 6; Height 8; Speed 23; Mass 25; Damage 15; Projectile; +FLOORHUGGER; +THRUACTORS; +RANDOMIZE; +BOUNCEONWALLS; BounceCount 999; BounceType "Doom"; BounceFactor 0.9;
 		RenderStyle "Add"; Alpha 0.85; DamageType "Plasma"; Translation "0:255=%[0.30,0.00,0.40]:[1.20,0.40,1.60]"; }
-	States { Spawn: BDP1 AB 3 Bright; Loop; Death: BDP1 CD 3 Bright; Stop; }
+	States { Spawn: BDP1 DE 3 Bright; Loop; Death: BDP1 FG 3 Bright; Stop; }
 }
 
 // ---------- WHITE: "Queen" (QUEE, HP15000) -- 7 seeking fat-balls + scatter ----------
@@ -152,7 +152,7 @@ class RS_WhiteFatBall1 : Actor
 {
 	Default { Radius 9; Height 9; Speed 21; Damage 35; DamageType "Fire"; Projectile; Scale 1.5; +DONTHARMCLASS; +SEEKERMISSILE; SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "0:255=%[0.49,0.51,1.52]:[1.10,2.00,1.97]"; }
-	States { Spawn: MANF AB 3 Bright A_SeekerMissile(3,3); Loop; Death: MANF CDE 4 Bright A_Explode(35,64); Stop; }
+	States { Spawn: MANF AB 3 Bright A_SeekerMissile(3,3); Loop; Death: MISL BCD 4 Bright A_Explode(35,64); Stop; }
 }
 class RS_WhiteFatBall2 : RS_WhiteFatBall1 { Default { Speed 11; } }
 class RS_WhiteFatBall3 : RS_WhiteFatBall1 { Default { Speed 25; } }
@@ -164,7 +164,7 @@ class RS_WhiteFatScatter : Actor
 {
 	Default { Radius 8; Height 8; Speed 26; Damage 20; DamageType "Melee"; Projectile; +DONTHARMCLASS; XScale 0.77; YScale 0.33;
 		SeeSound "imp/attack"; DeathSound "spit/spit"; Translation "0:255=%[0.49,0.51,1.52]:[1.10,2.00,1.97]"; }
-	States { Spawn: MANF AB 3 Bright; Loop; Death: MANF CD 3 Bright; Stop; }
+	States { Spawn: MANF AB 3 Bright; Loop; Death: MISL BCD 3 Bright; Stop; }
 }
 
 // ============================== EX PROJECTILES ==============================
@@ -173,7 +173,7 @@ class RS_BlackFatsoBurp : Actor
 {
 	Default { Radius 10; Height 8; Speed 18; Damage 30; DamageType "Poison"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; Scale 1.2;
 		SeeSound "fatso/attack"; DeathSound "fatso/shotx"; Translation "0:255=%[0.30,0.00,0.40]:[1.20,0.40,1.60]"; }
-	States { Spawn: BDP1 AB 3 Bright; Loop; Death: BDP1 CD 3 Bright A_Explode(30,64); Stop; }
+	States { Spawn: BDP1 DE 3 Bright; Loop; Death: BDP1 FG 3 Bright A_Explode(30,64); Stop; }
 }
 class RS_ShadowBeast_Ballex1 : RS_ShadowBeast_Ball1 { Default { Damage 40; } }
 class RS_ShadowBeast_Ballex2 : Actor

@@ -97,7 +97,7 @@ class RS_IceORBCyanRev : Actor
 {
 	Default { Radius 5; Height 5; Speed 20; Damage 14; DamageType "Ice"; Projectile; Scale 0.75; SeeSound "ice/Cast"; DeathSound "Ice/Hit2";
 		Translation "0:255=%[0.06,0.31,0.35]:[1.01,2.00,2.00]"; }
-	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY CDE 4 Bright A_Explode(14,48); Stop; }
+	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY FGHI 4 Bright A_Explode(14,48); Stop; }
 }
 
 // ---------- PURPLE: seeking purp + zap99 lightning ----------
@@ -148,7 +148,7 @@ class RS_IceOrbAbyssRev : Actor
 		ICEY AB 3 Bright A_SeekerMissile(2,2);
 		Loop;
 	Death:
-		ICEY CDE 4 Bright A_Explode(30,64);
+		ICEY FGHI 4 Bright A_Explode(30,64);
 		Stop;
 	}
 }
@@ -217,14 +217,14 @@ class RS_WhiteRevFrostBolt : Actor
 {
 	Default { Radius 8; Height 4; Speed 35; Projectile; +BRIGHT; RenderStyle "Add"; DamageType "Ice"; Damage 55; Scale 1.0;
 		SeeSound "weapons/rocklf"; DeathSound "Bomb/boom"; Translation "0:255=%[0.49,0.51,1.52]:[1.10,2.00,1.97]"; }
-	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY CDE 4 Bright A_Explode(55,80); Stop; }
+	States { Spawn: ICEY AB 3 Bright; Loop; Death: ICEY FGHI 4 Bright A_Explode(55,80); Stop; }
 }
 class RS_IceToMeetWhiteRev : Actor
 {
 	Default { Radius 2; Height 2; Speed 28; Alpha 0.67; Projectile; +THRUACTORS; +THRUGHOST; +MTHRUSPECIES; -NOGRAVITY; +USEBOUNCESTATE;
 		BounceType "Doom"; BounceCount 99; BounceFactor 1.0; WallBounceFactor 1.0; Damage 22; DamageType "Ice"; RenderStyle "Add";
 		Translation "0:255=%[0.49,0.51,1.52]:[1.10,2.00,1.97]"; }
-	States { Spawn: ICEY AB 2 Bright; Loop; Death: ICEY CDE 3 Bright; Stop; }
+	States { Spawn: ICEY AB 2 Bright; Loop; Death: ICEY FGHI 3 Bright; Stop; }
 }
 // (RS_CyanCybieGunFlare already defined in hf_cyberdemon_projectiles.zs -- shared)
 
