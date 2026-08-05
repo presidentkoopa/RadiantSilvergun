@@ -45,7 +45,7 @@ class RS_GH_MP40 : RS_Weapon
 			casing: "RS_CasingSmall",
 			bigMuzzle: true,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar MP40"));
+			profName: "Stick Mag"));
 	}
 
 	// Source anchor: 15-15 flat damage. That becomes the Basic-tier

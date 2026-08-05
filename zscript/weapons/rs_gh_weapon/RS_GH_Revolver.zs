@@ -44,7 +44,7 @@ class RS_GH_Revolver : RS_Weapon
 			ammoCost: 1,
 			bigMuzzle: false,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Scattergun Revolver"));
+			profName: "Cylinder Spread"));
 
 		// Source alt-fire: close-range 10-pellet scatter, same total damage
 		// as one primary round (source: 60 total / 10 pellets = 6 each,

@@ -42,7 +42,7 @@ class RS_GH_RocketLauncher : RS_Weapon
 			fireSnd: RS_Catalog.SND_GH_RocketLauncher(),
 			ammoCost: 1,
 			bigMuzzle: true,
-			profName: "Gunstar Rocket Launcher"));
+			profName: "Warhead"));
 	}
 
 	// Source anchor: 10-10 flat damage. That becomes the Basic-tier

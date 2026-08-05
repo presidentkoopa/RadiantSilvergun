@@ -42,7 +42,7 @@ class RS_GH_GrenadeLauncher : RS_Weapon
 			fireSnd: RS_Catalog.SND_GH_GrenadeLauncher(),
 			ammoCost: 1,
 			bigMuzzle: true,
-			profName: "Gunstar Grenade Launcher"));
+			profName: "Arc Lob"));
 	}
 
 	// Source anchor: 10-10 flat damage. That becomes the Basic-tier

@@ -48,7 +48,7 @@ class RS_GH_Machinegun : RS_Weapon
 			casing: "RS_CasingRifle",
 			bigMuzzle: true,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Machine Gun");
+			profName: "Suppressing Fire");
 		primary.AmmoClass = "Clip";
 		PrimarySlot.Append(primary);
 

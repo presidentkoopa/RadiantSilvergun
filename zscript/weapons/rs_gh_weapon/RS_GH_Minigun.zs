@@ -48,7 +48,7 @@ class RS_GH_Minigun : RS_Weapon
 			casing: "RS_CasingRifle",
 			bigMuzzle: true,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Minigun");
+			profName: "Barrel Spin");
 		primary.AmmoClass = "Clip";
 		PrimarySlot.Append(primary);
 

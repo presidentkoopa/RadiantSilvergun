@@ -45,7 +45,7 @@ class RS_GH_Railgun : RS_Weapon
 			ammoCost: 10,
 			bigMuzzle: false,
 			proj: RS_Catalog.PROJ_RailBolt(),
-			profName: "Gunstar Railgun"));
+			profName: "Rail Lance"));
 
 		// Secondary: BD-faithful straight bolt, same cost/cadence.
 		SecondarySlot.Append(RS_AttackProfile.MakeBullet(

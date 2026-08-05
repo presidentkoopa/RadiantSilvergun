@@ -42,7 +42,7 @@ class RS_GH_Unmaker : RS_Weapon
 			ammoCost: 1,
 			ammo: "Cell",
 			bigMuzzle: true,
-			profName: "Gunstar Unmaker"));
+			profName: "Melt Beam"));
 	}
 
 	// Source anchor: 10-10 flat damage. That becomes the Basic-tier

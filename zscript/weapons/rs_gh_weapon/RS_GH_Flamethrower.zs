@@ -46,7 +46,7 @@ class RS_GH_Flamethrower : RS_Weapon
 			ammoCost: 1,
 			bigMuzzle: true,
 			proj: RS_Catalog.PROJ_GH_FlameJet(),
-			profName: "Gunstar Flamethrower");
+			profName: "Fuel Stream");
 		primary.AmmoClass = "Cell";
 		PrimarySlot.Append(primary);
 	}

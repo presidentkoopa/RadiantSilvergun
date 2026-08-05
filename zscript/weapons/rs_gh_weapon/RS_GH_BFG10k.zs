@@ -42,7 +42,7 @@ class RS_GH_BFG10k : RS_Weapon
 			ammoCost: 1,
 			ammo: "Cell",
 			bigMuzzle: true,
-			profName: "Gunstar BFG10k"));
+			profName: "Siege Bloom"));
 	}
 
 	// Source anchor: 10-10 flat damage. That becomes the Basic-tier

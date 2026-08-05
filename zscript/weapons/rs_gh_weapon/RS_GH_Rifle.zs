@@ -45,7 +45,7 @@ class RS_GH_Rifle : RS_Weapon
 			casing: "RS_CasingRifle",
 			bigMuzzle: false,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Rifle"));
+			profName: "Aimed Shot"));
 
 		// Source alt-fire: identical round, but full-auto instead of the
 		// primary's semi-auto -- the AltFire state chain below is what

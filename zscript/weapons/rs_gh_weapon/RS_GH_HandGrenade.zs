@@ -42,7 +42,7 @@ class RS_GH_HandGrenade : RS_Weapon
 			ammoCost: 1,
 			ammo: "RocketAmmo",
 			bigMuzzle: true,
-			profName: "Gunstar Hand Grenade"));
+			profName: "Overhand"));
 	}
 
 	// Source anchor: 10-10 flat damage. That becomes the Basic-tier

@@ -45,7 +45,7 @@ class RS_GH_PumpShotgun : RS_Weapon
 			casing: "RS_CasingShell",
 			bigMuzzle: false,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Pump"));
+			profName: "Pump"));
 	}
 
 	// Source anchor: 13-13 flat damage. That becomes the Basic-tier

@@ -42,7 +42,7 @@ class RS_GH_Plasma : RS_Weapon
 			fireSnd: RS_Catalog.SND_GH_Plasma(),
 			ammoCost: 1,
 			bigMuzzle: true,
-			profName: "Gunstar Plasma Rifle"));
+			profName: "Bolt Stream"));
 	}
 
 	// Source anchor: 10-10 flat damage. That becomes the Basic-tier

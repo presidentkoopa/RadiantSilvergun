@@ -45,7 +45,7 @@ class RS_GH_SMG : RS_Weapon
 			casing: "RS_CasingSmall",
 			bigMuzzle: true,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar SMG"));
+			profName: "Spray"));
 	}
 
 	// Source anchor: 12-12 flat damage. That becomes the Basic-tier

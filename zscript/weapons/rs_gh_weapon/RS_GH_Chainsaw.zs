@@ -39,7 +39,7 @@ class RS_GH_Chainsaw : RS_Weapon
 			range: 64.0,
 			fireSnd: RS_Catalog.SND_GH_Chainsaw(),
 			puff: "BulletPuff",
-			profName: "Gunstar Chainsaw"));
+			profName: "Bite"));
 	}
 
 	// Source anchor: 5-6 flat damage. That becomes the Basic-tier

@@ -39,7 +39,7 @@ class RS_GH_Fist : RS_Weapon
 			range: 64.0,
 			fireSnd: RS_Catalog.SND_GH_Fist(),
 			puff: "BulletPuff",
-			profName: "Gunstar Knuckles"));
+			profName: "Knuckle"));
 	}
 
 	// Source anchor: 20-40 flat damage. That becomes the Basic-tier

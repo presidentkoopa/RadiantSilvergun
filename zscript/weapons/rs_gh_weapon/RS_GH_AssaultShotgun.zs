@@ -45,7 +45,7 @@ class RS_GH_AssaultShotgun : RS_Weapon
 			casing: "RS_CasingShell",
 			bigMuzzle: true,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Assault Shotgun"));
+			profName: "Auto Buckshot"));
 	}
 
 	// Source anchor: 11-13 flat damage. That becomes the Basic-tier

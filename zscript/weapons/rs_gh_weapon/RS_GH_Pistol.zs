@@ -45,7 +45,7 @@ class RS_GH_Pistol : RS_Weapon
 			casing: "RS_CasingSmall",
 			bigMuzzle: false,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Sidearm"));
+			profName: "Sidearm"));
 
 		// Source alt-fire: 3-round burst, same round/sound as primary. The
 		// burst itself is driven by the AltFire state chain firing this

@@ -45,7 +45,7 @@ class RS_GH_SSG : RS_Weapon
 			casing: "RS_CasingShell",
 			bigMuzzle: false,
 			proj: RS_Catalog.PROJ_Ballistic(),
-			profName: "Gunstar Double Barrel"));
+			profName: "Both Barrels"));
 
 		// Source alt-fire: fire ONE barrel -- half the pellets, half the
 		// ammo, same per-pellet damage as the primary.
