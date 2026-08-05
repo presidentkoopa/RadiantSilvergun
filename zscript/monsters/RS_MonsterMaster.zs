@@ -636,6 +636,17 @@ class RS_MonsterMaster : Actor abstract
 		MissileState = TierState("Missile");
 
 		RS_MonsterTierRow r = new("RS_MonsterTierRow");
+		// THE "LEAVE ALONE" SENTINEL FOR renderStyle IS -1, NOT 0,
+		// AND IT HAS TO BE SET HERE.
+		// A new() row zero-initialises, and STYLE_None IS 0 -- so a
+		// family that simply does not mention renderStyle was getting
+		// A_SetRenderStyle(alpha, STYLE_None) and spawning INVISIBLE.
+		// Found on `summon rs_shotgunner` 2026-08-05. Every other field
+		// can use 0 for "unstated" because 0 is not a legal value for
+		// any of them; renderStyle is the one exception, so its default
+		// lives at the single allocation site rather than being a line
+		// every family has to remember.
+		r.renderStyle = -1;
 		if (!TierData(Tier, r))
 			return;
 
@@ -785,7 +796,19 @@ class RS_MonsterMaster : Actor abstract
 		bSTEALTH           = (g & RS_TF2_STEALTH)           != 0;
 		bSHADOW            = (g & RS_TF2_SHADOW)            != 0;
 		bVISIBILITYPULSE   = (g & RS_TF2_VISIBILITYPULSE)   != 0;
-		bSHORTMISSILERANGE = (g & RS_TF2_SHORTMISSILERANGE) != 0;
+		// +SHORTMISSILERANGE IS NOT A FLAG ON THIS ENGINE. GZDoom
+		// deprecated it into a property, exactly like +MISSILEMORE ->
+		// MissileChanceMult: it sets MaxTargetRange 896. Our own tree
+		// corroborates the number -- the only two existing uses,
+		// RS_Archvile.zs:107 and RS_human_projectiles.zs:1031, are both
+		// 896. The const keeps CH's spelling so the tables still diff
+		// against CH/decorate without a translation step; the
+		// translation happens here, once.
+		// Assigned ABSOLUTELY, like the flags it stands in for: a monster
+		// retiering OFF a short-range tier has to lose the 896 again.
+		// 0 is the engine's "no limit". An explicit r.maxTargetRange wins.
+		MaxTargetRange = (r.maxTargetRange > 0) ? r.maxTargetRange
+		               : (((g & RS_TF2_SHORTMISSILERANGE) != 0) ? 896 : 0);
 		bSPAWNCEILING      = (g & RS_TF2_SPAWNCEILING)      != 0;
 		bSPAWNFLOAT        = (g & RS_TF2_SPAWNFLOAT)        != 0;
 		bDONTFALL          = (g & RS_TF2_DONTFALL)          != 0;
@@ -801,8 +824,9 @@ class RS_MonsterMaster : Actor abstract
 
 		if (r.meleeRange      > 0) MeleeRange     = r.meleeRange;
 		if (r.meleeThreshold  > 0) MeleeThreshold = r.meleeThreshold;
-		if (r.maxTargetRange  > 0) MaxTargetRange = r.maxTargetRange;
 		if (r.floatSpeed      > 0) FloatSpeed     = r.floatSpeed;
+		// MaxTargetRange is handled with the SHORTMISSILERANGE
+		// translation above -- one owner.
 
 		if (r.mass  > 0) Mass = int(r.mass);
 		if (r.scale > 0) A_SetScale(r.scale);
