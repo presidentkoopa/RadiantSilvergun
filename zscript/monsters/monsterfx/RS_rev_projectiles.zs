@@ -802,7 +802,7 @@ class RS_PortalSummons : RandomSpawner
 		DropItem "RS_LostSoul", 255, 200;
 		DropItem "RS_Zombieman", 255, 80;
 		DropItem "RS_Shotgunner", 255, 50;
-		DropItem "RS_Chaingunner", 255, 70;
+		DropItem "RS_CG_C0001", 255, 70;
 		DropItem "RS_Imp", 255, 300;
 		DropItem "RS_Demon", 255, 150;
 		DropItem "RS_Cacodemon", 255, 50;

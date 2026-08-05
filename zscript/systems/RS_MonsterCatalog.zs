@@ -54,7 +54,7 @@ class RS_MonsterCatalog
 	static Class<Actor> ROSTER_VileConjure(int pick)
 	{
 		if (pick <= 0) return "RS_Demon";
-		if (pick == 1) return "RS_Chaingunner";
+		if (pick == 1) return "RS_CG_C0001";
 		if (pick == 2) return "RS_Revenant";
 		if (pick == 3) return "RS_HellKnight";
 		if (pick == 4) return "RS_Spectre";

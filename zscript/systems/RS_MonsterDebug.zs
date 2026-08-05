@@ -32,7 +32,7 @@ class RS_MonsterDebug : EventHandler
 		{
 			case 0:  return "RS_Zombieman";
 			case 1:  return "RS_Shotgunner";
-			case 2:  return "RS_Chaingunner";
+			case 2:  return "RS_CG_C0001";
 			case 3:  return "RS_Imp";
 			case 4:  return "RS_Demon";
 			case 5:  return "RS_Spectre";

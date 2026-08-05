@@ -199,7 +199,7 @@ class RS_Cyberdemon : RS_MonsterMaster replaces Cyberdemon
 		if (i <= 0) return "RS_HellKnight";
 		if (i == 1) return "RS_Imp";
 		if (i == 2) return "RS_Demon";
-		if (i == 3) return "RS_Chaingunner";
+		if (i == 3) return "RS_CG_C0001";
 		if (i == 4) return "RS_LostSoul";
 		return "RS_Baron";
 	}
