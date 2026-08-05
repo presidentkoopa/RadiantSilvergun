@@ -292,9 +292,102 @@ class RS_MonsterMaster : Actor abstract
 		Monster;
 	}
 
+	// =================================================================
+	// THE DIAL -- WHICH CREATURE A MAP SPAWN ACTUALLY BECOMES.
+	//
+	// THE BUG THIS EXISTS TO FIX, and it is the largest one in the
+	// project: NOTHING HAS EVER ASSIGNED A SPAWN TIER. `Tier` is not a
+	// ZScript Property, so no Default block can set it, and every
+	// SetTier() call site is a REACTION to something -- self-enrage,
+	// abyss conversion, summon inheritance, a portal, the debug menu.
+	// A monster placed in a map therefore spawns Tier 0 and stays there
+	// forever. Eight sessions built tiers 1..12 across 238 monsters and
+	// the ONLY way anyone has ever seen any of it is the debug menu.
+	// That is also why four families could ship ported off the wrong
+	// actor without anyone noticing in play: nobody could reach them.
+	//
+	// Under the CH rebuild each creature is its own class, so the dial
+	// picks a CLASS, not a ladder position. One roll, at spawn, once.
+	//
+	// A family opts in by overriding SpawnRoster(). Families that have
+	// not been rebuilt yet return false and are completely unaffected.
+	// =================================================================
+	private bool rsRolled;
+
+	// A family's spawn table, declared the way RS_MonsterCatalog already
+	// declares its rosters (ROSTER_VileConjure / ROSTER_VileConjureCount)
+	// -- three plain virtuals over simple types. Deliberately NOT an
+	// `out Array<>` parameter and NOT a `static const [] literal`:
+	// CLAUDE.md records that array literals do not reliably resolve on
+	// this engine build, and it has been rediscovered three times.
+	// Weights are CH's own -- do not invent them.
+	virtual int    SpawnRosterCount()          { return 0;  }
+	virtual string SpawnRosterPick(int i)      { return ""; }
+	virtual int    SpawnRosterWeight(int i)    { return 0;  }
+
+	// Weighted pick, then become it. Returns true if we handed off.
+	private bool RS_RollSpawnClass()
+	{
+		int n = SpawnRosterCount();
+		if (n <= 0) return false;
+
+		int total = 0;
+		for (int i = 0; i < n; i++)
+			total += max(0, SpawnRosterWeight(i));
+		if (total <= 0) return false;
+
+		int roll = random(0, total - 1), acc = 0, hit = -1;
+		for (int i = 0; i < n; i++)
+		{
+			acc += max(0, SpawnRosterWeight(i));
+			if (roll < acc) { hit = i; break; }
+		}
+		if (hit < 0) return false;
+
+		Class<Actor> nc = SpawnRosterPick(hit);
+		// Rolling ourselves is the common case and must NOT respawn --
+		// that would be an actor churn every time the dial lands home.
+		if (!nc || nc == GetClass()) return false;
+
+		let a = RS_MonsterMaster(Actor.Spawn(nc, pos, ALLOW_REPLACE));
+		if (!a) return false;
+
+		// The replacement is the map's monster: carry placement, not
+		// combat state. There is no fight yet -- this runs at spawn.
+		a.angle     = angle;
+		a.bAMBUSH   = bAMBUSH;
+		a.bFRIENDLY = bFRIENDLY;
+		a.special   = special;
+		a.args[0] = args[0]; a.args[1] = args[1]; a.args[2] = args[2];
+		a.args[3] = args[3]; a.args[4] = args[4];
+		if (tid != 0) a.ChangeTid(tid);
+
+		// Belt and braces. Actor.Spawn has ALREADY run the replacement's
+		// PostBeginPlay by the time we get here, so this assignment does
+		// not gate that call -- what actually prevents a re-roll is that
+		// only the family's ENTRY class overrides the roster, and the
+		// `nc == GetClass()` guard above means the entry class is never
+		// what we spawn. This flag is the second lock, for the day
+		// someone writes a roster that can name its own owner.
+		a.rsRolled = true;
+
+		Destroy();
+		return true;
+	}
+
 	override void PostBeginPlay()
 	{
 		Super.PostBeginPlay();
+
+		// Before anything else -- if this spawn is going to become a
+		// different creature, do it now and let the replacement run its
+		// own PostBeginPlay.
+		if (!rsRolled)
+		{
+			rsRolled = true;
+			if (RS_RollSpawnClass())
+				return;
+		}
 
 		if (!rsBaseCaptured)
 		{

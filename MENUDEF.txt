@@ -389,6 +389,16 @@ OptionMenu "RS_MonsterOptions"
 	Option "Staggered transform (flash + delay)",  "rs_mon_transform_tell", "OnOff"
 
 	StaticText " "
+	StaticText "Spawn Bands", 1
+	// Which creatures a map spawn is allowed to become. CH gates seven
+	// individual colours; these are the same thing as role bands, which
+	// mean the same in every family where a colour does not.
+	Option "Optional tiers",    "rs_mon_band_optional", "OnOff"
+	StaticText "CH's 'extra challenge' set. CH ships these off; we don't.", 2
+	Option "Boss tiers",        "rs_mon_band_boss",     "OnOff"
+	StaticText "Roughly one per eight hundred. The rarity is the point.", 2
+
+	StaticText " "
 	StaticText "Readability", 1
 	// Colourful Hell's own colourblind aid, rebuilt. CH encodes its whole
 	// difficulty ladder as a palette tint, so a player who cannot separate

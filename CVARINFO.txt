@@ -583,3 +583,28 @@ server int   rs_elite_profile_chance = 50;
 // See zscript/monsters/chaingunner/RS_ColorTierIcon.zs.
 // =====================================================================
 server bool rs_mon_tiericons = false;
+
+// =====================================================================
+// SPAWN BANDS -- which creatures a map spawn is allowed to become.
+//
+// Colourful Hell gates individual colours: CH_Cyan, CH_Brown, CH_Gray,
+// CH_Abyss, CH_FireBLU, CH_BlackBoss, CH_WhiteBoss. Those seven collapse
+// into two role bands here, because a BAND means the same thing in all
+// seventeen families and a colour does not -- family 04's cyan is tier 3
+// and another family's is somewhere else entirely.
+//
+// DIVERGENCE FROM CH, DELIBERATE: CH ships its optional band OFF (every
+// one of those cvars defaults to 1 = "Off" in CH's CVARINFO, and its own
+// menu describes them as "optional ... for extra challenge"). We default
+// ON -- importing fourteen creatures per family and showing six is the
+// wrong default here. Set to false for CH's behaviour.
+// =====================================================================
+
+// CH's "extra challenge" tiers. Family 04: cyan, gray, brown, abyss,
+// fireblu -- 250 of Colourset12's 1748 weight.
+server bool rs_mon_band_optional = true;
+
+// The boss band. Family 04: 2 and 1 of 1748, so roughly one boss per
+// eight hundred chaingunners. The rarity IS the mechanic -- turning this
+// off removes the moment a run changes shape.
+server bool rs_mon_band_boss = true;

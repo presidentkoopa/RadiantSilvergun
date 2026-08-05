@@ -114,6 +114,84 @@ class RS_CG_C0001 : RS_MonsterMaster replaces ChaingunGuy
 
 	override int MaxTier() { return 0; }
 
+	// =================================================================
+	// THE DIAL FOR FAMILY 04.
+	//
+	// This class carries `replaces ChaingunGuy`, so every chaingunner a
+	// map places starts here and then becomes one of the fourteen. The
+	// weights are CH's own, from Colourset12 (Chaingunners.txt:1-16) --
+	// nothing here is invented. Total 1748, so CH's white boss really is
+	// 1 in 1748 when every band is enabled.
+	//
+	// NO COLOUR NAMES. The entries are tier IDs and the gates are ROLE
+	// BANDS, not colours. CH gates seven individual colours (CH_Cyan,
+	// CH_Brown, CH_Gray, CH_Abyss, CH_FireBLU, CH_BlackBoss,
+	// CH_WhiteBoss); those seven collapse cleanly into the three bands
+	// this project already uses, and a band means the same thing in all
+	// seventeen families where a colour does not.
+	//
+	// DIVERGENCE FROM CH, STATED: CH ships its five optional tiers OFF
+	// (every one of those cvars defaults to 1 = "Off" in CH's own
+	// CVARINFO, and its menu calls them "optional ... for extra
+	// challenge"). We default them ON. Importing fourteen creatures and
+	// showing six is the wrong default for this project; the switch is
+	// right there if you want CH's.
+	//
+	// X0001 IS DELIBERATELY ABSENT from this table. CH does not put its
+	// EX boss in Colourset12 at all -- CH_EXBoss is a separate
+	// substitution roll (its menu offers Classic 10% / 50-50 / Always /
+	// Never). Putting it here would invent a spawn path CH does not have.
+	// =================================================================
+	// Switch chains, not array literals -- CLAUDE.md: `static const TYPE
+	// name[] = {...}` does not reliably resolve on this engine build, and
+	// that has been rediscovered three separate times.
+	override int SpawnRosterCount() { return 13; }
+
+	override string SpawnRosterPick(int i)
+	{
+		switch (i)
+		{
+			case 0:  return "RS_CG_C0001";   // CommonCGuy    Colourset12:3
+			case 1:  return "RS_CG_T0001";   // GreenCGuy               :4
+			case 2:  return "RS_CG_T0002";   // BlueCGuy                :6
+			case 3:  return "RS_CG_T0004";   // PurpleCGuy              :7
+			case 4:  return "RS_CG_T0005";   // YellowCGuy              :12
+			case 5:  return "RS_CG_T0010";   // RedCGuy                 :14
+			case 6:  return "RS_CG_T0003";   // CyanCGuy                :5
+			case 7:  return "RS_CG_T0007";   // GrayCGuy                :8
+			case 8:  return "RS_CG_T0006";   // BrownCGuy               :9
+			case 9:  return "RS_CG_T0008";   // AbyssCGuy               :10
+			case 10: return "RS_CG_T0009";   // FireBLUCguy             :13
+			case 11: return "RS_CG_B0001";   // BlackCGuy               :15
+			case 12: return "RS_CG_B0002";   // WhiteCGuy               :16
+		}
+		return "";
+	}
+
+	override int SpawnRosterWeight(int i)
+	{
+		// Indices 6..10 are CH's optional band, 11..12 the boss band.
+		if (i >= 11) return RS_MonOpt("rs_mon_band_boss", true)
+		                  ? (i == 11 ? 2 : 1) : 0;
+		if (i >= 6 && !RS_MonOpt("rs_mon_band_optional", true)) return 0;
+
+		switch (i)
+		{
+			case 0:  return 640;
+			case 1:  return 460;
+			case 2:  return 200;
+			case 3:  return 100;
+			case 4:  return 60;
+			case 5:  return 35;
+			case 6:  return 130;
+			case 7:  return 35;
+			case 8:  return 35;
+			case 9:  return 30;
+			case 10: return 20;
+		}
+		return 0;
+	}
+
 	States
 	{
 	Spawn:
