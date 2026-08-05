@@ -1126,6 +1126,20 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		"ZMKX" E 0 A_Jump(256, "Missile.TEX.Chaingun");
 		Goto See;
 	// Pure showboating -- and it is the only time the fight pauses.
+	//
+	// THE LAUGH IS DELIBERATELY ABSENT, and this is not the gap it looks
+	// like. CHP 01_KX.txt:48-65 hangs A_Playsound("HEHEEENH",0) on 12 of
+	// these frames. But CHP's own SNDINFO defines only the COLOUR-SUFFIXED
+	// tokens -- HEHEEENH/A /B /BR /CY /F /G /GY /K /KX /P /R /W /WX /Y --
+	// and no plain "HEHEEENH" and no "/C". The Common Player X therefore
+	// calls a token that does not exist, and IS SILENT IN CHP TOO. Same
+	// defect class as misc/gibbed/c, which is undefined and called from 11
+	// files in this family.
+	// So our behaviour already matches CHP's real behaviour. Making it
+	// audible means IMPORTING THE LUMP (we ship neither the sound nor an
+	// SNDINFO entry) and then aliasing a plain token -- an asset job under
+	// the monsters-stand-alone law, not a code fix. Do NOT "restore" the
+	// A_StartSound calls on their own; that just adds 12 no-ops.
 	Missile.TEX.Taunt:
 		"ZMKX" A 4;
 		"ZMKX" G 4;

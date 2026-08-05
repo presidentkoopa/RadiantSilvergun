@@ -7,6 +7,13 @@ version "4.14"
 #include "zscript/systems/RS_Bits.zs"
 #include "zscript/systems/RS_Score.zs"
 
+// World-space health bars over monsters. Reads
+// RS_MonsterMaster.TierMaxHealth when the owner is one of ours, so it
+// depends on the monster include below -- ZScript is one translation
+// unit, so this ordering is for readers, not the compiler.
+// RS_HealthBarHandler must also be in MAPINFO.txt's AddEventHandlers.
+#include "zscript/systems/RS_HealthBars.zs"
+
 // Must load after RS_Weapon.zs and VR_PlayerClasses.zs (needs GetFamily()
 // on both) -- ZScript compiles as one unit so include order doesn't
 // actually matter for this, but keeping it last for readability.
@@ -33,9 +40,9 @@ version "4.14"
 // RS_MonsterMaster: the monster-side parallel of RS_Weapon. Owns tier,
 // the per-tier body-sprite/TRNSLATE table, the per-tier attack slot,
 // and the shared behaviour primitives (summon-with-cap, threshold
-// enrage, timed pulse, orbit-attach, morph). Also owns the three
-// per-family base classes (RS_HumanMonster / RS_DemonBase /
-// RS_KnightBase) used below.
+// enrage, timed pulse, orbit-attach, morph). The three empty per-family
+// base classes it used to declare were removed 2026-08-04 -- see the
+// note at the bottom of that file.
 #include "zscript/monsters/RS_MonsterMaster.zs"
 
 // Monster parts bin -- summon rosters, satellites, portals, morph
