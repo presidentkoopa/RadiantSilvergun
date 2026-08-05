@@ -616,7 +616,13 @@ class RS_HPBar : RS_HPBarBase
 			let mm = RS_MonsterMaster(ownerRef);
 			bool wantMark = mm && cvMarks && cvMarks.GetInt();
 
-			if (mm)
+			// Gated on the toggle, not just on being one of our monsters:
+			// with marks off this feature must cost NOTHING, and polling
+			// four gates per bar per tic to feed a store nobody reads is
+			// not nothing. The trade is that turning marks on mid-session
+			// starts from an empty store, which is the honest behaviour
+			// anyway.
+			if (wantMark)
 				RS_LearnThresholds(mm, maxhp);
 
 			if (!wantMark)
