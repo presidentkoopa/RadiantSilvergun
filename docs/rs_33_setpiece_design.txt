@@ -247,17 +247,19 @@ THE CHOREOGRAPHY, rebuilt on real capabilities:
   speed-up; herding = Tide DIRECTION (eyes follow colour flow) and
   darkness-as-wall (players avoid dark in a dark game); the room-wide
   threat gauge = the climbing Meniscus.
-  COLOUR VOCABULARY RULES (owner rulings 2026-08-05):
-    MONSTER tiers are NUMERIC -- never painted. If the world must speak
-    a monster's tier it speaks in DIGITS (the SDF-digit telegraph:
-    count length = threat).
-    WEAPON tiers are DIVORCED FROM WALL GLOW entirely -- ruled. Their
-    colours live in the UI (cards, sheets) and the Muster Pay tier
-    rings, never in the environment. Sector glow/ramps are COMBAT FLOW
-    language only: danger lanes, wave telegraphs, herding, the Meniscus
-    gauge -- as specified above.
-    SPOTS/TETHERS speak ELITE TYPE (the 17-colour pentagram table):
-    tethers, reveals, station glyphs.
+  THE TAXONOMY (owner's own words, 2026-08-05 -- the law):
+    "Weapons have rarity tiers, walls and floors and ceilings have
+    glow, monsters have difficulty tiers."
+  Three domains, three words, no crossings:
+    RARITY TIERS belong to WEAPONS (Cursed..Prototype). Their colours
+    live in the UI and the Muster Pay tier rings, never the environment.
+    GLOW belongs to SURFACES (walls/floors/ceilings). It is combat-flow
+    language: danger lanes, wave telegraphs, herding, the Meniscus
+    gauge. It never encodes rarity or difficulty.
+    DIFFICULTY TIERS belong to MONSTERS, and they are NUMERIC. Spoken,
+    when spoken at all, in digits (count length = threat).
+    (Elite TYPE colour -- the 17-colour pentagram table on spots,
+    tethers, reveals, glyphs -- is identity, not tier, and stays.)
 
 ENGINE ASKS (small, request deliberately when a design demands them):
 yaw-locked billboard panel (real gates); explicit-width line wipeType;
