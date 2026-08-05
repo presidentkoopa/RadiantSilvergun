@@ -179,9 +179,12 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		switch (t)
 		{
 			case 1:   // GREEN -- gas rifle. CHP 01_G.txt:25,30
-				slot.Append(RS_AttackProfile.MakeVolley(
-					RS_MonsterCatalog.PROJ_ZM_Gas(), 1, 0.0,
-					"grunt/attack", 1.0, 0.0, "Gas Lob"));
+				// A DOUBLE-TAP, not one shot: CHP fires the gas, waits 8
+				// tics on ZOMG F, and fires again. Now expressible --
+				// MakeBurst is MakeVolley plus spacing.
+				slot.Append(RS_AttackProfile.MakeBurst(
+					RS_MonsterCatalog.PROJ_ZM_Gas(), 2, 8, 0.0,
+					"grunt/attack", 1.0, 0.0, RS_FIRE_MISSILE, "Gas Double-Tap"));
 				break;
 
 			case 3:   // CYAN -- ice bolt. CHP 01_CY.txt
@@ -192,10 +195,19 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 
 			case 6:   // ABYSS -- the pincer. Two bolts, opposite arcs:
 				// CHP 01_A.txt:33,34 is random(-7,1) then random(-1,7),
-				// which is a squeeze, not a spread.
-				slot.Append(RS_AttackProfile.MakeVolley(
-					RS_MonsterCatalog.PROJ_ZM_AbyssBolt(), 2, 14.0,
-					"imp/attack", 1.0, 0.0, "Pincer Bolts"));
+				// which is a squeeze, not a spread. FIVE tics apart, so
+				// it is a burst; a single-tic volley would fire them
+				// together and lose the pincer entirely.
+				slot.Append(RS_AttackProfile.MakeBurst(
+					RS_MonsterCatalog.PROJ_ZM_AbyssBolt(), 2, 5, 14.0,
+					"imp/attack", 1.0, 0.0, RS_FIRE_MISSILE, "Pincer Bolts"));
+				// THE INFECTION AURA -- fires once on SPAWN, not from
+				// Missile, and could not be held in a slot at all until
+				// FireTrigger existed. See Spawn.T06 and
+				// RS_MonsterMaster.RS_HatchAbyss().
+				slot.Append(RS_AttackProfile.MakeBurst(
+					"RS_AbyssMark", 1, 0, 0.0,
+					"", 1.0, 0.0, RS_FIRE_SPAWN, "Abyss Mark"));
 				break;
 
 			case 9:   // GRAY -- stone volley. CHP 01_GY.txt
@@ -223,6 +235,19 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 				slot.Append(RS_AttackProfile.MakeVolley(
 					RS_MonsterCatalog.PROJ_ZM_Tornado(), 1, 0.0,
 					"Under/Goodie", 1.0, 0.0, "Bone Tornado"));
+				// THE PLAN -- fires once on spawn, marks the whole level.
+				// Same case as the Abyss mark: a real attack that lives
+				// nowhere near a Missile state.
+				slot.Append(RS_AttackProfile.MakeBurst(
+					"RS_UndertakerPlan", 1, 0, 0.0,
+					"", 1.0, 0.0, RS_FIRE_SPAWN, "The Plan"));
+				// THE SKELETON SEED -- MrBones arrives from a CORPSE, so
+				// its trigger is DEATH and it is the map's, not the
+				// boss's. Recorded here because the catalog has to be
+				// able to name the Undertaker's actual win condition.
+				slot.Append(RS_AttackProfile.MakeBurst(
+					RS_MonsterCatalog.MINION_ZM_Bones(), 1, 0, 0.0,
+					"", 1.0, 0.0, RS_FIRE_DEATH, "Skeleton Seed"));
 				break;
 
 			default:

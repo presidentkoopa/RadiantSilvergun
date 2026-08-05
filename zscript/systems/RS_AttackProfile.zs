@@ -51,6 +51,18 @@ const RS_ATK_HITSCAN = 3;   // instant A_FireBullets trace (chaingun)
 // would silently slice every time an upgrade padded a rotation. The
 // weapon dispatch ignores modes it doesn't handle, so weapons are
 // unaffected by these existing.
+// WHICH BEAT AN ATTACK BELONGS TO. Most attacks fire from Missile; CHP
+// fires plenty from elsewhere and those were previously undescribable.
+// Comparison-chain friendly ints, never a static const array -- that form
+// does not resolve reliably on this engine build (CLAUDE.md).
+const RS_FIRE_MISSILE = 0;  // the normal case: a Missile state
+const RS_FIRE_MELEE   = 1;  // a Melee state
+const RS_FIRE_PAIN    = 2;  // retaliation, fired on being hurt
+const RS_FIRE_DEATH   = 3;  // a death burst
+const RS_FIRE_XDEATH  = 4;  // a gib burst, distinct from Death
+const RS_FIRE_WALK    = 5;  // thrown mid-chase, out of See
+const RS_FIRE_SPAWN   = 6;  // fired once on arrival (auras, marks)
+
 const RS_ATK_SUMMON   = 4;  // spawn minions, capped by live pack size
 const RS_ATK_RADIAL   = 5;  // radius effect -- damage enemies or buff allies
 const RS_ATK_SELFBUFF = 6;  // temporary self stat spike
@@ -144,6 +156,42 @@ class RS_AttackProfile : Object
 	int    VolleyCount;
 	double VolleyArc;
 	double VolleyPitchJitter;   // degrees of vertical scatter, 0 = flat
+
+	// --- Burst: THE SAME COUNT, SPREAD OVER TIME -----------------------
+	// rs_17 s4 named this gap and four independent cases hit it: CHP's
+	// walking bursts, double-taps and A_Monsterrefire loops could not be
+	// described at all, because VolleyCount fires its WHOLE count on one
+	// tic. That is a shotgun. A burst is the same rounds arriving apart.
+	//
+	//   BurstDelayTics 0   -> all VolleyCount rounds on one tic (a fan,
+	//                         a ring, a shotgun). The default, so every
+	//                         profile written before this field is
+	//                         unchanged.
+	//   BurstDelayTics 2   -> VolleyCount rounds, 2 tics between each.
+	//
+	// VolleyArc still applies, so a burst can also fan -- CHP's T05
+	// walking burst is exactly that: three rounds, a few tics apart,
+	// each with its own spread.
+	//
+	// DELIBERATELY NOT a separate BurstCount field. rs_17 s4(a) warned
+	// that VolleyCount and BurstCount "will be confused, and someone will
+	// build the wrong one or build the second one twice". One count, one
+	// spacing: if the spacing is zero they arrive together, if it is not
+	// they arrive apart. There is no third thing to name.
+	int    BurstDelayTics;
+
+	// --- WHEN it fires --------------------------------------------------
+	// A profile that describes a monster attack has to say which state it
+	// belongs to, because CHP fires plenty of attacks from somewhere
+	// other than Missile: death bursts, pain retaliation, and rounds
+	// thrown mid-walk. Family 01 alone has four, and until this field
+	// existed the catalog could describe them and the slot could not hold
+	// them.
+	//
+	// This is DESCRIPTIVE, not a dispatcher -- the state still fires the
+	// attack. It exists so an attack in a slot can be matched to the beat
+	// it belongs to, which is what PACK needs in order to ever move one.
+	int    FireTrigger;
 
 	// --- Projectile size -----------------------------------------------
 	// 0 = DERIVE from the firer (RS_Catalog.ScaleForArchetype for weapons,
@@ -261,6 +309,8 @@ class RS_AttackProfile : Object
 		VolleyCount       = 1;
 		VolleyArc         = 0.0;
 		VolleyPitchJitter = 0.0;
+		BurstDelayTics    = 0;              // 0 = all on one tic, as before
+		FireTrigger       = RS_FIRE_MISSILE; // the overwhelming default
 		ProjScale         = 0.0;   // 0 = derive from firer
 		MinRange          = 0.0;
 		MaxRange          = 0.0;   // 0 = unlimited
@@ -423,6 +473,32 @@ class RS_AttackProfile : Object
 		return p;
 	}
 
+	// A VOLLEY SPREAD OVER TIME. Same rounds, arriving apart instead of
+	// together -- CHP's walking bursts, double-taps and refire loops.
+	// This is MakeVolley with the two new shape axes exposed; it does not
+	// add a mode, because a burst and a fan differ only in spacing.
+	//
+	//   MakeBurst(proj, 3, 2)            three rounds, 2 tics apart
+	//   MakeBurst(proj, 3, 2, arc: 14)   the same, each with its own
+	//                                    spread -- CHP's T05 walking burst
+	//   trigger: RS_FIRE_PAIN            fired on being hurt, not aimed
+	static RS_AttackProfile MakeBurst(
+		Class<Actor> proj,
+		int count = 3,
+		int delayTics = 2,
+		double arc = 0.0,
+		sound fireSnd = "",
+		double dmgMult = 1.0,
+		double pitchJitter = 0.0,
+		int trigger = RS_FIRE_MISSILE,
+		string profName = "")
+	{
+		let p = MakeVolley(proj, count, arc, fireSnd, dmgMult, pitchJitter, profName);
+		p.BurstDelayTics = max(0, delayTics);
+		p.FireTrigger    = trigger;
+		return p;
+	}
+
 	// Spawn minions. cap is a LIVE-pack cap, not a lifetime budget --
 	// kill the pack and the summoner can rebuild it, which is what makes
 	// a summoner fight a sustained threat rather than a burst.
@@ -536,6 +612,11 @@ class RS_AttackProfile : Object
 		p.VolleyCount     = VolleyCount;
 		p.VolleyArc       = VolleyArc;
 		p.VolleyPitchJitter = VolleyPitchJitter;
+		// A field missing from Clone() is a silent bug: Echo rebuilds
+		// itself from SavedOriginal.Clone() every activation, so anything
+		// not copied here quietly reverts to its default on the copy.
+		p.BurstDelayTics  = BurstDelayTics;
+		p.FireTrigger     = FireTrigger;
 		p.ProjScale       = ProjScale;
 		p.MinRange        = MinRange;
 		p.MaxRange        = MaxRange;

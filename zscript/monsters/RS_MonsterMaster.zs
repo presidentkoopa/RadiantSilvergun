@@ -864,6 +864,24 @@ class RS_MonsterMaster : Actor abstract
 		int n = max(1, p.VolleyCount);
 		double arc = p.VolleyArc;
 
+		// BurstDelayTics IS NOT HONOURED HERE, AND CANNOT BE. This is a
+		// function, and functions do not wait -- state machines do
+		// (rs_17 s4 reached the same conclusion for the weapon side).
+		// Firing n rounds `delay` tics apart needs the caller's STATE to
+		// loop, not this loop to sleep.
+		//
+		// That is not a hole today, because for monsters the slot is
+		// DESCRIPTIVE: the tier states still fire their own attacks and
+		// already carry the real spacing in their tic counts. The field
+		// records the shape so the catalog is accurate and so PACK can
+		// tell a burst from a fan -- which it previously could not, since
+		// both looked like VolleyCount > 1.
+		//
+		// WHEN the states are converted to fire THROUGH the slot, this is
+		// where the burst has to become a state loop. Do not "fix" it by
+		// sleeping in this function; it will look right in a test and
+		// stall the actor's thinker in play.
+
 		// Size derived from what THIS monster is, unless the profile
 		// forces it. A chaingunner throwing a Cacodemon ball is a
 		// bullet-delivery skirmisher, so it throws a bullet-sized one.
