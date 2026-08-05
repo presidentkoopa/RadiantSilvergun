@@ -134,6 +134,32 @@ class RS_MonsterCatalog
 	static Class<Actor> PROJ_VileDrop()      { return "RS_RockVileDrop"; }
 
 	// --- Baron / tendrils ---
+	// --- Zombieman (family 01) ---
+	// First family catalogued under rs_21. Every projectile its tiers
+	// fire, so RS_Zombieman.BuildTierAttacks can express them as
+	// RS_AttackProfile entries in an RS_AttackSlot rather than naming raw
+	// classes inline in state code. That is the difference between 917
+	// loose actors and a parts bin something can choose from.
+	//
+	// TERMINOLOGY, because it drifted once already: an attack is an
+	// RS_AttackProfile, held in an RS_AttackSlot whose cursor advances
+	// one entry per pull. It is NOT a "socket" -- sockets are the affix
+	// BREADTH CAP on a weapon (rs_16: distinct affixes <= sockets, 1..5,
+	// read at RS_Upgrade_Slate.zsc:45) and have nothing to do with
+	// attacks. PACK is the eight PRESENTATION axes (projectile, casing,
+	// muzzleflash, smoke, sound, puff, impact, trail), also a different
+	// thing.
+	static Class<Actor> PROJ_ZM_Gas()        { return "RS_Gas11"; }
+	static Class<Actor> PROJ_ZM_IceBolt()    { return "RS_IceZombieShot"; }
+	static Class<Actor> PROJ_ZM_AbyssBolt()  { return "RS_AbyssZshotCH"; }
+	static Class<Actor> PROJ_ZM_Rock()       { return "RS_ZombieRock"; }
+	static Class<Actor> PROJ_ZM_Bone1()      { return "RS_BoneProjZM"; }
+	static Class<Actor> PROJ_ZM_Bone2()      { return "RS_BoneProjZM2"; }
+	static Class<Actor> PROJ_ZM_Bone3()      { return "RS_BoneProjZM3"; }
+	static Class<Actor> PROJ_ZM_Shovel()     { return "RS_ShoveZM"; }
+	static Class<Actor> PROJ_ZM_Tornado()    { return "RS_BoneTornado"; }
+	static Class<Actor> MINION_ZM_Bones()    { return "RS_MrBones"; }
+
 	static Class<Actor> PROJ_BaronStar()     { return "RS_BaronStar"; }
 	static Class<Actor> PROJ_BaronRing()     { return "RS_BaronRing"; }
 	static Class<Actor> PROJ_BaronBomb()     { return "RS_BaronFbomb"; }

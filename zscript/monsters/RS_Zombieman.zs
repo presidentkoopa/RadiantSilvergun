@@ -148,6 +148,90 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 
 	// CHP gives each colour its own ARTWORK, so no palette remap is
 	// needed or wanted -- a tint on top of bespoke art would corrupt it.
+	// =================================================================
+	// ATTACK PROFILES -- rs_21 section 5, first family to have them.
+	//
+	// Every tier that fires a PROJECTILE gets an RS_AttackProfile entry
+	// here, so the attack exists as DATA and not only as a hardcoded
+	// class name inside a state. That is what makes the catalog in
+	// docs/monsters/Zombieman.md mean something: an attack described
+	// there can actually be pointed at something else.
+	//
+	// WHAT THIS DOES NOT DO, stated plainly so nobody reads more into it
+	// than is here. The tier states still fire their own attacks; this
+	// slot is the machine-readable description ALONGSIDE them, not a
+	// replacement for them. Converting the states to fire THROUGH the
+	// slot is a separate job and it is not done for this family --
+	// rs_17 s4 records the reason: MakeVolley fires its whole count on
+	// ONE tic, so a double-tap, a refire loop or a walking burst cannot
+	// be expressed by it yet. Four of Zombieman's attacks are exactly
+	// those shapes, and three more fire from Pain, XDeath or the walk
+	// cycle, which the slot has no hook for at all.
+	//
+	// HITSCAN TIERS ARE ABSENT ON PURPOSE. T00/T02/T05/T08/T10/T11 are
+	// A_CustomBulletAttack, and MakeHitscan carries no bullet-count
+	// field, so a profile for them would claim a fidelity it does not
+	// have. Recorded in the catalog as a gap rather than faked here.
+	override RS_AttackSlot BuildTierAttacks(int t)
+	{
+		let slot = RS_AttackSlot(new("RS_AttackSlot"));
+
+		switch (t)
+		{
+			case 1:   // GREEN -- gas rifle. CHP 01_G.txt:25,30
+				slot.Append(RS_AttackProfile.MakeVolley(
+					RS_MonsterCatalog.PROJ_ZM_Gas(), 1, 0.0,
+					"grunt/attack", 1.0, 0.0, "Gas Lob"));
+				break;
+
+			case 3:   // CYAN -- ice bolt. CHP 01_CY.txt
+				slot.Append(RS_AttackProfile.MakeVolley(
+					RS_MonsterCatalog.PROJ_ZM_IceBolt(), 1, 4.0,
+					"ice/Cast", 1.0, 0.0, "Ice Bolt"));
+				break;
+
+			case 6:   // ABYSS -- the pincer. Two bolts, opposite arcs:
+				// CHP 01_A.txt:33,34 is random(-7,1) then random(-1,7),
+				// which is a squeeze, not a spread.
+				slot.Append(RS_AttackProfile.MakeVolley(
+					RS_MonsterCatalog.PROJ_ZM_AbyssBolt(), 2, 14.0,
+					"imp/attack", 1.0, 0.0, "Pincer Bolts"));
+				break;
+
+			case 9:   // GRAY -- stone volley. CHP 01_GY.txt
+				slot.Append(RS_AttackProfile.MakeVolley(
+					RS_MonsterCatalog.PROJ_ZM_Rock(), 1, 0.0,
+					"grunt/attack", 1.0, 0.0, "Stone Volley"));
+				break;
+
+			case 12:  // WHITE -- THE UNDERTAKER. Its rotation is the
+				// escalation ladder: bone grade rises with BoneUp, and
+				// the tornado only exists at rung 3. Listed in ladder
+				// order so the slot reads the way the fight does.
+				slot.Append(RS_AttackProfile.MakeVolley(
+					RS_MonsterCatalog.PROJ_ZM_Bone1(), 1, 0.0,
+					"skeleton/attack", 1.0, 0.0, "Bone Bolt"));
+				slot.Append(RS_AttackProfile.MakeVolley(
+					RS_MonsterCatalog.PROJ_ZM_Bone2(), 1, 0.0,
+					"skeleton/attack", 1.0, 0.0, "Bone Bolt II"));
+				slot.Append(RS_AttackProfile.MakeVolley(
+					RS_MonsterCatalog.PROJ_ZM_Bone3(), 11, 24.0,
+					"skeleton/attack", 1.0, 6.0, "Bone Shotgun"));
+				slot.Append(RS_AttackProfile.MakeVolley(
+					RS_MonsterCatalog.PROJ_ZM_Shovel(), 1, 0.0,
+					"skeleton/attack", 1.0, 0.0, "Shovel"));
+				slot.Append(RS_AttackProfile.MakeVolley(
+					RS_MonsterCatalog.PROJ_ZM_Tornado(), 1, 0.0,
+					"Under/Goodie", 1.0, 0.0, "Bone Tornado"));
+				break;
+
+			default:
+				return null;   // this tier is hitscan or has no projectile
+		}
+
+		return slot;
+	}
+
 	override string TintTable()
 	{
 		return "- - - - - - - - - - - - - -";
