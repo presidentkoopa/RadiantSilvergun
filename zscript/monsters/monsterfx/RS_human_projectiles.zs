@@ -82,13 +82,16 @@ class RS_RedMessImp3 : Actor
 }
 class RS_SGGasNade : Actor
 {
-	Default { Radius 6; Height 8; Speed 25; Damage 40; DamageType "Poison"; Projectile; +GRENADETRAIL; -NOGRAVITY; Gravity 0.4; BounceType "Doom"; BounceCount 2;
+	// RESTORED 1:1 TO CHP. CH's death is a SINGLE frame -- MISL B 8 Bright
+	// A_Explode(random(20,50),128) -- so the "fires once per frame" concern
+	// never applied to this actor at all, yet an earlier pass still replaced
+	// it with an invented two-stage 120/72 + 60/160 burst and flattened
+	// Damage (random(20,75)) to a constant 40. Both undone.
+	Default { Radius 6; Height 8; Speed 25; DamageFunction (random(20, 75)); DamageType "Poison";
+		Projectile; +GRENADETRAIL; -NOGRAVITY; Gravity 0.4; BounceType "Doom"; BounceCount 2;
 		SeeSound "weapons/grenade"; DeathSound "weapons/grenade"; }
-	// SIGNATURE: two-stage. Core 120@72 (full inside 28) then a 60@160 gas wave. 180 total, as before.
 	States { Spawn: GRND A 4 Bright; Loop;
-		Death: MISL B 4 Bright A_Explode(120, 72, XF_HURTSOURCE, false, 28);
-		MISL C 4 Bright A_Explode(60, 160, XF_HURTSOURCE);
-		MISL D 4 Bright; Stop; }
+		Death: MISL B 8 Bright A_Explode(random(20, 50), 128); Stop; }
 }
 // A thrown shotgun that falls, rolls, throbs and cooks off. Ported 1:1 from
 // CH's MineShotgun (Shotgunners.txt:2473) -- gravity, the scale throb, the
@@ -125,11 +128,10 @@ class RS_MineShotgun : Actor
 		}
 		Goto Spawn;
 	Death:
-		// SIGNATURE: two-stage. Core then a wide shove. Total still random(15,150),
-		// which is what the old three-frame line was rolling three times over.
-		MISL B 5 Bright A_Explode(random(10, 100), 96, XF_HURTSOURCE, false, 32);
-		MISL C 5 Bright A_Explode(random(5, 50), 192, XF_HURTSOURCE);
-		MISL D 5 Bright;
+		// RESTORED 1:1 TO CHP: MISL BCD 5 Bright A_Explode(random(5,50),128).
+		// Three frames, so three rolls -- CH's intent, not a bug. The earlier
+		// two-stage rewrite invented a 96/192 radius split CH never had.
+		MISL BCD 5 Bright A_Explode(random(5, 50), 128);
 		Stop;
 	}
 }
@@ -148,15 +150,37 @@ class RS_BrownOrbCguy : Actor
 }
 class RS_CGBigOne : Actor
 {
-	Default { Radius 8; Height 8; Speed 19; Damage 50; DamageType "Plasma"; Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.9; Scale 1.2;
-		SeeSound "weapons/bfgf"; DeathSound "weapons/bfgx"; }
-	// SIGNATURE: two-stage. The old line fired 80 damage on all FIVE frames -- 400
-	// at the epicentre from a line that reads 80. Kept at 400, split into a 280
-	// core (full inside 24) and a 120 wave that now reaches 160 instead of 96.
-	States { Spawn: SPIR FGH 3 Bright A_SeekerMissile(3,3); Loop;
-		Death: RED9 A 4 Bright A_Explode(280, 64, XF_HURTSOURCE, false, 24);
-		RED9 B 4 Bright A_Explode(120, 160, XF_HURTSOURCE);
-		RED9 C 4 Bright; Stop; }
+	// RESTORED 1:1 TO CHP 04_K.txt:2268 (CGBigOne_C). An earlier pass rewrote
+	// this actor on the theory that its multi-frame A_Explode was a bug
+	// "dealing 400 at the epicentre from a line that reads 80", and replaced
+	// CH's pulsing detonation with an invented two-stage 280/120 burst.
+	// That premise was wrong. CHP uses multi-frame A_Explode 4,545 times --
+	// a THIRD of all its explode sites -- and SPIR ABCDEDCBA is a grow-then-
+	// shrink cycle: the explosion PULSES as it expands and collapses. The
+	// repeat is the attack, exactly as in RS_DIBigOne, which was correctly
+	// left alone. CH's real total is random(5,30) x 9 = 45-270, never 400.
+	// Three separate regressions are undone here:
+	//   * Damage 50            -> DamageFunction (random(30,80))   CHP:2277
+	//   * spawn SPIR FGH       -> RED9 B / RED9 AA / RED9 A        CHP:2285
+	//   * death RED9 two-stage -> SPIR ABCDEDCBA A_Explode(...,164) CHP:2291
+	Default { Radius 6; Height 8; Speed 19; DamageFunction (random(30, 80)); DamageType "Plasma";
+		Projectile; +NOGRAVITY; +SEEKERMISSILE; RenderStyle "Add"; Alpha 0.75;
+		SeeSound "Spell/SpellCast1"; DeathSound "Fire/Fire4"; }
+	States
+	{
+	Spawn:
+		RED9 B 1 Bright A_SeekerMissile(3, 6);
+		RED9 AA 1 Bright A_SpawnItemEx("RS_SpiralSaw5", 0,0,0, 0,0,0, 0, 128);
+		RED9 A 0 A_CustomMissile("RS_GroundRedCyb", 0, 0);
+		Loop;
+	Death:
+		SPIR A 1 Bright A_SetScale(2);
+		// NINE frames, so nine blasts. CH's own intent -- see the comment on
+		// RS_DIBigOne, which carries the identical pattern at radius 178.
+		SPIR ABCDEDCBA 5 Bright A_Explode(random(5, 30), 164);
+		SPIR E 1;
+		Stop;
+	}
 }
 class RS_GenShield : Actor
 {
@@ -1604,14 +1628,22 @@ class RS_SpiralLoadGeneEX : Actor
 //     every other PUFF line in CH/CHP stays inside A-D -- and no PUFF art
 //     exists anywhere in ART SOURCE. Tics folded 6+6 -> 12 to keep the
 //     post-A_Blast tail the same length.
-//   * Every A_Explode in this file now fires ONCE. A multi-frame state line
-//     runs its action on EVERY frame, so `MISL BCD 4 A_Explode(40,80)` was
-//     dealing 120, and RS_CGBigOne's five-frame line was dealing 400 from a
-//     number that reads 80. Damage is preserved exactly (folded into a single
-//     call with a full-damage core); RS_MineShotgun, RS_SGGasNade and
-//     RS_CGBigOne get a deliberate two-stage core + shockwave instead.
-//     NOT applied to the rest of the tree yet -- and it must NOT be applied
-//     blindly: repeating/bouncing frame patterns and long low-damage runs
-//     (AGAS, LITN, B5P1 ABCDABCDABCD, FIRE CDEEDCDE, RIP1 ABCABCABCBA) are
-//     gas clouds, lightning and lingering fire where the repeat IS the
-//     mechanic. Converting those would be a real nerf.
+//   * REVERSED 2026-08-04. This file used to record that "every A_Explode in
+//     this file now fires ONCE", on the theory that a multi-frame line was a
+//     bug. THE PREMISE WAS WRONG and the sweep is undone for the three actors
+//     it rewrote (RS_CGBigOne, RS_MineShotgun, RS_SGGasNade).
+//     Multi-frame A_Explode is CHP's deliberate idiom, not an accident: 4,545
+//     of its ~14,100 A_Explode statements sit on multi-frame lines -- a third
+//     of them. SPIR ABCDEDCBA is a grow-then-shrink cycle where the explosion
+//     PULSES as it expands and collapses; MISL BCD is three rolls of a spread.
+//     The repeat IS the attack.
+//     The old note's own caveat -- that AGAS, LITN, B5P1, FIRE CDEEDCDE and
+//     RIP1 must be left alone because the repeat is the mechanic -- was right,
+//     and it turns out to generalise to the whole idiom rather than being a
+//     list of exceptions.
+//     Worse, the rewrite invented numbers CH never had (a 280/120 split on
+//     CGBigOne "kept at 400", when CH's real total is random(5,30) x 9 =
+//     45-270) and flattened two damage rolls to constants. RS_SGGasNade's
+//     CH death is a SINGLE frame, so the sweep's own justification never even
+//     applied to it.
+//     DO NOT RE-RUN THIS PASS. See docs/rs_18 C1, closed as WON'T DO.
