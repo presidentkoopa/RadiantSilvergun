@@ -118,6 +118,13 @@ class RS_HPBarBase : Actor
 	Default
 	{
 		+NOINTERACTION
+		// SetOrigin runs every tic to follow the owner, and without this
+		// each call unlinks and relinks the bar in the blockmap for an
+		// actor that can never collide with anything. NOINTERACTION does
+		// not imply it. Do not remove -- NOSECTOR would be the matching
+		// pair and must NOT be added, since sector linkage is what makes
+		// a sprite render at all.
+		+NOBLOCKMAP
 	}
 
 	// The sprite art is 11px tall with its origin on the bottom row, so
@@ -172,6 +179,77 @@ class RS_HPBarBase : Actor
 		return (s == 1) ? "B" : "A";
 	}
 
+	// Cached handler pointer. EventHandler.Find walks the handler list;
+	// the draw path wants this every tic.
+	private RS_HealthBarHandler rsHandler;
+
+	protected RS_HealthBarHandler RS_Handler()
+	{
+		if (!rsHandler)
+			rsHandler = RS_HealthBarHandler(EventHandler.Find("RS_HealthBarHandler"));
+		return rsHandler;
+	}
+
+	// Fill the shared sprite-index table, once, from the first bar that
+	// ticks. Lives here rather than on the handler because GetSpriteIndex
+	// is an Actor method -- see the table's comment in the handler.
+	//
+	// The strings are built ONCE, here, and never again. That is the
+	// whole point: every String.Format in this file is now cold code.
+	protected void RS_EnsureSprites()
+	{
+		let h = RS_Handler();
+		if (!h || h.rsSprBuilt)
+			return;
+
+		h.rsSprBuilt = true;
+
+		for (int st = 0; st < 2; st++)
+		{
+			String b = String.Format("H%s", RS_StyleLetter(st));
+			for (int i = 0; i < 20; i++)
+				h.rsSprBar.Push(GetSpriteIndex(String.Format("%s%02d", b, i * 5)));
+			h.rsSprBar.Push(GetSpriteIndex(String.Format("%s99", b)));
+			h.rsSprBar.Push(GetSpriteIndex(String.Format("%sXX", b)));
+		}
+
+		for (int i = 0; i < 20; i++)
+			h.rsSprMark.Push(GetSpriteIndex(String.Format("HM%02d", i * 5)));
+
+		h.rsSprFrame = GetSpriteIndex("HFRM");
+	}
+
+	// Slot within a style's 22 frames. Kept as arithmetic so it costs
+	// nothing; the old version searched 19 times per bar per tic.
+	// Identical results to upstream, dead monsters included.
+	protected int RS_Slot(bool invuln, double pct)
+	{
+		if (invuln)     return 21;
+		if (pct >= 100.0) return 20;
+		return clamp(int(pct) / 5, 0, 19);
+	}
+
+	// Assign from the shared table, and ONLY when the frame actually
+	// changed -- a bar's slot changes a handful of times across a whole
+	// fight, not 35 times a second.
+	//
+	// Stored as index+1 so that the zero a field starts life with means
+	// "nothing set yet" rather than colliding with the genuinely valid
+	// index 0 (style A, empty bar) and skipping the first assignment.
+	protected int rsLastSlot;
+
+	protected void RS_SetBarSprite(int style, int slot)
+	{
+		int idx = clamp(style, 0, 1) * 22 + slot;
+		if (idx + 1 == rsLastSlot)
+			return;
+		rsLastSlot = idx + 1;
+
+		let h = RS_Handler();
+		if (h && idx >= 0 && idx < h.rsSprBar.Size())
+			Sprite = h.rsSprBar[idx];
+	}
+
 	// Which of the 21 frames a percentage lands on, as the two digits in
 	// the sprite name. 99 is the FULL frame, not 99%; the bucket
 	// arithmetic can never produce it, so it doubles as the sentinel.
@@ -185,13 +263,10 @@ class RS_HPBarBase : Actor
 		return clamp((int(pct) / 5) * 5, 0, 95);
 	}
 
-	protected String RS_FrameName(int style, bool invuln, double pct)
-	{
-		String base = String.Format("H%s", RS_StyleLetter(style));
-		if (invuln)
-			return String.Format("%sXX", base);
-		return String.Format("%s%02d", base, RS_Bucket(pct));
-	}
+	// RS_FrameName was here -- it built a sprite name string every tic for
+	// every bar. Replaced by RS_Slot + RS_SetBarSprite, which index a
+	// table resolved once. Don't reintroduce a name-building helper on
+	// the draw path.
 
 	// -----------------------------------------------------------------
 	// The health ceiling. This is the fix; see the file header.
@@ -226,14 +301,14 @@ class RS_HPBarBase : Actor
 		return rsPeakHP;
 	}
 
-	// What this bar draws. Overridden by the chip layer.
+	// What this bar draws. Overridden by the chip, mark and bracket.
 	virtual void RS_UpdateSprite()
 	{
 		int maxhp = TrueMaxHealth();
 		double pct = (maxhp > 0) ? (double(ownerRef.Health) / double(maxhp)) * 100.0 : 0.0;
 
-		Sprite = GetSpriteIndex(RS_FrameName(cvStyle ? cvStyle.GetInt() : 0,
-		                                     ownerRef.bInvulnerable, pct));
+		RS_SetBarSprite(cvStyle ? cvStyle.GetInt() : 0,
+		                RS_Slot(ownerRef.bInvulnerable, pct));
 		Frame = 0;
 		Angle = 0;
 	}
@@ -248,10 +323,29 @@ class RS_HPBarBase : Actor
 	// renderstyle from its own Tick would be exactly that; each actor
 	// doing it in its own Tick is the shape upstream shipped and knows
 	// works.
+	//
+	// Only re-applied when the owner's alpha or renderstyle ACTUALLY
+	// changed. It was firing every tic for every bar, and a spectre's
+	// alpha is constant for almost all of its life.
+	private double rsLastOwnerAlpha;
+	private int    rsLastOwnerStyle;
+	private bool   rsStealthSeeded;
+
 	protected void RS_ApplyStealth()
 	{
-		if (cvStealth && cvStealth.GetInt())
-			A_SetRenderStyle(ownerRef.Alpha, ownerRef.GetRenderStyle());
+		if (!cvStealth || !cvStealth.GetInt())
+			return;
+
+		double a = ownerRef.Alpha;
+		int    s = ownerRef.GetRenderStyle();
+
+		if (rsStealthSeeded && a == rsLastOwnerAlpha && s == rsLastOwnerStyle)
+			return;
+
+		rsLastOwnerAlpha = a;
+		rsLastOwnerStyle = s;
+		rsStealthSeeded  = true;
+		A_SetRenderStyle(a, s);
 	}
 
 	override void Tick()
@@ -262,6 +356,7 @@ class RS_HPBarBase : Actor
 			return;
 
 		RS_CacheCVars();
+		RS_EnsureSprites();
 		RS_ApplyStealth();
 		RS_UpdateSprite();
 	}
@@ -285,7 +380,7 @@ class RS_HPBarChip : RS_HPBarBase
 
 	override void RS_UpdateSprite()
 	{
-		Sprite = GetSpriteIndex(RS_FrameName(1, false, chipPct));
+		RS_SetBarSprite(1, RS_Slot(false, chipPct));
 		Frame = 0;
 		Angle = 0;
 	}
@@ -305,12 +400,18 @@ class RS_HPBarMark : RS_HPBarBase
 
 	override void RS_UpdateSprite()
 	{
-		// Nearest 5%, not floor -- a mark is a point, and rounding a
-		// 66% gate down to 65 rather than to the nearer 65 would be
-		// arbitrary. (Both land on 65 here; nearest is still the right
-		// rule for gates like 0.62.)
-		int slot = clamp(int(round(markPct / 5.0)) * 5, 0, 95);
-		Sprite = GetSpriteIndex(String.Format("HM%02d", slot));
+		// Nearest 5%, not floor -- a mark is a point, so a 62% gate
+		// belongs at 60 rather than being truncated there by accident.
+		int slot = clamp(int(round(markPct / 5.0)), 0, 19);
+
+		if (slot + 1 != rsLastSlot)
+		{
+			rsLastSlot = slot + 1;
+			let h = RS_Handler();
+			if (h && slot < h.rsSprMark.Size())
+				Sprite = h.rsSprMark[slot];
+		}
+
 		Frame = 0;
 		Angle = 0;
 	}
@@ -326,7 +427,14 @@ class RS_HPBarFrame : RS_HPBarBase
 {
 	override void RS_UpdateSprite()
 	{
-		Sprite = GetSpriteIndex("HFRM");
+		// One sprite, forever. Resolve it once and never touch it again.
+		if (rsLastSlot == 0)
+		{
+			rsLastSlot = 1;
+			let h = RS_Handler();
+			if (h) Sprite = h.rsSprFrame;
+		}
+
 		Frame = 0;
 		Angle = 0;
 	}
@@ -373,16 +481,28 @@ class RS_HPBar : RS_HPBarBase
 	private int  rsSeenFired;
 	private bool rsGatesSeeded;
 
-	// Cached for the same reason the CVar handles are: the mark path
-	// wants this every tic, and EventHandler.Find walks the handler list.
-	private RS_HealthBarHandler rsHandler;
+	// Our owner's token. Held as a pointer so the teardown check is a
+	// null test instead of CountInv("RS_HPBarToken"), which walked the
+	// owner's whole inventory chain comparing class names EVERY TIC for
+	// EVERY BAR. ZScript nulls object pointers when the target is
+	// destroyed, so TakeInventory on death still tears the bar down.
+	private RS_HPBarToken rsToken;
 
-	protected RS_HealthBarHandler RS_Handler()
-	{
-		if (!rsHandler)
-			rsHandler = RS_HealthBarHandler(EventHandler.Find("RS_HealthBarHandler"));
-		return rsHandler;
-	}
+	// Set by the handler right after spawning us. Not a constructor
+	// argument because Spawn has no way to pass one.
+	void SetToken(RS_HPBarToken t) { rsToken = t; }
+
+	// Cached owner sprite height, keyed on which sprite/frame it came
+	// from. GetSpriteTexture + CheckRealHeight ran every tic; a monster's
+	// sprite changes a few times a second at most.
+	private int rsSprH;
+	private int rsSprHKey;
+
+	// The handler pointer and its accessor live on RS_HPBarBase -- every
+	// bar type needs them for the sprite table. Redeclaring them here
+	// would be a redefinition, not a shadow: ZScript has no field
+	// shadowing, and the compiler treats a subclass field with a base
+	// field's name as a hard error.
 
 	// -----------------------------------------------------------------
 	// Advance the trailing value. Damage restarts a short hold, then it
@@ -539,20 +659,30 @@ class RS_HPBar : RS_HPBarBase
 			// they disagree badly on tall or crouched monsters, and the
 			// actor height is what made upstream's early versions park
 			// bars in the middle of things.
+			// Owner sprite height, recomputed only when the owner's
+			// sprite or frame actually changes. The +1 keeps a genuine
+			// key of zero from reading as "not cached yet".
+			//
 			// CurState can be null on an actor mid-teardown or one whose
 			// state machine has run off the end. Upstream dereferenced it
 			// unguarded; its own 1.04 changelog lists "crashing issue
 			// with some sprites", which is very likely this. Falling back
 			// to actor Height only misplaces the bar for a tic.
-			int spriteTexHeight = int(ownerRef.Height);
-			if (ownerRef.CurState)
+			int sprKey = ownerRef.Sprite * 256 + ownerRef.Frame + 1;
+			if (sprKey != rsSprHKey)
 			{
-				TextureID spriteTexture; bool spriteFlip; Vector2 spriteScale;
-				[spriteTexture, spriteFlip, spriteScale] =
-					ownerRef.CurState.GetSpriteTexture(ownerRef.SpriteRotation);
-				if (spriteTexture)
-					spriteTexHeight = TexMan.CheckRealHeight(spriteTexture);
+				rsSprHKey = sprKey;
+				rsSprH = int(ownerRef.Height);
+				if (ownerRef.CurState)
+				{
+					TextureID spriteTexture; bool spriteFlip; Vector2 spriteScale;
+					[spriteTexture, spriteFlip, spriteScale] =
+						ownerRef.CurState.GetSpriteTexture(ownerRef.SpriteRotation);
+					if (spriteTexture)
+						rsSprH = TexMan.CheckRealHeight(spriteTexture);
+				}
 			}
+			int spriteTexHeight = rsSprH;
 
 			double customOffset = 1.0 + (cvOffset ? cvOffset.GetFloat() : 0.1);
 			int zpos = int(ownerRef.Pos.Z + ((spriteTexHeight * ownerRef.Scale.Y) * customOffset));
@@ -698,7 +828,11 @@ class RS_HPBar : RS_HPBarBase
 		// Clean-up: the token going away is the owner's way of saying
 		// "I am dead / gone", and a null owner means it was removed
 		// outright. The chip goes with the bar in both cases.
-		if (!ownerRef || ownerRef.CountInv("RS_HPBarToken") <= 0)
+		// Teardown. A null token means the owner died (the handler takes
+		// it) or was removed outright; a null owner means the same. Both
+		// are pointer tests -- see rsToken's comment for what this used
+		// to cost.
+		if (!ownerRef || !rsToken)
 		{
 			RS_DestroyAttachments();
 			Destroy();
@@ -727,7 +861,21 @@ class RS_HPBar : RS_HPBarBase
 // Owner-side marker. Holds the pointer to the bar and is what the bar
 // watches to know it should go away.
 // ---------------------------------------------------------------------
-class RS_HPBarToken : CustomInventory
+// It does not stack: Inventory.MaxAmount 1, and the handler checks for
+// one before giving. One per monster, ever.
+//
+// IT ALSO DOES NOT THINK. Upstream made this a CustomInventory and put
+// the bar-spawning poll in its Tick, which meant an inventory item
+// running logic every tic on every monster in the level whether or not
+// it had a bar. The handler drives spawning from events now, so this is
+// a plain Inventory with no Tick, no states, and no behaviour -- a
+// marker and a pointer, nothing else.
+//
+// Plain Inventory rather than CustomInventory on purpose: the Use and
+// Pickup states existed only to satisfy CustomInventory and were never
+// reached. AUTOACTIVATE is gone with them -- nothing should ever try to
+// activate this.
+class RS_HPBarToken : Inventory
 {
 	Actor sr;
 
@@ -736,32 +884,6 @@ class RS_HPBarToken : CustomInventory
 		Inventory.MaxAmount 1;
 		+INVENTORY.UNDROPPABLE
 		+INVENTORY.UNTOSSABLE
-		+INVENTORY.AUTOACTIVATE
-	}
-
-	override void Tick()
-	{
-		// Owner is normally non-null for a held item, but a token that
-		// has been detached would crash the spawn below. Upstream did
-		// not guard this.
-		if (!sr && Owner)
-		{
-			Actor sh = Spawn("RS_HPBar", Owner.Pos, NO_REPLACE);
-			sr = sh;
-			RS_HPBar(sh).ownerRef = Owner;
-		}
-
-		Super.Tick();
-	}
-
-	States
-	{
-	Use:
-		TNT1 A 0;
-		Fail;
-	Pickup:
-		TNT1 A 0 { return true; }
-		Stop;
 	}
 }
 
@@ -787,9 +909,35 @@ class RS_HealthBarHandler : EventHandler
 	// fractions are literals at their call sites inside the monsters, and
 	// health bars have no business editing monster files to expose them.
 	//
-	// Lives for the session, not the level -- what you learned about
-	// Barons on MAP01 is still true on MAP02.
+	// Scope is the LEVEL, not the session: this is an EventHandler, which
+	// MAPINFO's AddEventHandlers recreates on every map, so what you
+	// learned about Barons on MAP01 is forgotten on MAP02. Making it
+	// persist means a StaticEventHandler and a different registration.
+	// Left as-is while the marks feature is parked.
 	private Array<RS_HPLearnedGate> rsGates;
+
+	// -----------------------------------------------------------------
+	// RESOLVED SPRITE INDICES, built once and shared by every bar.
+	//
+	// This is a performance table, not a convenience. Resolving a frame
+	// used to be two String.Format calls and a GetSpriteIndex name lookup
+	// PER BAR PER TIC -- string allocation and a name-table search 35
+	// times a second for every monster on the map. Now it is one integer
+	// index into these.
+	//
+	// Public because the bars fill them: GetSpriteIndex is an Actor
+	// method and this handler is not an Actor, so the first bar to run
+	// populates the table on everyone's behalf. Read them, don't rebuild
+	// them.
+	//
+	// Layout -- rsSprBar is style*22 + slot, where slot is:
+	//   0..19  the 5% buckets, slot = pct/5
+	//   20     full
+	//   21     invulnerable
+	Array<int> rsSprBar;
+	Array<int> rsSprMark;   // 20 entries, slot = pct/5
+	int  rsSprFrame;
+	bool rsSprBuilt;
 
 	void RS_LearnGate(Name cls, int slot, double frac)
 	{
@@ -836,23 +984,84 @@ class RS_HealthBarHandler : EventHandler
 		return a && a.bIsMonster && !a.bNoInteraction && !a.bNoTeleStomp;
 	}
 
+	// -----------------------------------------------------------------
+	// SPAWNING IS EVENT-DRIVEN, NOT POLLED.
+	//
+	// The bar used to be created from the token's Tick, which meant every
+	// monster in the level ran a check every tic forever, most of them to
+	// conclude "still no bar needed". WorldThingDamaged already fires at
+	// exactly the moment the answer changes, so nothing has to watch for
+	// it.
+	//
+	// Consequence worth knowing: toggling Only When Damaged from on to
+	// off mid-level does not retroactively give bars to monsters already
+	// standing around untouched. They get one the moment they are hit, or
+	// on the next level.
+	// -----------------------------------------------------------------
+	private CVar cvOnlyDamaged;
+
+	bool RS_OnlyDamaged()
+	{
+		if (!cvOnlyDamaged)
+			cvOnlyDamaged = CVar.FindCVar("rs_hpbar_onlydamaged");
+		return cvOnlyDamaged && cvOnlyDamaged.GetInt();
+	}
+
+	// Give the token if missing, then build the bar if it has none.
+	// Caller decides eligibility -- players are not bIsMonster.
+	void RS_SpawnBarFor(Actor a)
+	{
+		if (!a)
+			return;
+
+		let tok = RS_HPBarToken(a.FindInventory("RS_HPBarToken"));
+		if (!tok)
+		{
+			a.GiveInventory("RS_HPBarToken", 1);
+			tok = RS_HPBarToken(a.FindInventory("RS_HPBarToken"));
+		}
+
+		if (!tok || tok.sr)
+			return;
+
+		let sh = RS_HPBar(Actor.Spawn("RS_HPBar", a.Pos, NO_REPLACE));
+		if (!sh)
+			return;
+
+		sh.ownerRef = a;
+		sh.SetToken(tok);
+		tok.sr = sh;
+	}
+
 	override void WorldThingSpawned(WorldEvent e)
 	{
-		if (RS_WantsBar(e.Thing) && !e.Thing.CountInv("RS_HPBarToken"))
-			e.Thing.GiveInventory("RS_HPBarToken", 1);
+		// In Only When Damaged mode nothing happens here at all -- an
+		// untouched monster costs us nothing, which is the whole point.
+		if (!RS_OnlyDamaged() && RS_WantsBar(e.Thing))
+			RS_SpawnBarFor(e.Thing);
+	}
+
+	override void WorldThingDamaged(WorldEvent e)
+	{
+		if (!RS_OnlyDamaged() || !e.Thing)
+			return;
+
+		if (RS_WantsBar(e.Thing) || e.Thing is "PlayerPawn")
+			RS_SpawnBarFor(e.Thing);
 	}
 
 	override void WorldThingDied(WorldEvent e)
 	{
+		// Taking the token is what tells the bar to tear itself down --
+		// it holds a pointer to this and ZScript nulls it on destroy.
 		if (RS_WantsBar(e.Thing))
-			while (e.Thing.CountInv("RS_HPBarToken"))
-				e.Thing.TakeInventory("RS_HPBarToken", 1);
+			e.Thing.TakeInventory("RS_HPBarToken", 0x7FFFFFFF);
 	}
 
 	override void WorldThingRevived(WorldEvent e)
 	{
-		if (RS_WantsBar(e.Thing) && !e.Thing.CountInv("RS_HPBarToken"))
-			e.Thing.GiveInventory("RS_HPBarToken", 1);
+		if (!RS_OnlyDamaged() && RS_WantsBar(e.Thing))
+			RS_SpawnBarFor(e.Thing);
 	}
 
 	// Players are handled separately -- they are not bIsMonster and
@@ -860,7 +1069,7 @@ class RS_HealthBarHandler : EventHandler
 
 	void RS_GivePlayerBar(PlayerPawn p)
 	{
-		if (p) p.GiveInventory("RS_HPBarToken", 1);
+		if (p && !RS_OnlyDamaged()) RS_SpawnBarFor(p);
 	}
 
 	void RS_TakePlayerBar(PlayerPawn p)

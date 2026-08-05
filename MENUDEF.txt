@@ -712,6 +712,9 @@ OptionMenu "RS_HPBarOptions"
 	StaticText " "
 
 	Option "Show Health Bars", "rs_hpbar_enable", "OnOff"
+	StaticText "Off is also the cheapest setting -- untouched", "DarkGray"
+	StaticText "monsters cost nothing at all.", "DarkGray"
+	Option "Only Once Damaged", "rs_hpbar_onlydamaged", "OnOff"
 	StaticText " "
 
 	Option "Style", "rs_hpbar_style", "RS_HPBarStyles"

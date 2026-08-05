@@ -464,3 +464,17 @@ user int  rs_hpbar_bossframe = 0;
 // The Auto cutoff. 1000 splits our ladder cleanly -- T10 is 115, T11 is
 // 2000 -- so it catches the genuine long fights and nothing else.
 user int  rs_hpbar_boss_hp   = 1000;
+
+// --- Only when damaged ---
+// Bars appear the first time a monster is hit, not from the moment it
+// spawns. ON by default: this is an owner decision, not upstream's --
+// upstream shows a bar on everything from the start.
+//
+// Measured against the REAL ceiling. The hand-edit this replaces used
+// SpawnHealth() and so had the main bug all over again: an overhealed
+// monster never counted as damaged until chewed below its class default.
+//
+// It is also the single biggest performance lever here. In a large map
+// most monsters are never touched, and every one of those now costs zero
+// actors, zero thinking and zero draw calls.
+user bool rs_hpbar_onlydamaged = true;
