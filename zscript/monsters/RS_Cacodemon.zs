@@ -34,19 +34,35 @@
 // Tier stats come from CHP's own Health/Speed/PainChance per file and
 // are applied through TierData below, replacing the generic ladder.
 //
-// TEX SOURCE: CHP 09_KX.txt, ACTOR GreenBlackCacoEX2 (line 191) -- the
-// actor named in the port brief. NOTED FOR THE RECORD: the FIRST actor
-// in 09_KX.txt is CommonBlackCacoEX2 and its state machine is identical;
-// the green differs only in numbers (12500/26/13 against 10000/21/16,
-// health gate 7500 against 6000, phase-two speed 53 against 42, railgun
-// 25-100 against 20-80, bullet attack random(1,6) against random(1,5)).
+// TEX SOURCE: CHP 09_KX.txt, ACTOR CommonBlackCacoEX2 -- THE FIRST
+// ACTOR, at line 1.
+//
+// THIS USED TO SAY GreenBlackCacoEX2 (line 191), AND IT WAS WRONG.
+// 09_KX.txt holds fifteen actors: the first is the one we port, the
+// other fourteen are the spawn-colour axis (rs_23: RECORDED, NOT
+// BUILT). The port brief named the green variant and the port followed
+// it honestly -- the brief was the defect. Found 2026-08-05 by the
+// audit that caught the same thing in family 02's TEX.
+//
+// The state machines are identical; only numbers differed, and all of
+// them were the green's:
+//     stat row       12500 / 26 / 13   ->  10000 / 21 / 16
+//     phase-2 gate   7500              ->  6000
+//     phase-2 speed  A_SetSpeed(53)    ->  A_SetSpeed(42)
+//     railgun        random(25,100)    ->  random(20,80)
+//     bullet         random(1,6)       ->  random(1,5)
+//
+// Unlike family 02, the green Translation never leaked in -- TintTable
+// was already all "-", so there was nothing to undo on the palette side.
+//
 // CHP's _G projectile suffix is dropped -- RS carries one projectile per
 // family and the tier dial does the colouring, so _G and _C resolve to
 // the same RS class.
 //
-// TEX CHP properties with no TierData channel: FloatSpeed 6 (Default is
-// 4) and Scale 1.15. Recorded here rather than silently dropped -- the
-// row carries Health / Speed / PainChance / damage only.
+// TEX CHP properties with no TierData channel: FloatSpeed 5 (the Common
+// actor's; the green is 6) and Scale 1.15. Recorded here rather than
+// silently dropped -- the row carries Health / Speed / PainChance and
+// damage only.
 // =====================================================================
 
 class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
@@ -97,8 +113,16 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 			case 10: hp = 999;  spd = 14; r.painChance = 64;  r.dmgMul = 1.8; break;
 			case 11: hp = 5000; spd = 16; r.painChance = 32;  r.dmgMul = 2.5; break;
 			case 12: hp = 5000; spd = 28; r.painChance = 128; r.dmgMul = 3.0; break;
-			// TEX -- CHP 09_KX GreenBlackCacoEX2's own numbers.
-			case 13: hp = 12500; spd = 26; r.painChance = 13; r.dmgMul = 4.0; break;
+			// TEX -- CHP 09_KX CommonBlackCacoEX2's own numbers.
+			case 13:
+				// WAS CommonBlackCacoEX2 (09_KX.txt:191) -- THE SECOND ACTOR.
+				// The port brief named the green variant and the port followed
+				// it honestly; the brief was wrong. The first actor,
+				// CommonBlackCacoEX2 (09_KX.txt:1), is the one we ship.
+				//   Common  10000 / 21 / 16   09_KX.txt:3,4,6
+				//   Green   12500 / 26 / 13   09_KX.txt:193,194,196
+				// Same defect as Shotgunner TEX, found by the same audit.
+				hp = 10000; spd = 21; r.painChance = 16; r.dmgMul = 4.0; break;
 			default: return false;
 		}
 		// Default Health is 400, Default Speed 8 -- express CHP's absolute
@@ -142,7 +166,7 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 		Loop;
 	Missile.T00:
 		"HEAD" BC 5 { A_FaceTarget(); }
-		"HEAD" D 5 Bright { A_CustomComboAttack("RS_CacodemonBall", 32, 10 * random(1, 6), "caco/attack"); }
+		"HEAD" D 5 Bright { A_CustomComboAttack("RS_CacodemonBall", 32, 10 * random(1, 5), "caco/attack"); }
 		Goto See;
 	Pain.T00:
 		"HEAD" E 3;
@@ -691,7 +715,7 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 	Melee.TEX:
 	Missile.TEX:
 		TNT1 AAA 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
-		"HELE" A 0 A_JumpIfHealthLower(7500, "Missile.TEX.Phase2");
+		"HELE" A 0 A_JumpIfHealthLower(6000, "Missile.TEX.Phase2");
 		"HELE" A 0 A_Jump(256, "Missile.TEX.Electro1", "Missile.TEX.Electro5", "Missile.TEX.Electro3");
 		Goto See;
 	// The widened roster, live only after phase two.
@@ -718,7 +742,7 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 		"HELE" C 4 { rsExPhase2++; }
 		"HELE" B 4 { bNOPAIN = false; }
 		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
-		"HELE" A 8 { A_SetSpeed(53); }
+		"HELE" A 8 { A_SetSpeed(42); }
 		Goto See;
 	Missile.TEX.Electro1:
 		"HELE" EF 5 Bright { A_FaceTarget(); }
@@ -738,7 +762,7 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 		"HELE" G 0 { A_SpawnProjectile("RS_HadesBall", 24, 0, 14, 32, 4); }
 		"HELE" G 5 Bright { A_SpawnProjectile("RS_HadesBall", 24, 0, 14, 0, 0); }
 		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
-		TNT1 A 0 A_JumpIfHealthLower(7500, "Missile.TEX.BonusDucks");
+		TNT1 A 0 A_JumpIfHealthLower(6000, "Missile.TEX.BonusDucks");
 		Goto See.TEX.Loop;
 	Missile.TEX.Electro2:
 		"HELE" E 0 { A_SpawnProjectile("RS_HadeLoad1", 32, 0, 0, 0, 0); }
@@ -751,7 +775,7 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 		"HELE" G 0 { A_SpawnProjectile("RS_HadesBolt", 32, 0, -16, 0, 0); }
 		"HELE" G 0 { A_SpawnProjectile("RS_HadesBolt", 32, 0, 0, 0, 0); }
 		"HELE" G 5 Bright { A_SpawnProjectile("RS_HadesBolt", 32, 0, 16, 0, 0); }
-		TNT1 A 0 A_JumpIfHealthLower(7500, "Missile.TEX.BonusDucks");
+		TNT1 A 0 A_JumpIfHealthLower(6000, "Missile.TEX.BonusDucks");
 		Goto See.TEX.Loop;
 	Missile.TEX.Electro3:
 		"HELE" BC 8 Bright { A_FaceTarget(); }
@@ -767,11 +791,11 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 		// The eye beam is the tell; the railgun rides it a tic later.
 		// CHP passes "none" for both rail colours -- Color(0,0,0) is what
 		// that actually parses to, and RGF_SILENT hides the report anyway.
-		TNT1 A 0 { A_CustomRailgun(random(25, 100), -20, Color(0, 0, 0), Color(0, 0, 0), RGF_NOPIERCING|RGF_SILENT, 1, 0, "RS_BlackCacoBeam1", 0, 0, 0, 0, 0.4, 1.0, "RS_BlackCacoBeam2", 1); }
+		TNT1 A 0 { A_CustomRailgun(random(20, 80), -20, Color(0, 0, 0), Color(0, 0, 0), RGF_NOPIERCING|RGF_SILENT, 1, 0, "RS_BlackCacoBeam1", 0, 0, 0, 0, 0.4, 1.0, "RS_BlackCacoBeam2", 1); }
 		"HELE" A 0 { A_SpawnItemEx("RS_BlackCacoEXShade", 0, 0, random(22, 44), random(-1, 1), 0, random(-1, 1), random(160, 200), SXF_NOCHECKPOSITION); }
-		"HELE" G 8 Bright { A_CustomBulletAttack(0, 0, 1, random(1, 6), "RS_HadeAra"); }
+		"HELE" G 8 Bright { A_CustomBulletAttack(0, 0, 1, random(1, 5), "RS_HadeAra"); }
 		"HELE" CB 5;
-		TNT1 A 0 A_JumpIfHealthLower(7500, "Missile.TEX.BonusDucks");
+		TNT1 A 0 A_JumpIfHealthLower(6000, "Missile.TEX.BonusDucks");
 		Goto See.TEX.Loop;
 	Missile.TEX.Electro4:
 		"HELE" EF 8 Bright { A_FaceTarget(); }
@@ -791,7 +815,7 @@ class RS_Cacodemon : RS_MonsterMaster replaces Cacodemon
 		"HELE" G 3 Bright { A_SpawnProjectile("RS_HadesBallEX3", 18, 0, 25, 0, 0); }
 		"HELE" G 3 Bright { A_SpawnProjectile("RS_HadesBallEX3", 18, 0, -25, 0, 0); }
 		"HELE" CB 5;
-		TNT1 A 0 A_JumpIfHealthLower(7500, "Missile.TEX.BonusDucks");
+		TNT1 A 0 A_JumpIfHealthLower(6000, "Missile.TEX.BonusDucks");
 		Goto See.TEX.Loop;
 	// The tax on letting it get low: a one-in-four chance that ANY
 	// pattern is followed by the EX2 punish ball.
