@@ -85,6 +85,19 @@ list. Don't re-derive project state from scratch — it's already written down.
   OK on files it never read; the sweep script written to fix the damage bug then
   made the identical mistake and missed 21 sites. Also strip `//` lines before a
   bulk rewrite, or it edits prose.
+- **"The lint says that sprite doesn't exist" is not evidence that it doesn't.**
+  `art_index.json` is a catalogue of what exists in `E:\New folder\ART SOURCE`
+  and could be *copied in* — not a list of what the mod ships, and not the IWAD.
+  The old index scanned only `CH/` and `CHP/`, so it could not see the top-level
+  weapon pack, and `verify.py`'s vanilla table listed no *pickup* lumps. Between
+  them, three separate lanes concluded `SHOT`, `GRND` and `HMIS` were missing
+  and started replacing them with `MISL`. All three were real: `SHOT` is the
+  IWAD shotgun pickup, `GRND` is a 10-frame grenade, `HMIS` is the Cyberdemon
+  homing missile. Rebuild with `build_art_index.py` before believing a
+  not-found. And never add a token to the vanilla table to silence a failure —
+  a fabricated `'GRND':'A'` hid a broken reference there for a whole session.
+  Conversely a token that resolves *only* through art_index is a file that was
+  never copied in: it passes the lint and still fails at load.
 
 ## Parallel lanes
 

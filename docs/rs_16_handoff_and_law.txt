@@ -2,6 +2,45 @@
    RS_16 -- HANDOFF + LAW.  2026-08-03. Supersedes rs_11. READ FIRST.
 ================================================================================
 
+*** STATE AS OF 2026-08-04 END OF DAY -- READ THIS BEFORE THE SECTIONS BELOW ***
+
+  Four lanes ran and ALL FOUR ARE LANDED. origin/main is the single source of
+  truth; nothing lives only in a worktree. The sections further down were
+  written mid-flight and several are now STALE. Specifically:
+
+    "THE GATE -- 69 ERRORS"     DONE. All swept to DamageFunction. The gate
+                                now is that DamageFunction itself has never
+                                been compiled (~71 sites, all stand or fall
+                                together).
+    "LANES (as of 2026-08-04)"  ALL MERGED. The shotgunner-FX branch, the
+                                dedupe branch and the monster rebuild are in
+                                main. Ignore the merge-readiness notes.
+    "13 of 37 files"            Now 11 of 37. Live list is in the sprite/lint
+                                appendix at the bottom of this file.
+    "~60 RS_ classes GONE"      Resolved by the monster lane's commit.
+
+  WHAT IS ACTUALLY OPEN is the numbered list in the sprite/lint appendix at
+  the BOTTOM of this file. Read that, not the mid-flight notes above it.
+
+  NOTHING IN THIS TREE HAS SUCCESSFULLY COMPILED. Three things entered the
+  compile path today and each reverts independently:
+      * DamageFunction, ~71 sites          (all stand or fall together)
+      * RS_Score.zs                        (parses clean per the 6f032dca log;
+                                            full compile unconfirmed)
+      * RS_ScoreHUD.zs + RS_ScoreRevival.zs (never in ANY compile path --
+                                            drop their 2 include lines to
+                                            revert)
+  A fresh compile log from the owner is the single most valuable input the
+  next session can get.
+
+  STILL NEEDS AN OWNER DECISION, not just work:
+      * The explosion pass on 14 remaining files -- ~164 convert, ~55 must
+        NOT (the repeating/bouncing frame patterns). Rule is written up in
+        the appendix.
+      * RS_DIBigOne (SPIR ABCDEDCBA, 9 frames, radius 178) -- flagged for an
+        explicit yes/no either way.
+================================================================================
+
 WORKING WITH THE OWNER
   Verify before you claim -- open the file. Wrong recollection has cost
   whole sessions here. Short answers, no invented jargon. Never scan a
