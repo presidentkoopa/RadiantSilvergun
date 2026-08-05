@@ -48,6 +48,39 @@
 // 12, DamageFunction (random(10,30)) -- so the swap would put ninety
 // damaging floor-crawlers under a monster that should only be sparkling.
 
+// ---------------------------------------------------------------------
+// RS_AbyssMark -- the T06 Abyss Zombie's INFECTION AURA. CHP 01_A.txt:18.
+//
+//     Fling:
+//         ABTR A 0 A_Radiusgive("CHAbyssMark", 528,
+//                  RGF_MONSTERS|RGF_NOSIGHT|RGF_EXFILTER, 1,
+//                  "CommonAbyssZombie", "Zombie")
+//
+// The state sits between Spawn and Idle, so it runs unconditionally the
+// moment the monster exists. It marks every ZOMBIE-species monster within
+// 528 units, through walls, excluding other Abyss Zombies -- and a marked
+// zombie that dies comes back as an Abyss Zombie.
+//
+// THIS IS THE ABYSS TIER'S IDENTITY, not a colour-promotion detail. Our
+// port swept it away with the rest of CHP's "colour-promotion chain" on
+// the grounds that RS owns tiering. That reason is sound for the CHP
+// ACTOR-swap and wrong for the aura: owning tiering is a reason not to
+// spawn AbyssZombie2, not a reason to have no infection at all.
+//
+// The Undertaker seeds skeletons; the Abyss Zombie seeds MORE OF ITSELF.
+// Same shape, so it hooks the same place -- RS_MonsterMaster.Die().
+// ---------------------------------------------------------------------
+class RS_AbyssMark : Inventory
+{
+	Default
+	{
+		Inventory.MaxAmount 1;
+		+INVENTORY.UNDROPPABLE
+		+INVENTORY.QUIET
+		-INVENTORY.INVBAR
+	}
+}
+
 // The mark. CH's CHWhitePlan is a bare Inventory token and so is this;
 // all the behaviour is in who holds it and what reads it.
 class RS_UndertakerPlan : Inventory

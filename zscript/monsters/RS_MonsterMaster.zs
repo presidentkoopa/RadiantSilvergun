@@ -1331,6 +1331,46 @@ class RS_MonsterMaster : Actor abstract
 	// keeps hatching. That is the mechanic, not an oversight -- the boss
 	// is seeding the whole map, and it is why ignoring the skeletons is
 	// as bad as killing them.
+	// The Abyss Zombie's half of the same idea -- CHP 01_A.txt:18. A
+	// marked zombie does not drop a skeleton, it comes BACK as an Abyss
+	// Zombie. Ours retiers in place rather than spawning a replacement,
+	// for the same reasons Pain.AbyssPE does.
+	//
+	// Runs before the Undertaker's hatch and returns true to claim the
+	// corpse: a monster carrying both marks converts rather than
+	// hatching, because a body that stands back up has no corpse left to
+	// seed a skeleton from.
+	private bool RS_HatchAbyss()
+	{
+		if (!CountInv("RS_AbyssMark"))
+			return false;
+
+		TakeInventory("RS_AbyssMark", 1);
+
+		// CH's filter is species "Zombie" excluding CommonAbyssZombie.
+		// Ours is one class with a tier, so the equivalent test is "is a
+		// Zombieman below the Abyss tier".
+		if (!(self is "RS_Zombieman") || Tier >= 6)
+			return false;
+
+		// SPAWN A FRESH ONE rather than retiering this corpse. Die() is
+		// already committed -- Super.Die() runs after us and would kill
+		// anything we revived here. Pain.AbyssPE can retier in place
+		// because it fires on a LIVING monster; this cannot. CH spawns
+		// too (AbyssGrow), so this is the faithful shape as well as the
+		// only workable one.
+		class<Actor> cls = GetClass();
+		let a = Actor.Spawn(cls, pos + (0, 0, 1), ALLOW_REPLACE);
+		let m = RS_MonsterMaster(a);
+		if (m)
+		{
+			m.SetTier(6, true);
+			if (target)
+				m.target = target;
+		}
+		return true;
+	}
+
 	private void RS_HatchPlan()
 	{
 		if (!CountInv("RS_UndertakerPlan"))
@@ -1347,7 +1387,13 @@ class RS_MonsterMaster : Actor abstract
 
 	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath)
 	{
-		RS_HatchPlan();
+		// Abyss first: a body that stands back up as an Abyss Zombie has
+		// no corpse left to seed a skeleton from, so the conversion
+		// claims the death and the Undertaker's hatch is skipped. CH
+		// reaches the same outcome structurally -- a Death state can only
+		// jump to ONE branch.
+		if (!RS_HatchAbyss())
+			RS_HatchPlan();
 
 		if (MinionsDieWithMe())
 			ReleaseMinions(true);

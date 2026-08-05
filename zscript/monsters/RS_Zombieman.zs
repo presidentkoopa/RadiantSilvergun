@@ -599,8 +599,12 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		"CYNT" G 2 { A_SetScale(0.8, 1.2); }
 		"CYNT" G 1 { A_SetScale(1.2, 0.8); }
 		"CYNT" G 1 { A_SetScale(0.8, 1.2); }
-		MISL X 0 { A_StartSound("misc/icebreak", CHAN_BODY); }
-		MISL X 0 { A_Burst("IceChunk"); }
+		// MISL A, not MISL X -- CHP 01_CY.txt:55-56. Zero-tic so nothing
+		// renders either way, but X is a real frame on this token and the
+		// wrong one. NOTE the T09 rock site further down DOES use MISL X
+		// and is correct (CHP 01_GY.txt:65) -- do not blanket-replace.
+		MISL A 0 { A_StartSound("misc/icebreak", CHAN_BODY); }
+		MISL A 0 { A_Burst("IceChunk"); }
 		Stop;
 
 	// ================= T04 PURPLE (01_P) =================
@@ -726,6 +730,28 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 	// Leaks abyss splash as it walks, twin bolts at range, and being hurt
 	// detonates a wide splash field around it.
 	Spawn.T06:
+		// FLING -- CHP 01_A.txt:18-19. CH puts this in its own state
+		// between Spawn and Idle, which means it runs unconditionally the
+		// instant the monster exists; NoDelay on the spawn tic is the
+		// same thing without a state that exists only to fall through.
+		//
+		// An INFECTION AURA: every zombie within 528 units, through walls,
+		// gets marked, and a marked zombie that dies comes back as an
+		// Abyss Zombie.
+		//
+		// NO FILTER, DELIBERATELY, AND THIS IS THE INTERESTING PART.
+		// CH gives to species "Zombie" with EXFILTER "CommonAbyssZombie"
+		// -- mark the zombies, skip the ones already Abyss. It can do
+		// that because every CH tier is a separate CLASS. Ours are one
+		// class with a tier field, so the same filter would read
+		// EXFILTER "RS_Zombieman" and exclude EVERY zombie, i.e. exactly
+		// the monsters the aura exists to infect. A_RadiusGive cannot
+		// express "same class, different tier".
+		// So the mark goes out unfiltered and the tier test lives on the
+		// receiving end: RS_MonsterMaster.RS_HatchAbyss() converts only a
+		// Zombieman below tier 6. A non-zombie that catches the token
+		// simply carries an inert item and nothing happens.
+		TNT1 A 0 NoDelay { A_RadiusGive("RS_AbyssMark", 528, RGF_MONSTERS|RGF_NOSIGHT, 1); }
 		"ABTR" AB 10 { A_Look(); }
 		Loop;
 	See.T06:

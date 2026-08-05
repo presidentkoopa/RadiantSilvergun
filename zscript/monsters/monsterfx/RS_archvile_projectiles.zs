@@ -111,9 +111,24 @@ class RS_WVileBolt2 : RS_WVileBolt1 { Default { Speed 28; Damage 40; } }
 // ---------- FIREBLU: fire-soldier flame (FIRE) ----------
 class RS_FireSGguy2 : Actor
 {
-	Default { Radius 4; Height 4; Speed 17; Damage 10; DamageType "Fire"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; SeeSound "imp/attack"; DeathSound "imp/shotx";
+	// RESTORED 1:1 TO CHP 14_F.txt:1987-2004. This is the T07 kamikaze
+	// zombie's fire trail and OURS DID NOTHING ON CONTACT -- three
+	// separate defects, each individually plausible:
+	//   1. Damage 10 was a flattened random(5,15).
+	//   2. Death had NO A_Explode at all. CHP is
+	//      `FIRE CDEEDCDE 5 Bright A_Explode(random(3,9),32)` -- eight
+	//      frames, so EIGHT radius-32 blasts, then FIRE FGH 4 to burn
+	//      out. Ours was a three-frame animation and nothing else, so
+	//      the whole point of a suicide-hug trail was missing.
+	//   3. Spawn looped forever. CHP is `FIRE AB 6 Bright / Goto Death`
+	//      -- it burns out after 12 tics. Ours persisted indefinitely,
+	//      which quietly turned a trail into permanent scenery.
+	// The eight-frame explode is CH's deliberate lingering-fire idiom and
+	// belongs in the do-not-convert set (see this file's header).
+	Default { Radius 4; Height 4; Speed 17; DamageFunction (random(5, 15)); DamageType "Fire"; Projectile; +RANDOMIZE; RenderStyle "Add"; Alpha 0.9; SeeSound "imp/attack"; DeathSound "imp/shotx";
 		Translation "161:161=200:200","163:163=204:204","165:165=204:204","167:167=207:207"; }
-	States { Spawn: FIRE AB 3 Bright; Loop; Death: FIRE CDE 3 Bright; Stop; }
+	States { Spawn: FIRE AB 6 Bright; Goto Death;
+		Death: FIRE CDEEDCDE 5 Bright A_Explode(random(3, 9), 32); FIRE FGH 4 Bright; Stop; }
 }
 
 
