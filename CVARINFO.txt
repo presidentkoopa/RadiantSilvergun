@@ -250,8 +250,8 @@ user bool rs_allclear_enable = true;
 
 // =====================================================================
 // RS_Score -- arcade scoring (zscript/systems/RS_Score.zs, RS_ScoreHUD.zs,
-// RS_ScoreRevival.zs). Conceptually ported from dakka's ACS score
-// system; see the header comment in RS_Score.zs for what changed and why.
+// RS_ScoreRevival.zs). See the header comment in RS_Score.zs for the
+// shape of the system and what each knob actually moves.
 //
 // SCORE IS ITS OWN CURRENCY. It does not feed, convert into, or draw
 // from Gold Bits or any other economy -- it pays out in consumables
@@ -271,15 +271,23 @@ server noarchive bool rs_score_debug = false;
 // one bar means the same amount of work on MAP01 and on a slaughtermap.
 // Monster count is clamped to min/max, multiplied by the scalar, and
 // scaled by the average points per monster.
-server int rs_score_monstermin = 30;
-server int rs_score_monstermax = 400;
-server float rs_score_monsterscalar = 0.30;
+//
+// An earlier pass used 30/400/0.30/100, which pays a reward roughly 4.7x
+// as often. Rewards are EXTRA LIVES; they are meant to be rare.
+//
+// Safe to adopt despite our tier-weighted base points: average points per
+// monster appears in the numerator AND scales every kill equally, so the
+// formula is invariant to how large the point values get. Only the
+// monster-count clamp and the scalar actually move the pacing.
+server int rs_score_monstermin = 140;
+server int rs_score_monstermax = 800;
+server float rs_score_monsterscalar = 0.50;
 // Threshold is rounded to this, purely so the HUD number stays legible.
-server int rs_score_interval = 100;
+server int rs_score_interval = 5000;
 
 // How much a monster's TIER inflates its point value above raw health.
 // 0.12 -> a T13 (EX) monster is worth ~2.5x its hit points, a T03 ~1.36x.
-// Set to 0 to score purely on health, which is what dakka did.
+// Set to 0 to score purely on health.
 server float rs_score_tierweight = 0.12;
 
 // What survives a map change.
@@ -322,7 +330,16 @@ server bool rs_score_b_spree = true;
 server bool rs_score_b_untouchable = true;
 server bool rs_score_b_infighter = true;
 server bool rs_score_b_switcharoo = true;
-server bool rs_score_b_scrapping = true;
+// OFF by owner's decision, 2026-08-04. Scrapping is the one ported bonus
+// whose original trigger was a specific slot-1 junk gun that does not
+// exist in this project. It had been re-aimed at "any weapon at
+// VRT_Basic or below", which is a different mechanic keeping the old
+// name -- the exact thing this pass spent its time undoing elsewhere.
+//
+// The id slot stays so the bonus ids remain stable. If the
+// "you did it with bad equipment" idea is ever wanted back, it should
+// come back as a NEW bonus under its own name, not as this one.
+server bool rs_score_b_scrapping = false;
 server bool rs_score_b_telefrag = true;
 server bool rs_score_b_curveball = true;
 server bool rs_score_b_darwin = true;
@@ -334,7 +351,8 @@ server bool rs_score_b_brawler = true;
 server bool rs_score_b_giantslayer = true;
 
 // --- Bonus magnitudes (fractions of the kill's base points) ---------
-// Defaults are dakka's own numbers where a bonus was ported directly.
+// Tuned as a set -- these are ratios against the kill's base points, so
+// raising one in isolation quietly demotes every other bonus.
 server float rs_score_m_spree = 0.025;        // per kill in the streak
 server float rs_score_m_spree_max = 0.25;
 server float rs_score_m_untouchable = 0.5;
@@ -367,11 +385,9 @@ server int rs_score_giantslayer_tier = 8;     // lowest tier that counts
 // --- HUD (user scope -- your screen only) ---------------------------
 user bool rs_score_hud_enable = true;
 user bool rs_score_hud_onautomap = false;
-// dakka's own defaults are 85/10 -- top right. We sit top-CENTRE instead,
-// by request, so the readout lives between the mainhand and offhand Gun
+// Top-CENTRE, so the readout lives between the mainhand and offhand Gun
 // Bonsai XP bars (bonsai_hud_x 0.01 puts one top-left and mirrors the
-// other to top-right at the same height). This is the one deliberate
-// departure from the original layout.
+// other to top-right at the same height).
 user int rs_score_hud_x = 50;                 // percent across the screen
 user int rs_score_hud_y = 5;                  // percent down the screen
 user int rs_score_hud_scale = 100;            // 25-400
@@ -381,15 +397,14 @@ user bool rs_score_hud_showscore = true;
 user bool rs_score_hud_showbar = true;
 user bool rs_score_hud_showlives = true;
 user bool rs_score_hud_showbonuses = true;
-user bool rs_score_hud_showspree = true;
-user bool rs_score_hud_showbase = false;      // show the plain KILL line
+// The streak is otherwise invisible state you infer from the Spree bonus
+// appearing. Off by default: showing it changes how the readout reads.
+user bool rs_score_hud_showspree = false;
+// The base line is the kill itself, labelled "Base". An earlier pass hid
+// it and renamed it KILL; both are reverted.
+user bool rs_score_hud_showbase = true;
 user bool rs_score_hud_barnumbers = false;    // "1240 / 5000" under the bar
 
-// Color presets: 0 gold, 1 white, 2 red, 3 green, 4 blue, 5 magenta,
-// 6 cyan, 7 orange.
-user int rs_score_hud_color = 0;              // the score number
-user int rs_score_hud_barcolor = 4;           // bar filling toward regen
-user int rs_score_hud_lifecolor = 3;          // bar filling toward a life, and pips
-
 // How long a bonus popup stays on screen, in tics (35 = 1 second).
-user int rs_score_bonustime = 105;
+// An earlier pass tripled this to 105 without saying why.
+user int rs_score_bonustime = 35;

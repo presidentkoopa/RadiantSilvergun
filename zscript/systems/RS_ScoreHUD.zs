@@ -1,29 +1,82 @@
 // =====================================================================
-// RS_ScoreHUD -- the arcade readout. Drawing only; every value it shows
-// is computed in RS_Score.zs and simply read here.
+// RS_ScoreHUD -- the arcade score readout. Drawing only; every value it
+// shows is computed in RS_Score.zs and simply read here.
 //
-// Layout is dakka's (score number, reward bar under it, life pips over
-// it, bonus list below), rebuilt with GZDoom's Screen API instead of
-// HudMessage IDs. dakka needed a hand-managed block of message IDs
-// (24199-24205 for the bar, 25501+ for lives, 24409+i*2 for bonuses)
-// because HudMessage has no other way to address a line it already
-// drew; RenderOverlay redraws every frame, so none of that exists here.
+// ASSETS
+//   graphics/score/  RSSCBKT      bar frame, 124x8
+//                    RSSCBG1..4   bar track, 120x6
+//                    RSSCBR1..4   bar fill,  120x6
+//                    RSSCLF1..4   life pip,  8x8, animated
+//   root             RSSCRFN1     the score number font
+//                    RSSCRFN2     the bonus stack font
+//   TEXTCOLO.txt     RSScore_*    the gradient palette
 //
-// Everything positional is a cvar: rs_score_hud_x/y place it anywhere
-// on screen as a percentage, rs_score_hud_scale sizes it, and each
-// element can be switched off on its own.
+//   The 1/2 pairing on the bar art is what the next reward will be --
+//   1 for ammo regen, 2 for an extra life -- and 3/4 are the flash
+//   overlays for each. That is why there are four of each and not two.
+//
+// WHY THERE IS NO Screen.Dim IN THIS FILE
+//   An earlier version drew the reward bar and the life pips as tinted
+//   rectangles, with the flavours mapped onto stock console colours. It
+//   looked like placeholder art because it was placeholder art. Every
+//   element now draws real graphics and real gradients. If a rectangle
+//   ever reappears in here, something has regressed.
+//
+// GEOMETRY
+//   All offsets are relative to (centerX, centerY) in a 640x480 virtual
+//   space, scaled to the real framebuffer by ScaleFactor():
+//
+//     lives     centerY - 12   8x8 pips, 12px pitch, centred on centerX
+//     score     centerY +  7   centred on centerX
+//     bar       centerY + 13   120 wide, centred; frame is 124
+//     bonuses   centerY + 26   line height 13
+//                              amount column at centerX - 55
+//                              name   column at centerX - 12
+//
+//   These are not taste and should not be nudged casually -- they are a
+//   set, and moving one without the others pulls the widget apart. An
+//   earlier pass had every one of them wrong (bar at +26 and 160 wide,
+//   bonuses at +42 with line height 11, pips 7px spaced 11) and the
+//   result did not read as a single object.
+//
+// POSITION
+//   Default is 50%/5% -- top centre, so the readout sits between the
+//   mainhand and offhand Gun Bonsai XP bars (bonsai_hud_x 0.01 puts one
+//   top-left and mirrors the other to top-right at the same height).
+//   Fully cvar-driven; rs_score_hud_x/y move it anywhere.
 // =====================================================================
 
 class RS_ScoreHUD : Object
 {
-	// Virtual canvas. Same 640x480 dakka used, so its position numbers
-	// port directly.
+	// Virtual canvas.
 	const VW = 640;
 	const VH = 480;
 
-	// The bar's drawn width at 100% scale, in virtual pixels.
-	const BARW = 160;
-	const BARH = 9;
+	// Bar geometry. The fill graphic is 120x6; RSSCBKT is 124x8 and
+	// frames it with a 2px margin on every side.
+	const BARW  = 120;
+	const BARH  = 6;
+	const BKTW  = 124;
+	const BKTH  = 8;
+
+	// Life pips are 8x8 drawn on a 12px pitch.
+	const LIFEW     = 8;
+	const LIFEPITCH = 12;
+	const LIVES_MAXDRAW = 10;
+
+	// Vertical offsets from centerY.
+	const OFF_LIVES  = -12;
+	const OFF_SCORE  =   7;
+	const OFF_BAR    =  13;
+	const OFF_BONUS  =  26;
+	const BONUS_LINEH=  13;
+
+	// Horizontal offsets from centerX for the bonus stack.
+	const BONUS_AMTX = -55;
+	const BONUS_NAMEX= -12;
+
+	// Total afterglow length on a scoring kill, in tics.
+	const FLASH_TICS = 7;
 
 	ui int CVInt(string name, int def) const
 	{
@@ -37,74 +90,60 @@ class RS_ScoreHUD : Object
 		return c ? c.GetBool() : def;
 	}
 
-	// Preset palette -- an index rather than a free-text color so the
-	// options menu can offer a normal dropdown.
-	ui Color PresetColor(int idx) const
-	{
-		switch (idx)
-		{
-			case 0:  return 0xFFFFD700; // gold
-			case 1:  return 0xFFFFFFFF; // white
-			case 2:  return 0xFFFF3030; // red
-			case 3:  return 0xFF30FF30; // green
-			case 4:  return 0xFF3090FF; // blue
-			case 5:  return 0xFFFF30FF; // magenta
-			case 6:  return 0xFF30FFFF; // cyan
-			case 7:  return 0xFFFF8000; // orange
-		}
-		return 0xFFFFD700;
-	}
-
-	ui int PresetTextColor(int idx) const
-	{
-		switch (idx)
-		{
-			case 0:  return Font.CR_GOLD;
-			case 1:  return Font.CR_WHITE;
-			case 2:  return Font.CR_RED;
-			case 3:  return Font.CR_GREEN;
-			case 4:  return Font.CR_LIGHTBLUE;
-			case 5:  return Font.CR_PURPLE;
-			case 6:  return Font.CR_CYAN;
-			case 7:  return Font.CR_ORANGE;
-		}
-		return Font.CR_GOLD;
-	}
-
-	// Flavor -> color, so a bonus reads as efficiency/style/daring at a
-	// glance the way dakka's DScore_* translations did.
+	// Flavour -> RSScore_* translation. These resolve through
+	// TEXTCOLO.txt; Font.FindFontColor returns CR_UNTRANSLATED for a name
+	// that is not defined, so a colourless bonus stack means that lump is
+	// not being loaded.
 	ui int FlavorColor(int flavor) const
 	{
 		switch (flavor)
 		{
-			case RS_ScoreDefs.RS_SF_EFFICIENCY: return Font.CR_BRICK;
-			case RS_ScoreDefs.RS_SF_STYLE:      return Font.CR_GREEN;
-			case RS_ScoreDefs.RS_SF_DARING:     return Font.CR_ORANGE;
+			case RS_ScoreDefs.RS_SF_EFFICIENCY: return Font.FindFontColor("RSScore_Efficiency");
+			case RS_ScoreDefs.RS_SF_STYLE:      return Font.FindFontColor("RSScore_Style");
+			case RS_ScoreDefs.RS_SF_DARING:     return Font.FindFontColor("RSScore_Daring");
 		}
-		return Font.CR_WHITE;
+		return Font.FindFontColor("RSScore_Base");
 	}
 
-	// Virtual -> real conversion. Done by hand rather than with
-	// DTA_Virtual* so bars (Screen.Dim, which has no virtual params)
-	// and text land on exactly the same grid.
+	// Virtual -> real. Normalised against height so the widget is the
+	// same physical size at any aspect ratio.
 	ui double ScaleFactor() const
 	{
 		double s = clamp(CVInt("rs_score_hud_scale", 100), 25, 400) / 100.0;
-		// Normalize against height so the widget is the same physical
-		// size regardless of aspect ratio.
 		return (Screen.GetHeight() / double(VH)) * s;
 	}
 
 	ui double OriginX() const
 	{
-		double pct = clamp(CVInt("rs_score_hud_x", 85), 0, 100) / 100.0;
+		double pct = clamp(CVInt("rs_score_hud_x", 50), 0, 100) / 100.0;
 		return Screen.GetWidth() * pct;
 	}
 
 	ui double OriginY() const
 	{
-		double pct = clamp(CVInt("rs_score_hud_y", 10), 0, 100) / 100.0;
+		double pct = clamp(CVInt("rs_score_hud_y", 5), 0, 100) / 100.0;
 		return Screen.GetHeight() * pct;
+	}
+
+	// TexMan lookup with a null-safe result, so a missing graphic skips
+	// its element instead of taking the whole overlay down.
+	ui TextureID Tex(string name) const
+	{
+		return TexMan.CheckForTexture(name, TexMan.Type_Any);
+	}
+
+	// The score number font, with a stock fallback so a missing lump
+	// degrades to readable rather than to nothing.
+	ui Font BigFont() const
+	{
+		Font f = Font.GetFont("RSSCRFN1");
+		return f ? f : Font.GetFont("BIGFONT");
+	}
+
+	ui Font SmallFont() const
+	{
+		Font f = Font.GetFont("RSSCRFN2");
+		return f ? f : Font.GetFont("SMALLFONT");
 	}
 
 	// -----------------------------------------------------------------
@@ -117,65 +156,76 @@ class RS_ScoreHUD : Object
 		double ox = OriginX();
 		double oy = OriginY();
 
+		// Lives sit above the number, the bar under it, the bonus stack
+		// under that.
+		if (CVBool("rs_score_hud_showlives", true))
+			DrawLives(sp, ox, oy, f, now);
+
 		if (CVBool("rs_score_hud_showscore", true))
 			DrawScoreNumber(sp, ox, oy, f);
 
 		if (CVBool("rs_score_hud_showbar", true))
 			DrawRewardBar(sp, threshold, ox, oy, f);
 
-		if (CVBool("rs_score_hud_showlives", true))
-			DrawLives(sp, ox, oy, f);
-
 		if (CVBool("rs_score_hud_showbonuses", true))
 			DrawBonuses(sp, ox, oy, f, now);
 
-		if (CVBool("rs_score_hud_showspree", true))
+		if (CVBool("rs_score_hud_showspree", false))
 			DrawSpree(sp, ox, oy, f, now);
 	}
 
 	// -----------------------------------------------------------------
+	// "Score: 1234" -- label in RSScore_White, number in RSScore_Gold.
+	// Screen.DrawText takes a single colour, so the two are drawn as
+	// separate pieces and the pair is centred as a unit.
 	ui void DrawScoreNumber(RS_ScorePlayer sp, double ox, double oy, double f)
 	{
-		Font fnt = Font.GetFont("BIGFONT");
+		Font fnt = BigFont();
 		if (!fnt)
 			return;
 
-		string txt = String.Format("%d", sp.displayScore);
-		int col = PresetTextColor(CVInt("rs_score_hud_color", 0));
+		string label = StringTable.Localize("$RS_SCORE_LABEL");
+		string num   = String.Format("%d", sp.displayScore);
 
-		double w = fnt.StringWidth(txt) * f;
-		double x = ox - (w * 0.5);
-		double y = oy;
+		double lw = fnt.StringWidth(label) * f;
+		double nw = fnt.StringWidth(num) * f;
 
-		Screen.DrawText(fnt, col, x / f, y / f, txt,
-			DTA_ScaleX, f, DTA_ScaleY, f,
-			DTA_Alpha, 1.0);
+		double x = ox - ((lw + nw) * 0.5);
+		double y = oy + (OFF_SCORE * f);
 
-		// The flash pulse: a second pass in white the tic a kill lands,
-		// which is dakka's dakka_cl_flashscore, and most of why the
-		// number feels like it is being hit rather than incremented.
-		if (sp.flashPulse && CVBool("rs_score_hud_flash", true))
-		{
-			Screen.DrawText(fnt, Font.CR_WHITE, x / f, y / f, txt,
-				DTA_ScaleX, f, DTA_ScaleY, f,
-				DTA_Alpha, 0.65);
-		}
+		Screen.DrawText(fnt, Font.FindFontColor("RSScore_White"), x / f, y / f, label,
+			DTA_ScaleX, f, DTA_ScaleY, f);
+
+		Screen.DrawText(fnt, Font.FindFontColor("RSScore_Gold"), (x + lw) / f, y / f, num,
+			DTA_ScaleX, f, DTA_ScaleY, f);
+
+		// The afterglow on a scoring kill: the whole line redrawn in the
+		// *Flash ramps, fading over FLASH_TICS. This used to be a one-tic
+		// bool, which is far too short to register -- it is why the
+		// number never felt struck.
+		if (!CVBool("rs_score_hud_flash", true))
+			return;
+
+		int age = sp.flashAge;
+		if (age < 0 || age >= FLASH_TICS)
+			return;
+
+		double a = 1.0 - (age / double(FLASH_TICS));
+
+		Screen.DrawText(fnt, Font.FindFontColor("RSScore_WhiteFlash"), x / f, y / f, label,
+			DTA_ScaleX, f, DTA_ScaleY, f, DTA_Alpha, a);
+
+		Screen.DrawText(fnt, Font.FindFontColor("RSScore_GoldFlash"), (x + lw) / f, y / f, num,
+			DTA_ScaleX, f, DTA_ScaleY, f, DTA_Alpha, a);
 	}
 
 	// -----------------------------------------------------------------
+	// RSSCBKT frame, RSSCBG* track, RSSCBR* fill clipped to progress.
 	ui void DrawRewardBar(RS_ScorePlayer sp, int threshold, double ox, double oy, double f)
 	{
 		if (threshold <= 0)
 			return;
 
-		double bw = BARW * f;
-		double bh = BARH * f;
-		double x  = ox - (bw * 0.5);
-		double y  = oy + (26 * f);
-
-		// Which reward is next decides the bar's color, so the player
-		// can tell at a glance whether they are filling toward a life
-		// or toward ammo regen. dakka swapped the bar graphic for this.
 		int mode = CVInt("rs_score_rewardmode", 0);
 		bool nextIsLife;
 
@@ -188,31 +238,83 @@ class RS_ScoreHUD : Object
 			case 3: nextIsLife = true;  break;
 		}
 
-		Color fill = nextIsLife
-			? PresetColor(CVInt("rs_score_hud_lifecolor", 3))
-			: PresetColor(CVInt("rs_score_hud_barcolor", 4));
+		string bg = nextIsLife ? "RSSCBG2" : "RSSCBG1";
+		string fg = nextIsLife ? "RSSCBR2" : "RSSCBR1";
+		// 3/4 are the brightened copies, overlaid on a scoring kill so
+		// the bar pulses with the number rather than sitting inert while
+		// the score above it flashes.
+		string bgF = nextIsLife ? "RSSCBG4" : "RSSCBG3";
+		string fgF = nextIsLife ? "RSSCBR4" : "RSSCBR3";
 
-		// Frame + track.
-		Screen.Dim(0xFF000000, 0.65, int(x - 1 * f), int(y - 1 * f), int(bw + 2 * f), int(bh + 2 * f));
-		Screen.Dim(0xFF202020, 0.85, int(x), int(y), int(bw), int(bh));
+		int fAge = sp.flashAge;
+		bool flashing = CVBool("rs_score_hud_flash", true)
+			&& fAge >= 0 && fAge < FLASH_TICS;
+		double fAlpha = flashing ? 1.0 - (fAge / double(FLASH_TICS)) : 0.0;
 
+		double bw = BARW * f;
+		double bh = BARH * f;
+		double x  = ox - (bw * 0.5);
+		double y  = oy + (OFF_BAR * f);
+
+		// Track.
+		TextureID tBG = Tex(bg);
+		if (tBG.IsValid())
+			Screen.DrawTexture(tBG, false, x, y,
+				DTA_DestWidthF, bw, DTA_DestHeightF, bh);
+
+		if (flashing)
+		{
+			TextureID tBGF = Tex(bgF);
+			if (tBGF.IsValid())
+				Screen.DrawTexture(tBGF, false, x, y,
+					DTA_DestWidthF, bw, DTA_DestHeightF, bh,
+					DTA_Alpha, fAlpha);
+		}
+
+		// Frame, centred on the same point and 2px proud on each side.
+		TextureID tBK = Tex("RSSCBKT");
+		if (tBK.IsValid())
+		{
+			double kw = BKTW * f;
+			double kh = BKTH * f;
+			Screen.DrawTexture(tBK, false, ox - (kw * 0.5), y - ((kh - bh) * 0.5),
+				DTA_DestWidthF, kw, DTA_DestHeightF, kh);
+		}
+
+		// Fill is CLIPPED, not scaled -- scaling would squash the graphic
+		// instead of revealing it.
 		int progress = sp.score % threshold;
 		double frac = clamp(progress / double(threshold), 0.0, 1.0);
 
-		if (frac > 0)
-			Screen.Dim(fill, 0.95, int(x), int(y), int(bw * frac), int(bh));
+		TextureID tFG = Tex(fg);
+		if (frac > 0 && tFG.IsValid())
+		{
+			Screen.SetClipRect(int(x), int(y), int(ceil(bw * frac)), int(ceil(bh)));
+			Screen.DrawTexture(tFG, false, x, y,
+				DTA_DestWidthF, bw, DTA_DestHeightF, bh);
 
-		// Numeric readout under the bar, for players who want the real
-		// number rather than a bar. Off by default -- it is clutter for
-		// most people and essential for a few.
+			if (flashing)
+			{
+				TextureID tFGF = Tex(fgF);
+				if (tFGF.IsValid())
+					Screen.DrawTexture(tFGF, false, x, y,
+						DTA_DestWidthF, bw, DTA_DestHeightF, bh,
+						DTA_Alpha, fAlpha);
+			}
+
+			Screen.ClearClipRect();
+		}
+
+		// Numeric readout under the bar. Off by default -- clutter for
+		// most people, essential for a few.
 		if (CVBool("rs_score_hud_barnumbers", false))
 		{
-			Font fnt = Font.GetFont("SMALLFONT");
+			Font fnt = SmallFont();
 			if (fnt)
 			{
 				string txt = String.Format("%d / %d", progress, threshold);
 				double tw = fnt.StringWidth(txt) * f;
-				Screen.DrawText(fnt, Font.CR_GRAY,
+				Screen.DrawText(fnt, Font.FindFontColor("RSScore_White"),
 					(ox - tw * 0.5) / f, (y + bh + 2 * f) / f, txt,
 					DTA_ScaleX, f, DTA_ScaleY, f);
 			}
@@ -220,56 +322,62 @@ class RS_ScoreHUD : Object
 	}
 
 	// -----------------------------------------------------------------
-	// Life pips. Drawn as rectangles rather than a font glyph so there
-	// is no art or font dependency to go missing.
-	ui void DrawLives(RS_ScorePlayer sp, double ox, double oy, double f)
+	// Life pips: RSSCLF1-4 cycled every 4 tics, so the row shimmers.
+	ui void DrawLives(RS_ScorePlayer sp, double ox, double oy, double f, int now)
 	{
 		int lives = sp.extraLives;
 		if (lives <= 0)
 			return;
 
-		int drawn = min(lives, 10);
-		double pw = 7 * f;
-		double ph = 7 * f;
-		double gap = 4 * f;
-		double total = (drawn * pw) + ((drawn - 1) * gap);
-		double x = ox - (total * 0.5);
-		double y = oy - (14 * f);
+		int drawn = min(lives, LIVES_MAXDRAW);
 
-		Color c = PresetColor(CVInt("rs_score_hud_lifecolor", 3));
+		int frame = (now / 4) % 4;
+		TextureID t = Tex(String.Format("RSSCLF%d", frame + 1));
+		if (!t.IsValid())
+			return;
+
+		double pw = LIFEW * f;
+		double pitch = LIFEPITCH * f;
+
+		// The row is centred on centerX at a 12px pitch.
+		double left = ox - ((LIFEPITCH * 0.5) * (drawn - 1) * f) - (pw * 0.5);
+		double y = oy + (OFF_LIVES * f);
 
 		for (int i = 0; i < drawn; i++)
 		{
-			double px = x + i * (pw + gap);
-			Screen.Dim(0xFF000000, 0.7, int(px - 1 * f), int(y - 1 * f), int(pw + 2 * f), int(ph + 2 * f));
-			Screen.Dim(c, 1.0, int(px), int(y), int(pw), int(ph));
+			Screen.DrawTexture(t, false, left + i * pitch, y,
+				DTA_DestWidthF, pw, DTA_DestHeightF, pw);
 		}
 
-		// Past ten pips, show a count instead of an unreadable row.
-		if (lives > 10)
+		// Past ten pips, show a count rather than an unreadable row.
+		if (lives > LIVES_MAXDRAW)
 		{
-			Font fnt = Font.GetFont("SMALLFONT");
+			Font fnt = SmallFont();
 			if (fnt)
 			{
 				string txt = String.Format("x%d", lives);
-				Screen.DrawText(fnt, Font.CR_GREEN,
-					(x + total + gap) / f, y / f, txt,
+				Screen.DrawText(fnt, Font.FindFontColor("RSScore_White"),
+					(left + drawn * pitch + 2 * f) / f, y / f, txt,
 					DTA_ScaleX, f, DTA_ScaleY, f);
 			}
 		}
 	}
 
 	// -----------------------------------------------------------------
-	// The floating "+N NAME" stack. This is the part that sells it.
+	// The floating "+N NAME" stack.
+	//
+	// Both columns are LEFT-aligned at their own anchor, 43px apart. The
+	// stack COMPACTS -- `shown` only advances for a bonus that actually
+	// paid, so there are never gaps where a quiet bonus would have been.
 	ui void DrawBonuses(RS_ScorePlayer sp, double ox, double oy, double f, int now)
 	{
-		Font fnt = Font.GetFont("SMALLFONT");
+		Font fnt = SmallFont();
 		if (!fnt)
 			return;
 
-		int life = clamp(CVInt("rs_score_bonustime", 105), 35, 350);
-		double y = oy + (42 * f);
-		double lineH = 11 * f;
+		int life = clamp(CVInt("rs_score_bonustime", 35), 5, 350);
+		double y = oy + (OFF_BONUS * f);
+		double lineH = BONUS_LINEH * f;
 		int shown = 0;
 
 		for (int i = 0; i < RS_ScoreDefs.RS_SB_COUNT; i++)
@@ -283,39 +391,32 @@ class RS_ScoreHUD : Object
 			if (val <= 0 || t < 0)
 				continue;
 
-			// Base is the kill itself -- not a bonus, so it only shows
-			// if the player asks for it.
-			if (i == RS_ScoreDefs.RS_SB_BASE && !CVBool("rs_score_hud_showbase", false))
+			if (i == RS_ScoreDefs.RS_SB_BASE && !CVBool("rs_score_hud_showbase", true))
 				continue;
 
 			int age = now - t;
 			if (age >= life)
 				continue;
 
-			// Hold full opacity for the first half, fade the rest.
+			// Hold at full opacity, then fade over the last half second.
 			double alpha = 1.0;
-			double half = life * 0.5;
-			if (age > half)
-				alpha = 1.0 - ((age - half) / (life - half));
+			int fadeTics = 17;
+			if (age > life - fadeTics)
+				alpha = double(life - age) / fadeTics;
 			alpha = clamp(alpha, 0.0, 1.0);
 
-			string nm = RS_ScoreDefs.BonusName(i);
-			if (i == RS_ScoreDefs.RS_SB_BASE)
-				nm = "KILL";
+			string nm  = RS_ScoreDefs.BonusName(i);
+			string amt = String.Format("+%d", val);
 
 			int col = FlavorColor(RS_ScoreDefs.BonusFlavor(i));
 
-			string amt = String.Format("+%d", val);
-			double aw = fnt.StringWidth(amt) * f;
-
 			double ly = y + (shown * lineH);
 
-			// Amount right-aligned against the center line, name left of
-			// it -- gives the stack a spine instead of ragged edges.
-			Screen.DrawText(fnt, col, (ox - 6 * f - aw) / f, ly / f, amt,
+			Screen.DrawText(fnt, col, (ox + BONUS_AMTX * f) / f, ly / f, amt,
 				DTA_ScaleX, f, DTA_ScaleY, f, DTA_Alpha, alpha);
 
-			Screen.DrawText(fnt, Font.CR_WHITE, (ox + 4 * f) / f, ly / f, nm,
+			Screen.DrawText(fnt, Font.FindFontColor("RSScore_White"),
+				(ox + BONUS_NAMEX * f) / f, ly / f, nm,
 				DTA_ScaleX, f, DTA_ScaleY, f, DTA_Alpha, alpha);
 
 			shown++;
@@ -323,50 +424,32 @@ class RS_ScoreHUD : Object
 	}
 
 	// -----------------------------------------------------------------
-	// Spree counter with its own decay bar. dakka never showed this --
-	// the killstreak was invisible state you had to infer from the
-	// Spree bonus appearing. Showing the timer draining is the whole
-	// tension of a combo system, so it is drawn.
+	// Spree counter. Off by default: the streak is otherwise invisible
+	// state you have to infer from the Spree bonus appearing, and showing
+	// it changes how the readout reads. Drawn as text, not a bar.
 	ui void DrawSpree(RS_ScorePlayer sp, double ox, double oy, double f, int now)
 	{
 		if (sp.spreeCount < 2)
 			return;
 
-		int remain = sp.spreeExpire - now;
-		if (remain <= 0)
+		if (sp.spreeExpire - now <= 0)
 			return;
 
-		Font fnt = Font.GetFont("BIGFONT");
+		Font fnt = BigFont();
 		if (!fnt)
 			return;
 
-		string txt = String.Format("%d", sp.spreeCount);
+		string txt = String.Format("x%d", sp.spreeCount);
 		double tw = fnt.StringWidth(txt) * f;
 
 		double x = ox - (tw * 0.5);
-		double y = oy - (44 * f);
+		double y = oy - (30 * f);
 
-		// Color ramps toward red as the streak climbs.
-		int col = Font.CR_WHITE;
-		if (sp.spreeCount >= 20)      col = Font.CR_RED;
-		else if (sp.spreeCount >= 12) col = Font.CR_ORANGE;
-		else if (sp.spreeCount >= 6)  col = Font.CR_YELLOW;
+		int col = Font.FindFontColor("RSScore_Style");
+		if (sp.spreeCount >= 20)      col = Font.FindFontColor("RSScore_Daring");
+		else if (sp.spreeCount >= 12) col = Font.FindFontColor("RSScore_Gold");
 
 		Screen.DrawText(fnt, col, x / f, y / f, txt,
 			DTA_ScaleX, f, DTA_ScaleY, f);
-
-		// Drain bar directly under the number.
-		double bw = 44 * f;
-		double bh = 3 * f;
-		double bx = ox - (bw * 0.5);
-		double by = y + (20 * f);
-
-		// The window this streak was granted, so the bar reads as a
-		// fraction rather than an absolute countdown.
-		double frac = clamp(remain / 360.0, 0.0, 1.0);
-
-		Screen.Dim(0xFF000000, 0.6, int(bx), int(by), int(bw), int(bh));
-		if (frac > 0)
-			Screen.Dim(0xFFFF6020, 0.9, int(bx), int(by), int(bw * frac), int(bh));
 	}
 }

@@ -1,19 +1,17 @@
 // =====================================================================
 // RS_Score -- arcade scoring. The foundations of a style-kill system.
 // ---------------------------------------------------------------------
-// Conceptually ported from dakka (0dot0repeating/dakka, pk3/acs/score/),
-// which is ACS built for Zandronum. This is a ZScript rebuild, not a
-// transliteration: the ACS original spends most of its length working
-// around limits we do not have (a flat `global int 22:MapScoreData[]`
-// with hand-computed player strides because ACS has no structs, a
-// manual server->client data sender because Zandronum has no play/ui
-// scope, TID juggling with Thing_ChangeTID to walk the killer pointer,
-// three Warp() calls to fake a multi-height line-of-sight test). All of
-// that is gone. The DESIGN is what was worth taking:
-//
-//   base points for a kill, then independent situational multipliers
+// THE SHAPE OF IT
+//   Base points for a kill, then independent situational multipliers
 //   that stack, grouped into flavors, each announcing itself on the HUD
-//   the instant it pays.
+//   the instant it pays. Nothing is a mode you enter; every bonus is a
+//   fact about the kill you just made, evaluated once, at the moment it
+//   happens.
+//
+//   The multipliers are FRACTIONS OF BASE POINTS, not flat amounts, so
+//   the whole system scales itself against whatever bestiary is loaded
+//   and a bonus is worth the same proportion on a zombieman as on a
+//   Cyberdemon. Raising one in isolation quietly demotes all the others.
 //
 // WHAT THIS SYSTEM DELIBERATELY DOES NOT DO
 //   It does not grant permanent power, and it is NOT tied to Gold Bits
@@ -37,16 +35,19 @@
 // ---------------------------------------------------------------------
 class RS_ScoreDefs
 {
+	// Ids are STABLE -- the HUD keeps per-bonus popup state in arrays
+	// indexed by these, so renumbering silently reassigns every live
+	// popup. Append at the end; never insert in the middle.
 	const RS_SB_BASE        = 0;
 	const RS_SB_SPREE       = 1;
 	const RS_SB_UNTOUCHABLE = 2;
 	const RS_SB_INFIGHTER   = 3;
-	const RS_SB_AMBIDEXTROUS= 4;
+	const RS_SB_SWITCHAROO  = 4;
 	const RS_SB_SCRAPPING   = 5;
 	const RS_SB_TELEFRAG    = 6;
-	const RS_SB_BLINDSIDE   = 7;
+	const RS_SB_CURVEBALL   = 7;
 	const RS_SB_DARWIN      = 8;
-	const RS_SB_AIRBORNE    = 9;
+	const RS_SB_AIR         = 9;
 	const RS_SB_REDLINE     = 10;
 	const RS_SB_SWANSONG    = 11;
 	const RS_SB_POINTBLANK  = 12;
@@ -54,8 +55,8 @@ class RS_ScoreDefs
 	const RS_SB_GIANTSLAYER = 14;
 	const RS_SB_COUNT       = 15;
 
-	// Flavor groups, dakka's three plus one of ours. Purely a color/
-	// readability device -- nothing keys off the group mechanically.
+	// Flavor groups. Purely a color/readability device -- nothing keys
+	// off the group mechanically.
 	const RS_SF_BASE       = 0;
 	const RS_SF_EFFICIENCY = 1;
 	const RS_SF_STYLE      = 2;
@@ -68,21 +69,31 @@ class RS_ScoreDefs
 	{
 		switch (id)
 		{
-			case RS_SB_BASE:         return "";
-			case RS_SB_SPREE:        return "SPREE";
-			case RS_SB_UNTOUCHABLE:  return "UNTOUCHABLE";
-			case RS_SB_INFIGHTER:    return "INFIGHTER";
-			case RS_SB_AMBIDEXTROUS: return "AMBIDEXTROUS";
-			case RS_SB_SCRAPPING:    return "SCRAPPING";
-			case RS_SB_TELEFRAG:     return "TELEFRAG";
-			case RS_SB_BLINDSIDE:    return "BLINDSIDE";
-			case RS_SB_DARWIN:       return "DARWIN";
-			case RS_SB_AIRBORNE:     return "AIRBORNE";
-			case RS_SB_REDLINE:      return "REDLINE";
-			case RS_SB_SWANSONG:     return "SWAN SONG";
-			case RS_SB_POINTBLANK:   return "POINT-BLANK";
-			case RS_SB_BRAWLER:      return "BRAWLER";
-			case RS_SB_GIANTSLAYER:  return "GIANT SLAYER";
+			// Title case is correct: RSSCRFN2 renders caps, so these read
+			// as BASE / SPREE / SWITCHAROO on screen.
+			//
+			// These names are FIXED. A pass once rewrote five of them to be
+			// more descriptive -- Base to KILL, Switcharoo to AMBIDEXTROUS,
+			// Telefragged to TELEFRAG, Curveball to BLINDSIDE, Air to
+			// AIRBORNE -- and every one had to be put back. Do not improve
+			// them again.
+			case RS_SB_BASE:         return "Base";
+			case RS_SB_SPREE:        return "Spree";
+			case RS_SB_UNTOUCHABLE:  return "Untouchable";
+			case RS_SB_INFIGHTER:    return "Infighter";
+			case RS_SB_SWITCHAROO:   return "Switcharoo";
+			case RS_SB_SCRAPPING:    return "Scrapping";
+			case RS_SB_TELEFRAG:     return "Telefragged";
+			case RS_SB_CURVEBALL:    return "Curveball";
+			case RS_SB_DARWIN:       return "Darwin";
+			case RS_SB_AIR:          return "Air";
+			case RS_SB_REDLINE:      return "Redline";
+			case RS_SB_SWANSONG:     return "Swan Song";
+			case RS_SB_POINTBLANK:   return "Point-Blank";
+			case RS_SB_BRAWLER:      return "Brawler";
+			// The one bonus original to this project, hence the only name
+			// here that was ours to choose.
+			case RS_SB_GIANTSLAYER:  return "Giant Slayer";
 		}
 		return "";
 	}
@@ -99,12 +110,12 @@ class RS_ScoreDefs
 			case RS_SB_INFIGHTER:
 				return RS_SF_EFFICIENCY;
 
-			case RS_SB_AMBIDEXTROUS:
+			case RS_SB_SWITCHAROO:
 			case RS_SB_SCRAPPING:
 			case RS_SB_TELEFRAG:
-			case RS_SB_BLINDSIDE:
+			case RS_SB_CURVEBALL:
 			case RS_SB_DARWIN:
-			case RS_SB_AIRBORNE:
+			case RS_SB_AIR:
 				return RS_SF_STYLE;
 
 			case RS_SB_REDLINE:
@@ -126,12 +137,12 @@ class RS_ScoreDefs
 			case RS_SB_SPREE:        return "rs_score_b_spree";
 			case RS_SB_UNTOUCHABLE:  return "rs_score_b_untouchable";
 			case RS_SB_INFIGHTER:    return "rs_score_b_infighter";
-			case RS_SB_AMBIDEXTROUS: return "rs_score_b_ambidextrous";
+			case RS_SB_SWITCHAROO:   return "rs_score_b_switcharoo";
 			case RS_SB_SCRAPPING:    return "rs_score_b_scrapping";
 			case RS_SB_TELEFRAG:     return "rs_score_b_telefrag";
-			case RS_SB_BLINDSIDE:    return "rs_score_b_blindside";
+			case RS_SB_CURVEBALL:    return "rs_score_b_curveball";
 			case RS_SB_DARWIN:       return "rs_score_b_darwin";
-			case RS_SB_AIRBORNE:     return "rs_score_b_airborne";
+			case RS_SB_AIR:          return "rs_score_b_air";
 			case RS_SB_REDLINE:      return "rs_score_b_redline";
 			case RS_SB_SWANSONG:     return "rs_score_b_swansong";
 			case RS_SB_POINTBLANK:   return "rs_score_b_pointblank";
@@ -154,9 +165,10 @@ class RS_ScoreDefs
 		return c ? c.GetBool() : true;
 	}
 
-	// Melee identification. dakka carried a 13-row table of weapon
-	// names and damage types; ours is a name test because every melee
-	// weapon in this project is an RS_ class with a predictable name.
+	// Melee identification by name test, which works because every melee
+	// weapon in this project is an RS_ class with a predictable name. A
+	// per-weapon table would be more precise and would need a new row
+	// every time a weapon is added; this does not.
 	clearscope static bool IsMeleeWeaponName(Name wpn)
 	{
 		// GetClassName() hands back a Name, not a String -- concatenate
@@ -174,8 +186,9 @@ class RS_ScoreDefs
 
 
 // ---------------------------------------------------------------------
-// One of these per player slot. A real object rather than the ACS
-// original's parallel-array-with-stride arithmetic.
+// One of these per player slot. Every piece of a player's scoring state
+// lives here and nowhere else, so there is exactly one thing to reset,
+// carry across a map, or reason about when a bonus misfires.
 // ---------------------------------------------------------------------
 class RS_ScorePlayer : Object
 {
@@ -187,7 +200,7 @@ class RS_ScorePlayer : Object
 	int regenSpent;
 	int scoreSpent;         // score spent at a cash-in, if one exists
 
-	// Spree (dakka: killstreak)
+	// Spree -- the kill streak
 	int spreeCount;
 	int spreeExpire;
 
@@ -196,11 +209,11 @@ class RS_ScorePlayer : Object
 	int utDamage;
 	int utStacks;
 
-	// Airborne
+	// Air
 	double airFloorZ;
 	double airPeak;
 
-	// Ambidextrous -- last-fired timestamps
+	// Switcharoo -- last-fired timestamps
 	Name lastWeaponA;
 	Name lastWeaponB;
 	int  lastWeaponATime;
@@ -212,8 +225,13 @@ class RS_ScorePlayer : Object
 	Array<int> bonusValue;
 	Array<int> bonusTime;
 
-	// True on the tic a kill scored, so the HUD can flash.
-	bool flashPulse;
+	// Tics since the last scoring kill, or -1 for "not flashing".
+	//
+	// This was a one-tic bool. RenderOverlay runs at frame rate and the
+	// flag was cleared by the next WorldTick, so the afterglow lasted a
+	// single tic, far too short to see. The counter is what lets the HUD
+	// draw a real fade.
+	int flashAge;
 
 	void Init()
 	{
@@ -242,6 +260,7 @@ class RS_ScorePlayer : Object
 		lastWeaponBTime = -99999;
 		lastPrimaryTime = -99999;
 		lastAltTime = -99999;
+		flashAge = -1;
 
 		if (full)
 		{
@@ -280,10 +299,10 @@ class RS_ScorePlayer : Object
 // ---------------------------------------------------------------------
 class RS_ScoreHandler : EventHandler
 {
-	// Tuning constants ported from dakka's score_defs.h. Where dakka
-	// hardcoded them, most are cvars here -- "granular controls over
-	// everything" was the brief. These remain fixed because they are
-	// shape, not preference.
+	// These few stay constants while nearly everything else is a cvar,
+	// because they are SHAPE rather than preference -- the window a combo
+	// lives in, and the reach of point-blank, define what the bonus
+	// means. Anything a player might reasonably want to tune is a cvar.
 	const SPREE_TICS_PER_100HP = 24;
 	const SPREE_MIN_TICS       = 72;
 	const SPREE_MAX_TICS       = 360;
@@ -293,7 +312,9 @@ class RS_ScoreHandler : EventHandler
 	const AMBI_MAX_TICS        = 144;
 
 	const AIR_MIN_HEIGHT       = 64.0;
-	const POINTBLANK_DIST      = 96.0;
+	// 64 map units, edge to edge. A pass once widened this to 96 without
+	// saying why.
+	const POINTBLANK_DIST      = 64.0;
 
 	// NOT named `players` -- that identifier is the engine's global
 	// player array, and shadowing it here silently breaks every
@@ -301,8 +322,8 @@ class RS_ScoreHandler : EventHandler
 	Array<RS_ScorePlayer> scorePlayers;
 
 	// Per-map reward threshold, calibrated at load from the map's own
-	// monster population -- dakka's best idea, and the thing that makes
-	// the reward bar mean the same thing on MAP01 and on a slaughtermap.
+	// monster population, which is what makes one bar mean the same
+	// amount of work on MAP01 as on a slaughtermap.
 	int fullRewardScore;
 	int mapTotalMonsters;
 	int mapTotalPoints;
@@ -362,10 +383,9 @@ class RS_ScoreHandler : EventHandler
 	// -----------------------------------------------------------------
 	// Map load -- calibrate the reward threshold.
 	//
-	// dakka summed every monster's SpawnHealth. We have something
-	// better: RS monsters carry an explicit Tier and a TierMaxHealth,
-	// so the population can be weighted by how dangerous it actually
-	// is rather than by raw hit points. A T12 monster and a pile of
+	// Weighted by TIER, not by raw hit points: RS monsters carry an
+	// explicit Tier and TierMaxHealth, so the population is measured by
+	// how dangerous it actually is. A T12 monster and a pile of
 	// zombiemen with the same total HP are not the same map.
 	// -----------------------------------------------------------------
 	override void WorldLoaded(WorldEvent e)
@@ -444,8 +464,8 @@ class RS_ScoreHandler : EventHandler
 	// Tier is the real difficulty signal in this project, so it drives
 	// the value -- HP alone would rank a bullet-sponge above a genuinely
 	// dangerous elite. Non-RS monsters (other mods, plain Doom actors)
-	// fall back to SpawnHealth, which is exactly dakka's rule, so the
-	// system still works on an unmodified bestiary.
+	// fall back to SpawnHealth, so the system still works on an
+	// unmodified or foreign bestiary.
 	// -----------------------------------------------------------------
 	static int BasePointsFor(Actor mo)
 	{
@@ -497,9 +517,8 @@ class RS_ScoreHandler : EventHandler
 		if (basePoints <= 0)
 			return;
 
-		// Walk to the real killer. dakka did this with TID swapping and
-		// a MISSILE-flag loop; e.Inflictor/target gives it to us
-		// directly.
+		// Walk to the real killer: a rocket's killer is whoever fired it,
+		// and a rocket fired by a summon belongs to whoever summoned it.
 		Actor killer = e.Inflictor ? e.Inflictor : victim.target;
 		while (killer && killer.bMissile && killer.target)
 			killer = killer.target;
@@ -523,10 +542,10 @@ class RS_ScoreHandler : EventHandler
 		// --- gather the situational multipliers ----------------------
 		double mSpree       = MultSpree(sp, now);
 		double mUntouchable = MultUntouchable(sp, basePoints);
-		double mAmbi        = MultAmbidextrous(sp, victim, now);
+		double mSwitcharoo  = MultSwitcharoo(sp, victim, now);
 		double mScrapping   = MultScrapping(pi);
-		double mBlindside   = MultBlindside(victim, killer);
-		double mAirborne    = MultAirborne(sp, killer);
+		double mCurveball   = MultCurveball(victim, killer);
+		double mAir         = MultAir(sp, killer);
 		double mRedline     = MultRedline(killer);
 		double mSwanSong    = MultSwanSong(killer);
 		double mPointBlank  = MultPointBlank(victim, killer);
@@ -536,10 +555,10 @@ class RS_ScoreHandler : EventHandler
 
 		int pSpree       = int(basePoints * mSpree);
 		int pUntouchable = int(basePoints * mUntouchable);
-		int pAmbi        = int(basePoints * mAmbi);
+		int pSwitcharoo  = int(basePoints * mSwitcharoo);
 		int pScrapping   = int(basePoints * mScrapping);
-		int pBlindside   = int(basePoints * mBlindside);
-		int pAirborne    = int(basePoints * mAirborne);
+		int pCurveball   = int(basePoints * mCurveball);
+		int pAir         = int(basePoints * mAir);
 		int pRedline     = int(basePoints * mRedline);
 		int pSwanSong    = int(basePoints * mSwanSong);
 		int pPointBlank  = int(basePoints * mPointBlank);
@@ -548,21 +567,21 @@ class RS_ScoreHandler : EventHandler
 		int pGiantSlayer = int(basePoints * mGiantSlayer);
 
 		int total = basePoints
-			+ pSpree + pUntouchable + pAmbi + pScrapping + pBlindside
-			+ pAirborne + pRedline + pSwanSong + pPointBlank + pBrawler
+			+ pSpree + pUntouchable + pSwitcharoo + pScrapping + pCurveball
+			+ pAir + pRedline + pSwanSong + pPointBlank + pBrawler
 			+ pTelefrag + pGiantSlayer;
 
 		int before = sp.score;
 		sp.score += total;
-		sp.flashPulse = true;
+		sp.flashAge = 0;
 
 		sp.AddBonus(RS_ScoreDefs.RS_SB_BASE,         basePoints,   now);
 		sp.AddBonus(RS_ScoreDefs.RS_SB_SPREE,        pSpree,       now);
 		sp.AddBonus(RS_ScoreDefs.RS_SB_UNTOUCHABLE,  pUntouchable, now);
-		sp.AddBonus(RS_ScoreDefs.RS_SB_AMBIDEXTROUS, pAmbi,        now);
+		sp.AddBonus(RS_ScoreDefs.RS_SB_SWITCHAROO,   pSwitcharoo,  now);
 		sp.AddBonus(RS_ScoreDefs.RS_SB_SCRAPPING,    pScrapping,   now);
-		sp.AddBonus(RS_ScoreDefs.RS_SB_BLINDSIDE,    pBlindside,   now);
-		sp.AddBonus(RS_ScoreDefs.RS_SB_AIRBORNE,     pAirborne,    now);
+		sp.AddBonus(RS_ScoreDefs.RS_SB_CURVEBALL,    pCurveball,   now);
+		sp.AddBonus(RS_ScoreDefs.RS_SB_AIR,          pAir,         now);
 		sp.AddBonus(RS_ScoreDefs.RS_SB_REDLINE,      pRedline,     now);
 		sp.AddBonus(RS_ScoreDefs.RS_SB_SWANSONG,     pSwanSong,    now);
 		sp.AddBonus(RS_ScoreDefs.RS_SB_POINTBLANK,   pPointBlank,  now);
@@ -578,8 +597,8 @@ class RS_ScoreHandler : EventHandler
 		CheckRewards(pln, before, sp.score);
 	}
 
-	// Infighting and self-destruction pay everyone, exactly as in dakka
-	// -- the joke is that the player gets credit for arranging it.
+	// Infighting and self-destruction still pay -- the joke is that the
+	// player gets credit for having arranged it.
 	void HandleNonPlayerKill(Actor victim, Actor killer, int basePoints)
 	{
 		int now = level.maptime;
@@ -611,7 +630,7 @@ class RS_ScoreHandler : EventHandler
 
 			int before = sp.score;
 			sp.score += basePoints + bonus;
-			sp.flashPulse = true;
+			sp.flashAge = 0;
 
 			sp.AddBonus(RS_ScoreDefs.RS_SB_BASE, basePoints, now);
 			sp.AddBonus(id, bonus, now);
@@ -677,14 +696,22 @@ class RS_ScoreHandler : EventHandler
 		sp.utDamage += basePoints;
 	}
 
-	// dakka's Switcharoo, reworked for a dual-wield chassis. The
-	// original asked "did you fire 2+ weapons, or failing that 2+ fire
-	// modes, in a short window". On this project that condition is
-	// mainhand-then-offhand, which is the signature move -- so it gets
-	// the signature bonus and a name that says what it rewards.
-	double MultAmbidextrous(RS_ScorePlayer sp, Actor victim, int now)
+	// Switcharoo: 2+ weapons, or failing that 2+ fire modes, inside a
+	// short window scaled off the victim's size (AMBI_TICS_PER_100HP 24,
+	// clamped 72..144).
+	//
+	// On a dual-wield chassis that condition is naturally
+	// mainhand-then-offhand, so it lands on the signature move without
+	// having to be aimed at it. That observation once got the bonus
+	// renamed AMBIDEXTROUS; the observation was right, the rename was
+	// not.
+	//
+	// Detection costs nothing per weapon: TrackWeapons samples
+	// pi.cmd.buttons in WorldTick, so no weapon file is touched and this
+	// works on weapons we did not write.
+	double MultSwitcharoo(RS_ScorePlayer sp, Actor victim, int now)
 	{
-		if (!RS_ScoreDefs.BonusEnabled(RS_ScoreDefs.RS_SB_AMBIDEXTROUS))
+		if (!RS_ScoreDefs.BonusEnabled(RS_ScoreDefs.RS_SB_SWITCHAROO))
 			return 0;
 
 		int hp = BasePointsFor(victim);
@@ -699,21 +726,21 @@ class RS_ScoreHandler : EventHandler
 			&& (sp.lastWeaponBTime >= cutoff);
 
 		if (twoWeapons)
-			return CVFloat("rs_score_m_ambidextrous", 0.15);
+			return CVFloat("rs_score_m_switcharoo", 0.15);
 
 		bool twoModes = (sp.lastPrimaryTime >= cutoff)
 			&& (sp.lastAltTime >= cutoff);
 
 		if (twoModes)
-			return CVFloat("rs_score_m_ambidextrous", 0.15) * 0.5;
+			return CVFloat("rs_score_m_switcharoo", 0.15) * 0.5;
 
 		return 0;
 	}
 
-	// dakka's Scrapping paid you for killing with the Scrapper -- its
-	// slot-1 junk gun. The transferable idea is "you did it the hard
-	// way, with bad equipment", and this project already ranks
-	// equipment: any weapon at Basic or below counts.
+	// "You did it the hard way, with bad equipment." This project ranks
+	// equipment, so any weapon at Basic or below counts.
+	//
+	// OFF BY DEFAULT (rs_score_b_scrapping) -- see CVARINFO for why.
 	double MultScrapping(PlayerInfo pi)
 	{
 		if (!RS_ScoreDefs.BonusEnabled(RS_ScoreDefs.RS_SB_SCRAPPING))
@@ -729,12 +756,13 @@ class RS_ScoreHandler : EventHandler
 		return 0;
 	}
 
-	// dakka warped the corpse to three heights and ran CheckSight from
-	// each because Zandronum gave it nothing better. We can just ask
-	// twice -- eye level and feet -- which is the part that mattered.
-	double MultBlindside(Actor victim, Actor killer)
+	// It never saw you coming. CheckSight with SF_IGNOREVISIBILITY asks
+	// about geometry alone, so darkness and invisibility do not
+	// manufacture a Curveball out of a fight the monster was fully aware
+	// of.
+	double MultCurveball(Actor victim, Actor killer)
 	{
-		if (!RS_ScoreDefs.BonusEnabled(RS_ScoreDefs.RS_SB_BLINDSIDE))
+		if (!RS_ScoreDefs.BonusEnabled(RS_ScoreDefs.RS_SB_CURVEBALL))
 			return 0;
 
 		if (!victim || !killer)
@@ -743,25 +771,25 @@ class RS_ScoreHandler : EventHandler
 		if (victim.CheckSight(killer, SF_IGNOREVISIBILITY))
 			return 0;
 
-		return CVFloat("rs_score_m_blindside", 0.2);
+		return CVFloat("rs_score_m_curveball", 0.2);
 	}
 
-	double MultAirborne(RS_ScorePlayer sp, Actor killer)
+	double MultAir(RS_ScorePlayer sp, Actor killer)
 	{
-		if (!RS_ScoreDefs.BonusEnabled(RS_ScoreDefs.RS_SB_AIRBORNE))
+		if (!RS_ScoreDefs.BonusEnabled(RS_ScoreDefs.RS_SB_AIR))
 			return 0;
 
 		double height = sp.airPeak - AIR_MIN_HEIGHT;
 		if (height <= 0)
 			return 0;
 
-		double per = CVFloat("rs_score_m_airborne", 0.005);
-		double cap = CVFloat("rs_score_m_airborne_max", 2.0);
+		double per = CVFloat("rs_score_m_air", 0.005);
+		double cap = CVFloat("rs_score_m_air_max", 2.0);
 		return min(cap, height * per);
 	}
 
-	// dakka called this Bone-Dry internally and Redline on the HUD.
-	// Kept the HUD name because it is the better one.
+	// Killing while nearly dead yourself, scaling with how close to the
+	// edge you were.
 	double MultRedline(Actor killer)
 	{
 		if (!RS_ScoreDefs.BonusEnabled(RS_ScoreDefs.RS_SB_REDLINE))
@@ -832,9 +860,9 @@ class RS_ScoreHandler : EventHandler
 		return CVFloat("rs_score_m_telefrag", 1.0);
 	}
 
-	// Ours, not dakka's. The tier ladder is the project's own difficulty
-	// statement, so killing far up it should read as an achievement in
-	// its own right rather than only as more hit points.
+	// The tier ladder is this project's own difficulty statement, so
+	// killing far up it should read as an achievement in its own right
+	// rather than only as more hit points.
 	double MultGiantSlayer(RS_MonsterMaster rsmon)
 	{
 		if (!rsmon)
@@ -902,12 +930,13 @@ class RS_ScoreHandler : EventHandler
 			TickRegen(i, sp, pmo);
 			ExpireBonuses(sp, now);
 
-			// The flash is a one-tic event: set on a kill, consumed by
-			// the next tick. Clearing it here rather than in the HUD
-			// keeps RenderOverlay read-only, which matters because it
-			// runs at frame rate, not tic rate, and would otherwise
-			// clear the flag before it was ever drawn.
-			sp.flashPulse = false;
+			// Age the flash rather than clearing it. Advancing it here
+			// rather than in the HUD keeps RenderOverlay read-only, which
+			// matters because it runs at frame rate, not tic rate -- the
+			// old code cleared a bool here and so the afterglow was one
+			// tic long no matter what the HUD tried to draw.
+			if (sp.flashAge >= 0)
+				sp.flashAge++;
 		}
 	}
 
@@ -920,8 +949,9 @@ class RS_ScoreHandler : EventHandler
 		return players[i].mo;
 	}
 
-	// Port of dakka's Air_UpdateZHeight -- track the peak height of the
-	// current jump, measured from the floor we left.
+	// Track the peak height of the current jump, measured from the floor
+	// we left rather than from wherever the ground is now -- otherwise
+	// dropping down a shaft would read as a spectacular leap.
 	void TrackAir(RS_ScorePlayer sp, Actor mo)
 	{
 		bool grounded = (mo.pos.z <= mo.floorz) || mo.waterlevel > 0;
@@ -940,10 +970,10 @@ class RS_ScoreHandler : EventHandler
 	}
 
 	// Sample which weapon and fire mode is being used, with no edits to
-	// any weapon class. dakka needed every weapon's DECORATE to call
-	// ACS_NamedExecuteWithResult("Dakka_Switcharoo", slot, mode) on
-	// every single fire state; reading the button state here gets the
-	// same information for free and works on weapons we did not write.
+	// any weapon class. Reading button state here costs nothing per
+	// weapon and works on weapons we did not write -- the alternative is
+	// a hook in every fire state of every gun, which rots the moment
+	// someone adds a weapon and forgets.
 	void TrackWeapons(RS_ScorePlayer sp, Actor mo, int now)
 	{
 		let pi = mo.player;
@@ -1075,9 +1105,9 @@ class RS_ScoreHandler : EventHandler
 		}
 	}
 
-	// Ammo regen, ported from dakka's Score_ProcessRewards. It trickles
-	// ammo into whatever the player is holding rather than dumping a
-	// pickup, so it reads as a state you are in, not an item you got.
+	// Ammo regen trickles into whatever the player is holding rather
+	// than dumping a pickup, so it reads as a state you are in and not an
+	// item you got.
 	void TickRegen(int pln, RS_ScorePlayer sp, Actor mo)
 	{
 		if (sp.regenTimer <= 0)
@@ -1111,11 +1141,11 @@ class RS_ScoreHandler : EventHandler
 	// -----------------------------------------------------------------
 	// Extra lives / revival.
 	//
-	// dakka's trick, kept intact because it is the right one: while the
-	// player has a life banked, they are put in BUDDHA, so lethal damage
-	// parks them at 1hp instead of killing them. Catching that 1hp state
-	// is the revive. The alternative -- resurrecting an already-dead
-	// pawn -- loses the weapon state and looks wrong.
+	// While a life is banked the player is put in BUDDHA, so lethal
+	// damage parks them at 1hp instead of killing them, and catching that
+	// 1hp state is the revive. Resurrecting an already-dead pawn is the
+	// obvious alternative and it is worse -- it loses the weapon state
+	// and looks wrong.
 	// -----------------------------------------------------------------
 	void TickLives(int pln, RS_ScorePlayer sp, Actor mo)
 	{

@@ -531,22 +531,22 @@ OptionMenu "RS_ScoreBonusOptions"
 	StaticText " "
 
 	StaticText "Style", "GREEN"
-	Option "Ambidextrous", "rs_score_b_ambidextrous", "OnOff"
-	Slider "  Value", "rs_score_m_ambidextrous", 0.0, 1.0, 0.05, 2
+	Option "Switcharoo", "rs_score_b_switcharoo", "OnOff"
+	Slider "  Value", "rs_score_m_switcharoo", 0.0, 1.0, 0.05, 2
 	StaticText "  Two weapons fired within a few seconds of the kill.", "DarkGray"
 	Option "Scrapping", "rs_score_b_scrapping", "OnOff"
 	Slider "  Value", "rs_score_m_scrapping", 0.0, 1.0, 0.025, 3
 	StaticText "  Killed with a Basic-or-worse weapon.", "DarkGray"
-	Option "Blindside", "rs_score_b_blindside", "OnOff"
-	Slider "  Value", "rs_score_m_blindside", 0.0, 2.0, 0.05, 2
+	Option "Curveball", "rs_score_b_curveball", "OnOff"
+	Slider "  Value", "rs_score_m_curveball", 0.0, 2.0, 0.05, 2
 	StaticText "  It never had line of sight to you.", "DarkGray"
-	Option "Airborne", "rs_score_b_airborne", "OnOff"
-	Slider "  Per Unit Of Height", "rs_score_m_airborne", 0.0, 0.05, 0.001, 3
-	Slider "  Cap", "rs_score_m_airborne_max", 0.0, 5.0, 0.25, 2
+	Option "Air", "rs_score_b_air", "OnOff"
+	Slider "  Per Unit Of Height", "rs_score_m_air", 0.0, 0.05, 0.001, 3
+	Slider "  Cap", "rs_score_m_air_max", 0.0, 5.0, 0.25, 2
 	Option "Darwin", "rs_score_b_darwin", "OnOff"
 	Slider "  Value", "rs_score_m_darwin", 0.0, 5.0, 0.25, 2
 	StaticText "  It killed itself.", "DarkGray"
-	Option "Telefrag", "rs_score_b_telefrag", "OnOff"
+	Option "Telefragged", "rs_score_b_telefrag", "OnOff"
 	Slider "  Value", "rs_score_m_telefrag", 0.0, 5.0, 0.25, 2
 	StaticText " "
 
@@ -632,28 +632,21 @@ OptionMenu "RS_ScoreHUDOptions"
 	Option "Bar Numbers", "rs_score_hud_barnumbers", "OnOff"
 	Option "Extra Life Pips", "rs_score_hud_showlives", "OnOff"
 	Option "Bonus Popups", "rs_score_hud_showbonuses", "OnOff"
-	Option "Spree Counter", "rs_score_hud_showspree", "OnOff"
-	Option "Show Plain Kill Points", "rs_score_hud_showbase", "OnOff"
+	Option "Show Base Points Line", "rs_score_hud_showbase", "OnOff"
 	Option "Flash On Score", "rs_score_hud_flash", "OnOff"
 	StaticText " "
 
-	StaticText "Colors"
-	Option "Score Number", "rs_score_hud_color", "RS_ScoreColor"
-	Option "Bar -- Toward Ammo", "rs_score_hud_barcolor", "RS_ScoreColor"
-	Option "Bar -- Toward Life", "rs_score_hud_lifecolor", "RS_ScoreColor"
+	StaticText "Additions", "GOLD"
+	StaticText "Off by default -- changes how the readout reads.", "DarkGray"
+	Option "Spree Counter", "rs_score_hud_showspree", "OnOff"
 	StaticText " "
 
-	Slider "Bonus Popup Time -- Tics", "rs_score_bonustime", 35, 350, 5, 0
+	Slider "Bonus Popup Time -- Tics", "rs_score_bonustime", 5, 350, 5, 0
 }
 
-OptionValue "RS_ScoreColor"
-{
-	0, "Gold"
-	1, "White"
-	2, "Red"
-	3, "Green"
-	4, "Blue"
-	5, "Magenta"
-	6, "Cyan"
-	7, "Orange"
-}
+// The RS_ScoreColor preset list lived here. It drove three cvars that
+// tinted the old Screen.Dim rectangles; the readout now draws the
+// RSSCBG/RSSCBR/RSSCLF art in graphics/score/ and the RSScore_* gradients
+// from TEXTCOLO.txt, so there is nothing left for a flat preset colour to
+// apply to. Removed along with the cvars rather than left as a menu page
+// that silently does nothing.

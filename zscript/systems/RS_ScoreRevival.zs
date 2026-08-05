@@ -1,7 +1,6 @@
 // =====================================================================
 // RS_ScoreRevival -- the death fire cone.
 //
-// Port of dakka's DakkaReviveExplosion (pk3/decorate/main/scorestuff.dec).
 // When a player who has banked an extra life would die, they are pulled
 // back at full health, made briefly untouchable, and the ground erupts:
 // eight flame streams thrown outward and eight more raked along the
@@ -9,12 +8,10 @@
 // The result is a rotating cone of fire that clears the room that just
 // killed you.
 //
-// The original is written as a DECORATE state machine with A_SpawnItemEx
-// repeated eight times per frame at hardcoded angles (0/45/90/.../315)
-// because DECORATE has no loops. This version keeps the exact same
-// behavior and timings, but spawns in a real loop and reads its own
-// tuning from cvars, so the cone can be resized, retimed, recolored or
-// made harmless without editing states.
+// The arms are spawned in a real loop and every dimension of the cone --
+// arm count, spin duration, blast damage and radius -- is a cvar, so it
+// can be resized, retimed or made purely cosmetic without editing a
+// single state.
 //
 // SPRITES: uses RSI1/RSI2 (sprites/combatfx/fire/), the same flame
 // sheets RS_FireLoop already draws from -- verified present on disk, 13
@@ -60,7 +57,8 @@ class RS_ReviveExplosion : Actor
 	}
 
 	// One rotation step: eight airborne streams + eight ground rakes.
-	// dakka wrote these as sixteen literal A_SpawnItemEx lines.
+	// A loop, not sixteen hand-written A_SpawnItemEx lines -- which is
+	// what makes rs_score_revive_arms a real knob rather than a comment.
 	void SpawnRing()
 	{
 		int arms = clamp(CVInt("rs_score_revive_arms", 8), 1, 32);
@@ -95,9 +93,9 @@ class RS_ReviveExplosion : Actor
 				A_StartSound("weapons/rocklx", CHAN_BODY, CHANF_DEFAULT, 1.0, ATTN_NONE);
 			}
 
-			// The opening thump. dakka used A_Explode(384, 256) -- a
-			// genuine room-clearer, which is the point of spending a
-			// life. Tunable, and settable to 0 for a cosmetic-only cone.
+			// The opening thump. 384 damage at radius 256 is a genuine
+			// room-clearer, which is the point of spending a life.
+			// Tunable, and settable to 0 for a cosmetic-only cone.
 			int dmg = clamp(CVInt("rs_score_revive_blast", 384), 0, 2000);
 			int rad = clamp(CVInt("rs_score_revive_blastradius", 256), 16, 1024);
 			if (dmg > 0)
@@ -126,8 +124,9 @@ class RS_ReviveExplosion : Actor
 
 
 // ---------------------------------------------------------------------
-// The outward flame stream. Damages, pierces, ignores invulnerability
-// -- same flag set dakka gave it.
+// The outward flame stream. Damages, pierces, ignores invulnerability --
+// the cone is bought with a life, so it is not politely stopped by armour
+// or an invulnerability sphere on the thing that just killed you.
 // ---------------------------------------------------------------------
 class RS_RevivalFlame : Actor
 {

@@ -7,6 +7,10 @@
 
 RS_UI_SHEET_TITLE = "";
 
+// Arcade score readout. Drawn in RSScore_White, immediately followed by
+// the number in RSScore_Gold -- the trailing space is part of the string.
+RS_SCORE_LABEL = "Score: ";
+
 // --- The affix slate (docs/rs_09_affix_slate.txt) --------------------
 
 TFLV_Upgrade_RS_Splitter_Name = "Splitter";
