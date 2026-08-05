@@ -391,19 +391,31 @@ enumerated holes in a port that is substantially built.
       BrownMindCommand as Powerups. Abyss Caco's Missile.T06 rewired.
       Three CH bugs fixed rather than reproduced (see the file header).
 
-  L2. REWIRE THE REMAINING PACK-BUFF CALL SITES.
-      The classes exist; three monsters still have the stripped call.
-      RS_Spectre T08 (BrownImpCommand + SpeedBuffPE, header line 64),
-      RS_Revenant T08, RS_demon_projectiles:384. Read each against its
-      CHP source file before wiring -- do not pattern-match.
+  L2. REWIRE THE REMAINING PACK-BUFF CALL SITES.  -- DONE (a97dbafa).
+      Spectre T08's Scatter was missing CHP 07_BR:38-41 entirely, so its
+      "rally" healed and threw orbs but never hastened anything. Demon
+      T08 fires BrownImpCommand from its DEATH state (CHP 06_BR:111) --
+      a dying roar. Both restored.
 
-  L3. THE REVENANT SPEED LINE.  brownrevspeed / brownrevspeed2 /
-      revbuffex / revbuffexchp / revkillex. brownrevspeed2 juggles
-      RevSpeedBuff2 / RevSpeedBuff3 tokens and HALVES speed on one
-      branch; CH's own comment on it is "THIS SCRIPT CAN GO BURN IN
-      HELL!!!". Read it properly before porting.
+  L3. THE REVENANT SPEED LINE.  -- DONE (1cdcc26e).
+      brownrevspeed2 decoded: under 45 lines of token-juggling and
+      NOSKIN-flag abuse it is "double speed for 210 tics". Every
+      SetActorProperty(SPEED, Normal/2) branch is the UNDO path, not a
+      penalty. Rebuilt as RS_RevSpeedBuff. Wired at all three CHP sites
+      -- See.T08 twice per walk cycle at radius 256, XDeath.T08 at 1200.
+      NO boss exemption, matching CH (the other four scripts have one).
+      STILL OPEN in this family: revbuffex, revbuffexchp, revkillex.
 
-  L4. THE PAIN ELEMENTAL LINE.  pehulk, perage. Same Powerup shape as L1.
+  L4. THE PAIN ELEMENTAL LINE.  -- DONE (64e52e78).
+      PERAGE = +50% damage DEALT (DamageMultiply) + NOPAIN.
+      PEHULK  = QUARTER damage RECEIVED (DamageFactor) + QUICKTORETALIATE
+      + DONTTHRUST, and CLEARS NoDropOff. Two different damage properties
+      pointing opposite ways -- confusing them silently inverts the buff.
+      RS_BufferWhitePE restored to CHP's 3-way roll (red rage / green hulk
+      / blue speed, 600 tics each). Its stripped copy had INVENTED a
+      15-point heal that CHP's actor does not have -- a fabricated
+      mechanic standing in for a real one, which is worse than an empty
+      state because it looks finished.
 
   L5. MISSILE SELECTION.  baronmissile, cybmissile, fatmissile,
       impmissile -- 16 tier copies each for baron and cyb, so these are
@@ -536,7 +548,7 @@ END OF REGISTER.  Generated 2026-08-04.
 55 entries: 49 objectives, plus Part H's 5 standing constraints (tests, not
 tasks) and Part K's single correction record.
 Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1 L8 M4.
-CLOSED SO FAR: A1 A2 A3 A4 A6 D1 D5 J1 L1 L2 -- ten. C1 killed (WONT DO,
+CLOSED SO FAR: A1 A2 A3 A4 A6 D1 D5 J1 L1 L2 L3 L4 -- twelve. C1 killed (WONT DO,
 the premise was wrong); C2 answered by CHP itself, no decision needed.
 REMAINING OPEN: 49.
 
