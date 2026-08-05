@@ -529,6 +529,51 @@ PLACE, AND THE DIFFERENCE MATTERS.
   the MAPINFO registration and the rest of the mod is untouched -- this
   system adds files and appends to config lumps, it restructures nothing.
 
+OPEN -- NEEDS THE OWNER (SCORE LANE)
+  The list above at line 243 is all monster-lane. These four are the
+  score lane's, and 1 and 3 are the ones that actually block progress.
+
+  1. A BOOT AND THE COMPILE LOG. The single blocking dependency. This
+     lane cannot compile; the owner boots and pastes. Nothing about the
+     HUD or the fire cone can be trusted until that happens, and the
+     first paste is expected to contain errors from RS_ScoreHUD.zs and
+     RS_ScoreRevival.zs specifically -- they have never been through a
+     compiler (see COMPILE STATUS above). Protocol is unchanged: ONE
+     boot, ONE punch-list, ONE fix pass. Do not iterate blind.
+
+  2. A LOOK AT THE HUD, AFTER IT BUILDS. Nobody has ever seen it. Every
+     default in it is a guess made without a screenshot:
+       position 85% across / 10% down, scale 100%, score in gold
+       bonus popups live 105 tics (3s), stacked 11px apart
+       spree drain bar assumes a 360-tic window
+     All of it is cvar-driven and repositionable at runtime (Arcade
+     Score -> Score Display), so this is a tuning conversation, not a
+     rebuild. Expect the stack to be too busy or too quiet on first
+     contact; rs_score_bonustime is the first dial to reach for.
+
+  3. THE CASH-IN -- GENUINELY UNDECIDED, AND THE ONE REAL DESIGN GAP.
+     Score currently pays out ONLY in extra lives and ammo regen, on an
+     alternating threshold. There is NO SPEND. The owner raised wanting
+     one ("we could even cash in the points somehow", "we would need to
+     figure out score costs for things") and it was never resolved.
+     What IS settled is the LAW, recorded above: never gold, never an
+     exchange rate, its own price list if it exists at all.
+     What is NOT settled: whether a spend should exist, and on what.
+     The granularity problem is the reason it stalled and it is real --
+     gold is awarded one at a time, score arrives in the hundreds per
+     kill, so any price list has to be authored in score's own units
+     rather than translated from an existing one. Do not start building
+     a shop before this is answered; the answer determines whether the
+     reward thresholds need re-pacing too.
+
+  4. REWARD PACING, ONLY ANSWERABLE BY PLAYING IT. The per-map bar is
+     derived from that map's monster population (rs_score_monsterscalar
+     0.30, clamped between 30 and 400 monsters). The formula is dakka's
+     and sound, but the constants are untuned for THIS bestiary and this
+     project's tier-weighted point values. A bar might land every 30
+     seconds or once per map. One real playthrough settles it; no amount
+     of reading the code will.
+
 DEFERRED, BY THE OWNER
   Deconstructing dakka's nine weapons into RS_AttackProfile entries and
   GunBonsai upgrade cards. The agreed shape was to mine the MECHANICS
