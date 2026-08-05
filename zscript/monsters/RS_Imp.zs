@@ -358,6 +358,11 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 	See.T00:
 		"TROO" AABBCCDD 3 { A_Chase(); }
 		Loop;
+	// CHP aliases Melee: straight onto this state (03_C.txt:19-20) --
+	// one action that claws inside range and lobs outside it. Without the
+	// alias MeleeState is null and P_CheckMissileRange hands T00 the
+	// -128 "no melee attack, so fire more" bonus it is not entitled to.
+	Melee.T00:
 	Missile.T00:
 		"TROO" EF 8 { A_FaceTarget(); }
 		"TROO" G 6 { A_CustomComboAttack("RS_DoomImpBall", 32, 3 * random(1, 8), "imp/melee"); }
@@ -554,11 +559,16 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 		"TRO3" G 0 A_CheckSight("See");
 		"TRO3" EF 8 { A_FaceTarget(); }
 		"TRO3" G 7 { A_SpawnProjectile("RS_Bounc11", 42, 3, random(-9, 9)); }
-		TNT1 A 0 A_Jump(96, "Missile.T04.Spread");
+		// CHP's Missile ENDS here -- `Goto See`, no jump. The spread is
+		// reachable ONLY from Pain.fire (03_P.txt:40-44), at 64/256.
+		// This 96/256 chain off every ordinary volley was invented.
 		Goto See;
 	Missile.T04.Spread:
 		"TRO3" EF 6 Bright;
-		"TRO3" G 6 Bright { A_FaceTarget(); }
+		// A_FaceMovementDirection, NOT A_FaceTarget (03_P.txt:33). CHP's
+		// spread is flung along its own travel vector -- aiming it at the
+		// player turns a wild flail into a tracked attack.
+		"TRO3" G 6 Bright { A_FaceMovementDirection(); }
 		"TRO3" GG 2 Bright { A_SpawnProjectile("RS_Bounc11", 42, 3, random(-13, 13)); }
 		Goto See;
 	Pain.T04:
@@ -637,7 +647,23 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 		Goto See;
 	Missile.T06:
 		TNT1 A 0 { bNOPAIN = false; }
-		TNT1 A 0 A_JumpIfCloser(700, "Missile.T06.Dash");
+		// CHP: A_jumpifCloser(700,"HM"), and HM is a_jump(64,"HM2") --
+		// a 25% dash, 75% straight to the volley (03_A.txt:42-44).
+		// This used to dash EVERY time inside 700.
+		TNT1 A 0 A_JumpIfCloser(700, "Missile.T06.Roll");
+		"IMPA" EF 8 { A_FaceTarget(); }
+		"IMPA" G 6 { A_SpawnProjectile("RS_AbyssBallCH", 32, 3, random(-1, 1)); }
+		"IMPA" EF 4 { A_FaceTarget(); }
+		"IMPA" GG 1 { A_SpawnProjectile("RS_AbyssBallCH", 32, 3, random(-9, 9)); }
+		Goto See;
+	// CHP's HM (03_A.txt:42-44). 25% dash, 75% fall through to the
+	// volley -- and CHP's fall-through is `Goto Missile+2`, which lands
+	// PAST the NOPAIN clear and the range check, which is exactly why
+	// the volley cannot loop back into another range test.
+	Missile.T06.Roll:
+		TNT1 A 0 A_Jump(64, "Missile.T06.Dash");
+		Goto Missile.T06.Volley;
+	Missile.T06.Volley:
 		"IMPA" EF 8 { A_FaceTarget(); }
 		"IMPA" G 6 { A_SpawnProjectile("RS_AbyssBallCH", 32, 3, random(-1, 1)); }
 		"IMPA" EF 4 { A_FaceTarget(); }
@@ -654,12 +680,20 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 		"IMPA" F 5 { A_FaceTarget(); }
 		TNT1 AAAAAAAAAA 0 { A_SpawnItemEx("RS_SplashAbyss2", random(-128, 328), random(-178, 178), random(6, 16), 0, 0, 2, 0, SXF_NOCHECKPOSITION); }
 		"IMPA" G 2;
-		Goto See;
+		// CHP is `Goto missile` (03_A.txt:58) -- it re-enters, re-clears
+		// NOPAIN, re-rolls the range check, and can chain dash into dash
+		// for as long as you stay inside 700. This used to be Goto See,
+		// so it dashed once and disengaged.
+		Goto Missile;
 	Pain.T06:
 		"IMPA" H 1 { bNOPAIN = true; }
 		"IMPA" H 1 { A_Pain(); }
 		TNT1 AAAAA 0 { A_SpawnItemEx("RS_SplashAbyss", random(-8, 8), random(-8, 8), random(5, 32)); }
 		"IMPA" H 1 A_Jump(64, "Missile.T06.Dash");
+		// CHP's Agh (03_A.txt:64-66), reached by FALL-THROUGH from Pain.
+		// The 75% of pains that do not dash lunge instead -- there is no
+		// version of hurting the abyss imp that makes it back off.
+		"IMPA" AA 3 { A_FastChase(); }
 		Goto See;
 	Death.T06:
 		"IMPA" I 8;
@@ -798,6 +832,12 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 		"GIMP" D 0 { A_SpawnProjectile("RS_GImpNail", 32, 0, 105); }
 		"GIMP" D 0 { A_SpawnProjectile("RS_GImpNail", 32, 0, 165); }
 		"GIMP" D 0 { A_SpawnProjectile("RS_GImpNail", 32, 0, 195); }
+		// CHP 03_GY.txt:39-41 -- ring 2 is EIGHT nails, not five.
+		// 255/285/345 were missing, leaving a permanent 90-degree safe
+		// arc in exactly the quadrant ring 1 also leaves open.
+		"GIMP" D 0 { A_SpawnProjectile("RS_GImpNail", 32, 0, 255); }
+		"GIMP" D 0 { A_SpawnProjectile("RS_GImpNail", 32, 0, 285); }
+		"GIMP" D 0 { A_SpawnProjectile("RS_GImpNail", 32, 0, 345); }
 		Goto See;
 	Pain.T09:
 		"GIMP" H 3 { A_Pain(); }
@@ -824,7 +864,10 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 	Melee.T10:
 		"PRIM" EF 8 { A_FaceTarget(); }
 		"PRIM" G 6 { A_CustomMeleeAttack(random(10, 38), "imp/melee"); }
-		Goto See;
+		// NO Goto -- CHP's Melee falls straight through into Missile
+		// (03_R.txt:20-23). Every claw ALWAYS chains into the 5-ball
+		// burst. Closing on the red imp used to disarm it; in CHP it
+		// guarantees one.
 	Missile.T10:
 		"PRIM" EF 4 { A_FaceTarget(); }
 		"PRIM" G 3;

@@ -825,6 +825,12 @@ class RS_Impthing3 : Actor
 		MISL D 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 165, CMF_AIMDIRECTION); }
 		MISL D 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 195, CMF_AIMDIRECTION); }
 		MISL D 1 { A_SpawnProjectile("RS_GImpNail", 0, 0, 225, CMF_AIMDIRECTION); }
+		// CHP fires TWELVE at 30-degree spacing (03_GY.txt:1079-1103).
+		// 255/285/315/345 were missing -- the corpse ring was not closed.
+		TNT1 A 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 255, CMF_AIMDIRECTION); }
+		TNT1 A 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 285, CMF_AIMDIRECTION); }
+		TNT1 A 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 315, CMF_AIMDIRECTION); }
+		TNT1 A 0 { A_SpawnProjectile("RS_GImpNail", 0, 0, 345, CMF_AIMDIRECTION); }
 		Stop;
 	}
 }
