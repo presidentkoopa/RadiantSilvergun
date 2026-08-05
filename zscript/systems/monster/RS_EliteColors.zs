@@ -409,7 +409,10 @@ class RS_EliteC04_Yellow : RS_EliteColorController
 		if (elite.health < 1 || elite.tics <= 0)
 			return;
 		if (prevState != elite.curState)
-			elite.A_SetTics(int(elite.tics / factor));
+			// Floor at 1: int(1/1.5) is 0, and a 0-tic state chains
+			// instantly -- every per-frame action at 35Hz, the documented
+			// multi-frame-explode defect class. Found by audit 2026-08-05.
+			elite.A_SetTics(max(1, int(elite.tics / factor)));
 		prevState = elite.curState;
 	}
 
