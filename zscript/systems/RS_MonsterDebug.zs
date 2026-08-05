@@ -146,6 +146,63 @@ class RS_MonsterDebug : EventHandler
 	}
 
 	// -----------------------------------------------------------------
+	// SPAWN A SET -- ONE family, EVERY tier it has, in a row, left to
+	// right, T00 nearest the left.
+	//
+	// This is the verification tool rs_21 section 6 depends on. "The
+	// owner walks every tier before the family is called done" is
+	// fourteen spawn-and-retier cycles per family with the existing
+	// buttons; here it is one button and the whole ladder is standing in
+	// front of you at once, which also makes a tier that looks WRONG
+	// obvious by comparison with its neighbours rather than from memory.
+	//
+	// Reads the family's own MaxTier() rather than assuming 12 or 13.
+	// The ladder is deliberately open-ended (TierLabel GENERATES labels),
+	// four families have no TEX body at all because CHP ships those
+	// KX/WX files as empty stubs, and hardcoding a ceiling here has
+	// already produced one wrong console report.
+	// -----------------------------------------------------------------
+	private void SpawnSet(PlayerPawn pmo, int i)
+	{
+		// Same string -> Class<Actor> idiom SpawnAt uses; it is proven here
+		// and this engine build is not the place to invent a second one.
+		string cls = DbgClass(i);
+		Class<Actor> c = cls;
+		if (!c)
+		{
+			Console.Printf("\cgRS Set: class \"%s\" does not exist.", cls);
+			return;
+		}
+
+		// Peek the ceiling off the class DEFAULTS -- no spawn needed, and
+		// it cannot be got wrong by a clamp we did not expect.
+		let def = RS_MonsterMaster(GetDefaultByType(c));
+		if (!def)
+		{
+			Console.Printf("\cgRS Set: %s is not an RS_MonsterMaster.", cls);
+			return;
+		}
+		int top = def.MaxTier();
+
+		int n = top + 1;
+		double ang = pmo.angle;
+		Vector2 fwd  = (cos(ang), sin(ang));
+		Vector2 side = (cos(ang - 90), sin(ang - 90));
+
+		int spawned = 0, failed = 0;
+		for (int t = 0; t <= top; t++)
+		{
+			double across = (t - (n - 1) * 0.5) * RS_DBG_COLSTEP;
+			Vector3 p = (pmo.pos.xy + fwd * RS_DBG_START + side * across, pmo.pos.z);
+			if (SpawnAt(pmo, i, p, ang, t)) spawned++; else failed++;
+		}
+
+		Console.Printf("\ccRS Set: %s -- %d spawned, %d failed, T00 through %s.",
+		               cls, spawned, failed, RS_MonsterMaster.TierLabel(top));
+		Console.Printf("\ccLeft to right = lowest tier to highest. Any two that look alike are worth a second look.");
+	}
+
+	// -----------------------------------------------------------------
 	// RETIER. mode 0 = set to arg, 1 = add arg.
 	// -----------------------------------------------------------------
 	private void Retier(int mode, int arg)
@@ -383,6 +440,13 @@ class RS_MonsterDebug : EventHandler
 
 		if (e.Name ~== "rs_mon_line")
 			Lineup(pmo, GI("rs_mon_dbg_tier", 0));
+		// ONE event, family index in Args[0] -- `netevent rs_mon_set 3`.
+		// The spawn-one events below are one-per-family and predate this;
+		// they are left alone rather than rewritten, but do NOT add
+		// seventeen more lines here for the set buttons. MENUDEF passes
+		// the index.
+		else if (e.Name ~== "rs_mon_set")
+			SpawnSet(pmo, clamp(e.Args[0], 0, DbgCount() - 1));
 		else if (e.Name ~== "rs_mon_spawn_zombieman")
 			SpawnOne(pmo, 0);
 		else if (e.Name ~== "rs_mon_spawn_shotgunner")

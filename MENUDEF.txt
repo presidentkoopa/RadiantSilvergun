@@ -409,6 +409,7 @@ OptionMenu "RS_MonsterDebugMenu"
 	// ceiling whenever a family's MaxTier() goes higher.
 	Slider  "Tier to spawn at  (13 = TEX)", "rs_mon_dbg_tier", 0, 15, 1, 0
 	Command "SPAWN ROW -- one of every family", "netevent rs_mon_line"
+	Submenu "SPAWN SET -- every tier of ONE family", "RS_MonsterDebugSpawnSetMenu"
 	Submenu "Spawn ONE family (T00) -- for bisecting", "RS_MonsterDebugSpawnOneMenu"
 	Command "Remove all RS monsters", "netevent rs_mon_clear"
 	StaticText " "
@@ -430,6 +431,46 @@ OptionMenu "RS_MonsterDebugMenu"
 	StaticText "AUDIT needs no spawns; it reads the tables directly.", 2
 	StaticText "WAKE tells you whether standing still is a targeting", 2
 	StaticText "problem or a state-machine problem.", 2
+}
+
+// ---------------------------------------------------------------------
+// SPAWN SET -- every tier of ONE family, in a row, T00 on the left.
+// This is the tool rs_21's verification loop runs on: "walk every tier
+// before the family is called done" is fourteen spawn-and-retier cycles
+// with the other pages, and one button here. Standing the whole ladder
+// side by side also makes a WRONG tier visible by comparison with its
+// neighbours instead of from memory -- which is how the Baron T10
+// question got asked in the first place.
+// Args[0] is the family index; the handler clamps it.
+// ---------------------------------------------------------------------
+OptionMenu "RS_MonsterDebugSpawnSetMenu"
+{
+	Title "Spawn Set (all tiers)"
+	StaticText " "
+	StaticText "One family, every tier it has, left to right.", 2
+	StaticText "Reads each family's own MaxTier -- four families", 2
+	StaticText "have no TEX because CHP ships those as empty stubs.", 2
+	StaticText " "
+
+	Command "Zombieman set",      "netevent rs_mon_set 0"
+	Command "Shotgunner set",     "netevent rs_mon_set 1"
+	Command "Chaingunner set",    "netevent rs_mon_set 2"
+	Command "Imp set",            "netevent rs_mon_set 3"
+	Command "Demon set",          "netevent rs_mon_set 4"
+	Command "Spectre set",        "netevent rs_mon_set 5"
+	Command "Lost Soul set",      "netevent rs_mon_set 6"
+	Command "Cacodemon set",      "netevent rs_mon_set 7"
+	Command "Pain Elemental set", "netevent rs_mon_set 8"
+	Command "Baron set",          "netevent rs_mon_set 9"
+	Command "Hell Knight set",    "netevent rs_mon_set 10"
+	Command "Revenant set",       "netevent rs_mon_set 11"
+	Command "Mancubus set",       "netevent rs_mon_set 12"
+	Command "Arachnotron set",    "netevent rs_mon_set 13"
+	Command "Archvile set",       "netevent rs_mon_set 14"
+	Command "Mastermind set",     "netevent rs_mon_set 15"
+	Command "Cyberdemon set",     "netevent rs_mon_set 16"
+	StaticText " "
+	Command "Remove all RS monsters", "netevent rs_mon_clear"
 }
 
 // ---------------------------------------------------------------------
