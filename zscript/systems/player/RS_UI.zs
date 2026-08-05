@@ -623,14 +623,10 @@ class RS_UIHandler : EventHandler
 			// panel. No args = offhand slot; falls back to ready weapon.
 			if (mShowcase)
 			{
-				// CROSS-LANE COMPILE FIX 2026-08-05 (billboard lane, please
-				// re-own): level.RemoveBillboard does not exist in the current
-				// DoomXR build (v0.1-4-g9184e97352-m) -- AttachBillboard below
-				// compiles, only the removal entry point is missing. The card
-				// is attached to mShowcase, destroyed on the next line, so the
-				// attachment goes down with its owner. Restore the explicit
-				// call when the engine exports it:
-				// if (mCardActive) level.RemoveBillboard(mCardBB);
+				// (Explicit removal restored 2026-08-05 late -- the current
+				// E:\DXR2 build exports RemoveBillboard; verified in its pk3.
+				// The attachment would also die with mShowcase regardless.)
+				if (mCardActive) level.RemoveBillboard(mCardBB);
 				mCardActive = false;
 				mShowcase.Destroy();
 				mShowcase = null;
