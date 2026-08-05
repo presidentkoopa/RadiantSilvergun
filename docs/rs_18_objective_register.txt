@@ -697,3 +697,78 @@ REMAINING OPEN: 49.
   snapshot with no version on it; re-read from the commit before building
   anything on top of it.
 ================================================================================
+
+
+================================================================================
+PART O -- THE MASTER CATALOGUE PASS.  Owner, 2026-08-05. NOT STARTED.
+================================================================================
+
+  O1. ONE COMPREHENSIVE DATABASE OF EVERY SPRITE SEQUENCE AND EVERY
+      MONSTER ATTACK, from which PACK attack profiles are built.
+
+      Owner's words: "a master pass on literally every sprite sequence,
+      monster attack, etc -- a comprehensive database from which we can
+      PACK attackprofiles." Explicitly deferred at the time it was
+      raised. DO NOT START IT because it appears here.
+
+      WHY IT IS NOT A GREENFIELD JOB. Seven files already hold pieces of
+      this, in three incompatible shapes, and a master pass that ignores
+      them will be the eighth:
+
+        docs/rs_MASTER_FX_CATALOG.txt    8.6K  ** PROTECTED, see CLAUDE.md **
+              Every combat visual effect, descriptors written by actually
+              viewing thousands of sprite frames. Nothing else in the
+              repo holds this. Expensive to recreate. The master pass
+              should GROW this or supersede it deliberately -- never
+              quietly duplicate it.
+        docs/EFFECT_CATALOG.md           6.3K
+              Sprite-token descriptors (RSR6, RSS2, RSF8...). Source
+              lineage per token. This is the SPRITE half.
+        docs/rs_12_catalog_index.txt      80K
+              The largest existing index.
+        docs/rs_13_signature_shortlist.txt 28K
+        docs/catalog_notes.txt           1.2K
+        docs/monsters/Zombieman/CATALOG.md  77K  32 attack entries
+        docs/monsters/Shotgunner/CATALOG.md 23K  31 attack entries
+              These two are the ATTACK half and the only ones in rs_21
+              section 4 format -- kind: first, axes: restricted to the
+              live vocabulary, missing axis values FLAGGED not invented.
+              They are the shape the master pass should generalise.
+
+      Code side: zscript/systems/RS_Catalog.zs and RS_MonsterCatalog.zs
+      already exist and are what the accessors resolve through.
+
+      THE THREE THINGS THAT WILL DECIDE WHETHER IT WORKS
+
+      1. THE AXIS VOCABULARY IS THE BOTTLENECK, NOT THE ENTRIES.
+         Both family catalogues already list axis values they needed and
+         could not have: element:ice(*), element:poison, element:bone,
+         element:mud, element:abyss, a jam/reload trigger:, a rail
+         delivery:. Every one was flagged rather than invented, which is
+         correct and also means the database currently cannot describe
+         those attacks. EXTENDING THE VOCABULARY IS AN rs_17 DECISION AND
+         IT BLOCKS THE MASTER PASS. Do that first or the pass will
+         produce entries nobody can select on.
+         (*) ice was later confirmed live -- see rs_23.
+
+      2. NO ENTRY CAN CARRY A REAL `profile:` LINE YET.
+         RS_AttackProfile cannot express bullet counts, jam/reload
+         cycles, or rail beams. Family 01 flagged this on its hitscan
+         tiers; family 02 has it on 31 of 31. A database whose profile:
+         lines are aspirational is a database that lies. Either the
+         profile system grows first, or the field stays honestly empty.
+
+      3. SPRITE SEQUENCES ARE THE HALF NOBODY HAS DONE.
+         The two family CATALOGs describe ATTACKS and cite sprite tokens
+         in passing. Nothing systematically describes SEQUENCES -- which
+         frames are a wind-up, which are the commit, which are recovery.
+         That is what a "fires on beat 3 of 5" profile actually needs,
+         and it is the genuinely new work. CLAUDE.md's warning applies
+         with full force: sprite filenames here are cryptic and actively
+         misleading, 40 sprites were once assumed to be revolver muzzle
+         flashes from the prefix alone. Open the frames.
+
+      SCOPE, honestly: 17 families x ~14 tiers, and two families are
+      done. Fifteen to go at roughly 30 entries each. This is an
+      agent-swarm job in the rs_23 shape -- documentation only, no .zs
+      writes, every claim citing FILE:LINE -- not a single session.
