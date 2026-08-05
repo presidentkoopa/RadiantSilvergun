@@ -108,25 +108,55 @@ PART C -- DECISIONS ONLY THE OWNER CAN MAKE.
       SPIR ABCDEDCBA, 9 frames, radius 178. Flagged for a decision either
       way rather than being resolved by a default.
 
-  C3. THE SCORE CASH-IN.
-      Score pays out only in extra lives and ammo regen; there is no spend
-      and the owner raised wanting one. The LAW is settled (never gold,
-      never an exchange rate, its own price list if it exists at all) --
-      whether a spend exists, and priced on what, is not.
+  C3. THE SCORE CASH-IN.  -- ANSWERED 2026-08-04: NO. LEAVE IT ALONE.
+      Owner: "leave the score alone for now, all it does is what it's
+      supposed to do as instructions from its repo, dakka." No spend, no
+      price list, no shop. The system stays as ported.
+      WHAT IS ACTUALLY WANTED, later and low priority: TOTAL VISUAL
+      CONTROL of the readout -- "beautiful, dynamic, colorized,
+      customizable." That is a HUD job, not an economy job, and it
+      belongs with B2 rather than here. B2/B3 both drop in priority.
 
-  C4. STRIKE THE CANDIDATE POOL.
-      ~50 named cards at rs_16 line 217. Anything unstruck is approved to
-      build; nothing from it should be built unasked.
+  C4. STRIKE THE CANDIDATE POOL.  -- ANSWERED 2026-08-04: NOTHING STRUCK.
+      Owner: "the card pool is fine i love it, we will manually perfect
+      each one later i just need them built for now."
+      So the whole ~50-card pool at rs_16:217 is APPROVED TO BUILD, and
+      per-card tailoring (F8) is explicitly deferred until they exist.
+      Build breadth first, polish second -- the opposite of the usual
+      order here, and deliberate.
 
   C5. CAN A ROTATION MIX TRIGGER SHAPES?
       Beat 1 instant, beat 3 a charge -- the slot machinery allows it
       mechanically. Whether it is legible to a player pulling a trigger is a
       design call, and it is the rotation layer's first real player-side use.
 
-  C6. LOADOUT UI -- LAYOUT A OR B, AND THE SHARED-WEAPON RULE.
-      Paused mid-comparison; everything else on that screen is settled.
-      Second half of the question: can both hands equip the SAME weapon, or
-      does equipping one side grey it out of the other's list.
+  C6. LOADOUT UI.  -- REFRAMED 2026-08-04. THE OLD QUESTION WAS WRONG.
+      This entry used to ask "layout A or B, and can both hands equip the
+      same weapon", inherited from a paused design session. The owner's
+      answer was "loadout? i do not understand" -- because that is not
+      what he wants the screen to be. Recorded properly:
+
+      IT IS A SLOT BOARD FOR THE ACTIVE Dual_ CLASS. Given a
+      VR_Dual_<archetype> player, show what occupies each of the seven
+      Doom slots. That maps 1:1 onto SlotNumber values already assigned
+      in this tree -- no new data is needed:
+        slot 1  Chainsaw + Fist
+        slot 2  class weapon 1 + 2      (e.g. VR_Revolver  / VR_Revolver2)
+        slot 3  class weapon 3 + 4      (VR_Revolver3 / VR_Revolver4)
+        slot 4  class weapon 5 + 6      (VR_Revolver5 / VR_Revolver6)
+        slot 5  RocketLauncher
+        slot 6  PlasmaRifle
+        slot 7  BFG9000
+      Six class weapons across three paired slots, plus the three fixed
+      heavies. VR_Dual_Revolver's own StartItems confirm the pairing
+      (VR_Revolver + VR_Revolver4).
+      The A/B mockup comparison and the shared-weapon question are DEAD --
+      they were solving a screen nobody asked for. What survives from that
+      session is the DATA list (procedural mode glyphs, tier colour ladder,
+      field order); see the loadout memory note.
+      OWNER ASIDE, recorded not actioned: "we can discuss the
+      pointlessness of keeping rocket/plasma/bfg some other time."
+
 
 ================================================================================
 PART D -- MONSTER AND LINT CORRECTNESS.
@@ -524,6 +554,51 @@ vanilla compared to their CHP tiers."
       measurement says the states are not where the problem is.
 
 ================================================================================
+PART N -- ACQUISITION AND IDENTITY.  New, from the owner 2026-08-04.
+All LATER; recorded now so the shape is not re-derived. None of these
+block anything and none should be started unasked.
+================================================================================
+
+  N1. VANILLA+ AS AN ACQUISITION PATH FOR THE RS_GH_ SET.
+      Owner: "if i pick vanilla+ then i could get the RS_GH_ set as i play
+      the game." So the GH weapons stop being a parallel start-class and
+      become things the Vanilla+ player FINDS. This is the first concrete
+      job for F1 (weapon drops above Basic) to feed -- the two are one
+      feature, not two.
+
+  N2. PERCENTAGE WEAPON REPLACEMENT ON PICKUP.
+      Owner: "% chance to replace chaingun with minigun or machinegun, %
+      chance to replace rocket with grenade launcher." A roll at spawn
+      that swaps a slot's occupant for another weapon of the same slot and
+      archetype. The arsenal already has the candidates -- slot 2/3/4 each
+      hold 14 VR_ weapons and the RS_GH_ set adds more.
+      WATCH rs_17's CONVERGENCE TRAP (H4): if every chaingun can become a
+      minigun, every chaingun eventually IS one. The roll has to preserve
+      the host's rolled statline, not import an absolute one.
+
+  N3. Dual_<ARCHETYPE> CLASSES WITH UNLOCKABLE WEAPON MODELS.
+      Owner, explicitly "much, much later": a player class keyed to an
+      archetype rather than a specific gun, with a POOL of visual models
+      per weapon ("a pool of, example, six revolver models") unlocked by
+      customising attack profiles. Cosmetic progression riding on the
+      profile system rather than a second economy.
+      NOTE this is VR-legal only as 3D models -- rs_16's rule stands: no
+      weapon sprites, nothing drawn on the weapon layer.
+
+  N4. SCORE HUD -- TOTAL VISUAL CONTROL.
+      Split out of C3, which is otherwise closed. "beautiful, dynamic,
+      colorized, customizable." The ~70 cvars and the three MENUDEF
+      subpages already exist, so this is a rendering job on top of a
+      control surface that is already built. Low priority, owner's words.
+
+  N5. THE UI VISUAL PASS.
+      Owner: "the data is good and on display but it needs to be visually
+      better, colored boxes / fields, arranged." BLOCKED ON THE OWNER
+      FINDING HIS SAMPLE -- "i have a sample on disk somewhere". Do not
+      guess at a layout before it arrives; that is what produced the dead
+      A/B comparison in C6.
+
+================================================================================
 PART K -- THE CORRECTION rs_17 FORCED ON THIS LIST.
 Kept as an entry rather than a silent edit, because the reasoning is the
 useful part.
@@ -547,7 +622,7 @@ useful part.
 END OF REGISTER.  Generated 2026-08-04.
 55 entries: 49 objectives, plus Part H's 5 standing constraints (tests, not
 tasks) and Part K's single correction record.
-Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1 L8 M4.
+Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1 L8 M4 N5.
 CLOSED SO FAR: A1 A2 A3 A4 A6 D1 D5 J1 L1 L2 L3 L4 -- twelve. C1 killed (WONT DO,
 the premise was wrong); C2 answered by CHP itself, no decision needed.
 REMAINING OPEN: 49.
