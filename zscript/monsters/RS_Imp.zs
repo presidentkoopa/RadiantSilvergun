@@ -90,7 +90,219 @@ class RS_Imp : RS_MonsterMaster replaces DoomImp
 		}
 		r.hpMul  = double(hp) / 60.0;
 		r.spdMul = double(spd) / 8.0;
+
+		// =============================================================
+		// THE CH PARENT PROPERTIES.  CH/decorate/Imps.txt.
+		// See docs/rs_24_ch_parent_properties.txt. Parent name and line
+		// on every case.
+		//
+		// THIS FAMILY IS THE UNIFORM ONE. Species is "Imp" on all
+		// fourteen tiers -- no splits, no blanks. Imps never infight
+		// each other, at any tier, and that is deliberate: it is the
+		// horde family. Do not read the absence of variation here as a
+		// gap; families 02 and 04 vary because THEY are soldiers.
+		//
+		// +AVOIDMELEE APPEARS ON NO IMP TIER AT ALL. Grepped the whole
+		// of Imps.txt: zero hits. Every imp closes.
+		//
+		// +MISSILEMORE on twelve of fourteen -- everything except T00
+		// and T01. This is the most aggressive low-tier ladder in the
+		// bestiary, and unlike the gunner families there is no cautious
+		// counterweight anywhere in it.
+		//
+		// GibHealth is stated on NO CH imp parent. Every GibHealth this
+		// family has is CHP-side, so it is absent from this table by
+		// design, not oversight.
+		// =============================================================
+		r.mass = 100; r.scale = 1.0;
+		switch (t)
+		{
+			case 0:   // CommonImp : Doomimp          Imps.txt:987
+				// Inherits its whole body from Doomimp -- CH states no
+				// radius, height or mass. Left unstated here too; see
+				// rs_24's rule 2.
+				r.species = "Imp";
+				r.flags = RS_TF_DONTHARMSPECIES;
+				r.mass = 0;
+				break;
+			case 1:   // GreenImp : Doomimp          Imps.txt:1072
+				// No MISSILEMORE. With T00, the only two that lack it.
+				r.species = "Imp"; r.bloodColor = "Green";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_DONTHARMSPECIES;
+				break;
+			case 2:   // BlueImp : Doomimp           Imps.txt:1207
+				r.species = "Imp"; r.bloodColor = "blue";
+				r.radius = 20; r.height = 56;
+				r.flags = RS_TF_DONTHARMSPECIES;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 3:   // CyanImp2 (no parent)         Imps.txt:297
+				// Mass 500 and the only imp with a RenderStyle.
+				r.species = "Imp"; r.bloodColor = "Blue";
+				r.radius = 20; r.height = 56; r.mass = 500;
+				r.alpha = 0.99; r.renderStyle = STYLE_Add;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_QUICKTORETALIATE
+				        | RS_TF_NOICEDEATH | RS_TF_NOFEAR
+				        | RS_TF_LAXTELEFRAGDMG;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 4:   // PurpleImp : Doomimp         Imps.txt:1363
+				r.species = "Imp"; r.bloodColor = "Purple";
+				r.radius = 20; r.height = 56; r.mass = 130;
+				r.meleeRange = 64;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_QUICKTORETALIATE
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 5:   // YellowImp : Doomimp         Imps.txt:1535
+				r.species = "Imp"; r.bloodColor = "Yellow";
+				r.radius = 20; r.height = 56; r.mass = 130;
+				r.meleeRange = 68;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_QUICKTORETALIATE
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 6:   // AbyssImp2 (no parent)        Imps.txt:514
+				// +CANTSEEK is unique to this tier in the family --
+				// seeker missiles cannot lock onto it.
+				r.species = "Imp"; r.bloodColor = "Black";
+				r.radius = 20; r.height = 56; r.mass = 130;
+				r.meleeRange = 68;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_QUICKTORETALIATE
+				        | RS_TF_NOFEAR | RS_TF_CANTSEEK;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 7:   // FireBluImp2 : Doomimp        Imps.txt:726
+				r.species = "Imp"; r.bloodColor = "Purple";
+				r.radius = 20; r.height = 56; r.mass = 130;
+				r.meleeRange = 64;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_QUICKTORETALIATE
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 8:   // BrownImp2 (no parent)         Imps.txt:40
+				r.species = "Imp"; r.bloodColor = "red";
+				r.radius = 20; r.height = 56; r.mass = 130;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 9:   // GrayImp2 (no parent)         Imps.txt:854
+				r.species = "Imp"; r.bloodColor = "White";
+				r.radius = 20; r.height = 56; r.mass = 130;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 10:  // RedImp : DoomImp            Imps.txt:1688
+				r.species = "Imp";
+				r.radius = 20; r.height = 56; r.mass = 130;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_QUICKTORETALIATE
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.5;                    // +MISSILEMORE
+				break;
+			case 11:  // BlackImp1 (no parent)       Imps.txt:2300
+				// BOTH missile flags, and CHP does NOT strip them here.
+				r.species = "Imp";
+				r.radius = 20; r.height = 56; r.mass = 500; r.scale = 1.2;
+				r.radiusDamageFactor = 0.45;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_BOSS
+				        | RS_TF_TAKESRADIUSDMG | RS_TF_DONTMORPH
+				        | RS_TF_QUICKTORETALIATE | RS_TF_NOTARGET
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.0625;   // MORE *and* EVENMORE
+				break;
+			case 12:  // WhiteImp2 (no parent)       Imps.txt:2776
+				// CHP quadruples CH's Mass 120 to 500 (03_W.txt:7) and
+				// bumps Scale 1.25 -> 1.33. CHP wins on both.
+				r.species = "Imp";
+				r.radius = 20; r.height = 56; r.mass = 500; r.scale = 1.33;
+				r.radiusDamageFactor = 0.33;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_DONTHARMCLASS
+				        | RS_TF_BOSS | RS_TF_TAKESRADIUSDMG
+				        | RS_TF_DONTMORPH | RS_TF_QUICKTORETALIATE
+				        | RS_TF_NOTARGET;
+				r.missileChance = 0.0625;   // MORE *and* EVENMORE
+				break;
+			case 13:  // BlackImpEX (no parent)      Imps.txt:2085
+				// CH gives it +Missileevenmore at Imps.txt:2112 and CHP
+				// STRIPS IT BACK OFF at 03_KX.txt:8. The shipping EX has
+				// MISSILEMORE only. This is the whole reason the row is
+				// an absolute statement rather than a union -- read CH
+				// alone and this tier is four times as trigger-happy as
+				// it ships.
+				r.species = "Imp";
+				r.radius = 20; r.height = 56; r.mass = 5000; r.scale = 1.15;
+				r.radiusDamageFactor = 0.33;
+				r.flags = RS_TF_DONTHARMSPECIES | RS_TF_BOSS
+				        | RS_TF_TAKESRADIUSDMG | RS_TF_DONTMORPH
+				        | RS_TF_QUICKTORETALIATE | RS_TF_NOTARGET
+				        | RS_TF_NOFEAR;
+				r.missileChance = 0.5;      // MORE only -- CHP stripped
+				break;
+			default:
+				break;
+		}
 		return true;
+	}
+
+	// CH's per-tier DamageFactors, CH/decorate/Imps.txt.
+	//
+	// "Extinguishing" is the anti-imp type on T00-T10; the three bosses
+	// swap it for "Heroic". Both at 3.0 -- the same tell family 01 and
+	// 02 use.
+	override double TierDamageFactor(int t, Name damageType)
+	{
+		if (damageType == 'DIMp')
+			return 0.0;
+		if (damageType == 'Extinguishing')
+			return (t >= 11) ? 1.0 : 3.0;
+		if (damageType == 'Heroic')
+			return (t >= 11) ? 3.0 : 1.0;
+
+		switch (t)
+		{
+			case 3:   // CyanImp2 -- the frost imp
+				if (damageType == 'Melee')   return 1.5;
+				if (damageType == 'Fire')    return 1.5;
+				if (damageType == 'Ice')     return 0.15;
+				if (damageType == 'PLWater') return 0.25;
+				if (damageType == 'Falling') return 0.0;
+				break;
+			case 5:   // YellowImp
+				if (damageType == 'PLWater') return 1.5;
+				if (damageType == 'Fire')    return 0.75;
+				if (damageType == 'Ice')     return 0.85;
+				break;
+			case 7:   // FireBluImp2 -- it IS the fire one
+				if (damageType == 'Fire')    return 0.5;
+				break;
+			case 8:   // BrownImp2
+				if (damageType == 'Melee')   return 0.5;
+				break;
+			case 9:   // GrayImp2
+				if (damageType == 'Melee')   return 2.0;
+				break;
+			case 10:  // RedImp
+				if (damageType == 'Melee')   return 2.0;
+				if (damageType == 'Ice')     return 1.45;
+				break;
+			case 11:  // BlackImp1
+				if (damageType == 'Melee')   return 1.75;
+				if (damageType == 'Plasma')  return 1.1;
+				break;
+			case 12:  // WhiteImp2 -- 3.3x melee, the family's glass jaw
+				if (damageType == 'Melee')   return 3.3;
+				if (damageType == 'Plasma')  return 1.1;
+				break;
+			case 13:  // BlackImpEX
+				if (damageType == 'Melee')      return 1.5;
+				if (damageType == 'Plasma')     return 1.1;
+				if (damageType == 'PlayerVoid') return 0.6;
+				break;
+			default:
+				break;
+		}
+		return 1.0;
 	}
 
 	// Audit data. Every entry is a real, distinct CHP sprite set.

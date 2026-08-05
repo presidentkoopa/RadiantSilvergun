@@ -164,6 +164,11 @@ const RS_TF_FLOATBOB         = 1048576;
 const RS_TF_BOSSDEATH        = 2097152;
 const RS_TF_SEEINVISIBLE     = 4194304;
 const RS_TF_NOTIMEFREEZE     = 8388608;
+// Seeker missiles cannot lock onto it. Unique to the abyss imp in
+// family 03. Bit 24 -- the first word still has bits 24-30 free before
+// the sign bit, which is why RS_TF2_* starts over rather than
+// continuing here.
+const RS_TF_CANTSEEK         = 16777216;
 
 // SECOND FLAG WORD. RS_TF_* stops at bit 23 and int is signed 32-bit, so
 // the ghost/floater set added for families 05/07/09 lives here rather
@@ -768,6 +773,7 @@ class RS_MonsterMaster : Actor abstract
 		bBOSSDEATH        = (f & RS_TF_BOSSDEATH)        != 0;
 		bSEEINVISIBLE     = (f & RS_TF_SEEINVISIBLE)     != 0;
 		bNOTIMEFREEZE     = (f & RS_TF_NOTIMEFREEZE)     != 0;
+		bCANTSEEK         = (f & RS_TF_CANTSEEK)         != 0;
 		if (r.radiusDamageFactor > 0)
 			RadiusDamageFactor = r.radiusDamageFactor;
 
