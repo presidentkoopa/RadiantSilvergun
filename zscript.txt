@@ -54,6 +54,7 @@ version "4.14"
 // monster that owns it. Zombieman is the first family ported under that
 // law -- the rest follow as each is done.
 #include "zscript/monsters/Zombieman/attacks/RS_Zombieman_Undertaker.zs"
+#include "zscript/monsters/Zombieman/attacks/RS_Zombieman_BoneTornado.zs"
 
 // CH/CHP's pack-buff ACS, rebuilt as ZScript Powerups. The import
 // dropped these as "empty ACS wrappers"; the behaviour lived in the ACS

@@ -996,7 +996,14 @@ class RS_Zombieman : RS_MonsterMaster replaces Zombieman
 		"MAGE" E 5;
 		"MAGE" E 3 Bright;
 		"MAGE" E 3;
-		"MAGE" F 5 Bright { A_SpawnProjectile("RS_BoneTorn2", 4, 0, random(-64, 64)); }
+		// RS_BoneTornado, not the old RS_BoneTorn2. CHP 01_W.txt:60 throws
+		// one emitter and the whole attack lives inside it: seven distinct
+		// orbiter rings interleaved over ~90 tics, plus periodic bolts.
+		// The old actor spawned ONE stormer type from three lines against
+		// CHP's thirty-two, and its orbiters were a static frandom cloud
+		// rather than rings advancing 8 degrees a tic.
+		// See zscript/monsters/Zombieman/attacks/RS_Zombieman_BoneTornado.zs.
+		"MAGE" F 5 Bright { A_SpawnProjectile("RS_BoneTornado", 4, 0, random(-64, 64)); }
 		"MAGE" F 3 Bright;
 		"MAGE" E 3;
 		Goto See;
