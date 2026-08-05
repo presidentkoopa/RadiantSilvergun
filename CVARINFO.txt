@@ -131,7 +131,7 @@ server bool bonsai_ignore_gun_rarity = false;
 server bool rs_gb_legacy_affixes = false;
 
 // =====================================================================
-// Kill Rewards (Bits) -- zscript/systems/world/RS_Bits.zs. Ported from
+// Kill Rewards (Bits) -- zscript/systems/player/RS_Bits.zs. Ported from
 // "SoM Universal(ish?) Kill Rewards". Health/Armor/Ammo pickups dropped
 // by monsters on death. See MENUDEF.txt's "Kill Rewards" branch.
 // =====================================================================
@@ -164,7 +164,7 @@ server bool rs_bits_ammo_usetype2 = false;
 // cost, not a routine drop like health/armor/ammo/repair.
 server int rs_bits_curse_chance = 5;			// per-kill percent chance, independent of the batch above
 
-// zscript/systems/shot/RS_Keywords.zs -- logs unknown keys in a weapon's
+// zscript/systems/weapon/RS_Keywords.zs -- logs unknown keys in a weapon's
 // GetBaseKeywords() string once per class, on first PostBeginPlay. Off by
 // default, cheap enough to leave on during content work.
 

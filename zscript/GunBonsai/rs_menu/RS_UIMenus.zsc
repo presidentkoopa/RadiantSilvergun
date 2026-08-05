@@ -2,7 +2,7 @@
 // RS_UIMenus -- the unified UI's ui-scope half. Spec: docs/rs_10_ui_spec.txt.
 //
 // RS_Menu_Dynamic renders whatever screen model RS_UIHandler (play
-// scope, zscript/systems/ui/RS_UI.zs) has built -- plain rows only, no
+// scope, zscript/systems/player/RS_UI.zs) has built -- plain rows only, no
 // game API calls from ui scope, one rendering path for every RS screen
 // (weapon sheets, player sheet, promotion confirm, service).
 //
