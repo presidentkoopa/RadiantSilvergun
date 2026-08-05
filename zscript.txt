@@ -7,33 +7,19 @@ version "4.14"
 #include "zscript/systems/RS_Bits.zs"
 #include "zscript/systems/RS_Score.zs"
 
-// Hidden elites -- mark at level load, reveal at 50% health. Reads
 // RS_MonsterMaster.Tier for the tier-boss axis, so it depends on the
 // monster include below in the same "for readers, not the compiler" sense
-// as RS_HealthBars. RS_EliteHandler must also be in MAPINFO.txt's
-// AddEventHandlers. Design of record: docs/rs_25_elites_design.txt.
 // TEMPORARILY DISABLED 2026-08-05. These six files were written last
 // session and never compiled once. Between them they produce 114 script
 // errors -- type mismatches, Color vs int returns, play functions called
 // from a data context -- and a single script error stops the WHOLE MOD
 // from loading, so nothing else in the tree could be tested while they
 // were in. Commented out, NOT deleted: the files are untouched on disk.
-// PAIRED WITH MAPINFO.txt. RS_EliteHandler was still listed in that
 // file's AddEventHandlers after these were commented out, and an event
 // handler naming a class that does not exist is a HARD CRASH AT MAP
 // LOAD -- not a warning. The owner hit it. It has been removed there;
 // PUT IT BACK IN THE SAME CHANGE that uncomments these lines.
 // Re-enable by uncommenting, once the 114 are fixed.
-//   rs_eliteprofiles_exotic.zs     45      rs_eliteprofiles_simple.zs 19
-//   rs_eliteprofiles_field.zs      23      rs_eliteprofiles_creep.zs   7
-//   rs_eliteprofiles_projectile.zs 19      rs_elites.zs                1
-// #include "zscript/systems/RS_Elites.zs"
-// #include "zscript/systems/RS_EliteShared.zs"
-// #include "zscript/systems/RS_EliteProfiles_Simple.zs"
-// #include "zscript/systems/RS_EliteProfiles_Projectile.zs"
-// #include "zscript/systems/RS_EliteProfiles_Creep.zs"
-// #include "zscript/systems/RS_EliteProfiles_Field.zs"
-// #include "zscript/systems/RS_EliteProfiles_Exotic.zs"   <- same batch, 45 errors
 
 // World-space health bars over monsters. Reads
 // RS_MonsterMaster.TierMaxHealth when the owner is one of ours, so it
@@ -60,9 +46,7 @@ version "4.14"
 #include "zscript/systems/RS_Keywords.zs"
 
 // Predictive-lead-fire utility (ZScript port of the useful half of CH's
-// ACS gold, see RS_MonsterAim.zs's header). Standalone -- not called by
 // anything yet.
-#include "zscript/systems/RS_MonsterAim.zs"
 
 // RS_NoHitscan: intercepts WorldHitscanPreFired and flies a projectile
 // down the line the hitscan would have taken. Touches none of the 163
@@ -76,7 +60,7 @@ version "4.14"
 // enrage, timed pulse, orbit-attach, morph). The three empty per-family
 // base classes it used to declare were removed 2026-08-04 -- see the
 // note at the bottom of that file.
-#include "zscript/monsters/RS_MonsterMaster.zs"
+// #include "zscript/monsters/RS_MonsterMaster.zs"
 // The CHP-era tier machinery, split out 2026-08-05. Only the quarantined
 // families inherit it; nothing rebuilt from CH is in its path.
 // #include "zscript/monsters/_chp_legacy/RS_MonsterLadder.zs"
@@ -84,35 +68,37 @@ version "4.14"
 // Monster parts bin -- summon rosters, satellites, portals, morph
 // stages, monster projectiles. Same job RS_Catalog.zs does for weapons
 // and the same rule: no monster file names a raw class inline.
-#include "zscript/systems/RS_MonsterCatalog.zs"
+// #include "zscript/systems/RS_MonsterCatalog.zs"
+// The systems contract -- what a monster must offer the health
+#include "zscript/systems/SYSTEMS_MASTER.zs"
 
 // CH/CHP's pack-buff ACS, rebuilt as ZScript Powerups. The import
 // dropped these as "empty ACS wrappers"; the behaviour lived in the ACS
 // script, so the mechanic went with them. docs/rs_19_acs_inventory.txt
 // has the full audit. Revert = delete this one line.
-#include "zscript/monsters/RS_MonsterCommands.zs"
+// #include "zscript/monsters/RS_MonsterCommands.zs"
 
 // Monster attack components (474 catalogued projectiles, one file per
 // family) -- extracted per docs/catalog_notes.txt so monster attacks
 // can be recombined rather than hardcoded per monster. Sprite refs
 // verified against ART SOURCE/IWAD; three inherited broken references
 // corrected on import (noted in-file).
-#include "zscript/monsters/monsterfx/RS_dk_shared.zs"
-#include "zscript/monsters/monsterfx/RS_human_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_imp_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_demon_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_spectre_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_lostsoul_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_caco_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_pe_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_baron_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_hk_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_rev_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_manc_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_arach_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_archvile_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_spidermind_projectiles.zs"
-#include "zscript/monsters/monsterfx/RS_cyberdemon_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_dk_shared.zs"
+// #include "zscript/monsters/monsterfx/RS_human_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_imp_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_demon_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_spectre_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_lostsoul_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_caco_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_pe_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_baron_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_hk_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_rev_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_manc_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_arach_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_archvile_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_spidermind_projectiles.zs"
+// #include "zscript/monsters/monsterfx/RS_cyberdemon_projectiles.zs"
 
 // One file per monster (not grouped by family) -- CHP-behaviour work
 // coming next will add real weight per monster (summons, orbiting
@@ -144,32 +130,30 @@ version "4.14"
 // actors, one apiece. These are CH's numbers, NOT CHP's -- CHP is a
 // separate layer that lands on top later, deliberately.
 //
-// RS_Chaingunner.zs below still ships and still `replaces ChaingunGuy`.
-// It is the OLD one-class-holds-14-tiers build with CHP's numbers.
-// The two do not collide (RS_Chaingunner vs RS_CG_*) and nothing spawns
-// the new ones yet -- when the CH spawner lands, the old file goes, and
-// it must go in the same commit or two actors will fight over the
-// ChaingunGuy replacement.
+// EACH ONE IS AN RS_MonsterMaster DIRECTLY. There is no family base
+// class and no abstract anywhere in the chain -- Colourful Hell uses
+// `abstract` exactly zero times, and every time this project has used
+// it the actors rendered INVISIBLE while ticking and firing normally.
+// It cost the weapons once and the chaingunners once. Do not add it.
 // CH's floating tier marker -- its COLOURBLIND AID, not decoration.
 // Off by default exactly as CH ships it; rs_mon_tiericons turns it on.
 // Family-agnostic, so it sits at the top of the family block.
-#include "zscript/monsters/chaingunner/RS_ColorTierIcon.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_C0001_Common.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_T0001_Green.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_T0002_Blue.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_T0003_Cyan.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_T0004_Purple.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_T0005_Yellow.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_T0006_Brown.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_T0007_Gray.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_T0008_Abyss.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_T0009_Fireblu.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_T0010_Red.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_B0001_Black.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_B0002_White.zs"
-#include "zscript/monsters/chaingunner/RS_Chaingunner_X0001_BlackEX.zs"
+// #include "zscript/monsters/chaingunner/RS_ColorTierIcon.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_C0001_Common.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0001_Green.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0002_Blue.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0003_Cyan.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0004_Purple.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0005_Yellow.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0006_Brown.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0007_Gray.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0008_Abyss.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0009_Fireblu.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0010_Red.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_B0001_Black.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_B0002_White.zs"
+// #include "zscript/monsters/chaingunner/RS_Chaingunner_X0001_BlackEX.zs"
 
-#include "zscript/monsters/RS_Chaingunner.zs"
 // #include "zscript/monsters/_chp_legacy/RS_Imp.zs"
 // #include "zscript/monsters/_chp_legacy/RS_Demon.zs"
 // #include "zscript/monsters/_chp_legacy/RS_Spectre.zs"
@@ -202,7 +186,7 @@ version "4.14"
 
 // Monster diagnostics. Registered in MAPINFO.txt's AddEventHandlers --
 // without that line this file compiles but never runs.
-#include "zscript/systems/RS_MonsterDebug.zs"
+// #include "zscript/systems/RS_MonsterDebug.zs"
 
 // The unified UI's play-scope half: screen models + rs-ui-* netevents.
 // Also MAPINFO-registered. UI-scope half lives in the GunBonsai tree

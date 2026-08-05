@@ -4,14 +4,10 @@ GameInfo
 	// Registers GunBonsai's (zscript/GunBonsai/) event handler and the
 	// Kill Rewards (Bits) handler (zscript/systems/RS_Bits.zs).
 	// An EventHandler subclass that is not listed here does not exist at
-	// runtime -- its netevents silently do nothing. RS_MonsterDebug was
 	// missing from this list, which is why its entire menu was dead.
-	// RS_EliteHandler REMOVED 2026-08-05, and it must go back the moment
-	// the elite includes are restored in zscript.txt. A handler named here
 	// whose class does not exist is a HARD CRASH AT MAP LOAD, not a
-	// warning -- the six RS_Elites*/RS_EliteProfiles_* includes are
 	// currently commented out (114 script errors, never compiled), so the
 	// class is absent and this entry killed the game on load.
 	// THE TWO ARE A PAIR. Never comment out one without the other.
-	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_MonsterDebug", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating"
+	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating"
 }

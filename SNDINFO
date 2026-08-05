@@ -755,17 +755,10 @@ $volume rs_foley_shotgun_rattle 0.7
 $volume rs_foley_swing 0.8
 
 // =====================================================================
-// RS_Elites -- reveal cues. See docs/rs_25_elites_design.txt.
 // PLACEHOLDER ASSETS, to be replaced once the calls are confirmed firing
 // in game. $limit 0 = unlimited simultaneous instances; the boss sting
 // gets no random pitch variation so it always lands the same.
 // =====================================================================
-rs_elite_loop                Sounds/elites/RSELOOP.ogg
-rs_elite_reveal              Sounds/elites/RSEREVL.ogg
-rs_elite_reveal_boss         Sounds/elites/RSEBOSS.ogg
-$limit rs_elite_reveal       0
-$limit rs_elite_reveal_boss  0
-$pitchshift rs_elite_reveal_boss 0
 
 // =====================================================================
 // MeatGrinder set (RS_PS_) -- logical names referenced by RS_Catalog's
