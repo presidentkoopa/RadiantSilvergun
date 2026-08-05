@@ -292,6 +292,48 @@ PART F -- BUILT BUT INERT, OR UNFINISHED.
       Named as unbuilt in rs_16 alongside melee mode. Bullet and hitscan
       already deal exact damage through the DoSpecialDamage override.
 
+  F9. THE VR FIST IS OUTSIDE THE SYSTEM. Owner, 2026-08-04: "fist is an
+      RS_weapon and should be treated as such."
+      VERIFIED: RS_GH_Fist is `: RS_Weapon` and ships a full six-variant
+      ladder (RS_GH_Fist through RS_GH_Fist6). The VR side does NOT --
+      RS_Fist.zs:9 declares `class VR_Fist2 : Fist`, extending the VANILLA
+      Fist, and every VR_Dual_* class starts with plain "Fist" plus
+      VR_Fist2. So slot 1's melee is the ONLY weapon in the player arsenal
+      with no rolled stats, no tier, no sockets, no condition and no
+      attack profile. It cannot be promoted, cannot take a card, and does
+      not appear to any system that queries RS_Weapon.
+      THE JOB: reparent to RS_Weapon and fill out the 1..6 ladder, the way
+      VR_Chainsaw already does (VR_Chainsaw through VR_Chainsaw6 all exist
+      and are slot 1).
+      STAT RULES ARE EXPLICITLY LATER, and the owner already sketched the
+      interesting case: no magazine by default, BUT a variant like electric
+      brass knuckles could take one and spend it as charges. So "melee has
+      no ammo" must be a per-profile default, never a hard assumption baked
+      into the class -- exactly the capability-is-not-obligation rule
+      rs_17 s1 sets for the trigger fields.
+      THERE IS ALREADY AN OFFHAND FIST and the starting loadout confirms
+      the whole pairing scheme. VR_Dual_Revolver's StartItems are exactly:
+        Fist, VR_Fist2, VR_Revolver, VR_Revolver4
+      i.e. mainhand fist + offhand fist + class weapon 1 + class weapon 4.
+      So the hands pair 1&4, 2&5, 3&6 -- ACROSS slots, not within them
+      (1,2 are slot 2; 3,4 slot 3; 5,6 slot 4). The fist ladder must follow
+      the same shape, which means VR_Fist2 is misnamed for its role: it is
+      the offhand of the pair, sitting where a "4" would.
+      No Dual_Fist player class yet; the owner says that is fine. A melee
+      class is wanted "eventually" -- see N6.
+
+  F10. THE THREE HEAVIES DO NOT CONSUME AMMO. Found while reading
+      VR_PlayerClasses.zs for the loadout work; the bug is admitted in a
+      comment at VR_DualClassBase.PostBeginPlay:
+        "these three weapons don't currently consume ammo when fired
+         (a known, separate bug, see HANDOFF)"
+      VR_RocketLauncher, VR_PlasmaRifle and VR_BFG9000, granted when
+      rs_dualclass_allowbigguns is set. The class grants RocketAmmo 20 and
+      Cell 200 alongside them precisely because the reserve is meaningless
+      today. Infinite BFG is not a small balance problem, and it sits
+      directly under the owner's own aside that keeping rocket/plasma/BFG
+      may be pointless at all -- fix the bug before litigating the design.
+
   F8. DO THE PER-CARD TAILORING PASS.
       The owner has already asked for it once and it never ran. Listed in
       rs_16's NOT BUILT block.
@@ -591,6 +633,14 @@ block anything and none should be started unasked.
       subpages already exist, so this is a rendering job on top of a
       control surface that is already built. Low priority, owner's words.
 
+  N6. A MELEE PLAYER CLASS. Owner: "eventually we will make a fun melee
+      class." Depends on F9 (the fist becoming an RS_Weapon with a 1..6
+      ladder) -- there is nothing to build a class around until then.
+      The electric-brass-knuckles case the owner sketched is the design
+      seed: melee variants that DO take a magazine and spend it as
+      charges, so the class is not just "the gun rules with damage
+      numbers swapped."
+
   N5. THE UI VISUAL PASS.
       Owner: "the data is good and on display but it needs to be visually
       better, colored boxes / fields, arranged." BLOCKED ON THE OWNER
@@ -622,7 +672,7 @@ useful part.
 END OF REGISTER.  Generated 2026-08-04.
 55 entries: 49 objectives, plus Part H's 5 standing constraints (tests, not
 tasks) and Part K's single correction record.
-Counts by part -- A6 B3 C6 D5 E9 F8 G6 H5 I4 J2 K1 L8 M4 N5.
+Counts by part -- A6 B3 C6 D5 E9 F10 G6 H5 I4 J2 K1 L8 M4 N6.
 CLOSED SO FAR: A1 A2 A3 A4 A6 D1 D5 J1 L1 L2 L3 L4 -- twelve. C1 killed (WONT DO,
 the premise was wrong); C2 answered by CHP itself, no decision needed.
 REMAINING OPEN: 49.
