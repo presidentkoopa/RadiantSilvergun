@@ -140,7 +140,7 @@ WHY THIS EXISTS
 
     ## <AttackName>            zscript/monsters/<Family>/attacks/RS_<Family>_<Attack>.zs
     kind         : freeze ray            <- THE SELECTOR. plain words.
-    axes         : delivery:bullet payload:single element:ice
+    axes         : delivery:bullet payload:single element:void
                    trigger:semi archetype:hitscan
     tier(s)      : T03 Cyan  (Zombieman)
     chp source   : CHP/DECORATE/01/01_CY.txt:245-268
@@ -160,10 +160,32 @@ WHY THIS EXISTS
       cloud, bone spear, homing swarm, ground rake. If two attacks share
       a `kind` they should be genuinely interchangeable.
     * `axes` are machine-readable and must use ONLY values that already
-      exist in the keyword system (rs_17 s5 -- 36 values across 9 axes).
-      Inventing an adjective here breaks the query. If nothing fits, the
-      axis vocabulary gets extended deliberately, in rs_17, not quietly
-      here.
+      exist in the keyword system. Inventing an adjective here breaks the
+      query. If nothing fits, the axis vocabulary gets extended
+      deliberately, in rs_17, not quietly here.
+      THE LIVE `element:` VALUES ARE: explosive, kinetic, melt, plasma,
+      thermal, void. Sweep the tree for the rest before using one --
+      `grep -rhoE "axis:[a-z-]+" zscript/` is the authority, not this
+      file and not memory.
+
+  A CORRECTION TO THIS SECTION, KEPT AS THE WARNING IT IS: the example
+  above used to read `element:ice`. THERE IS NO SUCH VALUE. A cataloguing
+  agent caught it, refused to use it, substituted the live `element:void`
+  and flagged the discrepancy rather than quietly inventing an axis. That
+  is exactly the behaviour this document asks for -- and had it not, this
+  spec would have taught all seventeen families to emit a dead value, and
+  every PACK query against ice would have returned nothing.
+  A SPEC IS NOT EVIDENCE EITHER. Check it against the tree like anything
+  else.
+
+  OPEN QUESTION THIS EXPOSED, not to be resolved by guessing: CHP has a
+  great deal of ice content -- T03 Cyan is an entire frost tier across
+  the whole roster, and its projectiles carry `DamageType "Ice"`. There is
+  no `element:` value for it. `void` is the closest live idiom and is what
+  the Zombieman catalog uses, under protest. Whether the vocabulary gains
+  a cryo/frost value is an rs_17 decision and an owner call; note that
+  rs_16 bans ELEMENTAL AFFIX CARDS, which is a different question from
+  whether a monster attack may be DESCRIBED as icy.
 
   A DESCRIPTION THAT COULD DESCRIBE TWO DIFFERENT ATTACKS IS NOT DONE.
   "fires a projectile" is not a description. The catalog exists so an
