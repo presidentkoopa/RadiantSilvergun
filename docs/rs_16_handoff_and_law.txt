@@ -164,8 +164,20 @@ TIER -> OFFER LAW (settled)
   Common+: full pool. Offers 4 / 5 / 6 by tier band.
   SOCKETS = BREADTH CAP: distinct affixes <= sockets (1..5). Re-picking
   to LEVEL a held affix never costs a socket.
-  PROMOTED PICKS LAND +1 (new affixes enter at L2), capped at L5 --
-  Mastery is always a deliberate 6th pick.
+  PROMOTION SETS AN AFFIX'S STARTING POWER LEVEL. Owner's law,
+  2026-08-04, SUPERSEDING the flat "+1, capped at L5" this line used to
+  carry. Sockets say how MANY affixes a weapon holds; promotions say how
+  STRONG one arrives:
+      unpromoted    a new affix enters at level 1. Re-picking the same
+                    card on a later level-up takes it to 2, 3 ... which
+                    is the ONLY way an affix grows on an unpromoted gun.
+      promoted X    a new affix enters at level X + 1.
+  So a weapon promoted five times picks a fresh affix straight into
+  level 6 -- MASTERY. That is the reward for having taken a gun round
+  the promotion loop five times, and it is why the old L5 clamp is gone.
+  The previous rule tested only "is it promoted at all", so a
+  five-promotion gun and a one-promotion gun got the same bonus and
+  promotion stopped mattering after the first one.
   Levels 1-5 + Mastery. Mastery = a RULE CHANGE, never bigger numbers.
   Gold at the picker: reroll 5<<n, buy a card 12<<n.
 
