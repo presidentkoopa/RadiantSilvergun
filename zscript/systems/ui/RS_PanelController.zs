@@ -478,13 +478,24 @@ class RS_PanelHandler : EventHandler
 	// containment test it is built on.
 	// -----------------------------------------------------------------
 
+	// Scratch results for PanelUnderHand, as FIELDS rather than out
+	// params. `out double` has precedent in this file (TraceHand), but a
+	// Vector2 out param sitting alongside a returned object reference
+	// appears nowhere in this tree -- and a construct with no precedent
+	// is not something to guess at when the compiler cannot be run to
+	// settle it. Fields are boring and certain.
+	//
+	// Only ever valid immediately after a PanelUnderHand call that
+	// returned non-null.
+	int      mScanAsm, mScanPanel;
+	Vector2  mScanUV;
+
 	// Which panel is this hand inside, if any? Split out of TracePoke so
 	// the hand loop can compare TWO hands before deciding, which the
 	// first-hit-wins version could not.
-	play RS_Panel PanelUnderHand(Vector3 hp, double depth,
-	                             out int outAsm, out int outPanel, out Vector2 outUV)
+	play RS_Panel PanelUnderHand(Vector3 hp, double depth)
 	{
-		outAsm = -1; outPanel = -1; outUV = (0, 0);
+		mScanAsm = -1; mScanPanel = -1; mScanUV = (0, 0);
 
 		for (int a = 0; a < mLive.Size(); a++)
 		{
@@ -513,9 +524,9 @@ class RS_PanelHandler : EventHandler
 				if (abs(lx) > pan.mWidth  * 0.5) continue;
 				if (abs(ly) > pan.mHeight * 0.5) continue;
 
-				outAsm   = a;
-				outPanel = p;
-				outUV    = (lx / pan.mWidth + 0.5, 0.5 - ly / pan.mHeight);
+				mScanAsm   = a;
+				mScanPanel = p;
+				mScanUV    = (lx / pan.mWidth + 0.5, 0.5 - ly / pan.mHeight);
 				return pan;
 			}
 		}
@@ -545,10 +556,12 @@ class RS_PanelHandler : EventHandler
 			Vector3 hp   = (hand == 0) ? pawn.OffhandPos : pawn.AttackPos;
 			Vector3 prev = (hand == 0) ? mPrevHand0      : mPrevHand1;
 
-			int ai, pi;
-			Vector2 uv;
-			let pan = PanelUnderHand(hp, depth, ai, pi, uv);
+			let pan = PanelUnderHand(hp, depth);
 			if (!pan) continue;
+
+			int     ai = mScanAsm;
+			int     pi = mScanPanel;
+			Vector2 uv = mScanUV;
 
 			// A SWING, not a presence. Travel this tic projected onto the
 			// face normal, which points from the panel toward the reader
