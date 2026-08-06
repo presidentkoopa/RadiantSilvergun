@@ -46,20 +46,36 @@
 // Plus vanilla BackPack.
 //
 // ---------------------------------------------------------------------------
+// RESOLVED 2026-08-06 -- BDP2 frame I -> BDP2 H, two sites.
+// The set is A-H and nothing more: 20 lumps, identical in sprites/rs_spectre,
+// Desktop\CH\sprites and ART SOURCE -- BDP2A1/A2A8/A3A7/A4A6/A5 and the same
+// five for B and C (the 8-rotation projectile), then BDP2D0/E0/F0/G0/H0 (the
+// 0-rotation blast). Both mirrored halves were parsed; no lump names a frame
+// past H. So CH's own "BDP2 GHI 4" rendered nothing on its third frame.
+// D..H is a monotonically GROWING blast (25x25, 35x36, 52x49, 64x57, 64x63),
+// so H is the final and largest frame; each site now reads "BDP2 GHH 4",
+// holding H for I's 4 tics. Three frames, 12 tics and three A_Explode calls
+// per site, all unchanged. Sites: RS_ShadowSplash Death (Fatsos.txt:3052),
+// RS_BlackFatsoBurp Death (:3192).
+//
+// RESOLVED 2026-08-06 -- HSBT frame A -> HBST frame A, four sites, all in
+// RS_Fatso.zs. HSBT is a two-character transposition of HBST and appears in
+// the whole CH tree only at Fatsos.txt:795, 804, 2280 and 2290 -- always the
+// same line, always "A_CustomMissile(HBeastSmoke,64,0,0)", always inside an
+// actor whose every other line is HBST. HBST frame A ships (HBSTA1/A2A8/
+// A3A7/A4A6/A5, 8 rotations, in sprites/rs_lostsoul and Desktop\CH\sprites),
+// so the target is provable. Behaviour is unchanged either way: all four
+// sites are 0-tic (never rendered) AND sit immediately after a "Loop;", so
+// they are unreachable dead code here exactly as in CH. Corrected anyway so
+// the tree carries no unresolvable sprite token. Sites: RS_FireBluFatso2
+// Spawn/See (Fatsos.txt:795,804), RS_RedFatso Spawn/See (:2280,2290).
+//
+// ---------------------------------------------------------------------------
 // PROVEN MISSING IN CH ITSELF (verbatim silence kept, no substitution):
-//   * Sprite BDP2 frame I -- CH ships BDP2 A-H only (20 lumps, checked in
-//     CH/sprites; the repo copy matches lump for lump). CH's own
-//     "BDP2 GHI 4" runs render nothing on the third frame either. Sites:
-//     RS_ShadowSplash Death (Fatsos.txt:3052), RS_BlackFatsoBurp Death
-//     (:3192).
 //   * Sprite BDPI frame D -- no BDPI* lump anywhere in the CH tree; it is a
 //     one-character typo for BDP1 on a 1-tic state. Sites:
 //     RS_ShadowBeast_BallEx3 Fly (Fatsos.txt:3347), RS_ShadowBeast_Ball3
 //     Spawn (:3430). Invisible in CH too; kept verbatim.
-//   * Sprite HSBT frame A -- typo for HBST, no lump in CH. Both sites sit
-//     AFTER a Loop and are unreachable in CH as well: RS_FireBluFatso2
-//     Spawn/See (Fatsos.txt:795,804) and RS_RedFatso Spawn/See (:2280,2290),
-//     in RS_Fatso.zs.
 //   * Sound lump ILLSHEA2 -- CH SNDINFO.txt:439-441 declares
 //     "$random ILLSHEAR { ILLSHEA1 ILLSHEA2 }" and an ILLSHEA2 entry, but CH
 //     ships only ILLSHEA1.ogg. RS_WhiteFatScatter's SeeSound "ILLSHEAR" is
@@ -787,7 +803,7 @@ class RS_ShadowSplash : Actor   // CH Fatsos.txt:3021
 		Loop;
 	Death:
 		BDP2 EF 4 Bright A_SetScale(1.8);
-		BDP2 GHI 4 A_Explode(random(10,80),252);   // CH: frame I -- CH ships BDP2 A-H only, invisible in CH too
+		BDP2 GHH 4 A_Explode(random(10,80),252);   // CH: BDP2 I -- no BDP2I* lump in the repo, in Desktop\CH\sprites or in ART SOURCE; the set is A-H (20 lumps, A/B/C 8-rot + D-H 0-rot) and CH's own third frame rendered nothing. D..H is a growing blast (25x25 -> 64x63), so held H, the final and largest frame, for I's 4 tics. 3 frames, 12 tics and 3 A_Explode calls all unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }
@@ -936,7 +952,7 @@ class RS_BlackFatsoBurp : Actor   // CH Fatsos.txt:3154
 	Death:
 		BDP2 EF 4 Bright A_SetScale(1.8);
 		TNT1 AAAAAAAAAAAAAAAAAAAAAAAA 0 A_SpawnItemEx("RS_BlackFatSplash",0,0,0,random(3,21),0,random(1,9),random(-359,359),SXF_NOCHECKPOSITION,232);
-		BDP2 GHI 4 A_Explode(random(10,80),252);   // CH: frame I -- CH ships BDP2 A-H only, invisible in CH too
+		BDP2 GHH 4 A_Explode(random(10,80),252);   // CH: BDP2 I -- frame absent everywhere (set is A-H); held H, the final and largest blast frame, for I's 4 tics. 3 frames, 12 tics, 3 A_Explode calls unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }
@@ -1104,7 +1120,7 @@ class RS_ShadowBeast_BallEx3 : Actor   // CH Fatsos.txt:3325
 		TNT1 A 0;
 	Fly:
 		BDP1 E 1 A_SetTranslucent(0.25);
-		BDPI D 1 A_SetTranslucent(0.5);   // CH: BDPI -- typo for BDP1, no BDPI lump ships in CH; invisible there too
+		BDP1 D 1 A_SetTranslucent(0.5);   // CH: BDPI -- typo for BDP1, no BDPI lump ships in CH; invisible there too
 		BDP1 DEDEDED 2 A_BishopMissileWeave;
 		BDP1 E 1 A_SetTranslucent(0.5);
 		BDP1 D 1 A_SetTranslucent(0.25);
@@ -1195,7 +1211,7 @@ class RS_ShadowBeast_Ball3 : Actor   // CH Fatsos.txt:3411
 	{
 	Spawn:
 		BDP1 E 1 A_SetTranslucent(0.55);
-		BDPI D 1 A_SetTranslucent(0.7);   // CH: BDPI -- typo for BDP1, no BDPI lump ships in CH; invisible there too
+		BDP1 D 1 A_SetTranslucent(0.7);   // CH: BDPI -- typo for BDP1, no BDPI lump ships in CH; invisible there too
 		BDP1 DEDEDED 2 A_BishopMissileWeave;
 		BDP1 E 1 A_SetTranslucent(0.55);
 		BDP1 D 1 A_SetTranslucent(0.3);

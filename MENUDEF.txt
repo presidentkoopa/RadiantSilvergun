@@ -26,6 +26,7 @@ OptionMenu "RS_MainOptions"
 	Submenu "Kill Rewards", "RS_BitsSettings"
 	Submenu "Arcade Score", "RS_ScoreOptions"
 	Submenu "Monster Health Bars", "RS_HPBarOptions"
+	Submenu "Monster Variants & Drops", "RS_CHMonsterOptions"
 	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
 	Submenu "Monster Debug", "RS_MonsterDebug"
 	Submenu "UI Debug", "RS_UIDebug"
@@ -107,6 +108,9 @@ OptionMenu "RS_MonsterDebug"
 	Command "Spawn Revenant Family", "netevent rs_spawnall_revenant"
 	Command "Spawn Mancubus Family", "netevent rs_spawnall_fatso"
 	Command "Spawn Arachnotron Family", "netevent rs_spawnall_spider"
+	Command "Spawn Archvile Family", "netevent rs_spawnall_archvile"
+	Command "Spawn Cyberdemon Family", "netevent rs_spawnall_cyberdemon"
+	Command "Spawn Spider Mastermind Family", "netevent rs_spawnall_mastermind"
 	StaticText " "
 	// Elite summons -- handled by RS_EliteHandler (zscript/systems/
 	// monster/RS_Elite.zs). Aim at a monster BEFORE opening the menu;
@@ -308,12 +312,10 @@ OptionMenu "GunBonsaiOptions"
   Option "$TFLV_OPT_NAME_HUD_MIRROR", "bonsai_hud_mirror", "GunBonsaiHudMirrorMode"
   TFLV_Tooltip "$TFLV_OPT_TT_HUD_MIRROR"
 
-  ColorPicker "$TFLV_OPT_NAME_HUD_RGB_FRAME", "bonsai_hud_rgb_frame"
-  TFLV_Tooltip "$TFLV_OPT_TT_HUD_RGB_FRAME"
-  ColorPicker "$TFLV_OPT_NAME_HUD_RGB_WEAPON", "bonsai_hud_rgb_weapon"
-  TFLV_Tooltip "$TFLV_OPT_TT_HUD_RGB_WEAPON"
-  ColorPicker "$TFLV_OPT_NAME_HUD_RGB_PLAYER", "bonsai_hud_rgb_player"
-  TFLV_Tooltip "$TFLV_OPT_TT_HUD_RGB_PLAYER"
+  // Every colour the HUD draws moved to its own page -- the three
+  // pickers that used to sit here are on it, alongside the seven
+  // elements that had no picker at all and the rainbow mode.
+  Submenu "HUD Colours", "GunBonsaiColourOptions"
 
   Option "$TFLV_OPT_NAME_VFX_MODE", "bonsai_vfx_mode", "GunBonsaiVfxMode"
   TFLV_Tooltip "$TFLV_OPT_TT_VFX_MODE"
@@ -380,6 +382,58 @@ OptionMenu "GunBonsaiOptions"
 
   Option "$TFLV_OPT_NAME_IGNORE_GUN_RARITY", "bonsai_ignore_gun_rarity", "OnOff"
   TFLV_Tooltip "$TFLV_OPT_TT_IGNORE_GUN_RARITY"
+}
+
+// ---------------------------------------------------------------------
+// GunBonsai HUD colours. Rainbow is the default: every element rolls
+// through the hue wheel together, offset from each other so the widget
+// reads as a spectrum instead of one flat wash, one full turn every 30
+// seconds at speed 1.0. Set the mode to Fixed and the per-element rows
+// take over. The two status greys are addressable but never rainbow --
+// they mean "not earning XP" and have to stay readable as an absence of
+// colour. Plain OptionMenu rather than TFLV_TooltipOptionMenu, and
+// literal strings rather than $TFLV_ keys, because these rows are RS
+// additions with no upstream LANGUAGE entries behind them.
+// ---------------------------------------------------------------------
+OptionMenu "GunBonsaiColourOptions"
+{
+  Title "GunBonsai HUD Colours"
+  StaticText ""
+  StaticText "Mode", "Cyan"
+
+  Option "Colour Mode", "bonsai_hud_colour_mode", "GunBonsaiColourMode"
+  Slider "Rainbow Speed", "bonsai_hud_rainbow_speed", 0.1, 5.0, 0.1, 1
+  StaticText "1.0 is one full turn of the hue wheel every 30 seconds.", "DarkGray"
+  StaticText "The colours below apply in Fixed mode only.", "DarkGray"
+
+  StaticText ""
+  StaticText "Frame And Bars", "Cyan"
+
+  ColorPicker "Frame", "bonsai_hud_rgb_frame"
+  ColorPicker "Weapon XP Bar", "bonsai_hud_rgb_weapon"
+  ColorPicker "Player XP Bar", "bonsai_hud_rgb_player"
+
+  StaticText ""
+  StaticText "Text", "Cyan"
+
+  ColorPicker "Weapon Name", "bonsai_hud_rgb_wname"
+  ColorPicker "Weapon Level / XP", "bonsai_hud_rgb_wxp"
+  ColorPicker "Player Level", "bonsai_hud_rgb_plevel"
+  ColorPicker "Player XP", "bonsai_hud_rgb_pxp"
+  ColorPicker "Condition Readout (CND)", "bonsai_hud_rgb_cnd"
+
+  StaticText ""
+  StaticText "Status", "Cyan"
+  StaticText "These two stay fixed in Rainbow mode -- they read as", "DarkGray"
+  StaticText "an absence of colour on purpose.", "DarkGray"
+
+  ColorPicker "Ignored Weapon", "bonsai_hud_rgb_ignored"
+  ColorPicker "Offhand Bar, No Data", "bonsai_hud_rgb_emptybar"
+}
+
+OptionValue "GunBonsaiColourMode" {
+  0, "Fixed colours"
+  1, "Rainbow"
 }
 
 OptionValue "GunBonsaiHudMirrorMode" {
@@ -746,4 +800,458 @@ OptionValue "RS_HPBarFrameModes"
 	0, "Off"
 	1, "Big Monsters Only"
 	2, "Always"
+}
+
+// =====================================================================
+// Monster Variants & Drops -- the spawn-table, boss and drop gates that
+// the seventeen imported creature families read at runtime.
+//
+// EVERY row below maps 1:1 onto an rs_ch_* cvar declared in
+// CVARINFO.txt, and every value offered is a value the monsters
+// actually test for. The semantics were read out of our own gates
+// (RS_Zom.CV(...) in zscript/monsters/*/) and cross-checked against the
+// settings source at CH\source\CHSett.acs and the table in
+// docs/rs_28_ch_acs_breakdown.txt section 6. Nothing here is inferred
+// from a cvar's name.
+//
+// Split into four sub-pages plus a legend, same principle as the Arcade
+// Score branch: the front page carries the readability switch and the
+// doors, and each sub-page owns exactly one concern.
+//
+// PLAYER-FACING NAMING: rows identify a variant by its NUMERIC TIER and
+// its own colour name, which is also what the floating tier icon shows.
+// Tiers are the monster vocabulary in this project -- weapon rarity and
+// surface glow are different ladders and their words are not used here.
+// Internal menu ids and the rs_ch_ cvar prefix are maintenance
+// vocabulary and stay as they are.
+//
+// TIER LADDER (RS_Zom.SetTier; see RS_ZombiemanFX.zs:17-19):
+//   1 Common   2 Green   3 Blue    4 Purple  5 Orange  6 Red
+//   7 FireBlue 8 Gray    9 Abyss  10 Black  11 White  12 Cyan  13 Brown
+// The tier icon sprites are TI3R A..M, one per tier in that same order
+// (RS_ColorTierIconCH .. RS_ColorTierIconCH13).
+// =====================================================================
+OptionMenu "RS_CHMonsterOptions"
+{
+	Title "Monster Variants & Drops"
+	StaticText " "
+	StaticText "Every creature family spawns as one of thirteen tiers.", "DarkGray"
+	StaticText "These pages decide which tiers may appear, how their", "DarkGray"
+	StaticText "bosses behave, and what they leave behind.", "DarkGray"
+	StaticText " "
+
+	StaticText "Readability", "Cyan"
+	Option "Tier Icons Above Monsters", "rs_ch_colorblind", "RS_CH_OffOn"
+	StaticText "Floats the tier's own symbol over each monster, so the", "DarkGray"
+	StaticText "ladder reads as a shape and not only as a colour.", "DarkGray"
+	Submenu "Tier Legend", "RS_CHTierLegend"
+	StaticText " "
+
+	StaticText "Settings", "Cyan"
+	Submenu "Extra Challenge Tiers", "RS_CHTierOptions"
+	Submenu "Boss & Special Forms", "RS_CHBossOptions"
+	Submenu "Monster Drops", "RS_CHDropOptions"
+	Submenu "Combat Behaviour", "RS_CHBehaviourOptions"
+	// A further section (e.g. ambush / random encounter events) appends
+	// HERE -- one more Submenu line under this same "Settings" header,
+	// with its page defined after RS_CHBehaviourOptions below. Nothing
+	// on this page needs to move for that.
+	StaticText " "
+
+	StaticText "Notes", "Cyan"
+	StaticText "Spawn settings only affect monsters that have not spawned", "DarkGray"
+	StaticText "yet -- start a new map to see them take effect.", "DarkGray"
+	StaticText "Drop and behaviour settings apply straight away.", "DarkGray"
+	StaticText "Some monsters carry fixed drops of their own that none of", "DarkGray"
+	StaticText "these settings gate.", "DarkGray"
+}
+
+// ---------------------------------------------------------------------
+// Extra Challenge Tiers -- the five optional tiers. Each one is a spawn
+// gate on the family's random spawner: at value 1 the roll is thrown
+// away and re-rolled into the ordinary set, so the tier never appears.
+// Values proven at e.g. RS_Zombieman.zs:40-60 (Brown), :62-84 (Cyan),
+// :86-103 (FireBlue), :105-122 (Gray), :124-145 (Abyss); the same block
+// repeats once per family, seventeen times.
+//
+// Brown / Cyan / Abyss have a third branch (== 3 -> A_Jump(128) ->
+// half the rolls become the tier, the rest re-roll). Gray and FireBlue
+// have NO such branch anywhere in the tree -- they test == 1 only -- so
+// their list is deliberately two entries, not three.
+// ---------------------------------------------------------------------
+OptionMenu "RS_CHTierOptions"
+{
+	Title "Extra Challenge Tiers"
+	StaticText " "
+	StaticText "Five tiers that sit outside the ordinary ladder. Each has", "DarkGray"
+	StaticText "its own combat role rather than simply more health.", "DarkGray"
+	StaticText "Turning one off re-rolls that spawn into the normal set.", "DarkGray"
+	StaticText " "
+
+	Option "Tier 7 -- FireBlue", "rs_ch_fireblu", "RS_CH_TierGateSimple"
+	StaticText "Area damage. Fights the ground you stand on.", "DarkGray"
+	StaticText " "
+
+	Option "Tier 8 -- Gray", "rs_ch_gray", "RS_CH_TierGateSimple"
+	StaticText "Awareness. Hard to flank, hard to lose.", "DarkGray"
+	StaticText " "
+
+	Option "Tier 9 -- Abyss", "rs_ch_abyss", "RS_CH_TierGate"
+	StaticText "The heaviest of the five. Expect a long fight.", "DarkGray"
+	StaticText " "
+
+	Option "Tier 12 -- Cyan", "rs_ch_cyan", "RS_CH_TierGate"
+	StaticText "Ice and evasion. Slippery, and rarely where you aimed.", "DarkGray"
+	StaticText " "
+
+	Option "Tier 13 -- Brown", "rs_ch_brown", "RS_CH_TierGate"
+	StaticText "Support and disruption. Makes the rest of the room worse.", "DarkGray"
+	StaticText " "
+
+	StaticText "Applies to monsters that have not spawned yet.", "DarkGray"
+	StaticText "Start a new map to see a change take effect.", "DarkGray"
+}
+
+OptionValue "RS_CH_TierGate"
+{
+	1, "Off"
+	2, "On -- normal spawn rate"
+	3, "On -- half spawn rate"
+}
+
+OptionValue "RS_CH_TierGateSimple"
+{
+	1, "Off"
+	2, "On"
+}
+
+// ---------------------------------------------------------------------
+// Boss & Special Forms.
+//
+// Black (tier 10) and White (tier 11) are the two boss tiers, roughly
+// 2 and 1 weight out of ~1750 on a family's spawn table. Switching one
+// off does not delete the spawn: Black falls back to tier 6 Red, and
+// White falls back to the Black gate, which then answers for itself.
+// Proven at RS_Zombieman.zs:147-200 and repeated per family.
+//
+// The enhanced boss form gate only reads at all when the Black gate is
+// on -- it lives inside that gate's own "First" branch. Its four values
+// come from three A_JumpIf tests plus the fall-through, which spawns
+// the plain boss: 1 -> A_Jump(232) = 24/256 EX, 2 -> A_Jump(128) = half,
+// 3 -> always, anything else -> never.
+//
+// The tier 6 Red gate (RS_Baron.zs:167-169, RS_Archvile.zs:197-199) and
+// the tier 5 Orange Revenant gate (RS_Revenant.zs:1639-1655) are here
+// rather than on the tiers page because both choose WHICH FORM of an
+// already-allowed tier spawns, which is what the boss gates do too.
+// ---------------------------------------------------------------------
+OptionMenu "RS_CHBossOptions"
+{
+	Title "Boss & Special Forms"
+	StaticText " "
+	StaticText "Boss tiers are about one spawn in eight hundred. The", "DarkGray"
+	StaticText "rarity is the point -- it is the moment a run changes.", "DarkGray"
+	StaticText " "
+
+	StaticText "Boss Tiers", "Cyan"
+	Option "Tier 10 -- Black Boss", "rs_ch_blackboss", "RS_CH_BlackBoss"
+	StaticText "Off does not remove the spawn, it demotes it to Tier 6.", "DarkGray"
+	StaticText " "
+
+	Option "Tier 11 -- White Boss", "rs_ch_whiteboss", "RS_CH_WhiteBoss"
+	StaticText "Off demotes it to a Tier 10 roll, which then answers to", "DarkGray"
+	StaticText "the setting above.", "DarkGray"
+	StaticText " "
+
+	Option "Enhanced Boss Form", "rs_ch_exboss", "RS_CH_ExBoss"
+	StaticText "A rarer, nastier build of the Tier 10 boss. Only reachable", "DarkGray"
+	StaticText "while Tier 10 bosses are on.", "DarkGray"
+	StaticText " "
+
+	StaticText "Special Forms", "Cyan"
+	Option "Tier 6 Red Special Form", "rs_ch_nerfredboss", "RS_CH_RedForm"
+	StaticText "Affects the Tier 6 Archvile and Baron only. The stronger", "DarkGray"
+	StaticText "form is a genuine step up from the plain one.", "DarkGray"
+	StaticText " "
+
+	Option "Tier 5 Orange Revenant", "rs_ch_yellowrev", "RS_CH_OrangeRevenant"
+	StaticText "Phasing ignores walls and brings an escort; Solid collides", "DarkGray"
+	StaticText "normally and is the kinder choice on crowded maps.", "DarkGray"
+	StaticText " "
+
+	StaticText "All five apply to monsters that have not spawned yet.", "DarkGray"
+	StaticText "Start a new map to see a change take effect.", "DarkGray"
+}
+
+OptionValue "RS_CH_BlackBoss"
+{
+	1, "On"
+	2, "Off -- Tier 6 spawns instead"
+}
+
+OptionValue "RS_CH_WhiteBoss"
+{
+	1, "On"
+	2, "Off -- rolls the Tier 10 gate instead"
+}
+
+OptionValue "RS_CH_ExBoss"
+{
+	1, "Rare -- about 1 boss in 11"
+	2, "Half of all bosses"
+	3, "Every boss"
+	4, "Never"
+}
+
+OptionValue "RS_CH_RedForm"
+{
+	1, "Always the stronger form"
+	2, "Coin flip"
+	3, "Never -- always the plain form"
+}
+
+OptionValue "RS_CH_OrangeRevenant"
+{
+	0, "Phasing -- moves through walls, escorted"
+	1, "Solid -- normal collision, faster"
+	2, "Random, chosen per spawn"
+}
+
+// ---------------------------------------------------------------------
+// Monster Drops. Four gates, each a single choke point that every drop
+// of that kind passes through:
+//   rs_ch_healthdrops   RS_HealthBundle  (RS_ZombiemanFX.zs:137-141)
+//                       RS_ArmorBundle   (RS_ZombiemanFX.zs:209-213)
+//                       -- ONE cvar drives both bundles.
+//   rs_ch_backpackdrops RS_BackPackBundle (RS_ZombiemanFX.zs:281-285)
+//   rs_ch_ammodrops     RS_DropBaseAmmo   (RS_ZombiemanFX.zs:383-386)
+//   rs_ch_extradrops    RS_DropBaseItem   (RS_ZombiemanFX.zs:486-488)
+//
+// The "None" values are the fall-through (Goto Last, which spawns
+// nothing). The numbers differ per gate because they are the source's
+// own -- health uses 5 for none, the other three use 0 -- so each list
+// carries its own value, and they are NOT normalised to look tidy.
+//
+// Bundle sizes, counted from the state blocks rather than guessed:
+//   health/armour  1 -> 12 bonuses at descending odds   2 -> 4
+//                  3 -> 12 at much better odds          4 -> 12, all
+//                       on an independent random roll
+//   backpacks      1 -> 14 lines, ~9 expected   2 -> 16 coin flips, ~8
+//                  3 -> 30 lines, ~18          4 -> 5 lines, ~2
+// ---------------------------------------------------------------------
+OptionMenu "RS_CHDropOptions"
+{
+	Title "Monster Drops"
+	StaticText " "
+	StaticText "How generous the bundles are that monsters scatter on", "DarkGray"
+	StaticText "death. These take effect immediately.", "DarkGray"
+	StaticText " "
+
+	Option "Health & Armour Bundles", "rs_ch_healthdrops", "RS_CH_BonusBundles"
+	StaticText "One setting drives both bundles. Standard is a dozen", "DarkGray"
+	StaticText "bonuses on sliding odds; Fully Random rolls each one.", "DarkGray"
+	StaticText " "
+
+	Option "Backpack Bundles", "rs_ch_backpackdrops", "RS_CH_BackpackBundles"
+	StaticText "Bosses and other heavy monsters. Random averages about", "DarkGray"
+	StaticText "the same as Standard with a far wilder spread.", "DarkGray"
+	StaticText " "
+
+	Option "Extra Ammo Drops", "rs_ch_ammodrops", "RS_CH_AmmoDrops"
+	StaticText "Bullets, shells, cells and rockets. Mostly affects the", "DarkGray"
+	StaticText "non-humanoid monsters.", "DarkGray"
+	StaticText " "
+
+	StaticText " "
+	StaticText "Loot", "Cyan"
+	StaticText "Split out so each kind can be tuned on its own.", "DarkGray"
+	StaticText " "
+
+	Option "Weapon Drops", "rs_ch_weapondrops", "RS_CH_CategoryDrops"
+	StaticText "Chainsaws, super shotguns, plasma rifles, rocket", "DarkGray"
+	StaticText "launchers and BFGs left behind by the tougher kills.", "DarkGray"
+	StaticText " "
+
+	Option "Power-Up Drops", "rs_ch_powerupdrops", "RS_CH_CategoryDrops"
+	StaticText "Berserk, soulspheres, megaspheres and blurspheres.", "DarkGray"
+	StaticText " "
+
+	Option "Armour Drops", "rs_ch_armordrops", "RS_CH_CategoryDrops"
+	StaticText "Green and blue armour left as loot.", "DarkGray"
+	StaticText " "
+
+	Option "Other Bonus Drops", "rs_ch_extradrops", "RS_CH_ExtraDrops"
+	StaticText "Everything else in that family -- medikits and the like.", "DarkGray"
+	StaticText " "
+
+	StaticText "Monsters that carry a drop directly, rather than through", "DarkGray"
+	StaticText "one of these bundles, are not affected by any of it.", "DarkGray"
+}
+
+OptionValue "RS_CH_BonusBundles"
+{
+	1, "Standard"
+	2, "Scarce"
+	3, "Generous"
+	4, "Fully random"
+	5, "None"
+}
+
+OptionValue "RS_CH_BackpackBundles"
+{
+	1, "Standard"
+	2, "Random -- same average, wilder spread"
+	3, "Generous"
+	4, "Scarce"
+	0, "None"
+}
+
+OptionValue "RS_CH_AmmoDrops"
+{
+	1, "Standard"
+	2, "Half as often"
+	3, "Double"
+	0, "None"
+}
+
+OptionValue "RS_CH_ExtraDrops"
+{
+	1, "Standard"
+	2, "Half as often"
+	0, "None"
+}
+
+// Weapons / power-ups / armour. Same three-step shape as the drop gates
+// above deliberately, so the whole page reads alike; the values are the
+// ones RS_DropBaseWeapon/Powerup/Armor actually test for.
+OptionValue "RS_CH_CategoryDrops"
+{
+	1, "Standard"
+	2, "Half as often"
+	0, "None"
+}
+
+// ---------------------------------------------------------------------
+// Combat Behaviour. Four gates that change how a monster fights rather
+// than whether it spawns, so all four apply immediately -- the state
+// reads the cvar at the moment it runs.
+//
+//   rs_ch_intercept   0 = lead the shot, 1 = fire straight at you.
+//                     Read by exactly three families, all of them heavy
+//                     projectile users: RS_HellKnight.zs:1042,
+//                     RS_Baron.zs:1143, RS_Cyberdemon.zs:1147. On == 1
+//                     each jumps to its "Miss2" state, which is the
+//                     plain unpredicted attack.
+//                     NOTE the polarity: the DEFAULT (0) is the smarter
+//                     behaviour. This is the source's own arrangement,
+//                     kept so the two trees stay comparable.
+//   rs_ch_cyanbounce  1 skips the vertical hop in the tier 12 dodge and
+//                     leaves the side-step. 8 families, 10 sites, e.g.
+//                     RS_Baron.zs:569, RS_Chaingunner.zs:396 and :404.
+//   rs_ch_rawket      1 forces the Cyberdemon rocket to damage type
+//                     Normal (RS_CyberdemonFX.zs:1347). Anything else
+//                     leaves the projectile's own type in place, which
+//                     only matters to weapon or armour sets that read
+//                     damage types.
+//   rs_ch_abyssmark   1 shows the marker sprite on tier 9 projectiles
+//                     (RS_ZombiemanFX.zs:769).
+// ---------------------------------------------------------------------
+OptionMenu "RS_CHBehaviourOptions"
+{
+	Title "Combat Behaviour"
+	StaticText " "
+	StaticText "How monsters fight, rather than which ones show up.", "DarkGray"
+	StaticText "Everything here applies immediately.", "DarkGray"
+	StaticText " "
+
+	StaticText "Aim", "Cyan"
+	Option "Leading Shots", "rs_ch_intercept", "RS_CH_LeadShots"
+	StaticText "Whether the big projectile monsters solve for where you", "DarkGray"
+	StaticText "are going instead of where you are. Affects the Hell", "DarkGray"
+	StaticText "Knight, the Baron and the Cyberdemon.", "DarkGray"
+	StaticText " "
+
+	StaticText "Movement", "Cyan"
+	Option "Tier 12 Evasive Hop", "rs_ch_cyanbounce", "RS_CH_EvasiveHop"
+	StaticText "The vertical leap in the Cyan dodge. Reduced keeps the", "DarkGray"
+	StaticText "side-step and drops the hop, which is calmer to track", "DarkGray"
+	StaticText "in a crowded room.", "DarkGray"
+	StaticText " "
+
+	StaticText "Damage & Readability", "Cyan"
+	Option "Cyberdemon Rocket Damage Type", "rs_ch_rawket", "RS_CH_RocketDamage"
+	StaticText "Normal is the safe choice. Its own type only helps if", "DarkGray"
+	StaticText "your armour or weapons actually read damage types.", "DarkGray"
+	StaticText " "
+
+	Option "Tier 9 Shot Markers", "rs_ch_abyssmark", "RS_CH_OffOn"
+	StaticText "Extra markers on Abyss projectiles, so they are easier", "DarkGray"
+	StaticText "to pick out of a busy screen.", "DarkGray"
+	StaticText " "
+
+	Option "Tier Icons Above Monsters", "rs_ch_colorblind", "RS_CH_OffOn"
+	Submenu "Tier Legend", "RS_CHTierLegend"
+}
+
+OptionValue "RS_CH_LeadShots"
+{
+	0, "On -- they aim where you are going"
+	1, "Off -- they aim straight at you"
+}
+
+OptionValue "RS_CH_EvasiveHop"
+{
+	0, "Full -- they leap as they dodge"
+	1, "Reduced -- side-step only"
+}
+
+OptionValue "RS_CH_RocketDamage"
+{
+	1, "Normal damage"
+	2, "Its own damage type"
+}
+
+OptionValue "RS_CH_OffOn"
+{
+	0, "Off"
+	1, "On"
+}
+
+// ---------------------------------------------------------------------
+// Tier Legend -- a read-only page. The symbols are the TI3R A..M
+// sprites, one per tier, spawned by RS_ColorTierIconCH..CH13 in
+// RS_ZombiemanFX.zs:81-117 whenever rs_ch_colorblind is 1.
+// ---------------------------------------------------------------------
+OptionMenu "RS_CHTierLegend"
+{
+	Title "Tier Legend"
+	StaticText " "
+	StaticText "The symbol that floats over a monster when tier icons", "DarkGray"
+	StaticText "are switched on.", "DarkGray"
+	StaticText " "
+
+	StaticText "Ordinary Ladder", "Cyan"
+	StaticText "    I      Tier 1   -- Common"
+	StaticText "    II     Tier 2   -- Green"
+	StaticText "    III    Tier 3   -- Blue"
+	StaticText "    IV     Tier 4   -- Purple"
+	StaticText "    V      Tier 5   -- Orange"
+	StaticText "    VI     Tier 6   -- Red"
+	StaticText " "
+
+	StaticText "Extra Challenge Tiers", "Cyan"
+	StaticText "    FB     Tier 7   -- FireBlue"
+	StaticText "    G      Tier 8   -- Gray"
+	StaticText "    A      Tier 9   -- Abyss"
+	StaticText "    C      Tier 12  -- Cyan"
+	StaticText "    B      Tier 13  -- Brown"
+	StaticText " "
+
+	StaticText "Boss Tiers", "Cyan"
+	StaticText "    Skull          Tier 10  -- Black"
+	StaticText "    Horned Skull   Tier 11  -- White"
+	StaticText " "
+
+	StaticText "The five extra challenge tiers can each be switched off", "DarkGray"
+	StaticText "on the Extra Challenge Tiers page.", "DarkGray"
 }

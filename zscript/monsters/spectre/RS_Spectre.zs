@@ -3,8 +3,38 @@
 // Source: C:\Users\Command\Desktop\CH\decorate\spectres.txt (1,722 lines,
 // read whole). Every actor cites its CH line. Support: RS_SpectreFX.zs
 // (see its header for the parallel-lane note, the PESPEED rebuild, and the
-// frames/sounds proven silent in CH itself: SLGM F, SLGM "\", SPG2 G,
-// Shadow/active, Shadow/pain, Worm/Death, Worm/Hurt).
+// frames/sounds proven silent in CH itself: SLGM "\", Shadow/active,
+// Shadow/pain, Worm/Death, Worm/Hurt).
+//
+// RESOLVED 2026-08-06 -- SLGM F -> SLGM E, two sites (RS_WhiteSpectre2 See
+// and PeekUp, CH spectres.txt:1471 and :1491). No SLGMF* lump exists in
+// sprites/rs_spectre, Desktop\CH\sprites or ART SOURCE\CHP\sprites. Both
+// halves of the one mirrored lump were parsed: SLGMG0Z0 defines frame G AND
+// frame Z, which is why Z resolves and F still does not -- the set is A-E,
+// G-Y and Z. Frame F is a genuine gap, not a deliberate blank: this actor
+// hides itself with explicit "TNT1 AA 2 A_Chase" in Walk, and CHP's own
+// CommonWhiteSpectre2 (ART SOURCE\CHP\DECORATE\07\07_W.txt:31) descends
+// "SLGM GFEDCBA 3", placing F squarely between G and E in a continuous
+// animation. Frame heights confirm the reading -- A 11, B 17, C 20, D 25,
+// E 28, F ?, G 31, H 30 px: the slug rising out of the ground. Held E for
+// F's beat rather than anticipating G, which already runs straight into
+// HHH. Frame counts, tic totals and action-call counts are unchanged at
+// both sites. SLGM "\" (frame 27) is a separate gap and is NOT touched --
+// it is handled at its site with TNT1 and a timing comment, because a
+// quoted frame string with an escaped character is a parse error on this
+// engine.
+//
+// RESOLVED 2026-08-06 -- SPG2 -> SRG2 (RS_YellowSpectre Melee, below).
+// CH spectres.txt:881 is the only SPG2 reference in the whole CH tree and no
+// SPG2* lump exists in CH, in sprites/, or in either IWAD, so it rendered
+// nothing. Proof it means SRG2: CH's YellowDemon is the same monster with
+// +STEALTH removed (same SRG2 body, same "Demon1" species, same blooddemon/*
+// sounds, same CH_Berserk drop, same Var int User_Calm, same yellow
+// Translation), and its Melee state carries the twin of this line token for
+// token -- Demons.txt:1516 `SRG2 G 1 A_SetUserVar("User_Calm",User_Calm == 1)`
+// against spectres.txt:881 `SPG2 G 1 A_SetUserVar("User_Calm",User_Calm == 1)`.
+// One character differs. The spectre file is a copy of the demon file and the
+// copy mistyped SR as SP. Owner's rule: nothing invisible.
 // Tier ladder as before: 1 Common .. 13 Brown (CH icon index); FireBlu
 // inherits its tier from the demons lane's RS_FireBluDemon2 (CH icon 7).
 // Announcers dropped per owner.
@@ -896,8 +926,8 @@ class RS_PurpleSpectre : Spectre
 // ---------------------------------------------------------------------------
 // TIER 5 -- YELLOW.  CH: spectres.txt:836.  The blood demon hide: pain can
 // drop stealth and sprint until its next bite calms it.
-// SPG2 G below is CH verbatim -- CH ships no SPG2 lump anywhere (almost
-// certainly an SRG2 typo); the 1-tic frame is invisible in CH too.
+// The Melee tail below read SPG2 G in CH; corrected to SRG2 G -- see the
+// file header for the YellowDemon twin-line proof.
 // ---------------------------------------------------------------------------
 class RS_YellowSpectre : Spectre
 {
@@ -947,7 +977,7 @@ class RS_YellowSpectre : Spectre
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH5",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
 		SRG2 EF 8 A_FaceTarget;
 		SRG2 G 8 A_CustomMeleeAttack(random(13,52),"blooddemon/melee","none");
-		SPG2 G 1 { User_Calm = (User_Calm == 1) ? 1 : 0; }   // CH: A_SetUserVar("User_Calm",User_Calm == 1)
+		SRG2 G 1 { User_Calm = (User_Calm == 1) ? 1 : 0; }   // CH: SPG2 G -- CH typo; SRG2 is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).   // CH: A_SetUserVar("User_Calm",User_Calm == 1)
 		Goto See;
 	Pain.AbyssPE:
 		TNT1 A 0 { bNOPAIN = true; }
@@ -1270,8 +1300,10 @@ class RS_BlackSpectre2 : Actor
 // ---------------------------------------------------------------------------
 // TIER 11 -- WHITE BOSS ("Tentacle monster?").  CH: spectres.txt:1409.
 // The burrowing slug: untouchable underground, surfaces to bite, spit
-// slime, and summon the chomper.  SLGM F and SLGM "\" are CH verbatim --
-// CH ships neither lump, both frames are invisible there too.
+// slime, and summon the chomper.  CH ships neither an SLGMF* nor an
+// SLGM"\"* lump, so both frames are invisible in CH itself. SLGM F is
+// resolved here (-> E, see the file header, 2026-08-06); SLGM "\" is still
+// verbatim, held as TNT1 at its site for the timing.
 // ---------------------------------------------------------------------------
 class RS_WhiteSpectre2 : Actor
 {
@@ -1339,7 +1371,7 @@ class RS_WhiteSpectre2 : Actor
 		TNT1 A 0 A_JumpIfInventory("RS_RiseCheck",1,"Walk");
 		TNT1 A 0 A_GiveInventory("RS_RiseCheck",1);
 		TNT1 A 0 A_UnsetInvulnerable;
-		SLGM ABCDEFGHHHVWXY 4 A_Chase;
+		SLGM ABCDEEGHHHVWXY 4 A_Chase;   // CH: SLGM F -- no SLGMF* lump in sprites/rs_spectre, Desktop\CH\sprites or ART SOURCE\CHP\sprites; the set is A-E, G-Y plus Z (mirrored on SLGMG0Z0), so F rendered nothing in CH. A-H is the slug rising (heights 11,17,20,25,28,?,31,30), so F is one beat between E and G; held E rather than anticipate G, which already runs into HHH. 14 frames, 56 tics, 14 A_Chase calls unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Loop;
 	Walk:
 		TNT1 A 0 A_SetInvulnerable;
@@ -1359,7 +1391,7 @@ class RS_WhiteSpectre2 : Actor
 		TNT1 A 0 A_UnsetInvulnerable;
 		TNT1 A 0 A_SetSpeed(8);
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH11",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
-		SLGM ABCDEFG 4;
+		SLGM ABCDEEG 4;   // CH: SLGM F -- frame absent from every CH/CHP tree (set is A-E, G-Y, Z); held E for F's beat in the same rise. 7 frames, 28 tics unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH11",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
 		SLGM HZ 5;
 		TNT1 A 5;   // CH: SLGM \ 5 -- the backslash frame ships nowhere in CH (see

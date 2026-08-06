@@ -24,8 +24,29 @@
 //
 // PROVEN MISSING IN CH ITSELF (verbatim silence kept, no substitution):
 //   * Sprite SPRY (frames A-G, RS_RedDemonBloodBolt2 and 3): no SPRY* lump
-//     in Desktop\CH\sprites or E:\New folder\ART SOURCE\CH\sprites, and SPRY
-//     is not a doom2.wad sprite. Those frames render nothing in CH too.
+//     in Desktop\CH\sprites, E:\New folder\ART SOURCE\CH\sprites, CHP's
+//     sprites, or the lump directory of doom.wad or doom2.wad. Those frames
+//     render nothing in CH too.
+//     Re-investigated 2026-08-06 and DECLINED -- no substitute is provable:
+//       - CHP re-authors this actor from scratch (DECORATE\07\07_R.txt:1819
+//         RedDemonBloodBolt3_C, reparented to FastProjectile) and RETYPES
+//         "SPRY ABCDEF 4 / SPRY G 3" verbatim while shipping no SPRY lump.
+//         The layer that wins never resolved it, so there is no corrected
+//         upstream copy to read the intent from.
+//       - No CH or CHP prefix is edit-distance 1 from SPRY. The only two in
+//         the whole corpus, SPGY and SPCY, are CHP Spider Mastermind BODY
+//         sheets (8 rotations, 15-19 frames; ours under
+//         sprites/monsters/Mastermind/T09 and /T03) -- a boss walk cycle on
+//         a droplet, excluded outright.
+//       - CH ships 11 prefixes with exactly A-G rot-0-only; none is gore and
+//         none lives in demon/, fx/ or nashgore/. The only A-G prefix CH
+//         references nowhere is TRPS, viewed frame-by-frame: a ~100px green
+//         pain-elemental gas cloud, not a droplet.
+//       - CH's other blood bolts (RedDemonBloodBolt1 Demons.txt:1705,
+//         BloodBoltHK Hellknights.txt:2060, RedThingsHK :2107) all draw BAL1.
+//     Leave it silent. A wrong sprite here is a visible bug on a projectile
+//     the player sees; absence reads as subtle. Needs the original art or an
+//     owner ruling on a deliberate replacement, not a guess.
 //   * Sound "x" (RS_WormLewd DeathSound): no "x" entry anywhere in CH's
 //     SNDINFO.txt -- inert in CH itself. Kept verbatim.
 //   * Sprite IFN2 frames C and F (RS_BrownDemon2 Dash/Missile): CH ships
@@ -469,8 +490,17 @@ class RS_RedDemonBloodBolt2 : Actor   // CH Demons.txt:1734 -- the droplet spray
 	{
 	Spawn:
 		BLUD CBA 8;
-		SPRY ABCDEF 3;   // SPRY ships nowhere in CH and is not IWAD -- invisible in CH too (see header)
-		SPRY G 2;
+		// OWNER RULING 2026-08-06: "i want it visually consistent, so use BAL1".
+		// SPRY was proven unresolvable (see header) -- the art exists in neither
+		// CH nor CHP, and CHP retypes the same dead token. CH's three OTHER blood
+		// bolts all draw BAL1 (RS_RedDemonBloodBolt1 above, BloodBoltHK
+		// Hellknights.txt:2060, RedThingsHK :2107), so this now matches its own
+		// family instead of rendering nothing. BAL1 ships A-E only, so CH's
+		// 6+1 frame split becomes 5+1 over the same 20 tics: ABCDE at 3, then
+		// E held 5 to keep the tail length. Frame E is the fade, as the sibling
+		// bolt uses it. THIS IS A DELIBERATE DEPARTURE FROM CH -- do not revert.
+		BAL1 ABCDE 3;   // CH: SPRY ABCDEF 3
+		BAL1 E 5;       // CH: SPRY G 2
 		Stop;
 	Death:
 		BLUD C 0;
@@ -497,8 +527,12 @@ class RS_RedDemonBloodBolt3 : Actor   // CH spectres.txt:1031 -- fired by both f
 	{
 	Spawn:
 		BLUD CBA 8;
-		SPRY ABCDEF 4;   // SPRY ships nowhere in CH and is not IWAD -- invisible in CH too (see header)
-		SPRY G 3;
+		// OWNER RULING 2026-08-06 -- same as RS_RedDemonBloodBolt2 above; see the
+		// note there and the header. CH's 6+1 at 4/3 tics (27 total) becomes 5+1
+		// over the same span: ABCDE at 4, E held 7. Deliberate departure, not a
+		// transcription error.
+		BAL1 ABCDE 4;   // CH: SPRY ABCDEF 4
+		BAL1 E 7;       // CH: SPRY G 3
 		Stop;
 	Death:
 		BLUD C 0;

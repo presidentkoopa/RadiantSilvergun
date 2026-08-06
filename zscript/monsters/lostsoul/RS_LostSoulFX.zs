@@ -50,18 +50,38 @@
 // HealthBonus, BackPack. Also vanilla actions A_BruisAttack and
 // A_FatAttack1/2/3 fire vanilla BaronBall / FatShot, as in CH.
 //
+// RESOLVED 2026-08-06 -- XXBF frame T -> XXBF S, two sites (RS_BigHK2 and
+// RS_BigHK3 Spawn, CH Hellknights.txt:1874/:1897). The set is A-S and stops
+// there: 19 single-rotation lumps XXBFA0..XXBFS0, the same 19 in
+// sprites/rs_lostsoul, sprites/monsters/fx, sprites/monsters/_src,
+// Desktop\CH\sprites and ART SOURCE -- and none of them is a mirrored
+// 8-character lump, so no later frame is hiding in a second half. CH's own
+// "XXBF DEFGHIJKLMNOPQRST 2" therefore rendered nothing on its final 2-tic
+// frame. The run is a fireball bloom: it grows to K/N (41x35), then fades
+// P 24x33, Q 21x30, R 17x25, S 15x24. S is the last fade frame, so each
+// site now reads "...OPQRSS", holding S for T's 2 tics. 17 frames and
+// 34 tics per site, unchanged; the line carries no action call.
+//
+// RESOLVED 2026-08-06 -- MISL frame E -> MISL D, one site (RS_RedDeathRev
+// Death, CH Revenants.txt:2946). Vanilla MISL is eight lumps, frames A-D
+// (MISLA1, MISLA5, MISLA6A4, MISLA7A3, MISLA8A2, MISLB0, MISLC0, MISLD0),
+// byte-identical name set in doom.wad and doom2.wad -- verified by reading
+// both IWAD lump directories, nothing extracted -- and CH ships no MISL lump
+// of its own beyond the three custom MISLX0/Y0/Z0 already imported. Frame E
+// rendered nothing in CH too. This site was visible: 5 Bright tics closing
+// the death of a seeking fireball. B->C->D is the vanilla rocket explosion,
+// so D, its last frame, is held for E's 5 tics; the tic count and the
+// A_Explode call are unchanged. The same MISL E remains at
+// RS_ShotgunnerFX.zs:255 and :713 and RS_PainElementalFX.zs:1183, which are
+// not this lane's files.
+//
+// ---------------------------------------------------------------------------
 // PROVEN MISSING IN CH ITSELF (verbatim silence kept, no substitution):
-//   * Sprite MISL frame E (RS_RedDeathRev Death, Revenants.txt:2942): CH
-//     ships no MISL lump in Desktop\CH\sprites or ART SOURCE\CH\sprites,
-//     and doom2.wad's MISL stops at D. Renders nothing in CH too.
 //   * Sprite SBSI (RS_Homer1 Spawn, Revenants.txt:2546): no SBSI* lump in
 //     either CH tree; zero-tic state, never rendered. CH typo for SBS1.
 //   * Sprite RMGG (RS_ArchRingHelp See, Archviles.txt:3302-3308): no RMGG*
 //     lump in either CH tree; zero-tic states, never rendered. CH typo
 //     for RNGG.
-//   * Sprite XXBF frame T (RS_BigHK2/RS_BigHK3 Spawn, Hellknights.txt
-//     :1874/:1897): both CH trees ship only XXBF A-S. The final 2-tic
-//     frame of CH's own DEFGHIJKLMNOPQRST run renders nothing in CH too.
 //   * Sound ILLSHEAR (RS_IllHKGhost* SeeSound): CH SNDINFO's
 //     $random ILLSHEAR { ILLSHEA1 ILLSHEA2 } names two lumps but CH ships
 //     only ILLSHEA1.ogg -- half the roll is silent in CH itself. Our
@@ -1237,7 +1257,7 @@ class RS_Homer1 : Actor   // CH Revenants.txt:2527
 	States
 	{
 	Spawn:
-		SBSI A 0 A_PlaySound("Fire/fire3");   // sprite SBSI: proven missing in CH itself (zero-tic, CH typo for SBS1), see header
+		SBS1 A 0 A_PlaySound("Fire/fire3");   // sprite SBSI: proven missing in CH itself (zero-tic, CH typo for SBS1), see header
 		SBS1 AB 2 Bright A_SeekerMissile(18,18,SMF_PRECISE);
 		SBS1 CD 2 Bright A_SpawnItemEx("RS_SparkPuff1",0,2,10);
 		Loop;
@@ -1279,7 +1299,7 @@ class RS_RedDeathRev : Actor   // CH Revenants.txt:2916
 		MISL B 3 Bright A_SetScale(1.4);
 		MISL C 3 A_SetTranslucent(0.65);
 		MISL D 3 Bright A_Explode(random(5,20),128);
-		MISL E 5 Bright A_Explode(random(5,35),128);   // sprite MISL frame E: proven missing in CH itself, see header
+		MISL D 5 Bright A_Explode(random(5,35),128);   // CH: MISL E -- vanilla MISL is eight lumps, frames A-D (MISLA1/A5/A6A4/A7A3/A8A2/B0/C0/D0), identical in doom.wad and doom2.wad, and CH ships no MISL lump of its own; frame E rendered nothing in CH too. This one was VISIBLE -- 5 Bright tics ending the death of a seeking fireball. B->C->D is the vanilla explosion, so held D, its last frame, for E's 5 tics. Tic count and A_Explode unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }
@@ -1814,13 +1834,13 @@ class RS_ArchRingHelp : Actor   // CH Archviles.txt:3277 -- the brown soul's dea
 	See:
 		RNGG A 0 A_RadiusGive("RS_GrowRaisin",60,RGF_MONSTERS|RGF_CORPSES,1);
 		RNGG A 3 Bright A_VileChase;
-		RMGG A 0 A_CheckSight("Death");   // sprite RMGG: proven missing in CH itself (zero-tic, CH typo for RNGG), see header
+		RNGG A 0 A_CheckSight("Death");   // sprite RMGG: proven missing in CH itself (zero-tic, CH typo for RNGG), see header
 		RNGG A 3 Bright A_VileChase;
-		RMGG A 0 A_CheckSight("Death");
+		RNGG A 0 A_CheckSight("Death");   // CH: RMGG -- CH typo; RNGG is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		RNGG A 3 Bright A_VileChase;
-		RMGG A 0 A_CheckSight("Death");
+		RNGG A 0 A_CheckSight("Death");   // CH: RMGG -- CH typo; RNGG is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		RNGG A 3 Bright A_VileChase;
-		RMGG A 0 A_CheckSight("Death");
+		RNGG A 0 A_CheckSight("Death");   // CH: RMGG -- CH typo; RNGG is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto Death;
 	Heal:
 		BBOM CDE 2 Bright;
@@ -1956,7 +1976,7 @@ class RS_RandomizerArc : RandomSpawner   // CH Archviles.txt:3388 -- the summon 
 		DropItem "RS_BlueDemon", 255, 120;
 		DropItem "RS_PurpleDemon", 255, 83;
 		DropItem "RS_YellowDemon", 255, 47;
-		// CH: DropItem "CommonArch",255,180 -- archvile family not imported yet; restore when it lands
+		DropItem "RS_CommonArch", 255, 180;       // restored 2026-08-06 with the archvile import
 	}
 }
 
@@ -2241,7 +2261,7 @@ class RS_BigHK2 : Actor   // CH Hellknights.txt:1856
 	Spawn:
 		XXBF AB 2 Bright;
 		XXBF C 2 Bright A_Explode(random(5,21),100,0);
-		XXBF DEFGHIJKLMNOPQRST 2 Bright;
+		XXBF DEFGHIJKLMNOPQRSS 2 Bright;   // CH: XXBF T -- the set is A-S and stops there (19 single-rotation lumps XXBFA0..XXBFS0, identical in sprites/rs_lostsoul, sprites/monsters/fx, Desktop\CH\sprites and ART SOURCE; no mirrored lump hides a later frame). CH's own final 2-tic frame rendered nothing. The run is a fireball bloom that peaks at K/N (41x35) and fades out P 24x33 -> S 15x24, so S is the last fade frame; held S for T's 2 tics. 17 frames, 34 tics unchanged; the line carries no action. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }
@@ -2267,7 +2287,7 @@ class RS_BigHK3 : Actor   // CH Hellknights.txt:1879
 	Spawn:
 		XXBF AB 2 Bright;
 		XXBF C 2 Bright A_Explode(random(5,21),88,0);
-		XXBF DEFGHIJKLMNOPQRST 2 Bright;
+		XXBF DEFGHIJKLMNOPQRSS 2 Bright;   // CH: XXBF T -- frame absent from every tree (set is A-S); held S, the last fade frame, for T's 2 tics. 17 frames, 34 tics unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }

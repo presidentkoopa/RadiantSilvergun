@@ -591,16 +591,16 @@ class RS_SpiderStoneRocket : Actor   // CH Spiders.txt:1399
 	States
 	{
 	Spawn:
-		SGRN A 1 Bright;   // CH: sprite SGRN ships nowhere in CH -- invisible there too
+		HGRN A 1 Bright;   // CH: sprite SGRN ships nowhere in CH -- invisible there too
 		Loop;
 	Death:
-		SGRN A 1 { bNOGRAVITY = false; }   // CH: A_changeflag(nogravity,false)
-		SGRN A 9 A_SetScale(1.3,1.2);
-		SGRN A 9 A_SetScale(1.2,1.3);
-		SGRN A 9 A_SetScale(1.3,1.2);
-		SGRN A 9 A_SetScale(1.2,1.3);
-		SGRN A 9 A_SetScale(1.1,1.1);
-		SGRN A 9 A_SetScale(0.9,0.9);
+		HGRN A 1 { bNOGRAVITY = false; }   // CH: A_changeflag(nogravity,false)
+		HGRN A 9 A_SetScale(1.3,1.2);   // CH: SGRN -- CH typo; HGRN is the real prefix (only *GRN* art in CH, a grenade sprite). Fixed 2026-08-06 (owner: nothing invisible).
+		HGRN A 9 A_SetScale(1.2,1.3);   // CH: SGRN -- CH typo; HGRN is the real prefix (only *GRN* art in CH, a grenade sprite). Fixed 2026-08-06 (owner: nothing invisible).
+		HGRN A 9 A_SetScale(1.3,1.2);   // CH: SGRN -- CH typo; HGRN is the real prefix (only *GRN* art in CH, a grenade sprite). Fixed 2026-08-06 (owner: nothing invisible).
+		HGRN A 9 A_SetScale(1.2,1.3);   // CH: SGRN -- CH typo; HGRN is the real prefix (only *GRN* art in CH, a grenade sprite). Fixed 2026-08-06 (owner: nothing invisible).
+		HGRN A 9 A_SetScale(1.1,1.1);   // CH: SGRN -- CH typo; HGRN is the real prefix (only *GRN* art in CH, a grenade sprite). Fixed 2026-08-06 (owner: nothing invisible).
+		HGRN A 9 A_SetScale(0.9,0.9);   // CH: SGRN -- CH typo; HGRN is the real prefix (only *GRN* art in CH, a grenade sprite). Fixed 2026-08-06 (owner: nothing invisible).
 		MISL B 0 A_Scream;
 		TNT1 A 0 A_SetScale(1.3,1.3);
 		MISL BCD 5 Bright A_Explode(random(20,60),128);
@@ -1652,8 +1652,8 @@ class RS_SpRocket3 : Actor   // CH Spiders.txt:3520
 	States
 	{
 	Spawn:
-		SGRN A 1 Bright;   // CH: sprite SGRN ships nowhere in CH -- invisible there too
-		SGRN A 1;
+		HGRN A 1 Bright;   // CH: sprite SGRN ships nowhere in CH -- invisible there too
+		HGRN A 1;   // CH: SGRN -- CH typo; HGRN is the real prefix (only *GRN* art in CH, a grenade sprite). Fixed 2026-08-06 (owner: nothing invisible).
 		Loop;
 	Death:
 		MISL BCD 8 Bright A_Explode(random(5,20),128);

@@ -51,12 +51,36 @@
 //     never defines it (vanilla's knight set is sight/death/active; vanilla
 //     HellKnight pain is baron/pain). Plays only if the engine defines it;
 //     CH adds nothing. Kept verbatim.
-//   * Sprite SGRN frame A (RS_BaronNade Spawn/Bounce): no SGRN* lump in the
-//     CH tree -- the same hole the shotgunner family proved for SGGasNade.
-//     The black boss's grenade flies invisible in CH too.
 //   * Sprite BRUR frames O-W (RS_RedHK Raise): CH ships BRUR A-N only; the
 //     W..O half of CH's own raise run renders nothing in CH either (only
 //     reachable via Archvile resurrection).
+//
+// RESOLVED 2026-08-06 -- sprite SGRN frame A. It was listed above as a
+// verbatim CH hole (RS_BaronNade Spawn/Bounce, CH Hellknights.txt:2546-2551;
+// RS_BaronHellNade Bounce, :3188). It is CH's one-character typo for HGRN,
+// and is now written HGRN at all five sites in this file. Evidence, in order
+// of weight:
+//   1. No competing candidate exists. HGRN is the only sprite name
+//      containing "GRN" in the whole CH tree (382 prefixes), and the only
+//      single-edit neighbour of SGRN that exists anywhere: ART SOURCE
+//      (20,330 sprite files) and CHP (11,365) ship no SGRN, no TGRN, no
+//      JGRN.
+//   2. The art is a grenade. sprites/molochs/HGRNA0.png + HGRNB0.png, 17x15,
+//      a dark metal sphere with a lit fuse hole; B is pixel-identical to A
+//      mirrored, i.e. a two-frame tumble. grAb offsets (8,7) -- dead centre,
+//      authored as a flying projectile -- and 17px wide fits this actor's
+//      Radius 8 exactly. The site is a bouncing grenade: BounceType "Doom",
+//      +GRENADETRAIL, BounceSound "prox/beep", SeeSound "weapons/grenlf".
+//   3. Nothing else claims it. HGRN is referenced by zero CH actors, so no
+//      other effect loses its art to this.
+//   4. CH already pulls sprites/molochs/ art into this very file:
+//      RS_HKEXslash draws BLAD A and FBL1 EFG, both molochs/ lumps.
+// The lump already ships here as sprites/monsters/_src/HGRNA0.png,
+// byte-identical to CH's copy, so no art import was needed. CH and CHP are
+// both still broken here -- this correction is ours, not theirs. The same
+// typo still stands at the shotgunner (RS_SGGasNade) and spider
+// (RS_SpiderStoneRocket, RS_SpRocket3) sites, which live in other files and
+// were not touched.
 //
 // Standing strips, preserved at each site as "// CH:" comments: ACS
 // announcers (AnnounceBlackHK, AnnounceWhiteHK); the gore chain; DRLA
@@ -866,12 +890,12 @@ class RS_BaronNade : Actor   // CH Hellknights.txt:2524
 	States
 	{
 	Spawn:
-		SGRN A 1 Bright;
-		SGRN A 1 Bright A_Jump(12,"Bounce");
-		SGRN A 1 Bright A_Jump(4,"Death");
+		HGRN A 1 Bright;   // CH: SGRN -- CH typo; HGRN is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
+		HGRN A 1 Bright A_Jump(12,"Bounce");   // CH: SGRN -- CH typo; HGRN is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
+		HGRN A 1 Bright A_Jump(4,"Death");   // CH: SGRN -- CH typo; HGRN is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		Loop;
 	Bounce:
-		SGRN A 2 Bright ThrustThing(int(angle*256/(random(1,360))),12,0,0);   // CH: ThrustThing(angle*256/(random(1,360)),12,0,0)
+		HGRN A 2 Bright ThrustThing(int(angle*256/(random(1,360))),12,0,0);   // CH: SGRN A 2 Bright ThrustThing(angle*256/(random(1,360)),12,0,0) -- CH typo SGRN; HGRN is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto Spawn;
 	Death:
 		MISL B 8 Bright A_Explode(random(20,50),128);
@@ -1252,7 +1276,7 @@ class RS_BaronHellNade : Actor   // CH Hellknights.txt:3157
 		BBOM B 1 Bright A_Jump(12,"Bounce");
 		Loop;
 	Bounce:
-		SGRN A 2 Bright ThrustThing(int(angle*256/(random(1,360))),12,0,0);   // CH: ThrustThing(angle*256/(random(1,360)),12,0,0)
+		HGRN A 2 Bright ThrustThing(int(angle*256/(random(1,360))),12,0,0);   // CH: SGRN A 2 Bright ThrustThing(angle*256/(random(1,360)),12,0,0) -- CH typo SGRN; HGRN is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto Spawn;
 	Death:
 		MISL B 5 Bright A_Explode(random(30,50),128);

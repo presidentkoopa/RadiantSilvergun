@@ -7,6 +7,16 @@
 // Tier ladder (CH icon index), same as the zombieman: 1 Common, 2 Green,
 // 3 Blue, 4 Purple, 5 Yellow(Orange), 6 Red, 7 FireBlu, 8 Gray, 9 Abyss,
 // 10 Black, 11 White, 12 Cyan, 13 Brown.
+//
+// Known-absent frame, deliberately NOT remapped (checked 2026-08-06):
+//   * SGUP M -- the gib set ships N-U (8 lumps) here AND in CH; M exists in
+//     no IWAD and nowhere in CH.  CH's complete zombie sets (CZOW/PZOW/ZUNM)
+//     run their XDeath O-W, and CH shifted that 9-frame template down two
+//     letters onto SGUP as M-U -- one letter more than the set has.  RS_PurpleSG
+//     is the only class that writes it, on a 0-TIC state, so it never renders.
+//     RS_GraySG2's XDeath starts at "SGUP N 5 A_XScream" with no M at all
+//     (CH Shotgunners.txt:479) -- so N is the set's real first gib frame.
+//     Nothing is invisible; kept verbatim.
 // ============================================================================
 
 // ---------------------------------------------------------------------------
@@ -1247,7 +1257,7 @@ class RS_PurpleSG : ShotgunGuy
 		Stop;
 	XDeath:
 		// CH: TNT1 AAA 0 A_SpawnItemEx("CHRandom_GibGenerator",...) -- gore chain not imported
-		SGUP M 0;
+		SGUP M 0;   // CH: SGUP M -- left verbatim. The lump does not exist (SGUP ships N-U only, in CH too), but the state is 0 TICS, so it is never drawn: nothing is invisible here and a remap would change nothing on screen. Checked 2026-08-06 (owner: nothing invisible).
 		SGUP N 5 A_XScream;
 		TNT1 AAA 0 A_SpawnParticle("Purple",SPF_FULLBRIGHT|SPF_RELATIVE,random(27,74),random(1,13),frandom(0,360),0,0,32,frandom(0.1,11.0),frandom(-0.15,0.25),frandom(-6.9,6.9),0,0,-0.1,0.98,-1);
 		SGUP O 5 A_NoBlocking;
@@ -1724,8 +1734,8 @@ class RS_BlackSG2 : Actor   // CH Shotgunners.txt:1994 -- the spec-ops troop.
 		ZSP1 A 0 A_JumpIfInventory("RS_ZSpecOpWander",1,"WanderSwitch");
 		ZSP1 A 0 A_JumpIfInventory("RS_ZSpecOpCreep",1,"CreepSwitch");
 		ZSP1 A 0 A_JumpIfInventory("RS_ZSpecOpBerserk",1,"BerserkSwitch");
-		ZPS1 A 0 A_JumpIfMasterCloser(1000,"See");   // CH's own ZPS1 typo for ZSP1; 0-tic, renders nothing either way
-		ZPS1 A 0 A_Warp(AAPTR_MASTER,5,1,6,0,WARPF_NOCHECKPOSITION);
+		ZSP1 A 0 A_JumpIfMasterCloser(1000,"See");   // CH's own ZPS1 typo for ZSP1; 0-tic, renders nothing either way
+		ZSP1 A 0 A_Warp(AAPTR_MASTER,5,1,6,0,WARPF_NOCHECKPOSITION);   // CH: ZPS1 -- CH typo; ZSP1 is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 	AggressiveSwitch:
 		ZSP1 A 0 { bMISSILEMORE = true; }
 		ZSP1 A 0 { bMISSILEEVENMORE = true; }
@@ -1751,16 +1761,16 @@ class RS_BlackSG2 : Actor   // CH Shotgunners.txt:1994 -- the spec-ops troop.
 		ZSP1 A 0 A_JumpIfHealthLower(50,"See");
 		ZSP1 A 0 A_Jump(32,2);
 		ZSP1 A 0 A_JumpIfCloser(768,1);
-		ZPS1 A 0 A_JumpIfMasterCloser(1000,"See");
-		ZPS1 A 0 A_Warp(AAPTR_MASTER,5,1,6,0,WARPF_NOCHECKPOSITION);
+		ZSP1 A 0 A_JumpIfMasterCloser(1000,"See");   // CH: ZPS1 -- CH typo; ZSP1 is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
+		ZSP1 A 0 A_Warp(AAPTR_MASTER,5,1,6,0,WARPF_NOCHECKPOSITION);   // CH: ZPS1 -- CH typo; ZSP1 is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto See;
 		ZSP1 A 3 A_Chase(null,"AggressiveMissile");
 		ZSP1 A 0 A_Jump(192,2);
 		ZSP1 A 0 A_JumpIfHealthLower(50,"See");
 		ZSP1 A 0 A_Jump(32,2);
 		ZSP1 A 0 A_JumpIfCloser(768,1);
-		ZPS1 A 0 A_JumpIfMasterCloser(1000,"See");
-		ZPS1 A 0 A_Warp(AAPTR_MASTER,5,1,6,0,WARPF_NOCHECKPOSITION);
+		ZSP1 A 0 A_JumpIfMasterCloser(1000,"See");   // CH: ZPS1 -- CH typo; ZSP1 is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
+		ZSP1 A 0 A_Warp(AAPTR_MASTER,5,1,6,0,WARPF_NOCHECKPOSITION);   // CH: ZPS1 -- CH typo; ZSP1 is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto See;
 		ZSP1 B 3 A_Chase(null,"AggressiveMissile");
 		ZSP1 B 0 A_Jump(192,2);
@@ -1773,8 +1783,8 @@ class RS_BlackSG2 : Actor   // CH Shotgunners.txt:1994 -- the spec-ops troop.
 		ZSP1 B 0 A_JumpIfHealthLower(50,"See");
 		ZSP1 B 0 A_Jump(32,2);
 		ZSP1 B 0 A_JumpIfCloser(768,1);
-		ZPS1 A 0 A_JumpIfMasterCloser(1000,"See");
-		ZPS1 A 0 A_Warp(AAPTR_MASTER,5,1,6,0,WARPF_NOCHECKPOSITION);
+		ZSP1 A 0 A_JumpIfMasterCloser(1000,"See");   // CH: ZPS1 -- CH typo; ZSP1 is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
+		ZSP1 A 0 A_Warp(AAPTR_MASTER,5,1,6,0,WARPF_NOCHECKPOSITION);   // CH: ZPS1 -- CH typo; ZSP1 is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto See;
 		ZSP1 C 3 A_Chase(null,"AggressiveMissile");
 		ZSP1 C 0 A_Jump(192,2);

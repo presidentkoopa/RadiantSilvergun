@@ -7,6 +7,17 @@
 // Tier ladder (CH icon index): 1 Common, 2 Green, 3 Blue, 4 Purple,
 // 5 Yellow(Orange), 6 Red, 7 FireBlu, 8 Gray, 9 Abyss, 10 Black,
 // 11 White, 12 Cyan, 13 Brown.  RS_Zom.SetTier() in each PostBeginPlay.
+//
+// Frame gap closed 2026-08-06 (owner: visual consistency beats verbatim
+// silence):
+//   * ZOMP M -- the gib set ships N-U (8 lumps) here AND in CH; M is in no
+//     IWAD and nowhere in CH.  CH's complete zombie sets (CZOW/PZOW/ZUNM)
+//     run their XDeath O-W, and CH shifted that 9-frame template down two
+//     letters onto ZOMP as M-U -- one letter more than the set has.
+//     RS_PurpleZombie is the only class that writes it, on a 5-tic state, so
+//     its gib animation opened with 5 tics of invisibility.  Now holds N.
+//     Frame count and tic count unchanged.  (SGUP M in RS_Shotgunner.zs is the
+//     same defect on a 0-tic state and was left verbatim -- see that header.)
 // ============================================================================
 
 // ---------------------------------------------------------------------------
@@ -595,8 +606,8 @@ class RS_FireBluZombie2 : Actor
 		MISL C 6 Bright A_Quake(20,12,0,64,0);
 		// CH: TNT1 AAA 0 A_SpawnItemEx("CHRandom_GibGenerator",...) -- gore chain not imported
 		POSS AAAAA 0 A_SpawnItemEx("RS_FireSGguy2",0,0,3,random(3,9),0,1,random(-359,359));
-		ZOMG U 0 A_CustomMissile("RS_FireSGguy2",32,7);
-		ZOMG U 0 A_CustomMissile("RS_FireSGguy2",32,-7);
+		ZOMG T 0 A_CustomMissile("RS_FireSGguy2",32,7);   // CH: ZOMG U -- 0-tic, frame past end of set
+		ZOMG T 0 A_CustomMissile("RS_FireSGguy2",32,-7);   // CH: ZOMG U -- 0-tic, frame past end of set
 		MISL D 6 A_NoBlocking;
 		Stop;
 	Raise:
@@ -1132,9 +1143,15 @@ class RS_GreenZombie : ZombieMan
 		ZOMG O 5 A_NoBlocking;
 		ZOMG PQR 5 A_SetTranslucent(0.5);
 		ZOMG RST 5 A_SetTranslucent(0.3);
-		ZOMG U 5 A_CustomMissile("RS_Gas11",49,0);
-		ZOMG U 0 A_CustomMissile("RS_Gas11",32,7);
-		ZOMG U 0 A_CustomMissile("RS_Gas11",32,-7);
+		// CH: ZOMG U 5 -- CH's gib death walks N,O,PQR,RST and then steps one
+		// letter PAST the end of its own sprite set: CH ships ZOMG N-T only
+		// (7 lumps, verified in CH's own sprites/zombies/). So the corpse
+		// vanished for the 5 tics in which it bursts into its gas cloud.
+		// Held T, the set's real last frame. Same sprite, same tics, gas
+		// unchanged. Fixed 2026-08-06 (owner: nothing invisible).
+		ZOMG T 5 A_CustomMissile("RS_Gas11",49,0);
+		ZOMG T 0 A_CustomMissile("RS_Gas11",32,7);   // CH: ZOMG U -- 0-tic, same fix for consistency
+		ZOMG T 0 A_CustomMissile("RS_Gas11",32,-7);   // CH: ZOMG U -- 0-tic, same fix for consistency
 		Stop;
 	Raise:
 		POSS K 5 A_JumpIfInventory("RS_GrowRaisin",1,"Grow");
@@ -1406,7 +1423,7 @@ class RS_PurpleZombie : ZombieMan
 		Goto Death+1;
 	XDeath:
 		// CH: TNT1 AAA 0 A_SpawnItemEx("CHRandom_GibGenerator",...) -- gore chain not imported
-		ZOMP M 5;
+		ZOMP N 5;   // CH: ZOMP M -- the lump does not exist (ZOMP ships N-U only, in CH too, and M is in no IWAD). Unlike SGUP M this state is 5 TICS, so the gib animation opened with 5 tics of nothing. Held N, the set's real first gib frame, so N now plays 5+5. Frame count and tic count both unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		ZOMP N 5 A_XScream;
 		ZOMP O 5 A_NoBlocking;
 		ZOMP PQRST 5;

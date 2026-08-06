@@ -13,6 +13,21 @@
 // RS_DetoPuffCG, RS_PlasmaBallSP3, RS_SparkPuff1, RS_TrailSPCguy,
 // RS_CH_* drop gates, bundles, RS_CH_Pantsu, RS_CH_Cirno, RS_CH_Cactus.
 //
+// RESOLVED 2026-08-06 -- MISL frame E -> MISL D, six sites (RS_GrayCGuff
+// Melee, RS_DetoPuff2 Melee, RS_DetoPuff3 Melee, RS_YellowBombCGUYEX Death
+// x3; CH Chaingunners.txt:764, :1855, :1868, :3012-3014). Vanilla MISL is
+// MISLA1/A5/A6A4/A7A3/A8A2/B0/C0/D0 -- eight lumps, frames A-D -- identical
+// in doom.wad and doom2.wad, and CH ships no MISL lump of its own beyond
+// its three custom MISLX0/Y0/Z0. Frame E therefore rendered nothing in CH
+// too. D is the last frame of the vanilla rocket explosion (B->C->D), so
+// each E now holds D for exactly E's tics; every tic count and every action
+// call is unchanged. The YellowBombCGUYEX site mattered most -- it was four
+// visible tics of an on-screen death burst showing nothing.
+// Still open elsewhere (not this lane's files): the same MISL E sits at
+// RS_ShotgunnerFX.zs:244 (RS_DetoPuffCG -- the BASE class of the two
+// RS_DetoPuff* fixed here) and :702 (RS_DetoPuffCG2), and at
+// RS_PainElementalFX.zs:1183.
+//
 // Dangling / silent by design, verbatim from CH:
 //   * "LewdLabCoat" (WhiteCguy2 drop) is defined nowhere in CH -- silent
 //     no-op drop there too.
@@ -24,7 +39,7 @@
 // ---------------------------------------------------------------------------
 // Drop gates this family adds.  CH: DECORATE.txt:456 / 502 / 548.
 // ---------------------------------------------------------------------------
-class RS_CH_BlueArmor : RS_DropBaseItem   // CH DECORATE.txt:456
+class RS_CH_BlueArmor : RS_DropBaseArmor   // CH DECORATE.txt:456
 {
 	States
 	{
@@ -37,7 +52,7 @@ class RS_CH_BlueArmor : RS_DropBaseItem   // CH DECORATE.txt:456
 	}
 }
 
-class RS_CH_Chainsaw : RS_DropBaseItem   // CH DECORATE.txt:502
+class RS_CH_Chainsaw : RS_DropBaseWeapon   // CH DECORATE.txt:502
 {
 	States
 	{
@@ -50,7 +65,7 @@ class RS_CH_Chainsaw : RS_DropBaseItem   // CH DECORATE.txt:502
 	}
 }
 
-class RS_CH_BFG9000 : RS_DropBaseItem   // CH DECORATE.txt:548
+class RS_CH_BFG9000 : RS_DropBaseWeapon   // CH DECORATE.txt:548
 {
 	States
 	{
@@ -368,7 +383,7 @@ class RS_GrayCGuff : Actor   // CH Chaingunners.txt:742 -- gray's exploding puff
 	Melee:
 		MISL D 4 Bright A_Explode(random(1,12),64);
 		MISL D 1 Bright A_SpawnItemEx("RS_CGthing3",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION);
-		MISL E 4 Bright;
+		MISL D 4 Bright;   // CH: MISL E -- vanilla MISL ends at D in both IWADs (checked doom.wad and doom2.wad lump directories: MISLA*,B0,C0,D0 only) and CH ships no MISL lump, so CH's own frame renders nothing; held D, the last explosion frame, for E's 4 tics. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }
@@ -621,7 +636,7 @@ class RS_DetoPuff2 : RS_DetoPuffCG   // CH Chaingunners.txt:1847
 		MISL BC 4 Bright A_SetScale(0.28);
 	Melee:
 		MISL D 4 Bright A_Explode(random(1,4),38);
-		MISL E 4 Bright;
+		MISL D 4 Bright;   // CH: MISL E -- frame absent from both IWADs and from CH; held D for E's 4 tics. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }
@@ -634,7 +649,7 @@ class RS_DetoPuff3 : RS_DetoPuffCG   // CH Chaingunners.txt:1860
 		MISL BC 4 Bright A_SetScale(0.2);
 	Melee:
 		MISL D 4 Bright A_Explode(random(1,3),32);
-		MISL E 4 Bright;
+		MISL D 4 Bright;   // CH: MISL E -- frame absent from both IWADs and from CH; held D for E's 4 tics. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }
@@ -1317,9 +1332,9 @@ class RS_VolativeCaco : Actor   // CH Chaingunners.txt:2957 -- walking bomb
 		HEAD D 8;
 		HEAD D 1 A_Scream;
 		MISL CD 6 A_Explode(random(20,60),128);
-		MISL E 1 A_DualPainAttack("RS_BabyCaco");
-		MISL E 2 A_PainAttack("RS_BabyCaco");
-		MISL E 1 A_DualPainAttack("RS_BabyCaco");
+		MISL D 1 A_DualPainAttack("RS_BabyCaco");   // CH: MISL E -- frame absent from both IWADs and from CH, so this whole 4-tic death burst rendered nothing; held D, the last explosion frame. Fixed 2026-08-06 (owner: nothing invisible).
+		MISL D 2 A_PainAttack("RS_BabyCaco");       // CH: MISL E -- same, see above.
+		MISL D 1 A_DualPainAttack("RS_BabyCaco");   // CH: MISL E -- same, see above.
 		TNT1 A 0 A_Die;
 		Stop;
 	}

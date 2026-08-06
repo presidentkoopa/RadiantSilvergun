@@ -25,6 +25,9 @@
 //   netevent rs_spawnall_revenant
 //   netevent rs_spawnall_fatso
 //   netevent rs_spawnall_spider
+//   netevent rs_spawnall_archvile
+//   netevent rs_spawnall_cyberdemon
+//   netevent rs_spawnall_mastermind
 //
 // Layout: one row per family, tier order 1..13 left to right (bosses at the
 // right end), rows starting 256 in front of the player, 128 apart, columns
@@ -269,6 +272,52 @@ class RS_MonsterDebugHandler : EventHandler
 			list.Push('RS_BlackSPEX');       // T10 EX
 			list.Push('RS_WhiteSP11');       // T11
 			break;
+		case 14:   // Archvile
+			list.Push('RS_CommonArch');      // T1
+			list.Push('RS_GreenArch');       // T2
+			list.Push('RS_BlueArch');        // T3
+			list.Push('RS_PurpleArch');      // T4
+			list.Push('RS_YellowArch');      // T5
+			list.Push('RS_RedArch2');        // T6
+			list.Push('RS_RedArch3');        // T6 boss form
+			list.Push('RS_FireBluArch2');    // T7
+			list.Push('RS_GrayArch2');       // T8
+			list.Push('RS_AbyssVile');       // T9
+			list.Push('RS_CyanVile');        // T12
+			list.Push('RS_BrownVile');       // T13
+			list.Push('RS_BlackVile');       // T10
+			list.Push('RS_Whitevile');       // T11
+			break;
+		case 15:   // Cyberdemon
+			list.Push('RS_CommonCybie');     // T1
+			list.Push('RS_GreenCybie');      // T2
+			list.Push('RS_BlueCybie');       // T3
+			list.Push('RS_PurpleCybie');     // T4
+			list.Push('RS_YellowCybie');     // T5
+			list.Push('RS_RedCybie');        // T6
+			list.Push('RS_FireBluCybie2');   // T7
+			list.Push('RS_GrayCybie2');      // T8
+			list.Push('RS_AbyssCybie2');     // T9
+			list.Push('RS_CyanCybie2');      // T12
+			list.Push('RS_BrownCybie2');     // T13
+			list.Push('RS_BlackCybie2');     // T10
+			list.Push('RS_WhiteCybie2');     // T11
+			break;
+		case 16:   // Spider Mastermind -- the seventeenth and final CH family
+			list.Push('RS_CommonMind');      // T1
+			list.Push('RS_GreenMind');       // T2
+			list.Push('RS_BlueMind');        // T3
+			list.Push('RS_PurpleMind');      // T4
+			list.Push('RS_YellowMind');      // T5
+			list.Push('RS_RedMind');         // T6
+			list.Push('RS_FireBluMind2');    // T7
+			list.Push('RS_GrayMind2');       // T8
+			list.Push('RS_AbyssMind2');      // T9
+			list.Push('RS_CyanMind2');       // T12
+			list.Push('RS_BrownMind2');      // T13
+			list.Push('RS_BlackMind2');      // T10
+			list.Push('RS_WhiteMind2');      // T11
+			break;
 		}
 	}
 
@@ -330,6 +379,9 @@ class RS_MonsterDebugHandler : EventHandler
 			total += SpawnFamilyRow(pmo, 11, 11);
 			total += SpawnFamilyRow(pmo, 12, 12);
 			total += SpawnFamilyRow(pmo, 13, 13);
+			total += SpawnFamilyRow(pmo, 14, 14);
+			total += SpawnFamilyRow(pmo, 15, 15);
+			total += SpawnFamilyRow(pmo, 16, 16);
 		}
 		else if (e.Name == 'rs_spawnall_zombieman')     total = SpawnFamilyRow(pmo, 0, 0);
 		else if (e.Name == 'rs_spawnall_shotgunner')    total = SpawnFamilyRow(pmo, 1, 0);
@@ -345,6 +397,9 @@ class RS_MonsterDebugHandler : EventHandler
 		else if (e.Name == 'rs_spawnall_revenant')      total = SpawnFamilyRow(pmo, 11, 0);
 		else if (e.Name == 'rs_spawnall_fatso')         total = SpawnFamilyRow(pmo, 12, 0);
 		else if (e.Name == 'rs_spawnall_spider')        total = SpawnFamilyRow(pmo, 13, 0);
+		else if (e.Name == 'rs_spawnall_archvile')      total = SpawnFamilyRow(pmo, 14, 0);
+		else if (e.Name == 'rs_spawnall_cyberdemon')    total = SpawnFamilyRow(pmo, 15, 0);
+		else if (e.Name == 'rs_spawnall_mastermind')    total = SpawnFamilyRow(pmo, 16, 0);
 		else return;
 
 		Console.Printf("RS_MonsterDebug: spawned %d monsters.", total);

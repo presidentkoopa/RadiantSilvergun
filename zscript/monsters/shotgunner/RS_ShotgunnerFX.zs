@@ -25,6 +25,17 @@
 //     sound names CH never defines; silent in CH itself.
 //   * ZPS1 -- CH's own typo for ZSP1 on a few 0-tic frames (BlackSG2).
 //     Kept verbatim; renders nothing either way.
+//
+// Frame gaps closed 2026-08-06 (owner: visual consistency beats verbatim
+// silence).  Both were CH writing frame letters past the end of a VANILLA
+// sprite set -- the sets ship, the letters don't, in either IWAD:
+//   * PLSS C D E -- PLSS ships A and B only (PLSSA0/PLSSB0); C/D/E are PLSE's
+//     letters, not PLSS's.  CH wrote them on the SGLance chain (SGLance1
+//     "ABCDE", SGLance5/2/3 "ABC") while its own SGLance4 correctly writes
+//     "AB".  Remapped to the A/B flicker vanilla PlasmaBall itself loops.
+//     Frame counts, tic counts and A_SpawnItemEx call counts all unchanged.
+//   * PUFF E -- PUFF ships A B C D only.  RS_BrownSGshot's death tail
+//     "PUFF DE 6" now holds D.  2 frames x 6 tics unchanged.
 // ============================================================================
 
 // ---------------------------------------------------------------------------
@@ -79,7 +90,7 @@ class RS_CH_CellPack : RS_DropBaseAmmo   // CH DECORATE.txt:325
 	}
 }
 
-class RS_CH_GreenArmor : RS_DropBaseItem   // CH DECORATE.txt:433
+class RS_CH_GreenArmor : RS_DropBaseArmor   // CH DECORATE.txt:433
 {
 	States
 	{
@@ -410,7 +421,7 @@ class RS_BrownSGshot : Actor   // CH Shotgunners.txt:163
 		TNT1 A 0 A_Stop;
 		PUFF C 6 Bright;
 		TNT1 A 0 A_Blast(BF_NOIMPACTDAMAGE,128,32,20.0);
-		PUFF DE 6 Bright;
+		PUFF DD 6 Bright;   // CH: PUFF E -- E is not a vanilla frame; PUFF ships A B C D only (doom.wad and doom2.wad both, PUFFA0-PUFFD0). Held D, the frame before it, so the smoke tail finishes instead of 6 blank tics. 2 frames x 6 tics unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }
@@ -507,7 +518,7 @@ class RS_SGLance1 : Actor   // CH Shotgunners.txt:1145 -- blue's plasma lance
 	Spawn:
 		TNT1 A 0;
 	Fly:
-		PLSS ABCDE 2 Bright A_SpawnItemEx("RS_SGLance2",0,0,1,4);
+		PLSS ABABA 2 Bright A_SpawnItemEx("RS_SGLance2",0,0,1,4);   // CH: PLSS C D E -- not vanilla frames; PLSS ships A B only (doom.wad and doom2.wad both, PLSSA0/PLSSB0 -- C D E belong to PLSE). Continued the A/B flicker that vanilla PlasmaBall and CH's own SGLance4 use. 5 frames x 2 tics = 10 tics and 5 A_SpawnItemEx calls, both unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto Death;
 	Death:
 		PLSE E 1 Bright A_SpawnItemEx("RS_SGLance5",0,0,1,4);
@@ -535,7 +546,7 @@ class RS_SGLance5 : Actor   // CH Shotgunners.txt:1174
 	States
 	{
 	Spawn:
-		PLSS ABC 2 Bright;
+		PLSS ABA 2 Bright;   // CH: PLSS C -- not a vanilla frame; PLSS ships A B only. Continued the A/B flicker. 3 frames x 2 tics = 6 tics unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto Death;
 	Death:
 		PLSE DCE 2 Bright A_Explode(random(2,8),32);
@@ -562,7 +573,7 @@ class RS_SGLance2 : RS_SGLance1   // CH Shotgunners.txt:1200
 	Spawn:
 		TNT1 A 0;
 	Fly:
-		PLSS ABC 2 Bright A_SpawnItemEx("RS_SGLance3",0,0,1,3);
+		PLSS ABA 2 Bright A_SpawnItemEx("RS_SGLance3",0,0,1,3);   // CH: PLSS C -- not a vanilla frame; PLSS ships A B only. Continued the A/B flicker. 3 frames x 2 tics = 6 tics and 3 A_SpawnItemEx calls, both unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto Death;
 	Death:
 		PLSE DE 2 Bright;
@@ -587,7 +598,7 @@ class RS_SGLance3 : RS_SGLance2   // CH Shotgunners.txt:1225
 	Spawn:
 		TNT1 A 0;
 	Fly:
-		PLSS ABC 2 Bright A_SpawnItemEx("RS_SGLance4",0,0,1,3);
+		PLSS ABA 2 Bright A_SpawnItemEx("RS_SGLance4",0,0,1,3);   // CH: PLSS C -- not a vanilla frame; PLSS ships A B only. Continued the A/B flicker. 3 frames x 2 tics = 6 tics and 3 A_SpawnItemEx calls, both unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto Death;
 	Death:
 		PLSE DE 1 Bright;
@@ -662,12 +673,12 @@ class RS_SGGasNade : Actor   // CH Shotgunners.txt:1674 -- gas grenade.
 	States
 	{
 	Spawn:
-		SGRN A 1 Bright;
-		SGRN A 1 Bright A_Jump(8,"Bounce");
-		SGRN A 1 Bright A_Jump(4,"Death");
+		HGRN A 1 Bright;   // CH: SGRN -- CH typo; HGRN is the real prefix (only *GRN* art in CH, a grenade sprite). Fixed 2026-08-06 (owner: nothing invisible).
+		HGRN A 1 Bright A_Jump(8,"Bounce");   // CH: SGRN -- CH typo; HGRN is the real prefix (only *GRN* art in CH, a grenade sprite). Fixed 2026-08-06 (owner: nothing invisible).
+		HGRN A 1 Bright A_Jump(4,"Death");   // CH: SGRN -- CH typo; HGRN is the real prefix (only *GRN* art in CH, a grenade sprite). Fixed 2026-08-06 (owner: nothing invisible).
 		Loop;
 	Bounce:
-		SGRN A 2 Bright ThrustThing(int(angle*256/(random(1,360))),12,0,0);   // CH: ThrustThing(angle*256/(random(1,360)),12,0,0)
+		HGRN A 2 Bright ThrustThing(int(angle*256/(random(1,360))),12,0,0);   // CH: ThrustThing(angle*256/(random(1,360)),12,0,0)
 		Goto Spawn;
 	Death:
 		MISL B 8 Bright A_Explode(random(20,50),128);

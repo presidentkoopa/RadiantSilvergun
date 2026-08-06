@@ -45,23 +45,6 @@ server bool rs_dualclass_allowbigguns = false;
 // Off switch here rather than nowhere; it is a strong visual.
 server bool rs_monster_enragetell = true;
 
-// Lead fire. CH's four ProjInt_Brute scripts (BaronMissile, CybMissile,
-// ImpMissile, FatMissile) make a monster solve where you WILL be and
-// shoot there instead of at where you are. CH gates all of them behind
-// its own CH_Intercept cvar with a Miss2 fallback state, so this is a
-// real option in the original, not an always-on behaviour.
-// The import dropped the gated branch and kept only Miss2, which meant
-// this was effectively OFF and unswitchable. On by default now, because
-// off is what we have been playing.
-//
-// POLARITY IS DELIBERATELY NOT CH'S. CH_Intercept defaults to FALSE and
-// its DECORATE reads A_JumpIf(CH_Intercept == true, "Miss2") -- Miss2
-// being the DUMB shot. So CH's false means "lead", true means "do not",
-// while its own menu label reads "Intercepting missiles / Can Cybie &
-// Baron Aim where you go?". The cvar is inverted against its own text.
-// CH's effective DEFAULT (lead on) is what we match; its spelling is not.
-// Here, true means the monster leads. Do not "fix" this to match CH.
-server bool rs_monster_intercept = true;
 
 // =====================================================================
 // GunBonsai (zscript/GunBonsai/) -- weapon leveling/upgrade system,
@@ -74,11 +57,32 @@ user float bonsai_hud_x = 0.01;
 user float bonsai_hud_y = 0.02;
 user float bonsai_hud_size = 0.15;
 user float bonsai_hud_alpha = 1.0;
-user color bonsai_hud_rgb_frame = "00 FF FF";
-user color bonsai_hud_rgb_weapon = "00 80 FF";
-user color bonsai_hud_rgb_player = "00 FF 80";
 user int bonsai_hud_mirror = 2;
 user int bonsai_hud_skin = 1;
+
+// HUD colour. bonsai_hud_colour_mode 1 (Rainbow, the default) ignores every
+// per-element colour below and rolls the whole widget slowly through the hue
+// wheel; 0 (Fixed) hands each element back to its own picker. One global
+// switch rather than ten per-element opt-outs -- a player who wants a pinned
+// palette flips it once. Speed 1.0 is one full revolution per 30 seconds; the
+// cycle runs off gametic so the mainhand and offhand widgets are provably at
+// the same point in it and it stops while the game is paused.
+// Every colour the two HUDs draw has a slot here. The last two are status
+// rather than decoration -- "this weapon is not earning XP" reads as an
+// absence of colour -- so they are addressable but never join the rainbow.
+// Surfaced in MENUDEF.txt's "GunBonsaiColourOptions" sub-page.
+user int bonsai_hud_colour_mode = 1;
+user float bonsai_hud_rainbow_speed = 1.0;
+user color bonsai_hud_rgb_frame = "00 FF FF";     // frame texture
+user color bonsai_hud_rgb_weapon = "00 80 FF";    // weapon XP bar
+user color bonsai_hud_rgb_player = "00 FF 80";    // player XP bar
+user color bonsai_hud_rgb_wname = "00 80 FF";     // weapon name text
+user color bonsai_hud_rgb_wxp = "00 80 FF";       // weapon "Lv.n (x/y)" text
+user color bonsai_hud_rgb_plevel = "00 FF 80";    // player "Lv.n" text
+user color bonsai_hud_rgb_pxp = "00 FF 80";       // player "x/y" text
+user color bonsai_hud_rgb_cnd = "00 80 FF";       // CND readout (was hardcoded)
+user color bonsai_hud_rgb_ignored = "80 80 80";   // ignored weapon: text + bar
+user color bonsai_hud_rgb_emptybar = "44 44 44";  // offhand bar with no XP data
 
 user bool bonsai_levelup_flash = true;
 user color bonsai_levelup_flash_rgb = "FF FF FF";
@@ -508,8 +512,7 @@ user float rs_mon_missilechance_floor = 0.125;
 // makes the environment itself coloured and a monster's tint competes
 // with the floor for the same channel. A shape does not.
 // See zscript/monsters/chaingunner/RS_ColorTierIcon.zs.
-// =====================================================================
-server bool rs_mon_tiericons = false;
+//
 
 // =====================================================================
 // SPAWN BANDS -- which creatures a map spawn is allowed to become.
@@ -546,25 +549,61 @@ server int rs_score_giantslayer_hp = 700;
 // --- CH Zombieman family gates (2026-08-05) -----------------------------
 // One-to-one with CH's cvars (CVARINFO.txt + CHSett.acs in the CH folder),
 // rs_ch_ prefixed so loading real CH alongside never double-defines.
-// Colour gates: 1 = colour OFF (reroll into the main set -- CH's default),
-// 3 = 50/50, any other value = colour spawns at its listed weight.
-server int rs_ch_brown = 1;         // CH: CH_Brown
-server int rs_ch_cyan = 1;          // CH: CH_Cyan
-server int rs_ch_fireblu = 1;       // CH: CH_FireBLU
-server int rs_ch_gray = 1;          // CH: CH_Gray
-server int rs_ch_abyss = 1;         // CH: CH_Abyss
+//
+// ALL NINETEEN rs_ch_ cvars surface in MENUDEF's "Monster Variants & Drops"
+// branch (OptionMenu RS_CHMonsterOptions and its four sub-pages) -- 2026-08-06.
+// The labels there were built from the values our own gates test for, not
+// from these comments; if you change a gate, change that page too.
+//
+// Colour gates. 1 = tier OFF: the spawn is re-rolled into the ordinary set
+// (CH's default). Any other value = the tier spawns at its listed weight.
+// brown / cyan / abyss ALSO have a third branch, 3 = 50/50 (A_Jump(128),
+// half become the tier and half re-roll).
+// fireblu and gray DO NOT -- every one of their 17 sites tests == 1 only,
+// so for those two, 3 is simply "on", identical to 2. Do not give them a
+// 50/50 label; there is no branch behind it.
+server int rs_ch_brown = 1;         // CH: CH_Brown        (1 off / 2 on / 3 half)
+server int rs_ch_cyan = 1;          // CH: CH_Cyan         (1 off / 2 on / 3 half)
+server int rs_ch_fireblu = 1;       // CH: CH_FireBLU      (1 off / else on)
+server int rs_ch_gray = 1;          // CH: CH_Gray         (1 off / else on)
+server int rs_ch_abyss = 1;         // CH: CH_Abyss        (1 off / 2 on / 3 half)
 // Boss gates: 1 = boss enabled (CH default); else black->red, white->black.
 server int rs_ch_blackboss = 1;     // CH: CH_BlackBoss
 server int rs_ch_whiteboss = 1;     // CH: CH_WhiteBoss
-// EX variant: 1 = ~9% of black bosses are Player X, 2 = 50%, 3 = always.
+// EX variant, read only inside the black gate's own enabled branch:
+// 1 = 24/256 of black bosses are EX, 2 = half, 3 = always, ANY OTHER VALUE
+// (CH's menu uses 4) falls through to the plain boss = never.
 server int rs_ch_exboss = 1;        // CH: CH_EXBoss
-// Drop scaling, CH semantics: healthdrops/backpackdrops 1-4 pick bundle
-// sizes; ammodrops 1=normal 2=rare 3=double; extradrops 1=normal 2=rare.
+// Drop scaling. Each is one choke point in RS_ZombiemanFX.zs, and each has
+// a fall-through that spawns NOTHING -- that is the "none" setting, and its
+// number differs per gate because these are CH's own numbers:
+//   healthdrops   1 standard / 2 scarce / 3 generous / 4 all-random / 5 none
+//                 -- drives RS_HealthBundle AND RS_ArmorBundle, both.
+//   backpackdrops 1 standard / 2 all-random / 3 generous / 4 scarce / 0 none
+//   ammodrops     1 normal / 2 half as often / 3 double / 0 none
+//   extradrops    1 normal / 2 half as often / 0 none
 server int rs_ch_healthdrops = 1;   // CH: CH_HealthDrops
 server int rs_ch_backpackdrops = 1; // CH: CH_BackPackDrops
 server int rs_ch_ammodrops = 1;     // CH: CH_AmmoDrops
 server int rs_ch_extradrops = 1;    // CH: CH_ExtraDrops
-// 1 = show the floating colour icon above monsters (colourblind aid).
+
+// Per-category loot gates -- an RS addition (2026-08-06), NOT a CH setting.
+// CH funnels every non-ammo pickup through CH_Extras above, so its one switch
+// covers weapons, spheres, armour and medikits together. These three split
+// that decision: each is read by its own base class in
+// zscript/monsters/chshared/RS_CHShared.zs (RS_DropBaseWeapon /
+// RS_DropBasePowerup / RS_DropBaseArmor), which the pickups are re-parented
+// onto -- so no DropItem line anywhere was touched. Values match CH's own
+// convention so the whole drops page reads alike: 1 = normal, 2 = rare,
+// 0 = off. Default 1 everywhere, i.e. exactly CH's behaviour until changed.
+server int rs_ch_weapondrops = 1;   // RS: chainsaw, SSG, plasma, RL, BFG
+server int rs_ch_powerupdrops = 1;  // RS: berserk, soul/mega/blursphere
+server int rs_ch_armordrops = 1;    // RS: green + blue armour
+// 1 = show the floating tier icon above monsters (colourblind aid).
+// The one live gate for that feature (RS_ZombiemanFX.zs:96, the Fly state
+// of RS_ColorTierIconCH). A duplicate declaration, rs_mon_tiericons, was
+// removed 2026-08-06 by owner order -- it read nowhere and cited a file
+// that does not exist. Do not reintroduce it.
 server int rs_ch_colorblind = 0;    // CH: CH_ColorBlind
 // 1 = show the marker FX on abyss projectiles.
 server int rs_ch_abyssmark = 0;     // CH: CH_AbyssMark
@@ -648,3 +687,15 @@ server int rs_ch_intercept = 0;     // CH: CH_Intercept (CHSett.acs:84)
 // RS_Zom.CV already returned while this was undeclared -- declaring it only
 // makes the knob reachable, it does not change behaviour.
 server int rs_ch_nerfredboss = 1;   // CH: CH_NerfRedBoss
+
+// Revenant family addition (2026-08-05): CH's CH_YellowRev (CH CVARINFO.txt:19,
+// default 0) gates the Orange Revenant variant -- 1 and 2 select different
+// speed/translation scripts. Declaring it at CH's own default changes nothing
+// today; it only makes the variant reachable. Needs TRNSLATE's YellowRev01.
+server int rs_ch_yellowrev = 0;     // CH: CH_YellowRev
+
+// Cyberdemon family addition (2026-08-06): CH's RawketTypeCH ACS (CHSett.acs:9)
+// reads CH_Rawket -- 1 makes the cyberdemon rocket deal Normal damage instead
+// of its own type. CH's own default is 1 (CH CVARINFO.txt:16), which is what
+// RS_Zom.CV already returned while undeclared; this only makes it reachable.
+server int rs_ch_rawket = 1;        // CH: CH_Rawket (CHSett.acs:9)

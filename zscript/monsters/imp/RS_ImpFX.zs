@@ -15,12 +15,41 @@
 // ("break up the ACS yourself"): RS_BrownImpCommand -> RS_BrownImpBuffCtl.
 //
 // Dangling / silent by design, verbatim from CH:
-//   * VBAL (RS_EffectHK's sprite) ships NOWHERE in CH -- the 1-tic flash is
-//     invisible there too; the actor's real job is the RedThingsHK burst.
-//   * BLTR G (RS_AgauresBallTrail's last frame) -- CH ships BLTR A-F only;
-//     the trail's final frame is invisible in CH too.
-//   * GIMP P (gray imp's death/raise frame, used in RS_Imp.zs) -- CH ships
-//     GIMP A-L only; invisible frame in CH too.
+//   * ZOMG U (fireblu imp's XDeath, RS_Imp.zs, CH Imps.txt:825-826) -- no
+//     ZOMGU0 in CH, CHP or this repo; CHP keeps the same dangling reference
+//     (DECORATE\01\01_G.txt:62). Both states are 0-tic, so nothing is ever
+//     drawn and there is nothing to fix. Verified 2026-08-06, left verbatim.
+//
+// Resolved 2026-08-06 -- both remaining imp frame gaps closed:
+//   * BLTR G (RS_AgauresBallTrail's last frame) was invisible for 2 tics.
+//     CH ships BLTR A-F only, in both trees, and CHP does not re-author the
+//     actor, so there is no corrected upstream copy. The set is a 6-step
+//     darken/grow fade; the sequence now repeats F ("BLTR ABCDEFF"), which
+//     holds the tail of the fade for those 2 tics. State count and total
+//     tics unchanged.
+//   * GIMP P (gray imp's death frame and its reverse in Raise, used in
+//     RS_Imp.zs) was a typo in CH itself -- no GIMPP0 exists anywhere, and
+//     the sequence is plainly I-J-K-L. CHP re-authors the actor and writes
+//     "GIMP K 5" and "GIMP LKJI 4" (ART SOURCE\CHP\DECORATE\03\03_GY.txt:57
+//     and :64); CHP wins. GIMPK0 ships here and is the mid-collapse frame.
+//     Corrected to K at both sites.
+//
+// Resolved 2026-08-06 -- RS_EffectHK's sprite used to be VBAL, a typo in CH
+// itself (CHP carries it verbatim, DECORATE/11/11_R.txt:2782). No VBAL lump
+// exists in CH, CHP, ART SOURCE or this repo, so both frames rendered
+// nothing. Fixed to CBAL, on this evidence: VBAL is a well-formed "?BAL"
+// token one adjacent key from CBAL (C/V); CH uses CBAL twice within 50 lines
+// of the typo in the same file (Hellknights.txt:2152 and :2181); and CBAL A
+// is a rotation-0 red fire ball (11x11, mean RGB 209,30,7) that matches the
+// red RS_RedThingsHK sparks this actor exists to burst. The near-miss VBA3 A
+// is an orange 8-rotation comet with a 37x6 side streak -- a moving-
+// projectile sprite, wrong on a Speed 0 +NOINTERACTION flash -- and 3/L is
+// not a keystroke slip. CBAL A/B are the only frames of the CBAL set that no
+// CH or CHP actor references (all 139 frame refs start at C): exactly the
+// residue one misspelled reference leaves. The other "?BAL" sets are
+// unrelated -- SBAL is the shadow-beast pack (spectres only) and HBAL is in
+// the Knight pack, referenced by nothing in CH or CHP, as are 4 of that
+// folder's 10 prefixes.
 // ============================================================================
 
 // ---------------------------------------------------------------------------
@@ -334,7 +363,7 @@ class RS_Firespe2 : Actor   // CH Revenants.txt:2670 -- the lingering flame
 }
 
 class RS_EffectHK : Actor   // CH Hellknights.txt:2088 -- red spark burst shell.
-// VBAL ships nowhere in CH: the flash frame is invisible there too.
+// CH writes VBAL here; that is a typo for CBAL (see the header block).
 {
 	Default
 	{
@@ -348,10 +377,10 @@ class RS_EffectHK : Actor   // CH Hellknights.txt:2088 -- red spark burst shell.
 	States
 	{
 	Spawn:
-		VBAL A 1;
+		CBAL A 1;   // CH: VBAL -- CH typo; CBAL is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto Death;
 	Death:
-		VBAL A 1 A_Burst("RS_RedThingsHK");
+		CBAL A 1 A_Burst("RS_RedThingsHK");   // CH: VBAL -- CH typo; CBAL is the real prefix and has this frame. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }
@@ -1108,7 +1137,7 @@ class RS_AgauresBallTrail : Actor   // CH Imps.txt:2520
 	{
 	Spawn:
 		NULL A 1 Bright;
-		BLTR ABCDEFG 2 Bright;
+		BLTR ABCDEFF 2 Bright;   // CH: BLTR G -- frame G ships nowhere (CH's blackimp/ and this repo both stop at BLTRF0), so CH's own trail blinks out for its last 2 tics. Repeats F, the darkest/largest frame of the fade, so the tail holds instead of vanishing. Still 7 states / 14 tics. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }

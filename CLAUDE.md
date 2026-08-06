@@ -114,13 +114,22 @@ Their measured record:
   `GRND`, `HMIS` are all genuine). A token resolving *only* through art_index is
   a file that was never copied in: it passes a lint and still fails at load.
 
-**THE GROUND TRUTH IS `E:\New folder\ART SOURCE\CHP\DECORATE\NN\NN_<code>.txt`,
-AND THE GAME.** CHP always wins; CH fills only what CHP leaves undefined. If a
-tool is written again it must be a **differ against CHP**, not a lint over us —
-it must be able to say "CHP's actor does X, ours does Y" and cite both. Anything
-that can only inspect our own tree tells you nothing you did not already believe.
+**THE GROUND TRUTH IS `C:\Users\Command\Desktop\CH` AND THE GAME.** That is the
+pack this project's monsters were rebuilt from, and the only source any decision
+about them may cite. If a tool is written again it must be a **differ against
+CH**, not a lint over us — it must be able to say "CH's actor does X, ours does
+Y" and cite both. Anything that can only inspect our own tree tells you nothing
+you did not already believe.
 
-Between the compiler, a boot, and CHP's own files, everything those five scripts
+**DO NOT CONSULT ANYTHING ELSE IN `ART SOURCE` FOR WHAT OUR CODE SHOULD SAY.**
+This paragraph used to name a different, much larger pack as authoritative,
+left over from earlier abandoned ports. **This project does not contain that
+pack and never has.** On 2026-08-06 that instruction sent several agents to read
+it as a source of truth; the owner caught it. Removed at his order. If you find
+yourself about to justify an edit with any source other than CH or the running
+game — stop and ask the owner.
+
+Between the compiler, a boot, and CH's own files, everything those five scripts
 claimed to cover is covered by something that cannot flatter us.
 
 ## One repo, one branch — consolidated 2026-08-05
@@ -205,6 +214,60 @@ a denominator:
 Source of truth for all of it: `E:\New folder\ART SOURCE\CH\` — its
 `sounds/`, `sprites/`, `SNDINFO.txt`, `TRNSLATE.txt` and `DECORATE.txt`,
 not just `decorate/*.txt`.
+
+## THE DOOM 1 COMPAT SET — A ONE-TIME, OWNER-AUTHORISED IWAD EXTRACTION
+
+Added 2026-08-06. **Do not revert this, and do not read it as licence to
+extract anything else.**
+
+Standing rule, unchanged: RS never ships art lifted out of a commercial IWAD.
+Monsters must stand alone — every sprite resolves from the repo's own
+`sprites/` tree or from the IWAD *the player already owns and is running*
+(see "Monsters must stand alone"). That is still the rule for everything.
+
+**The one exception the owner granted, out loud, on 2026-08-06.** Ten of the
+seventeen CH families draw vanilla sprite prefixes that exist only in
+`doom2.wad`. On `doom.wad` (Ultimate Doom) those monsters spawn, move and
+kill you while rendering **nothing** — a silent, total invisibility with no
+error and no log line. The owner **asserted legal ownership of the game** and
+directed a one-time extraction from his own copy at
+`D:\SteamLibrary\steamapps\Common\DooM VR\___Sourceport\doom2.wad`.
+
+What was taken, and only this:
+
+  * **317 lumps, four prefixes — `CPOS`, `PAIN`, `FATT`, `VILE`** — copied
+    byte-for-byte out of the `S_START`/`S_END` range into
+    **`sprites/rs_doom1compat/`** as raw Doom patches with a `.lmp`
+    extension. No PNG conversion: the offsets live in the patch header, and
+    re-encoding risks palette and offset damage. Verified byte-identical to
+    the IWAD after writing, 317/317.
+
+**`BOS2`, `SKEL` and `BSPI` were deliberately NOT extracted, and must not
+be.** The repo already ships all 181 of those lumps — CH's own `doom1fix`
+set, already imported, and verified byte-identical to `doom2.wad`. Adding
+them again would create duplicate lump names, where one copy silently wins
+by directory order. `BOS2` also carries 24 CH-authored frames (`P`/`Q`/`R`)
+that are **not** in any IWAD; a vanilla "completion" pass would be a
+regression. `FATTT0` was skipped for the same reason — it already ships as
+a PNG under `sprites/monsters/Mancubus/T00/`.
+
+Two Doom-2-only prefixes are still unresolved on Doom 1 and were **left
+alone** because they were outside the granted scope: **`FATB`** (10 lumps,
+the Mancubus fireball) and **`FBXP`** (3 lumps, its explosion). They need
+the owner's word before anyone touches them. Do not extract them on your
+own authority.
+
+Technical fact worth keeping: a sprite frame can be the character `\`
+(frame index 27), which is legal in a lump name and illegal in a Windows
+filename. **GZDoom's escape is `^`** — so `VILE\1` ships as `VILE^1.lmp`.
+This is not a typo and must not be "corrected". The engine's own
+`brightmaps.pk3` ships `brightmaps/strife/ROB3^0.png` on the same
+convention. The rip at `ART SOURCE\SPRITES\archvile\` shows the failure
+mode: its `\` frames were flattened by a path-splitting extractor into
+eight files named `1.png`…`8.png`.
+
+A `sprites/` folder needs no wiring — GZDoom picks it up automatically.
+Nothing in `zscript.txt` or any lump list references this folder.
 
 ## Prefer additive changes
 

@@ -25,6 +25,17 @@
 // (Missile+10/+12, missile+2, missile+3, Missile+2, Choice1+3, Death+1).
 // Every state line here is frame-for-frame identical to CH so those offsets
 // still land where CH meant them to. Do not collapse or add frames.
+//
+// RESOLVED 2026-08-06 -- HSBT frame A -> HBST frame A, four sites:
+// RS_FireBluFatso2 Spawn/See and RS_RedFatso Spawn/See (CH Fatsos.txt:795,
+// 804, 2280, 2290). HSBT is a two-character transposition of HBST; no HSBT*
+// lump exists in sprites/, in Desktop\CH\sprites or in ART SOURCE, while
+// HBST frame A ships with all eight rotations (HBSTA1, HBSTA2A8, HBSTA3A7,
+// HBSTA4A6, HBSTA5). Behaviour is untouched -- every one of the four is a
+// 0-tic state (never renders) sitting immediately after a "Loop;", so it is
+// unreachable dead code here exactly as in CH. No line was added or removed,
+// so the state offsets above still land. See RS_FatsoFX.zs's header for the
+// rest of the proven-missing register.
 // ============================================================================
 
 // ---------------------------------------------------------------------------
@@ -667,7 +678,7 @@ class RS_FireBluFatso2 : Actor   // CH Fatsos.txt:746
 		HBST A 10 A_Look;
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH7",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
 		Loop;
-		HSBT A 0 A_CustomMissile("RS_HBeastSmoke",64,0,0);   // CH: HSBT -- typo for HBST, no lump in CH; also unreachable (sits after Loop) in CH too
+		HBST A 0 A_CustomMissile("RS_HBeastSmoke",64,0,0);   // CH: HSBT A -- transposition of HBST; no HSBT* lump exists anywhere, and HBST A ships (HBSTA1/A2A8/A3A7/A4A6/A5). Behaviour identical: 0 tics never renders, and this line sits after the Loop above so it is unreachable here exactly as in CH. Corrected so no unresolvable sprite token remains. Fixed 2026-08-06 (owner: nothing invisible).
 		Loop;
 	See:
 		HBST A 0 A_Jump(81,11);
@@ -676,7 +687,7 @@ class RS_FireBluFatso2 : Actor   // CH Fatsos.txt:746
 		HBST CCDD 3 A_Chase;
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH7",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
 		Loop;
-		HSBT A 0 A_CustomMissile("RS_HBeastSmoke",64,0,0);   // CH: HSBT -- typo for HBST, no lump in CH; also unreachable in CH too
+		HBST A 0 A_CustomMissile("RS_HBeastSmoke",64,0,0);   // CH: HSBT A -- transposition of HBST; 0-tic and unreachable (sits after the Loop above), same as in CH. Corrected so no unresolvable sprite token remains. Fixed 2026-08-06 (owner: nothing invisible).
 		Loop;
 	Missile:
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH7",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
@@ -1560,7 +1571,7 @@ class RS_RedFatso : Actor   // CH Fatsos.txt:2223
 		HBST A 10 A_Look;
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH6",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
 		Loop;
-		HSBT A 0 A_CustomMissile("RS_HBeastSmoke",64,0,0);   // CH: HSBT -- typo for HBST, no lump in CH; also unreachable (sits after Loop) in CH too
+		HBST A 0 A_CustomMissile("RS_HBeastSmoke",64,0,0);   // CH: HSBT A -- transposition of HBST; no HSBT* lump exists anywhere, and HBST A ships (HBSTA1/A2A8/A3A7/A4A6/A5). Behaviour identical: 0 tics never renders, and this line sits after the Loop above so it is unreachable here exactly as in CH. Corrected so no unresolvable sprite token remains. Fixed 2026-08-06 (owner: nothing invisible).
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH6",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
 		Loop;
 	See:
@@ -1570,7 +1581,7 @@ class RS_RedFatso : Actor   // CH Fatsos.txt:2223
 		HBST CCDD 3 A_Chase;
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH6",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
 		Loop;
-		HSBT A 0 A_CustomMissile("RS_HBeastSmoke",64,0,0);   // CH: HSBT -- typo for HBST, no lump in CH; also unreachable in CH too
+		HBST A 0 A_CustomMissile("RS_HBeastSmoke",64,0,0);   // CH: HSBT A -- transposition of HBST; 0-tic and unreachable (sits after the Loop above), same as in CH. Corrected so no unresolvable sprite token remains. Fixed 2026-08-06 (owner: nothing invisible).
 		Loop;
 	Missile:
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH6",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);

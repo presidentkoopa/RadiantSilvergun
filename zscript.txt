@@ -142,6 +142,29 @@ version "4.14"
 // 4573 lines). References baron, revenant and fatso classes -- keep last.
 #include "zscript/monsters/spider/RS_SpiderFX.zs"
 #include "zscript/monsters/spider/RS_Spider.zs"
+// CH Archvile family, rebuilt native 2026-08-06 (Archviles.txt read whole,
+// 5183 lines). CH's BrownVileCommand ACS buff is rebuilt native as
+// RS_BrownVileBuffCtl, same shape as the imp lane's RS_BrownImpCommand.
+#include "zscript/monsters/archvile/RS_ArchvileFX.zs"
+#include "zscript/monsters/archvile/RS_Archvile.zs"
+// CH Cyberdemon family, rebuilt native 2026-08-06 (CYBIES.txt read whole,
+// 6144 lines -- the largest CH family). Landing it closes the last dormant
+// guard: RS_MolochWraith, a runtime drop name in RS_CacodemonFX.zs.
+#include "zscript/monsters/cyberdemon/RS_CyberdemonFX.zs"
+#include "zscript/monsters/cyberdemon/RS_Cyberdemon.zs"
+// CH Spider Mastermind family, rebuilt native 2026-08-06 (MASTERMINDS.txt
+// read whole, 5157 lines). THE SEVENTEENTH AND FINAL CH FAMILY.
+#include "zscript/monsters/mastermind/RS_MastermindFX.zs"
+#include "zscript/monsters/mastermind/RS_Mastermind.zs"
+// CH shared layer, rebuilt native 2026-08-06 from CH's TOP-LEVEL DECORATE.txt
+// (read whole, 1694 lines) -- the file no family pass ever read, since every
+// one worked from decorate/*.txt. RS_CHShared.zs holds the leftover pickups
+// (RS_CH_BlurSphere, which two mastermind bosses drop); RS_CHEvents.zs holds
+// CH's bonus/ambush event system. That system is DORMANT IN CH ITSELF --
+// nothing there fires it, no replaces, no ACS hook -- and is imported inert,
+// verbatim. It stays inert until the owner designs a trigger.
+#include "zscript/monsters/chshared/RS_CHShared.zs"
+#include "zscript/monsters/chshared/RS_CHEvents.zs"
 // Debug lineup spawner (netevent rs_spawnall). RS_MonsterDebugHandler is
 // ALSO in MAPINFO.txt's AddEventHandlers -- the two are a pair.
 #include "zscript/monsters/RS_MonsterDebug.zs"

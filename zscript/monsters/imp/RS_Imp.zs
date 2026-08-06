@@ -742,6 +742,7 @@ class RS_FireBluImp2 : DoomImp
 		MISL C 6 Bright A_Quake(20,12,0,64,0);
 		// CH: TNT1 AAA 0 A_SpawnItemEx("CHRandom_GibGenerator",...) -- gore chain not imported
 		POSS AAAAAAAAAA 0 A_SpawnItemEx("RS_FireSGguy2",0,0,3,random(3,9),0,1,random(-359,359));
+		// CH: ZOMG U (Imps.txt:825-826) -- frame U ships nowhere: CH's zombieman set stops at ZOMGT0, and CHP keeps the same dangling reference (DECORATE\01\01_G.txt:62). Both states below are 0-tic, so the renderer never displays them and there is nothing invisible to see; the sprite name is a carrier for A_CustomMissile only. Left verbatim on purpose. Verified 2026-08-06 (owner: nothing invisible).
 		ZOMG U 0 A_CustomMissile("RS_FireSGguy2",32,7);
 		ZOMG U 0 A_CustomMissile("RS_FireSGguy2",32,-7);
 		MISL D 6 A_NoBlocking;
@@ -853,14 +854,14 @@ class RS_GrayImp2 : Actor
 		TNT1 A 0 A_JumpIfInventory("RS_CHBoner",1,"Tickles");
 		GIMP I 5 A_CustomMissile("RS_CGthing3",32,0);
 		GIMP J 5 A_XScream;
-		GIMP P 5;
+		GIMP K 5;   // CH: GIMP P -- a typo in CH itself (Imps.txt:949); no GIMPP0 exists anywhere. CHP re-authors this death and writes "GIMP K 5" (ART SOURCE\CHP\DECORATE\03\03_GY.txt:57), and CHP wins. GIMPK0 ships here and is the mid-collapse frame between J (scream) and L (down). Fixed 2026-08-06 (owner: nothing invisible).
 		GIMP L 2 A_Fall;
 		TNT1 AAAAAAAAAAAAA 0 A_SpawnItemEx("RS_PuffCybieRed",0,0,2,random(3,9),0,random(1,15),random(0,359));
 		TROO RSTU 5;
 		TROO U -1;
 		Stop;
 	Raise:
-		GIMP LPJI 4;
+		GIMP LKJI 4;   // CH: GIMP LPJI -- the same GIMP P typo, run backwards (Imps.txt:956). CHP writes "GIMP LKJI 4" (03_GY.txt:64). Fixed 2026-08-06 (owner: nothing invisible).
 		Goto See;
 	}
 }

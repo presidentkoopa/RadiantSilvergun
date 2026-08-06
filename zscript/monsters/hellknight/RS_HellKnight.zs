@@ -10,6 +10,30 @@
 // (Ghost of 1993), 12 Cyan, 13 Brown (Lion). Minions (SpecialImp,
 // SpecialSpectre2, MiniPhantom, shields) get no token.
 //
+// BRUR FRAME COVERAGE -- CLOSED 2026-08-06.  BRUR ships frames A-N and
+// nothing further: 91 lumps, 8-rotation, A/B/C/D and K/L/M mirrored
+// (BRURA2A8, BRURK3K7 ...), E-J and N unmirrored (BRURE1..BRURE8).  Both
+// halves of every mirrored lump name the SAME frame letter, so there are no
+// hidden frames past N.  Identical in CH's own sprites/ -- the art was never
+// drawn, it was not lost in import.
+//   RS_RedHK's Raise (below) was CH's one reference past the end of the set.
+// CH Hellknights.txt:2055 reads `BRUR WVUTSRQPONMLKJIHGFEDCBA 2`, which is
+// the BRUD raise line (CH :729 and :1797, ours at :672 and :1491) with the
+// prefix swapped to this actor's body sprite and the frame list left alone.
+// BRUD legitimately ships A0-W0, all 23 frames, so the line is correct there
+// and nine-frames-short here.  BRUD is NOT the fix -- it is the Bruiser's
+// death sprite, a different monster; the Red Knightmare never renders it.
+//   Resolution: the nine phantom leading frames now hold BRUR N, the frame
+// this actor actually dies on, so the rewind is visible from tic 0 instead of
+// 18 tics of nothing.  State count and total tics are unchanged.
+//   FOR THE RECORD, an owner call we did not take on our own authority: CHP
+// re-authored all 15 Red Knightmare variants in
+// `E:\New folder\ART SOURCE\CHP\DECORATE\11\11_R.txt` and gave every one of
+// them `Raise: Stop` (:102, :214, :326, :438, :550, :662, :774, :886, :999,
+// :1112, :1229, :1342, :1458, :1629, :1742) -- i.e. CHP hit the same dead end
+// and deleted the raise, making the monster unresurrectable.  That is a
+// gameplay change, not a sprite fix, so it was left to the owner.
+//
 // LANDING THIS FAMILY CLOSES FOUR GUARDS: the lostsoul family's
 // runtime-lookup guards for RS_CommonHK / RS_GreenHK / RS_BlueHK /
 // RS_YellowHK (RS_LostSoulFX.zs:508/899/903/907/911) self-activate now that
@@ -331,7 +355,7 @@ class RS_BrownHK2 : Actor   // CH Hellknights.txt:40
 		Goto Death+1;
 	Death:
 		TNT1 A 0 A_JumpIfInventory("RS_CHBoner",1,"Tickles");
-		HWAE K 0 A_FaceTarget;   // CH: sprite HWAE ships nowhere in CH (typo for HWAR); 0-tic, invisible there too
+		HWAR K 0 A_FaceTarget;   // CH: sprite HWAE ships nowhere in CH (typo for HWAR); 0-tic, invisible there too
 		HWAR K 5 A_SpawnItemEx("RS_HellWarriorShield",0,0,25,6,0,0,60,128);
 		HWAR L 5 A_Scream;
 		HWAR M 5;
@@ -1040,7 +1064,23 @@ class RS_GreenHK : HellKnight   // CH Hellknights.txt:1274
 	Missile2:
 		BOS2 PQ 8 A_FaceTarget;
 		BOS2 Q 0 A_JumpIf(RS_Zom.CV('rs_ch_intercept', 0) == 1, "Miss2");   // CH: CallACS("CH_Intercept") == true (CH default false)
-		BOS2 R 8 { RS_HKLead.FireLead(self, "BaronBall", 32); }   // CH: ACS_NamedExecuteWithResult("BaronMissile") -- CHACS.acs:54, rebuilt native
+		// OWNER-APPROVED DEPARTURE FROM CH (ruled 2026-08-06). Second one in the
+		// project, after GrayPE2's healed RS_GreyDemon2. DO NOT "correct" this
+		// back to match CH -- the divergence is deliberate and was chosen with
+		// the facts below in hand.
+		//
+		// CH calls ACS_NamedExecuteWithResult("BaronMissile") here with NO
+		// argument, i.e. rand=0 (Hellknights.txt:1319). CHACS.acs:54 inverts
+		// it -- `if(rand == 1)` false -> else -> ProjInt_Brute(..., rand=1, 0).
+		// And miscFuncs.acs:114 is `if(rand){ random(1, sml_t); }`: the return
+		// value is DISCARDED, so lead time 't' stays 0 and every lead term
+		// becomes FixedMul(0, targetVel). CH's hell knight therefore does NOT
+		// lead -- it fires at the target's current position and is dodged by
+		// strafing, while the baron and lost souls (which pass rand=1 and hit
+		// the working branch) genuinely do predict. That asymmetry is a typo,
+		// not a design choice: the author wrote a solver and called it for all
+		// three. The owner ruled to keep the intended behaviour.
+		BOS2 R 8 { RS_HKLead.FireLead(self, "BaronBall", 32); }   // CH: ACS_NamedExecuteWithResult("BaronMissile") -- CHACS.acs:54
 		BOS2 R 2 A_Jump(128,"Missile");
 		Goto See;
 	Miss2:
@@ -1636,7 +1676,7 @@ class RS_RedHK : HellKnight   // CH Hellknights.txt:1902
 		TROO U -1;
 		Stop;
 	Raise:
-		BRUR WVUTSRQPONMLKJIHGFEDCBA 2;
+		BRUR NNNNNNNNNNMLKJIHGFEDCBA 2;   // CH: BRUR WVUTSRQPONMLKJIHGFEDCBA -- frames W..O do not exist (BRUR ships A-N only); held BRUR N in their place. 23 states / 46 tics, unchanged. See header note. Fixed 2026-08-06 (owner: nothing invisible).
 		Goto See;
 	}
 }

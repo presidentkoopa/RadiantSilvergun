@@ -180,28 +180,60 @@ class TFLV_HUD : Object ui {
     return stats.wxp >= stats.wmax || stats.pxp >= stats.pmax;
   }
 
-  // RS addition: unobtrusive weapon-Condition readout ("CND 43"),
-  // right-aligned on the info row. Draws NOTHING at 80+ -- the
-  // penalty-free band costs zero pixels, the readout appears exactly
-  // when Condition starts to matter. Colour is the band (gold = worn,
-  // orange = the gamble band, red = backfire territory), the number is
-  // the detail. Gated on rs_hud_condition. Both this HUD and the
-  // offhand HUD call it, one implementation.
-  void DrawCondition(Weapon wpn) {
+  // RS addition: unobtrusive weapon-Condition readout ("CND 43"), riding
+  // the info row directly after the level/XP field. Draws NOTHING at
+  // 80+ -- the penalty-free band costs zero pixels, the readout appears
+  // exactly when Condition starts to matter. Gated on rs_hud_condition.
+  // Both this HUD and the offhand HUD call it, one implementation.
+  //
+  // LAYOUT: this used to right-align at a fixed texture x of 1400 on the
+  // same row the level/XP field starts at (x=508), which left 892 texture
+  // units -- about 134 framebuffer pixels -- for a string whose width
+  // grows without bound. `Lv.12 (128400/144000)` eats all of it and lands
+  // on top of the CND. Both HUDs draw that field, upstream's own
+  // $TFLV_HUD_LVXP is "Lv.%d (%.0f/%.0f)", and the offhand's copy is
+  // longer still, so both orientations collided.
+  //
+  // Measuring the string we are following makes the collision impossible
+  // instead of merely unlikely. It is also mirror-correct for free: a
+  // string placed at texture x with SW gravity is re-emitted by Text() as
+  // right-aligned at (HUD_WIDTH - x) under HUD_MIRROR_H, which is the
+  // exact mirror image of the unmirrored span -- so a CND laid out after
+  // the field unmirrored stays after it mirrored, on both widgets and in
+  // all four bonsai_hud_mirror settings.
+  //
+  // COLOUR: was a hardcoded three-band ramp (gold / orange / red) that
+  // clashed with whatever the rest of the HUD was tinted. Now a normal
+  // HUD element like any other -- bonsai_hud_rgb_cnd in fixed mode, the
+  // wheel in rainbow mode. The number carries the severity.
+  void DrawCondition(Weapon wpn, string precedingField) {
     if (!wpn) return;
     let cv = CVar.GetCVar("rs_hud_condition", players[consoleplayer]);
     if (cv && !cv.GetBool()) return;
     int cnd = RS_GunBonsaiBridge.ConditionFor(wpn);
     if (cnd < 0 || cnd >= 80) return;
-    uint colour = cnd >= 50 ? 0xFFE6C800 : (cnd >= 20 ? 0xFFFF7F27 : 0xFFFF4040);
-    Text(string.format("CND %d", cnd), colour, 1400, HUD_INFOTEXT_Y, HUD_GRAV_SE);
+    // Two spaces of the same font are the gap; measuring them with the
+    // field keeps the spacing font-relative rather than a magic number.
+    double xoff = NewSmallFont.StringWidth(precedingField .. "  ") / scale / screenscale;
+    Text(string.format("CND %d", cnd),
+      TFLV_Settings.hud_colour(TFLV_HUDC_CONDITION),
+      HUD_INFOTEXT_X + xoff, HUD_INFOTEXT_Y, HUD_GRAV_SW);
   }
 
   void DrawHUD(TFLV_CurrentStats stats) {
     string frame_tex, weapon_tex, player_tex;
     [frame_tex, weapon_tex, player_tex] = TFLV_Settings.hud_skin();
-    uint frame_rgb, weapon_rgb, player_rgb;
-    [frame_rgb, weapon_rgb, player_rgb] = TFLV_Settings.hud_colours();
+    // One lookup per element, resolved fresh every frame -- rainbow mode
+    // is a function of gametic, so these have to be read at draw time.
+    // Both widgets read the same clock in the same RenderOverlay, so they
+    // are always at the same point in the cycle.
+    uint frame_rgb  = TFLV_Settings.hud_colour(TFLV_HUDC_FRAME);
+    uint weapon_rgb = TFLV_Settings.hud_colour(TFLV_HUDC_WEAPONBAR);
+    uint player_rgb = TFLV_Settings.hud_colour(TFLV_HUDC_PLAYERBAR);
+    uint wname_rgb  = TFLV_Settings.hud_colour(TFLV_HUDC_WEAPONNAME);
+    uint wxp_rgb    = TFLV_Settings.hud_colour(TFLV_HUDC_WEAPONXP);
+    uint plvl_rgb   = TFLV_Settings.hud_colour(TFLV_HUDC_PLAYERLEVEL);
+    uint pxp_rgb    = TFLV_Settings.hud_colour(TFLV_HUDC_PLAYERXP);
     uint face = 2;
     if (mirror & HUD_MIRROR_V) face = 4;
     if (mirror & HUD_MIRROR_H) face = 10 - face;
@@ -224,32 +256,36 @@ class TFLV_HUD : Object ui {
 
     Text(
       string.format(StringTable.Localize("$TFLV_HUD_LV"), stats.plvl),
-      player_rgb, HUD_TOPTEXT_X, HUD_TOPTEXT_Y, HUD_GRAV_NW);
+      plvl_rgb, HUD_TOPTEXT_X, HUD_TOPTEXT_Y, HUD_GRAV_NW);
     Text(
       string.format("%d/%d", stats.pxp, stats.pmax),
-      player_rgb, HUD_BOTTEXT_X, HUD_BOTTEXT_Y, HUD_GRAV_SE);
+      pxp_rgb, HUD_BOTTEXT_X, HUD_BOTTEXT_Y, HUD_GRAV_SE);
 
     let spacer = stats.effect == "" ? "" : " ";
     Text(
       string.format("%s%s%s", stats.effect, spacer, stats.wname),
-      weapon_rgb, HUD_INFOTEXT_X,
+      wname_rgb, HUD_INFOTEXT_X,
       // HACK HACK HACK, we adjust y in HUD coordinate space so that it ends up
       // in the right place (directly above the weapon name) when it gets rendered.
       HUD_INFOTEXT_Y - NewSmallFont.GetHeight()/scale/screenscale,
       HUD_GRAV_SW);
+
+    // Held so DrawCondition can measure it and sit after it -- see the
+    // LAYOUT note there. Whichever branch runs, this is the string that
+    // actually occupies the info row.
+    string levelField;
     if (stats.winfo.IsIgnored()) {
-      Text(
-        StringTable.Localize("$TFLV_HUD_LV_IGNORED"),
-        weapon_rgb, HUD_INFOTEXT_X, HUD_INFOTEXT_Y, HUD_GRAV_SW);
-      DrawProgressBar(tex(weapon_tex..face), 0xFF808080, 1.0, HUD_WXP_X, HUD_WXP_W);
+      levelField = StringTable.Localize("$TFLV_HUD_LV_IGNORED");
+      uint ignored_rgb = TFLV_Settings.hud_colour(TFLV_HUDC_IGNORED);
+      Text(levelField, ignored_rgb, HUD_INFOTEXT_X, HUD_INFOTEXT_Y, HUD_GRAV_SW);
+      DrawProgressBar(tex(weapon_tex..face), ignored_rgb, 1.0, HUD_WXP_X, HUD_WXP_W);
     } else {
-      Text(
-        string.format(StringTable.Localize("$TFLV_HUD_LVXP"),
-          stats.wlvl, stats.wxp, stats.wmax),
-        weapon_rgb, HUD_INFOTEXT_X, HUD_INFOTEXT_Y, HUD_GRAV_SW);
+      levelField = string.format(StringTable.Localize("$TFLV_HUD_LVXP"),
+        stats.wlvl, stats.wxp, stats.wmax);
+      Text(levelField, wxp_rgb, HUD_INFOTEXT_X, HUD_INFOTEXT_Y, HUD_GRAV_SW);
     }
 
-    DrawCondition(stats.winfo.wpn);
+    DrawCondition(stats.winfo.wpn, levelField);
   }
 }
 

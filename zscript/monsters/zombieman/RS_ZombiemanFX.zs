@@ -498,7 +498,7 @@ class RS_DropBaseItem : Actor   // CH DECORATE.txt:407
 	}
 }
 
-class RS_CH_Berserk : RS_DropBaseItem   // CH DECORATE.txt:479
+class RS_CH_Berserk : RS_DropBasePowerup   // CH DECORATE.txt:479
 {
 	States
 	{
@@ -511,7 +511,7 @@ class RS_CH_Berserk : RS_DropBaseItem   // CH DECORATE.txt:479
 	}
 }
 
-class RS_CH_SuperShotgun : RS_DropBaseItem   // CH DECORATE.txt:525
+class RS_CH_SuperShotgun : RS_DropBaseWeapon   // CH DECORATE.txt:525
 {
 	States
 	{
@@ -524,7 +524,7 @@ class RS_CH_SuperShotgun : RS_DropBaseItem   // CH DECORATE.txt:525
 	}
 }
 
-class RS_CH_PlasmaRifle : RS_DropBaseItem   // CH DECORATE.txt:571
+class RS_CH_PlasmaRifle : RS_DropBaseWeapon   // CH DECORATE.txt:571
 {
 	States
 	{
@@ -537,7 +537,7 @@ class RS_CH_PlasmaRifle : RS_DropBaseItem   // CH DECORATE.txt:571
 	}
 }
 
-class RS_CH_RocketLauncher : RS_DropBaseItem   // CH DECORATE.txt:594
+class RS_CH_RocketLauncher : RS_DropBaseWeapon   // CH DECORATE.txt:594
 {
 	States
 	{
@@ -563,7 +563,7 @@ class RS_CH_Medikit : RS_DropBaseItem   // CH DECORATE.txt:617
 	}
 }
 
-class RS_CH_SoulSphere : RS_DropBaseItem   // CH DECORATE.txt:640
+class RS_CH_SoulSphere : RS_DropBasePowerup   // CH DECORATE.txt:640
 {
 	States
 	{
@@ -576,7 +576,7 @@ class RS_CH_SoulSphere : RS_DropBaseItem   // CH DECORATE.txt:640
 	}
 }
 
-class RS_CH_MegaSphere : RS_DropBaseItem   // CH DECORATE.txt:686
+class RS_CH_MegaSphere : RS_DropBasePowerup   // CH DECORATE.txt:686
 {
 	States
 	{

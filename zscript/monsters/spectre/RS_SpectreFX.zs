@@ -26,10 +26,12 @@
 //   * SLGM F and SLGM "\" (white boss's PeekUp/walk frames) -- CH ships
 //     SLGM A-E and G-Z only (Z rides SLGMG0Z0's second half); both frames
 //     are invisible in CH too.
-//   * SPG2 G (yellow spectre's 1-tic melee frame, RS_Spectre.zs) -- CH
-//     ships NO SPG2 lump anywhere (checked Desktop\CH and ART SOURCE\CH
-//     sprite trees); almost certainly an SRG2 typo in CH. Invisible there
-//     too; kept verbatim.
+//   * SPG2 G -- RESOLVED 2026-08-06, no longer in this list. It was an SRG2
+//     typo in CH, proven by the twin line in the demon file: Demons.txt:1516
+//     writes `SRG2 G 1 A_SetUserVar("User_Calm",User_Calm == 1)` where
+//     spectres.txt:881 writes `SPG2 G 1` with identical frame, tics and
+//     action arguments -- the spectre file is a copy of the demon file and
+//     mistyped SR as SP. Fixed at RS_Spectre.zs (owner: nothing invisible).
 //   * Worm/Death and Worm/Hurt map to lumps DEATH / HIT, which exist
 //     nowhere in CH's tree (or ours). Silent in CH, silent here, entries
 //     kept verbatim. (Shadow/active and Shadow/pain DO resolve: their

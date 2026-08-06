@@ -42,8 +42,14 @@ class TFLV_OffhandHUD : TFLV_HUD {
     [frame_tex, weapon_tex, player_tex] = TFLV_Settings.hud_skin();
     if (frame_tex == "") return;
 
-    uint frame_rgb, weapon_rgb, player_rgb;
-    [frame_rgb, weapon_rgb, player_rgb] = TFLV_Settings.hud_colours();
+    // Same per-element lookups as TFLV_HUD.DrawHUD, and deliberately the
+    // same call: rainbow mode is a function of gametic and both widgets
+    // are drawn inside one RenderOverlay, so the two HUDs are always at
+    // the identical point in the cycle without any shared state.
+    uint frame_rgb  = TFLV_Settings.hud_colour(TFLV_HUDC_FRAME);
+    uint weapon_rgb = TFLV_Settings.hud_colour(TFLV_HUDC_WEAPONBAR);
+    uint wname_rgb  = TFLV_Settings.hud_colour(TFLV_HUDC_WEAPONNAME);
+    uint wxp_rgb    = TFLV_Settings.hud_colour(TFLV_HUDC_WEAPONXP);
 
     // Face calculation -- mirror H flips face from 2 to 8
     uint face = 2;
@@ -66,20 +72,22 @@ class TFLV_OffhandHUD : TFLV_HUD {
         levelup ? GetShinyColour(34) : weapon_rgb,
         xp / maxxp, HUD_WXP_X, HUD_WXP_W);
     } else {
-      DrawProgressBar(tex(weapon_tex..face), 0xFF444444, 0.0, HUD_WXP_X, HUD_WXP_W);
+      DrawProgressBar(tex(weapon_tex..face),
+        TFLV_Settings.hud_colour(TFLV_HUDC_EMPTYBAR), 0.0, HUD_WXP_X, HUD_WXP_W);
     }
 
     // Weapon name -- same position as main HUD
-    Text(ohwep.GetTag(), weapon_rgb,
+    Text(ohwep.GetTag(), wname_rgb,
       HUD_INFOTEXT_X,
       HUD_INFOTEXT_Y - NewSmallFont.GetHeight() / scale / screenscale,
       HUD_GRAV_SW);
 
-    // Level / XP line
-    Text(
-      string.format("Lv.%d (%d/%d)", level, int(xp), int(maxxp)),
-      weapon_rgb, HUD_INFOTEXT_X, HUD_INFOTEXT_Y, HUD_GRAV_SW);
+    // Level / XP line. Held so DrawCondition can measure it and sit
+    // immediately after it -- this widget is always HUD_MIRROR_H, and
+    // that is the orientation where the old fixed-x CND collided first.
+    string levelField = string.format("Lv.%d (%d/%d)", level, int(xp), int(maxxp));
+    Text(levelField, wxp_rgb, HUD_INFOTEXT_X, HUD_INFOTEXT_Y, HUD_GRAV_SW);
 
-    DrawCondition(ohwep);
+    DrawCondition(ohwep, levelField);
   }
 }

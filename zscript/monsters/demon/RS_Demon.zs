@@ -348,6 +348,7 @@ class RS_BrownDemon2 : Actor
 		IFIN C 0 A_SpawnItemEx("RS_BrownDemonGhost",0,0,6,0,0,0,0);
 		IFIN C 0 A_PlaySound("BrownDemon/Step");
 		IFIN CD 1 A_Chase(null,null);   // CH: a_chase("","")
+		// CH: IFN2 C -- CH mixes IFIN C and IFN2 C through this dash at random (Demons.txt:193-217) and only IFN2 A/B were ever drawn, in either tree. Re-verified frame by frame 2026-08-06: all 12 IFN2 C states here, and the IFN2 F below, are 0-tic, so the renderer never displays one; the visible dash is entirely the IFIN frames. Nothing invisible, nothing to remap -- left verbatim. See RS_DemonFX.zs header.
 		IFN2 C 0 A_SpawnItemEx("RS_BrownDemonGhost",0,0,6,0,0,0,0);
 		IFN2 C 0 A_PlaySound("BrownDemon/Step");
 		IFIN AB 1 A_Chase(null,null);
@@ -375,7 +376,7 @@ class RS_BrownDemon2 : Actor
 		IFIN G 1 A_SetSpeed(18);
 		Goto See;
 	Missile:
-		IFN2 F 0 { user_Calm = (user_Calm == 1) ? 1 : 0; }   // CH: A_SetUserVar("User_Calm",User_Calm == 1)
+		IFN2 F 0 { user_Calm = (user_Calm == 1) ? 1 : 0; }   // CH: A_SetUserVar("User_Calm",User_Calm == 1) -- CH: IFN2 F (Demons.txt:223), no IFN2F lump in either tree; 0-tic, never drawn, so nothing to remap. Verified 2026-08-06.
 		TNT1 A 0 A_JumpIfCloser(120,"ChainFlame");
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH13",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
 		IFIN E 8 Bright A_FaceTarget;

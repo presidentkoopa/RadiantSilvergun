@@ -442,7 +442,12 @@ hq_dswpnup    Sounds/hq_vanilla/DSWPNUP
 // GunBonsai (zscript/GunBonsai/) -- weapon leveling/upgrade system.
 // sounds/GunBonsai/, untouched from upstream.
 // =====================================================================
-bonsai/gunlevelup Sounds/GunBonsai/win_loud
+// Fixed 2026-08-06: the path was written without its extension, so the logical
+// name registered but bound to no lump -- and an unresolved sound in GZDoom is
+// completely inert (no error, no warning, no log line), which is why the
+// level-up sound was silent rather than failing loudly. The file on disk is
+// and always was win_loud.mp3.
+bonsai/gunlevelup Sounds/GunBonsai/win_loud.mp3
 $alias bonsai/smallboom imp/shotx
 
 // =====================================================================
@@ -714,7 +719,12 @@ $alias misc/gibbed/c       misc/gibbed
 // Source: li-gnrcwpn plasma altfire beep (PLBEEP), imported. ONE lump;
 // per-archetype identity comes from pitch at play time
 // (RS_Weapon.AllClearPitch), not from separate sounds.
-rs_allclear_ready  Sounds/combatfx/tells/READYBP
+// Fixed 2026-08-06: pointed at Sounds/combatfx/tells/, a directory that does
+// not exist -- the lump lives in allclear/. Same silent-failure class as the
+// bonsai/gunlevelup line above. This is the cadence "ready to fire" beep
+// (RS_Weapon.zs:202), i.e. the Plasma Rifle prototype for the arsenal-wide
+// cadence tell, so it has been inaudible since it was written.
+rs_allclear_ready  Sounds/combatfx/allclear/READYBP
 $volume rs_allclear_ready 0.65
 
 // --- Handling foley (rs_14 section 2A) --------------------------------

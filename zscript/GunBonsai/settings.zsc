@@ -17,6 +17,33 @@ enum TFLV_VfxMode {
   TFLV_VFX_FULL
 }
 
+// RS addition: one slot per coloured thing either HUD draws. Both
+// TFLV_HUD and TFLV_OffhandHUD resolve every colour through
+// TFLV_Settings.hud_colour(), so there is exactly one place that decides
+// what any element is tinted with and the two widgets cannot drift apart.
+//
+// Deliberately an enum + switch rather than parallel name/offset arrays:
+// `static const TYPE x[] = { ... }` does not resolve reliably on this
+// engine build (CLAUDE.md; found three times in unrelated files, and the
+// dead `skins[]` literal in hud_skin() below is a leftover of it).
+enum TFLV_HudColourElement {
+  TFLV_HUDC_FRAME,
+  TFLV_HUDC_WEAPONBAR,
+  TFLV_HUDC_PLAYERBAR,
+  TFLV_HUDC_WEAPONNAME,
+  TFLV_HUDC_WEAPONXP,
+  TFLV_HUDC_PLAYERLEVEL,
+  TFLV_HUDC_PLAYERXP,
+  TFLV_HUDC_CONDITION,
+  TFLV_HUDC_IGNORED,
+  TFLV_HUDC_EMPTYBAR
+}
+
+enum TFLV_HudColourMode {
+  TFLV_HUDCOL_FIXED,
+  TFLV_HUDCOL_RAINBOW
+}
+
 // Interface to the CVar settings for this mod.
 class TFLV_Settings : Object {
   static int GetInt(string name) {
@@ -60,11 +87,120 @@ class TFLV_Settings : Object {
         GetInt("bonsai_hud_mirror");
   }
 
+  // Upstream's three-colour accessor. Kept so the upstream call shape still
+  // exists, but nothing in this fork draws with it any more -- every element
+  // goes through hud_colour() below, which is the only path that knows about
+  // rainbow mode. If you are adding a draw call, use hud_colour().
   static uint, uint, uint hud_colours() {
     // These are in RGB format rather than ARGB format, so add the alpha channel.
     return GetInt("bonsai_hud_rgb_frame") | 0xFF000000,
            GetInt("bonsai_hud_rgb_weapon") | 0xFF000000,
            GetInt("bonsai_hud_rgb_player") | 0xFF000000;
+  }
+
+  // ---------------------------------------------------------------------
+  // RS addition: HUD colour system.
+  //
+  // bonsai_hud_colour_mode picks between the per-element `user color`
+  // cvars and a slow roll through the hue wheel. Rainbow is the default.
+  // A player who wants a fixed palette sets the mode to Fixed once and
+  // every element goes back to its own colour picker -- one switch rather
+  // than ten per-element opt-outs.
+  //
+  // The cycle is driven off gametic, not real time, for two reasons: it
+  // is the same clock both HUDs read inside a single RenderOverlay, so
+  // they are provably at the same point in the cycle, and it stops while
+  // the game is paused instead of having the HUD drift under a menu.
+  // ---------------------------------------------------------------------
+
+  // Tics for one full revolution at speed 1.0. 1050 tics = 30 seconds,
+  // i.e. about a third of a degree of hue per tic -- slow enough to read
+  // as "the colour is different now", not as an effect.
+  const TFLV_RAINBOW_TICS = 1050.0;
+  // Held back from full saturation on purpose; 1.0/1.0 is a highlighter.
+  const TFLV_RAINBOW_SAT = 0.85;
+  const TFLV_RAINBOW_VAL = 1.0;
+
+  static double wrap360(double d) {
+    return d - floor(d / 360.0) * 360.0;
+  }
+
+  // h in degrees, s and v in [0,1]. Returns ARGB8 with alpha forced opaque,
+  // matching what DTA_Color wants and what hud_colours() returns.
+  static uint HSVToARGB(double h, double s, double v) {
+    h = wrap360(h);
+    double c = v * s;
+    double hp = h / 60.0;              // [0,6)
+    double hp2 = hp - floor(hp / 2.0) * 2.0;
+    double x = c * (1.0 - abs(hp2 - 1.0));
+    double m = v - c;
+    double r, g, b;
+    // wrap360 above guarantees hp is in [0,6), so sector is 0..5 and the
+    // default arm is the 5 case rather than an error path.
+    int sector = int(hp);
+    switch (sector) {
+      case 0:  r = c; g = x; b = 0; break;
+      case 1:  r = x; g = c; b = 0; break;
+      case 2:  r = 0; g = c; b = x; break;
+      case 3:  r = 0; g = x; b = c; break;
+      case 4:  r = x; g = 0; b = c; break;
+      default: r = c; g = 0; b = x; break;
+    }
+    // uint, and assembled exactly like GetShinyColour's ARGB8 -- that
+    // shape is known to compile and pack correctly on this build.
+    uint ri = int(clamp((r + m) * 255.0, 0.0, 255.0));
+    uint gi = int(clamp((g + m) * 255.0, 0.0, 255.0));
+    uint bi = int(clamp((b + m) * 255.0, 0.0, 255.0));
+    return 0xFF000000 | ri<<16 | gi<<8 | bi;
+  }
+
+  // Where the wheel is right now, plus this element's standing offset.
+  static double rainbow_hue(double offsetDegrees) {
+    double speed = GetDouble("bonsai_hud_rainbow_speed");
+    if (speed <= 0.0) speed = 1.0;
+    return wrap360(gametic * speed * (360.0 / TFLV_RAINBOW_TICS) + offsetDegrees);
+  }
+
+  // The single colour lookup. Element -> its cvar, and its offset around
+  // the wheel so the widget reads as a spectrum instead of one flat wash.
+  static uint hud_colour(int element) {
+    string cvarname;
+    double hue = 0;
+    // The two greys are status, not decoration -- "this weapon is not
+    // earning XP" has to stay legible as an absence of colour, so they
+    // are addressable but never join the rainbow.
+    bool rainbowable = true;
+
+    switch (element) {
+      case TFLV_HUDC_FRAME:
+        cvarname = "bonsai_hud_rgb_frame";    hue = 0;   break;
+      case TFLV_HUDC_WEAPONBAR:
+        cvarname = "bonsai_hud_rgb_weapon";   hue = 40;  break;
+      case TFLV_HUDC_WEAPONNAME:
+        cvarname = "bonsai_hud_rgb_wname";    hue = 40;  break;
+      case TFLV_HUDC_WEAPONXP:
+        cvarname = "bonsai_hud_rgb_wxp";      hue = 40;  break;
+      case TFLV_HUDC_PLAYERBAR:
+        cvarname = "bonsai_hud_rgb_player";   hue = 200; break;
+      case TFLV_HUDC_PLAYERLEVEL:
+        cvarname = "bonsai_hud_rgb_plevel";   hue = 200; break;
+      case TFLV_HUDC_PLAYERXP:
+        cvarname = "bonsai_hud_rgb_pxp";      hue = 200; break;
+      case TFLV_HUDC_CONDITION:
+        cvarname = "bonsai_hud_rgb_cnd";      hue = 120; break;
+      case TFLV_HUDC_IGNORED:
+        cvarname = "bonsai_hud_rgb_ignored";  rainbowable = false; break;
+      case TFLV_HUDC_EMPTYBAR:
+        cvarname = "bonsai_hud_rgb_emptybar"; rainbowable = false; break;
+      default:
+        cvarname = "bonsai_hud_rgb_frame";    hue = 0;   break;
+    }
+
+    if (rainbowable && GetInt("bonsai_hud_colour_mode") == TFLV_HUDCOL_RAINBOW)
+      return HSVToARGB(rainbow_hue(hue), TFLV_RAINBOW_SAT, TFLV_RAINBOW_VAL);
+
+    // Cvar is RGB, not ARGB, so add the alpha channel.
+    return GetInt(cvarname) | 0xFF000000;
   }
 
   static uint levelup_flash() {
@@ -84,9 +220,23 @@ class TFLV_Settings : Object {
   static string levelup_sound() {
     // Must be kept in sync with the GunBonsaiLevelUpSoundOption in MENUDEF.
     // Plain switch, not a static const array -- this engine build doesn't
-    // resolve `static const string X[] = {...}` reliably (same issue
-    // found and fixed in RS_Keywords.zs/RS_Bits.zs earlier tonight --
-    // almost certainly why the level-up sound wasn't playing at all).
+    // resolve `static const string X[] = {...}` reliably (same issue found
+    // and fixed in RS_Keywords.zs/RS_Bits.zs).
+    //
+    // THAT WAS NOT WHY THE LEVEL-UP SOUND WAS SILENT, despite what this
+    // comment used to claim, and it could not have been: an unresolved
+    // array literal is a COMPILE error, so a build that ran at all was
+    // never in that state. The real cause was outside this file --
+    // SNDINFO maps the default mode-1 name `bonsai/gunlevelup` to the
+    // lump path `Sounds/GunBonsai/win_loud`, and the file on disk is
+    // `sounds/GunBonsai/win_loud.mp3`. A full-path SNDINFO reference has
+    // to name the file exactly; with the extension missing the lump binds
+    // to nothing and, per GZDoom, an unresolved sound is silent rather
+    // than an error. 269 of the other 270 path references in this repo's
+    // SNDINFO match their file byte-for-byte; this one is the exception.
+    // Fixing it is a one-line SNDINFO change and SNDINFO belongs to
+    // another lane, so it is reported, not edited here. Modes 2 and 3
+    // (misc/secret, misc/teleport) are IWAD sounds and do play.
     let mode = GetInt("bonsai_levelup_sound_mode");
     if (mode < 0) return GetString("bonsai_levelup_sound");
     switch (mode)

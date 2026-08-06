@@ -775,7 +775,7 @@ class RS_AbyssBaron2 : Actor   // CH Barons.txt:978
 		AZEA D 6 A_FaceTarget();
 		AZEA E 4 A_FaceTarget();
 		AZEA F 7 A_CustomMissile("RS_AbyssBaronFlare",38,-5,0);
-		AZAA F 1 A_CheckSight("See");   // CH: sprite AZAA ships nowhere in CH (typo for AZEA); invisible there too
+		AZEA F 1 A_CheckSight("See");   // CH: sprite AZAA ships nowhere in CH (typo for AZEA); invisible there too
 	MRightHand:
 		TNT1 A 0 A_PlaySound("brnaby3",0);
 		AZEA A 1 A_FaceTarget();

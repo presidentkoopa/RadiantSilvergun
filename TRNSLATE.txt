@@ -272,3 +272,17 @@ BBEASTEX6 = "0:255=%[0.00,0.20,0.09]:[0.00,0.50,0.13]"
 // A_SetTranslation("YellowRev01") on the rs_ch_yellowrev == 1 branch (off by
 // CH default). Verbatim from CH TRNSLATE.txt:10.
 YellowRev01 = "0:255=#[252,113,10]"
+
+// CH Cyberdemon import (2026-08-06): the cyan cyberdemon's two-stage remap and
+// the brown cyberdemon's six-step green fade. Verbatim from CH TRNSLATE.txt:8-9
+// and 12-17. NOTE CH's own typo: CYBIES.txt:216 calls "BBCybGren06" while
+// TRNSLATE defines "BRCybGren06" -- kept exactly as CH wrote it, so that one
+// call is inert here for the same reason it is inert in CH.
+CYANCYB01 = "0:255=%[0.00,2.00,2.00]:[1.01,2.00,2.00]"
+CYANCYB02 = "96:111=%[0.00,0.00,1.01]:[1.01,2.00,2.00]", "112:127=%[0.00,0.62,0.62]:[1.50,2.00,2.00]"
+BRCybGren01 = "0:255=@11[0,255,0]"
+BRCybGren02 = "0:255=@33[0,255,0]"
+BRCybGren03 = "0:255=@66[0,255,0]"
+BRCybGren04 = "0:255=@88[0,255,0]"
+BRCybGren05 = "0:255=@99[0,255,0]"
+BRCybGren06 = "32:47=112:127", "168:191=112:127"
