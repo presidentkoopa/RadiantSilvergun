@@ -49,8 +49,10 @@ class RS_WeaponDrop : Actor
 		+BRIGHT
 		Radius 16;
 		Height 16;
-		RenderStyle "Add";
-		Alpha 0.85;
+		// No RenderStyle/Alpha here on purpose. This actor's sprite is
+		// TNT1 -- it is a positional anchor, never drawn. The visible
+		// drop is its payload weapon and its beam, which carry their
+		// own styles. Setting them here read as intent and did nothing.
 	}
 
 	States
@@ -130,10 +132,12 @@ class RS_WeaponDrop : Actor
 		if (!RS_PanelController.BeamEnabled()) return;
 		if (mBeam) return;
 
-		// Height: from the pickup up to roughly standing eye level. The
-		// taper is painted INTO the gradient, so the quad itself is a
-		// plain rectangle and the fade is texture, not geometry.
-		double h = 44.0;
+		// From the pickup up to roughly standing eye level. The taper is
+		// painted INTO the gradient, so the quad is a plain rectangle
+		// and the fade is texture, not geometry. Cvar-driven because it
+		// is the number that decides whether the taper actually dies at
+		// eye level, and eye level is per-player in VR.
+		double h = RS_PanelController.BeamHeight();
 
 		mBeam = RS_Panel.Create((pos.x, pos.y, pos.z + h * 0.5),
 			"RSPNLBM", RS_PanelController.BeamWidth(), h, 0);
@@ -235,8 +239,17 @@ class RS_PanelDropHandler : EventHandler
 		if (!DropsEnabled()) return;
 		if (!e.Thing || !e.Thing.bIsMonster) return;
 
+		// Paint the shared beam gradient before the first drop can raise a
+		// beam. Self-guarding on mBeamPainted, so this is one canvas write
+		// per level no matter how many elites die.
+		PaintBeamTexture();
+
 		let tok = RS_EliteToken(e.Thing.FindInventory("RS_EliteToken"));
 		if (!tok || !tok.revealed) return;
+
+		// Rate control. Before this every revealed elite dropped, which
+		// was never a decision -- just a question nobody asked.
+		if (random[RSDrop](1, 100) > RS_PanelController.DropChance()) return;
 
 		int tier = RollDropTier();
 		int which = random[RSDrop](0, 5);
@@ -335,6 +348,43 @@ class RS_PanelDropHandler : EventHandler
 		PlayerPawn pawn = players[evt.player].mo;
 		if (!pawn || !pawn.player) return;
 
+		// -------------------------------------------------------------
+		// THE CONFIRM. This is what makes an in-world panel usable at
+		// all: it resolves whatever row the pointing hand is on and
+		// fires that row's own netevent.
+		//
+		// It is deliberately GENERIC -- it dispatches whatever `cmd` the
+		// row carries, so every future panel gets a working confirm for
+		// free and no new bind is ever needed. Rows with an empty cmd
+		// are inert text and are ignored.
+		//
+		// Resolution happens HERE, in play scope, not in the painter.
+		// RS_PanelHandler owns geometry (which panel, and where on it);
+		// the card owns content (which row that is). Keeping the row
+		// lookup on the content side is why the handler carries a uv
+		// and not a row number.
+		// -------------------------------------------------------------
+		if (evt.name == "rs-panel-use")
+		{
+			if (!mCard) return;
+
+			let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
+			if (!ph || ph.mHotPanel < 0) return;
+
+			let c = mCard.CardFor(ph.mHotPanel);
+			if (!c) return;
+
+			int row = c.RowAtUV(ph.mHotUV);
+			if (!c.RowIsSelectable(row)) return;
+
+			// Re-enter NetworkProcess with the row's own command. Sending
+			// the netevent rather than calling the branch directly keeps
+			// one dispatch path, so a row behaves identically whether it
+			// was pointed at or fired from the console.
+			EventHandler.SendNetworkEvent(c.mCmd[row], c.mArg[row]);
+			return;
+		}
+
 		if (evt.name == "rs-panel-take")
 		{
 			if (!mCardOwner || !mCardOwner.mPayload) return;
@@ -388,10 +438,21 @@ class RS_PanelDropHandler : EventHandler
 	}
 
 	// -----------------------------------------------------------------
-	// The painter. UI scope, because a canvas is a UI-side surface --
-	// the same split RS_UIHandler.RenderOverlay already uses. Solving
-	// where the panels ARE is play scope and lives in RS_PanelHandler;
-	// this half only draws.
+	// The painter. This runs in ui scope because RenderOverlay IS a ui
+	// override -- the engine declares it that way. NOT because canvases
+	// are a UI-side surface: they aren't. `class Canvas : Object native
+	// abstract` has unscoped methods (base.zs:529) and TexMan.GetCanvas
+	// is a plain native static (base.zs:332), so canvas painting needs
+	// no ui context anywhere.
+	//
+	// That distinction is not pedantry -- it caused a real bug. Believing
+	// "canvas work must be ui" is what got `ui` put on PaintBeamTexture
+	// below, which made the play field it writes read-only to it and
+	// produced an "Expression must be a modifiable value" that looked
+	// like it was about the field rather than the scope.
+	//
+	// Solving where the panels ARE is play scope and lives in
+	// RS_PanelHandler; this half only draws.
 	//
 	// Canvas content is uploaded before the 3D scene is rendered each
 	// frame, so a card painted here is on the GPU by the time the panel
@@ -399,7 +460,12 @@ class RS_PanelDropHandler : EventHandler
 	// -----------------------------------------------------------------
 	override void RenderOverlay(RenderEvent e)
 	{
-		PaintBeamTexture();
+		// PaintBeamTexture is NOT called here. RenderOverlay is a `ui`
+		// override -- the engine declares it that way -- and the painter is
+		// play scope because it writes mBeamPainted. It runs from
+		// WorldThingDied instead, which is play and fires before any beam
+		// can exist. Painting is a one-time texture write, not per-frame
+		// work, so it never belonged in a render hook anyway.
 		if (!mCard) return;
 
 		let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));

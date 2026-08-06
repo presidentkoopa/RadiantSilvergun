@@ -1,0 +1,190 @@
+=====================================================================
+rs_37 -- SESSION HANDOFF, 2026-08-06
+A new engine, three glow features, the billboard port, and RS_Main's
+47 load errors. Read this before touching anything.
+=====================================================================
+
+STATE IN ONE LINE: everything below COMPILES AND BOOTS. Nothing below
+has been LOOKED AT. This project's own rules warn that those are not
+the same thing, and this session produced two fresh proofs of it.
+
+
+---------------------------------------------------------------------
+1. THE ENGINE MOVED. DXR2 IS DEAD.
+---------------------------------------------------------------------
+
+WORKING ENGINE:  E:\UZDXREMA        branch questzdoom
+REMOTE:          github.com/presidentkoopa/UZDXREMA   (private)
+                 `origin` is still upstream emawind84/gzdoom -- you
+                 CANNOT push to it. Push to `rsorigin`.
+
+Fresh clone of emawind84/gzdoom this morning. DXR2 was abandoned and
+its engine work was NOT carried across -- every feature below was
+rebuilt or re-ported, not inherited.
+
+THE STARTUP CRASH, if it ever comes back: ParseLanguageCSV indexed out
+of bounds on two short rows in wadsrc/static/language.0 and
+language.csv. Fixed by appending one comma to each
+(JOYMNU_INVERTDIGITALAXISBUTTONS 30->31 cells, CMPTMNU_OLDRANDOM
+29->30). A DATA fix, not a code fix -- the bounds-check version was
+reverted on the owner's order. Any branch cut before commit 3469846916
+still has it and cannot boot, which is why three glow lanes spent the
+day building blind against a binary that died at W_Init.
+
+E:\uzdxbuild-keen is 607MB of leftover build directory from a closed
+lane's worktree. Dead weight, safe to delete.
+
+
+---------------------------------------------------------------------
+2. WHAT IS IN THE ENGINE NOW
+---------------------------------------------------------------------
+
+Merged, built, booted, pushed:
+
+  * WALL TEXTURE GLOW -- GLDEFS' Walls block was parsed but never
+    consumed by any renderer; now it is. gl_texture_wallglow (default
+    ON) + _intensity. NOTE: defaults near-fullbright for the owner's
+    GLDEFS because his file has no `intensity` keywords and bare names
+    default to 100. His ~190 waterfall frames probably want ~40.
+
+  * FLAT EDGE GLOW -- floors and ceilings glowing inward from their
+    edges. gl_flatglow (default OFF), 16 more cvars: reach, intensity,
+    colormode, shape 0-6, sharpness, inset, bandwidth, spacing, pulse.
+
+  * ZSCRIPT GLOW API -- Sector.SetGlowColorAuto / IsGlowAuthored /
+    GetTextureGlow, TexMan.GetAverageColor.
+
+  * BILLBOARD / IN-WORLD PANEL PORT from DXR2 bb6988908f -- storage,
+    lifetime, savegames, seven LevelLocals natives, and
+    TextureID.GetIndex() as a compiler intrinsic. Three lanes, merged
+    in FORCED ORDER (core -> zscript), because the zscript branch does
+    not compile standalone by design.
+
+    NOT MERGED: the rendering half (branch claude/upbeat-bose-a264cd).
+    So billboards have storage and an API and NOTHING DRAWS THEM YET.
+    A mod can call AddBillboard successfully and see nothing, with no
+    error. Do not read "billboards are in" as "billboards render".
+
+CROSS-FILE INVARIANT, now spanning two lanes and easy to break:
+hw_flats.cpp declares `float top[4], bottom[4]` UNINITIALISED, calls
+GetWallGlow, then guards on seam[3]. That is only safe because
+ResolvePlaneGlow (p_sectors.cpp:1208) writes glowdata[3] = 0 as its
+FIRST statement, ahead of every early return. Add an early return above
+that line and you get an intermittent, hardware-dependent wrong colour.
+Documented at the call site in commit d08105b5d6.
+
+
+---------------------------------------------------------------------
+3. RS_Main: 47 LOAD ERRORS -> ZERO
+---------------------------------------------------------------------
+
+The mod would not load at all. Four separate causes, and TWO OF THEM
+WOULD HAVE COMPILED CLEAN AND FAILED SILENTLY -- which is the pattern
+this whole file exists to warn about:
+
+  * TRNSLATE, the 8 rs_wpn_* tier tints. TWO bugs stacked:
+      (a) '%' goes AFTER the '=', not in front
+          (palettecontainer.cpp:659-671)
+      (b) the channel values are MULTIPLIERS CLAMPED TO 0.0-2.0
+          (:542-547), NOT palette bytes. Written as 0-255 all eight
+          clamp to 2.0 and every rarity renders IDENTICAL BLOWN-OUT
+          WHITE -- compiling clean, with the symptom pointing anywhere
+          but the translation table.
+    Now the 0-1 ramp, original bytes preserved in comments.
+
+  * TWO CLASSES LEFT AT DEFAULT (DATA) SCOPE -- RS_PanelAssembly and
+    RS_DropTriptych. An unscoped Object subclass is data scope and
+    cannot call a play function, which was every method they exist to
+    call. ~15 errors plus cascading "unknown identifier" noise.
+
+  * fillcolor is `native READONLY color` (actor.zs:120) -- use
+    SetShade(). Its own comment says so.
+
+  * THE RS-SET WEAPON CLASSES ARE VR_*, NOT RS_*. The files are
+    RS_Revolver.zs etc; every class inside is `class VR_Revolver`.
+    THIS ONE IS NOT A COMPILE ERROR -- Spawn() on a missing class
+    returns null, the drop never appears, nothing is logged. Five of
+    six elite-drop entries were wrong and would have shipped a system
+    that worked one time in six. This project has been bitten by the
+    same RS_/VR_ confusion before (four dead MODELDEF entries).
+
+ALSO FIXED -- a live gameplay bug, verified independently by
+monstertheory and blessed into its file:
+  GetDamageCeiling() returns PromotionDamageBaseline * 1.8, but that
+  field was written in exactly ONE place: inside Promote(). On an
+  unpromoted gun it stays 0, so the ceiling is max(1,0) = 1. Therefore
+  Damage Up and Hot Loads are NEVER OFFERED before a first promotion,
+  and RS_StateLadderBody()'s ratio pins at >=0.90 so every unpromoted
+  gun always fires the Peak body -- the Type1/Hot/Peak ladder never
+  steps. Fixed with a guarded CaptureInitialDamageBaseline() after
+  RollStats at both roll sites.
+
+CANVAS PAINTING DOES NOT NEED ui SCOPE. `class Canvas : Object native
+abstract` with unscoped methods (engine/base.zs:529) and
+TexMan.GetCanvas is a plain native static (:332). Marking a painter
+`ui` only makes play fields read-only to it. A comment in
+RS_EliteDrop.zs still asserts the opposite -- it is wrong.
+
+
+---------------------------------------------------------------------
+4. THE 4,670 WARNINGS -- MECHANISM KNOWN, NOT DONE
+---------------------------------------------------------------------
+
+The gate is `Function->mVersion <= ver` (codegen.cpp:9662) where ver is
+the `version "4.14"` at the top of zscript.txt. LOWERING THAT SILENCES
+EVERYTHING AND ALSO DISABLES THE LANGUAGE FEATURES THE MOD IS BUILT ON.
+Not an option. It splits three ways:
+
+  ~256  PERMANENT. MISSILEMORE / MISSILEEVENMORE / SHORTMISSILERANGE
+        set native fields with no Property binding. Already recorded in
+        CLAUDE.md. Nothing can be done. Stop trying.
+  ~2000 A_CustomMissile -> A_SpawnProjectile, and VelX/Y/Z -> Vel.X/Y/Z.
+        Look mechanical. VERIFY THE SIGNATURE FIRST.
+  ~800  A_PlaySound -> A_StartSound IS A TRAP. A_StartSound's THIRD
+        parameter is `flags`; A_PlaySound's FOURTH is `looping`. A blind
+        rename silently changes behaviour on every call with 4+ args.
+
+*** AND: most of these live under zscript/monsters/, WHICH IS NOW
+    SACRED (see CLAUDE.md, top of file). A warning sweep is exactly the
+    kind of bulk pass that rule exists to forbid. DO NOT. ***
+
+
+---------------------------------------------------------------------
+5. OPEN DECISIONS -- OWNER'S, NOT YOURS
+---------------------------------------------------------------------
+
+  * RS_UI.zs gained 209 lines today (BuildDropTriptych / AddTriRow /
+    TriVerdict / TriCell) that NO LANE CLAIMS -- monstertheory, the
+    panels lane and the engine session all disclaimed it. It is the
+    drop comparison as HUD rows, duplicating what the panels lane built
+    as a world-space card. Both can coexist; nobody chose to have both.
+    RS_UI.zs itself is load-bearing -- 826 lines, the whole menu spine,
+    8 files depend on it. Spec: docs/rs_10_ui_spec.txt.
+
+  * docs/monsters/ -- 27 files, 2.1MB, 1,041 attack rows across 18
+    families -- is currently filed under _unused/. That is TWENTY-FIVE
+    TIMES every other catalog in the repo combined, and it is the
+    source RS_MonsterCatalog.zs was built from. Owner asked for the
+    move; monstertheory flagged it as probably wrong. Unresolved.
+
+  * Billboards CANNOT hinge natively (believed -- verification was in
+    flight when this was written). FBillboard has position, size,
+    colour, flags and an attached actor. No parent, no hinge, possibly
+    no per-panel orientation at all. If so the triptych can only be
+    built mod-side, as RS_PanelAssembly already does.
+
+
+---------------------------------------------------------------------
+6. WHAT ACTUALLY NEEDS DOING NEXT
+---------------------------------------------------------------------
+
+  1. SOMEONE LOOKS AT IT. Nobody has seen the glow, the panels or the
+     tints. gl_flatglow defaults OFF. Panel orientation is unknown --
+     rs_panel_pitchbias (default -90) is a cvar precisely so a wrong
+     guess is a dial, not a rebuild. Text may be mirrored. THIS IS THE
+     ONLY REAL UNKNOWN LEFT AND NO AGENT CAN CLOSE IT.
+  2. Merge the billboard RENDERING branch, or accept that nothing draws.
+  3. Warning sweep, carefully, and NOT under zscript/monsters/.
+  4. The AL_INVALID_ENUM console spam (oalsound.cpp:226/:1006) --
+     engine-side, an extension the loaded OpenAL reports but does not
+     implement. Sound works. Noise, not breakage. Undiagnosed.

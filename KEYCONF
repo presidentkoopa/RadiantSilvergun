@@ -35,3 +35,16 @@ defaultbind V +rs_wheel
 addmenukey "UI Debug Menu" rs_ui_debug
 alias rs_ui_debug "openmenu RS_UIDebug"
 defaultbind U rs_ui_debug
+
+// ---------------------------------------------------------------------
+// In-world panels. Fires whatever row the pointing hand is on -- the
+// panel system's single "confirm", not a per-action bind.
+//
+// THIS BIND IS WHY THE FEATURE IS REACHABLE AT ALL. Aiming resolves a
+// panel and a row, and the row carries a netevent name, but without
+// something to fire it the whole interaction is console-only. It was,
+// until this line existed.
+// ---------------------------------------------------------------------
+addmenukey "In-World Panel: Select Row" rs_panel_use
+alias rs_panel_use "netevent rs-panel-use"
+defaultbind MOUSE2 rs_panel_use

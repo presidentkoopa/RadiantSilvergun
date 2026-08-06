@@ -208,6 +208,18 @@ class RS_PanelController
 		return cv ? cv.GetFloat() : 7.0;
 	}
 
+	static double BeamHeight()
+	{
+		let cv = CVar.FindCVar("rs_drop_beamheight");
+		return cv ? cv.GetFloat() : 44.0;
+	}
+
+	static int DropChance()
+	{
+		let cv = CVar.FindCVar("rs_elitedrop_chance");
+		return cv ? clamp(cv.GetInt(), 0, 100) : 100;
+	}
+
 	static int LightRadius()
 	{
 		let cv = CVar.FindCVar("rs_drop_lightradius");
@@ -272,9 +284,14 @@ class RS_PanelHandler : EventHandler
 
 	// Aim resolution, recomputed each tic in play scope and read by the
 	// painter. -1 = the ray is on nothing.
+	// NO mHotRow HERE, deliberately. This handler owns GEOMETRY -- which
+	// panel the ray hit and where on it (mHotUV). It does not own
+	// CONTENT and cannot know what a row is; resolving uv -> row needs
+	// the card, which belongs to whoever built the panel. A mHotRow
+	// field here was dead weight: it existed, and the only value ever
+	// written to it was -1.
 	int      mHotAssembly;
 	int      mHotPanel;
-	int      mHotRow;
 	// Which controller is pointing: 0 offhand/left, 1 mainhand/right,
 	// -1 nothing. In flat play this is always 0 (the view ray).
 	int      mHotHand;
@@ -317,7 +334,7 @@ class RS_PanelHandler : EventHandler
 		for (int i = 0; i < mLive.Size(); i++)
 			if (mLive[i]) mLive[i].Destroy();
 		mLive.Clear();
-		mHotAssembly = -1; mHotPanel = -1; mHotRow = -1; mHotHand = -1;
+		mHotAssembly = -1; mHotPanel = -1; mHotHand = -1;
 	}
 
 	// -----------------------------------------------------------------
@@ -346,7 +363,7 @@ class RS_PanelHandler : EventHandler
 	// -----------------------------------------------------------------
 	play void SolveAim(PlayerPawn pawn)
 	{
-		mHotAssembly = -1; mHotPanel = -1; mHotRow = -1; mHotHand = -1;
+		mHotAssembly = -1; mHotPanel = -1; mHotHand = -1;
 		if (!pawn) return;
 
 		double best = 1e9;

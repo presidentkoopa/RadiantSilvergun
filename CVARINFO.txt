@@ -870,3 +870,15 @@ server float rs_panel_comfort = 72.0;
 server bool rs_drop_beam = true;
 server float rs_drop_beamwidth = 7.0;
 server float rs_drop_lightradius = 96.0;
+
+// Beam height in map units -- how far the drop marker rises before it
+// tapers out. Was hardcoded at 44; it is the number that decides
+// whether the taper actually dies at eye level, so it is player-facing
+// like every other panel dimension.
+server float rs_drop_beamheight = 44.0;
+
+// Percentage chance a REVEALED elite drops a class weapon. 100 = every
+// one. There was no rate control at all before this: every revealed
+// elite dropped, which on a busy map is a lot of weapons and was never
+// a design decision, just an unasked question.
+server int rs_elitedrop_chance = 100;
