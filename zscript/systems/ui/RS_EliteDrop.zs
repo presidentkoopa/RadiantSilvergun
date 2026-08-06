@@ -608,7 +608,27 @@ class RS_PanelDropHandler : EventHandler
 				bool wantOff = (ph.mHotHand == 0);
 				Weapon wantHeld = wantOff ? pawn.player.OffhandWeapon
 				                          : pawn.player.ReadyWeapon;
-				if (!(wantHeld is "VR_Fist")) toOffhand = wantOff;
+				// IsRealFist, NOT `is "VR_Fist"` -- and this is the second
+				// site of the same mistake, which is why it is spelled out
+				// here as well as at the guard below.
+				//
+				// VR_Fist2 : VR_Fist, and VR_Fist4/VR_Fist6 sit under
+				// VR_Fist2, so a bare `is "VR_Fist"` is TRUE for the
+				// empty-slot filler every class grants at spawn. The
+				// condition then reads false, the override never applies,
+				// and toOffhand falls back to the row's arg.
+				//
+				// Symptom: point at TAKE TO MAINHAND with an EMPTY left
+				// hand, and the drop goes to the mainhand and displaces a
+				// real weapon -- in the one case where the hand you pointed
+				// with was free and the take was guaranteed to work. The
+				// exact inversion of the intent, and silent.
+				//
+				// This line did not conflict during the merge that fixed
+				// its twin twenty lines down, so nothing surfaced it. That
+				// is the whole argument for auditing what git auto-merges,
+				// not just what it stops to ask about.
+				if (!RS_DropTriptych.IsRealFist(wantHeld)) toOffhand = wantOff;
 			}
 
 			// Fists never take a class weapon -- the card says so and
