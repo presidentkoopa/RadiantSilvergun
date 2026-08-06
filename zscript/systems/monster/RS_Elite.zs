@@ -45,23 +45,23 @@ class RS_EliteHandler : EventHandler
 	override void WorldLoaded(WorldEvent e)
 	{
 		typePool.Clear();
-		PushTypeWeight(RSET_C01_DarkRed,   "rs_elite_weight_c01");
-		PushTypeWeight(RSET_C02_Red,       "rs_elite_weight_c02");
-		PushTypeWeight(RSET_C03_Orange,    "rs_elite_weight_c03");
-		PushTypeWeight(RSET_C04_Yellow,    "rs_elite_weight_c04");
-		PushTypeWeight(RSET_C05_DarkGreen, "rs_elite_weight_c05");
-		PushTypeWeight(RSET_C06_Green,     "rs_elite_weight_c06");
-		PushTypeWeight(RSET_C07_Cyan,      "rs_elite_weight_c07");
-		PushTypeWeight(RSET_C08_Blue,      "rs_elite_weight_c08");
-		PushTypeWeight(RSET_C09_Indigo,    "rs_elite_weight_c09");
-		PushTypeWeight(RSET_C10_Violet,    "rs_elite_weight_c10");
-		PushTypeWeight(RSET_C11_Pink,      "rs_elite_weight_c11");
-		PushTypeWeight(RSET_C12_Black,     "rs_elite_weight_c12");
-		PushTypeWeight(RSET_C13_Grey,      "rs_elite_weight_c13");
-		PushTypeWeight(RSET_C14_White,     "rs_elite_weight_c14");
-		PushTypeWeight(RSET_C15_Bronze,    "rs_elite_weight_c15");
-		PushTypeWeight(RSET_C16_Silver,    "rs_elite_weight_c16");
-		PushTypeWeight(RSET_C17_Gold,      "rs_elite_weight_c17");
+		PushTypeWeight(RSET_E01,   "rs_elite_weight_e01");
+		PushTypeWeight(RSET_E02,       "rs_elite_weight_e02");
+		PushTypeWeight(RSET_E03,    "rs_elite_weight_e03");
+		PushTypeWeight(RSET_E04,    "rs_elite_weight_e04");
+		PushTypeWeight(RSET_E05, "rs_elite_weight_e05");
+		PushTypeWeight(RSET_E06,     "rs_elite_weight_e06");
+		PushTypeWeight(RSET_E07,      "rs_elite_weight_e07");
+		PushTypeWeight(RSET_E08,      "rs_elite_weight_e08");
+		PushTypeWeight(RSET_E09,    "rs_elite_weight_e09");
+		PushTypeWeight(RSET_E10,    "rs_elite_weight_e10");
+		PushTypeWeight(RSET_E11,      "rs_elite_weight_e11");
+		PushTypeWeight(RSET_E12,     "rs_elite_weight_e12");
+		PushTypeWeight(RSET_E13,      "rs_elite_weight_e13");
+		PushTypeWeight(RSET_E14,     "rs_elite_weight_e14");
+		PushTypeWeight(RSET_E15,    "rs_elite_weight_e15");
+		PushTypeWeight(RSET_E16,    "rs_elite_weight_e16");
+		PushTypeWeight(RSET_E17,      "rs_elite_weight_e17");
 	}
 
 	private void PushTypeWeight(int id, string cvarName)
@@ -110,18 +110,18 @@ class RS_EliteHandler : EventHandler
 			{
 				switch (mtok.colorId)
 				{
-					case RSET_C04_Yellow:
+					case RSET_E04:
 						// C04's shots fly 1.5x, 2x boosted.
 						mon.A_ScaleVelocity(CVar.FindCVar("rs_elite_booster").GetBool() ? 2.0 : 1.5);
 						break;
 
-					case RSET_C05_DarkGreen:
+					case RSET_E05:
 						if (CVar.FindCVar("rs_elite_missilecreep").GetBool())
 							mon.GiveInventory(CVar.FindCVar("rs_elite_booster").GetBool()
 								? "RS_EliteFX_RedMissileCreep" : "RS_EliteFX_DarkGreenMissileCreep", 1);
 						break;
 
-					case RSET_C14_White:
+					case RSET_E14:
 						if (CVar.FindCVar("rs_elite_missilecreep").GetBool())
 							mon.GiveInventory("RS_EliteFX_WhiteMissileCreep", 1);
 						break;
@@ -175,7 +175,7 @@ class RS_EliteHandler : EventHandler
 		if (!tok)
 			return false;
 
-		int id = (typeId >= RSET_C01_DarkRed && typeId <= RSET_C17_Gold) ? typeId : RollType();
+		int id = (typeId >= RSET_E01 && typeId <= RSET_E17) ? typeId : RollType();
 		if (id != RSET_None)
 		{
 			tok.colorId = id;
@@ -253,7 +253,7 @@ class RS_EliteHandler : EventHandler
 		// remains-destroyed death path leaves them on the corpse) --
 		// give it its body back, or it returns invisible and unshootable.
 		let tok = RS_EliteToken(mon.FindInventory("RS_EliteToken"));
-		if (tok && tok.colorId == RSET_C01_DarkRed)
+		if (tok && tok.colorId == RSET_E01)
 		{
 			mon.bSOLID = mon.default.bSOLID;
 			mon.bSHOOTABLE = mon.default.bSHOOTABLE;
@@ -279,15 +279,15 @@ class RS_EliteHandler : EventHandler
 
 		switch (tok.colorId)
 		{
-			case RSET_C14_White:
+			case RSET_E14:
 				e.Thing.GiveInventory("RS_EliteFX_Slowness1", 1);
 				break;
 
-			case RSET_C05_DarkGreen:
+			case RSET_E05:
 				e.Thing.GiveInventory("RS_EliteFX_Poison", 1);
 				break;
 
-			case RSET_C07_Cyan:
+			case RSET_E07:
 			{
 				double ang = e.Thing.AngleTo(e.DamageSource);
 				e.Thing.Thrust(24.0, ang - 180.0);

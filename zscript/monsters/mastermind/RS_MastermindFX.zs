@@ -281,7 +281,6 @@ class RS_WindBlastMasterMind : Actor   // CH MASTERMINDS.txt:434
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 15;
@@ -327,7 +326,6 @@ class RS_WindBlastMasterMind2 : Actor   // CH MASTERMINDS.txt:477
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 10;
@@ -365,7 +363,6 @@ class RS_WindBlastMasterMind3 : Actor   // CH MASTERMINDS.txt:512
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 20;
@@ -604,7 +601,6 @@ class RS_MindGroundSpikeBrown : Actor   // CH MASTERMINDS.txt:649
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		Radius 24;
 		Height 8;
@@ -718,7 +714,6 @@ class RS_IceOrbCyanMind : Actor   // CH MASTERMINDS.txt:992
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 42;
@@ -831,7 +826,6 @@ class RS_AbyssMindBigZap : Actor   // CH MASTERMINDS.txt:1353
 {
 	Default
 	{
-		Game "Doom";
 		Radius 18;
 		Height 18;
 		Speed 1;
@@ -859,7 +853,6 @@ class RS_AbyssMindWave : Actor   // CH MASTERMINDS.txt:1378
 {
 	Default
 	{
-		Game "Doom";
 		Radius 18;
 		Height 18;
 		Speed 34;
@@ -1020,7 +1013,6 @@ class RS_AbyssMindWave2 : Actor   // CH MASTERMINDS.txt:1527
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 12;
 		Speed 34;
@@ -1047,7 +1039,6 @@ class RS_AbyssMindSpike : Actor   // CH MASTERMINDS.txt:1551
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		DamageFunction (random(1,10));
 		DamageType "Getoutofmyheadcharles";
@@ -1087,7 +1078,6 @@ class RS_AbyssMindSpike2 : Actor   // CH MASTERMINDS.txt:1588
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		DamageFunction (random(1,10));
 		DamageType "Getoutofmyheadcharles";
@@ -1130,8 +1120,16 @@ class RS_AbyssMindWalk1 : Actor   // CH MASTERMINDS.txt:1624
 		+FLOATBOB
 		RenderStyle "Add";
 		Alpha 0.5;
-		Scale.X 2.55;
-		Scale.Y 2.85;
+		// Scale is set in BeginPlay below: the engine's Default-block
+		// 'scale' property takes ONE float and assigns X and Y together
+		// (DEFINE_PROPERTY(scale, F, Actor)), so a non-uniform scale like
+		// CH's 2.55 x 2.85 cannot be expressed there at all.
+	}
+
+	override void BeginPlay()
+	{
+		Super.BeginPlay();
+		Scale = (2.55, 2.85);   // CH: Scale.X 2.55 / Scale.Y 2.85
 	}
 	States
 	{
@@ -1203,8 +1201,10 @@ class RS_GrayMindNeedle : Actor   // CH MASTERMINDS.txt:1971
 		DamageFunction (random(10,50));
 		DamageType "Melee";
 		Speed 5;
-		Scale.X 1.1;
-		Scale.Y 0.45;
+		// Scale is set in BeginPlay below: the engine's Default-block
+		// 'scale' property takes ONE float and assigns X and Y together
+		// (DEFINE_PROPERTY(scale, F, Actor)), so a non-uniform scale like
+		// CH's 1.1 x 0.45 cannot be expressed there at all.
 		Decal "BulletChip";
 		AttackSound "moloch/nailhitbleed";
 		DeathSound "spike/spiked";
@@ -1212,6 +1212,12 @@ class RS_GrayMindNeedle : Actor   // CH MASTERMINDS.txt:1971
 		+SPAWNSOUNDSOURCE
 		+BLOODSPLATTER
 		+SEEKERMISSILE
+	}
+
+	override void BeginPlay()
+	{
+		Super.BeginPlay();
+		Scale = (1.1, 0.45);   // CH: Scale.X 1.1 / Scale.Y 0.45
 	}
 	States
 	{
@@ -1277,7 +1283,6 @@ class RS_SpidieShotGray : Actor   // CH MASTERMINDS.txt:2075
 {
 	Default
 	{
-		Game "Doom";
 		Radius 3;
 		Height 3;
 		Speed 46;
@@ -1324,7 +1329,6 @@ class RS_FireBluMindFlame1 : Actor   // CH MASTERMINDS.txt:2236
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 16;
 		Speed 1;
@@ -1360,7 +1364,6 @@ class RS_FireBluMindFlame2 : Actor   // CH MASTERMINDS.txt:2269
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 12;
 		Speed 1;
@@ -1392,7 +1395,6 @@ class RS_FireBluMindFlame3 : Actor   // CH MASTERMINDS.txt:2298
 {
 	Default
 	{
-		Game "Doom";
 		Radius 14;
 		Height 14;
 		Speed 14;
@@ -1405,11 +1407,19 @@ class RS_FireBluMindFlame3 : Actor   // CH MASTERMINDS.txt:2298
 		+FLOORHUGGER
 		RenderStyle "Add";
 		Alpha 0.85;
-		Scale.X 1.5;
-		Scale.Y 0.7;
+		// Scale is set in BeginPlay below: the engine's Default-block
+		// 'scale' property takes ONE float and assigns X and Y together
+		// (DEFINE_PROPERTY(scale, F, Actor)), so a non-uniform scale like
+		// CH's 1.5 x 0.7 cannot be expressed there at all.
 		SeeSound "imp/attack";
 		DeathSound "imp/shotx";
 		Translation "161:161=200:200", "160:160=177:177", "162:162=184:184", "163:163=204:204", "164:164=186:186", "165:165=204:204", "166:166=189:189", "167:167=207:207";
+	}
+
+	override void BeginPlay()
+	{
+		Super.BeginPlay();
+		Scale = (1.5, 0.7);   // CH: Scale.X 1.5 / Scale.Y 0.7
 	}
 	States
 	{
@@ -1441,7 +1451,6 @@ class RS_SpidieShot1 : Actor   // CH MASTERMINDS.txt:2455
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 65;
@@ -1477,7 +1486,6 @@ class RS_IceOrb : Actor   // CH MASTERMINDS.txt:2652
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 15;
 		Speed 14;
@@ -1525,7 +1533,6 @@ class RS_FrostMind : Actor   // CH MASTERMINDS.txt:2697
 {
 	Default
 	{
-		Game "Doom";
 		Radius 18;
 		Height 18;
 		Speed 19;
@@ -1560,7 +1567,6 @@ class RS_OrbPurpleMind : Actor   // CH MASTERMINDS.txt:2916
 {
 	Default
 	{
-		Game "Doom";
 		Radius 3;
 		Height 2;
 		Speed 30;
@@ -1596,7 +1602,6 @@ class RS_OrbPurpMindTrail : Actor   // CH MASTERMINDS.txt:2949
 {
 	Default
 	{
-		Game "Doom";
 		Radius 3;
 		Height 3;
 		+NOCLIP
@@ -1619,7 +1624,6 @@ class RS_DemoMissile : Actor   // CH MASTERMINDS.txt:2969
 {
 	Default
 	{
-		Game "Doom";
 		Species "MMind3";
 		Radius 11;
 		Height 8;
@@ -1660,7 +1664,6 @@ class RS_BaronStar4 : Actor   // CH MASTERMINDS.txt:3007
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 22;
@@ -1700,7 +1703,6 @@ class RS_BuffTrailSP : Actor   // CH MASTERMINDS.txt:3227
 {
 	Default
 	{
-		Game "Doom";
 		Radius 18;
 		Height 18;
 		Speed 5;
@@ -1763,7 +1765,6 @@ class RS_TrailSP : Actor   // CH MASTERMINDS.txt:3308
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 16;
 		Speed 22;
@@ -1790,7 +1791,6 @@ class RS_FiendPlasmaBall : Actor   // CH MASTERMINDS.txt:3332
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 16;
 		Speed 24;
@@ -1855,7 +1855,6 @@ class RS_RedMindGrounds : Actor   // CH MASTERMINDS.txt:3558
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 14;
@@ -1873,8 +1872,16 @@ class RS_RedMindGrounds : Actor   // CH MASTERMINDS.txt:3558
 		RenderStyle "Add";
 		SeeSound "Fire/fire3";
 		Alpha 0.8;
-		Scale.Y 0.5;
-		Scale.X 1.2;
+		// Scale is set in BeginPlay below: the engine's Default-block
+		// 'scale' property takes ONE float and assigns X and Y together
+		// (DEFINE_PROPERTY(scale, F, Actor)), so a non-uniform scale like
+		// CH's 1.2 x 0.5 cannot be expressed there at all.
+	}
+
+	override void BeginPlay()
+	{
+		Super.BeginPlay();
+		Scale = (1.2, 0.5);   // CH: Scale.X 1.2 / Scale.Y 0.5
 	}
 	States
 	{
@@ -1897,7 +1904,6 @@ class RS_RedMindRingNew : Actor   // CH MASTERMINDS.txt:3597
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 1;
@@ -2402,7 +2408,6 @@ class RS_WhiteMindFlare : Actor   // CH MASTERMINDS.txt:4518
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 12;
 		Speed 1;
@@ -2428,7 +2433,6 @@ class RS_WhiteMindshot1 : Actor   // CH MASTERMINDS.txt:4541
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 6;
 		Speed 45;
@@ -2438,13 +2442,21 @@ class RS_WhiteMindshot1 : Actor   // CH MASTERMINDS.txt:4541
 		+BOUNCEONWALLS
 		BounceType "Doom";
 		BounceCount 2;
-		Scale.X 1.1;
-		Scale.Y 0.75;
+		// Scale is set in BeginPlay below: the engine's Default-block
+		// 'scale' property takes ONE float and assigns X and Y together
+		// (DEFINE_PROPERTY(scale, F, Actor)), so a non-uniform scale like
+		// CH's 1.1 x 0.75 cannot be expressed there at all.
 		RenderStyle "Add";
 		SeeSound "weapons/plasmaf";
 		DeathSound "weapons/plasmax";
 		BounceSound "";
 		Translation "0:255=%[0.49,0.51,1.52]:[1.10,2.00,1.97]";
+	}
+
+	override void BeginPlay()
+	{
+		Super.BeginPlay();
+		Scale = (1.1, 0.75);   // CH: Scale.X 1.1 / Scale.Y 0.75
 	}
 	States
 	{
@@ -2465,7 +2477,6 @@ class RS_WhiteMindRB3 : Actor   // CH MASTERMINDS.txt:4575
 {
 	Default
 	{
-		Game "Doom";
 		Radius 20;
 		Height 20;
 		Speed 1;
@@ -2531,7 +2542,6 @@ class RS_SpideMindTrail : Actor   // CH MASTERMINDS.txt:4635
 {
 	Default
 	{
-		Game "Doom";
 		Radius 15;
 		Height 9;
 		Speed 0;
@@ -2805,7 +2815,6 @@ class RS_WhiteSpidWinder : Actor   // CH MASTERMINDS.txt:4887
 {
 	Default
 	{
-		Game "Doom";
 		Radius 5;
 		Height 5;
 		Speed 30;

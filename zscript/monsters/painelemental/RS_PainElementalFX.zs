@@ -1006,7 +1006,7 @@ class RS_LavaballPE : Actor   // CH thepains.txt:1722
 		BounceType "Doom";
 		BounceCount 3;
 		WallBounceFactor 1.25;
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 	}
 	States
 	{
@@ -1264,7 +1264,7 @@ class RS_OverFlesh1 : Actor   // CH thepains.txt:2263
 		Height 1;
 		Projectile;
 		+THRUGHOST
-		+LOWGRAVITY
+		Gravity 0.125;   // was +LOWGRAVITY (engine sets Gravity = 1/8)
 		-NOGRAVITY
 	}
 	States
@@ -1584,7 +1584,7 @@ class RS_StormBolt : RS_StormStrike1   // CH thepains.txt:2560
 		XScale 2.0;
 		ReactionTime 35;
 		+FLOORHUGGER
-		+HEXENBOUNCE
+		BounceType "Hexen";   // was +HEXENBOUNCE
 		-NOGRAVITY
 	}
 	States

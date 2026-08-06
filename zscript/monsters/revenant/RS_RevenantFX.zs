@@ -120,7 +120,6 @@ class RS_BrownRevBall : Actor   // CH Revenants.txt:168
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 20;
@@ -175,7 +174,6 @@ class RS_BigBallCrev : Actor   // CH Revenants.txt:406
 {
 	Default
 	{
-		Game "Doom";
 		Radius 10;
 		Height 10;
 		Speed 38;
@@ -220,7 +218,6 @@ class RS_IceORBCyanRev : Actor   // CH Revenants.txt:473
 {
 	Default
 	{
-		Game "Doom";
 		Radius 5;
 		Height 5;
 		Speed 20;
@@ -362,7 +359,6 @@ class RS_IceORbAbyssRev : Actor   // CH Revenants.txt:760
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 12;
 		Speed 15;
@@ -413,7 +409,6 @@ class RS_FBSkelCH01 : Actor   // CH Revenants.txt:967
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 20;
@@ -452,7 +447,6 @@ class RS_FBSkelCH02 : Actor   // CH Revenants.txt:1003
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 20;
@@ -491,7 +485,6 @@ class RS_FBSkelCH03 : Actor   // CH Revenants.txt:1039
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 17;
@@ -528,7 +521,6 @@ class RS_FBSkelCH04 : Actor   // CH Revenants.txt:1073
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 17;
@@ -593,7 +585,6 @@ class RS_BoomSkel1 : Actor   // CH Revenants.txt:1129
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 10;
@@ -624,7 +615,6 @@ class RS_BoneToPickGrey : Actor   // CH Revenants.txt:1285
 {
 	Default
 	{
-		Game "Doom";
 		Radius 4;
 		Height 4;
 		DamageFunction (random(10,40));   // CH: Damage (random(10,40))
@@ -701,7 +691,6 @@ class RS_Zap8 : Actor   // CH Revenants.txt:1881
 {
 	Default
 	{
-		Game "Doom";
 		Radius 3;
 		Height 8;
 		Speed 15;
@@ -734,7 +723,6 @@ class RS_Zap99 : Actor   // CH Revenants.txt:2081
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		Projectile;
 		RenderStyle "Add";
@@ -756,7 +744,6 @@ class RS_Bounc34 : Actor   // CH Revenants.txt:2100
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 12;
@@ -807,7 +794,6 @@ class RS_FirespeNewYel : Actor   // CH Revenants.txt:2641
 {
 	Default
 	{
-		Game "Doom";
 		Radius 4;
 		Height 4;
 		Speed 24;
@@ -841,7 +827,6 @@ class RS_ShieldBlastRev : Actor   // CH Revenants.txt:3147
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 12;
@@ -894,7 +879,6 @@ class RS_RevShieldWalk : Actor   // CH Revenants.txt:3196
 {
 	Default
 	{
-		Game "Doom";
 		Radius 64;
 		Height 56;
 		Speed 0;
@@ -1010,7 +994,7 @@ class RS_DKSword : Actor   // CH Revenants.txt:3405
 		Projectile;
 		RenderStyle "Normal";
 		-NOGRAVITY
-		+LOWGRAVITY
+		Gravity 0.125;   // was +LOWGRAVITY (engine sets Gravity = 1/8)
 	}
 	States
 	{
@@ -1041,7 +1025,7 @@ class RS_DKShield : Actor   // CH Revenants.txt:3432
 		Projectile;
 		RenderStyle "Normal";
 		-NOGRAVITY
-		+LOWGRAVITY
+		Gravity 0.125;   // was +LOWGRAVITY (engine sets Gravity = 1/8)
 	}
 	States
 	{
@@ -1227,7 +1211,6 @@ class RS_RevShieldWalk2 : Actor   // CH Revenants.txt:3932
 {
 	Default
 	{
-		Game "Doom";
 		Radius 64;
 		Height 56;
 		Speed 16;
@@ -1591,7 +1574,6 @@ class RS_WhiteRevCoil : Actor   // CH Revenants.txt:4761
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 6;
 		Speed 24;
@@ -1635,7 +1617,6 @@ class RS_WhiteRevFrostBolt : Actor   // CH Revenants.txt:4802
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 4;
 		Speed 35;
@@ -1684,7 +1665,6 @@ class RS_IceGroundWhiteRev : Actor   // CH Revenants.txt:4847
 {
 	Default
 	{
-		Game "Doom";
 		Radius 9;
 		Height 9;
 		DamageType "Ice";
@@ -1757,7 +1737,6 @@ class RS_IceToMeetWhiteRev2 : Actor   // CH Revenants.txt:4915
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 16;
 		Speed 1;
@@ -1788,7 +1767,6 @@ class RS_FrostMistWhiteRev : Actor   // CH Revenants.txt:4943
 {
 	Default
 	{
-		Game "Doom";
 		Radius 9;
 		Height 9;
 		Speed 19;
@@ -1909,7 +1887,6 @@ class RS_CastTargetingWhiteRev : Actor   // CH Revenants.txt:5051
 {
 	Default
 	{
-		Game "Doom";
 		Radius 1;
 		Height 1;
 		Speed 55;
@@ -2060,7 +2037,6 @@ class RS_FatsoPuff3 : Actor   // CH Fatsos.txt:1880
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 16;
 		Speed 16;
@@ -2089,7 +2065,6 @@ class RS_CyanCybieGunFlare : Actor   // CH CYBIES.txt:1037
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 2;
@@ -2115,7 +2090,6 @@ class RS_CybieZappy : Actor   // CH CYBIES.txt:4380
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 16;
 		Speed 8;
@@ -2148,7 +2122,6 @@ class RS_TrailCB : Actor   // CH CYBIES.txt:4428
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 16;
 		Speed 8;

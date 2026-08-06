@@ -175,6 +175,7 @@ class RS_MonsterDebugHandler : EventHandler
 			list.Push('RS_BlackCaco2');      // T10
 			list.Push('RS_BlackCacoEX');     // T10 EX
 			list.Push('RS_WhiteCaco2');      // T11 (phase 1; phase 2 hatches from its corpse)
+			list.Push('RS_WhiteCacoREAL');   // T11 phase 2 -- normally only reachable by killing phase 1
 			break;
 		case 8:   // Pain Elemental
 			list.Push('RS_CommonPE');        // T1
@@ -190,6 +191,7 @@ class RS_MonsterDebugHandler : EventHandler
 			list.Push('RS_BrownPE2');        // T13
 			list.Push('RS_BlackPE2');        // T10
 			list.Push('RS_WhitePE2');        // T11 (the Pilot phase spawns from its death)
+			list.Push('RS_WhitePE3');        // T11 "The Pilot" -- normally only reachable by killing phase 1
 			break;
 		case 9:   // Hell Knight
 			list.Push('RS_CommonHK');        // T1
@@ -237,7 +239,10 @@ class RS_MonsterDebugHandler : EventHandler
 			list.Push('RS_CyanRevenant2');   // T12
 			list.Push('RS_BrownRevenant2');  // T13
 			list.Push('RS_BlackRevenant3');  // T10
+			list.Push('RS_BlackRev2');       // T10 alt black form
 			list.Push('RS_BlackRevenantEX'); // T10 EX
+			list.Push('RS_BlackRevEx3');     // T10 EX alt
+			list.Push('RS_BlackRevEx2');     // T10 EX alt
 			list.Push('RS_WhiteRevenant2');  // T11
 			break;
 		case 12:   // Mancubus (Fatso)
@@ -271,6 +276,9 @@ class RS_MonsterDebugHandler : EventHandler
 			list.Push('RS_BlackSP2');        // T10
 			list.Push('RS_BlackSPEX');       // T10 EX
 			list.Push('RS_WhiteSP11');       // T11
+			list.Push('RS_WhiteSP11Old');    // T11 alt white form
+			list.Push('RS_WhiteSP3');        // T11 alt white form
+			list.Push('RS_WhiteSP2');        // T11 alt white form
 			break;
 		case 14:   // Archvile
 			list.Push('RS_CommonArch');      // T1

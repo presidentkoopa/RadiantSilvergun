@@ -78,7 +78,6 @@ class RS_VileGroundSpikeBrown : Actor   // CH Archviles.txt:214
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		DamageFunction (random(1,10));
 		DamageType "Melee";
@@ -136,7 +135,6 @@ class RS_VileGroundSpikeBrown2 : Actor   // CH Archviles.txt:269
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		DamageFunction (random(1,10));
 		DamageType "Melee";
@@ -193,7 +191,6 @@ class RS_BrownVileGas : Actor   // CH Archviles.txt:450
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 0;
@@ -234,7 +231,6 @@ class RS_FireHand1 : Actor   // CH Revenants.txt:2556
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 0;
@@ -259,7 +255,6 @@ class RS_BigBadFire1 : Actor   // CH Revenants.txt:2578
 {
 	Default
 	{
-		Game "Doom";
 		Radius 1;
 		Height 1;
 		Speed 0;
@@ -298,7 +293,6 @@ class RS_BaronBrownRock : Actor   // CH Barons.txt:170
 {
 	Default
 	{
-		Game "Doom";
 		Radius 7;
 		Height 7;
 		Speed 28;
@@ -335,7 +329,6 @@ class RS_BrownBaronFlame : Actor   // CH Barons.txt:204
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 0;
@@ -360,7 +353,6 @@ class RS_BrownBaronFlame2 : Actor   // CH Barons.txt:227
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 0;
@@ -387,7 +379,6 @@ class RS_BrownBaronSpiral : Actor   // CH Barons.txt:252
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 4;
@@ -429,7 +420,6 @@ class RS_ReflectorBBaron : Actor   // CH Barons.txt:291
 {
 	Default
 	{
-		Game "Doom";
 		Radius 32;
 		Height 56;
 		Speed 0;
@@ -489,7 +479,6 @@ class RS_BBaronCmonAndSlam : Actor   // CH Barons.txt:341
 {
 	Default
 	{
-		Game "Doom";
 		Radius 3;
 		Height 3;
 		Speed 1;
@@ -531,7 +520,6 @@ class RS_IceSeekerBaron : Actor   // CH Barons.txt:664
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 26;
@@ -569,7 +557,6 @@ class RS_BaronStarCyan : Actor   // CH Barons.txt:718
 {
 	Default
 	{
-		Game "Doom";
 		Radius 5;
 		Height 5;
 		Speed 38;
@@ -656,7 +643,6 @@ class RS_IceSeekerTrailBaron : Actor   // CH Barons.txt:799
 {
 	Default
 	{
-		Game "Doom";
 		Radius 5;
 		Height 5;
 		Projectile;
@@ -682,7 +668,6 @@ class RS_FrostWingBaron : Actor   // CH Barons.txt:822
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 1;
@@ -713,7 +698,6 @@ class RS_FrostWingBaron2 : Actor   // CH Barons.txt:850
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 1;
@@ -746,7 +730,6 @@ class RS_AbyssBaronRing : Actor   // CH Barons.txt:898
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 3;
@@ -778,7 +761,6 @@ class RS_AbyssBaronDefile : Actor   // CH Barons.txt:927
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 3;
@@ -867,7 +849,6 @@ class RS_GroundRedBar : Actor   // CH Barons.txt:1198
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 1;
@@ -902,7 +883,6 @@ class RS_AbyssBaronLightning : Actor   // CH Barons.txt:1313
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 6;
 		Speed 76;
@@ -1043,7 +1023,6 @@ class RS_BaronOfDirtCH : Actor   // CH Barons.txt:1621
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 2;
@@ -1084,7 +1063,6 @@ class RS_BaronOfDirtCH2 : Actor   // CH Barons.txt:1659
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 16;
 		Speed 16;
@@ -1131,7 +1109,6 @@ class RS_BaronOfDirtCH3 : Actor   // CH Barons.txt:1704
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 16;
 		Speed 20;
@@ -1173,7 +1150,6 @@ class RS_BluPowerBomb : Actor   // CH Barons.txt:1885
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 10;
@@ -1246,7 +1222,6 @@ class RS_GreeniesBR : Actor   // CH Barons.txt:2168
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 15;
@@ -1288,7 +1263,6 @@ class RS_Spspit3 : Actor   // CH Barons.txt:2207
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 16;
 		Speed 12;
@@ -1326,7 +1300,6 @@ class RS_SmashBall4 : Actor   // CH Barons.txt:2489
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 18;
 		Speed 24;
@@ -1371,7 +1344,6 @@ class RS_BaronFbomb : Actor   // CH Barons.txt:2943
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 12;
 		Speed 19;
@@ -1419,7 +1391,6 @@ class RS_BaronStar2 : Actor   // CH Barons.txt:3057
 {
 	Default
 	{
-		Game "Doom";
 		Radius 5;
 		Height 7;
 		Speed 28;
@@ -1535,7 +1506,7 @@ class RS_ArchonComet : Actor   // CH Barons.txt:3489
 		BounceCount 4;
 		WallBounceFactor 1.2;
 		BounceSound "Fire/fire4";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		Translation "112:127=176:191";
 		DamageType "Fire";
 	}
@@ -1635,7 +1606,7 @@ class RS_RedBBall2 : Actor   // CH Barons.txt:3781
 		+THRUGHOST
 		SeeSound "weapons/firbfi";
 		DeathSound "weapons/hellex";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		RenderStyle "Add";
 		Alpha 0.8;
 		Translation "112:127=176:191";
@@ -1888,7 +1859,6 @@ class RS_WhiteBaronSliceTrail : Actor   // CH Barons.txt:4509
 {
 	Default
 	{
-		Game "Doom";
 		Radius 5;
 		Height 5;
 		Projectile;

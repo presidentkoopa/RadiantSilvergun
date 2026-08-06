@@ -38,23 +38,23 @@
 enum ERSEliteType
 {
 	RSET_None,
-	RSET_C01_DarkRed,
-	RSET_C02_Red,
-	RSET_C03_Orange,
-	RSET_C04_Yellow,
-	RSET_C05_DarkGreen,
-	RSET_C06_Green,
-	RSET_C07_Cyan,
-	RSET_C08_Blue,
-	RSET_C09_Indigo,
-	RSET_C10_Violet,
-	RSET_C11_Pink,
-	RSET_C12_Black,
-	RSET_C13_Grey,
-	RSET_C14_White,
-	RSET_C15_Bronze,
-	RSET_C16_Silver,
-	RSET_C17_Gold
+	RSET_E01,
+	RSET_E02,
+	RSET_E03,
+	RSET_E04,
+	RSET_E05,
+	RSET_E06,
+	RSET_E07,
+	RSET_E08,
+	RSET_E09,
+	RSET_E10,
+	RSET_E11,
+	RSET_E12,
+	RSET_E13,
+	RSET_E14,
+	RSET_E15,
+	RSET_E16,
+	RSET_E17
 }
 
 // One controller per elite, created at the spawn roll, dormant until
@@ -78,23 +78,23 @@ class RS_EliteColorController : Thinker
 		RS_EliteColorController c = null;
 		switch (typeId)
 		{
-			case RSET_C01_DarkRed:   c = new("RS_EliteC01_DarkRed");   break;
-			case RSET_C02_Red:       c = new("RS_EliteC02_Red");       break;
-			case RSET_C03_Orange:    c = new("RS_EliteC03_Orange");    break;
-			case RSET_C04_Yellow:    c = new("RS_EliteC04_Yellow");    break;
-			case RSET_C05_DarkGreen: c = new("RS_EliteC05_DarkGreen"); break;
-			case RSET_C06_Green:     c = new("RS_EliteC06_Green");     break;
-			case RSET_C07_Cyan:      c = new("RS_EliteC07_Cyan");      break;
-			case RSET_C08_Blue:      c = new("RS_EliteC08_Blue");      break;
-			case RSET_C09_Indigo:    c = new("RS_EliteC09_Indigo");    break;
-			case RSET_C10_Violet:    c = new("RS_EliteC10_Violet");    break;
-			case RSET_C11_Pink:      c = new("RS_EliteC11_Pink");      break;
-			case RSET_C12_Black:     c = new("RS_EliteC12_Black");     break;
-			case RSET_C13_Grey:      c = new("RS_EliteC13_Grey");      break;
-			case RSET_C14_White:     c = new("RS_EliteC14_White");     break;
-			case RSET_C15_Bronze:    c = new("RS_EliteC15_Bronze");    break;
-			case RSET_C16_Silver:    c = new("RS_EliteC16_Silver");    break;
-			case RSET_C17_Gold:      c = new("RS_EliteC17_Gold");      break;
+			case RSET_E01:   c = new("RS_EliteE01");   break;
+			case RSET_E02:       c = new("RS_EliteE02");       break;
+			case RSET_E03:    c = new("RS_EliteE03");    break;
+			case RSET_E04:    c = new("RS_EliteE04");    break;
+			case RSET_E05: c = new("RS_EliteE05"); break;
+			case RSET_E06:     c = new("RS_EliteE06");     break;
+			case RSET_E07:      c = new("RS_EliteE07");      break;
+			case RSET_E08:      c = new("RS_EliteE08");      break;
+			case RSET_E09:    c = new("RS_EliteE09");    break;
+			case RSET_E10:    c = new("RS_EliteE10");    break;
+			case RSET_E11:      c = new("RS_EliteE11");      break;
+			case RSET_E12:     c = new("RS_EliteE12");     break;
+			case RSET_E13:      c = new("RS_EliteE13");      break;
+			case RSET_E14:     c = new("RS_EliteE14");     break;
+			case RSET_E15:    c = new("RS_EliteE15");    break;
+			case RSET_E16:    c = new("RS_EliteE16");    break;
+			case RSET_E17:      c = new("RS_EliteE17");      break;
 		}
 		if (c)
 		{
@@ -215,7 +215,7 @@ class RS_EliteColorController : Thinker
 // remains inside the timer and the elite dies for real; fail and it
 // climbs back out at partial health.
 // ---------------------------------------------------------------------
-class RS_EliteC01_DarkRed : RS_EliteColorController
+class RS_EliteE01 : RS_EliteColorController
 {
 	Actor remains;
 	bool hidden;
@@ -318,7 +318,7 @@ class RS_EliteC01_DarkRed : RS_EliteColorController
 // C02 Red -- 2x health. Stacks on the token's boosted ceiling: the
 // reveal heals to boostedHealth first, then this doubles it.
 // ---------------------------------------------------------------------
-class RS_EliteC02_Red : RS_EliteColorController
+class RS_EliteE02 : RS_EliteColorController
 {
 	override void InitEffect()
 	{
@@ -344,7 +344,7 @@ class RS_EliteC02_Red : RS_EliteColorController
 // C03 Orange -- explodes on death. Boost: cluster explosion that rains
 // bomblets.
 // ---------------------------------------------------------------------
-class RS_EliteC03_Orange : RS_EliteColorController
+class RS_EliteE03 : RS_EliteColorController
 {
 	double missileofs;
 	class<Actor> explosiontype;
@@ -388,7 +388,7 @@ class RS_EliteC03_Orange : RS_EliteColorController
 // factor (1.5 base, 2.0 boosted). Its projectiles are also scaled up by
 // the handler at missile spawn -- see RS_EliteHandler.
 // ---------------------------------------------------------------------
-class RS_EliteC04_Yellow : RS_EliteColorController
+class RS_EliteE04 : RS_EliteColorController
 {
 	double factor;
 
@@ -437,7 +437,7 @@ class RS_EliteC04_Yellow : RS_EliteColorController
 // too when rs_elite_missilecreep is on, and its hits poison -- both
 // handler-side.
 // ---------------------------------------------------------------------
-class RS_EliteC05_DarkGreen : RS_EliteColorController
+class RS_EliteE05 : RS_EliteColorController
 {
 	class<Actor> creep;
 
@@ -478,7 +478,7 @@ class RS_EliteC05_DarkGreen : RS_EliteColorController
 // random distance in a random direction, fog on both ends. Boost:
 // farther, more often. Getting hit can trigger one too.
 // ---------------------------------------------------------------------
-class RS_EliteC06_Green : RS_EliteColorController
+class RS_EliteE06 : RS_EliteColorController
 {
 	int steps;
 	int chance;
@@ -553,7 +553,7 @@ class RS_EliteC06_Green : RS_EliteColorController
 // body. Boost: double the force. Its hits also knock the player back --
 // handler-side.
 // ---------------------------------------------------------------------
-class RS_EliteC07_Cyan : RS_EliteColorController
+class RS_EliteE07 : RS_EliteColorController
 {
 	int windforce;
 
@@ -593,7 +593,7 @@ class RS_EliteC07_Cyan : RS_EliteColorController
 // C08 Blue -- dies in a radial fireball burst, sized by its body; also
 // spits a smaller ring when hurt. Boost: more projectiles.
 // ---------------------------------------------------------------------
-class RS_EliteC08_Blue : RS_EliteColorController
+class RS_EliteE08 : RS_EliteColorController
 {
 	int projectiles;
 	int hitPause;
@@ -667,7 +667,7 @@ class RS_EliteC08_Blue : RS_EliteColorController
 // size, health and damage, excluded from kill counts and from ever
 // being Elites themselves. Boost: four instead of two.
 // ---------------------------------------------------------------------
-class RS_EliteC09_Indigo : RS_EliteColorController
+class RS_EliteE09 : RS_EliteColorController
 {
 	class<Actor> tospawn;
 	int spawnCount;
@@ -734,7 +734,7 @@ class RS_EliteC09_Indigo : RS_EliteColorController
 // patterns (straight, forked, radial). Boost: faster cycle and an
 // extra layer on every pattern.
 // ---------------------------------------------------------------------
-class RS_EliteC10_Violet : RS_EliteColorController
+class RS_EliteE10 : RS_EliteColorController
 {
 	override void InitEffect()
 	{
@@ -810,7 +810,7 @@ class RS_EliteC10_Violet : RS_EliteColorController
 // every raisable corpse in range, paying 20% of its own base health per
 // body. Stops when it's down to its last fifth. Boost: double reach.
 // ---------------------------------------------------------------------
-class RS_EliteC11_Pink : RS_EliteColorController
+class RS_EliteE11 : RS_EliteColorController
 {
 	int radfactor;
 
@@ -841,7 +841,7 @@ class RS_EliteC11_Pink : RS_EliteColorController
 			if (mo.Distance2D(elite) < (elite.radius * radfactor) &&
 				mo.bISMONSTER && mo.health < 1 &&
 				mo.FindState("Raise") &&
-				!(dtok && dtok.colorId == RSET_C11_Pink) &&
+				!(dtok && dtok.colorId == RSET_E11) &&
 				!mo.CountInv("RS_EliteNullToken"))
 			{
 				if (mo.RaiseActor(mo))
@@ -870,7 +870,7 @@ class RS_EliteC11_Pink : RS_EliteColorController
 // C12 Black -- deals 2x damage AND takes 2x damage. Deliberate glass
 // cannon; the DamageFactor line is intentional, do not "fix" it.
 // ---------------------------------------------------------------------
-class RS_EliteC12_Black : RS_EliteColorController
+class RS_EliteE12 : RS_EliteColorController
 {
 	override void InitEffect()
 	{
@@ -898,7 +898,7 @@ class RS_EliteC12_Black : RS_EliteColorController
 // C13 Grey -- closes distance violently: sudden sidesteps and 48-unit
 // lunges straight at you, each leaving a fading afterimage trail.
 // ---------------------------------------------------------------------
-class RS_EliteC13_Grey : RS_EliteColorController
+class RS_EliteE13 : RS_EliteColorController
 {
 	override void InitEffect()
 	{
@@ -946,7 +946,7 @@ class RS_EliteC13_Grey : RS_EliteColorController
 // itself. Boost: bigger creep, wider pulse. Its projectiles drip creep
 // (rs_elite_missilecreep) and its hits slow -- handler-side.
 // ---------------------------------------------------------------------
-class RS_EliteC14_White : RS_EliteColorController
+class RS_EliteE14 : RS_EliteColorController
 {
 	class<Actor> creep;
 	int radfactor;
@@ -993,7 +993,7 @@ class RS_EliteC14_White : RS_EliteColorController
 // immovable mass, but every state runs 1.75x slower. Sparkles instead
 // of an aura.
 // ---------------------------------------------------------------------
-class RS_EliteC15_Bronze : RS_EliteColorController
+class RS_EliteE15 : RS_EliteColorController
 {
 	override bool HasAura() { return false; }
 
@@ -1033,7 +1033,7 @@ class RS_EliteC15_Bronze : RS_EliteColorController
 // Boost: much stronger pull. Player pull works through the
 // RSEliteMagnet species set in RS_EliteHandler.PlayerEntered.
 // ---------------------------------------------------------------------
-class RS_EliteC16_Silver : RS_EliteColorController
+class RS_EliteE16 : RS_EliteColorController
 {
 	int radfactor;
 
@@ -1071,7 +1071,7 @@ class RS_EliteC16_Silver : RS_EliteColorController
 // aura, harder conversion. Slower like Bronze; sparkles instead of an
 // aura.
 // ---------------------------------------------------------------------
-class RS_EliteC17_Gold : RS_EliteColorController
+class RS_EliteE17 : RS_EliteColorController
 {
 	double radfactor;
 	class<Inventory> midas;

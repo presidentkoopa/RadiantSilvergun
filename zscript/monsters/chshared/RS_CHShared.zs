@@ -60,7 +60,6 @@ class RS_CH_BlurSphere : RS_DropBasePowerup   // CH DECORATE.txt:663
 {
 	Default
 	{
-		Game "Doom";
 		Mass 5;
 		Alpha 0.01;
 	}
@@ -109,7 +108,6 @@ class RS_CH_BadItch : Actor   // CH DECORATE.txt:1004
 {
 	Default
 	{
-		Game "Doom";
 		Health 9999;
 		Monster;
 		Radius 2;

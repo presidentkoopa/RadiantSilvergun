@@ -728,7 +728,7 @@ class RS_AbyssDemon2 : Actor
 		RenderStyle "Add";
 		Monster;
 		+FLOORCLIP
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+THRUSPECIES
 		+NOFEAR
 		Alpha 0.10;
@@ -1785,7 +1785,7 @@ class RS_WHOLETTHEDOGSOUT : Actor
 		PainChance "DIMp", 0;
 		Monster;
 		+FLOORCLIP
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+THRUSPECIES
 		+NOFEAR
 		Obituary "%o got burned by the Butchers pet hounds";

@@ -225,7 +225,6 @@ class RS_BrownBaron2 : Actor   // CH Barons.txt:40
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 13); }
 	Default
 	{
-		Game "Doom";
 		Health 2250;
 		Species "BaronOfHell";
 		BloodColor "Black";
@@ -360,7 +359,6 @@ class RS_CyanBaron2 : Actor   // CH Barons.txt:397
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 12); }
 	Default
 	{
-		Game "Doom";
 		Health 1666;
 		Species "BaronOfHell";
 		BloodColor "Cyan";
@@ -1105,7 +1103,6 @@ class RS_CommonBaron : BaronOfHell   // CH Barons.txt:1947
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 1); }
 	Default
 	{
-		Game "Doom";
 		Species "BaronOfHell";
 		BloodColor "Green";
 		DamageFactor "Blessed", 3.0;
@@ -1205,7 +1202,6 @@ class RS_GreenBaron : BaronOfHell   // CH Barons.txt:2040
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 2); }
 	Default
 	{
-		Game "Doom";
 		GibHealth -100;
 		Health 1170;
 		Species "BaronOfHell";
@@ -1340,7 +1336,6 @@ class RS_BlueBaron : BaronOfHell   // CH Barons.txt:2264
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 3); }
 	Default
 	{
-		Game "Doom";
 		Health 1309;
 		Species "BaronOfHell";
 		DamageFactor "Blessed", 3.0;
@@ -1462,7 +1457,6 @@ class RS_PurpleBaron : BaronOfHell   // CH Barons.txt:2524
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 4); }
 	Default
 	{
-		Game "Doom";
 		Health 1500;
 		GibHealth -100;
 		Species "BaronOfHell";
@@ -1604,7 +1598,6 @@ class RS_YellowBaron : BaronOfHell   // CH Barons.txt:2793
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 5); }
 	Default
 	{
-		Game "Doom";
 		Health 1888;
 		Species "BaronOfHell";
 		BloodColor "Yellow";
@@ -2447,7 +2440,7 @@ class RS_DeepTentacle : Actor   // CH Barons.txt:4061
 		ActiveSound "monster/tenact";
 		Monster;
 		+FLOORCLIP
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+LOOKALLAROUND
 		+THRUSPECIES
 		+NOTARGET

@@ -169,6 +169,15 @@ version "4.14"
 // ALSO in MAPINFO.txt's AddEventHandlers -- the two are a pair.
 #include "zscript/monsters/RS_MonsterDebug.zs"
 
+// RS_ReserveSquads: the reinforcement director. Records every non-boss
+// monster the map placed as a reusable, designer-approved spawn marker,
+// then sends validated squads back in at those spots -- on a timer, on an
+// elite reveal, or when something calls its public API. Monsters only:
+// it never spawns an item, and it ships OFF (rs_reserve_enabled).
+// RS_ReserveSquads must ALSO be in MAPINFO.txt's AddEventHandlers -- the
+// two are a pair, and a name there without this include is a hard crash.
+#include "zscript/monsters/RS_ReserveSquads.zs"
+
 // RS_MonsterMaster: the monster-side parallel of RS_Weapon. Owns tier,
 // the per-tier body-sprite/TRNSLATE table, the per-tier attack slot,
 // and the shared behaviour primitives (summon-with-cap, threshold

@@ -1578,7 +1578,7 @@ class RS_BlackImpEX : Actor
 		PainChance 28;
 		Monster;
 		+FLOORCLIP
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMSPECIES
 		+BOSS
 		+DONTMORPH
@@ -1759,7 +1759,7 @@ class RS_BlackImp1 : Actor   // CH Imps.txt:2300 -- Smoking Black Imp
 		PainChance 28;
 		Monster;
 		+FLOORCLIP
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMSPECIES
 		+BOSS
 		-NORADIUSDMG
@@ -2109,7 +2109,7 @@ class RS_WhiteImp2 : Actor   // CH Imps.txt:2776 -- Imp Master
 		ActiveSound "monster/hlnact";
 		Monster;
 		+FLOORCLIP
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMSPECIES
 		+DONTHARMCLASS
 		+BOSS

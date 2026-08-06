@@ -162,7 +162,7 @@ class RS_PlasmaBallSP5 : RS_PlasmaBallSP4   // CH CYBIES.txt:2351 -- the orb's p
 	Default
 	{
 		Species "Cybie";
-		+DONTHURTSPECIES   // CH: +dontharmspecies
+		+DONTHARMCLASS   // CH: +dontharmspecies
 	}
 }
 
@@ -540,7 +540,7 @@ class RS_AbyssCacoBalls : Actor   // CH Cacodemons.txt:641 -- abyss spam ball
 		DamageType "Ice";
 		Projectile;
 		+THRUSPECIES
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		Scale 1.25;
 		RenderStyle "Add";
@@ -576,7 +576,7 @@ class RS_AbyssCacoHidi : Actor   // CH Cacodemons.txt:676 -- abyss seeker flame
 		Projectile;
 		+SEEKERMISSILE
 		+THRUSPECIES
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		Species "Caco";
 		DamageType "Plasma";
@@ -627,7 +627,7 @@ class RS_AbyssCacoZap : Actor   // CH Cacodemons.txt:722 -- lightning orbiting t
 		Projectile;
 		+RIPPER
 		+THRUSPECIES
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		RenderStyle "Add";
 		Alpha 1.75;
@@ -656,7 +656,7 @@ class RS_AbyssCacoZap2 : Actor   // CH Cacodemons.txt:751 -- static discharge
 		DamageFunction (random(1,5));   // CH: Damage(random(1,5))
 		DamageType "Plasma";
 		Projectile;
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		+THRUSPECIES
 		RenderStyle "Add";

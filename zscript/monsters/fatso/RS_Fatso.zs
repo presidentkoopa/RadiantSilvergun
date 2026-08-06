@@ -236,7 +236,6 @@ class RS_BrownFatso2 : Fatso   // CH Fatsos.txt:40
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 13); }
 	Default
 	{
-		Game "Doom";
 		Species "Fatso";
 		BloodColor "red";
 		DamageFactor "Scrapper", 3.0;
@@ -376,7 +375,6 @@ class RS_CyanFatso2 : Fatso   // CH Fatsos.txt:321
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 12); }
 	Default
 	{
-		Game "Doom";
 		Species "Fatso";
 		BloodColor "blue";
 		DamageFactor "Scrapper", 3.0;
@@ -543,7 +541,7 @@ class RS_AbyssFatso2 : Fatso   // CH Fatsos.txt:547
 		+FLOORCLIP
 		+MISSILEMORE
 		+NOINFIGHTING
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		+NOFEAR
 		SeeSound "shadowbeast/sight";
@@ -633,7 +631,6 @@ class RS_FireBluFatso2 : Actor   // CH Fatsos.txt:746
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 7); }
 	Default
 	{
-		Game "Doom";
 		Species "Fatso2";
 		Health 1400;
 		Radius 48;
@@ -651,7 +648,7 @@ class RS_FireBluFatso2 : Actor   // CH Fatsos.txt:746
 		+DONTSQUASH
 		+DONTMORPH
 		+DONTBLAST
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+BOSSDEATH
 		+NOICEDEATH
 		+MISSILEMORE
@@ -761,7 +758,6 @@ class RS_GrayFatso2 : Fatso   // CH Fatsos.txt:984
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 8); }
 	Default
 	{
-		Game "Doom";
 		Species "Fatso";
 		BloodColor "White";
 		DamageFactor "Scrapper", 3.0;
@@ -900,7 +896,6 @@ class RS_CommonFatso : Fatso   // CH Fatsos.txt:1175
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 1); }
 	Default
 	{
-		Game "Doom";
 		Species "Fatso";
 		DamageFactor "Scrapper", 3.0;
 		DamageFactor "DIMp", 0;
@@ -997,7 +992,6 @@ class RS_GreenFatso : Fatso   // CH Fatsos.txt:1309
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 2); }
 	Default
 	{
-		Game "Doom";
 		Species "Fatso";
 		BloodColor "Green";
 		DamageFactor "Scrapper", 3.0;
@@ -1115,7 +1109,6 @@ class RS_BlueFatso : Fatso   // CH Fatsos.txt:1465
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 3); }
 	Default
 	{
-		Game "Doom";
 		Species "Fatso";
 		BloodColor "Blue";
 		DamageFactor "Scrapper", 3.0;
@@ -1251,7 +1244,6 @@ class RS_PurpleFatso : Fatso   // CH Fatsos.txt:1764
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 4); }
 	Default
 	{
-		Game "Doom";
 		Species "Fatso";
 		BloodColor "Purple";
 		DamageFactor "Scrapper", 3.0;
@@ -1376,7 +1368,6 @@ class RS_YellowFatso : Fatso   // CH Fatsos.txt:2007
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 5); }
 	Default
 	{
-		Game "Doom";
 		Species "Fatso2";
 		BloodColor "Purple";
 		Health 1250;
@@ -1395,7 +1386,7 @@ class RS_YellowFatso : Fatso   // CH Fatsos.txt:2007
 		+DONTMORPH
 		+DONTBLAST
 		+NOTELEOTHER
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+BOSSDEATH
 		+NOFEAR
 		SeeSound "incubus/sight";
@@ -1518,7 +1509,6 @@ class RS_RedFatso : Actor   // CH Fatsos.txt:2223
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 6); }
 	Default
 	{
-		Game "Doom";
 		Species "Fatso2";
 		Health 1600;
 		Radius 48;
@@ -1538,7 +1528,7 @@ class RS_RedFatso : Actor   // CH Fatsos.txt:2223
 		+DONTMORPH
 		+DONTBLAST
 		+NOTELEOTHER
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+BOSSDEATH
 		+NOICEDEATH
 		+MISSILEMORE

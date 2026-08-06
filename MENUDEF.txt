@@ -25,10 +25,8 @@ OptionMenu "RS_MainOptions"
 	Option "GunBonsai: Classic Upgrade Pool", "rs_gb_legacy_affixes", "OnOff"
 	Submenu "Kill Rewards", "RS_BitsSettings"
 	Submenu "Arcade Score", "RS_ScoreOptions"
-	Submenu "Monster Health Bars", "RS_HPBarOptions"
-	Submenu "Monster Variants & Drops", "RS_CHMonsterOptions"
+	Submenu "Monster Control Center", "RS_MonsterControl"
 	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
-	Submenu "Monster Debug", "RS_MonsterDebug"
 	Submenu "UI Debug", "RS_UIDebug"
 }
 
@@ -111,6 +109,12 @@ OptionMenu "RS_MonsterDebug"
 	Command "Spawn Archvile Family", "netevent rs_spawnall_archvile"
 	Command "Spawn Cyberdemon Family", "netevent rs_spawnall_cyberdemon"
 	Command "Spawn Spider Mastermind Family", "netevent rs_spawnall_mastermind"
+	StaticText " "
+	StaticText "Reserve Squads -- these fire even while the system is off.", "DarkGray"
+	Command "Send One Reserve Wave", "netevent rs_reserve_fire"
+	Command "Show Arrival Spots (no monsters)", "netevent rs_reserve_markers"
+	Command "Reserve Status To Console", "netevent rs_reserve_status"
+	Command "Remove All Reserve Monsters", "netevent rs_reserve_clear"
 	StaticText " "
 	// Elite summons -- handled by RS_EliteHandler (zscript/systems/
 	// monster/RS_Elite.zs). Aim at a monster BEFORE opening the menu;
@@ -747,6 +751,242 @@ OptionValue "RS_HPBarStyles"
 	1, "B -- Red"
 }
 
+// =====================================================================
+// MONSTER CONTROL CENTER -- one door for everything about the creatures.
+//
+// Replaces three separate top-level entries (health bars, monster
+// variants, monster debug) that had grown independently and had no
+// reason to be strangers: they are all "what the monsters are and how
+// they read". The two settings a player actually toggles -- tier icons
+// and health bars -- sit inline on this page so they never need a dive.
+//
+// NAMING: the tier ladder is called MONSTER TIERS and nothing else. The
+// project's taxonomy law reserves three separate vocabularies -- weapons
+// have RARITY TIERS, surfaces have GLOW, monsters have NUMERIC DIFFICULTY
+// TIERS -- and crossing them has cost three corrections already. No
+// player-facing string here names the pack any of this was rebuilt from.
+// =====================================================================
+OptionMenu "RS_MonsterControl"
+{
+	Title "Monster Control Center"
+	StaticText " "
+	StaticText "Everything about what the creatures are, how they read,", "DarkGray"
+	StaticText "and what arrives to help them.", "DarkGray"
+	StaticText " "
+
+	StaticText "At A Glance", "Cyan"
+	Option "Tier Icons Above Monsters", "rs_ch_colorblind", "RS_CH_OffOn"
+	StaticText "Floats the tier's own symbol over each monster, so the", "DarkGray"
+	StaticText "ladder reads as a shape and not only as a colour.", "DarkGray"
+	Option "Monster Health Bars", "rs_hpbar_enable", "OnOff"
+	StaticText " "
+
+	StaticText "Systems", "Cyan"
+	Submenu "Monster Tiers...", "RS_CHMonsterOptions"
+	StaticText "Which of the thirteen tiers may appear, how their bosses", "DarkGray"
+	StaticText "behave, and what they leave behind.", "DarkGray"
+	Submenu "Elites...", "RS_EliteOptions"
+	StaticText "Hidden champions that reveal at half health.", "DarkGray"
+	Submenu "Reserve Squads...", "RS_ReserveOptions"
+	StaticText "Reinforcements that walk in from elsewhere on the map.", "DarkGray"
+	Submenu "Health Bar Detail...", "RS_HPBarOptions"
+	StaticText " "
+
+	StaticText "Testing", "Cyan"
+	Submenu "Spawn Lineups & Elites...", "RS_MonsterDebug"
+	StaticText " "
+
+	StaticText "Notes", "Cyan"
+	StaticText "Spawn settings only affect monsters that have not spawned", "DarkGray"
+	StaticText "yet -- start a new map to see them take effect.", "DarkGray"
+	StaticText "Drop and behaviour settings apply straight away.", "DarkGray"
+}
+
+// ---------------------------------------------------------------------
+// Elites -- zscript/systems/monster/RS_Elite.zs. Every monster rolls at
+// spawn; a marked one looks and behaves ordinary until it drops to half
+// health, then reveals: full heal, doubled aggression, and its type's
+// power. An elite killed before revealing pays nothing, which is the
+// whole contract (docs/rs_00).
+//
+// All 27 cvars here were declared and read by live code but had no menu
+// at all until 2026-08-06 -- every one verified as having a reader.
+// ---------------------------------------------------------------------
+OptionMenu "RS_EliteOptions"
+{
+	Title "Elites"
+	StaticText " "
+	StaticText "Hidden champions. They look ordinary until half health,", "DarkGray"
+	StaticText "then reveal -- healed, angrier, and carrying a power.", "DarkGray"
+	StaticText "Kill one before it reveals and it pays nothing.", "DarkGray"
+	StaticText " "
+
+	StaticText "How Often", "Cyan"
+	Slider "Chance Per Monster (%)", "rs_elite_chance", 0, 100, 1, 0
+	StaticText "0 turns elites off entirely.", "DarkGray"
+	StaticText " "
+
+	StaticText "How Strong", "Cyan"
+	Slider "Health (% of normal)", "rs_elite_healthmult", 100, 1000, 25, 0
+	Slider "Damage After Reveal (x)", "rs_elite_damagemult", 1.0, 5.0, 0.1, 1
+	StaticText "Bosses are tuned separately -- they start strong.", "DarkGray"
+	Slider "Boss Health (%)", "rs_elite_healthmult_boss", 100, 1000, 25, 0
+	Slider "Boss Damage (x)", "rs_elite_damagemult_boss", 1.0, 5.0, 0.1, 1
+	StaticText " "
+
+	StaticText "Reveal", "Cyan"
+	Option "Reveal Fires The Type's Power", "rs_elite_booster", "OnOff"
+	StaticText "Off leaves the stat boost but drops the signature move.", "DarkGray"
+	StaticText " "
+
+	StaticText "Look", "Cyan"
+	Option "Aura Particles", "rs_elite_particles", "OnOff"
+	Option "Body Tint", "rs_elite_colortint", "OnOff"
+	Option "Creep Lies Flat On Floors", "rs_elite_flatcreep", "OnOff"
+	Option "Projectiles Drip Creep", "rs_elite_missilecreep", "OnOff"
+	StaticText " "
+
+	Submenu "Which Types Appear...", "RS_EliteWeights"
+}
+
+// ---------------------------------------------------------------------
+// Elite type weights. Relative, not percentages -- a type at 10 is twice
+// as likely as one at 5, and 0 removes it. Defaults put the three
+// metals well below the colours because their powers are the loudest.
+// ---------------------------------------------------------------------
+OptionMenu "RS_EliteWeights"
+{
+	Title "Elite Types"
+	StaticText " "
+	StaticText "Relative weights, not percentages. A type at 10 is twice", "DarkGray"
+	StaticText "as likely as one at 5. Set a type to 0 to remove it.", "DarkGray"
+	StaticText " "
+
+	Slider "Dark Red -- returns unless remains destroyed", "rs_elite_weight_e01", 0, 50, 1, 0
+	Slider "Red -- double health", "rs_elite_weight_e02", 0, 50, 1, 0
+	Slider "Orange -- explodes on death", "rs_elite_weight_e03", 0, 50, 1, 0
+	Slider "Yellow -- faster body and shots", "rs_elite_weight_e04", 0, 50, 1, 0
+	Slider "Dark Green -- toxic creep trail", "rs_elite_weight_e05", 0, 50, 1, 0
+	Slider "Green -- teleports in combat", "rs_elite_weight_e06", 0, 50, 1, 0
+	Slider "Cyan -- wind push", "rs_elite_weight_e07", 0, 50, 1, 0
+	Slider "Blue -- fireball bursts", "rs_elite_weight_e08", 0, 50, 1, 0
+	Slider "Indigo -- splits into clones", "rs_elite_weight_e09", 0, 50, 1, 0
+	Slider "Violet -- seeker volleys", "rs_elite_weight_e10", 0, 50, 1, 0
+	Slider "Pink -- raises corpses at a price", "rs_elite_weight_e11", 0, 50, 1, 0
+	Slider "Black -- deals double, takes double", "rs_elite_weight_e12", 0, 50, 1, 0
+	Slider "Grey -- lunges, leaves afterimages", "rs_elite_weight_e13", 0, 50, 1, 0
+	Slider "White -- slowing creep", "rs_elite_weight_e14", 0, 50, 1, 0
+	StaticText " "
+	StaticText "Rare by default -- the loudest powers.", "DarkGray"
+	Slider "Bronze -- painless immovable tank", "rs_elite_weight_e15", 0, 50, 1, 0
+	Slider "Silver -- magnetic pull", "rs_elite_weight_e16", 0, 50, 1, 0
+	Slider "Gold -- gilds nearby monsters", "rs_elite_weight_e17", 0, 50, 1, 0
+}
+
+// ---------------------------------------------------------------------
+// Reserve Squads -- zscript/monsters/RS_ReserveSquads.zs.
+//
+// A director, not a spawner: it decides when a map should send more, and
+// where they come in. At map load it records the position of every
+// monster already placed and reuses those spots -- ground a level
+// designer already approved -- so arrivals never land inside geometry or
+// on your head.
+//
+// SHIPS OFF. Nothing fires until Enable is switched on here, or until a
+// SetPiece calls it directly. The Testing page can fire one on demand at
+// any time regardless of this switch, which is how you audition it.
+// ---------------------------------------------------------------------
+OptionMenu "RS_ReserveOptions"
+{
+	Title "Reserve Squads"
+	StaticText " "
+	StaticText "Reinforcements arrive from spots elsewhere on the map,", "DarkGray"
+	StaticText "not out of thin air beside you.", "DarkGray"
+	StaticText " "
+
+	Option "Enable", "rs_reserve_enabled", "OnOff"
+	StaticText "Off by default. Testing buttons still work while off.", "DarkGray"
+	StaticText " "
+
+	StaticText "Pressure", "Cyan"
+	Slider "Intensity (%)", "rs_reserve_intensity", 10, 400, 10, 0
+	StaticText "One dial: raises wave size and shortens the gap together.", "DarkGray"
+	Slider "Shortest Gap (seconds)", "rs_reserve_interval_min", 5, 300, 5, 0
+	Slider "Longest Gap (seconds)", "rs_reserve_interval_max", 5, 600, 5, 0
+	Slider "Most Alive At Once", "rs_reserve_max_alive", 0, 100, 1, 0
+	StaticText "0 removes the cap entirely.", "DarkGray"
+	StaticText " "
+
+	StaticText "Squad Size", "Cyan"
+	Slider "Fewest Groups Per Wave", "rs_reserve_groups_min", 1, 8, 1, 0
+	Slider "Most Groups Per Wave", "rs_reserve_groups_max", 1, 8, 1, 0
+	Slider "Fewest Per Group", "rs_reserve_pergroup_min", 1, 12, 1, 0
+	Slider "Most Per Group", "rs_reserve_pergroup_max", 1, 12, 1, 0
+	Slider "Scatter Within A Group", "rs_reserve_spread", 0, 256, 8, 0
+	StaticText " "
+
+	StaticText "Distance", "Cyan"
+	Slider "No Closer Than", "rs_reserve_dist_min", 0, 2048, 64, 0
+	Slider "No Further Than", "rs_reserve_dist_max", 128, 4096, 64, 0
+	StaticText " "
+
+	StaticText "Who Arrives", "Cyan"
+	Option "Roster", "rs_reserve_roster", "RS_Reserve_Roster"
+	StaticText "Common sends the plainest monsters -- a player cannot tell", "DarkGray"
+	StaticText "them from ordinary ones. Map Bestiary matches whatever the", "DarkGray"
+	StaticText "level was built from, so theme and difficulty follow it.", "DarkGray"
+	Slider "Lowest Tier", "rs_reserve_tier_min", 0, 13, 1, 0
+	Slider "Highest Tier", "rs_reserve_tier_max", 0, 13, 1, 0
+	StaticText "A band with nothing in it sends nothing -- that is intended.", "DarkGray"
+	Slider "Waves Before Escalating", "rs_reserve_escalate_waves", 1, 20, 1, 0
+	StaticText "Escalating roster only. How long before the band creeps up.", "DarkGray"
+	Option "Allow Bosses", "rs_reserve_allow_boss", "OnOff"
+	StaticText "Off by default -- a boss arriving unannounced ends runs.", "DarkGray"
+	StaticText " "
+
+	StaticText "Arrival", "Cyan"
+	Option "How They Appear", "rs_reserve_arrival", "RS_Reserve_Arrival"
+	Option "Warning", "rs_reserve_telegraph", "RS_Reserve_Telegraph"
+	StaticText "None is the no-warning original. Expect to jump.", "DarkGray"
+	Slider "Warning Lead Time (tics)", "rs_reserve_telegraph_time", 0, 140, 5, 0
+	StaticText " "
+
+	StaticText "Champions", "Cyan"
+	Option "Around Elites", "rs_reserve_elite_mode", "RS_Reserve_Elite"
+	StaticText "Suppress keeps two big moments from colliding.", "DarkGray"
+}
+
+OptionValue "RS_Reserve_Roster"
+{
+	0, "Common Tier Only"
+	1, "The Map's Own Monsters"
+	2, "The Map's Own, Escalating"
+	3, "Only What Is Handed To It"
+}
+
+OptionValue "RS_Reserve_Arrival"
+{
+	0, "Teleport In, With Fog"
+	1, "Teleport In, Silent"
+	2, "Gathering Motes"
+	3, "Drop In"
+}
+
+OptionValue "RS_Reserve_Telegraph"
+{
+	0, "None"
+	1, "Sound Only"
+	2, "Sound + Floor Ring"
+	3, "Sound + Ring + Column"
+}
+
+OptionValue "RS_Reserve_Elite"
+{
+	0, "Hold Off While One Is Revealed"
+	1, "A Reveal Calls For Help"
+	2, "Ignore Them"
+}
+
 OptionMenu "RS_HPBarOptions"
 {
 	Title "Monster Health Bars"
@@ -833,7 +1073,7 @@ OptionValue "RS_HPBarFrameModes"
 // =====================================================================
 OptionMenu "RS_CHMonsterOptions"
 {
-	Title "Monster Variants & Drops"
+	Title "Monster Tiers"
 	StaticText " "
 	StaticText "Every creature family spawns as one of thirteen tiers.", "DarkGray"
 	StaticText "These pages decide which tiers may appear, how their", "DarkGray"

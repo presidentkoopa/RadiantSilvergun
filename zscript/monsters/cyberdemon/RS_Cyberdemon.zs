@@ -954,7 +954,6 @@ class RS_FireBluCybie2 : Actor   // CH CYBIES.txt:1947
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 7); }
 	Default
 	{
-		Game "Doom";
 		Health 7777;
 		BloodColor "Blue";
 		Scale 1.33;
@@ -1091,7 +1090,6 @@ class RS_CommonCybie : Cyberdemon   // CH CYBIES.txt:2150
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 1); }
 	Default
 	{
-		Game "Doom";
 		Species "Cybie";
 		MeleeThreshold 200;
 		Scale 1.1;
@@ -1185,7 +1183,6 @@ class RS_GreenCybie : Cyberdemon   // CH CYBIES.txt:2213
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 2); }
 	Default
 	{
-		Game "Doom";
 		Health 5000;
 		BloodColor "Green";
 		Scale 1.1;
@@ -1276,7 +1273,6 @@ class RS_BlueCybie : Cyberdemon   // CH CYBIES.txt:2357
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 3); }
 	Default
 	{
-		Game "Doom";
 		Health 5800;
 		BloodColor "Blue";
 		Scale 1.20;
@@ -1424,7 +1420,6 @@ class RS_SpecialHK : RS_PurpleHK   // CH CYBIES.txt:2670
 {
 	Default
 	{
-		Game "Doom";
 		Species "Cybie";
 		BloodColor "Blue";
 		DamageFactor "Blessed", 3.0;
@@ -1460,7 +1455,6 @@ class RS_PurpleCybie : Cyberdemon   // CH CYBIES.txt:2699
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 4); }
 	Default
 	{
-		Game "Doom";
 		Health 6400;
 		Radius 40;
 		Height 110;
@@ -1778,7 +1772,7 @@ class RS_RedCybie : Actor   // CH CYBIES.txt:3308
 		+MISSILEMORE
 		+DONTMORPH
 		+NOICEDEATH
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+NOTARGET
 		+DONTHARMCLASS
 		+NOFEAR
@@ -2004,7 +1998,7 @@ class RS_MolochWraith : Actor   // CH CYBIES.txt:3692
 		+NOGRAVITY
 		+FLOAT
 		+DONTFALL
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+NOBLOOD
 		+NOEXPLODEFLOOR
 		+MISSILEMORE

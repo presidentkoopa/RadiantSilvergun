@@ -1304,7 +1304,7 @@ class RS_SPMM5 : Actor   // CH Spiders.txt:3205
 		RenderStyle "Normal";
 		SeeSound "monster/brufir";
 		DeathSound "weapons/hellex";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		DamageType "Fire";   // CH sets DamageType Fire twice
 		Decal "Scorch";
 	}
@@ -1360,7 +1360,7 @@ class RS_SPMM4 : Actor   // CH Spiders.txt:3257
 		RenderStyle "Normal";
 		SeeSound "monster/brufir";
 		DeathSound "weapons/hellex";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		DamageType "Meelee";   // CH: DamageType Fire then Damagetype Meelee (CH's own typo); last wins
 		Decal "Scorch";
 	}
@@ -1415,7 +1415,7 @@ class RS_SPMM3 : Actor   // CH Spiders.txt:3309
 		RenderStyle "Normal";
 		SeeSound "monster/brufir";
 		DeathSound "weapons/hellex";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		DamageType "Plasma";   // CH: DamageType Fire then Damagetype Plasma; last wins
 		Decal "Scorch";
 	}
@@ -1470,7 +1470,7 @@ class RS_SPMM2 : Actor   // CH Spiders.txt:3359
 		+SEEKERMISSILE
 		SeeSound "monster/brufir";
 		DeathSound "weapons/hellex";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		DamageType "Fire";   // CH sets DamageType Fire twice
 		Decal "Scorch";
 	}
@@ -1526,7 +1526,7 @@ class RS_SPMM1 : Actor   // CH Spiders.txt:3411
 		+SEEKERMISSILE
 		SeeSound "monster/brufir";
 		DeathSound "weapons/hellex";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		DamageType "Fire";   // CH sets DamageType Fire twice
 		Decal "Scorch";
 	}

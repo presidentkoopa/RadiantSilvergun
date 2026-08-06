@@ -477,7 +477,6 @@ class RS_AbyssRevenant2 : Actor   // CH Revenants.txt:586
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 9); }
 	Default
 	{
-		Game "Doom";
 		Health 1000;
 		Species "revenant";
 		BloodColor "Black";
@@ -617,7 +616,6 @@ class RS_FireBluRevenant2 : Actor   // CH Revenants.txt:824
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 7); }
 	Default
 	{
-		Game "Doom";
 		Health 720;
 		Species "revenant";
 		BloodColor "blue";
@@ -764,7 +762,6 @@ class RS_GrayRevenant2 : Actor   // CH Revenants.txt:1173
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 8); }
 	Default
 	{
-		Game "Doom";
 		Health 660;
 		Species "revenant";
 		BloodColor "white";
@@ -885,7 +882,6 @@ class RS_CommonRevenant : Revenant   // CH Revenants.txt:1341
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 1); }
 	Default
 	{
-		Game "Doom";
 		Species "revenant";
 		DamageFactor "Scrapper", 3.0;
 		DamageFactor "DIMp", 0;
@@ -1013,7 +1009,6 @@ class RS_GreenRevenant : Actor   // CH Revenants.txt:1464
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 2); }
 	Default
 	{
-		Game "Doom";
 		Health 360;
 		GibHealth -90;
 		Species "revenant";
@@ -1152,7 +1147,6 @@ class RS_BlueRevenant : Actor   // CH Revenants.txt:1697
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 3); }
 	Default
 	{
-		Game "Doom";
 		Health 420;
 		Species "revenant";
 		BloodColor "Blue";
@@ -1316,7 +1310,6 @@ class RS_PurpleRevenant : Actor   // CH Revenants.txt:1908
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 4); }
 	Default
 	{
-		Game "Doom";
 		Health 515;
 		GibHealth -80;
 		Species "revenant";
@@ -1497,7 +1490,6 @@ class RS_SpecialSoul : Actor   // CH Revenants.txt:2207
 {
 	Default
 	{
-		Game "Doom";
 		Species "Revenant";
 		DamageFactor "Scrapper", 3.0;
 		DamageFactor "DIMp", 0;
@@ -1581,7 +1573,6 @@ class RS_YellowRevenant : Actor   // CH Revenants.txt:2311
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 5); }
 	Default
 	{
-		Game "Doom";
 		Health 666;
 		GibHealth -100;
 		Species "revenant";
@@ -1803,7 +1794,6 @@ class RS_RedRevenant : Actor   // CH Revenants.txt:2706
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 6); }
 	Default
 	{
-		Game "Doom";
 		Health 830;
 		GibHealth -150;
 		Species "revenant";
@@ -2125,7 +2115,6 @@ class RS_BlackRev2 : Actor   // CH Revenants.txt:3452
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 10); }
 	Default
 	{
-		Game "Doom";
 		Health 2800;
 		BloodColor "black";
 		Radius 24;
@@ -2553,7 +2542,6 @@ class RS_BlackRevEx2 : Actor   // CH Revenants.txt:4293
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 10); }
 	Default
 	{
-		Game "Doom";
 		Health 6666;
 		BloodColor "black";
 		Radius 24;
@@ -2697,7 +2685,6 @@ class RS_WhiteRevenant2 : Actor   // CH Revenants.txt:4476
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 11); }
 	Default
 	{
-		Game "Doom";
 		Health 8866;
 		BloodColor "white";
 		Radius 24;

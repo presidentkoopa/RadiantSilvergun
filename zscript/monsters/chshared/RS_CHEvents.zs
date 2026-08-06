@@ -223,7 +223,6 @@ class RS_CH_BonusEnemyBaseSpawner2 : Actor   // CH DECORATE.txt:945
 {
 	Default
 	{
-		Game "Doom";
 		Health 1;
 		Monster;
 		Radius 64;

@@ -124,7 +124,6 @@ class RS_BrownBoiVile : Actor   // CH Archviles.txt:323
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 12;
 		Speed 25;
@@ -786,7 +785,6 @@ class RS_IceToMeetVile2 : Actor   // CH Archviles.txt:1120
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 1;
@@ -830,7 +828,6 @@ class RS_IceStartVile1 : Actor   // CH Archviles.txt:1161
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 4;
 		Speed 5;
@@ -860,7 +857,6 @@ class RS_IceStartVile2 : Actor   // CH Archviles.txt:1188
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 4;
 		Speed 5;
@@ -891,7 +887,6 @@ class RS_IceStartVile3 : Actor   // CH Archviles.txt:1216
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 4;
 		Speed 5;
@@ -918,7 +913,6 @@ class RS_IceStartVile4 : Actor   // CH Archviles.txt:1240
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 4;
 		Speed 5;
@@ -1026,7 +1020,6 @@ class RS_IceABVile : Actor   // CH Archviles.txt:1518
 {
 	Default
 	{
-		Game "Doom";
 		Radius 5;
 		Height 2;
 		Speed 46;
@@ -1248,7 +1241,7 @@ class RS_ABVileTentacle : Actor   // CH Archviles.txt:1704 -- minion, no tier to
 		ActiveSound "monster/tenact";
 		Monster;
 		+FLOORCLIP
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+LOOKALLAROUND
 		+NOTARGET
 		+THRUACTORS
@@ -1305,7 +1298,6 @@ class RS_VileGroundSpike : Actor   // CH Archviles.txt:1926
 {
 	Default
 	{
-		Game "Doom";
 		Speed 24;
 		Projectile;
 		+THRUACTORS
@@ -1339,7 +1331,6 @@ class RS_VileGrayDecoy : Actor   // CH Archviles.txt:1957 -- decoy, no tier toke
 {
 	Default
 	{
-		Game "Doom";
 		Speed 0;
 		Health 99;
 		Monster;
@@ -1373,7 +1364,6 @@ class RS_VileGroundSpikes2 : Actor   // CH Archviles.txt:1988
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		DamageFunction (random(1,10));
 		DamageType "Melee";
@@ -1413,7 +1403,6 @@ class RS_RockVileDrop : Actor   // CH Archviles.txt:2025
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		Projectile;
 		+NOCLIP
@@ -1433,7 +1422,6 @@ class RS_RockDropvile2 : Actor   // CH Archviles.txt:2042
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		Projectile;
 		+NOCLIP
@@ -1454,7 +1442,6 @@ class RS_ROCKDROPVILE : Actor   // CH Archviles.txt:2060
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 16;
 		Speed 10;
@@ -1497,7 +1484,6 @@ class RS_FireBluVile : Actor   // CH Archviles.txt:2244
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 16;
 		Speed 1;
@@ -1545,7 +1531,6 @@ class RS_Greenening : Actor   // CH Archviles.txt:2474
 {
 	Default
 	{
-		Game "Doom";
 		Radius 32;
 		Height 16;
 		Speed 5;
@@ -1581,7 +1566,6 @@ class RS_Greenening2 : Actor   // CH Archviles.txt:2507
 {
 	Default
 	{
-		Game "Doom";
 		Radius 32;
 		Height 16;
 		+NOGRAVITY
@@ -1619,7 +1603,6 @@ class RS_Greenies2 : Actor   // CH Archviles.txt:2542
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 10;
@@ -1663,7 +1646,6 @@ class RS_BlueGash3 : Actor   // CH Archviles.txt:2707
 {
 	Default
 	{
-		Game "Doom";
 		Radius 13;
 		Height 8;
 		Speed 0;
@@ -1689,7 +1671,6 @@ class RS_BlueGash2 : Actor   // CH Archviles.txt:2730
 {
 	Default
 	{
-		Game "Doom";
 		Radius 13;
 		Height 8;
 		Speed 6;
@@ -1718,7 +1699,6 @@ class RS_PurpleWorry : Actor   // CH Archviles.txt:2899
 {
 	Default
 	{
-		Game "Doom";
 		Radius 13;
 		Height 8;
 		Speed 0;
@@ -1745,7 +1725,6 @@ class RS_PurpleWorry2 : Actor   // CH Archviles.txt:2923
 {
 	Default
 	{
-		Game "Doom";
 		Radius 13;
 		Height 8;
 		Speed 0;
@@ -1781,7 +1760,6 @@ class RS_TheBangers : Actor   // CH Archviles.txt:2956
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 10;
 		Speed 32;
@@ -1837,7 +1815,6 @@ class RS_SpecialRev : RS_CommonRevenant   // CH Archviles.txt:3005 -- summon, no
 
 	Default
 	{
-		Game "Doom";
 		Species "Vile1";
 		Health 80;
 		Radius 20;
@@ -1884,7 +1861,6 @@ class RS_ReABreath : Actor   // CH Archviles.txt:3607
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 6;
 		Speed 18;
@@ -2202,7 +2178,6 @@ class RS_DarkFlameTrailVile : Actor   // CH Archviles.txt:4150
 {
 	Default
 	{
-		Game "Doom";
 		Health 9999;
 		Monster;
 		Radius 12;
@@ -2278,7 +2253,6 @@ class RS_DFlameBoomVile : Actor   // CH Archviles.txt:4220
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 4;
@@ -2482,7 +2456,6 @@ class RS_WVileBolt1 : Actor   // CH Archviles.txt:4640
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 16;
 		Speed 21;
@@ -2617,7 +2590,6 @@ class RS_WhiteVileResser : Actor   // CH Archviles.txt:4762
 {
 	Default
 	{
-		Game "Doom";
 		Health 9999;
 		Monster;
 		Radius 32;
@@ -2744,7 +2716,6 @@ class RS_WvileSpot : Actor   // CH Archviles.txt:4877 -- minion, no tier token
 
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 12;
 		Health 9999;

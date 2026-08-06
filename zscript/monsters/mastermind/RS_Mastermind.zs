@@ -445,7 +445,6 @@ class RS_BrownMind2 : Actor   // CH MASTERMINDS.txt:70
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 13); }
 	Default
 	{
-		Game "Doom";
 		Health 8858;
 		Radius 100;
 		Species "MMind";
@@ -1085,7 +1084,6 @@ class RS_CommonMind : SpiderMastermind   // CH MASTERMINDS.txt:1721
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 1); }
 	Default
 	{
-		Game "Doom";
 		Species "MMind2";
 		RadiusDamageFactor 0.25;
 		DamageFactor "Heroic", 3.0;
@@ -1137,7 +1135,6 @@ class RS_GrayMind2 : SpiderMastermind   // CH MASTERMINDS.txt:1807
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 8); }
 	Default
 	{
-		Game "Doom";
 		Health 8007;
 		Radius 100;
 		Species "MMind";
@@ -1304,7 +1301,6 @@ class RS_FireBluMind2 : SpiderMastermind   // CH MASTERMINDS.txt:2114
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 7); }
 	Default
 	{
-		Game "Doom";
 		Health 8007;
 		Radius 100;
 		Species "MMind";
@@ -1431,7 +1427,6 @@ class RS_GreenMind : SpiderMastermind   // CH MASTERMINDS.txt:2337
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 2); }
 	Default
 	{
-		Game "Doom";
 		Health 4200;
 		Radius 100;
 		Species "MMind";
@@ -1554,7 +1549,6 @@ class RS_BlueMind : SpiderMastermind   // CH MASTERMINDS.txt:2488
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 3); }
 	Default
 	{
-		Game "Doom";
 		Health 5600;
 		Radius 100;
 		Species "MMind";
@@ -1681,7 +1675,6 @@ class RS_SpecialSpider1 : RS_BlueSP1   // CH MASTERMINDS.txt:2724
 {
 	Default
 	{
-		Game "Doom";
 		Species "MMind3";
 		Health 350;
 		RenderStyle "Add";
@@ -1731,7 +1724,6 @@ class RS_PurpleMind : SpiderMastermind   // CH MASTERMINDS.txt:2764
 
 	Default
 	{
-		Game "Doom";
 		Health 6666;
 		Radius 100;
 		Species "MMind3";
@@ -2640,7 +2632,7 @@ class RS_CH_OrbOfChaos : Actor   // CH MASTERMINDS.txt:4477 -- UNUSED in CH
 		ActiveSound "";
 		Monster;
 		+FLOORCLIP
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+LOOKALLAROUND
 		+THRUSPECIES
 		+NOTARGET
@@ -2672,7 +2664,6 @@ class RS_WhiteMind2 : Actor   // CH MASTERMINDS.txt:4925
 	override void PostBeginPlay() { Super.PostBeginPlay(); RS_Zom.SetTier(self, 11); }
 	Default
 	{
-		Game "Doom";
 		Health 15000;
 		Species "MMind";
 		Radius 64;

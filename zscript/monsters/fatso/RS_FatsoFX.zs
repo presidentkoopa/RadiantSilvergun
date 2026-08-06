@@ -105,7 +105,6 @@ class RS_FatsoSoundWave : Actor   // CH Fatsos.txt:173
 {
 	Default
 	{
-		Game "Doom";
 		ProjectileKickBack 9001;
 		Radius 12;
 		Height 6;
@@ -144,7 +143,6 @@ class RS_FatsoSoundWaveTrail : Actor   // CH Fatsos.txt:209
 {
 	Default
 	{
-		Game "Doom";
 		ProjectileKickBack 500;
 		Radius 12;
 		Height 6;
@@ -213,7 +211,6 @@ class RS_CyanFatBall : Actor   // CH Fatsos.txt:474
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 32;
@@ -244,7 +241,6 @@ class RS_IceFattTrail : Actor   // CH Fatsos.txt:502
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 32;
@@ -272,7 +268,6 @@ class RS_AbyssFatsoBomb : Actor   // CH Fatsos.txt:640
 {
 	Default
 	{
-		Game "Doom";
 		Radius 7;
 		Height 7;
 		Speed 28;
@@ -322,7 +317,6 @@ class RS_FatAbysswave : Actor   // CH Fatsos.txt:688
 {
 	Default
 	{
-		Game "Doom";
 		Radius 20;
 		Height 16;
 		Speed 25;
@@ -367,7 +361,6 @@ class RS_FireBluFatGround : Actor   // CH Fatsos.txt:870
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 16;
 		Speed 10;
@@ -439,7 +432,6 @@ class RS_FireBluFatsoBal1 : Actor   // CH Fatsos.txt:936
 {
 	Default
 	{
-		Game "Doom";
 		Radius 3;
 		Height 3;
 		Speed 45;
@@ -514,7 +506,6 @@ class RS_FatsoArmed : Actor   // CH Fatsos.txt:1265
 {
 	Default
 	{
-		Game "Doom";
 		Speed 0;
 		Mass 50;
 		+THRUACTORS
@@ -564,7 +555,6 @@ class RS_FatsoArmed2 : Actor   // CH Fatsos.txt:1418
 {
 	Default
 	{
-		Game "Doom";
 		Speed 0;
 		Mass 50;
 		+THRUACTORS
@@ -586,7 +576,6 @@ class RS_FatsoArmed3 : Actor   // CH Fatsos.txt:1592
 {
 	Default
 	{
-		Game "Doom";
 		Speed 0;
 		Mass 50;
 		+THRUACTORS
@@ -608,7 +597,6 @@ class RS_FatsoArmed4 : Actor   // CH Fatsos.txt:1906
 {
 	Default
 	{
-		Game "Doom";
 		Speed 0;
 		Mass 50;
 		+THRUACTORS
@@ -773,7 +761,6 @@ class RS_ShadowSplash : Actor   // CH Fatsos.txt:3021
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 23;
@@ -915,7 +902,6 @@ class RS_BlackFatsoBurp : Actor   // CH Fatsos.txt:3154
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 23;
@@ -1237,7 +1223,7 @@ class RS_WhiteFatsoGroundZap : Actor   // CH Fatsos.txt:3725
 		DamageFunction (random(10,30));   // CH: Damage(random(10,30))
 		DamageType "Plasma";
 		Projectile;
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		+THRUSPECIES
 		+FLOORHUGGER
@@ -1267,7 +1253,7 @@ class RS_WhiteFatsoAirZap : Actor   // CH Fatsos.txt:3752
 		DamageFunction (random(1,2));   // CH: Damage(random(1,2))
 		DamageType "Plasma";
 		Projectile;
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		+SEEKERMISSILE
 		+THRUSPECIES
@@ -1350,7 +1336,6 @@ class RS_WhiteFatMark : Actor   // CH Fatsos.txt:3833
 {
 	Default
 	{
-		Game "Doom";
 		Radius 1;
 		Height 1;
 		Speed 1;
@@ -1484,7 +1469,6 @@ class RS_WhiteFatRB : Actor   // CH Fatsos.txt:3958
 {
 	Default
 	{
-		Game "Doom";
 		Radius 20;
 		Height 20;
 		Speed 1;
@@ -1516,7 +1500,6 @@ class RS_WhiteFatRB3 : Actor   // CH Fatsos.txt:3987
 {
 	Default
 	{
-		Game "Doom";
 		Radius 20;
 		Height 20;
 		Speed 1;

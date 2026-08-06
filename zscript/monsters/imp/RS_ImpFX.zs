@@ -451,7 +451,7 @@ class RS_RedBBall : Actor   // CH Barons.txt:3523 -- fireblu imp's red bolt
 		+DONTHARMSPECIES
 		SeeSound "weapons/firbfi";
 		DeathSound "weapons/hellex";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		RenderStyle "Add";
 		Alpha 0.8;
 		Translation "112:127=176:191";

@@ -595,7 +595,7 @@ class RS_DogFire : Actor   // CH Demons.txt:2034 -- butcher hound's flame lick
 		Scale 0.67;
 		SeeSound "weapons/bigbrn";
 		DeathSound "weapons/bigbrn";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		+THRUGHOST
 	}
 	States

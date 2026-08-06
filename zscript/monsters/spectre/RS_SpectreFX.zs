@@ -530,7 +530,7 @@ class RS_Wakawaka : Actor   // CH spectres.txt:1659
 		+NEVERTARGET
 		+NOINFIGHTING
 		+DONTHARMSPECIES
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		AttackSound "EWorm/Bite";
 		SeeSound "EWorm/Sight";
 		ActiveSound "EWorm/Idle";

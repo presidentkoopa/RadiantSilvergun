@@ -630,23 +630,23 @@ server bool rs_elite_missilecreep = true;   // C05/C14 projectiles drip creep in
 // Type weights, C01-C17 -- the reveal roll's weighted pool. 0 removes a
 // type; higher numbers make it proportionally more common. Metallics
 // deliberately rare: they are the heavy encounters.
-server int rs_elite_weight_c01 = 10;        // C01 DarkRed  -- comes back unless remains destroyed
-server int rs_elite_weight_c02 = 10;        // C02 Red      -- 2x health
-server int rs_elite_weight_c03 = 10;        // C03 Orange   -- explodes on death
-server int rs_elite_weight_c04 = 10;        // C04 Yellow   -- faster body and shots
-server int rs_elite_weight_c05 = 10;        // C05 DarkGreen-- toxic creep trail
-server int rs_elite_weight_c06 = 10;        // C06 Green    -- combat teleports
-server int rs_elite_weight_c07 = 10;        // C07 Cyan     -- wind push, leaves
-server int rs_elite_weight_c08 = 10;        // C08 Blue     -- fireball bursts
-server int rs_elite_weight_c09 = 10;        // C09 Indigo   -- splits into clones
-server int rs_elite_weight_c10 = 10;        // C10 Violet   -- seeker volleys
-server int rs_elite_weight_c11 = 10;        // C11 Pink     -- raises corpses at a price
-server int rs_elite_weight_c12 = 10;        // C12 Black    -- deals 2x, takes 2x
-server int rs_elite_weight_c13 = 10;        // C13 Grey     -- lunges, afterimages
-server int rs_elite_weight_c14 = 10;        // C14 White    -- slowing creep
-server int rs_elite_weight_c15 = 3;         // C15 Bronze   -- painless immovable tank
-server int rs_elite_weight_c16 = 2;         // C16 Silver   -- magnetic pull
-server int rs_elite_weight_c17 = 1;         // C17 Gold     -- gilds nearby monsters
+server int rs_elite_weight_e01 = 10;        // C01 DarkRed  -- comes back unless remains destroyed
+server int rs_elite_weight_e02 = 10;        // C02 Red      -- 2x health
+server int rs_elite_weight_e03 = 10;        // C03 Orange   -- explodes on death
+server int rs_elite_weight_e04 = 10;        // C04 Yellow   -- faster body and shots
+server int rs_elite_weight_e05 = 10;        // C05 DarkGreen-- toxic creep trail
+server int rs_elite_weight_e06 = 10;        // C06 Green    -- combat teleports
+server int rs_elite_weight_e07 = 10;        // C07 Cyan     -- wind push, leaves
+server int rs_elite_weight_e08 = 10;        // C08 Blue     -- fireball bursts
+server int rs_elite_weight_e09 = 10;        // C09 Indigo   -- splits into clones
+server int rs_elite_weight_e10 = 10;        // C10 Violet   -- seeker volleys
+server int rs_elite_weight_e11 = 10;        // C11 Pink     -- raises corpses at a price
+server int rs_elite_weight_e12 = 10;        // C12 Black    -- deals 2x, takes 2x
+server int rs_elite_weight_e13 = 10;        // C13 Grey     -- lunges, afterimages
+server int rs_elite_weight_e14 = 10;        // C14 White    -- slowing creep
+server int rs_elite_weight_e15 = 3;         // C15 Bronze   -- painless immovable tank
+server int rs_elite_weight_e16 = 2;         // C16 Silver   -- magnetic pull
+server int rs_elite_weight_e17 = 1;         // C17 Gold     -- gilds nearby monsters
 
 // =====================================================================
 // Weapon Condition degradation -- zscript/systems/weapon/RS_Condition.zs.
@@ -699,3 +699,92 @@ server int rs_ch_yellowrev = 0;     // CH: CH_YellowRev
 // of its own type. CH's own default is 1 (CH CVARINFO.txt:16), which is what
 // RS_Zom.CV already returned while undeclared; this only makes it reachable.
 server int rs_ch_rawket = 1;        // CH: CH_Rawket (CHSett.acs:9)
+
+// =====================================================================
+// RS_ReserveSquads -- zscript/monsters/RS_ReserveSquads.zs.
+// The reinforcement director: squads of monsters sent into a map that is
+// already running, at spawn spots recycled from the map's own monster
+// placement. IT SPAWNS MONSTERS AND NOTHING ELSE -- every event is a
+// threat; items belong to Kill Rewards.
+//
+// SHIPS OFF. rs_reserve_enabled is 0, so nothing fires by itself. The
+// debug netevents (rs_reserve_fire / _markers / _status / _clear) work
+// regardless of the switch, so the machine can be felt first.
+// =====================================================================
+server bool rs_reserve_enabled = false;   // master switch. Off = the director never fires on its own.
+// One dial for pressure: scales the wave up and the gap between waves
+// down at the same time. 100 = as configured, 200 = twice as often and
+// twice as big, 50 = half. Clamped 10-400 when read.
+server int rs_reserve_intensity = 100;
+// Seconds between automatic waves; a fresh roll in this range each time,
+// then divided by the intensity above.
+server int rs_reserve_interval_min = 45;
+server int rs_reserve_interval_max = 90;
+// Distance band, map units, measured from a player to a candidate spawn
+// marker. Below the minimum it would arrive in the player's lap; above
+// the maximum it arrives somewhere they will never walk. NOTHING FIRES
+// if no recorded marker falls inside the band -- that is the band doing
+// its job, not a fault.
+server int rs_reserve_dist_min = 384;
+server int rs_reserve_dist_max = 1536;
+// How many separate spots a wave uses, and how many bodies land on each.
+// One group = one squad and one telegraph; a squad is all one class,
+// different groups in the same wave roll separately.
+server int rs_reserve_groups_min = 1;
+server int rs_reserve_groups_max = 2;
+server int rs_reserve_pergroup_min = 2;
+server int rs_reserve_pergroup_max = 4;
+// Hard ceiling on how many of this system's monsters may be alive at
+// once. 0 removes the ceiling. This is what stops a high intensity on a
+// long map from burying the player; trim it before trimming anything else.
+server int rs_reserve_max_alive = 24;
+// Scatter radius, map units, for the bodies inside one group, so a squad
+// of four does not arrive stacked in one column. Each body's scatter is
+// traced against geometry and pulled back out of walls before it is used.
+server int rs_reserve_spread = 96;
+// Where the roster comes from:
+//   0 = tier 1 "Common" -- the plainest body of each of the seventeen
+//       families. A player cannot tell them from vanilla by looking.
+//   1 = the map's own bestiary -- whatever this map placed. A marker
+//       prefers the class that actually stood on it, which is the best
+//       placement guarantee there is.
+//   2 = the map's bestiary, escalating -- the same pool, climbing the
+//       map's own tier ladder one rung at a time as waves go by.
+//   3 = explicit -- a list handed in from outside via
+//       RS_ReserveSquads.SetRoster(). Falls back to 0 if nothing was set.
+server int rs_reserve_roster = 0;
+// Tier band, inclusive, filtering the roster above. Tiers are the numeric
+// monster ladder (1 Common .. 13 Brown); 0 is a monster carrying no RS
+// tier at all, e.g. a plain vanilla map monster, so the default minimum
+// is 0 and not 1. A band that excludes every class in the chosen roster
+// means NO WAVE FIRES -- widen the band or change rs_reserve_roster.
+server int rs_reserve_tier_min = 0;
+server int rs_reserve_tier_max = 13;
+// Waves per rung in roster mode 2. Lower = pressure climbs faster.
+server int rs_reserve_escalate_waves = 3;
+// How the squad shows up:
+//   0 = teleport fog (the engine's, which brings its own teleport sound)
+//   1 = silent -- no fog, no sound, the bare appearance
+//   2 = a quiet flourish of our own motes, no fog and no sound
+//   3 = drop-in -- arrives above the spot and falls, with fog. Floaters
+//       and flyers ignore the drop and arrive normally.
+server int rs_reserve_arrival = 0;
+// How much warning the player gets before the bodies exist:
+//   0 = none -- they simply arrive, no cue at all
+//   1 = a sound at the arrival spot
+//   2 = sound plus a ring of light on the floor where they will land
+//   3 = sound, ring, and a rising column -- readable across a room
+server int rs_reserve_telegraph = 2;
+// Lead-in in tics between the telegraph starting and the squad arriving
+// (35 = one second). Ignored at telegraph level 0, which arrives at once.
+server int rs_reserve_telegraph_time = 35;
+// How the director behaves around the Elite system:
+//   0 = suppress -- hold waves while a revealed elite is alive within
+//       rs_reserve_dist_max of a player. That fight owns the moment.
+//   1 = react -- an elite reveal calls a wave in, on top of the timer.
+//   2 = ignore -- elites are just monsters, the timer runs regardless.
+server int rs_reserve_elite_mode = 0;
+// Boss opt-in. Off, deliberately: a high-tier body arriving unannounced
+// can end a run. On, boss-flagged classes (the cyberdemon and mastermind
+// families) become eligible for the roster.
+server bool rs_reserve_allow_boss = false;

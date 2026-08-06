@@ -228,7 +228,7 @@ class RS_HellWarriorShield : Actor   // CH Hellknights.txt:257 -- the dropped sh
 		Radius 8;
 		Height 8;
 		Speed 6;
-		+DOOMBOUNCE
+		BounceType "Doom";   // was +DOOMBOUNCE
 		+DROPOFF
 		+MISSILE
 	}
@@ -952,7 +952,7 @@ class RS_BruiserMissile : Actor   // CH Hellknights.txt:2590
 		+THRUGHOST
 		SeeSound "monster/brufir";
 		DeathSound "weapons/hellex";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		Decal "Scorch";
 	}
 	States
@@ -1115,7 +1115,7 @@ class RS_BruiserMissileEx : Actor   // CH Hellknights.txt:3024
 		+THRUGHOST
 		SeeSound "monster/brufir";
 		DeathSound "weapons/hellex";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		Decal "Scorch";
 	}
 	States
@@ -1148,7 +1148,7 @@ class RS_BruiserMissileEx2 : Actor   // CH Hellknights.txt:3054
 		+SEEKERMISSILE
 		SeeSound "monster/brufir";
 		DeathSound "weapons/hellex";
-		DontHurtShooter;
+		DontHurtShooter true;   // engine: Property DontHurtShooter (actor.zs:310) -- takes a value, not a bare flag
 		Decal "Scorch";
 	}
 	States

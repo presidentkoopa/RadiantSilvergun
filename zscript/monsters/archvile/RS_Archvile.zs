@@ -256,7 +256,6 @@ class RS_BrownVile : Actor   // CH Archviles.txt:40
 
 	Default
 	{
-		Game "Doom";
 		Health 1400;
 		Species "vile1";
 		BloodColor "red";
@@ -767,7 +766,6 @@ class RS_GrayArch2 : Actor   // CH Archviles.txt:1791
 
 	Default
 	{
-		Game "Doom";
 		Health 1400;
 		Species "vile1";
 		BloodColor "red";
@@ -922,7 +920,6 @@ class RS_FireBluArch2 : Actor   // CH Archviles.txt:2115
 
 	Default
 	{
-		Game "Doom";
 		Health 1000;
 		Species "vile1";
 		BloodColor "Blue";
@@ -1061,14 +1058,13 @@ class RS_CommonArch : Archvile   // CH Archviles.txt:2313
 
 	Default
 	{
-		Game "Doom";
 		Species "Vile1";
 		DamageFactor "Extinguishing", 3.0;
 		DamageFactor "DIMp", 0;
 		PainChance "DIMp", 0;
 		PainChance "Fire", 4;
 		Monster;
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		Tag "Archvile";
 	}
 	States
@@ -1141,7 +1137,6 @@ class RS_GreenArch : Archvile   // CH Archviles.txt:2384
 
 	Default
 	{
-		Game "Doom";
 		Health 750;
 		Species "vile1";
 		BloodColor "Green";
@@ -1241,7 +1236,6 @@ class RS_BlueArch : Archvile   // CH Archviles.txt:2579
 
 	Default
 	{
-		Game "Doom";
 		Health 860;
 		Species "vile1";
 		BloodColor "Blue";
@@ -1359,7 +1353,6 @@ class RS_PurpleArch : Archvile   // CH Archviles.txt:2781
 
 	Default
 	{
-		Game "Doom";
 		Health 1001;
 		Species "vile1";
 		BloodColor "purple";
@@ -1488,7 +1481,6 @@ class RS_YellowArch : Archvile   // CH Archviles.txt:3065
 
 	Default
 	{
-		Game "Doom";
 		Health 1333;
 		Species "vile1";
 		BloodColor "Yellow";
@@ -1943,7 +1935,6 @@ class RS_BlackVile : Actor   // CH Archviles.txt:4347
 
 	Default
 	{
-		Game "Doom";
 		Health 7750;
 		Species "vile1";
 		BloodColor "Black";

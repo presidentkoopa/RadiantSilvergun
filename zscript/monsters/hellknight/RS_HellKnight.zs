@@ -722,7 +722,7 @@ class RS_FireBluHK2 : Actor   // CH Hellknights.txt:833
 		+QUICKTORETALIATE
 		+MISSILEMORE
 		+DONTHARMSPECIES
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		SeeSound "HK2/see";
 		ActiveSound "knight/active";
 		PainSound "HK2/Hurt";
@@ -833,7 +833,7 @@ class RS_GrayHK2 : Actor   // CH Hellknights.txt:1020
 		+QUICKTORETALIATE
 		+MISSILEMORE
 		+DONTHARMSPECIES
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		SeeSound "HK2/see";
 		ActiveSound "knight/active";
 		PainSound "HK2/Hurt";
@@ -1719,7 +1719,7 @@ class RS_BlackHK2 : Actor   // CH Hellknights.txt:2290
 		-NORADIUSDMG
 		+FLOORCLIP
 		+NOFEAR
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		SeeSound "monster/brusit";
 		PainSound "baron/pain";
 		DeathSound "monster/brudth";
@@ -1897,7 +1897,7 @@ class RS_BlackHKEX : Actor   // CH Hellknights.txt:2639
 		+DONTMORPH
 		+FLOORCLIP
 		+NOFEAR
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		SeeSound "BLCKHKEX";
 		PainSound "baron/pain";
 		DeathSound "monster/brudth";
@@ -2194,7 +2194,7 @@ class RS_WhiteHK3 : Actor   // CH Hellknights.txt:3238
 		+THRUSPECIES
 		-NORADIUSDMG
 		+DONTHARMSPECIES
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTMORPH
 		+FLOORCLIP
 		+FLOAT

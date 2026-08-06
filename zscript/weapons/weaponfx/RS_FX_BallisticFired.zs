@@ -119,7 +119,34 @@ class RS_BallisticFired : FastProjectile
 		{
 			ghostTimer = 0;
 			Class<Actor> trail = TrailOverride ? TrailOverride : RS_Catalog.TRAIL_Ballistic();
-			Spawn(trail, pos);
+
+			// Layered echo trail. One bit at the round's own position used to
+			// be the whole effect, which reads as a dotted line at speed
+			// because a fast round moves further between emissions than the
+			// bit is wide. Instead drop three, walked BACKWARDS along this
+			// tic's velocity vector at 0.2/0.4/0.6 of it -- i.e. into the gap
+			// the round just crossed -- each one smaller than the last.
+			//
+			// The gap gets filled, so it reads as a tapered streak with a
+			// bright head rather than beads. Additive blending means the
+			// overlaps brighten on their own, and FORCEXYBILLBOARD on the
+			// trail bit keeps the streak facing the viewer -- which is what
+			// stops it going edge-on and vanishing in VR.
+			//
+			// Cost is 3 short-lived +NOINTERACTION +CLIENTSIDEONLY actors per
+			// two tics per round, same class as before; if this ever needs a
+			// budget it belongs on rs_fx_hifitier alongside the other density
+			// dials, not hardcoded here.
+			for (int i = 1; i <= 3; i++)
+			{
+				double f = i * 0.2;
+				let p = Spawn(trail, pos - (vel.x * f, vel.y * f, vel.z * f));
+				if (p)
+				{
+					double s = 0.40 - i * 0.09;   // 0.31 / 0.22 / 0.13
+					p.Scale = (s, s);
+				}
+			}
 		}
 	}
 

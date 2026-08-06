@@ -154,7 +154,6 @@ class RS_BCybieGreenExpand : Actor   // CH CYBIES.txt:247
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 1;
@@ -191,7 +190,6 @@ class RS_BCybieGreenWave : Actor   // CH CYBIES.txt:280
 {
 	Default
 	{
-		Game "Doom";
 		Radius 64;
 		Height 12;
 		Speed 1;
@@ -329,7 +327,6 @@ class RS_BCybieGreenWave2 : Actor   // CH CYBIES.txt:408
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 16;
 		Speed 1;
@@ -368,7 +365,6 @@ class RS_BCybAcidPuddle : Actor   // CH CYBIES.txt:444
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 12;
 		Speed 1;
@@ -441,7 +437,6 @@ class RS_BCybAcidPuddle2 : Actor   // CH CYBIES.txt:514
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 12;
 		Speed 1;
@@ -494,7 +489,6 @@ class RS_GreenBalb : Actor   // CH CYBIES.txt:564
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 4;
 		Speed 11;
@@ -529,7 +523,6 @@ class RS_GreenBalb2 : Actor   // CH CYBIES.txt:596
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 4;
 		Speed 11;
@@ -562,7 +555,6 @@ class RS_BrownCybBasic : Actor   // CH CYBIES.txt:626
 {
 	Default
 	{
-		Game "Doom";
 		Radius 9;
 		Height 9;
 		Speed 25;
@@ -715,7 +707,6 @@ class RS_CyanCybieBigIce : Actor   // CH CYBIES.txt:970
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 4;
 		Speed 30;
@@ -758,7 +749,6 @@ class RS_CyanCybieHower : Actor   // CH CYBIES.txt:1008
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 1;
@@ -793,7 +783,6 @@ class RS_AbyssCybRocket : Actor   // CH CYBIES.txt:1292
 {
 	Default
 	{
-		Game "Doom";
 		Radius 11;
 		Height 8;
 		Speed 21;
@@ -833,7 +822,6 @@ class RS_AbyCybBubProj : Actor   // CH CYBIES.txt:1327
 {
 	Default
 	{
-		Game "Doom";
 		Radius 2;
 		Height 2;
 		Speed 28;
@@ -865,7 +853,6 @@ class RS_AbyCybBub : Actor   // CH CYBIES.txt:1356
 {
 	Default
 	{
-		Game "Doom";
 		Radius 3;
 		Height 3;
 		Speed 12;
@@ -895,7 +882,6 @@ class RS_AbyCybWave : Actor   // CH CYBIES.txt:1383
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 6;
 		Speed 28;
@@ -931,7 +917,6 @@ class RS_AbyCybWave2 : Actor   // CH CYBIES.txt:1416
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 6;
 		Speed 20;
@@ -1063,7 +1048,6 @@ class RS_RockSlideCH1 : Actor   // CH CYBIES.txt:1703
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		Projectile;
 		+NOCLIP
@@ -1105,7 +1089,6 @@ class RS_RockSlideDropCH : Actor   // CH CYBIES.txt:1739
 {
 	Default
 	{
-		Game "Doom";
 		Speed 1;
 		Projectile;
 		+NOCLIP
@@ -1126,7 +1109,6 @@ class RS_RockSlideCH5 : Actor   // CH CYBIES.txt:1757
 {
 	Default
 	{
-		Game "Doom";
 		Radius 9;
 		Height 9;
 		Speed 21;
@@ -1163,7 +1145,6 @@ class RS_RockSlideCH4 : Actor   // CH CYBIES.txt:1791
 {
 	Default
 	{
-		Game "Doom";
 		Radius 9;
 		Height 9;
 		Speed 18;
@@ -1200,7 +1181,6 @@ class RS_RockSlideCH3 : Actor   // CH CYBIES.txt:1825
 {
 	Default
 	{
-		Game "Doom";
 		Radius 12;
 		Height 12;
 		Speed 12;
@@ -1239,7 +1219,6 @@ class RS_RockSlideCH2 : Actor   // CH CYBIES.txt:1861
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 16;
 		Speed 10;
@@ -1373,7 +1352,6 @@ class RS_SplashRocket : Actor   // CH CYBIES.txt:2297
 {
 	Default
 	{
-		Game "Doom";
 		Radius 11;
 		Height 8;
 		Speed 20;
@@ -1416,7 +1394,6 @@ class RS_BluCybArt : Actor   // CH CYBIES.txt:2515
 {
 	Default
 	{
-		Game "Doom";
 		Radius 8;
 		Height 8;
 		Speed 20;
@@ -1459,7 +1436,6 @@ class RS_SwooshCB : Actor   // CH CYBIES.txt:2555
 {
 	Default
 	{
-		Game "Doom";
 		Radius 13;
 		Height 8;
 		Speed 36;
@@ -1491,7 +1467,6 @@ class RS_SwooshCB2 : Actor   // CH CYBIES.txt:2584
 {
 	Default
 	{
-		Game "Doom";
 		Radius 15;
 		Height 9;
 		Speed 15;
@@ -1534,7 +1509,6 @@ class RS_PurpleWorryCB : Actor   // CH CYBIES.txt:2840
 {
 	Default
 	{
-		Game "Doom";
 		Radius 13;
 		Height 8;
 		Speed 0;
@@ -1566,7 +1540,6 @@ class RS_CBWave : Actor   // CH CYBIES.txt:2869
 {
 	Default
 	{
-		Game "Doom";
 		Radius 10;
 		Height 10;
 		Speed 4;
@@ -1601,7 +1574,6 @@ class RS_OrbCB : Actor   // CH CYBIES.txt:2901
 {
 	Default
 	{
-		Game "Doom";
 		Radius 3;
 		Height 4;
 		Speed 125;
@@ -1637,7 +1609,6 @@ class RS_OrbCB2 : Actor   // CH CYBIES.txt:2934
 {
 	Default
 	{
-		Game "Doom";
 		Radius 3;
 		Height 4;
 		Speed 128;
@@ -1667,8 +1638,6 @@ class RS_Propane : Actor   // CH CYBIES.txt:2961
 {
 	Default
 	{
-		Game "Doom";
-		SpawnID 127;
 		Radius 11;
 		Height 8;
 		Speed 20;
@@ -1703,7 +1672,6 @@ class RS_CybieRainMaker : Actor   // CH CYBIES.txt:3121
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 15;
@@ -1743,7 +1711,6 @@ class RS_CybieRain : Actor   // CH CYBIES.txt:3158
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 10;
@@ -1781,7 +1748,6 @@ class RS_GlowBack : Actor   // CH CYBIES.txt:3193
 {
 	Default
 	{
-		Game "Doom";
 		Radius 16;
 		Height 12;
 		Projectile;
@@ -1809,7 +1775,6 @@ class RS_Vollrey2 : Actor   // CH CYBIES.txt:3218
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 27;
@@ -1844,7 +1809,6 @@ class RS_Vollrey : Actor   // CH CYBIES.txt:3250
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 27;
@@ -1887,7 +1851,7 @@ class RS_SuperDemonArm : Actor   // CH CYBIES.txt:3283
 		Scale 1;
 		Projectile;
 		-NOGRAVITY
-		+LOWGRAVITY
+		Gravity 0.125;   // was +LOWGRAVITY (engine sets Gravity = 1/8)
 		Translation "48:63=210:219","64:68=219:223","69:74=181:189","76:79=44:47";
 	}
 	States
@@ -1975,7 +1939,6 @@ class RS_RedCybieVolcano2 : Actor   // CH CYBIES.txt:3759
 	int user_uptime;   // CH: var int user_uptime;
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 1;
@@ -2031,7 +1994,7 @@ class RS_VolcanoBall2 : Actor   // CH CYBIES.txt:3803
 		Alpha 0.90;
 		Decal "DoomImpScorch";
 		DamageType "Fire";
-		+DONTHURTSHOOTER
+		DontHurtShooter true;   // was +DONTHURTSHOOTER -- engine declares it as a PROPERTY (actor.zs:310), not a flag
 		+THRUGHOST
 		-NOGRAVITY
 		+BOUNCEONWALLS
@@ -2070,7 +2033,7 @@ class RS_VolcanoBall3 : Actor   // CH CYBIES.txt:3839
 		Alpha 0.90;
 		Decal "DoomImpScorch";
 		DamageType "Fire";
-		+DONTHURTSHOOTER
+		DontHurtShooter true;   // was +DONTHURTSHOOTER -- engine declares it as a PROPERTY (actor.zs:310), not a flag
 		+THRUGHOST
 		-NOGRAVITY
 		+BOUNCEONWALLS
@@ -2106,7 +2069,7 @@ class RS_VolcanoBall1 : Actor   // CH CYBIES.txt:3873
 		Alpha 0.90;
 		Decal "DoomImpScorch";
 		DamageType "Fire";
-		+DONTHURTSHOOTER
+		DontHurtShooter true;   // was +DONTHURTSHOOTER -- engine declares it as a PROPERTY (actor.zs:310), not a flag
 		+THRUGHOST
 		-NOGRAVITY
 		+BOUNCEONWALLS
@@ -2160,7 +2123,6 @@ class RS_RedCybieVolcano1 : Actor   // CH CYBIES.txt:3921
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 10;
@@ -2205,7 +2167,6 @@ class RS_ZappersCB : Actor   // CH CYBIES.txt:4454
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 8;
 		Speed 15;
@@ -2600,7 +2561,7 @@ class RS_SmithHammer : Actor   // CH CYBIES.txt:4780
 		RenderStyle "Normal";
 		Projectile;
 		-NOGRAVITY
-		+LOWGRAVITY
+		Gravity 0.125;   // was +LOWGRAVITY (engine sets Gravity = 1/8)
 		// PROVEN MISSING IN CH: "monsters/hamflr" (plural) is a typo for CH's
 		// own "monster/hamflr" (CH SNDINFO.txt:718). The plural spelling is
 		// defined nowhere in CH; the hammer lands silent there too.
@@ -2632,7 +2593,7 @@ class RS_BigHellshot : Actor   // CH CYBIES.txt:4804
 		DamageType "Fire";
 		Alpha 0.95;
 		DeathSound "weapons/hellex";
-		+DONTHURTSHOOTER
+		DontHurtShooter true;   // was +DONTHURTSHOOTER -- engine declares it as a PROPERTY (actor.zs:310), not a flag
 		+THRUGHOST
 		Decal "Scorch";
 		Scale 1.75;
@@ -2696,7 +2657,7 @@ class RS_HellWaver2 : Actor   // CH CYBIES.txt:4865
 		DamageType "Fire";
 		Alpha 0.95;
 		DeathSound "weapons/hellex";
-		+DONTHURTSHOOTER
+		DontHurtShooter true;   // was +DONTHURTSHOOTER -- engine declares it as a PROPERTY (actor.zs:310), not a flag
 		+THRUGHOST
 		Decal "Scorch";
 	}
@@ -2804,7 +2765,7 @@ class RS_HellWaver : Actor   // CH CYBIES.txt:4970
 		DamageType "Fire";
 		Alpha 0.95;
 		DeathSound "weapons/hellex";
-		+DONTHURTSHOOTER
+		DontHurtShooter true;   // was +DONTHURTSHOOTER -- engine declares it as a PROPERTY (actor.zs:310), not a flag
 		+THRUGHOST
 		Decal "Scorch";
 	}
@@ -2860,7 +2821,7 @@ class RS_HammerShot : Actor   // CH CYBIES.txt:5023
 		DamageType "Fire";
 		Alpha 0.95;
 		DeathSound "weapons/hellex";
-		+DONTHURTSHOOTER
+		DontHurtShooter true;   // was +DONTHURTSHOOTER -- engine declares it as a PROPERTY (actor.zs:310), not a flag
 		+THRUGHOST
 		Decal "Scorch";
 	}
@@ -2912,7 +2873,7 @@ class RS_Hellshot2 : Actor   // CH CYBIES.txt:5072
 		DamageType "Fire";
 		Alpha 0.95;
 		DeathSound "weapons/hellex";
-		+DONTHURTSHOOTER
+		DontHurtShooter true;   // was +DONTHURTSHOOTER -- engine declares it as a PROPERTY (actor.zs:310), not a flag
 		+THRUGHOST
 		Decal "Scorch";
 	}
@@ -2948,7 +2909,7 @@ class RS_HellBoom : Actor   // CH CYBIES.txt:5108
 		Damage 0;   // CH: bare constant, stays bare
 		Projectile;
 		RenderStyle "Add";
-		+DONTHURTSHOOTER
+		DontHurtShooter true;   // was +DONTHURTSHOOTER -- engine declares it as a PROPERTY (actor.zs:310), not a flag
 		+RIPPER
 		+THRUGHOST
 		+BLOODLESSIMPACT
@@ -3032,7 +2993,6 @@ class RS_RomeroCHScatter : Actor   // CH CYBIES.txt:5873
 {
 	Default
 	{
-		Game "Doom";
 		Radius 7;
 		Height 7;
 		Speed 38;
@@ -3070,7 +3030,6 @@ class RS_RomeroCHSeekBall : Actor   // CH CYBIES.txt:5908
 {
 	Default
 	{
-		Game "Doom";
 		Radius 5;
 		Height 5;
 		Speed 30;
@@ -3111,7 +3070,6 @@ class RS_TrailSPRomero : Actor   // CH CYBIES.txt:5946
 {
 	Default
 	{
-		Game "Doom";
 		Radius 6;
 		Height 16;
 		Speed 22;
@@ -3143,7 +3101,6 @@ class RS_SpamShotsRomeroCH : Actor   // CH CYBIES.txt:5975
 {
 	Default
 	{
-		Game "Doom";
 		Radius 14;
 		Height 10;
 		Speed 25;
@@ -3312,7 +3269,6 @@ class RS_IDShieldWalk : Actor   // CH CYBIES.txt:6128
 	int user_angle;   // CH: var int user_angle;
 	Default
 	{
-		Game "Doom";
 		Radius 88;
 		Height 72;
 		Speed 18;

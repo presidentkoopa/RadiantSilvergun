@@ -1710,7 +1710,7 @@ class RS_WhiteLSoul2 : Actor
 		DamageFactor "DIMp", 0;
 		PainChance "DIMp", 0;
 		Monster;
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		+FLOAT
 		+BOSS
@@ -1925,7 +1925,7 @@ class RS_WhiteLSoulEX : Actor
 		DamageFactor "DIMp", 0;
 		PainChance "DIMp", 0;
 		Monster;
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		+FLOAT
 		+NOGRAVITY

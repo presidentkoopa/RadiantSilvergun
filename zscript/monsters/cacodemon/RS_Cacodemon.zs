@@ -227,7 +227,7 @@ class RS_BrownCaco2 : Actor
 		DeathSound "grell/death";
 		ActiveSound "grell/active";
 		Monster;
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		+MISSILEMORE
 		+NOGRAVITY
@@ -354,7 +354,7 @@ class RS_CyanCaco2 : Actor
 		FloatSpeed 24;
 		PainChance 110;
 		Monster;
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		+MISSILEMORE
 		+NOGRAVITY
@@ -485,7 +485,7 @@ class RS_AbyssCaco2 : Actor
 		DropItem "RS_CH_RocketAmmo", 128;
 		DropItem "RS_CH_RocketAmmo", 128;
 		Monster;
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+DONTHARMCLASS
 		+MISSILEMORE
 		+NOGRAVITY
@@ -1437,7 +1437,7 @@ class RS_RedCaco : Actor
 		DropItem "RS_CH_Cell", 128;
 		DropItem "RS_CH_Berserk", 82;
 		Monster;
-		+DONTHURTSPECIES
+		+DONTHARMCLASS
 		+MISSILEMORE
 		+NOGRAVITY
 		+FLOAT
