@@ -459,6 +459,181 @@ class RS_UIHandler : EventHandler
 	}
 
 	// -----------------------------------------------------------------
+	// S6 -- THE DROP TRIPTYCH.
+	//
+	// The first screen that answers a QUESTION instead of reporting a
+	// state. The weapon sheet says what a gun is; this says whether to
+	// take it. Per rs_00 the live decision is never "what are this gun's
+	// numbers", it is "do I keep developing what I have or rebuild on
+	// this" -- and that is a comparison, which is the one thing a HUD
+	// structurally cannot show, because it has one column.
+	//
+	// Three columns -- offhand held | THE DROP | mainhand held -- which
+	// is already the shape of the dual-hand inventory and of CycleSheets.
+	//
+	// Built into the SHARED row model on purpose. The in-world panel is a
+	// second renderer for this same model, so every decision made here --
+	// which rows matter, what beats what, what is worth shouting about --
+	// survives whatever shape the billboard surface comes back in. This
+	// is data, not draw calls.
+	// -----------------------------------------------------------------
+
+	// One triptych cell. An absent hand renders as a dash and never as a
+	// zero: an empty hand is not a weapon that scores nothing.
+	static string TriCell(double v, bool present, int decimals = 0)
+	{
+		if (!present) return "--";
+		if (decimals > 0) return string.format("%.1f", v);
+		return string.format("%d", int(v));
+	}
+
+	// The model carries one color per row, so the color IS the verdict:
+	// green beats both hands, yellow beats one, brick beats neither.
+	static int TriVerdict(double drop, double off, bool hasOff, double main, bool hasMain)
+	{
+		int wins = 0, losses = 0;
+		if (hasOff)  { if (drop > off)  wins++; else if (drop < off)  losses++; }
+		if (hasMain) { if (drop > main) wins++; else if (drop < main) losses++; }
+		if (wins > 0 && losses == 0) return Font.CR_GREEN;
+		if (wins > 0)                return Font.CR_YELLOW;
+		if (losses > 0)              return Font.CR_BRICK;
+		return Font.CR_DARKGRAY;
+	}
+
+	// Adds one comparison row -- and DROPS it when all three columns
+	// agree. Twelve stats is not glanceable at reading distance, and this
+	// model is meant to be read from across a room; a row that says the
+	// same thing three times is noise competing with the row that
+	// decides. "Identical" means identical AS DISPLAYED, so the cells are
+	// compared after formatting: that sidesteps float equality and it
+	// matches what the player can actually see.
+	void AddTriRow(string label, double drop, double off, bool hasOff,
+		double main, bool hasMain, int decimals = 0)
+	{
+		string cOff  = TriCell(off,  hasOff,  decimals);
+		string cDrop = TriCell(drop, true,    decimals);
+		string cMain = TriCell(main, hasMain, decimals);
+
+		if ((!hasOff || cOff == cDrop) && (!hasMain || cMain == cDrop)) return;
+
+		AddRow(label, string.format("%5s  [ %s ]  %-5s", cOff, cDrop, cMain),
+			TriVerdict(drop, off, hasOff, main, hasMain));
+	}
+
+	void BuildDropTriptych(PlayerPawn pawn, Weapon drop)
+	{
+		ClearModel();
+
+		let d = RS_Weapon(drop);
+		if (!d)
+		{
+			mTitle = "NO DROP";
+			AddRow("(not an RS weapon)", "", Font.CR_DARKGRAY);
+			return;
+		}
+
+		let offW  = RS_Weapon(HandWeapon(pawn, 0));
+		let mainW = RS_Weapon(HandWeapon(pawn, 1));
+		bool hasOff  = (offW  != null);
+		bool hasMain = (mainW != null);
+
+		mTitle = d.GetTag();
+		mTitleColor = RS_UIStyle.TierColor(d.Tier);
+		mSubtitle = RS_UIStyle.TierName(d.Tier) .. "   " .. RS_UIStyle.Pips(d.PromotionCount);
+		mSubtitleColor = RS_UIStyle.TierColor(d.Tier);
+
+		AddRow("OFFHAND",  hasOff  ? offW.GetTag()  : "(empty)",
+			hasOff  ? RS_UIStyle.TierColor(offW.Tier)  : Font.CR_DARKGRAY);
+		AddRow("MAINHAND", hasMain ? mainW.GetTag() : "(empty)",
+			hasMain ? RS_UIStyle.TierColor(mainW.Tier) : Font.CR_DARKGRAY);
+		AddRule();
+		AddRow("", string.format("%5s  [ %s ]  %-5s", "OFF", "DROP", "MAIN"), Font.CR_DARKGRAY);
+
+		int rowsBefore = mRowKey.Size();
+
+		// PELLETS LEADS, because +1 pellet is roughly double damage --
+		// it is the entire Promotion payoff (rs_00), and a thrice-promoted
+		// Uncommon buries an unpromoted Prototype on this row alone. It
+		// cannot sit in the same weight as ACCURACY six rows down.
+		int dp = max(1, d.PelletCount);
+		int op = hasOff  ? max(1, offW.PelletCount)  : 0;
+		int mp = hasMain ? max(1, mainW.PelletCount) : 0;
+		AddTriRow("PELLETS", dp, op, hasOff, mp, hasMain);
+		if ((hasOff && dp != op) || (hasMain && dp != mp))
+			AddRow("   ^ each pellet is a full damage roll", "", Font.CR_GOLD);
+
+		AddTriRow("DAMAGE", d.DamagePerShot,
+			hasOff  ? offW.DamagePerShot  : 0, hasOff,
+			hasMain ? mainW.DamagePerShot : 0, hasMain);
+
+		AddTriRow("DPS", d.DamagePerShot * dp * max(1, d.RateOfFire),
+			hasOff  ? offW.DamagePerShot  * op * max(1, offW.RateOfFire)  : 0, hasOff,
+			hasMain ? mainW.DamagePerShot * mp * max(1, mainW.RateOfFire) : 0, hasMain);
+
+		AddTriRow("ROF", d.RateOfFire,
+			hasOff  ? offW.RateOfFire  : 0, hasOff,
+			hasMain ? mainW.RateOfFire : 0, hasMain);
+
+		AddTriRow("ACCURACY", d.Accuracy,
+			hasOff  ? offW.Accuracy  : 0, hasOff,
+			hasMain ? mainW.Accuracy : 0, hasMain);
+
+		AddTriRow("CRIT %", d.CritChance * 100.0,
+			hasOff  ? offW.CritChance  * 100.0 : 0, hasOff,
+			hasMain ? mainW.CritChance * 100.0 : 0, hasMain, 1);
+
+		AddTriRow("CRIT MULT", d.CritMult > 0 ? d.CritMult : 2.0,
+			hasOff  ? (offW.CritMult  > 0 ? offW.CritMult  : 2.0) : 0, hasOff,
+			hasMain ? (mainW.CritMult > 0 ? mainW.CritMult : 2.0) : 0, hasMain, 1);
+
+		AddTriRow("VELOCITY", d.Velocity,
+			hasOff  ? offW.Velocity  : 0, hasOff,
+			hasMain ? mainW.Velocity : 0, hasMain);
+
+		AddTriRow("CAPACITY", d.Capacity,
+			hasOff  ? offW.Capacity  : 0, hasOff,
+			hasMain ? mainW.Capacity : 0, hasMain);
+
+		// SOCKETS is the rebuild argument. An Uncommon with two sockets
+		// and good rolls is rs_00's "better foundation" case -- the whole
+		// reason to walk away from a higher tier -- so it has to be
+		// visible AT the decision, not one menu later.
+		AddTriRow("SOCKETS", d.GunBonaiSockets,
+			hasOff  ? offW.GunBonaiSockets  : 0, hasOff,
+			hasMain ? mainW.GunBonaiSockets : 0, hasMain);
+
+		AddTriRow("CONDITION", d.Condition,
+			hasOff  ? offW.Condition  : 0, hasOff,
+			hasMain ? mainW.Condition : 0, hasMain);
+
+		if (mRowKey.Size() == rowsBefore)
+			AddRow("(identical on every stat)", "", Font.CR_DARKGRAY);
+
+		// A Cursed drop carrying a monster roll under its locks is the
+		// most interesting pickup in the game. The locks are what make it
+		// a gamble rather than a downgrade, so they have to be legible at
+		// the decision -- the player is being asked to bet on what they
+		// cannot see yet.
+		string locks = "";
+		if (d.LockedDamage)     locks = locks .. "DMG ";
+		if (d.LockedAccuracy)   locks = locks .. "ACC ";
+		if (d.LockedVelocity)   locks = locks .. "VEL ";
+		if (d.LockedCritChance) locks = locks .. "CRIT ";
+		if (d.LockedCapacity)   locks = locks .. "CAP ";
+		if (locks != "")
+		{
+			AddRule();
+			AddRow("LOCKED", locks, Font.CR_DARKRED);
+		}
+
+		// Deliberately NO overall verdict line. A win-count would weight
+		// ACCURACY the same as PELLETS, which is false -- and a summary
+		// that lies is worse than none. The row colors and the pellet
+		// callout carry the judgment the design has actually made; the
+		// rest is the player's call, which is the point of the screen.
+	}
+
+	// -----------------------------------------------------------------
 	// S5 -- promotion confirm.
 	// -----------------------------------------------------------------
 	void BuildPromotionConfirm(PlayerPawn pawn, int hand)
@@ -616,6 +791,22 @@ class RS_UIHandler : EventHandler
 			if (players[consoleplayer].mo == pawn)
 				Menu.SetMenu("RSDynamicSheet");
 		}
+		else if (evt.name == "rs-ui-triptych")
+		{
+			// Dev harness for the drop comparison until the drop system
+			// has a real dropped weapon to hand it. Judges the named
+			// hand's weapon AS IF it were the drop, so the layout, the
+			// verdict colors and the equal-row filter can all be seen
+			// with live numbers today, in the flat menu, with no engine
+			// billboard in existence. arg0: 0 offhand, 1 mainhand.
+			let w = HandWeapon(pawn, evt.args[0]);
+			if (w)
+			{
+				BuildDropTriptych(pawn, w);
+				if (players[consoleplayer].mo == pawn)
+					Menu.SetMenu("RSDynamicSheet");
+			}
+		}
 		else if (evt.name == "rs-showcase")
 		{
 			// Dev/preview toggle: spin this hand's weapon 96 units ahead
@@ -623,10 +814,15 @@ class RS_UIHandler : EventHandler
 			// panel. No args = offhand slot; falls back to ready weapon.
 			if (mShowcase)
 			{
-				// (Explicit removal restored 2026-08-05 late -- the current
-				// E:\DXR2 build exports RemoveBillboard; verified in its pk3.
-				// The attachment would also die with mShowcase regardless.)
-				if (mCardActive) level.RemoveBillboard(mCardBB);
+				// DISABLED 2026-08-06. The engine moved off DXR2 to UZDXREMA
+				// (a fresh clone of upstream questzdoom), which has NO
+				// billboard API AT ALL -- verified by grep over its whole
+				// src tree and by checking four built binaries. Calling
+				// level.RemoveBillboard is a hard script error that stops
+				// the ENTIRE mod compiling, not just this toggle.
+				// Restore this together with the AttachBillboard below, once
+				// the billboard primitive is rebuilt natively in UZDXREMA.
+				// if (mCardActive) level.RemoveBillboard(mCardBB);
 				mCardActive = false;
 				mShowcase.Destroy();
 				mShowcase = null;
@@ -649,9 +845,15 @@ class RS_UIHandler : EventHandler
 						// RenderOverlay. col modulates texels -- full white
 						// + full alpha = untinted. Needs engine d9f35d40f3+
 						// (TextureID.GetIndex is a compiler intrinsic).
-						mCardBB = level.AttachBillboard(mShowcase, (0, 0, 56),
-							44, 1, tex.GetIndex(), Color(255, 255, 255, 255));
-						mCardActive = true;
+						// DISABLED 2026-08-06 with the RemoveBillboard call above.
+						// UZDXREMA has no billboard API; this call is a hard
+						// script error that blocks the WHOLE mod from loading.
+						// The stand still spawns and the canvas is still painted
+						// -- only the in-world panel is absent. Restore both
+						// sites together when the primitive is rebuilt.
+						// mCardBB = level.AttachBillboard(mShowcase, (0, 0, 56),
+						//	44, 1, tex.GetIndex(), Color(255, 255, 255, 255));
+						mCardActive = false;
 					}
 				}
 			}
