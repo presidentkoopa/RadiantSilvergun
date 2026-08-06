@@ -219,10 +219,44 @@ imported, sweep for these FIRST rather than discovering them at load:
   `+DONTHURTSPECIES` → `+DONTHARMCLASS`, `+LOWGRAVITY` → `Gravity 0.125`,
   `+SHORTMISSILERANGE` → `MaxTargetRange 896`, `+DOOMBOUNCE`/`+HEXENBOUNCE` →
   `BounceType`, and `+EXPLODEONDEATH` is a **dummy flag that does nothing** so
-  it can just go. **`MISSILEMORE` / `MISSILEEVENMORE` / `SHORTMISSILERANGE`
-  cannot be fixed** — they set native fields with no `Property` binding, so the
-  deprecated flag is the only declarative way to set them. ~256 warnings in this
-  tree are that, permanently. Don't try; the behaviour is already correct.
+  it can just go.
+
+- **CORRECTED 2026-08-06 — `MISSILEMORE` / `MISSILEEVENMORE` /
+  `SHORTMISSILERANGE` **CAN** BE FIXED. This file said the opposite for weeks
+  and was wrong.**
+
+  It claimed they "set native fields with no `Property` binding", that "~256
+  warnings in this tree are that, permanently", and instructed every session:
+  "Don't try." **All false.** The real mapping, every part verified in-tree
+  before this edit:
+
+      +MISSILEMORE        →  MissileChanceMult 0.5
+      +MISSILEEVENMORE    →  MissileChanceMult 0.125
+      both together       →  MissileChanceMult 0.0625
+      +SHORTMISSILERANGE  →  MaxTargetRange 896
+
+  Evidence: `actor.zs:352` declares `property MissileChanceMult:
+  MissileChanceMult;`, `actor.zs:344` declares `property MaxTargetRange:
+  MaxTargetRange;`, **`archvile.zs:18` already uses `MaxTargetRange 896`**, and
+  the engine sets its own deprecation string at `thingdef_data.cpp:930` to
+  literally *"Use missilechancemult property instead."* The engine has been
+  telling us the answer in every one of those 256 warnings.
+
+  **This paragraph also contradicted itself four lines up**, which is how it
+  should have been caught: line 220 lists `+SHORTMISSILERANGE` → `MaxTargetRange
+  896` as a working rename while the old text called the same flag unfixable.
+  Both statements sat in the same bullet for weeks and nobody read them
+  together.
+
+  **Why this one is the worst entry this file has ever carried:** it is not a
+  stale path or an out-of-date count — those merely mislead. This actively
+  ORDERED every future session not to look, inside the very section warning
+  about "consistent with itself" failures. A document that forbids checking is
+  worse than one that is merely wrong.
+
+  ⚠️ **Most of those 256 sites are under `zscript/monsters/**`, which is
+  SACRED.** Knowing the fix does NOT authorise a sweep. That rule is at the top
+  of this file and it is not lifted by having a correct mapping.
 
 ## THE REPO'S OWN CHECKING TOOLS ARE GONE. READ THIS BEFORE WRITING ANOTHER.
 
