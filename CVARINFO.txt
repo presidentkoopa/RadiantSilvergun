@@ -788,3 +788,85 @@ server int rs_reserve_elite_mode = 0;
 // can end a run. On, boss-flagged classes (the cyberdemon and mastermind
 // families) become eligible for the roster.
 server bool rs_reserve_allow_boss = false;
+
+// =====================================================================
+// IN-WORLD PANELS -- the diegetic UI lane (RS_Panel / RS_DropTriptych).
+// Layout policy only; the panel primitive itself holds no opinions.
+// =====================================================================
+
+server bool rs_panel_enabled = true;
+
+// Density. 0 = TALL, one panel per weapon, read by looking up and down.
+// 1 = STACKED, each weapon becomes a column of three hinged panels
+// (core stats / affixes / identity) curving toward the reader. Both are
+// built; this picks which one a triptych assembles.
+server int rs_panel_density = 0;
+
+// Panel size in MAP UNITS, FULL EXTENT (not half-extent). Full extent
+// is written down here because for a hinge it decides whether the wings
+// meet the centre panel exactly, overlap it, or leave a seam.
+server float rs_panel_width = 40.0;
+server float rs_panel_height = 80.0;
+
+// How far the wings cant inward, in degrees. Canted, all three faces
+// are legible from one standing position; flat, they are not.
+server float rs_panel_hinge = 35.0;
+
+// Tilt between vertically stacked panels. The block above leans down
+// toward you and the block below leans up, so a column reads as a
+// curved surface rather than a wall.
+server float rs_panel_stacktilt = 18.0;
+
+// Offset from the player's LIVE view z. Not from pos.z, and not a world
+// constant: in VR the eye line is the player's real room-scale height,
+// not the 41 Player.ViewHeight assumes, so a fixed offset is correct
+// for exactly one person.
+server float rs_panel_heightofs = 0.0;
+
+// Two-stage presence. The drop always glows at any range; the CARD only
+// materialises inside this radius and despawns outside it.
+server float rs_panel_radius = 320.0;
+
+// Live assembly cap. The owner's rule is unlimited panels with a
+// player-facing cap plus a radial cull, rather than a number baked into
+// the code.
+server int rs_panel_maxlive = 8;
+
+// ORIENTATION BIAS -- the dial for first boot.
+// RF_FLATSPRITE at pitch 0 lies FLAT ON THE FLOOR; standing it upright
+// to face along its yaw takes a quarter turn, and which sign that is
+// depends on the engine's pitch convention. This is a cvar rather than
+// a constant precisely so a wrong guess is a five-second fix in the
+// headset instead of a rebuild. If panels render edge-on (invisible),
+// floor-flat, or upside down, this is what you turn.
+server float rs_panel_pitchbias = -90.0;
+server float rs_panel_rollbias = 0.0;
+
+// Elite weapon drops. The payout RS_Elite.zs has always described and
+// never had. An elite killed before it revealed still pays nothing --
+// that contract is now enforced rather than merely advertised.
+server bool rs_elitedrop_enabled = true;
+
+// --- Panel typography -------------------------------------------------
+// Font and size are player-facing because legibility in a headset is
+// personal -- panel distance, IPD and lens sharpness all move where the
+// comfortable point is, and no single default is right for everyone.
+//
+// 0 SmallFont, 1 NewSmallFont, 2 BigFont, 3 ConFont.
+server int rs_panel_font = 0;
+server int rs_panel_titlefont = 2;
+
+// Row pitch in canvas pixels. Bigger = fewer, larger rows.
+server int rs_panel_rowpitch = 18;
+
+// How far in front of you the card sits once it materialises. The card
+// belongs to the READER, not to the drop -- walking right up to a drop
+// should not push the card into your face.
+server float rs_panel_comfort = 72.0;
+
+// The drop marker: a thin vertical glow rising from the pickup and
+// tapering out around eye level, so a drop reads from across a room
+// without a HUD marker.
+server bool rs_drop_beam = true;
+server float rs_drop_beamwidth = 7.0;
+server float rs_drop_lightradius = 96.0;

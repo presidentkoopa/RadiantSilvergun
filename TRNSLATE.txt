@@ -286,3 +286,43 @@ BRCybGren03 = "0:255=@66[0,255,0]"
 BRCybGren04 = "0:255=@88[0,255,0]"
 BRCybGren05 = "0:255=@99[0,255,0]"
 BRCybGren06 = "32:47=112:127", "168:191=112:127"
+
+// =====================================================================
+// WEAPON RARITY TIERS -- the elite drop's sprite tint.
+//
+// NAMED FOR RARITY, NOT NUMBERED. The monster entries above are
+// rs_<family>_t<NN> because monsters have numeric difficulty tiers;
+// weapons have rarity tiers and take their names. Keeping the two
+// vocabularies apart is a standing project rule -- do not renumber
+// these to match the monster block.
+//
+// The '%' prefix is a DESATURATED remap: the engine takes the source
+// pixel's LUMINANCE and interpolates along the given range
+// (palettecontainer.cpp:744). That is what makes this a tint rather
+// than a scramble -- a flat "0:255=[a]:[b]" would remap by palette
+// INDEX, and Doom's palette is not ordered by brightness, so the
+// sprite would come apart. Shape, shading and readability survive;
+// only the hue changes. You can still tell a shotgun from a revolver.
+//
+// Colours are RS_UIStyle's tier ramp. Each goes dark -> full so the
+// sprite keeps its own light and shade.
+// =====================================================================
+// SYNTAX, twice-bitten (both fixed 2026-08-06, neither was cosmetic):
+//   1. The '%' goes AFTER the '=', not in front of the range.
+//      "0:255=%[...]" -- palettecontainer.cpp:659-671 reads start:end=
+//      FIRST and only then looks at the marker, so a leading '%' dies as
+//      "Expected integer constant but got '%'".
+//   2. The channel values are MULTIPLIERS clamped to 0.0-2.0
+//      (palettecontainer.cpp:542-547), NOT palette bytes. Written as
+//      0-255 they all clamp to 2.0 and every tier comes out the same
+//      blown-out white -- which compiles clean and looks like a bug in
+//      something else entirely. Values below are the intended 0-255
+//      ramp divided by 255; the original byte value is in the comment.
+rs_wpn_cursed    = "0:255=%[0.06,0.00,0.00]:[0.66,0.09,0.09]"  // 16,0,0    -> 168,24,24
+rs_wpn_trash     = "0:255=%[0.06,0.04,0.02]:[0.59,0.41,0.22]"  // 16,10,4   -> 150,104,56
+rs_wpn_basic     = "0:255=%[0.05,0.05,0.05]:[0.72,0.72,0.72]"  // 12,12,12  -> 184,184,184
+rs_wpn_common    = "0:255=%[0.06,0.06,0.06]:[1.00,1.00,1.00]"  // 16,16,16  -> 255,255,255
+rs_wpn_uncommon  = "0:255=%[0.00,0.06,0.02]:[0.25,0.88,0.35]"  // 0,16,4    -> 64,224,88
+rs_wpn_advanced  = "0:255=%[0.00,0.03,0.09]:[0.38,0.66,1.00]"  // 0,8,24    -> 96,168,255
+rs_wpn_designer  = "0:255=%[0.05,0.00,0.08]:[0.72,0.38,1.00]"  // 12,0,20   -> 184,96,255
+rs_wpn_prototype = "0:255=%[0.09,0.06,0.00]:[1.00,0.82,0.25]"  // 24,16,0   -> 255,208,64

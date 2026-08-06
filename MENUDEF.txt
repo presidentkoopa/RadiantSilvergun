@@ -27,7 +27,73 @@ OptionMenu "RS_MainOptions"
 	Submenu "Arcade Score", "RS_ScoreOptions"
 	Submenu "Monster Control Center", "RS_MonsterControl"
 	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
+	Submenu "In-World Panels", "RS_PanelOptions"
 	Submenu "UI Debug", "RS_UIDebug"
+}
+
+// ---------------------------------------------------------------------
+// IN-WORLD PANELS -- layout policy for the diegetic UI.
+//
+// The panel primitive is deliberately dumb: it knows how to be a quad
+// and how to hinge to another quad, and nothing else. Every taste
+// decision lives here, which is why this page exists at all rather than
+// the numbers being constants in RS_Panel.zs.
+//
+// PITCH BIAS IS THE FIRST-BOOT DIAL. If panels come up edge-on
+// (invisible), lying flat on the floor, or upside down, turn that one
+// before assuming anything else is wrong -- see its cvar comment.
+// ---------------------------------------------------------------------
+OptionValue "RS_PanelDensity"
+{
+	0, "Tall  -- one panel per weapon"
+	1, "Stacked -- three hinged blocks per weapon"
+}
+
+OptionValue "RS_PanelFont"
+{
+	0, "SmallFont"
+	1, "NewSmallFont"
+	2, "BigFont"
+	3, "ConFont"
+}
+
+OptionMenu "RS_PanelOptions"
+{
+	Title "In-World Panels"
+	StaticText " "
+	Option "Enable in-world panels", "rs_panel_enabled", "OnOff"
+	Option "Density", "rs_panel_density", "RS_PanelDensity"
+	StaticText " "
+	StaticText "Geometry", 1
+	Slider "Panel width (map units)",  "rs_panel_width",  16, 128, 4, 0
+	Slider "Panel height (map units)", "rs_panel_height", 24, 200, 4, 0
+	Slider "Wing fold angle",          "rs_panel_hinge",   0,  75, 5, 0
+	Slider "Stack tilt",               "rs_panel_stacktilt", 0, 45, 1, 0
+	Slider "Height from eye line",     "rs_panel_heightofs", -48, 48, 2, 0
+	StaticText " "
+	StaticText "Typography", 1
+	Option "Body font",  "rs_panel_font",      "RS_PanelFont"
+	Option "Title font", "rs_panel_titlefont", "RS_PanelFont"
+	Slider "Row spacing", "rs_panel_rowpitch", 8, 48, 1, 0
+	StaticText "Bigger spacing = fewer, larger rows.", "DarkGray"
+	StaticText " "
+	StaticText "Presence", 1
+	Slider "Card distance from you",   "rs_panel_comfort", 32, 200, 4, 0
+	Slider "Card radius",              "rs_panel_radius",  64, 1024, 32, 0
+	Slider "Max live assemblies",      "rs_panel_maxlive",  1,   32,  1, 0
+	StaticText " "
+	StaticText "Drop marker", 1
+	Option "Vertical glow beam", "rs_drop_beam", "OnOff"
+	Slider "Beam width",  "rs_drop_beamwidth",    2, 24, 1, 0
+	Slider "Light radius", "rs_drop_lightradius", 0, 256, 8, 0
+	StaticText " "
+	StaticText "Orientation bias -- turn these first if panels", 1
+	StaticText "render flat, edge-on or upside down.", 1
+	Slider "Pitch bias", "rs_panel_pitchbias", -180, 180, 5, 0
+	Slider "Roll bias",  "rs_panel_rollbias",  -180, 180, 5, 0
+	StaticText " "
+	StaticText "Elite drops", 1
+	Option "Elites drop class weapons", "rs_elitedrop_enabled", "OnOff"
 }
 
 // ---------------------------------------------------------------------
@@ -73,6 +139,44 @@ OptionMenu "RS_UIDebug"
 	StaticText "it cannot be driven from inside a menu.", "DarkGray"
 	StaticText " "
 	Command "Give Current Weapon a Random Profile", "netevent rs_debug_random_profile"
+	StaticText " "
+	Submenu "Elite Drop Simulator", "RS_DropDebug"
+}
+
+// ---------------------------------------------------------------------
+// ELITE DROP SIMULATOR
+//
+// Drops a rolled class weapon 96 units in front of you with its marker
+// beam and card armed -- no elite required, no reveal required. This is
+// how you look at a Prototype card while holding a Basic starter, which
+// is the exact moment the triptych is designed for and otherwise takes
+// a lucky kill to reach.
+//
+// The weapon class is random each time; only the TIER is chosen here,
+// because tier is what changes the card.
+// ---------------------------------------------------------------------
+OptionMenu "RS_DropDebug"
+{
+	Title "Elite Drop Simulator"
+	StaticText " "
+	Command "Drop -- RANDOM tier (weighted)", "netevent rs-panel-test 99"
+	StaticText "Weighted as a real elite drop: Basic common,", "DarkGray"
+	StaticText "Prototype 2%.", "DarkGray"
+	StaticText " "
+	StaticText "Force a tier", 1
+	Command "Cursed",     "netevent rs-panel-test 0"
+	Command "Trash",      "netevent rs-panel-test 1"
+	Command "Basic",      "netevent rs-panel-test 2"
+	Command "Common",     "netevent rs-panel-test 3"
+	Command "Uncommon",   "netevent rs-panel-test 4"
+	Command "Advanced",   "netevent rs-panel-test 5"
+	Command "Designer",   "netevent rs-panel-test 6"
+	Command "Prototype",  "netevent rs-panel-test 7"
+	StaticText " "
+	Command "Dismiss the card", "netevent rs-panel-dismiss"
+	StaticText " "
+	StaticText "Walk toward the drop to raise the card;", "DarkGray"
+	StaticText "walk away and it puts itself down.", "DarkGray"
 }
 
 // ---------------------------------------------------------------------

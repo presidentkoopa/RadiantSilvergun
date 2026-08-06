@@ -8,3 +8,39 @@
 
 // The weapon card -- 2:3 portrait, drawn by RS_UIHandler.RenderOverlay.
 canvastexture "RSCARDA" 256 384
+
+// ---------------------------------------------------------------------
+// In-world panel faces (RS_Panel / RS_DropTriptych). 320x640, 1:2
+// portrait -- taller than RSCARDA because a panel you lean toward and
+// read carries far more than one pinned to your face, and the drop
+// comparison wants every row it can get.
+//
+// NINE, because a stacked triptych is three weapons x three blocks
+// (core stats, affixes, identity). Tall mode uses the first three and
+// leaves the rest unbound, which costs nothing: a canvas is only
+// rendered when something dirties it.
+//
+// One canvas PER PANEL is the simple shape and the right one at this
+// count. It does not scale indefinitely -- binding a canvas as a
+// material re-dirties it, so every visible canvas costs an offscreen
+// render-target switch per frame. If the live panel count ever grows
+// past a few dozen, the answer is one atlas canvas with per-panel UV
+// subrects, not ninety of these.
+// ---------------------------------------------------------------------
+canvastexture "RSPNL01" 320 640
+canvastexture "RSPNL02" 320 640
+canvastexture "RSPNL03" 320 640
+canvastexture "RSPNL04" 320 640
+canvastexture "RSPNL05" 320 640
+canvastexture "RSPNL06" 320 640
+canvastexture "RSPNL07" 320 640
+canvastexture "RSPNL08" 320 640
+canvastexture "RSPNL09" 320 640
+
+// The drop marker beam. ONE canvas shared by every beam in the map --
+// it is painted once, as a white vertical gradient, and each beam
+// panel tints it per weapon tier through fillcolor + AddStencil. So a
+// map full of drops costs one canvas, not one per drop.
+// 32 wide is deliberate: the beam is thin in the world and stretching
+// a narrow texture across it wastes nothing.
+canvastexture "RSPNLBM" 32 256
