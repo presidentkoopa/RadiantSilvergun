@@ -89,7 +89,45 @@ list. Don't re-derive project state from scratch — it's already written down.
   matches almost nothing. Also strip `//` lines before any bulk pass, or it
   reads prose as code — a scan that skipped this "found" four undefined classes
   that were words inside comments, and a second one invented a defect by
-  matching `Death.T08` inside `XDeath.T08`.
+  matching `Death.T08` inside `XDeath.T08`. **This bites hardest right after
+  you fix something**, because the fix leaves a `// CH: <OLDTHING>` comment
+  behind: a follow-up count then reports the defect still present when it is
+  gone. Strip comments before every count, including the one that verifies
+  your own work.
+
+### DECORATE-isms that are NOT ZScript (all four cost a failed boot, 2026-08-06)
+
+The CH import transcribed these faithfully from DECORATE and they are all
+compile errors here. 254 of them in one build. If another pack is ever
+imported, sweep for these FIRST rather than discovering them at load:
+
+- **`Game "Doom";` does not exist in ZScript.** DECORATE-only property. 234
+  instances. Just delete the line; it filters nothing here.
+- **`DontHurtShooter` IS REAL — but it is a PROPERTY, not a flag.** The engine
+  declares it at `wadsrc/static/zscript/actors/actor.zs:310`
+  (`Property DontHurtShooter: DontHurtShooter`). So `+DONTHURTSHOOTER` and a
+  bare `DontHurtShooter;` both fail; it needs a value: `DontHurtShooter true;`.
+  **Do not "fix" it by deleting it** — that silently un-protects 13 bouncing
+  projectiles that are meant not to hurt the firer.
+- **NON-UNIFORM SCALE IS IMPOSSIBLE IN A `Default` BLOCK.** The engine's
+  `DEFINE_PROPERTY(scale, F, Actor)` takes ONE float and assigns X and Y
+  together, and there is no `Scale.X` / `Scale.Y` Default property at all. A
+  stretched actor must set `Scale = (x, y);` in `BeginPlay`. Flattening it to a
+  uniform value to make it compile is silent data loss.
+- **`SpawnID` is not a ZScript Default property.** Delete it.
+
+- **The engine source is the authority on flags and properties, and it is on
+  this machine.** `E:\DXR2` — `src/scripting/thingdef_properties.cpp` holds the
+  real deprecation mapping and `wadsrc/static/zscript/actors/actor.zs` holds the
+  property list. Reading it settled four questions in one session that guessing
+  would have got wrong. Deprecated flags are RENAMES, not removals:
+  `+DONTHURTSPECIES` → `+DONTHARMCLASS`, `+LOWGRAVITY` → `Gravity 0.125`,
+  `+SHORTMISSILERANGE` → `MaxTargetRange 896`, `+DOOMBOUNCE`/`+HEXENBOUNCE` →
+  `BounceType`, and `+EXPLODEONDEATH` is a **dummy flag that does nothing** so
+  it can just go. **`MISSILEMORE` / `MISSILEEVENMORE` / `SHORTMISSILERANGE`
+  cannot be fixed** — they set native fields with no `Property` binding, so the
+  deprecated flag is the only declarative way to set them. ~256 warnings in this
+  tree are that, permanently. Don't try; the behaviour is already correct.
 
 ## THE REPO'S OWN CHECKING TOOLS ARE GONE. READ THIS BEFORE WRITING ANOTHER.
 
