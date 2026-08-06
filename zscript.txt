@@ -348,6 +348,10 @@
 #include "zscript/systems/ui/RS_Panel.zs"
 #include "zscript/systems/ui/RS_PanelCard.zs"
 #include "zscript/systems/ui/RS_PanelController.zs"
+// The confirm button. No event handler and no MAPINFO line -- it is
+// called from VR_DualClassBase.PlayerThink, because WorldTick is too
+// late to stop a weapon firing on this engine. See its header.
+#include "zscript/systems/ui/RS_PanelInput.zs"
 #include "zscript/systems/ui/RS_DropTriptych.zs"
 // The payout the elite system never had. RS_Elite.zs's own header calls
 // the drop "a later step"; this is it.

@@ -69,6 +69,34 @@ class VR_DualClassBase : DoomPlayer abstract
 			GiveInventory("Cell", 200);
 		}
 	}
+
+	// -----------------------------------------------------------------
+	// IN-WORLD PANEL CONFIRM -- the one place a button can be taken away
+	// from the weapon before the weapon sees it.
+	//
+	// This is not where you would expect UI input handling to live, and
+	// it is here for a measured reason rather than convenience. An
+	// EventHandler's WorldTick runs AFTER the player has already thought
+	// (p_tick.cpp:175, then :178), and the shot is decided inside that
+	// think -- TickPSprites -> CheckWeaponFire reads player.cmd.buttons
+	// at player.zs:478. Anything that clears buttons in WorldTick is
+	// clearing them after the gun has already gone off. RS_WheelPoC's
+	// header asserts the opposite ordering; it is wrong, and copying it
+	// here would have shipped a confirm that also discharges your
+	// weapon.
+	//
+	// PlayerThink is virtual (player.zs:1732) and CheckWeaponFire is not
+	// (player.zs:463), so this override is the hook.
+	//
+	// Capture returns immediately unless a panel row is genuinely live
+	// under a pointing hand, so in the common case this is a couple of
+	// null checks per tic.
+	// -----------------------------------------------------------------
+	override void PlayerThink()
+	{
+		RS_PanelInput.Capture(self);
+		Super.PlayerThink();
+	}
 }
 
 class VR_Dual_Pistol : VR_DualClassBase

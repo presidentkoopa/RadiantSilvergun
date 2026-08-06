@@ -226,6 +226,11 @@ class RS_PanelDropHandler : EventHandler
 	// both the writer and the reader are play.
 	bool            mSpawningDrop;
 
+	// Last row the pointer rested on, so the hover chirp fires on CHANGE
+	// rather than 35 times a second.
+	int             mLastHotRow;
+	int             mLastHotPanel;
+
 	// The six RS class weapons.
 	//
 	// THE CLASSES ARE VR_*, NOT RS_*. The FILES are RS_Revolver.zs and
@@ -436,6 +441,70 @@ class RS_PanelDropHandler : EventHandler
 		mCard = null;
 		if (mCardOwner) mCardOwner.mCardUp = false;
 		mCardOwner = null;
+
+		// Otherwise the next card that comes up on the same row index
+		// starts already-hovered and never chirps.
+		mLastHotRow   = -1;
+		mLastHotPanel = -1;
+	}
+
+	// -----------------------------------------------------------------
+	// ROW RESOLUTION, in one place.
+	//
+	// Geometry (which panel, and where on it) belongs to
+	// RS_PanelHandler; CONTENT (what row that is) belongs to the card,
+	// which this handler owns. Every consumer of "what row is under the
+	// pointer" -- the painter, the confirm netevent, and now the
+	// trigger capture -- comes through here, so the highlight you see,
+	// the row that fires, and the press that is eaten cannot disagree
+	// about which row it was.
+	// -----------------------------------------------------------------
+	int ResolveHotRow(RS_PanelHandler ph, out bool live)
+	{
+		live = false;
+		if (!mCard || !ph || ph.mHotPanel < 0) return -1;
+
+		let c = mCard.CardFor(ph.mHotPanel);
+		if (!c) return -1;
+
+		int row = c.RowAtUV(ph.mHotUV);
+		live = c.RowIsSelectable(row);
+		return row;
+	}
+
+	// Publish it where the trigger capture can see it. That capture runs
+	// in VR_DualClassBase.PlayerThink, which is upstream of every event
+	// handler on this tic (p_tick.cpp:175 vs :178) and has no route to a
+	// card -- so the answer has to be left somewhere it can read.
+	//
+	// Also where the panel makes its two noises that are not tied to an
+	// action: the hover chirp, and a punch landing.
+	override void WorldTick()
+	{
+		let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
+		if (!ph) return;
+
+		bool live;
+		int row = ResolveHotRow(ph, live);
+		ph.PublishHotRow(row, live);
+
+		PlayerPawn pawn = players[consoleplayer].mo;
+
+		// HOVER. Only LIVE rows chirp. Sweeping a hand across a card of
+		// twenty stat rows must not chatter -- the sound has to mean
+		// "there is something here", or it means nothing.
+		if (live && (row != mLastHotRow || ph.mHotPanel != mLastHotPanel))
+			RS_PanelInput.Say(pawn, "menu/cursor");
+
+		if (live) { mLastHotRow = row;  mLastHotPanel = ph.mHotPanel; }
+		else      { mLastHotRow = -1;   mLastHotPanel = -1; }
+
+		// THE PUNCH. Read-and-clear even when the row is dead, so a
+		// swing at an inert part of the card is spent rather than banked
+		// and delivered to whatever row you point at next.
+		int strike = ph.ConsumePokeStrike();
+		if (strike >= 0 && live)
+			EventHandler.SendNetworkEvent("rs-panel-use", 0);
 	}
 
 	// -----------------------------------------------------------------
@@ -471,13 +540,26 @@ class RS_PanelDropHandler : EventHandler
 			if (!mCard) return;
 
 			let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
-			if (!ph || ph.mHotPanel < 0) return;
+			if (!ph) return;
+
+			bool live;
+			int row = ResolveHotRow(ph, live);
+			if (!live) return;
 
 			let c = mCard.CardFor(ph.mHotPanel);
 			if (!c) return;
 
-			int row = c.RowAtUV(ph.mHotUV);
-			if (!c.RowIsSelectable(row)) return;
+			// ACKNOWLEDGE THE PRESS ITSELF, before dispatching what it
+			// meant. Two sounds, two facts: this one says the button
+			// registered, and whatever the row does says whether it
+			// worked. That split matters here more than in a flat menu,
+			// because the press was CONSUMED -- your gun deliberately did
+			// not fire, and without a click that is indistinguishable
+			// from an input that went nowhere.
+			//
+			// It also means a future row that forgets its own sound is
+			// merely terse rather than silent.
+			RS_PanelInput.Say(pawn, "menu/activate");
 
 			// Re-enter NetworkProcess with the row's own command. Sending
 			// the netevent rather than calling the branch directly keeps
@@ -506,7 +588,28 @@ class RS_PanelDropHandler : EventHandler
 
 			let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
 			if (ph && ph.mHotHand >= 0 && pawn.OverrideAttackPosDir)
-				toOffhand = (ph.mHotHand == 0);
+			{
+				// THE POINTING HAND WINS -- BUT ONLY IF IT CAN TAKE.
+				//
+				// This override used to be unconditional, and that made
+				// a dead trigger. A row only EXISTS on a wing whose hand
+				// holds a real weapon, but the override re-aimed the
+				// take at whichever hand was pointing. Hold a fist in
+				// your left, a revolver in your right, and point the
+				// left at "> TAKE TO MAINHAND": the row was live, so the
+				// press got eaten, then the take resolved to the fist
+				// and bailed. Button swallowed, gun silent, nothing
+				// taken, no feedback.
+				//
+				// The row's own arg is the fallback and it is always
+				// valid -- Refresh only writes the row when that hand is
+				// a real weapon. So a fist can point at the other hand's
+				// row and mean exactly what it looks like it means.
+				bool wantOff = (ph.mHotHand == 0);
+				Weapon wantHeld = wantOff ? pawn.player.OffhandWeapon
+				                          : pawn.player.ReadyWeapon;
+				if (!(wantHeld is "VR_Fist")) toOffhand = wantOff;
+			}
 
 			// Fists never take a class weapon -- the card says so and
 			// the netevent honours it, so the two cannot disagree.
@@ -516,9 +619,20 @@ class RS_PanelDropHandler : EventHandler
 			// treats it as "slot is free" (RS_Weapon.zs:1334). Blocking on
 			// plain `is "VR_Fist"` blocked VR_Fist2 too -- which is the one
 			// case where the take would definitely have worked.
+			//
+			// MERGE NOTE: the test is IsRealFist (which honours the VR_Fist2
+			// exception) and the sound is the interaction lane's. Its version
+			// used a bare `is "VR_Fist"`, which would have rejected the empty
+			// slot -- but it was right that a silent return here is
+			// indistinguishable from a broken button, now that the press has
+			// already been taken away from the weapon. Both halves kept.
 			Weapon held = toOffhand ? pawn.player.OffhandWeapon
 			                        : pawn.player.ReadyWeapon;
-			if (RS_DropTriptych.IsRealFist(held)) return;
+			if (RS_DropTriptych.IsRealFist(held))
+			{
+				RS_PanelInput.Say(pawn, "menu/invalid");
+				return;
+			}
 
 			mCardOwner.mPayload = null;
 
@@ -551,10 +665,22 @@ class RS_PanelDropHandler : EventHandler
 			// Seating the instance is the only correct move here.
 			pawn.player.PendingWeapon = w;
 
+			// The drop is in your hand. Vanilla's own weapon-pickup sound,
+			// because that is exactly what just happened -- even though this
+			// deliberately never went through the pickup path (see the file
+			// header).
+			//
+			// MERGE NOTE: the interaction lane's branch had this sound INSTEAD
+			// of the PendingWeapon seating above, which would have made the
+			// take announce itself and then do nothing -- the exact failure
+			// the seating comment describes. Both kept, seat first.
+			RS_PanelInput.Say(pawn, "misc/w_pkup");
+
 			DropCard();
 		}
 		else if (evt.name == "rs-panel-dismiss")
 		{
+			if (mCard) RS_PanelInput.Say(pawn, "menu/clear");
 			DropCard();
 		}
 		else if (evt.name == "rs-panel-test")
@@ -602,13 +728,27 @@ class RS_PanelDropHandler : EventHandler
 
 		let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
 		int hotPanel = ph ? ph.mHotPanel : -1;
-		int hotRow   = -1;
 
-		if (ph && hotPanel >= 0)
-		{
-			let c = mCard.CardFor(hotPanel);
-			if (c) hotRow = c.RowAtUV(ph.mHotUV);
-		}
+		// READ the published row; do not re-resolve it here.
+		//
+		// This used to call RowAtUV itself, and still COULD -- RowAtUV
+		// lives on RS_PanelCard, an unscoped class, so ui may call it,
+		// and reading play fields like mHotUV from ui is legal. What it
+		// cannot do is share ResolveHotRow with the confirm path:
+		// RenderOverlay is `virtual ui void` (events.zs:181) and
+		// StaticEventHandler is `native play` (events.zs:147), so that
+		// resolver is play-only.
+		//
+		// So the choice was two copies of the same lookup or one lookup
+		// published once. Published wins: the highlight is now literally
+		// the number the trigger capture will act on, rather than a
+		// second computation that merely ought to agree with it -- and
+		// "agrees with itself" is the failure mode this project keeps
+		// paying for.
+		//
+		// Nothing is lost by not resolving per frame: mHotUV is solved
+		// in WorldTick, so it only changes per tic regardless.
+		int hotRow = ph ? ph.mHotRow : -1;
 
 		for (int i = 0; i < TRI_COUNT; i++)
 		{

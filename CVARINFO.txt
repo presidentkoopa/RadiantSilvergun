@@ -882,3 +882,42 @@ server float rs_drop_beamheight = 44.0;
 // elite dropped, which on a busy map is a lot of weapons and was never
 // a design decision, just an unasked question.
 server int rs_elitedrop_chance = 100;
+
+// --- Panel confirm ----------------------------------------------------
+// How a row is pressed, on top of the always-available keybind.
+//   0  Bind only        -- the weapon trigger is never touched.
+//   1  Tracked hands    -- point or reach with a controller and pull
+//                          that hand's trigger. The press is taken from
+//                          the weapon before it fires. (default)
+//   2  Always           -- flat play too.
+//
+// 1 rather than 2 by default, and the asymmetry is deliberate. In flat
+// play the aim ray IS the view ray and the card holds station in front
+// of the reader, so a live row sits under the crosshair for much of the
+// time a card is up; capturing fire there would eat shots meant for the
+// world. With tracked controllers the ray comes off the hand and a take
+// row is a small target on a wing you have to actually point at.
+//
+// Only rows that carry a command capture the press -- reading the card
+// never disarms you.
+server int rs_panel_confirm = 1;
+
+// How far a tracked hand may sit off a panel's face and still count as
+// touching it, in map units. This is the PUNCH/POKE route: a position
+// test, not a ray, so putting your hand on a row beats pointing at one
+// from across the room. 0 disables it and leaves aim-only.
+server float rs_panel_poke = 6.0;
+
+// How hard a hand must drive INTO a panel to count as a punch rather
+// than a hand that merely happens to be resting in it. Map units of
+// travel per tic along the face normal; 1.5/tic is about 52 units a
+// second, which is a deliberate jab and well clear of resting-hand
+// jitter. 0 disables the punch and leaves the poke as highlight-only,
+// confirmed with the trigger or the keybind.
+server float rs_panel_punch = 1.5;
+
+// Panel sounds: the hover chirp, the press click, the refusal, and the
+// pickup. On by default and worth leaving on -- the confirm CONSUMES
+// the trigger, so a press with no sound is indistinguishable from a
+// dead button.
+server bool rs_panel_sound = true;

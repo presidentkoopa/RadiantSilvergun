@@ -57,12 +57,32 @@ OptionValue "RS_PanelFont"
 	3, "ConFont"
 }
 
+OptionValue "RS_PanelConfirm"
+{
+	0, "Keybind only"
+	1, "Trigger -- tracked hands only"
+	2, "Trigger -- always (incl. flat)"
+}
+
 OptionMenu "RS_PanelOptions"
 {
 	Title "In-World Panels"
 	StaticText " "
 	Option "Enable in-world panels", "rs_panel_enabled", "OnOff"
 	Option "Density", "rs_panel_density", "RS_PanelDensity"
+	StaticText " "
+	StaticText "Taking a drop", 1
+	Control "Select row (keybind)", "rs_panel_use"
+	Control "Dismiss card", "rs_panel_dismiss"
+	Option "Confirm with weapon trigger", "rs_panel_confirm", "RS_PanelConfirm"
+	StaticText "Point a hand at a live row and pull that hand's", "DarkGray"
+	StaticText "trigger. The press is taken before the gun fires.", "DarkGray"
+	Slider "Touch (poke) depth", "rs_panel_poke", 0, 24, 1, 0
+	StaticText "Reaching into a panel beats pointing at it. 0 = off.", "DarkGray"
+	Slider "Punch strength to activate", "rs_panel_punch", 0, 8, 0.25, 2
+	StaticText "How hard a hand must drive into a row. 0 = off,", "DarkGray"
+	StaticText "touch only highlights and you confirm with a button.", "DarkGray"
+	Option "Panel sounds", "rs_panel_sound", "OnOff"
 	StaticText " "
 	StaticText "Geometry", 1
 	Slider "Panel width (map units)",  "rs_panel_width",  16, 128, 4, 0
