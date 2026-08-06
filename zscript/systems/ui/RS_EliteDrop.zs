@@ -337,6 +337,44 @@ class RS_PanelDropHandler : EventHandler
 	}
 
 	// -----------------------------------------------------------------
+	// ROW RESOLUTION, in one place.
+	//
+	// Geometry (which panel, and where on it) belongs to
+	// RS_PanelHandler; CONTENT (what row that is) belongs to the card,
+	// which this handler owns. Every consumer of "what row is under the
+	// pointer" -- the painter, the confirm netevent, and now the
+	// trigger capture -- comes through here, so the highlight you see,
+	// the row that fires, and the press that is eaten cannot disagree
+	// about which row it was.
+	// -----------------------------------------------------------------
+	int ResolveHotRow(RS_PanelHandler ph, out bool live)
+	{
+		live = false;
+		if (!mCard || !ph || ph.mHotPanel < 0) return -1;
+
+		let c = mCard.CardFor(ph.mHotPanel);
+		if (!c) return -1;
+
+		int row = c.RowAtUV(ph.mHotUV);
+		live = c.RowIsSelectable(row);
+		return row;
+	}
+
+	// Publish it where the trigger capture can see it. That capture runs
+	// in VR_DualClassBase.PlayerThink, which is upstream of every event
+	// handler on this tic (p_tick.cpp:175 vs :178) and has no route to a
+	// card -- so the answer has to be left somewhere it can read.
+	override void WorldTick()
+	{
+		let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
+		if (!ph) return;
+
+		bool live;
+		int row = ResolveHotRow(ph, live);
+		ph.PublishHotRow(row, live);
+	}
+
+	// -----------------------------------------------------------------
 	// Taking the drop. NOT vanilla pickup -- see the file header. The
 	// payload instance is handed to the player intact, with its roll,
 	// its condition and its locks, and the weapon it displaces goes
@@ -369,13 +407,14 @@ class RS_PanelDropHandler : EventHandler
 			if (!mCard) return;
 
 			let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
-			if (!ph || ph.mHotPanel < 0) return;
+			if (!ph) return;
+
+			bool live;
+			int row = ResolveHotRow(ph, live);
+			if (!live) return;
 
 			let c = mCard.CardFor(ph.mHotPanel);
 			if (!c) return;
-
-			int row = c.RowAtUV(ph.mHotUV);
-			if (!c.RowIsSelectable(row)) return;
 
 			// Re-enter NetworkProcess with the row's own command. Sending
 			// the netevent rather than calling the branch directly keeps
@@ -470,13 +509,27 @@ class RS_PanelDropHandler : EventHandler
 
 		let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
 		int hotPanel = ph ? ph.mHotPanel : -1;
-		int hotRow   = -1;
 
-		if (ph && hotPanel >= 0)
-		{
-			let c = mCard.CardFor(hotPanel);
-			if (c) hotRow = c.RowAtUV(ph.mHotUV);
-		}
+		// READ the published row; do not re-resolve it here.
+		//
+		// This used to call RowAtUV itself, and still COULD -- RowAtUV
+		// lives on RS_PanelCard, an unscoped class, so ui may call it,
+		// and reading play fields like mHotUV from ui is legal. What it
+		// cannot do is share ResolveHotRow with the confirm path:
+		// RenderOverlay is `virtual ui void` (events.zs:181) and
+		// StaticEventHandler is `native play` (events.zs:147), so that
+		// resolver is play-only.
+		//
+		// So the choice was two copies of the same lookup or one lookup
+		// published once. Published wins: the highlight is now literally
+		// the number the trigger capture will act on, rather than a
+		// second computation that merely ought to agree with it -- and
+		// "agrees with itself" is the failure mode this project keeps
+		// paying for.
+		//
+		// Nothing is lost by not resolving per frame: mHotUV is solved
+		// in WorldTick, so it only changes per tic regardless.
+		int hotRow = ph ? ph.mHotRow : -1;
 
 		for (int i = 0; i < TRI_COUNT; i++)
 		{

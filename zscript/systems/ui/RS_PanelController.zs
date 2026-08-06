@@ -284,18 +284,41 @@ class RS_PanelHandler : EventHandler
 
 	// Aim resolution, recomputed each tic in play scope and read by the
 	// painter. -1 = the ray is on nothing.
-	// NO mHotRow HERE, deliberately. This handler owns GEOMETRY -- which
-	// panel the ray hit and where on it (mHotUV). It does not own
-	// CONTENT and cannot know what a row is; resolving uv -> row needs
-	// the card, which belongs to whoever built the panel. A mHotRow
-	// field here was dead weight: it existed, and the only value ever
-	// written to it was -1.
+	// This handler owns GEOMETRY -- which panel the ray hit and where on
+	// it (mHotUV). It does not own CONTENT and cannot know what a row
+	// is; resolving uv -> row needs the card, which belongs to whoever
+	// built the panel.
 	int      mHotAssembly;
 	int      mHotPanel;
 	// Which controller is pointing: 0 offhand/left, 1 mainhand/right,
 	// -1 nothing. In flat play this is always 0 (the view ray).
 	int      mHotHand;
 	Vector2  mHotUV;
+
+	// --- published BY the content side, read by the input side --------
+	// These two used to be deliberately absent, on the grounds that a
+	// geometry handler cannot know what a row is and the only value
+	// anything ever wrote was -1. That reasoning held right up until
+	// something needed to press a row: the trigger capture runs in
+	// PlayerThink, where neither the card nor the painter is reachable,
+	// so the row state has to be somewhere it can see.
+	//
+	// It is still not RESOLVED here -- the card owner resolves it and
+	// calls PublishHotRow. This is a letterbox, not a decision.
+	int      mHotRow;
+	bool     mHotRowLive;
+
+	play void PublishHotRow(int row, bool live)
+	{
+		mHotRow     = row;
+		mHotRowLive = live;
+	}
+
+	play void ClearHot()
+	{
+		mHotAssembly = -1; mHotPanel = -1; mHotHand = -1;
+		mHotRow = -1; mHotRowLive = false;
+	}
 
 	// -----------------------------------------------------------------
 	// Registration
@@ -334,7 +357,7 @@ class RS_PanelHandler : EventHandler
 		for (int i = 0; i < mLive.Size(); i++)
 			if (mLive[i]) mLive[i].Destroy();
 		mLive.Clear();
-		mHotAssembly = -1; mHotPanel = -1; mHotHand = -1;
+		ClearHot();
 	}
 
 	// -----------------------------------------------------------------
@@ -364,7 +387,7 @@ class RS_PanelHandler : EventHandler
 	play void SolveAim(PlayerPawn pawn)
 	{
 		mHotAssembly = -1; mHotPanel = -1; mHotHand = -1;
-		if (!pawn) return;
+		if (!pawn) { mHotRow = -1; mHotRowLive = false; return; }
 
 		double best = 1e9;
 
@@ -395,6 +418,70 @@ class RS_PanelHandler : EventHandler
 
 			Vector3 dir = (cos(yaw) * cos(pit), sin(yaw) * cos(pit), -sin(pit));
 			TraceHand(origin, dir, hand, best);
+		}
+
+		// TOUCH BEATS POINTING, so it runs last and overwrites.
+		TracePoke(pawn);
+	}
+
+	// -----------------------------------------------------------------
+	// THE POKE -- the "punchable" half, and the only one of the two
+	// physical routes that is genuinely its own gesture.
+	//
+	// This is a POSITION test, not a ray: is the hand actually in the
+	// panel? Reaching out and putting your hand on a row is a stronger
+	// statement of intent than a ray that happens to graze it from
+	// across the room, so a poke wins outright over both aim rays.
+	//
+	// Tracked hands only. Without OverrideAttackPosDir the "hand"
+	// position is the player's own origin, which would put you
+	// permanently inside any panel you walked through.
+	// -----------------------------------------------------------------
+	play void TracePoke(PlayerPawn pawn)
+	{
+		if (!pawn.OverrideAttackPosDir) return;
+
+		double depth = RS_PanelInput.PokeDepth();
+		if (depth <= 0) return;
+
+		for (int hand = 0; hand < 2; hand++)
+		{
+			Vector3 hp = (hand == 0) ? pawn.OffhandPos : pawn.AttackPos;
+
+			for (int a = 0; a < mLive.Size(); a++)
+			{
+				let asm = mLive[a];
+				if (!asm) continue;
+
+				for (int p = 0; p < asm.Size(); p++)
+				{
+					let pan = asm.Get(p);
+					if (!pan) continue;
+
+					Vector3 local = hp - pan.pos;
+
+					// Distance off the face, signed either way -- a hand
+					// that has punched THROUGH the card is still on it.
+					// Held in a local rather than nested inside abs():
+					// every other `dot` in this file is either its own
+					// statement or explicitly parenthesised, and this is
+					// not the codebase to get clever about precedence in.
+					double off = local dot pan.FaceVec();
+					if (abs(off) > depth) continue;
+
+					double lx = local dot pan.RightVec();
+					double ly = local dot pan.UpVec();
+
+					if (abs(lx) > pan.mWidth  * 0.5) continue;
+					if (abs(ly) > pan.mHeight * 0.5) continue;
+
+					mHotAssembly = a;
+					mHotPanel    = p;
+					mHotHand     = hand;
+					mHotUV       = (lx / pan.mWidth + 0.5, 0.5 - ly / pan.mHeight);
+					return;
+				}
+			}
 		}
 	}
 
@@ -442,12 +529,22 @@ class RS_PanelHandler : EventHandler
 		if (!RS_PanelController.Enabled())
 		{
 			if (mLive.Size() > 0) ClearAll();
+			else ClearHot();
 			return;
 		}
-		if (mLive.Size() == 0) return;
+
+		// A stale hot row is not harmless now that something PRESSES it.
+		// Before the confirm existed these fields were read only by the
+		// painter, which draws nothing when there is no card, so leaving
+		// them set on the way out cost nothing. The trigger capture runs
+		// in PlayerThink and does not know whether a card is up -- so
+		// every path that leaves this function without solving has to
+		// say "nothing is hot" rather than leave the last answer lying
+		// around.
+		if (mLive.Size() == 0) { ClearHot(); return; }
 
 		PlayerPawn pawn = players[consoleplayer].mo;
-		if (!pawn) return;
+		if (!pawn) { ClearHot(); return; }
 
 		// Live view z, not pos.z + a constant. See HeightOfs above.
 		Vector3 eye = (pawn.pos.x, pawn.pos.y, pawn.player.viewz);
