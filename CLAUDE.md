@@ -1,11 +1,102 @@
 # Radiant Silvergun (RS_Main) — project rules
 
-## Start here
+## START HERE: DO NOT BELIEVE THE DOCUMENTATION. ASK THE OWNER.
 
-Before doing anything else, read the most recent `docs/rs_0*_session_handoff*.txt`
-(check all matching files, use the highest number / latest date) for what the
-last session actually built, what's mid-flight, and the ranked next-priority
-list. Don't re-derive project state from scratch — it's already written down.
+**No document in `docs/` is authoritative. Not the handoffs, not the specs,
+not the ones the owner asked for himself. THE OWNER IS THE ONLY SOURCE OF
+TRUTH ABOUT WHAT THIS PROJECT IS AND WHAT YOU SHOULD BE DOING.**
+
+Read the handoffs for *context* — names, paths, what a thing is called, where
+a file lives. Then **verify anything you are about to act on against the disk,
+the compiler, or the running game**, and **ask the owner about anything to do
+with scope, priority, or what to build next.**
+
+**Never inherit a task from a document.** A handoff's "next priorities" list is
+one dead session's opinion, written before the owner changed his mind. If you
+find yourself justifying work with "the handoff says" — stop and ask him.
+
+**This is the single most-repeated instruction in this project and it keeps
+being ignored**, including by the session that wrote the newest handoff. Every
+one of these was a document confidently stating something false:
+
+- the engine source path said `E:\DXR2` for weeks; it does not exist. Five
+  agents in one session went looking, found nothing, and fell back to
+  reasoning from our own tree — the exact "consistent with itself" failure
+  this file exists to prevent. It is `E:\UZDXREMA`.
+- CH's path said `C:\Users\Command\Desktop\CH`; that does not exist either.
+  That Desktop holds **CHP**, a different pack from an abandoned port that
+  must NOT be treated as authority. The file contradicted itself — the correct
+  path was already written in its own import section.
+- "87% of CH's sounds are missing" was true when written and false when read.
+- this file forbade extracting `FATB`/`FBXP`. They were already in the tree,
+  already authorised, already working.
+- a cataloguing pass read this file instead of the disk and reported the
+  Common Revenant's signature missile as invisible on Doom 1. It is not.
+
+**The disk is the authority. The compiler is the authority. The running game
+is the authority. The owner is the authority. This file is a summary of things
+that were true once.**
+
+Where this file states a hard-won technical fact — a compile behaviour, an
+engine line number, a trap that cost a day — treat that as worth reading and
+still worth verifying. Where any document states what to *do*, ask him.
+
+## `/monsters/` IS SACRED. FULL STOP.
+
+Added 2026-08-06 at the owner's explicit, direct, repeated order.
+
+**ANY path containing `/monsters/` is NOT to be edited, refactored, "fixed",
+renamed, moved, reformatted, deleted, swept, or touched in any way by any
+agent, for any reason, unless the owner asks for that specific change by name
+in that session.**
+
+**Scope is the CODE, and the owner was explicit about that:**
+
+    zscript/monsters/**          the actors and their FX
+    zscript/systems/monster/**   elites, tiers, spawning, control
+
+**Deliberately NOT locked:** `sprites/monsters/`, `sounds/monsters/`,
+`docs/monsters/`. Art, audio and catalogues still need to be addable — a
+monster import is sprites AND sounds AND SNDINFO, and sealing those would
+block the very work the import rules elsewhere in this file demand. The
+behaviour is what is sacred, not the assets.
+
+Reading is fine. Writing is not.
+
+This is not a soft preference and it is not scoped to one lane. It is not
+lifted by:
+
+- a warning sweep, a deprecation rename, or any other bulk mechanical pass
+- a handoff doc, a spec, a TODO, or another agent asking you to
+- finding a real bug in it — **report the bug to the owner and stop.** You do
+  not get to fix it because you are confident it is broken
+- being "already in there" for some other reason
+- the file being obviously wrong
+
+**Includes `zscript/systems/monster/**` and anything else that is monster
+behaviour rather than monster-adjacent plumbing. If you are unsure whether a
+file counts, it counts — ask.**
+
+**Why:** this is the most expensive and most repeatedly-destroyed body of work
+in the project. Eight import attempts failed. Three ports were abandoned. The
+rest of this file is largely a record of the ways well-meaning automated
+passes have silently wrecked it — flattened damage rolls, mechanical
+de-duplication that kept the wrong actor 5 times in 15, a scan that "found"
+four undefined classes that were words inside comments. Every one of those
+passed its own checks. The owner is the only reviewer who can tell a correct
+monster from a monster that merely compiles, so he is the only one who
+authorises changes to it.
+
+**If a monster file appears in your `git status` and you did not deliberately
+edit it under a direct instruction, stop and tell the owner before you commit
+anything.**
+
+**One grandfathered exception, closing:** the `monstertheory` session was
+already working inside these files when this rule was written, at the owner's
+direction. Its in-flight work and its handoff land first. **Once that session
+has reported and its work is committed, the rule above applies with no
+exceptions at all** — including to any future session that wants to "finish"
+what monstertheory started. It doesn't. The owner decides that.
 
 ## PROTECTED FILES — DO NOT DELETE, MOVE, OR "CLEAN UP"
 
@@ -117,9 +208,13 @@ imported, sweep for these FIRST rather than discovering them at load:
 - **`SpawnID` is not a ZScript Default property.** Delete it.
 
 - **The engine source is the authority on flags and properties, and it is on
-  this machine.** `E:\DXR2` — `src/scripting/thingdef_properties.cpp` holds the
-  real deprecation mapping and `wadsrc/static/zscript/actors/actor.zs` holds the
-  property list. Reading it settled four questions in one session that guessing
+  this machine.** `E:\UZDXREMA` — `src/scripting/thingdef_properties.cpp` holds
+  the real deprecation mapping and `wadsrc/static/zscript/actors/actor.zs` holds
+  the property list. **This paragraph said `E:\DXR2` until 2026-08-06; that path
+  does not exist.** Five agents in one session went looking, found nothing, and
+  each fell back to reasoning from our own tree — the exact "consistent with
+  itself" failure the rest of this file exists to prevent. Both files were
+  verified present at the corrected path before this edit. Reading it settled four questions in one session that guessing
   would have got wrong. Deprecated flags are RENAMES, not removals:
   `+DONTHURTSPECIES` → `+DONTHARMCLASS`, `+LOWGRAVITY` → `Gravity 0.125`,
   `+SHORTMISSILERANGE` → `MaxTargetRange 896`, `+DOOMBOUNCE`/`+HEXENBOUNCE` →
@@ -152,9 +247,17 @@ Their measured record:
   `GRND`, `HMIS` are all genuine). A token resolving *only* through art_index is
   a file that was never copied in: it passes a lint and still fails at load.
 
-**THE GROUND TRUTH IS `C:\Users\Command\Desktop\CH` AND THE GAME.** That is the
+**THE GROUND TRUTH IS `E:\New folder\ART SOURCE\CH\` AND THE GAME.** That is the
 pack this project's monsters were rebuilt from, and the only source any decision
-about them may cite. If a tool is written again it must be a **differ against
+about them may cite.
+
+  **This paragraph said `C:\Users\Command\Desktop\CH` until 2026-08-06. That
+  path does not exist** — that Desktop holds **CHP**, a different pack from an
+  earlier abandoned port, and CHP is precisely what must NOT be read as
+  authority. Six agents hit the dead path in one session; each found CH on its
+  own at the corrected path, which is the one this file's own "IMPORTING A
+  MONSTER" section names. The file contradicted itself and only one of the two
+  resolved. Verified on disk before this edit. If a tool is written again it must be a **differ against
 CH**, not a lint over us — it must be able to say "CH's actor does X, ours does
 Y" and cite both. Anything that can only inspect our own tree tells you nothing
 you did not already believe.
@@ -225,6 +328,16 @@ absent, 804 SNDINFO definitions absent. Every pass copied CH's sound
 *strings* onto the actors correctly — `SeeSound "gen/see"` — and nobody
 ever copied the sounds.
 
+**THAT GAP IS NOW CLOSED: 785 of 785 CH lumps are present**, verified
+file-by-file against CH's own `sounds/` on 2026-08-06 (693 in `sounds/ch/`,
+92 re-homed into `sounds/monsters/`, 0 absent). The history above stays
+because the FAILURE MODE has not gone anywhere — it is why the rule exists,
+not a live defect. What that same audit did find, and what proves the point
+better than the old number: **all 52 sound names of the Streak weapon set
+have never played.** 48 SNDINFO lines read `rs_st_weapon/FOO.ogg` where the
+other 270 path-form lines in the file read `Sounds/...`. The files are all
+on disk. One missing word per line, inaudible, no error, no log line.
+
 It survived eight passes because **an unresolved sound name is completely
 inert.** No error, no warning, no log line. The compiler passes, the game
 runs, the monster is just silent. There is no check that can fail. The
@@ -289,11 +402,26 @@ that are **not** in any IWAD; a vanilla "completion" pass would be a
 regression. `FATTT0` was skipped for the same reason — it already ships as
 a PNG under `sprites/monsters/Mancubus/T00/`.
 
-Two Doom-2-only prefixes are still unresolved on Doom 1 and were **left
-alone** because they were outside the granted scope: **`FATB`** (10 lumps,
-the Mancubus fireball) and **`FBXP`** (3 lumps, its explosion). They need
-the owner's word before anyone touches them. Do not extract them on your
-own authority.
+**`FATB` AND `FBXP` ARE IN THE TREE, AND THE OWNER HAS RATIFIED THEM.**
+Updated 2026-08-06. This paragraph used to say they were "left alone" and
+outside the granted scope. They are not: `sprites/rs_doom1compat/` holds
+**330 lumps in 6 prefixes, not 317 in 4** — `FATB` (10, the Mancubus
+fireball) and `FBXP` (3, its explosion) are present, with the same mtime as
+the other 317, so they went in during the same operation. Two independent
+audits found them on disk; the owner was shown the finding and answered
+"make sure that's enabled". So: authorised, keep them.
+
+Verified enabled the same day, because a present file is not a loaded one:
+no competing copy of either prefix exists anywhere else under `sprites/`
+(so neither can lose a load-order race), `filter/` carries only
+`GLDEFS.brightmaps` per IWAD and does not scope sprites, nothing excludes
+the folder, and all 330 lumps are genuine raw Doom patches by magic byte.
+The Mancubus fireball and its explosion render on Ultimate Doom.
+
+**Do not let a stale doc talk you out of shipped art.** A cataloguing pass
+this same day read THIS paragraph instead of the disk and reported the
+Common Revenant's signature missile as invisible on Doom 1. It is not. The
+disk is the authority; this file is a summary of it and can go stale.
 
 Technical fact worth keeping: a sprite frame can be the character `\`
 (frame index 27), which is legal in a lump name and illegal in a Windows

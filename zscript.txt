@@ -47,6 +47,14 @@ version "4.14"
 // Projectile / sound / effect database -- see docs/catalog_notes.txt.
 // Weapons reference entries here instead of hardcoding their attacks.
 #include "zscript/systems/weapon/RS_Catalog.zs"
+// RS_PACKCatalog -- THE single source for PACK ingredients, all 8 axes.
+// 409 monster projectiles on axis 1 and the themed fire sounds on axis 5,
+// both generated from zscript/monsters/**; axes 2/4/6/7/8 are passthroughs
+// to RS_Catalog above, so callers only ever touch this one class.
+// Must load AFTER RS_Catalog (it calls into it) and after RS_AttackProfile
+// (ApplyTheme takes one). Ahead of the monster families is fine -- it names
+// their classes as strings, which resolve at spawn, not at compile.
+#include "zscript/systems/weapon/RS_PACKCatalog.zs"
 #include "zscript/systems/weapon/RS_Keywords.zs"
 
 // Predictive-lead-fire utility (ZScript port of the useful half of CH's
@@ -320,6 +328,30 @@ version "4.14"
 // Spinning weapon display stand -- the world prop for in-world UI scenes
 // (drop cards, armory). Test toggle: `netevent rs-showcase`.
 #include "zscript/systems/player/RS_Showcase.zs"
+
+// --- IN-WORLD PANELS -------------------------------------------------
+// The diegetic UI lane: world-oriented textured quads that can be
+// HINGED to each other at arbitrary angles, so a card can be a folding
+// triptych instead of a single flat billboard.
+//
+// Built entirely on stock engine behaviour -- RF_FLATSPRITE composes
+// its quad from the actor's own yaw/pitch/roll with no view vector, and
+// Actor.picnum takes a canvas TextureID as a direct texture override.
+// No engine call is involved and nothing here requires a custom build.
+// A native primitive replaces the BACKEND later for scale and for the
+// aim ray; the API in these files is the one it keeps.
+//
+// RS_PanelHandler and RS_PanelDropHandler must ALSO be listed in
+// MAPINFO.txt's AddEventHandlers -- a name there with no class is a
+// hard crash at map load, and a class with no name there compiles and
+// silently never runs.
+#include "zscript/systems/ui/RS_Panel.zs"
+#include "zscript/systems/ui/RS_PanelCard.zs"
+#include "zscript/systems/ui/RS_PanelController.zs"
+#include "zscript/systems/ui/RS_DropTriptych.zs"
+// The payout the elite system never had. RS_Elite.zs's own header calls
+// the drop "a later step"; this is it.
+#include "zscript/systems/ui/RS_EliteDrop.zs"
 
 // Twin weapon wheel PROOF OF CONCEPT -- disposable; see file header.
 // RS_WheelHandler must also be in MAPINFO's AddEventHandlers.

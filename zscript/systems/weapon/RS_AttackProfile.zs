@@ -116,15 +116,31 @@ class RS_AttackProfile : Object
 	bool   BigMuzzle;           // RS_HiFiFX.MuzzleEffects(self, <this>)
 	double SpawnHeight;         // muzzle offset, heavy profiles
 
-	// --- Player Feedback layer (bullet/hitscan profiles only) ---
+	// --- Player Feedback layer ---
 	// null = use the Sequence's own built-in default (RS_Catalog's
 	// PUFF_Bullet/SPARK_Hit/SMOKE_Wisp/TRAIL_Ballistic entries -- see
 	// RS_BallisticFired's Death: state and Tick()) -- every existing
 	// weapon that doesn't set these keeps firing exactly as it does
-	// today. Set one to actually override it. Heavy-mode profiles don't
-	// use these (their impact damage/splash is already fully catalogued
-	// per projectile class) except ExplosionVisual below, which is
-	// purely cosmetic.
+	// today. Set one to actually override it.
+	//
+	// WHICH MODES READ WHICH -- read off RS_Weapon's dispatch, not assumed.
+	// The split is per SLOT, not per mode, and it falls exactly where gun
+	// identity ends and the shot's own arrival begins:
+	//   MuzzleSmoke    EVERY mode. RS_Weapon:645 sits OUTSIDE the mode
+	//                  branch, alongside FireSound and CasingEject, so a
+	//                  gun keeps its own voice/brass/flash whatever it is
+	//                  firing -- including a monster volley in HEAVY mode.
+	//   ImpactPuff     bullet + hitscan (RS_Weapon:606, :725).
+	//   ImpactSparks   bullet only (:726).
+	//   Trail          bullet only (:727) -- hitscan has no flight.
+	// Heavy skips the three impact slots BY DESIGN: a heavy projectile
+	// owns its own arrival (that is what lets a weapon wear a monster's
+	// attack and keep the monster's impact FX). ExplosionVisual below is
+	// heavy's own cosmetic hook.
+	//
+	// This header previously said "bullet/hitscan only" and that heavy
+	// used none of the four. That was wrong about MuzzleSmoke, and reading
+	// it instead of the dispatch produced a confident wrong conclusion.
 	Class<Actor> ImpactPuff;
 	Class<Actor> ImpactSparks;
 	Class<Actor> MuzzleSmoke;

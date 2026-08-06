@@ -330,7 +330,7 @@ class RS_PortalSummons : RandomSpawner   // CH CYBIES.txt:3535 -- the hell porta
 		DropItem "RS_RedImp", 255, 300;
 		DropItem "RS_RedDemon", 255, 150;
 		DropItem "RS_RedCaco", 255, 50;
-		DropItem "RS_MolochWraith", 255, 800;     // CYBIES family not imported yet
+		DropItem "RS_MolochWraith", 255, 800;     // RS_Cyberdemon.zs:1981 (CH CYBIES.txt:3692)
 	}
 }
 

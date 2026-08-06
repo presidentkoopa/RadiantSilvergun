@@ -120,6 +120,74 @@ class RS_Weapon : Weapon abstract
 		AffixCasing          = "";
 	}
 
+	// -----------------------------------------------------------------
+	// THE GUN'S OWN 8 -- the identity layer (owner ruling, this session).
+	// -----------------------------------------------------------------
+	// rs_05 lists 8 presentation axes and says every one should be a
+	// deliberate choice. Four of them already resolved to something real
+	// when a profile left them blank (projectile/puff/sparks/trail); the
+	// other four resolved to NOTHING -- blank sound meant a silent gun,
+	// blank casing meant no brass, blank smoke meant no smoke.
+	//
+	// Measured before this existed: of 45 weapons that build profiles,
+	// 42 set a fire sound, 19 set a casing, and ZERO set barrel smoke.
+	// So 26 guns ejected nothing when fired and no gun in the arsenal
+	// ever smoked. Worse, a profile ADDED later (a GunBonsai beat, an
+	// affix, a monster attack worn by a weapon) starts blank in all
+	// eight -- so the added shot fired silently off a gun that sounds
+	// fine on its own beat.
+	//
+	// THE RULE: a gun always presents as itself. A shot may ADD to that
+	// or name its own part, but leaving an axis blank can never subtract
+	// the gun's identity. Resolution order, highest first:
+	//
+	//     affix  ->  the shot's own  ->  THE GUN'S  ->  catalog default
+	//
+	// Resolved at FIRE time, not baked in at build time, because affixes
+	// rewrite slots at runtime and GetEffectiveFireSound already works
+	// this way (a sound-choice cvar change takes effect on the next shot,
+	// not on re-equip). ResolveGunAxes() below is the one place it lives.
+	sound        GunFireSound;
+	string       GunCasing;
+	bool         GunBigMuzzle;
+	Class<Actor> GunMuzzleSmoke;
+	Class<Actor> GunImpactPuff;
+	Class<Actor> GunImpactSparks;
+	Class<Actor> GunTrail;
+	// The 8th, ProjectileClass, already lived on the weapon and already
+	// worked exactly this way -- it is the precedent the other seven are
+	// being brought in line with, not a new field.
+
+	// Capture the gun's identity from the beat it SHIPS with, then fill
+	// anything that beat left blank from the catalog. Called once, after
+	// BuildAttackProfiles(), so it reads the weapon's authored intent
+	// rather than whatever an affix later did to slot 0.
+	void CaptureGunAxes()
+	{
+		let own = PrimarySlot ? PrimarySlot.PeekAt(0) : null;
+		if (own)
+		{
+			GunFireSound    = own.FireSound;
+			GunCasing       = own.CasingClass;
+			GunBigMuzzle    = own.BigMuzzle;
+			GunMuzzleSmoke  = own.MuzzleSmoke;
+			GunImpactPuff   = own.ImpactPuff;
+			GunImpactSparks = own.ImpactSparks;
+			GunTrail        = own.Trail;
+		}
+
+		// Brass and barrel smoke only make sense on a gun that fires
+		// rounds. A rocket launcher, a plasma rifle and a fist eject
+		// nothing and smoke from no barrel, so the default is scoped to
+		// the two modes that chamber something -- that is why this reads
+		// the shipping beat's Mode rather than defaulting universally.
+		bool chambers = false;
+		if (own)
+			chambers = (own.Mode == RS_ATK_BULLET || own.Mode == RS_ATK_HITSCAN);
+		if (chambers && GunCasing == "")
+			GunCasing = RS_Catalog.CASING_Small();
+	}
+
 	// --- True semi-auto enforcement ---
 	// A shot marks this true; it only clears once the trigger is
 	// physically released. Fire cannot proceed again until it's false.
@@ -603,7 +671,15 @@ class RS_Weapon : Weapon abstract
 		// helpers the projectile modes use.
 		if (p.Mode == RS_ATK_HITSCAN)
 		{
-			Class<Actor> hitscanPuff = invoker.AffixImpactPuff ? invoker.AffixImpactPuff : p.ImpactPuff;
+			// Same four-rung chain as the other two paths. The final
+			// default was the literal vanilla "bulletpuff" string rather
+			// than the catalog's own entry -- rs_05 flagged that as a real
+			// inconsistency and left it; it is closed here, so hitscan and
+			// bullet impacts now land on the same puff.
+			Class<Actor> hitscanPuff = invoker.AffixImpactPuff;
+			if (!hitscanPuff) hitscanPuff = p.ImpactPuff;
+			if (!hitscanPuff) hitscanPuff = invoker.GunImpactPuff;
+			if (!hitscanPuff) hitscanPuff = RS_Catalog.PUFF_Bullet();
 			if (!hitscanPuff) hitscanPuff = "bulletpuff";
 			if (mods.MasteryFan && pellets > 1)
 			{
@@ -637,16 +713,33 @@ class RS_Weapon : Weapon abstract
 			invoker.RS_FireProfileBullet(self, p, dmg, pellets, spread, mods);
 		}
 
-		if (p.FireSound)
-			A_PlaySound(invoker.GetEffectiveFireSound(p.FireSound), CHAN_WEAPON);
-		// Affix part-precedence: an affix-installed smoke/casing beats the
-		// profile's authored one; the profile's beats the default. Casing
-		// sentinel: AffixCasing "" = no override, "none" = suppress.
-		Class<Actor> fxSmoke = invoker.AffixMuzzleSmoke ? invoker.AffixMuzzleSmoke : p.MuzzleSmoke;
+		// --- THE 8 AXES, RESOLVED --------------------------------------
+		// Precedence, highest first, same on every axis:
+		//     affix  ->  the shot's own  ->  THE GUN'S  ->  catalog default
+		// A blank axis on the shot can never subtract the gun's identity.
+		// Before the gun rung existed, a shot that named no sound fired
+		// SILENTLY and one that named no casing ejected NOTHING -- which
+		// is what every profile added after ship (GunBonsai beats, affix
+		// beats, a monster attack worn by a weapon) looked like.
+		sound fxSound = p.FireSound;
+		if (!fxSound) fxSound = invoker.GunFireSound;
+		if (fxSound)
+			A_PlaySound(invoker.GetEffectiveFireSound(fxSound), CHAN_WEAPON);
+
+		Class<Actor> fxSmoke = invoker.AffixMuzzleSmoke;
+		if (!fxSmoke) fxSmoke = p.MuzzleSmoke;
+		if (!fxSmoke) fxSmoke = invoker.GunMuzzleSmoke;
 		// Worn guns smoke on every shot regardless of tier rules -- the
-		// condition state made audible-visible at the muzzle.
-		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle || invoker.Condition < 50.0, fxSmoke);
+		// condition state made audible-visible at the muzzle. GunBigMuzzle
+		// is OR'd rather than used as a fallback on purpose: the gun's
+		// flash is a FLOOR, so a beat that says nothing still flashes.
+		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle || invoker.GunBigMuzzle || invoker.Condition < 50.0, fxSmoke);
+
+		// Casing sentinel: AffixCasing "" = no override, "none" = suppress
+		// entirely. "none" stays the one deliberate way to eject nothing --
+		// without it, blank and "deliberately empty" are indistinguishable.
 		string fxCasing = p.CasingClass;
+		if (fxCasing == "") fxCasing = invoker.GunCasing;
 		if (invoker.AffixCasing != "")
 			fxCasing = (invoker.AffixCasing ~== "none") ? "" : invoker.AffixCasing;
 		if (fxCasing != "")
@@ -722,9 +815,21 @@ class RS_Weapon : Weapon abstract
 		double vel = Velocity * p.VelocityMult * (mods ? mods.VelMult : 1.0);
 		double crit = CritChance + p.CritBonus;
 
-		Class<Actor> fxPuff  = AffixImpactPuff   ? AffixImpactPuff   : p.ImpactPuff;
-		Class<Actor> fxSpark = AffixImpactSparks ? AffixImpactSparks : p.ImpactSparks;
-		Class<Actor> fxTrail = AffixTrail        ? AffixTrail        : p.Trail;
+		// Same four-rung chain as the dispatch above: affix -> the shot's
+		// own -> the gun's -> the round's built-in default. These three
+		// already ended at a real default (PUFF_Bullet / SPARK_Hit /
+		// TRAIL_Ballistic, inside RS_BallisticFired), so the gun rung is
+		// added here for uniformity across all 8 axes -- a null still
+		// lands on the same default it always did.
+		Class<Actor> fxPuff  = AffixImpactPuff;
+		if (!fxPuff)  fxPuff  = p.ImpactPuff;
+		if (!fxPuff)  fxPuff  = GunImpactPuff;
+		Class<Actor> fxSpark = AffixImpactSparks;
+		if (!fxSpark) fxSpark = p.ImpactSparks;
+		if (!fxSpark) fxSpark = GunImpactSparks;
+		Class<Actor> fxTrail = AffixTrail;
+		if (!fxTrail) fxTrail = p.Trail;
+		if (!fxTrail) fxTrail = GunTrail;
 
 		// PROJECTILE SIZE. Derived from THIS weapon's archetype unless the
 		// profile forces a size, then multiplied by whatever affixes have
@@ -1056,6 +1161,25 @@ class RS_Weapon : Weapon abstract
 	// which keeps climbing from here via normal level-ups.
 	int PromotionDamageBaseline;
 
+	// The "or the initial roll, if never promoted" half of that contract had
+	// no writer -- Promote() was the only thing that ever set it. On a gun
+	// that had never been promoted it stayed 0, so GetDamageCeiling() returned
+	// max(1, 0) == 1, and three things silently broke:
+	//   - the sheet printed "(ceiling 1)"
+	//   - CardDamage/CardHotLoads gate on DamagePerShot < ceiling, so neither
+	//     was ever OFFERED before a first promotion
+	//   - RS_StateLadderBody()'s damage/ceiling ratio pinned at >= 0.90 for any
+	//     damage >= 1, so every unpromoted gun always fired the Peak body and
+	//     the Type1/Hot/Peak ladder never stepped
+	// Called after the roll, which is where DamagePerShot first gets its real
+	// value. Guarded, so it can never overwrite a real Promote() baseline and
+	// is safe to call from both roll sites in either order.
+	void CaptureInitialDamageBaseline()
+	{
+		if (PromotionDamageBaseline <= 0)
+			PromotionDamageBaseline = DamagePerShot;
+	}
+
 	// The Prototype -> Basic sacrifice. See docs/rs_01_promotion_system.txt
 	// for the full worked-out design; this is the locked mechanical core:
 	//   - Tier drops to Basic, sockets go to 0 with it (RS_Roll.SocketsForTier
@@ -1225,6 +1349,7 @@ class RS_Weapon : Weapon abstract
 		// uses, safe to run either order.
 		if (!bStatsRolled)
 			RollStats(VRT_Basic);
+		CaptureInitialDamageBaseline();
 		EnsureAttackProfiles();
 
 		// AmmoType2 is this project's magazine slot (AmmoType1 is reserve).
@@ -1255,6 +1380,9 @@ class RS_Weapon : Weapon abstract
 		PrimarySlot   = RS_AttackSlot(new("RS_AttackSlot"));
 		SecondarySlot = RS_AttackSlot(new("RS_AttackSlot"));
 		BuildAttackProfiles();
+		// Immediately after, and never again: the gun's identity is what
+		// it SHIPPED with, not what an affix later made slot 0.
+		CaptureGunAxes();
 	}
 
 	override void PostBeginPlay()
@@ -1262,6 +1390,7 @@ class RS_Weapon : Weapon abstract
 		Super.PostBeginPlay();
 		if (!bStatsRolled)
 			RollStats(VRT_Basic);
+		CaptureInitialDamageBaseline();
 		if (!ProjectileClass)
 			ProjectileClass = "RS_BallisticType1";
 		if (!HeavyProjectileClass)
