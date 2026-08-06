@@ -23,9 +23,22 @@
 // ("break up the ACS yourself"): RS_SpeedBuffPE -> RS_PESpeedCtl.
 //
 // Dangling / silent by design, verbatim from CH:
-//   * SLGM F and SLGM "\" (white boss's PeekUp/walk frames) -- CH ships
-//     SLGM A-E and G-Z only (Z rides SLGMG0Z0's second half); both frames
-//     are invisible in CH too.
+//   * SLGM F -- RESOLVED 2026-08-06, no longer in this list. It was never
+//     missing: the art sat uncopied at
+//     E:\New folder\ART SOURCE\SPRITES\spectre\SLGMF0^0, a mirrored lump
+//     ("SLGM" + "F0" + "^0") that defines frame F rot 0 AND frame "\" rot 0
+//     -- "^" being GZDoom's on-disk escape for the backslash frame, the same
+//     convention as VILE^1.lmp. It is the only caret-named CH sprite in the
+//     whole tree, which is why every earlier pass missed it: the folder rips
+//     at CH\sprites\trashmon drop it, the extractor-flattening failure
+//     CLAUDE.md already records for the archvile. Copied to
+//     sprites/rs_spectre/SLGMF0^0.png and both walk/PeekUp sites in
+//     RS_Spectre.zs restored to CH verbatim. DO NOT "correct" the "^".
+//   * SLGM "\" (white boss's PeekUp hold) -- the lump above supplies this
+//     frame too, but it is left as a TNT1 hold of equal duration: a quoted
+//     frame string containing an escaped backslash is a PARSE ERROR on this
+//     engine build (the spectre lane hit it). Art is present if anyone finds
+//     a syntax that compiles; the hold is deliberate, not a gap.
 //   * SPG2 G -- RESOLVED 2026-08-06, no longer in this list. It was an SRG2
 //     typo in CH, proven by the twin line in the demon file: Demons.txt:1516
 //     writes `SRG2 G 1 A_SetUserVar("User_Calm",User_Calm == 1)` where

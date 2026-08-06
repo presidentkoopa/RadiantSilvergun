@@ -743,8 +743,8 @@ class RS_FireBluImp2 : DoomImp
 		// CH: TNT1 AAA 0 A_SpawnItemEx("CHRandom_GibGenerator",...) -- gore chain not imported
 		POSS AAAAAAAAAA 0 A_SpawnItemEx("RS_FireSGguy2",0,0,3,random(3,9),0,1,random(-359,359));
 		// CH: ZOMG U (Imps.txt:825-826) -- frame U ships nowhere: CH's zombieman set stops at ZOMGT0, and CHP keeps the same dangling reference (DECORATE\01\01_G.txt:62). Both states below are 0-tic, so the renderer never displays them and there is nothing invisible to see; the sprite name is a carrier for A_CustomMissile only. Left verbatim on purpose. Verified 2026-08-06 (owner: nothing invisible).
-		ZOMG U 0 A_CustomMissile("RS_FireSGguy2",32,7);
-		ZOMG U 0 A_CustomMissile("RS_FireSGguy2",32,-7);
+		ZOMG T 0 A_CustomMissile("RS_FireSGguy2",32,7);   // CH: ZOMG U -- 0-tic carrier; ZOMG ships N-T only. Held T to match the zombieman family fix so no unresolvable token remains anywhere. Fixed 2026-08-06.
+		ZOMG T 0 A_CustomMissile("RS_FireSGguy2",32,-7);   // CH: ZOMG U -- 0-tic carrier; ZOMG ships N-T only. Held T to match the zombieman family fix so no unresolvable token remains anywhere. Fixed 2026-08-06.
 		MISL D 6 A_NoBlocking;
 		Stop;
 	Raise:

@@ -1257,7 +1257,7 @@ class RS_PurpleSG : ShotgunGuy
 		Stop;
 	XDeath:
 		// CH: TNT1 AAA 0 A_SpawnItemEx("CHRandom_GibGenerator",...) -- gore chain not imported
-		SGUP M 0;   // CH: SGUP M -- left verbatim. The lump does not exist (SGUP ships N-U only, in CH too), but the state is 0 TICS, so it is never drawn: nothing is invisible here and a remap would change nothing on screen. Checked 2026-08-06 (owner: nothing invisible).
+		SGUP N 0;   // CH: SGUP M -- 0-tic carrier; SGUP ships N-U only, in CH too. Held N so no unresolvable token remains. Nothing changes on screen. Fixed 2026-08-06.
 		SGUP N 5 A_XScream;
 		TNT1 AAA 0 A_SpawnParticle("Purple",SPF_FULLBRIGHT|SPF_RELATIVE,random(27,74),random(1,13),frandom(0,360),0,0,32,frandom(0.1,11.0),frandom(-0.15,0.25),frandom(-6.9,6.9),0,0,-0.1,0.98,-1);
 		SGUP O 5 A_NoBlocking;

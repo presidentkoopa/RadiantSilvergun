@@ -1034,7 +1034,7 @@ class RS_RedPuff : Actor   // CH thepains.txt:1752
 	States
 	{
 	Spawn:
-		NULL A 3 Bright;   // CH: sprite NULL ships nowhere in CH -- invisible there too, kept verbatim
+		TNT1 A 3 Bright;   // CH: NULL A -- CH ships no NULL lump; the token is its idiom for "draw nothing for a beat" before the real animation (same shape at CYBIES.txt:3915, Imps.txt:2530, thepains.txt:1763). TNT1 is GZDoom the actual null sprite and what the rest of this tree uses. Same tics. Fixed 2026-08-06.
 		RPUF ABCDE 3 Bright;
 		Stop;
 	}
@@ -1180,7 +1180,7 @@ class RS_SkullDeathPE : Actor   // CH thepains.txt:2169
 		MISL B 3 Bright A_SetScale(1.4);
 		MISL C 3 A_SetTranslucent(0.65);
 		MISL D 3 Bright A_Explode(random(10,25),128);
-		MISL E 5 Bright A_Explode(random(10,45),128);
+		MISL D 5 Bright A_Explode(random(10,45),128);   // CH: MISL E -- vanilla MISL ships A-D only (verified in both IWAD lump directories); E is one letter past the end of the rocket explosion. Held D, its last real frame. Tics and actions unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }

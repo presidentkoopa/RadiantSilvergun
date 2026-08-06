@@ -1136,7 +1136,7 @@ class RS_AgauresBallTrail : Actor   // CH Imps.txt:2520
 	States
 	{
 	Spawn:
-		NULL A 1 Bright;
+		TNT1 A 1 Bright;   // CH: NULL A -- CH ships no NULL lump; the token is its idiom for "draw nothing for a beat" before the real animation (same shape at CYBIES.txt:3915, Imps.txt:2530, thepains.txt:1763). TNT1 is GZDoom the actual null sprite and what the rest of this tree uses. Same tics. Fixed 2026-08-06.
 		BLTR ABCDEFF 2 Bright;   // CH: BLTR G -- frame G ships nowhere (CH's blackimp/ and this repo both stop at BLTRF0), so CH's own trail blinks out for its last 2 tics. Repeats F, the darkest/largest frame of the fade, so the tail holds instead of vanishing. Still 7 states / 14 tics. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}

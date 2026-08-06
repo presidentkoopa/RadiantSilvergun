@@ -252,7 +252,7 @@ class RS_DetoPuffCG : Actor   // CH Chaingunners.txt:1820 -- exploding pellet pu
 		MISL BC 4 Bright A_SetScale(0.35);
 	Melee:
 		MISL D 4 Bright A_Explode(random(2,6),42);
-		MISL E 4 Bright;
+		MISL D 4 Bright;   // CH: MISL E -- vanilla MISL ships A-D only (verified in both IWAD lump directories); E is one letter past the end of the rocket explosion. Held D, its last real frame. Tics and actions unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }
@@ -710,7 +710,7 @@ class RS_DetoPuffCG2 : Actor   // CH Shotgunners.txt:1709 -- the sniper mark det
 		Goto Death;
 	Death:
 		MISL D 4 Bright A_Explode(random(12,36),42);
-		MISL E 4 Bright A_Burst("RS_PufFCHBS");
+		MISL D 4 Bright A_Burst("RS_PufFCHBS");   // CH: MISL E -- vanilla MISL ships A-D only (verified in both IWAD lump directories); E is one letter past the end of the rocket explosion. Held D, its last real frame. Tics and actions unchanged. Fixed 2026-08-06 (owner: nothing invisible).
 		Stop;
 	}
 }

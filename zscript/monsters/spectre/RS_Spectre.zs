@@ -3,26 +3,39 @@
 // Source: C:\Users\Command\Desktop\CH\decorate\spectres.txt (1,722 lines,
 // read whole). Every actor cites its CH line. Support: RS_SpectreFX.zs
 // (see its header for the parallel-lane note, the PESPEED rebuild, and the
-// frames/sounds proven silent in CH itself: SLGM "\", Shadow/active,
-// Shadow/pain, Worm/Death, Worm/Hurt).
+// frames/sounds silent in CH itself: SLGM "\", Shadow/active, Shadow/pain,
+// Worm/Death, Worm/Hurt. NOTE: RS_SpectreFX.zs's header still calls SLGM F
+// and SLGM "\" "proven missing"; that is now wrong on both counts and this
+// lane could not edit that file -- see the next block.)
 //
-// RESOLVED 2026-08-06 -- SLGM F -> SLGM E, two sites (RS_WhiteSpectre2 See
-// and PeekUp, CH spectres.txt:1471 and :1491). No SLGMF* lump exists in
-// sprites/rs_spectre, Desktop\CH\sprites or ART SOURCE\CHP\sprites. Both
-// halves of the one mirrored lump were parsed: SLGMG0Z0 defines frame G AND
-// frame Z, which is why Z resolves and F still does not -- the set is A-E,
-// G-Y and Z. Frame F is a genuine gap, not a deliberate blank: this actor
-// hides itself with explicit "TNT1 AA 2 A_Chase" in Walk, and CHP's own
-// CommonWhiteSpectre2 (ART SOURCE\CHP\DECORATE\07\07_W.txt:31) descends
-// "SLGM GFEDCBA 3", placing F squarely between G and E in a continuous
-// animation. Frame heights confirm the reading -- A 11, B 17, C 20, D 25,
-// E 28, F ?, G 31, H 30 px: the slug rising out of the ground. Held E for
-// F's beat rather than anticipating G, which already runs straight into
-// HHH. Frame counts, tic totals and action-call counts are unchanged at
-// both sites. SLGM "\" (frame 27) is a separate gap and is NOT touched --
-// it is handled at its site with TNT1 and a timing comment, because a
-// quoted frame string with an escaped character is a parse error on this
-// engine.
+// STOPGAP 2026-08-06 -- SLGM F -> SLGM E, two sites (RS_WhiteSpectre2 See
+// and PeekUp, CH spectres.txt:1471 and :1491). Held E for F's beat so the
+// slug is not invisible mid-rise; frame counts, tic totals and action-call
+// counts are unchanged at both sites. READ THE NEXT PARAGRAPH BEFORE
+// TOUCHING THESE TWO LINES AGAIN -- this is a stopgap, not the real fix.
+//
+// THE ART EXISTS AND WAS NEVER COPIED IN. The lump is
+//   E:\New folder\ART SOURCE\SPRITES\spectre\SLGMF0^0
+// -- a real 32x31 PNG of the slug, with the extension stripped, sitting
+// exactly between E (33x28) and G (22x31) in the rise. It is a MIRRORED
+// lump: "SLGM" + "F0" + "^0" defines frame F rot 0 AND frame "^" rot 0,
+// and "^" is GZDoom's on-disk escape for the "\" character (frame 27) --
+// see the CLAUDE.md note on VILE^1.lmp. So this ONE file supplies BOTH
+// frames this family has been carrying as "proven missing in CH itself":
+// SLGM F and SLGM "\". It is the only caret-named CH sprite in the whole
+// ART SOURCE tree, which is why every previous pass missed it -- the
+// folder rips at CH\sprites\trashmon and CHP\sprites\dem&spec both drop
+// it, the same extractor failure CLAUDE.md records for the archvile's
+// "\" frames.
+//
+// THE REAL FIX, when the owner clears it -- copy that one file to
+//   E:\RS_Main\sprites\rs_spectre\SLGMF0^0.png
+// (byte copy; do NOT "correct" the ^ to a backslash), then revert both
+// sites to CH verbatim -- "SLGM ABCDEFGHHHVWXY 4 A_Chase" and
+// "SLGM ABCDEFG 4" -- and revert the TNT1 placeholder in PeekUp below to
+// CH's "SLGM \ 5". That last one still needs care: a quoted frame string
+// with an escaped character is a parse error on this engine, so use an
+// unquoted single backslash frame or keep the TNT1 timing hold.
 //
 // RESOLVED 2026-08-06 -- SPG2 -> SRG2 (RS_YellowSpectre Melee, below).
 // CH spectres.txt:881 is the only SPG2 reference in the whole CH tree and no
@@ -1371,7 +1384,7 @@ class RS_WhiteSpectre2 : Actor
 		TNT1 A 0 A_JumpIfInventory("RS_RiseCheck",1,"Walk");
 		TNT1 A 0 A_GiveInventory("RS_RiseCheck",1);
 		TNT1 A 0 A_UnsetInvulnerable;
-		SLGM ABCDEEGHHHVWXY 4 A_Chase;   // CH: SLGM F -- no SLGMF* lump in sprites/rs_spectre, Desktop\CH\sprites or ART SOURCE\CHP\sprites; the set is A-E, G-Y plus Z (mirrored on SLGMG0Z0), so F rendered nothing in CH. A-H is the slug rising (heights 11,17,20,25,28,?,31,30), so F is one beat between E and G; held E rather than anticipate G, which already runs into HHH. 14 frames, 56 tics, 14 A_Chase calls unchanged. Fixed 2026-08-06 (owner: nothing invisible).
+		SLGM ABCDEFGHHHVWXY 4 A_Chase;   // CH verbatim, RESTORED 2026-08-06: the art was found uncopied at ART SOURCE\SPRITES\spectre\SLGMF0^0 and is now in sprites/rs_spectre/. See header.
 		Loop;
 	Walk:
 		TNT1 A 0 A_SetInvulnerable;
@@ -1391,12 +1404,18 @@ class RS_WhiteSpectre2 : Actor
 		TNT1 A 0 A_UnsetInvulnerable;
 		TNT1 A 0 A_SetSpeed(8);
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH11",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
-		SLGM ABCDEEG 4;   // CH: SLGM F -- frame absent from every CH/CHP tree (set is A-E, G-Y, Z); held E for F's beat in the same rise. 7 frames, 28 tics unchanged. Fixed 2026-08-06 (owner: nothing invisible).
+		SLGM ABCDEFG 4;   // CH verbatim, RESTORED 2026-08-06: art found and copied in. See header.
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH11",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
 		SLGM HZ 5;
-		TNT1 A 5;   // CH: SLGM \ 5 -- the backslash frame ships nowhere in CH (see
-		            // header), so CH renders nothing here too; the quoted "\\" form
-		            // was a parse error on this engine, this keeps the 5-tic timing
+		TNT1 A 5;   // CH: SLGM \ 5 -- no lump for frame 27 SHIPS anywhere, so CH
+		            // renders nothing here too; the quoted "\\" form was a parse
+		            // error on this engine, and this keeps the 5-tic timing.
+		            // CORRECTED 2026-08-06: the art is not missing, only
+		            // uncopied -- ART SOURCE\SPRITES\spectre\SLGMF0^0 is a
+		            // mirrored lump defining frame F rot 0 AND frame ^ rot 0,
+		            // and ^ is GZDoom's on-disk escape for \. Copy that one
+		            // file into sprites/rs_spectre/ and this hold plus the two
+		            // SLGM F stopgaps above all become CH verbatim. See header.
 		TNT1 A 0 A_SpawnItemEx("RS_ColorTierIconCH11",0,0,32,random(1,4),0,random(0,2),random(0,359),SXF_NOCHECKPOSITION);
 		SLGM ZH 5;
 		SLGM VWXY 4;

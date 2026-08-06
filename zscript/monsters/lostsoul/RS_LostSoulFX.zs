@@ -77,11 +77,11 @@
 //
 // ---------------------------------------------------------------------------
 // PROVEN MISSING IN CH ITSELF (verbatim silence kept, no substitution):
-//   * Sprite SBSI (RS_Homer1 Spawn, Revenants.txt:2546): no SBSI* lump in
-//     either CH tree; zero-tic state, never rendered. CH typo for SBS1.
-//   * Sprite RMGG (RS_ArchRingHelp See, Archviles.txt:3302-3308): no RMGG*
-//     lump in either CH tree; zero-tic states, never rendered. CH typo
-//     for RNGG.
+//   * Sprite SBSI and sprite RMGG -- RESOLVED 2026-08-06, no longer in this
+//     list. Both were CH typos with the real prefix already shipping (SBS1
+//     and RNGG respectively), and both were corrected at their sites that
+//     day under the owner's standing ruling that nothing renders invisible.
+//     CH's originals are preserved as "// CH:" comments at each line.
 //   * Sound ILLSHEAR (RS_IllHKGhost* SeeSound): CH SNDINFO's
 //     $random ILLSHEAR { ILLSHEA1 ILLSHEA2 } names two lumps but CH ships
 //     only ILLSHEA1.ogg -- half the roll is silent in CH itself. Our
