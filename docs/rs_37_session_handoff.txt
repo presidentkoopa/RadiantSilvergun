@@ -175,6 +175,60 @@ Not an option. It splits three ways:
 
 
 ---------------------------------------------------------------------
+5b. *** OPEN: A MERGE NEARLY SHIPPED A SILENT DEFECT. AUDIT NEEDED. ***
+---------------------------------------------------------------------
+
+Merge `54f3036b` brought the panel-interaction branch into a `main`
+that a different session had edited in the SAME functions.
+
+In one hunk the incoming branch had REPLACED
+
+    pawn.player.PendingWeapon = w;
+
+with
+
+    RS_PanelInput.Say(pawn, "misc/w_pkup");
+
+Taken as offered, accepting an elite drop would have PLAYED THE PICKUP
+SOUND AND DONE NOTHING -- the weapon joins inventory and never reaches
+your hand. It compiles. It loads. It sounds right. The only symptom is
+that the button appears dead.
+
+Caught and both sides kept. A second hunk had the branch narrowing a
+fist check from IsRealFist() to a bare `is "VR_Fist"`, which also
+rejects VR_Fist2 -- the empty-slot filler, i.e. the one case where the
+take definitely works. Also caught.
+
+*** THE POINT IS NOT THOSE TWO. IT IS WHY THEY WERE FOUND. ***
+
+Git stopped and asked in three places, so three places got read.
+EVERYTHING GIT AUTO-MERGED WITHOUT A CONFLICT, NOBODY READ AT ALL.
+Two branches editing the same functions, and git resolves
+non-overlapping edits silently -- if one side removes a line the other
+depends on and the edits do not literally collide, there is no marker,
+no error, and no symptom except missing behaviour.
+
+WHAT AN AUDIT SHOULD DO, when someone gets to it:
+  * diff BOTH parents against the result --
+    `git diff 54f3036b^1 54f3036b` and `... ^2 ...` -- anything present
+    in a parent and absent from the merge is a candidate loss
+  * the pattern to hunt is a REPLACEMENT THAT LOOKS EQUIVALENT: a sound
+    instead of a state write, a log line instead of an action, an early
+    return instead of a fallthrough, a narrowed type test
+  * THE TAKE PATH MATTERS MOST. netevent -> hand resolution -> fist
+    reject -> mPayload = null -> flag clear -> AttachToOwner ->
+    PendingWeapon -> DropCard(). Any missing step fails silently and
+    reads as a dead button.
+  * same check on the other merges of 2026-08-06: 2c16d29a, de4640c8,
+    208e3f44, and the engine-side merges in E:\UZDXREMA
+
+RELATED, SAME DISEASE: `RS_ElitePackage.zs` and
+`sprites/pickups/elitedrop/` FAILED TO STAGE in commit 2c16d29a while
+that commit REPORTED SUCCESS. Caught only because a later merge refused
+to run against a dirty tree -- nothing was checking. Assume `git commit`
+reporting success does not mean your files are in it.
+
+---------------------------------------------------------------------
 6. WHAT ACTUALLY NEEDS DOING NEXT
 ---------------------------------------------------------------------
 
