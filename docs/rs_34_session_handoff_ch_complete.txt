@@ -1,0 +1,148 @@
+================================================================================
+   RS_34 -- SESSION HANDOFF, 2026-08-06
+   The CH monster import is FINISHED. Seventeen families, compiles, boots,
+   plays. Eleven prior attempts did not get here.
+   Also: Reserve Squads shipped, Monster Control Center built, the ballistic
+   round got its trail. Ends with a starter for the billboard design work,
+   which is where the next session begins.
+================================================================================
+
+WHAT SHIPPED, AND WHERE IT IS
+--------------------------------------------------------------------------------
+Three commits on main: 9e039812, 4065117f, 374b3f9a. Tree clean, pushed.
+
+  * SEVENTEEN OF SEVENTEEN CH FAMILIES, native, wired, verified.
+    ~2130 classes across zscript/monsters/<family>/, plus zscript/monsters/
+    chshared/ (CH's top-level DECORATE.txt, the file no family pass ever
+    read -- 51 classes, including the dormant bonus/ambush machinery kept
+    inert exactly as CH has it).
+  * DOOM 1 SUPPORT. Ten families drew sprites that exist only in doom2.wad,
+    so on doom.wad those monsters spawned, moved, killed you, and rendered
+    NOTHING. 330 lumps extracted byte-for-byte from the owner's own IWAD
+    into sprites/rs_doom1compat/ under an explicit one-time authorisation
+    recorded in CLAUDE.md. Read that note before touching it.
+  * RS_ReserveSquads (zscript/monsters/RS_ReserveSquads.zs). Ambient
+    reinforcement director. SHIPS OFF; flip rs_reserve_enabled and it runs
+    on its own -- no calls, no setup. 21 cvars, 4 debug netevents, plus a
+    Deploy() API as a second door for SetPiece later.
+  * MONSTER CONTROL CENTER (MENUDEF). One door replacing three top-level
+    entries. Includes the first UI the Elite system has ever had: 27 cvars
+    that were declared, read by live code, and unreachable by a player.
+  * LAYERED BULLET TRAIL on RS_BallisticFired, inherited by all 16
+    subclasses. Six lines, no new actors.
+
+THINGS THAT WERE SILENTLY BROKEN AND ARE NOT ANY MORE
+--------------------------------------------------------------------------------
+Every one of these passed every check in the repo while being wrong. That is
+the pattern worth remembering, not the individual fixes.
+
+  * TWO SOUNDS HAD NEVER PLAYED. bonsai/gunlevelup pointed at a path with no
+    file extension; rs_allclear_ready pointed at a directory that does not
+    exist. An unresolved sound in GZDoom is COMPLETELY INERT -- no error, no
+    warning, no log line. The second one is the cadence "ready to fire" beep,
+    i.e. the Plasma Rifle prototype for the arsenal-wide tell. Inaudible
+    since the day it was written.
+  * A SOUND FILE WAS SITTING IN THE SPRITES FOLDER. WASPSPLT.lmp, byte-
+    identical to the real one in sounds/ch/. Its 8-char name parsed as
+    sprite WASP frame S rotation P -- an invalid rotation -- corrupting the
+    frame table of a live monster.
+  * THE COMMON CYBERDEMON FIRED NOTHING. Its missile frame called an ACS
+    lead-shot solver we do not have. Reading CH's own ACS SOURCE (which
+    ships in CH\source\, next to the compiled .o the import worked from)
+    showed the solver has a bug: `if(rand){ random(1, sml_t); }` discards
+    the result, so lead time stays 0 and the shot collapses onto the
+    target's current position. CH's cyberdemon does not lead. A plain aimed
+    rocket is FAITHFUL, not a substitution.
+  * ~30 SPRITE PREFIXES referenced art that does not exist -- in CH as well
+    as here. Resolved with evidence: SGRN->HGRN (only *GRN* art in CH, and
+    it is a grenade sprite), SPG2->SRG2 (a twin line in the demon file
+    proves the spectre file is a copy that mistyped one character),
+    VBAL->CBAL (all 152 CBAL references start at frame C, orphaning A and
+    B -- exactly the residue one misspelling leaves), BRUR O-W (a 23-frame
+    list copy-pasted onto a 14-frame sprite), plus a dozen single-character
+    slips. SLGM F turned out never to have been missing at all: the art sat
+    uncopied in ART SOURCE under a caret-escaped filename.
+
+THE TWO DELIBERATE DEPARTURES FROM CH
+--------------------------------------------------------------------------------
+Both are the owner's rulings. DO NOT "correct" either back; both are
+documented at their sites with the full derivation.
+
+  1. THE HELL KNIGHT LEADS ITS SHOTS. CH's does not, but only because of the
+     discarded-random bug above, which its baron and lost souls escape by
+     passing a different argument. The asymmetry is a typo, not a design.
+  2. SPRY -> BAL1 on the red demon's blood spray. The art exists in neither
+     CH nor CHP; CH's three other blood bolts all draw BAL1, so this one now
+     matches its own family instead of rendering nothing.
+
+(A third, older ruling stands: GrayPE2's healed GrayDemon2 -> RS_GreyDemon2.)
+
+RULES THAT CHANGED
+--------------------------------------------------------------------------------
+  * CLAUDE.md's ground-truth paragraph named a DIFFERENT, MUCH LARGER PACK
+    as authoritative -- left over from earlier abandoned ports. THIS PROJECT
+    DOES NOT CONTAIN THAT PACK AND NEVER HAS. That instruction sent several
+    agents to read it as a source of truth before the owner caught it. It is
+    removed. CH and the running game are the only sources. Do not reinstate
+    it, and do not justify an edit with any other source.
+  * The Doom 1 extraction exception is recorded in CLAUDE.md. It is scoped to
+    four prefixes plus two later ones and is not licence to extract anything
+    else.
+
+WHAT IS BUILT BUT UNTESTED
+--------------------------------------------------------------------------------
+  * RESERVE SQUADS HAS NEVER BEEN FIRED. Monster Control Center -> Spawn
+    Lineups & Elites has four buttons that work even while the system is off.
+    Feel the timing and the arrival before deciding whether to leave it on.
+  * The Elites page is new. 27 settings, never seen by a player.
+  * The bullet trail is on by default with no cvar. If it is too dense on a
+    chaingun volley, rs_fx_hifitier is where a budget belongs.
+
+STILL OPEN
+--------------------------------------------------------------------------------
+  * 256 deprecation warnings that CANNOT be fixed. MISSILEMORE,
+    MISSILEEVENMORE and SHORTMISSILERANGE set native fields with no Property
+    binding, so the deprecated flag is the only declarative way to set them.
+    Verified in the engine's own actor.zs. Cosmetic; behaviour is correct.
+    Do not "fix" these by moving 256 declarations into PostBeginPlay.
+  * Three CH drop names are declared nowhere in CH at all: SchoolGirlTG,
+    VoidOrb (built as an RS hazard instead, at the owner's direction),
+    FinallyFullyCovered. Itemised at their sites. Permanently unresolvable.
+  * IFN2 C/F and SMT1 O remain unresolved and are proven inert -- all 0-tic
+    or dead code.
+
+--------------------------------------------------------------------------------
+NEXT SESSION STARTS HERE: BILLBOARD DESIGN
+--------------------------------------------------------------------------------
+
+The in-world card works. It draws, it faces the player, and the compositor
+paints a canvas texture (RSCARDA) every frame in RS_UIHandler.RenderOverlay
+(zscript/systems/player/rs_ui.zs), which an engine billboard displays via
+AttachBillboard on the spinning showcase stand at rs_ui.zs:652. Three faults
+the owner reported from actually wearing the headset: it sits TOO HIGH and
+needs to come down to HMD level; it renders BACKWARDS, i.e. it turns to face
+you but its content is mirrored; and the card's design and the information it
+presents are both first-draft and need workshopping rather than patching. The
+height is two constants at the attach site (offset 56, size 44). The mirroring
+is almost certainly a facing-normal or UV-winding sign error in the
+orientation math rather than a canvas problem, because the text composites
+correctly before it is handed to the billboard -- so look at the vector built
+from the player's view, and at whether AttachBillboard expects a normal that
+is being handed to it inverted.
+
+The design conversation is the bigger half, and it should not start from the
+current card. The real question is what an in-world panel is FOR in a game
+played in VR, given a HUD already exists: a thing you lean toward and read is
+a different instrument from a thing pinned to your face, and it earns its
+place only by carrying what the HUD cannot -- comparison, history, or a
+choice to make. The engine surface is already broad (payloads for panel,
+texture, digits, glyph, ring and bar; a colour palette; AimBillboard returning
+a hit and a UV, which is what makes a panel clickable), so the constraint is
+taste rather than capability. Worth deciding early: how many panels may exist
+at once, whether they are summoned or ambient, whether they follow the player
+or stay where they are put, and what happens to one you walk away from. The
+owner's next objectives after the card, in his order, are: make panels
+clickable via AimBillboard uv -> row -> netevent; a drop triptych comparing a
+dropped weapon against both held weapons with per-row diffs; a wheel skin with
+fixed slots, ammo digits and magazine rings; and affix controls in-world.
+================================================================================
