@@ -73,7 +73,26 @@ class RS_WeaponDrop : Actor
 		// so you can still tell a shotgun from a revolver across a room
 		// -- and takes a luminance-preserving tier tint on top of it.
 		// Only its pickup behaviour is removed, not its visibility.
+		//
+		// THE FLAG IS NOT OPTIONAL. This is a world spawn of a real
+		// RS_Weapon, so it goes through WorldThingSpawned like any floor
+		// pickup -- which means RS_ClassGating destroys it outright when its
+		// family does not match the player's class, and Vanilla+ may swap it
+		// for something else. On a Dual_X class that silently ate four of
+		// the six possible drops INSIDE this Spawn call: w came back null,
+		// mPayload stayed null, and the pedestal deleted itself on its next
+		// tic, leaving a Clip on the floor where the drop should have been.
+		// The pedestal design dodges the two PICKUP traps; it never dodged
+		// this one, which fires at spawn.
+		let dh = RS_PanelDropHandler(EventHandler.Find("RS_PanelDropHandler"));
+		if (dh) dh.mSpawningDrop = true;
+
 		let w = Weapon(Actor.Spawn(what, where));
+
+		// Cleared immediately and unconditionally -- the exempt window is
+		// exactly this one Spawn, so nothing can ride through behind it.
+		if (dh) dh.mSpawningDrop = false;
+
 		if (w)
 		{
 			w.bSpecial       = false;
@@ -193,7 +212,19 @@ class RS_PanelDropHandler : EventHandler
 {
 	RS_DropTriptych mCard;
 	RS_WeaponDrop   mCardOwner;
+
+	// PLAY, and it must stay play: PaintBeamTexture writes it, and that
+	// painter is called from WorldThingDied (play), not from RenderOverlay.
+	// Marking either of them `ui` breaks the pair -- a ui function cannot
+	// write a play field, and a play context cannot call a ui function.
 	bool            mBeamPainted;
+
+	// Set only for the duration of the payload's Spawn call in
+	// RS_WeaponDrop.Create, and read by RS_ClassGating.WorldThingSpawned so
+	// class gating and Vanilla+ leave an elite drop alone. It lives here
+	// because ZScript has no mutable statics; play scope is correct because
+	// both the writer and the reader are play.
+	bool            mSpawningDrop;
 
 	// The six RS class weapons.
 	//
@@ -251,24 +282,95 @@ class RS_PanelDropHandler : EventHandler
 		// was never a decision -- just a question nobody asked.
 		if (random[RSDrop](1, 100) > RS_PanelController.DropChance()) return;
 
-		int tier = RollDropTier();
+		// The ceiling is per-player, so the roll needs the pawn. Player 0
+		// deliberately, matching the rest of this handler's single-player
+		// assumptions -- flagged rather than hidden.
+		int tier = RollDropTier(players[0].mo);
 		int which = random[RSDrop](0, 5);
 
 		Vector3 where = (e.Thing.pos.x, e.Thing.pos.y, e.Thing.pos.z + 8);
 		RS_WeaponDrop.Create(where, ClassWeapon(which), tier);
 	}
 
-	// Tier weighting. Deliberately conservative: the ladder exists, but
-	// the top of it should feel like an event rather than a Tuesday.
-	static int RollDropTier()
+	// -----------------------------------------------------------------
+	// HOW MANY OF THE SIX CLASS WEAPONS THIS PLAYER HAS FOUND.
+	//
+	// Ownership, not what is in your hands -- you only carry two at a
+	// time, so "holding" would be a meaningless test. FindInventory
+	// answers for the whole inventory.
+	// -----------------------------------------------------------------
+	static int ArsenalCount(PlayerPawn pawn)
 	{
-		int r = random[RSDropTier](1, 100);
-		if (r <= 30) return VRT_Basic;
-		if (r <= 60) return VRT_Common;
-		if (r <= 80) return VRT_Uncommon;
-		if (r <= 92) return VRT_Advanced;
-		if (r <= 98) return VRT_Designer;
-		return VRT_Prototype;
+		if (!pawn) return 0;
+		int n = 0;
+		for (int i = 0; i < 6; i++)
+		{
+			let c = ClassWeapon(i);
+			if (c && pawn.FindInventory(c)) n++;
+		}
+		return n;
+	}
+
+	// -----------------------------------------------------------------
+	// THE CEILING RISES WITH THE ARSENAL. The floor never moves.
+	//
+	// rs_00's original rule was a CLIFF -- only Cursed/Trash/Basic until
+	// all six are found, then the whole ladder at once. That enforced
+	// hunting the guns, which is right, but nothing changed for four
+	// kills and then everything changed in one step; and a player unlucky
+	// at finding weapons had no way to influence it.
+	//
+	// Shifting the ODDS instead would fix the cliff and be invisible --
+	// 30% becoming 35% is not something a player can perceive over the
+	// handful of drops they will actually see. They would just conclude
+	// loot is random.
+	//
+	// So each weapon found unlocks a TIER, which the player can see
+	// happen:
+	//
+	//     2 owned -> Basic        (the start: two class weapons)
+	//     3       -> Common
+	//     4       -> Uncommon
+	//     5       -> Advanced
+	//     6       -> Prototype    (completing the set unlocks the top)
+	//
+	// THE POOL WIDENS, IT DOES NOT SLIDE. The floor stays Cursed at every
+	// stage on purpose. Per rs_00 those bottom tiers are not merely
+	// "bad": a Cursed weapon is powerful with its stats locked behind
+	// individual curses, and Trash has the small "Trash to Treasure"
+	// chance of an exceptional roll. Both stay interesting forever, so a
+	// Prototype-capable player still finding a Cursed is a gamble rather
+	// than a disappointment.
+	//
+	// Knock-on that falls out for free: rs_00 gives Cursed/Trash/Basic no
+	// GunBonsai sockets. Under a rising ceiling that stops being a phase
+	// of the game and becomes a permanent property -- the bottom three
+	// tiers are stat-only, always.
+	// -----------------------------------------------------------------
+	static int TierCeiling(int owned)
+	{
+		if (owned >= 6) return VRT_Prototype;
+		if (owned == 5) return VRT_Advanced;
+		if (owned == 4) return VRT_Uncommon;
+		if (owned == 3) return VRT_Common;
+		return VRT_Basic;               // 0-2 owned: the starting window
+	}
+
+	// Weighted toward the bottom of whatever window is open, so the top
+	// of the ladder stays an event rather than a Tuesday. Rolling a
+	// position in the window rather than a fixed table means the same
+	// curve applies however wide the window is.
+	static int RollDropTier(PlayerPawn pawn)
+	{
+		int top = TierCeiling(ArsenalCount(pawn));
+		int span = top - VRT_Cursed;          // 2 at the start, 7 complete
+
+		// Two rolls, lower kept. A clean triangular bias to the floor --
+		// no table to keep in step with the tier enum, and it degrades
+		// correctly at span 0.
+		int a = random[RSDropTier](0, span);
+		int b = random[RSDropTier](0, span);
+		return VRT_Cursed + min(a, b);
 	}
 
 	// -----------------------------------------------------------------
@@ -408,9 +510,15 @@ class RS_PanelDropHandler : EventHandler
 
 			// Fists never take a class weapon -- the card says so and
 			// the netevent honours it, so the two cannot disagree.
+			//
+			// VR_Fist2 IS NOT A FIST FOR THIS PURPOSE. It is the empty-slot
+			// filler every class grants at spawn, and RS_Weapon.AttachToOwner
+			// treats it as "slot is free" (RS_Weapon.zs:1334). Blocking on
+			// plain `is "VR_Fist"` blocked VR_Fist2 too -- which is the one
+			// case where the take would definitely have worked.
 			Weapon held = toOffhand ? pawn.player.OffhandWeapon
 			                        : pawn.player.ReadyWeapon;
-			if (held is "VR_Fist") return;
+			if (RS_DropTriptych.IsRealFist(held)) return;
 
 			mCardOwner.mPayload = null;
 
@@ -418,6 +526,30 @@ class RS_PanelDropHandler : EventHandler
 			w.bNoInteraction = false;
 			w.bOffhandWeapon = toOffhand;
 			w.AttachToOwner(pawn);
+
+			// SEATING IS EXPLICIT, AND THAT IS THE WHOLE POINT OF THE ROW.
+			//
+			// AttachToOwner alone is not a take. It only seats the offhand
+			// when that slot is empty or holds the VR_Fist2 filler
+			// (RS_Weapon.zs:1334), and it never touches the mainhand at all
+			// -- so with a real weapon in the hand you pointed at, which is
+			// the normal case, the drop silently joined inventory, the card
+			// and the pedestal vanished, and your hands were unchanged. The
+			// take appeared to succeed and did nothing.
+			//
+			// PendingWeapon, not a direct OffhandWeapon/ReadyWeapon write:
+			// CheckWeaponChange reads PendingWeapon.bOffhandWeapon to pick
+			// the hand (player.zs:514) and then lowers and raises properly.
+			// Assigning the slot by hand would teleport the gun into view
+			// and leave WeaponState out of step.
+			//
+			// It is also why this is a PendingWeapon and not A_SelectWeapon,
+			// which the wheel uses: A_SelectWeapon resolves by CLASS through
+			// FindInventory, and if the player already owns a weapon of this
+			// class it would raise THAT one and leave the rolled drop -- the
+			// entire reason the card exists -- sitting unused in inventory.
+			// Seating the instance is the only correct move here.
+			pawn.player.PendingWeapon = w;
 
 			DropCard();
 		}
@@ -430,7 +562,7 @@ class RS_PanelDropHandler : EventHandler
 			// Dev harness: drop a rolled class weapon in front of you
 			// without needing an elite. `netevent rs-panel-test <tier>`
 			int tier = evt.args[0];
-			if (tier < 0 || tier > 7) tier = RollDropTier();
+			if (tier < 0 || tier > 7) tier = RollDropTier(pawn);
 			Vector3 spot = pawn.Vec3Angle(96, pawn.angle);
 			spot.z = pawn.pos.z + 16;
 			RS_WeaponDrop.Create(spot, ClassWeapon(random[RSDrop](0, 5)), tier);
@@ -495,11 +627,21 @@ class RS_PanelDropHandler : EventHandler
 	// it dies out around eye level instead of ending in a hard edge.
 	// Squaring the fade keeps it bright near the object and makes the
 	// last third almost vapour.
-	// NOT `ui`. Canvas is `class Canvas : Object native abstract` with
-	// unscoped methods (base.zs:529) and TexMan.GetCanvas is a plain static
-	// (base.zs:332) -- painting a canvas needs no ui context at all. Marking
-	// this `ui` only made mBeamPainted (a play field) read-only to it, which
-	// is the "Expression must be a modifiable value" on the write below.
+	// PLAY, AND CALLED FROM WorldThingDied -- NOT FROM RenderOverlay.
+	//
+	// This is a scope pair and there is no third option. An unscoped method
+	// in a class descending from `StaticEventHandler : Object native play`
+	// is a PLAY function, and RenderOverlay is `virtual ui` (events.zs:181)
+	// -- an override with no qualifier inherits that ui scope
+	// (zcc_compile.cpp:2841). So calling this from RenderOverlay is "Can't
+	// call play function ... from ui context" (scopebarrier.cpp:204), and
+	// marking it `ui` to fix that makes the mBeamPainted write below fail
+	// instead, because ui cannot write a play field. An earlier pass tried
+	// both halves in turn and traded one error for the other.
+	//
+	// The way out is not a scope keyword, it is the call site: this is a
+	// one-time texture write, not per-frame work, so it belongs in play
+	// where its flag already lives. Do not move it back into the painter.
 	void PaintBeamTexture()
 	{
 		if (mBeamPainted) return;
