@@ -110,6 +110,54 @@ class RS_PanelInput play
 		return cv ? cv.GetFloat() : 6.0;
 	}
 
+	// How hard a hand must drive INTO a panel to count as a punch rather
+	// than a hand that happens to be resting there. Map units of travel
+	// per tic, measured along the face normal. 0 disables the punch and
+	// leaves the poke as highlight-only.
+	//
+	// 1.5/tic is ~52 units/sec, which is a deliberate jab and not a
+	// drift. Resting-hand jitter does not reach it.
+	static double PunchSpeed()
+	{
+		let cv = CVar.FindCVar("rs_panel_punch");
+		return cv ? cv.GetFloat() : 1.5;
+	}
+
+	static bool SoundsEnabled()
+	{
+		let cv = CVar.FindCVar("rs_panel_sound");
+		return cv ? cv.GetBool() : true;
+	}
+
+	// -----------------------------------------------------------------
+	// THE PANEL'S VOICE.
+	//
+	// Named here rather than spelled at each call site so the whole
+	// vocabulary is auditable in one place -- which matters more than
+	// usual, because an unresolved sound name in this engine is
+	// COMPLETELY INERT. No error, no warning, no log line; the panel
+	// just goes quiet and there is no check that can fail. Every name
+	// below was verified against the engine's own
+	// filter/game-doomchex/sndinfo.txt before being used:
+	//
+	//   menu/cursor    :442  dspstop    row change under the pointer
+	//   menu/activate  :439  dsswtchn   a press registered
+	//   menu/invalid   :444  dsoof      refused, nothing happened
+	//   menu/clear     :447  dsswtchx   card dismissed
+	//   misc/w_pkup    :418  dswpnup    the drop is now in your hand
+	//
+	// menu/choose was deliberately NOT used for the confirm even though
+	// it is the conventional menu-accept sound: it maps to dspistol, and
+	// a gunshot is precisely the thing this button is suppressing.
+	// -----------------------------------------------------------------
+	// `sound`, not `Name` -- A_StartSound takes a `sound` (actor.zs:1194)
+	// and that is the type a string literal converts to at a call site.
+	static void Say(PlayerPawn pawn, sound snd)
+	{
+		if (!pawn || !SoundsEnabled()) return;
+		pawn.A_StartSound(snd);
+	}
+
 	// THE HAND THAT POINTS IS THE HAND THAT PRESSES. Offhand rows are
 	// confirmed with the offhand trigger, mainhand rows with the main
 	// trigger -- so the gesture that selects and the gesture that

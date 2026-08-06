@@ -195,6 +195,11 @@ class RS_PanelDropHandler : EventHandler
 	RS_WeaponDrop   mCardOwner;
 	bool            mBeamPainted;
 
+	// Last row the pointer rested on, so the hover chirp fires on CHANGE
+	// rather than 35 times a second.
+	int             mLastHotRow;
+	int             mLastHotPanel;
+
 	// The six RS class weapons.
 	//
 	// THE CLASSES ARE VR_*, NOT RS_*. The FILES are RS_Revolver.zs and
@@ -334,6 +339,11 @@ class RS_PanelDropHandler : EventHandler
 		mCard = null;
 		if (mCardOwner) mCardOwner.mCardUp = false;
 		mCardOwner = null;
+
+		// Otherwise the next card that comes up on the same row index
+		// starts already-hovered and never chirps.
+		mLastHotRow   = -1;
+		mLastHotPanel = -1;
 	}
 
 	// -----------------------------------------------------------------
@@ -364,6 +374,9 @@ class RS_PanelDropHandler : EventHandler
 	// in VR_DualClassBase.PlayerThink, which is upstream of every event
 	// handler on this tic (p_tick.cpp:175 vs :178) and has no route to a
 	// card -- so the answer has to be left somewhere it can read.
+	//
+	// Also where the panel makes its two noises that are not tied to an
+	// action: the hover chirp, and a punch landing.
 	override void WorldTick()
 	{
 		let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
@@ -372,6 +385,24 @@ class RS_PanelDropHandler : EventHandler
 		bool live;
 		int row = ResolveHotRow(ph, live);
 		ph.PublishHotRow(row, live);
+
+		PlayerPawn pawn = players[consoleplayer].mo;
+
+		// HOVER. Only LIVE rows chirp. Sweeping a hand across a card of
+		// twenty stat rows must not chatter -- the sound has to mean
+		// "there is something here", or it means nothing.
+		if (live && (row != mLastHotRow || ph.mHotPanel != mLastHotPanel))
+			RS_PanelInput.Say(pawn, "menu/cursor");
+
+		if (live) { mLastHotRow = row;  mLastHotPanel = ph.mHotPanel; }
+		else      { mLastHotRow = -1;   mLastHotPanel = -1; }
+
+		// THE PUNCH. Read-and-clear even when the row is dead, so a
+		// swing at an inert part of the card is spent rather than banked
+		// and delivered to whatever row you point at next.
+		int strike = ph.ConsumePokeStrike();
+		if (strike >= 0 && live)
+			EventHandler.SendNetworkEvent("rs-panel-use", 0);
 	}
 
 	// -----------------------------------------------------------------
@@ -416,6 +447,18 @@ class RS_PanelDropHandler : EventHandler
 			let c = mCard.CardFor(ph.mHotPanel);
 			if (!c) return;
 
+			// ACKNOWLEDGE THE PRESS ITSELF, before dispatching what it
+			// meant. Two sounds, two facts: this one says the button
+			// registered, and whatever the row does says whether it
+			// worked. That split matters here more than in a flat menu,
+			// because the press was CONSUMED -- your gun deliberately did
+			// not fire, and without a click that is indistinguishable
+			// from an input that went nowhere.
+			//
+			// It also means a future row that forgets its own sound is
+			// merely terse rather than silent.
+			RS_PanelInput.Say(pawn, "menu/activate");
+
 			// Re-enter NetworkProcess with the row's own command. Sending
 			// the netevent rather than calling the branch directly keeps
 			// one dispatch path, so a row behaves identically whether it
@@ -443,13 +486,41 @@ class RS_PanelDropHandler : EventHandler
 
 			let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
 			if (ph && ph.mHotHand >= 0 && pawn.OverrideAttackPosDir)
-				toOffhand = (ph.mHotHand == 0);
+			{
+				// THE POINTING HAND WINS -- BUT ONLY IF IT CAN TAKE.
+				//
+				// This override used to be unconditional, and that made
+				// a dead trigger. A row only EXISTS on a wing whose hand
+				// holds a real weapon, but the override re-aimed the
+				// take at whichever hand was pointing. Hold a fist in
+				// your left, a revolver in your right, and point the
+				// left at "> TAKE TO MAINHAND": the row was live, so the
+				// press got eaten, then the take resolved to the fist
+				// and bailed. Button swallowed, gun silent, nothing
+				// taken, no feedback.
+				//
+				// The row's own arg is the fallback and it is always
+				// valid -- Refresh only writes the row when that hand is
+				// a real weapon. So a fist can point at the other hand's
+				// row and mean exactly what it looks like it means.
+				bool wantOff = (ph.mHotHand == 0);
+				Weapon wantHeld = wantOff ? pawn.player.OffhandWeapon
+				                          : pawn.player.ReadyWeapon;
+				if (!(wantHeld is "VR_Fist")) toOffhand = wantOff;
+			}
 
-			// Fists never take a class weapon -- the card says so and
-			// the netevent honours it, so the two cannot disagree.
+			// Last line of defence: both candidate hands hold fists, or
+			// the loadout changed under the card between build and
+			// press. Genuinely nothing to do -- but SAY so, because the
+			// press was already taken away from the weapon and silence
+			// here is indistinguishable from a broken button.
 			Weapon held = toOffhand ? pawn.player.OffhandWeapon
 			                        : pawn.player.ReadyWeapon;
-			if (held is "VR_Fist") return;
+			if (held is "VR_Fist")
+			{
+				RS_PanelInput.Say(pawn, "menu/invalid");
+				return;
+			}
 
 			mCardOwner.mPayload = null;
 
@@ -458,10 +529,17 @@ class RS_PanelDropHandler : EventHandler
 			w.bOffhandWeapon = toOffhand;
 			w.AttachToOwner(pawn);
 
+			// The drop is in your hand. Vanilla's own weapon-pickup
+			// sound, because that is exactly what just happened -- even
+			// though this deliberately never went through the pickup
+			// path (see the file header).
+			RS_PanelInput.Say(pawn, "misc/w_pkup");
+
 			DropCard();
 		}
 		else if (evt.name == "rs-panel-dismiss")
 		{
+			if (mCard) RS_PanelInput.Say(pawn, "menu/clear");
 			DropCard();
 		}
 		else if (evt.name == "rs-panel-test")

@@ -308,16 +308,52 @@ class RS_PanelHandler : EventHandler
 	int      mHotRow;
 	bool     mHotRowLive;
 
+	// --- the punch ----------------------------------------------------
+	// Hand positions as of last tic, and whether they are trustworthy.
+	// There is no native hand velocity, so a swing is measured as travel
+	// between tics -- which is all "how fast did that hand move into the
+	// card" needs.
+	Vector3  mPrevHand0, mPrevHand1;
+	bool     mHavePrevHand;
+
+	// Which hand struck a panel this tic, or -1. Consumed exactly once
+	// by whoever owns the content, then cleared.
+	int      mPokeStrikeHand;
+
+	// A swing spans several tics and would otherwise register on every
+	// one of them. Not a cvar: it is a debounce on a physical gesture,
+	// not a taste dial, and there is no value a player would want here
+	// that the punch threshold does not already express better.
+	const POKE_COOLDOWN_TICS = 10;
+	int      mPokeCooldown;
+
 	play void PublishHotRow(int row, bool live)
 	{
 		mHotRow     = row;
 		mHotRowLive = live;
 	}
 
+	// Read-and-clear. A strike is an event, not a state -- leaving it
+	// set would re-fire the row on the next tic that happened to look at
+	// it, which is the same repeat-press failure the trigger edge test
+	// exists to avoid.
+	play int ConsumePokeStrike()
+	{
+		int h = mPokeStrikeHand;
+		mPokeStrikeHand = -1;
+		return h;
+	}
+
 	play void ClearHot()
 	{
 		mHotAssembly = -1; mHotPanel = -1; mHotHand = -1;
 		mHotRow = -1; mHotRowLive = false;
+		mPokeStrikeHand = -1;
+
+		// The cooldown only ticks down while panels are live, so leaving
+		// it wound would carry over and swallow the first punch at the
+		// NEXT card. Nothing is up to debounce any more; drop it.
+		mPokeCooldown = 0;
 	}
 
 	// -----------------------------------------------------------------
@@ -436,7 +472,61 @@ class RS_PanelHandler : EventHandler
 	// Tracked hands only. Without OverrideAttackPosDir the "hand"
 	// position is the player's own origin, which would put you
 	// permanently inside any panel you walked through.
+	//
+	// A hand that DRIVES INTO a panel also activates the row outright --
+	// that is the punch. See TracePoke below; PanelUnderHand is just the
+	// containment test it is built on.
 	// -----------------------------------------------------------------
+
+	// Which panel is this hand inside, if any? Split out of TracePoke so
+	// the hand loop can compare TWO hands before deciding, which the
+	// first-hit-wins version could not.
+	play RS_Panel PanelUnderHand(Vector3 hp, double depth,
+	                             out int outAsm, out int outPanel, out Vector2 outUV)
+	{
+		outAsm = -1; outPanel = -1; outUV = (0, 0);
+
+		for (int a = 0; a < mLive.Size(); a++)
+		{
+			let asm = mLive[a];
+			if (!asm) continue;
+
+			for (int p = 0; p < asm.Size(); p++)
+			{
+				let pan = asm.Get(p);
+				if (!pan) continue;
+
+				Vector3 local = hp - pan.pos;
+
+				// Distance off the face, signed either way -- a hand
+				// that has punched THROUGH the card is still on it.
+				// Held in a local rather than nested inside abs():
+				// every other `dot` in this file is either its own
+				// statement or explicitly parenthesised, and this is
+				// not the codebase to get clever about precedence in.
+				double off = local dot pan.FaceVec();
+				if (abs(off) > depth) continue;
+
+				double lx = local dot pan.RightVec();
+				double ly = local dot pan.UpVec();
+
+				if (abs(lx) > pan.mWidth  * 0.5) continue;
+				if (abs(ly) > pan.mHeight * 0.5) continue;
+
+				outAsm   = a;
+				outPanel = p;
+				outUV    = (lx / pan.mWidth + 0.5, 0.5 - ly / pan.mHeight);
+				return pan;
+			}
+		}
+		return null;
+	}
+
+	// mHavePrevHand is deliberately NOT touched here -- WorldTick owns
+	// it, sets it once per tic after this runs, and is the only writer.
+	// Clearing it from here as well would have been a second owner of a
+	// flag whose whole job is to say whether one specific snapshot is
+	// trustworthy.
 	play void TracePoke(PlayerPawn pawn)
 	{
 		if (!pawn.OverrideAttackPosDir) return;
@@ -444,44 +534,60 @@ class RS_PanelHandler : EventHandler
 		double depth = RS_PanelInput.PokeDepth();
 		if (depth <= 0) return;
 
+		double punch = RS_PanelInput.PunchSpeed();
+
+		int     bestHand = -1, bestAsm = -1, bestPanel = -1;
+		Vector2 bestUV   = (0, 0);
+		bool    bestIsStrike = false;
+
 		for (int hand = 0; hand < 2; hand++)
 		{
-			Vector3 hp = (hand == 0) ? pawn.OffhandPos : pawn.AttackPos;
+			Vector3 hp   = (hand == 0) ? pawn.OffhandPos : pawn.AttackPos;
+			Vector3 prev = (hand == 0) ? mPrevHand0      : mPrevHand1;
 
-			for (int a = 0; a < mLive.Size(); a++)
+			int ai, pi;
+			Vector2 uv;
+			let pan = PanelUnderHand(hp, depth, ai, pi, uv);
+			if (!pan) continue;
+
+			// A SWING, not a presence. Travel this tic projected onto the
+			// face normal, which points from the panel toward the reader
+			// (FaceViewer builds it that way) -- so pressing INTO the card
+			// is negative along it, and the sign flip makes "into" read
+			// positive.
+			bool strike = false;
+			if (mHavePrevHand && punch > 0)
 			{
-				let asm = mLive[a];
-				if (!asm) continue;
-
-				for (int p = 0; p < asm.Size(); p++)
-				{
-					let pan = asm.Get(p);
-					if (!pan) continue;
-
-					Vector3 local = hp - pan.pos;
-
-					// Distance off the face, signed either way -- a hand
-					// that has punched THROUGH the card is still on it.
-					// Held in a local rather than nested inside abs():
-					// every other `dot` in this file is either its own
-					// statement or explicitly parenthesised, and this is
-					// not the codebase to get clever about precedence in.
-					double off = local dot pan.FaceVec();
-					if (abs(off) > depth) continue;
-
-					double lx = local dot pan.RightVec();
-					double ly = local dot pan.UpVec();
-
-					if (abs(lx) > pan.mWidth  * 0.5) continue;
-					if (abs(ly) > pan.mHeight * 0.5) continue;
-
-					mHotAssembly = a;
-					mHotPanel    = p;
-					mHotHand     = hand;
-					mHotUV       = (lx / pan.mWidth + 0.5, 0.5 - ly / pan.mHeight);
-					return;
-				}
+				Vector3 travel = hp - prev;
+				double  along  = travel dot pan.FaceVec();
+				strike = (-along >= punch);
 			}
+
+			// A hand driving into a panel beats one merely resting in it.
+			// Without this, a left hand left lying in the card would win
+			// every tic and a deliberate right-hand punch would never be
+			// seen -- the exact bug the old first-hit-wins loop had.
+			if (bestHand < 0 || (strike && !bestIsStrike))
+			{
+				bestHand     = hand;
+				bestAsm      = ai;
+				bestPanel    = pi;
+				bestUV       = uv;
+				bestIsStrike = strike;
+			}
+		}
+
+		if (bestHand < 0) return;
+
+		mHotAssembly = bestAsm;
+		mHotPanel    = bestPanel;
+		mHotHand     = bestHand;
+		mHotUV       = bestUV;
+
+		if (bestIsStrike && mPokeCooldown <= 0)
+		{
+			mPokeStrikeHand = bestHand;
+			mPokeCooldown   = POKE_COOLDOWN_TICS;
 		}
 	}
 
@@ -552,8 +658,26 @@ class RS_PanelHandler : EventHandler
 		for (int i = 0; i < mLive.Size(); i++)
 			if (mLive[i]) mLive[i].Solve(eye);
 
+		if (mPokeCooldown > 0) mPokeCooldown--;
+
 		// Aim comes off the HANDS, not the view -- see SolveAim.
 		SolveAim(pawn);
+
+		// Snapshot the hands AFTER solving, so TracePoke measured travel
+		// against where they were last tic rather than against
+		// themselves. Dropping the flag when VR is not driving stops a
+		// stale pair from reading as one enormous lunge the moment
+		// tracked poses come back.
+		if (pawn.OverrideAttackPosDir)
+		{
+			mPrevHand0    = pawn.OffhandPos;
+			mPrevHand1    = pawn.AttackPos;
+			mHavePrevHand = true;
+		}
+		else
+		{
+			mHavePrevHand = false;
+		}
 
 		// Row resolution needs the card, which the triptych owns; the
 		// hot row is recomputed there when it repaints. Storing the uv

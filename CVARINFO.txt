@@ -907,3 +907,17 @@ server int rs_panel_confirm = 1;
 // test, not a ray, so putting your hand on a row beats pointing at one
 // from across the room. 0 disables it and leaves aim-only.
 server float rs_panel_poke = 6.0;
+
+// How hard a hand must drive INTO a panel to count as a punch rather
+// than a hand that merely happens to be resting in it. Map units of
+// travel per tic along the face normal; 1.5/tic is about 52 units a
+// second, which is a deliberate jab and well clear of resting-hand
+// jitter. 0 disables the punch and leaves the poke as highlight-only,
+// confirmed with the trigger or the keybind.
+server float rs_panel_punch = 1.5;
+
+// Panel sounds: the hover chirp, the press click, the refusal, and the
+// pickup. On by default and worth leaving on -- the confirm CONSUMES
+// the trigger, so a press with no sound is indistinguishable from a
+// dead button.
+server bool rs_panel_sound = true;
