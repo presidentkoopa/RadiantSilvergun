@@ -113,7 +113,19 @@ class RS_DropTriptych play
 		let rsw = RS_Weapon(w);
 		if (!w || !rsw)
 		{
+			// AN EMPTY HAND IS AN OFFER, NOT A BLANK.
+			//
+			// The card previously printed "EMPTY" and stopped, which reads
+			// as a dead column -- the player has no way to know that
+			// accepting fills it, so the most generous case in the whole
+			// system looks like the least interesting one. Say it outright,
+			// and say which control does it, because a comparison card that
+			// does not tell you how to act on it is only half a card.
 			c.SetHeader(role, Font.CR_DARKGRAY, "EMPTY", Font.CR_DARKGRAY);
+			c.AddRow("ACCEPT -- GOES HERE", "", Font.CR_GREEN);
+			c.AddRow(role == "OFFHAND" ? "  hold USE" : "  tap USE", "",
+				Font.CR_GOLD);
+			c.AddRow("(nothing is replaced)", "", Font.CR_DARKGRAY);
 			return;
 		}
 		c.SetHeader(w.GetTag(), RS_UIStyle.TierColor(rsw.Tier),
@@ -121,6 +133,24 @@ class RS_DropTriptych play
 		            RS_UIStyle.Pips(rsw.PromotionCount),
 		            RS_UIStyle.TierColor(rsw.Tier));
 		c.AddRow(role, "", Font.CR_LIGHTBLUE);
+
+		// THE CONTROL, ON EVERY WING, ALWAYS.
+		//
+		// tap USE -> mainhand, hold USE -> offhand. This is the fallback
+		// that works with no binds configured and no pointing at all, so
+		// it must be legible without the player having found anything in
+		// a menu first. It is stated on the occupied wings as well as the
+		// empty ones, because the accept control does not change when the
+		// hand is full -- only the consequence does, and that is what the
+		// comparison rows below are for.
+		//
+		// THE DROP panel is deliberately excluded: it is the thing being
+		// judged, not a destination, and putting a control on it would
+		// invite the player to try to accept "into" the drop itself.
+		if (role == "OFFHAND")
+			c.AddRow("hold USE to take", "", Font.CR_GOLD);
+		else if (role == "MAINHAND")
+			c.AddRow("tap USE to take", "", Font.CR_GOLD);
 	}
 
 	// -----------------------------------------------------------------
@@ -143,9 +173,9 @@ class RS_DropTriptych play
 		// Fists cannot receive a class weapon. Say so on the wing that
 		// is a fist, rather than letting the player point at it and get
 		// silence.
-		if (ro && (drop is "VR_Fist" || ro is "VR_Fist"))
+		if (ro && IsRealFist(ro))
 			mCards[TRI_CoreOff].AddRow("CANNOT APPLY - FIST", "", Font.CR_DARKRED);
-		if (rm && (drop is "VR_Fist" || rm is "VR_Fist"))
+		if (rm && IsRealFist(rm))
 			mCards[TRI_CoreMain].AddRow("CANNOT APPLY - FIST", "", Font.CR_DARKRED);
 
 		for (int i = 0; i < 3; i++) mCards[i].AddRule();
@@ -265,6 +295,28 @@ class RS_DropTriptych play
 		if (c >= 20) return "HOT - x1.25, 10% backfire";
 		if (c >= 10) return "DANGEROUS - x1.5, 20% backfire";
 		return "CRITICAL - x2.0, 35% backfire";
+	}
+
+	// -----------------------------------------------------------------
+	// "Is this hand holding an actual fist?" -- the single predicate the
+	// card and the netevent both ask, so they cannot disagree about what
+	// is takeable.
+	//
+	// VR_FIST2 IS AN EMPTY SLOT, NOT A FIST. Every class grants it at
+	// spawn as the filler that the real starting weapon bumps out, and
+	// RS_Weapon.AttachToOwner already treats it as "slot is free"
+	// (RS_Weapon.zs:1334). A plain `w is "VR_Fist"` catches it too --
+	// VR_Fist2 descends from VR_Fist -- so the old check hid the TAKE row
+	// in exactly the case where the take was guaranteed to work, and left
+	// it visible in every case where it silently would not.
+	//
+	// VR_Fist4 and VR_Fist6 descend from VR_Fist2 and are filler in the
+	// same way, so the test is `is VR_Fist2`, not a name comparison.
+	static bool IsRealFist(Weapon w)
+	{
+		if (!w) return false;                 // empty hand is not a fist
+		if (w is "VR_Fist2") return false;    // the filler: an open slot
+		return (w is "VR_Fist");
 	}
 
 	static string LockDigest(RS_Weapon w)
@@ -462,9 +514,9 @@ class RS_DropTriptych play
 		// keeps the card and the netevent agreeing about what is
 		// takeable; if they disagreed the player would aim at a live
 		// row and get silence.
-		if (off && !(off is "VR_Fist"))
+		if (off && !IsRealFist(off))
 			mCards[TRI_CoreOff].AddRow("> TAKE TO OFFHAND", "", Font.CR_GREEN, "rs-panel-take", 0);
-		if (main && !(main is "VR_Fist"))
+		if (main && !IsRealFist(main))
 			mCards[TRI_CoreMain].AddRow("> TAKE TO MAINHAND", "", Font.CR_GREEN, "rs-panel-take", 1);
 	}
 
