@@ -72,6 +72,23 @@ class RS_ClassGating : EventHandler
 	{
 		super.WorldThingSpawned(e);
 
+		// AN ELITE DROP'S PAYLOAD IS EXEMPT FROM BOTH PASSES BELOW.
+		//
+		// RS_WeaponDrop spawns a real class weapon into the world to be its
+		// own marker. That spawn comes straight through here, so on any
+		// Dual_X class the gating below destroyed four of the six possible
+		// drops before Spawn() even returned -- silently, leaving a Clip on
+		// the floor where the pedestal should have been. The Vanilla+ swap
+		// above would eat it too.
+		//
+		// The flag is set only for the duration of that one Spawn call
+		// (RS_EliteDrop.zs, RS_WeaponDrop.Create), so nothing else can slip
+		// through behind it. It lives on the handler because ZScript has no
+		// mutable statics.
+		let dh = RS_PanelDropHandler(EventHandler.Find("RS_PanelDropHandler"));
+		if (dh && dh.mSpawningDrop)
+			return;
+
 		// Vanilla+ Options world-spawn substitution -- runs first, on the
 		// actual spawned thing, before class gating even looks at it. If
 		// a swap fires, e.Thing gets destroyed and replaced; the original

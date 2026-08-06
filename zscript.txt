@@ -1,4 +1,4 @@
-version "4.14"
+﻿version "4.14"
 
 #include "zscript/player/VR_PlayerClasses.zs"
 
@@ -323,7 +323,7 @@ version "4.14"
 // The unified UI's play-scope half: screen models + rs-ui-* netevents.
 // Also MAPINFO-registered. UI-scope half lives in the GunBonsai tree
 // (rs_menu/RS_UIMenus.zsc). Spec: docs/rs_10_ui_spec.txt.
-#include "zscript/systems/player/RS_UI.zs"
+#include "zscript/systems/player/RS_Screens.zs"
 
 // Spinning weapon display stand -- the world prop for in-world UI scenes
 // (drop cards, armory). Test toggle: `netevent rs-showcase`.
@@ -352,6 +352,7 @@ version "4.14"
 // The payout the elite system never had. RS_Elite.zs's own header calls
 // the drop "a later step"; this is it.
 #include "zscript/systems/ui/RS_EliteDrop.zs"
+#include "zscript/systems/ui/RS_ElitePackage.zs"
 
 // Twin weapon wheel PROOF OF CONCEPT -- disposable; see file header.
 // RS_WheelHandler must also be in MAPINFO's AddEventHandlers.

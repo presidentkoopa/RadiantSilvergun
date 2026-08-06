@@ -8,7 +8,7 @@
 //
 // This is the world prop for the in-world UI scenes (drop cards, the
 // armory, the bench). Test toggle: `netevent rs-showcase`, handled in
-// RS_UI.zs.
+// RS_Screens.zs.
 // =====================================================================
 class RS_ShowcaseStand : Actor
 {

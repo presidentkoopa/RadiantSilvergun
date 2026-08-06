@@ -1,4 +1,4 @@
-// =====================================================================
+﻿// =====================================================================
 // Radiant Silvergun Options -- one top-level menu, branching by concern
 // rather than one flat submenu. Weapon Fidelity Options holds the FX
 // toggles (set-agnostic, apply to every weapon set); Vanilla+ Weapon
@@ -120,7 +120,7 @@ OptionMenu "RS_WeaponOptions"
 // ---------------------------------------------------------------------
 // UI Debug -- fire the rs-ui-* / showcase netevents without the
 // console. Same pattern as Monster Debug above: every button is a
-// Command running a netevent; the handlers live in RS_UI.zs
+// Command running a netevent; the handlers live in RS_Screens.zs
 // (RS_UIHandler, MAPINFO-registered). Bound to U by default (KEYCONF).
 // ---------------------------------------------------------------------
 OptionMenu "RS_UIDebug"

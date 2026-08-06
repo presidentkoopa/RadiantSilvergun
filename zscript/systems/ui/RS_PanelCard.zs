@@ -1,4 +1,4 @@
-// =====================================================================
+﻿// =====================================================================
 // RS_PanelCard -- the row model and the painter for one panel face.
 //
 // WHY THIS IS NOT RS_UIHandler's card model. That model is
@@ -9,7 +9,7 @@
 // This is the union: the card's three fields plus the menu's two, so
 // one model feeds both the canvas and the aim ray.
 //
-// It is a separate file on purpose. rs_ui.zs is under active edit by
+// It is a separate file on purpose. RS_Screens.zs is under active edit by
 // another session; growing its models from here would collide.
 //
 // COLOUR DOCTRINE. Rows carry a Font.CR_* constant and the painter does
@@ -99,7 +99,7 @@ class RS_PanelCard
 
 	// A horizontal rule. Not a row type -- there is no row-kind tag in
 	// this model on purpose, so a rule is just a row whose key is a run
-	// of dots. Same convention rs_ui.zs already uses, kept identical so
+	// of dots. Same convention RS_Screens.zs already uses, kept identical so
 	// the two renderers cannot drift.
 	void AddRule()
 	{
