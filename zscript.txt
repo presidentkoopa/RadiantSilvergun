@@ -122,6 +122,26 @@ version "4.14"
 // BaronMissile lead-shot is rebuilt native (RS_HKLead).
 #include "zscript/monsters/hellknight/RS_HellKnightFX.zs"
 #include "zscript/monsters/hellknight/RS_HellKnight.zs"
+// CH Baron family, rebuilt native 2026-08-05 (Barons.txt read whole, 5021
+// lines). Owns the shared fire classes CH keeps in Revenants.txt but that
+// Barons.txt also fires (RS_FireHand1, RS_BigBadFire1) plus three Archvile
+// externals -- earliest-lane rule. Keep it FIRST of these four.
+#include "zscript/monsters/baron/RS_BaronFX.zs"
+#include "zscript/monsters/baron/RS_Baron.zs"
+// CH Revenant family, rebuilt native 2026-08-05 (Revenants.txt read whole,
+// 5154 lines). Landing it closes three sets of dormant guards: MrBones in
+// RS_Zombieman.zs:2345, five lostsoul FX guards, and three cacodemon FX
+// drop names. References the baron pair above.
+#include "zscript/monsters/revenant/RS_RevenantFX.zs"
+#include "zscript/monsters/revenant/RS_Revenant.zs"
+// CH Mancubus family, rebuilt native 2026-08-05 (Fatsos.txt read whole,
+// 4075 lines). References revenant's RS_ZapFFAT / RS_FatsoPuff3.
+#include "zscript/monsters/fatso/RS_FatsoFX.zs"
+#include "zscript/monsters/fatso/RS_Fatso.zs"
+// CH Arachnotron family, rebuilt native 2026-08-05 (Spiders.txt read whole,
+// 4573 lines). References baron, revenant and fatso classes -- keep last.
+#include "zscript/monsters/spider/RS_SpiderFX.zs"
+#include "zscript/monsters/spider/RS_Spider.zs"
 // Debug lineup spawner (netevent rs_spawnall). RS_MonsterDebugHandler is
 // ALSO in MAPINFO.txt's AddEventHandlers -- the two are a pair.
 #include "zscript/monsters/RS_MonsterDebug.zs"

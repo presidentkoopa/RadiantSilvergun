@@ -21,6 +21,10 @@
 //   netevent rs_spawnall_cacodemon
 //   netevent rs_spawnall_painelemental
 //   netevent rs_spawnall_hellknight
+//   netevent rs_spawnall_baron
+//   netevent rs_spawnall_revenant
+//   netevent rs_spawnall_fatso
+//   netevent rs_spawnall_spider
 //
 // Layout: one row per family, tier order 1..13 left to right (bosses at the
 // right end), rows starting 256 in front of the player, 128 apart, columns
@@ -200,6 +204,71 @@ class RS_MonsterDebugHandler : EventHandler
 			list.Push('RS_BlackHKEX');       // T10 EX
 			list.Push('RS_WhiteHK3');        // T11 (spawns its twin ghost itself)
 			break;
+		case 10:   // Baron of Hell
+			list.Push('RS_CommonBaron');     // T1
+			list.Push('RS_GreenBaron');      // T2
+			list.Push('RS_BlueBaron');       // T3
+			list.Push('RS_PurpleBaron');     // T4
+			list.Push('RS_YellowBaron');     // T5
+			list.Push('RS_RedBaron1');       // T6
+			list.Push('RS_RedBaron3');       // T6 (CH ships three red variants)
+			list.Push('RS_RedBaron2');       // T6
+			list.Push('RS_FireBluBaron2');   // T7
+			list.Push('RS_GrayBaron2');      // T8
+			list.Push('RS_AbyssBaron2');     // T9
+			list.Push('RS_CyanBaron2');      // T12
+			list.Push('RS_BrownBaron2');     // T13
+			list.Push('RS_BlackBaron2');     // T10
+			list.Push('RS_WhiteBaron2');     // T11
+			break;
+		case 11:   // Revenant
+			list.Push('RS_CommonRevenant');  // T1 -- also wakes the MrBones guard
+			list.Push('RS_GreenRevenant');   // T2
+			list.Push('RS_BlueRevenant');    // T3
+			list.Push('RS_PurpleRevenant');  // T4
+			list.Push('RS_YellowRevenant');  // T5
+			list.Push('RS_RedRevenant');     // T6
+			list.Push('RS_FireBluRevenant2');// T7
+			list.Push('RS_GrayRevenant2');   // T8
+			list.Push('RS_AbyssRevenant2');  // T9
+			list.Push('RS_CyanRevenant2');   // T12
+			list.Push('RS_BrownRevenant2');  // T13
+			list.Push('RS_BlackRevenant3');  // T10
+			list.Push('RS_BlackRevenantEX'); // T10 EX
+			list.Push('RS_WhiteRevenant2');  // T11
+			break;
+		case 12:   // Mancubus (Fatso)
+			list.Push('RS_CommonFatso');     // T1
+			list.Push('RS_GreenFatso');      // T2
+			list.Push('RS_BlueFatso');       // T3
+			list.Push('RS_PurpleFatso');     // T4
+			list.Push('RS_YellowFatso');     // T5
+			list.Push('RS_RedFatso');        // T6
+			list.Push('RS_FireBluFatso2');   // T7
+			list.Push('RS_GrayFatso2');      // T8
+			list.Push('RS_AbyssFatso2');     // T9
+			list.Push('RS_CyanFatso2');      // T12
+			list.Push('RS_BrownFatso2');     // T13
+			list.Push('RS_BlackFatso2');     // T10
+			list.Push('RS_BlackFatsoEX');    // T10 EX
+			list.Push('RS_WhiteFatso2');     // T11
+			break;
+		case 13:   // Arachnotron (Spider)
+			list.Push('RS_CommonSP1');       // T1
+			list.Push('RS_GreenSP1');        // T2
+			list.Push('RS_BlueSP1');         // T3
+			list.Push('RS_PurpleSP1');       // T4
+			list.Push('RS_YellowSP1');       // T5
+			list.Push('RS_RedSP1');          // T6
+			list.Push('RS_FireBluSP2');      // T7
+			list.Push('RS_GraySP2');         // T8
+			list.Push('RS_AbyssSP2');        // T9
+			list.Push('RS_CyanSP2');         // T12
+			list.Push('RS_BrownSP2');        // T13
+			list.Push('RS_BlackSP2');        // T10
+			list.Push('RS_BlackSPEX');       // T10 EX
+			list.Push('RS_WhiteSP11');       // T11
+			break;
 		}
 	}
 
@@ -257,6 +326,10 @@ class RS_MonsterDebugHandler : EventHandler
 			total += SpawnFamilyRow(pmo, 7, 7);
 			total += SpawnFamilyRow(pmo, 8, 8);
 			total += SpawnFamilyRow(pmo, 9, 9);
+			total += SpawnFamilyRow(pmo, 10, 10);
+			total += SpawnFamilyRow(pmo, 11, 11);
+			total += SpawnFamilyRow(pmo, 12, 12);
+			total += SpawnFamilyRow(pmo, 13, 13);
 		}
 		else if (e.Name == 'rs_spawnall_zombieman')     total = SpawnFamilyRow(pmo, 0, 0);
 		else if (e.Name == 'rs_spawnall_shotgunner')    total = SpawnFamilyRow(pmo, 1, 0);
@@ -268,6 +341,10 @@ class RS_MonsterDebugHandler : EventHandler
 		else if (e.Name == 'rs_spawnall_cacodemon')     total = SpawnFamilyRow(pmo, 7, 0);
 		else if (e.Name == 'rs_spawnall_painelemental') total = SpawnFamilyRow(pmo, 8, 0);
 		else if (e.Name == 'rs_spawnall_hellknight')    total = SpawnFamilyRow(pmo, 9, 0);
+		else if (e.Name == 'rs_spawnall_baron')         total = SpawnFamilyRow(pmo, 10, 0);
+		else if (e.Name == 'rs_spawnall_revenant')      total = SpawnFamilyRow(pmo, 11, 0);
+		else if (e.Name == 'rs_spawnall_fatso')         total = SpawnFamilyRow(pmo, 12, 0);
+		else if (e.Name == 'rs_spawnall_spider')        total = SpawnFamilyRow(pmo, 13, 0);
 		else return;
 
 		Console.Printf("RS_MonsterDebug: spawned %d monsters.", total);

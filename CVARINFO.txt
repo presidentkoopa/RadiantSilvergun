@@ -642,3 +642,9 @@ server int rs_ch_cyanbounce = 0;    // CH: CH_CyanBounce
 // opt-out. 1 = plain BaronBall combo attack instead of the lead-predicted
 // shot (CH default false = lead-predict).
 server int rs_ch_intercept = 0;     // CH: CH_Intercept (CHSett.acs:84)
+
+// Baron family addition (2026-08-05): CH's CH_Red gate is a one-line read of
+// CH_NerfRedBoss (CHSett.acs:29-31). CH's own default is 1, which is what
+// RS_Zom.CV already returned while this was undeclared -- declaring it only
+// makes the knob reachable, it does not change behaviour.
+server int rs_ch_nerfredboss = 1;   // CH: CH_NerfRedBoss

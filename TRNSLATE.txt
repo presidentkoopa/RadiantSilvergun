@@ -257,4 +257,18 @@ rs_elite_c17 = "0:255=%[0.27,0.00,0.00]:[2.00,1.86,0.00]"
 // CH Chaingunner import (2026-08-05): RS_BrownOrbCguy's death calls
 // A_SetTranslation("BBEASTEX5"). CH TRNSLATE.txt defines it as a no-op
 // range ("0:0=0:0") -- verbatim.
+//
+// The rest of the set landed with the Fatso import (2026-08-05):
+// RS_BlackFatsoEX cycles BBEASTEX1-6 to pulse colour. Verbatim from
+// CH TRNSLATE.txt:1-6; 4 and 5 are no-ops in CH too, kept as such.
+BBEASTEX1 = "0:255=%[0.00,0.12,0.06]:[0.00,0.74,0.18]"
+BBEASTEX2 = "0:255=%[0.00,0.25,0.13]:[0.00,0.44,0.12]"
+BBEASTEX3 = "0:255=%[0.00,0.25,0.13]:[0.00,0.25,0.09]"
+BBEASTEX4 = "0:0=0:0"
 BBEASTEX5 = "0:0=0:0"
+BBEASTEX6 = "0:255=%[0.00,0.20,0.09]:[0.00,0.50,0.13]"
+
+// CH Revenant import (2026-08-05): RS_YellowRevenant's orange variant calls
+// A_SetTranslation("YellowRev01") on the rs_ch_yellowrev == 1 branch (off by
+// CH default). Verbatim from CH TRNSLATE.txt:10.
+YellowRev01 = "0:255=#[252,113,10]"

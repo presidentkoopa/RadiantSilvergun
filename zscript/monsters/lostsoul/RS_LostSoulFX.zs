@@ -1921,21 +1921,21 @@ class RS_RandomizerArc : RandomSpawner   // CH Archviles.txt:3388 -- the summon 
 		DropItem "RS_BlueSG", 255, 120;
 		DropItem "RS_PurpleSG", 255, 83;
 		DropItem "RS_YellowSG", 255, 47;
-		// CH: DropItem "CommonRevenant",255,666 -- revenant family not imported yet; restore when it lands
-		// CH: DropItem "GreenRevenant",255,270
-		// CH: DropItem "BlueRevenant",255,120
-		// CH: DropItem "PurpleRevenant",255,90
-		// CH: DropItem "CommonBaron",255,439 -- baron family not imported yet; restore when it lands
-		// CH: DropItem "GreenBaron",255,270
-		// CH: DropItem "BlueBaron",255,120
-		// CH: DropItem "PurpleBaron",255,83
-		// CH: DropItem "YellowBaron",255,47
+		DropItem "RS_CommonRevenant", 255, 666;   // restored 2026-08-05 with the revenant import
+		DropItem "RS_GreenRevenant", 255, 270;
+		DropItem "RS_BlueRevenant", 255, 120;
+		DropItem "RS_PurpleRevenant", 255, 90;
+		DropItem "RS_CommonBaron", 255, 439;      // restored 2026-08-05 with the baron import
+		DropItem "RS_GreenBaron", 255, 270;
+		DropItem "RS_BlueBaron", 255, 120;
+		DropItem "RS_PurpleBaron", 255, 83;
+		DropItem "RS_YellowBaron", 255, 47;
 		DropItem "RS_CommonCGuy", 255, 439;
 		DropItem "RS_GreenCGuy", 255, 270;
 		DropItem "RS_BlueCGuy", 255, 120;
 		DropItem "RS_PurpleCGuy", 255, 83;
 		DropItem "RS_YellowCGuy", 255, 47;
-		// CH: DropItem "CommonRevenant",255,666 -- CH lists the common revenant twice; both preserved here
+		DropItem "RS_CommonRevenant", 255, 666;   // CH lists the common revenant twice; both preserved
 		DropItem "RS_CommonLSoul", 255, 439;
 		DropItem "RS_GreenLSoul", 255, 270;
 		DropItem "RS_BlueLSoul", 255, 120;

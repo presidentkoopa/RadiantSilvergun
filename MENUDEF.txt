@@ -103,6 +103,10 @@ OptionMenu "RS_MonsterDebug"
 	Command "Spawn Cacodemon Family", "netevent rs_spawnall_cacodemon"
 	Command "Spawn Pain Elemental Family", "netevent rs_spawnall_painelemental"
 	Command "Spawn Hell Knight Family", "netevent rs_spawnall_hellknight"
+	Command "Spawn Baron Family", "netevent rs_spawnall_baron"
+	Command "Spawn Revenant Family", "netevent rs_spawnall_revenant"
+	Command "Spawn Mancubus Family", "netevent rs_spawnall_fatso"
+	Command "Spawn Arachnotron Family", "netevent rs_spawnall_spider"
 	StaticText " "
 	// Elite summons -- handled by RS_EliteHandler (zscript/systems/
 	// monster/RS_Elite.zs). Aim at a monster BEFORE opening the menu;
