@@ -1,0 +1,254 @@
+=====================================================================
+rs_38 -- SESSION HANDOFF, 2026-08-06 (afternoon)
+Supersedes rs_37 where they disagree. Everything below is COMMITTED,
+PUSHED, and BOOTS. None of it has been LOOKED AT.
+=====================================================================
+
+*** READ CLAUDE.md FIRST. ITS FIRST RULE IS THAT THIS FILE IS NOT
+    AUTHORITY. Use it for names, paths and where to look. Verify
+    anything you act on against the disk, the compiler, or the owner.
+    DO NOT INHERIT A TASK FROM THIS DOCUMENT -- ask him. ***
+
+That rule was rewritten this session because the old first rule said
+the opposite ("read the handoff, don't re-derive state"), and it cost
+real time twice in one day.
+
+
+---------------------------------------------------------------------
+WHERE EVERYTHING IS
+---------------------------------------------------------------------
+
+  ENGINE   E:\UZDXREMA           branch questzdoom    7d8a0c4f7f
+           remote `rsorigin` -> github.com/presidentkoopa/UZDXREMA (PRIVATE)
+           `origin` is upstream emawind84/gzdoom -- YOU CANNOT PUSH TO IT
+
+  MOD      E:\RS_Main            branch main          ae8f9c84
+           remote `origin` -> the RS_Main repo
+
+  PANEL    E:\GlowInTheDark      branch main          a4213d8
+           remote `origin` -> github.com/presidentkoopa/RadianceControlPanel
+           (PRIVATE). Folder name is still GlowInTheDark; the project
+           is Radiance Control Panel.
+
+  BUILD    E:\UZDXREMA\build     exe verified NEWER than the last code
+                                 commit. Nothing uncompiled.
+
+  *** OWNER STILL OWES ONE ACTION: delete github.com/presidentkoopa/
+      GlowInTheDark_V5 by hand. It is a PUBLIC duplicate of the panel.
+      `gh` lacks the delete_repo scope deliberately. ***
+
+  DEAD WEIGHT, safe to delete: E:\UZDXREMA-build-keen-hodgkin (601MB),
+  E:\uzdxbuild-keen (607MB). Both are merged lanes' private build dirs.
+
+
+---------------------------------------------------------------------
+TWO DOCUMENTS THAT ARE BETTER THAN THIS ONE
+---------------------------------------------------------------------
+
+  E:\UZDXREMA\PORTING.md      Every C++ change, per feature, with apply
+                              order, cvars, savegame keys, conflict
+                              risk. Machine-verified: 45/45 changed
+                              files covered. Written for handing to
+                              ANOTHER FORK. This is the authority on
+                              the engine work.
+
+  E:\UZDXREMA\ENGINE_WORK.md  Kept deliberately, with EIGHT blocks
+                              marked CORRECTED 2026-08-06 rather than
+                              quietly fixed. PORTING.md supersedes it
+                              on any disagreement.
+
+
+---------------------------------------------------------------------
+WHAT SHIPPED TODAY
+---------------------------------------------------------------------
+
+ENGINE (all merged, built, booted, pushed):
+  * The startup crash: two appended commas in language.0 / language.csv.
+    A DATA fix. Any branch cut before 3469846916 dies at W_Init.
+  * Wall texture glow -- GLDEFS' Walls block was parsed and never
+    consumed by any renderer. Default ON. NOW USES THE TEXTURE'S REAL
+    COLOUR; it was painting white and reading only the strength.
+  * Flat edge glow, floors and ceilings, DEFAULT OFF (`gl_flatglow 1`),
+    16 more cvars.
+  * ZScript glow API.
+  * Billboards: storage, lifetime, savegames, seven natives,
+    TextureID.GetIndex() intrinsic, AND the renderer.
+  * ELEVEN C++ defects found by auditing the fork against itself --
+    see PORTING.md §11. The largest: vmthunks.cpp held a COMPLETE
+    SECOND IMPLEMENTATION of the billboard API and nothing called the
+    FLevelLocals versions. That is also why BBF_VIEWRELATIVEZ was
+    non-functional rather than merely unverified.
+
+MOD:
+  * 47 fatal load errors -> zero.
+  * In-world panel system: world-space cards, hinged, aim off the hand
+    poses. NEEDS NO ENGINE CHANGE -- RF_FLATSPRITE builds its quad from
+    the actor's own yaw/pitch/roll and returns before any view-facing
+    code (hw_sprites.cpp:376-408); picnum is honoured with TNT1 passing
+    the visibility gate (:790-793).
+  * Elite drops: pedestal wearing the weapon's own pickup sprite under
+    a tier translation. Beam, tier light.
+  * RS_ElitePackage: the data drop, a black 10x14 sprite at 5x with the
+    rarity in the air around it. Black + additive would be invisible.
+  * Drop tier ceiling rises with the arsenal (see below).
+  * The confirm: tap USE mainhand, hold USE offhand, plus point/poke/
+    punch. Before today, taking a drop was CONSOLE ONLY.
+  * PACK catalog, 409 monster projectiles in code (monstertheory).
+  * A gun now always sounds like itself -- 26 guns ejected nothing when
+    fired; every presentation axis now resolves affix -> shot -> GUN ->
+    catalog default.
+
+
+---------------------------------------------------------------------
+DESIGN DECIDED THIS SESSION -- DO NOT RE-LITIGATE
+---------------------------------------------------------------------
+
+ELITE DROP TIERS. rs_00's rule was a CLIFF: only Cursed/Trash/Basic
+until all six class weapons are found, then the whole ladder at once.
+Replaced with a RISING CEILING, owner-approved:
+
+    2 owned -> Basic     3 -> Common      4 -> Uncommon
+    5 -> Advanced        6 -> Prototype
+
+THE POOL WIDENS, IT DOES NOT SLIDE. Cursed stays the floor forever --
+per rs_00 those tiers are not merely bad (Cursed is powerful with stats
+locked behind individual curses; Trash carries the Trash-to-Treasure
+chance). Bias is two rolls, lower kept.
+
+Rejected and why: a hard gate is a cliff nobody can influence; pure
+odds-shifting is INVISIBLE (30% -> 35% is not perceptible over the
+drops anyone actually sees). A ceiling is something the player can
+WATCH unlock.
+
+Falls out free: rs_00 gives Cursed/Trash/Basic no GunBonsai sockets, so
+under a rising ceiling the bottom three tiers are stat-only, PERMANENTLY,
+rather than that being an early-game phase.
+
+STILL OPEN, the owner's own reframing and the more interesting idea:
+an elite drop is a DATA PACKAGE that reshapes a class weapon you hold,
+not a gun. But you start with two of six, so a package can only ever
+land on two things. Proposal on the table, not built: ONE drop type
+that behaves by ownership -- don't own that weapon, the package ARRIVES
+as it; do own it, it APPLIES to it. Acquisition and modification stop
+being two systems and the ramp becomes emergent.
+
+
+---------------------------------------------------------------------
+FACTS THAT COST TIME TODAY -- these are the useful part
+---------------------------------------------------------------------
+
+*** WorldTick RUNS **AFTER** P_PlayerThink. ***
+    p_tick.cpp:175 is P_PlayerThink, :178 is WorldTick. So an
+    EventHandler zeroing `cmd` in WorldTick clears it AFTER the gun has
+    already fired. RS_WheelPoC.zs:17 ASSERTS THE OPPOSITE AND IS WRONG,
+    and its own input capture is suspect on the same grounds. It has
+    now misled two agents. The only mod-side seam is overriding the
+    virtual PlayerThink (player.zs:1732); CheckWeaponFire (:463) is not
+    virtual. NOTE those line numbers are against the CURRENT tree --
+    TickBillboards inserted at p_tick.cpp:171 shifted everything below
+    it by 7.
+    ENGINE ASK, unbuilt: a pre-player-think hook, or an explicit
+    "ZScript claims input this tic" flag the engine honours.
+
+*** EDGE DETECTION MUST USE original_cmd, NOT oldbuttons. ***
+    G_Ticker snapshots players[i].cmd BEFORE overwriting it, so your own
+    cleared bit reads as a fresh press every tic -- 35 repeats/sec.
+    original_cmd / original_oldbuttons are written at p_user.cpp:
+    1347-1348, ahead of the virtual, and are immune.
+
+*** MISSILEMORE **CAN** BE FIXED. CLAUDE.md SAID IT COULDN'T. ***
+      +MISSILEMORE       -> MissileChanceMult 0.5
+      +MISSILEEVENMORE   -> MissileChanceMult 0.125
+      both               -> MissileChanceMult 0.0625
+      +SHORTMISSILERANGE -> MaxTargetRange 896
+    actor.zs:352 and :344 declare both properties, archvile.zs:18
+    already uses one, and thingdef_data.cpp:930 sets the engine's own
+    deprecation string to "Use missilechancemult property instead".
+    ~256 warnings the documentation was actively protecting, inside the
+    section warning about consistent-with-itself failures.
+    *** BUT: most of those sites are under zscript/monsters/**, WHICH IS
+    SACRED. A correct mapping does NOT authorise a sweep. ***
+
+*** TRNSLATE '%' -- TWO bugs, and the second is silent. ***
+    The '%' goes AFTER the '=' (palettecontainer.cpp:659-671). AND the
+    channel values are MULTIPLIERS CLAMPED TO 0.0-2.0 (:542-547), not
+    palette bytes -- written as 0-255 all eight tiers clamp to 2.0 and
+    render IDENTICAL BLOWN-OUT WHITE, compiling clean with the symptom
+    pointing anywhere but the translation table.
+
+*** CANVAS PAINTING NEEDS NO ui SCOPE. ***
+    class Canvas : Object native abstract, unscoped methods
+    (base.zs:529); TexMan.GetCanvas is a plain native static (:332).
+    Marking a painter `ui` only makes play fields read-only to it.
+
+*** THE RS-SET WEAPON CLASSES ARE VR_*, NOT RS_*. ***
+    Files are RS_Revolver.zs; classes inside are VR_Revolver.
+    NOT A COMPILE ERROR -- Spawn() on a missing class returns null, the
+    drop never appears, nothing is logged. Five of six were wrong.
+    Also: VR_Fist2 : VR_Fist, so `is "VR_Fist"` is TRUE for the
+    empty-slot filler. Use RS_DropTriptych.IsRealFist().
+
+*** rs_build.cmd HARD-WIRES `-S ..` TO THE MAIN TREE. ***
+    Running it from a worktree compiles main's sources and reports GREEN
+    while verifying NOTHING about the worktree. Build a worktree with:
+      cmake -A x64 -S <worktree> -B <own dir>
+        -DCMAKE_TOOLCHAIN_FILE=E:/UZDXREMA/build/vcpkg/scripts/buildsystems/vcpkg.cmake
+        -DVCPKG_INSTALLED_DIR=E:/UZDXREMA/build/vcpkg_installed
+        -DZMUSIC_INCLUDE_DIR=E:/UZDXREMA/build/zmusic/include
+        -DZMUSIC_LIBRARIES=E:/UZDXREMA/build/zmusic/build/source/Release/zmusic.lib
+
+*** `git commit` REPORTING SUCCESS DOES NOT MEAN YOUR FILES ARE IN IT. ***
+    RS_ElitePackage.zs and its sprite failed to stage in 2c16d29a while
+    that commit reported success. Caught only because a later merge
+    refused to run against a dirty tree.
+
+*** A MERGE NEARLY SHIPPED A SILENT DEFECT. See rs_37 §5b. ***
+    A branch offered a pickup SOUND as a REPLACEMENT for the
+    PendingWeapon seating. Taken as-is, accepting a drop would have
+    played the sound and done nothing. Git stopped and asked in three
+    places so three places got read; EVERYTHING IT AUTO-MERGED, NOBODY
+    READ. That audit is still owed.
+
+*** LINE NUMBERS ARE ONLY TRUE AGAINST A REVISION. *** Symbol names are
+    the durable anchor. ENGINE_WORK.md's hw_sprites.cpp citations went
+    ~150 lines stale in a single day.
+
+
+---------------------------------------------------------------------
+KNOWN INCOMPLETE -- stated plainly, not buried
+---------------------------------------------------------------------
+
+  * NOBODY HAS SEEN ANY OF IT. Not one panel, glow, tint or beam has
+    been looked at on screen. Everything is "compiles and boots", which
+    this project's own rules record as repeatedly meaning "consistent
+    with itself" rather than "correct".
+  * ONLY BB_TEXTURE RENDERS. Five payload shaders were ported and then
+    BACKED OUT (c91a015fd8); the .fp files are gone. BB_PANEL/DIGITS/
+    GLYPH/RING/BAR are declared, accepted by the API, and draw nothing.
+  * BILLBOARDS CANNOT HINGE. FBillboard has no orientation -- no yaw,
+    pitch or roll, no parent. The owner's triptych can only be built
+    mod-side, which RS_PanelAssembly already does.
+  * AimBillboard HAS NEVER EXECUTED, and can't serve our panels anyway:
+    it iterates level.Billboards (RF_FLATSPRITE actors never register),
+    assumes a SQUARE half-extent, and assumes a camera-facing normal.
+    The panel lane wrote its own intersection -- correct, not a
+    shortcut.
+  * THE MENUS HAVE NEVER BEEN OPENED. MENUDEF is runtime-parsed, so the
+    two new engine-cvar submenus are unproven until someone looks.
+  * flatvertexpeak HAS NEVER BEEN RUN. BUFFER_SIZE stays at 2,000,000
+    and 160MB of GLES memory is on the table pending one measurement.
+  * ~4,670 warnings remain. ~256 are the MISSILEMORE class (fixable now,
+    but SACRED tree). ~2,000 A_CustomMissile -> A_SpawnProjectile and
+    VelX/Y/Z look mechanical. ~800 A_PlaySound -> A_StartSound ARE A
+    TRAP: A_StartSound's 3rd param is `flags`, A_PlaySound's 4th is
+    `looping`. A blind rename changes behaviour on every 4+ arg call.
+  * The punch crosses the standing posture-not-gesture rule (2026-08-05).
+    Owner asked for it, scoped to panels, off switch rs_panel_punch 0.
+    DO NOT GENERALISE IT to another system without asking him.
+  * Six GunBonsai cards write AffixProjectile/AffixFireSound, which the
+    owner ruled is PACK's job, and REPLACE the gun's fire sound rather
+    than layering. Untouched, needs his direction.
+  * RS_FX_AffixParts.zs hand-rolls 15 projectile actors that duplicate
+    imported monster content now catalogued in RS_PACKCatalog.zs. The
+    owner has said he dislikes it. RS_PACKCatalog has ZERO CALLERS --
+    nothing invokes ApplyTheme() yet. Replacement exists, isn't wired.
