@@ -62,6 +62,16 @@ extend class VR_DualClassBase
 			return "";
 		}
 
+		// A weapon shown but not carried -- the wheel lists those when
+		// vr_wheel_weapon_all is on -- arrives as the class DEFAULTS object, not
+		// a rolled instance. Every rolled field on it is zero, so reporting them
+		// would print "CND 0%" in red and a damage of 0: a pristine unfound gun
+		// described as ruined junk. Say what is actually true instead.
+		if (wep.Owner != self)
+		{
+			return wep.GetTag() .. "\n\c[DarkGray]not carried";
+		}
+
 		let rsw = RS_Weapon(wep);
 		if (rsw == null)
 		{
