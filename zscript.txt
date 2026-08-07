@@ -307,6 +307,13 @@ version "4.14"
 // RS_BBUIHandler must ALSO be in MAPINFO.txt's AddEventHandlers.
 #include "zscript/systems/ui/RS_BillboardUI.zs"
 
+// Build a panel out of the engine's billboard payloads instead of painting
+// a canvas. A composed panel costs no canvastexture, which is what lifts the
+// ceiling on how many cards can be on screen at once. After RS_Billboard,
+// whose group type it fills.
+#include "zscript/systems/ui/RS_BBCompose.zs"
+#include "zscript/systems/ui/RS_BBWeaponCard.zs"
+
 #include "zscript/systems/ui/RS_Panel.zs"
 #include "zscript/systems/ui/RS_PanelCard.zs"
 #include "zscript/systems/ui/RS_PanelController.zs"
