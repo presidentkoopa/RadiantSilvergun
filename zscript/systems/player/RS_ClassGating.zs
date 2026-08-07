@@ -30,6 +30,25 @@
 
 class RS_ClassGating : EventHandler
 {
+	// RE-ENTRANCY GUARD, added 2026-08-06 after Dual_X classes hung the
+	// game on any map with a pickup near spawn (MG/GH never hit this --
+	// they return before reaching the code below, at the GetFamily()
+	// check).
+	//
+	// Actor.Spawn fires WorldThingSpawned AGAIN, synchronously, for
+	// whatever it just spawned -- this file already learned that lesson
+	// once, for a DIFFERENT spawn site (RS_PanelDropHandler.mSpawningDrop,
+	// guarding RS_WeaponDrop's elite-drop payload). The pedestal-fill
+	// spawn below is a second site with the exact same shape and had no
+	// guard: the freshly-spawned replacement is not yet owned -- it is
+	// just sitting on the floor -- so NextMissingIdentity reports the
+	// SAME gap again, and the handler spawns another replacement, which
+	// fires the event again. Forever, inside one synchronous call chain.
+	// No error, no crash, no log line -- a hang, because the tic never
+	// finishes. Set before every Spawn call this file makes past the
+	// gating checks, cleared right after, on every exit path.
+	bool mFilling;
+
 	// Which families the Dual_X class system actually filters on.
 	//
 	// ONLY the original seven. Every other family -- melee, launcher,
@@ -81,6 +100,11 @@ class RS_ClassGating : EventHandler
 	override void WorldThingSpawned(WorldEvent e)
 	{
 		super.WorldThingSpawned(e);
+
+		// Our own re-entrant spawn, arriving back through the same event
+		// it was spawned from. See mFilling's declaration for why this
+		// exists and what happens without it.
+		if (mFilling) return;
 
 		// AN ELITE DROP'S PAYLOAD IS EXEMPT FROM BOTH PASSES BELOW.
 		//
@@ -158,7 +182,9 @@ class RS_ClassGating : EventHandler
 		{
 			if (AllowBigGuns())
 			{
+				mFilling = true;
 				NormalizeHeavyOrdnance(wep);
+				mFilling = false;
 				return;
 			}
 			// else fall through -- treated exactly like any other
@@ -178,7 +204,9 @@ class RS_ClassGating : EventHandler
 		string gap = NextMissingIdentity(pawn, mainhand);
 		if (gap != "")
 		{
+			mFilling = true;
 			let repl = Actor.Spawn(mainhand .. gap, wep.pos);
+			mFilling = false;
 			if (repl)
 				repl.angle = wep.angle;
 			wep.Destroy();
@@ -187,10 +215,17 @@ class RS_ClassGating : EventHandler
 
 		// All six already owned. Leave reserve ammo instead of an empty
 		// floor -- this is the old mismatch behaviour, unchanged, just
-		// reached by a different condition now.
+		// reached by a different condition now. Ammo classes are never
+		// Weapon subclasses, so this one was never actually re-entrant
+		// -- guarded anyway, for the same reason the codebase avoids
+		// three narrow guards where one consistent rule reads clearer.
 		string ammo = AmmoForFamily(pc.GetFamily());
 		if (ammo != "")
+		{
+			mFilling = true;
 			Actor.Spawn(ammo, wep.pos, ALLOW_REPLACE);
+			mFilling = false;
+		}
 		wep.Destroy();
 	}
 
