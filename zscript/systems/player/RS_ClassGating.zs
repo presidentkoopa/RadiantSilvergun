@@ -127,7 +127,25 @@ class RS_ClassGating : EventHandler
 		// actual spawned thing, before class gating even looks at it. If
 		// a swap fires, e.Thing gets destroyed and replaced; the original
 		// never reaches the gating check below at all.
-		if (RS_VanillaPlusSwaps.TrySwap(e))
+		//
+		// GUARDED, and this one is not theoretical. Every swap in here
+		// ends in Actor.Spawn, which re-fires this event synchronously --
+		// and TryRandomBFG's replacement is drawn from the SAME three
+		// classes it matches on (RS_GH_Unmaker / BFG10k / BFG9000), so
+		// its output always re-matches its own input. Unguarded that is
+		// unbounded spawning inside a single tic: no error, no crash,
+		// just memory consumed until an allocation fails. Same defect
+		// shape as the identity-fill spawn below, which is why the guard
+		// is the same flag rather than a second mechanism.
+		//
+		// Set around the whole TrySwap call, not around each Spawn: the
+		// spawns live on RS_VanillaPlusSwaps (a different class, static
+		// methods) and cannot reach this handler's field, so the guard
+		// belongs at the call site that can.
+		mFilling = true;
+		bool swapped = RS_VanillaPlusSwaps.TrySwap(e);
+		mFilling = false;
+		if (swapped)
 			return;
 
 		// BROAD CAST, ON PURPOSE. Vanilla Doom's own Pistol/Shotgun/
@@ -201,9 +219,23 @@ class RS_ClassGating : EventHandler
 		// build (see CLAUDE.md) -- found and fixed three times
 		// elsewhere in this project already. Not worth a fourth.
 		// -------------------------------------------------------------
+		// RS_DIAG: temporary. This is the deep path only GATED (Dual_X)
+		// classes reach -- GH/MeatGrinder return at the GetFamily check
+		// above -- which makes it the prime suspect for a Dual_X-only
+		// failure. If this prints for the player's OWN starting weapons
+		// during spawn, this code is destroying and replacing inventory
+		// mid-grant, which is a very different thing from replacing a
+		// floor pickup.
+		Console.Printf("RS_DIAG gating: saw %s (owner=%s) mainhand=%s",
+			wep.GetClassName() .. "",
+			wep.owner ? "yes" : "NONE",
+			mainhand);
+
 		string gap = NextMissingIdentity(pawn, mainhand);
 		if (gap != "")
 		{
+			Console.Printf("RS_DIAG gating: REPLACING %s -> %s%s",
+				wep.GetClassName() .. "", mainhand, gap);
 			mFilling = true;
 			let repl = Actor.Spawn(mainhand .. gap, wep.pos);
 			mFilling = false;

@@ -15,6 +15,10 @@
 // =====================================================================
 class RS_GH_Fist : RS_Weapon
 {
+	// Melee fallback -- loses the hand to a real gun at spawn.
+	// Inherited by RS_GH_Fist2..6.
+	override bool IsHandFiller() { return true; }
+
 	Default
 	{
 		Tag "Gunstar Knuckles";

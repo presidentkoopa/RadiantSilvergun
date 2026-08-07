@@ -146,7 +146,6 @@ class VR_Shotgun : RS_Weapon
 		Stop;
 
 	Ready:
-		TNT1 A 0 A_RS_DiagReady();
 		SHTG A 1 A_WeaponReady(WRF_ALLOWRELOAD);
 		TNT1 A 0 A_RS_ClearTriggerGate();
 		Loop;

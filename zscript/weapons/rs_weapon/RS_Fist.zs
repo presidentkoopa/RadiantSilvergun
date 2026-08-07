@@ -42,6 +42,11 @@
 // =====================================================================
 class VR_Fist : RS_Weapon
 {
+	// Melee fallback -- loses the hand to a real gun at spawn. This is
+	// what stops the engine's hand-blind default grant from leaving every
+	// class holding fists. Inherited by VR_Fist2..6.
+	override bool IsHandFiller() { return true; }
+
 	Default
 	{
 		Tag "Knuckles";
@@ -188,15 +193,28 @@ class VR_Fist2 : VR_Fist
 		+WEAPON.OFFHANDWEAPON;
 	}
 
-	// Seat this as the off-hand the moment it is picked up. The flag
-	// marks intent; this makes it happen. Carried over verbatim from the
-	// old vanilla-derived class, which needed it for the same reason.
-	override void AttachToOwner(Actor newOwner)
-	{
-		Super.AttachToOwner(newOwner);
-		if (newOwner.player)
-			newOwner.player.OffhandWeapon = self;
-	}
+	// The empty off-hand placeholder -- loses the slot to any real gun.
+	override bool IsHandFiller() { return true; }
+
+	// NO AttachToOwner OVERRIDE. Removed 2026-08-07.
+	//
+	// This class used to force `player.OffhandWeapon = self` here with no
+	// guard at all, which made the empty-hand FILLER outrank every real
+	// weapon for the off-hand slot.
+	//
+	// Player.StartItem is granted in REVERSE declaration order (the engine
+	// prepends each entry), so the fists are granted LAST, not first --
+	// after the real class weapons. RS_Weapon.AttachToOwner had already
+	// correctly seated the real off-hand weapon by then, and this
+	// unconditional write stole the slot back from it. Every Dual_X class
+	// therefore spawned with a fist in the off-hand and its actual
+	// off-hand gun sitting unused in inventory.
+	//
+	// The base RS_Weapon.AttachToOwner already does the right thing: it
+	// seats an off-hand-flagged weapon only when the slot is empty or
+	// holds this filler, so the filler still lands in an empty hand and
+	// still steps aside for a real gun. The flag marks intent; the base
+	// class honours it. Nothing here needs to.
 }
 
 // --- 3..6: THE RACK --------------------------------------------------

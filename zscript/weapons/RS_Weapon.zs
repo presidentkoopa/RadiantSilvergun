@@ -399,20 +399,6 @@ class RS_Weapon : Weapon abstract
 			invoker.bWaitingForRelease = false;
 	}
 
-	// RS_DIAG: temporary. Called as the first frame of a weapon's Ready
-	// state -- if this prints, that weapon's Select->Raise sequence
-	// completed and reached Ready. Printed once only, so it doesn't spam
-	// every tic the weapon stays ready.
-	bool bDiagReadyPrinted;
-	action void A_RS_DiagReady()
-	{
-		if (!invoker.bDiagReadyPrinted)
-		{
-			invoker.bDiagReadyPrinted = true;
-			Console.Printf("RS_DIAG: %s reached Ready state", invoker.GetClassName() .. "");
-		}
-	}
-
 	// -------------------------------------------------------------
 	// Universal reload plumbing.
 	//
@@ -1071,7 +1057,8 @@ class RS_Weapon : Weapon abstract
 	}
 
 	// -----------------------------------------------------------------
-	// Weapon Sound Assignment (MENUDEF's RS_WeaponSoundOptions). No
+	// Weapon Sound Assignment (the "Fire Sounds" section of MENUDEF's
+	// RS_WeaponOptions). No
 	// per-weapon overrides needed or wanted -- the cvar key is read
 	// straight off the weapon's own archetype: keyword (every weapon
 	// already declares one in GetBaseKeywords()), and the actual
@@ -1105,6 +1092,24 @@ class RS_Weapon : Weapon abstract
 
 	// Each weapon type overrides this to call its own RS_Roll function
 	// (e.g. RS_Roll.RollRevolverStats) and set its type-specific stats.
+	// Is this the empty-slot PLACEHOLDER a class grants so a hand is never
+	// literally empty, rather than a weapon the player chose to carry?
+	//
+	// A filler must lose the hand to any real weapon, but still be seated
+	// when it is genuinely all there is. VR_DualClassBase.SeatHands reads
+	// this to break that tie.
+	//
+	// A VIRTUAL, not a bMeleeWeapon test and not a class-name comparison.
+	// bMeleeWeapon is unreliable here -- only VR_Fist and VR_Chainsaw
+	// declare +WEAPON.MELEEWEAPON in the entire arsenal, so MeatGrinder's
+	// and Vanilla+'s own fists read as guns. And a name check would break
+	// the rule that a new weapon inherits correct behaviour from its flags
+	// alone. Each filler class answers for itself.
+	virtual bool IsHandFiller()
+	{
+		return false;
+	}
+
 	virtual void RollStats(EVR_Tier t)
 	{
 		Tier = t;

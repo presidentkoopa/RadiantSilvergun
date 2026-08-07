@@ -63,8 +63,6 @@
 // =====================================================================
 class RS_RollProbe : EventHandler
 {
-	// RS_DIAG: temporary, see WorldTick.
-	int mDiagCount;
 
 	// Per hand: 0 = offhand, 1 = mainhand.
 	double mRoll[2];
@@ -109,18 +107,6 @@ class RS_RollProbe : EventHandler
 
 	override void WorldTick()
 	{
-		// RS_DIAG: temporary, unconditional -- RS_RollProbe is LAST in
-		// MAPINFO's AddEventHandlers list, so every print here means every
-		// registered handler ahead of it got through WorldTick fine on
-		// that tic. Capped at 10 so it shows the SEQUENCE (does this keep
-		// firing tic after tic, or stop dead after some point) without
-		// spamming forever if the game is actually running fine.
-		if (mDiagCount < 10)
-		{
-			mDiagCount++;
-			Console.Printf("RS_DIAG: RS_RollProbe.WorldTick #%d", mDiagCount);
-		}
-
 		if (!mActive) return;
 
 		PlayerPawn pawn = players[consoleplayer].mo;

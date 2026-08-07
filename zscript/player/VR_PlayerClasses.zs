@@ -42,29 +42,97 @@ class VR_DualClassBase : DoomPlayer abstract
 		return EVR_Family_None;
 	}
 
-	override void PostBeginPlay()
+	// -----------------------------------------------------------------
+	// SEAT BOTH HANDS, ONCE, AFTER EVERY SPAWN GRANT HAS LANDED.
+	//
+	// This is the single seating authority. It exists because of two
+	// engine facts that between them broke both hands:
+	//
+	//  1. GiveDefaultInventory is HAND-BLIND. It runs
+	//     `ReadyWeapon = PendingWeapon = weap` for every granted weapon
+	//     that has ammo, with no bOffhandWeapon check -- so the LAST
+	//     weapon granted always wins the main hand, whatever it is.
+	//     Player.StartItem is granted in REVERSE declaration order, so
+	//     that last grant is the FIRST line in the Default block: the
+	//     fist. Every class span with a fist in the main hand.
+	//
+	//  2. A direct write to ReadyWeapon/OffhandWeapon after the engine
+	//     has already raised the psprites LEAVES THAT PSPRITE STALE, and
+	//     TickPSprites destroys any psprite whose Caller no longer
+	//     matches its slot -- with nothing to rebuild it. That is why
+	//     Vanilla+ and MeatGrinder lost the weapon, the models and the
+	//     GunBonsai HUD a moment after spawning: their real guns are
+	//     granted in PostBeginPlay, after the raise, so the pointer
+	//     write orphaned the layer and the next tic deleted it.
+	//
+	// Setting PendingWeapon = WP_NOCHANGE and calling BringUpWeapon is
+	// the engine's own "raise whatever is in both hands, now" primitive
+	// (player.zs:1930-1954). It is the ONLY way to seat two hands in one
+	// tic -- there is exactly one PendingWeapon, so the ordinary switch
+	// path can only ever change one hand.
+	//
+	// Flag-driven throughout: a weapon is offhand because it carries
+	// +WEAPON.OFFHANDWEAPON, never because of its class name. Any future
+	// weapon with that flag is seated correctly with no change here.
+	// -----------------------------------------------------------------
+	void SeatHands()
 	{
-		Super.PostBeginPlay();
-		Console.Printf("RS_DIAG: Super.PostBeginPlay() returned");
+		if (!player) return;
 
-		string mainhand = GetMainhandClass();
-		Console.Printf("RS_DIAG: mainhand = '%s'", mainhand);
-		if (mainhand.Length())
+		Weapon mainGun = null, mainFiller = null;
+		Weapon offGun  = null, offFiller  = null;
+
+		for (Inventory item = Inv; item != null; item = item.Inv)
 		{
-			let w = Weapon(FindInventory(mainhand));
-			Console.Printf("RS_DIAG: FindInventory returned %s", w ? "non-null" : "null");
-			if (w)
+			let w = Weapon(item);
+			if (!w) continue;
+
+			// A filler is the empty-slot placeholder a class grants so the
+			// hand is never truly empty. It must lose to any real weapon,
+			// but still be seated if that is genuinely all there is.
+			let rw = RS_Weapon(w);
+			bool filler = rw && rw.IsHandFiller();
+
+			if (w.bOffhandWeapon)
 			{
-				player.PendingWeapon = w;
-				Console.Printf("RS_DIAG: PendingWeapon set");
+				if (filler) { if (!offFiller) offFiller = w; }
+				else        { if (!offGun)    offGun    = w; }
+			}
+			else
+			{
+				if (filler) { if (!mainFiller) mainFiller = w; }
+				else        { if (!mainGun)    mainGun    = w; }
 			}
 		}
-		Console.Printf("RS_DIAG: about to check allowbigguns");
 
+		// GetMainhandClass is a TIEBREAKER, not the authority -- it picks
+		// which of your own guns is the featured one (Vanilla+ swaps its
+		// starting pair on a cvar), while the flag decides the hand.
+		string featured = GetMainhandClass();
+		if (featured.Length())
+		{
+			let w = Weapon(FindInventory(featured));
+			if (w && !w.bOffhandWeapon) mainGun = w;
+		}
+
+		Weapon mainWep = mainGun ? mainGun : mainFiller;
+		Weapon offWep  = offGun  ? offGun  : offFiller;
+
+		if (mainWep) player.ReadyWeapon   = mainWep;
+		if (offWep)  player.OffhandWeapon = offWep;
+
+		player.PendingWeapon = WP_NOCHANGE;
+		BringUpWeapon();
+	}
+
+	// Subclasses whose loadout can't be static Player.StartItem (Vanilla+
+	// swaps its pair on a cvar) override THIS, not PostBeginPlay -- so
+	// their grants land before SeatHands runs, instead of after it.
+	virtual void GrantStartingArsenal()
+	{
 		let cv = CVar.GetCVar("rs_dualclass_allowbigguns", null);
 		if (cv && cv.GetBool())
 		{
-			Console.Printf("RS_DIAG: allowbigguns is on, granting heavy ordnance");
 			GiveInventory("VR_RocketLauncher", 1);
 			GiveInventory("VR_PlasmaRifle", 1);
 			GiveInventory("VR_BFG9000", 1);
@@ -76,7 +144,13 @@ class VR_DualClassBase : DoomPlayer abstract
 			GiveInventory("RocketAmmo", 20);
 			GiveInventory("Cell", 200);
 		}
-		Console.Printf("RS_DIAG: PostBeginPlay complete");
+	}
+
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		GrantStartingArsenal();
+		SeatHands();
 	}
 
 	// -----------------------------------------------------------------
@@ -266,9 +340,19 @@ class RS_GH_Weaponset : VR_DualClassBase
 		return (cv && cv.GetBool()) ? "RS_GH_Rifle" : "RS_GH_Pistol";
 	}
 
-	override void PostBeginPlay()
+	// GrantStartingArsenal, NOT PostBeginPlay. This used to override
+	// PostBeginPlay and call Super FIRST, which meant its real guns were
+	// granted AFTER the base class had already finished seating hands --
+	// and, worse, after the engine had already raised the psprites. The
+	// direct OffhandWeapon write that followed left that psprite stale,
+	// and TickPSprites deleted it on the next tic with nothing to rebuild
+	// it. That is the whole "my HUD and weapons vanish a second after I
+	// spawn" bug on this class. Granting here puts them in inventory
+	// before SeatHands runs, which is the entire point of the split.
+	override void GrantStartingArsenal()
 	{
-		Super.PostBeginPlay();
+		Super.GrantStartingArsenal();
+
 		let cv = CVar.GetCVar("rs_vp_startrifle", null);
 		if (cv && cv.GetBool())
 		{

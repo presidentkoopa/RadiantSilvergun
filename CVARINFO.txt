@@ -173,7 +173,9 @@ server int rs_bits_curse_chance = 5;			// per-kill percent chance, independent o
 // default, cheap enough to leave on during content work.
 
 // =====================================================================
-// Weapon Sound Assignment -- MENUDEF's RS_WeaponSoundOptions, resolved
+// Weapon Sound Assignment -- the "Fire Sounds" section of MENUDEF's
+// RS_WeaponOptions (it had its own RS_WeaponSoundOptions page until the
+// menu was flattened), resolved
 // by RS_Weapon.GetEffectiveFireSound(). user scope, not server -- this
 // is cosmetic/personal preference, not something that needs syncing.
 // 0 = default (that weapon's normal FireSound). Only rs_soundchoice_revolver

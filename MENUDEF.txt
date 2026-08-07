@@ -18,15 +18,84 @@ OptionMenu "RS_MainOptions"
 	Title "Radiant Silvergun Options"
 	StaticText " "
 
+	StaticText " "
+	StaticText " "
+
+	Submenu "GunBonsai Options", "GunBonsaiOptions"
+
+	StaticText " "
+
 	Submenu "Weapon Options", "RS_WeaponOptions"
-	Submenu "Weapon Fidelity Options", "RS_FXSettings"
-	Submenu "Weapon Sound Assignment", "RS_WeaponSoundOptions"
-	Submenu "$TFLV_OPT_TITLE", "GunBonsaiOptions"
-	Option "GunBonsai: Classic Upgrade Pool", "rs_gb_legacy_affixes", "OnOff"
-	Submenu "Kill Rewards", "RS_BitsSettings"
-	Submenu "Arcade Score", "RS_ScoreOptions"
 	Submenu "Monster Control Center", "RS_MonsterControl"
+	Submenu "RS Score Options", "RS_ScoreOptions"
+	Submenu "Kill Rewards", "RS_BitsSettings"
+
+	StaticText " "
+	StaticText " "
+
 	Submenu "Vanilla+ Options", "RS_VanillaPlusOptions"
+	Submenu "RS Options", "RS_RSOptions"
+	Submenu "GH Options", "RS_GHOptions"
+	Submenu "PS Options", "RS_PSOptions"
+	Submenu "Dual_Class Options", "RS_DualClassOptions"
+
+	StaticText " "
+	StaticText " "
+
+	Submenu "UI Options", "RS_UIOptions"
+}
+
+// ---------------------------------------------------------------------
+// THE PER-SET PAGES -- placeholders, deliberately.
+//
+// RS / GH / PS are the weapon-set prefixes, not invented labels. They
+// have no settings yet; the pages exist so the menu's shape is finished
+// and adding a per-set option later is one line rather than another
+// restructure.
+//
+// NOTE FOR WHOEVER FILLS THESE IN: "Vanilla+ Options" above is already
+// the GH set's page -- RS_VanillaPlusOptions' own header comment names
+// it as "(RS_GH_Weaponset)". So GH Options and Vanilla+ Options may be
+// the same page under two names. Left as the owner specified rather
+// than merged on inference; ask him before collapsing them.
+// ---------------------------------------------------------------------
+OptionMenu "RS_RSOptions"
+{
+	Title "RS Options"
+	StaticText " "
+	StaticText "Nothing here yet.", "DarkGray"
+}
+
+OptionMenu "RS_GHOptions"
+{
+	Title "GH Options"
+	StaticText " "
+	StaticText "Nothing here yet.", "DarkGray"
+}
+
+OptionMenu "RS_PSOptions"
+{
+	Title "PS Options"
+	StaticText " "
+	StaticText "Nothing here yet.", "DarkGray"
+}
+
+OptionMenu "RS_DualClassOptions"
+{
+	Title "Dual_Class Options"
+	StaticText " "
+	Option "Allow Big Guns", "rs_dualclass_allowbigguns", "OnOff"
+}
+
+// ---------------------------------------------------------------------
+// UI Options -- the container for everything that is about how the mod
+// presents itself rather than how it plays. In-world panels and the UI
+// debug harness both moved off the top level into here.
+// ---------------------------------------------------------------------
+OptionMenu "RS_UIOptions"
+{
+	Title "UI Options"
+	StaticText " "
 	Submenu "In-World Panels", "RS_PanelOptions"
 	Submenu "UI Debug", "RS_UIDebug"
 }
@@ -141,6 +210,39 @@ OptionMenu "RS_WeaponOptions"
 	Slider "Radsuit Gun Protection (0=full)", "rs_condition_hazard_suited", 0.0, 1.0, 0.05, 2
 	StaticText " "
 	Option "HUD Condition Readout (CND)", "rs_hud_condition", "OnOff"
+
+	// --- Weapon Fidelity, inlined from the former RS_FXSettings page ---
+	// Set-agnostic: these apply to every weapon set. Kept as a labelled
+	// section rather than a submenu at the owner's call -- this page is
+	// deliberately flat.
+	StaticText " "
+	StaticText "Fidelity", 1
+	Option "Hi-Fi Weapon Effects", "rs_fx_hifitier", "RS_HiFiTierOption"
+	Option "Ricochet effects", "rs_fx_ricochet", "OnOff"
+	Option "HQ vanilla sound pack", "rs_fx_hqvanillasounds", "OnOff"
+	Slider "Max simultaneous muzzle lights", "rs_fx_maxmuzzlelights", 0, 256, 4, 0
+
+	// --- Sound Assignment, inlined from RS_WeaponSoundOptions ---
+	// One row per weapon FAMILY, not per numbered variant: Revolver
+	// through Revolver6 share one BuildAttackProfiles() and so already
+	// share one fire sound. Only Revolver has real alternates staged;
+	// the rest list "Default" alone until more takes are sourced, so
+	// adding them later is new OptionValue entries, not a restructure.
+	// See RS_Weapon.zs (GetEffectiveFireSound/SoundChoiceKey) and
+	// RS_Catalog.zs.
+	StaticText " "
+	StaticText "Fire Sounds", 1
+	Option "Pistol",         "rs_soundchoice_pistol",         "RS_SoundChoice_DefaultOnly"
+	Option "Revolver",       "rs_soundchoice_revolver",       "RS_SoundChoice_Revolver"
+	Option "Rifle",          "rs_soundchoice_rifle",          "RS_SoundChoice_DefaultOnly"
+	Option "SMG",            "rs_soundchoice_smg",            "RS_SoundChoice_DefaultOnly"
+	Option "Shotgun",        "rs_soundchoice_shotgun",        "RS_SoundChoice_DefaultOnly"
+	Option "Super Shotgun",  "rs_soundchoice_supershotgun",   "RS_SoundChoice_DefaultOnly"
+	Option "Chaingun",       "rs_soundchoice_chaingun",       "RS_SoundChoice_DefaultOnly"
+	Option "Chainsaw (Melee)",     "rs_soundchoice_melee",    "RS_SoundChoice_DefaultOnly"
+	Option "Rocket Launcher",      "rs_soundchoice_launcher", "RS_SoundChoice_DefaultOnly"
+	Option "Plasma Rifle (Energy)","rs_soundchoice_energy",   "RS_SoundChoice_DefaultOnly"
+	Option "BFG9000",              "rs_soundchoice_bfg",      "RS_SoundChoice_DefaultOnly"
 }
 
 // ---------------------------------------------------------------------
@@ -272,24 +374,9 @@ OptionMenu "RS_MonsterDebug"
 // now so adding a weapon's alternates later is just new OptionValue
 // entries, not a menu restructure.
 // ---------------------------------------------------------------------
-OptionMenu "RS_WeaponSoundOptions"
-{
-	Title "Weapon Sound Assignment"
-	StaticText " "
-
-	Option "Pistol",         "rs_soundchoice_pistol",         "RS_SoundChoice_DefaultOnly"
-	Option "Revolver",       "rs_soundchoice_revolver",       "RS_SoundChoice_Revolver"
-	Option "Rifle",          "rs_soundchoice_rifle",          "RS_SoundChoice_DefaultOnly"
-	Option "SMG",            "rs_soundchoice_smg",            "RS_SoundChoice_DefaultOnly"
-	Option "Shotgun",        "rs_soundchoice_shotgun",        "RS_SoundChoice_DefaultOnly"
-	Option "Super Shotgun",  "rs_soundchoice_supershotgun",   "RS_SoundChoice_DefaultOnly"
-	Option "Chaingun",       "rs_soundchoice_chaingun",       "RS_SoundChoice_DefaultOnly"
-	Option "Chainsaw (Melee)",     "rs_soundchoice_melee",    "RS_SoundChoice_DefaultOnly"
-	Option "Rocket Launcher",      "rs_soundchoice_launcher", "RS_SoundChoice_DefaultOnly"
-	Option "Plasma Rifle (Energy)","rs_soundchoice_energy",   "RS_SoundChoice_DefaultOnly"
-	Option "BFG9000",              "rs_soundchoice_bfg",      "RS_SoundChoice_DefaultOnly"
-}
-
+// The page itself is gone -- these rows are inlined into RS_WeaponOptions
+// above. The OptionValue blocks below STAY: they are what those rows
+// resolve against, and deleting them would leave every sound row blank.
 OptionValue "RS_SoundChoice_DefaultOnly"
 {
 	0, "Default"
@@ -394,17 +481,8 @@ OptionValue "RS_BitsAmmoMode"
 // here should apply to every weapon set that calls into RS_HiFiFX, not
 // just one.
 // ---------------------------------------------------------------------
-OptionMenu "RS_FXSettings"
-{
-	Title "Weapon Fidelity Options"
-	StaticText " "
-
-	Option "Hi-Fi Weapon Effects", "rs_fx_hifitier", "RS_HiFiTierOption"
-	Option "Ricochet effects", "rs_fx_ricochet", "OnOff"
-	Option "HQ vanilla sound pack", "rs_fx_hqvanillasounds", "OnOff"
-	Slider "Max simultaneous muzzle lights", "rs_fx_maxmuzzlelights", 0, 256, 4, 0
-}
-
+// Page gone, rows inlined into RS_WeaponOptions. The OptionValue below
+// stays -- the Hi-Fi row resolves against it.
 OptionValue "RS_HiFiTierOption"
 {
 	0, "Off"
@@ -516,6 +594,16 @@ OptionMenu "GunBonsaiOptions"
 
   Option "$TFLV_OPT_NAME_IGNORE_GUN_RARITY", "bonsai_ignore_gun_rarity", "OnOff"
   TFLV_Tooltip "$TFLV_OPT_TT_IGNORE_GUN_RARITY"
+
+  // RS addition, moved in from the top-level Radiant Silvergun page.
+  // APPENDED rather than slotted in near the top on purpose: this menu
+  // carries `DefaultSelection 4`, which counts rows, so inserting above
+  // that index would silently move which row the cursor lands on.
+  // Literal string, not a $TFLV_ key -- there is no upstream LANGUAGE
+  // entry for an RS-only option.
+  StaticText ""
+  StaticText "Radiant Silvergun", CYAN
+  Option "Classic Upgrade Pool", "rs_gb_legacy_affixes", "OnOff"
 }
 
 // ---------------------------------------------------------------------

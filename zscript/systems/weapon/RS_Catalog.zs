@@ -386,7 +386,8 @@ class RS_Catalog
 	static sound SND_Revolver()     { return "revolver"; }
 
 	// Alternate fire-sound takes for the Weapon Sound Assignment options
-	// menu (MENUDEF's RS_WeaponSoundOptions, rs_soundchoice_revolver).
+	// menu (the "Fire Sounds" section of MENUDEF's RS_WeaponOptions,
+	// rs_soundchoice_revolver).
 	// Only the Revolver has real alternates staged today -- everything
 	// else in the arsenal has exactly one cataloged fire sound, so their
 	// menu rows only ever offer "Default" until more takes get sourced.

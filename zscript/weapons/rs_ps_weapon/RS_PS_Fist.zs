@@ -8,6 +8,11 @@
 // =====================================================================
 class RS_PS_Fist : RS_Weapon
 {
+	// Melee fallback -- loses the hand to a real gun at spawn, so
+	// MeatGrinder starts holding its TEC-9s rather than its knives.
+	// Inherited by RS_PS_Fist2..6.
+	override bool IsHandFiller() { return true; }
+
 	Default
 	{
 		Tag "Grinder Knife";
