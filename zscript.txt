@@ -506,3 +506,9 @@
 // AttackRoll/OffhandRoll, which nothing in this mod has ever read.
 // RS_RollProbe must ALSO be in MAPINFO's AddEventHandlers.
 #include "zscript/systems/player/RS_RollProbe.zs"
+
+// Weapon diag -- disposable. Prints both hands' psprite state to the
+// console automatically for the first 20 tics after spawn, for the
+// raise/lower investigation. RS_WeaponDiag must ALSO be in MAPINFO's
+// AddEventHandlers.
+#include "zscript/systems/player/RS_WeaponDiag.zs"

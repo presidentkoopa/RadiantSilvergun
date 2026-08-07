@@ -814,15 +814,19 @@ class RS_UIHandler : EventHandler
 			// panel. No args = offhand slot; falls back to ready weapon.
 			if (mShowcase)
 			{
-				// DISABLED 2026-08-06. The engine moved off DXR2 to UZDXREMA
-				// (a fresh clone of upstream questzdoom), which has NO
-				// billboard API AT ALL -- verified by grep over its whole
-				// src tree and by checking four built binaries. Calling
-				// level.RemoveBillboard is a hard script error that stops
-				// the ENTIRE mod compiling, not just this toggle.
-				// Restore this together with the AttachBillboard below, once
-				// the billboard primitive is rebuilt natively in UZDXREMA.
-				// if (mCardActive) level.RemoveBillboard(mCardBB);
+				// RE-ENABLED 2026-08-06 at the owner's direction, same day
+				// it was disabled. The comment that stood here said UZDXREMA
+				// "has NO billboard API AT ALL -- verified by grep over its
+				// whole src tree". True when written; the port landed after
+				// it. LevelLocals declares all seven natives at
+				// wadsrc/static/zscript/doombase.zs:633-647, verified against
+				// the engine tree before this edit rather than inferred from
+				// this file.
+				//
+				// Worth keeping as a pattern, not an anecdote: a disabling
+				// comment ages into an instruction not to look. Check the
+				// engine, not the note about the engine.
+				if (mCardActive) level.RemoveBillboard(mCardBB);
 				mCardActive = false;
 				mShowcase.Destroy();
 				mShowcase = null;
@@ -845,15 +849,29 @@ class RS_UIHandler : EventHandler
 						// RenderOverlay. col modulates texels -- full white
 						// + full alpha = untinted. Needs engine d9f35d40f3+
 						// (TextureID.GetIndex is a compiler intrinsic).
-						// DISABLED 2026-08-06 with the RemoveBillboard call above.
-						// UZDXREMA has no billboard API; this call is a hard
-						// script error that blocks the WHOLE mod from loading.
-						// The stand still spawns and the canvas is still painted
-						// -- only the in-world panel is absent. Restore both
-						// sites together when the primitive is rebuilt.
-						// mCardBB = level.AttachBillboard(mShowcase, (0, 0, 56),
-						//	44, 1, tex.GetIndex(), Color(255, 255, 255, 255));
-						mCardActive = false;
+						//
+						// RE-ENABLED 2026-08-06 with the RemoveBillboard call
+						// above. The note that stood here said UZDXREMA has no
+						// billboard API -- true when written, false now; the
+						// port landed after it. Verified against
+						// doombase.zs:633-647 in the engine tree, not inferred
+						// from this file.
+						//
+						// Named payload rather than the bare 1 this carried:
+						// doombase.zs:405 warns a wrong id draws the wrong
+						// payload SILENTLY rather than erroring, so the
+						// constant is what turns a mistake into a compile
+						// error. BB_TEXTURE is also the one payload still
+						// rendering, which is why this site comes back first.
+						//
+						// AttachBillboard returns -1 when mo is null, so the
+						// handle is what mCardActive keys off -- RenderOverlay
+						// paints the canvas only while it is true, and the
+						// remove path above only fires while it is true.
+						mCardBB = level.AttachBillboard(mShowcase, (0, 0, 56),
+							44, BB_TEXTURE, tex.GetIndex(),
+							Color(255, 255, 255, 255));
+						mCardActive = (mCardBB >= 0);
 					}
 				}
 			}

@@ -847,6 +847,19 @@ server float rs_panel_rollbias = 0.0;
 // that contract is now enforced rather than merely advertised.
 server bool rs_elitedrop_enabled = true;
 
+// Whether monsters drop items at all. OFF by default: monsters pay out in
+// kill rewards and nothing else.
+//
+// Stated positively on purpose -- a negated cvar makes the menu row read
+// backwards, and an inverted OnOff toggle is a bug generator.
+//
+// Suppression happens at runtime in RS_NoMonsterDrops.zs. The DropItem
+// tables under zscript/monsters/ are untouched and restorable, which is
+// deliberate: 432 of those lines are RandomSpawner spawn tables, not loot,
+// and deleting them would delete the monster roster. Turning this back on
+// restores CH's original drops with no rebuild.
+server bool rs_monsterdrops = false;
+
 // --- Panel typography -------------------------------------------------
 // Font and size are player-facing because legibility in a headset is
 // personal -- panel distance, IPD and lens sharpness all move where the

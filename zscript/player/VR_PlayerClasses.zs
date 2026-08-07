@@ -45,18 +45,26 @@ class VR_DualClassBase : DoomPlayer abstract
 	override void PostBeginPlay()
 	{
 		Super.PostBeginPlay();
+		Console.Printf("RS_DIAG: Super.PostBeginPlay() returned");
 
 		string mainhand = GetMainhandClass();
+		Console.Printf("RS_DIAG: mainhand = '%s'", mainhand);
 		if (mainhand.Length())
 		{
 			let w = Weapon(FindInventory(mainhand));
+			Console.Printf("RS_DIAG: FindInventory returned %s", w ? "non-null" : "null");
 			if (w)
+			{
 				player.PendingWeapon = w;
+				Console.Printf("RS_DIAG: PendingWeapon set");
+			}
 		}
+		Console.Printf("RS_DIAG: about to check allowbigguns");
 
 		let cv = CVar.GetCVar("rs_dualclass_allowbigguns", null);
 		if (cv && cv.GetBool())
 		{
+			Console.Printf("RS_DIAG: allowbigguns is on, granting heavy ordnance");
 			GiveInventory("VR_RocketLauncher", 1);
 			GiveInventory("VR_PlasmaRifle", 1);
 			GiveInventory("VR_BFG9000", 1);
@@ -68,6 +76,7 @@ class VR_DualClassBase : DoomPlayer abstract
 			GiveInventory("RocketAmmo", 20);
 			GiveInventory("Cell", 200);
 		}
+		Console.Printf("RS_DIAG: PostBeginPlay complete");
 	}
 
 	// -----------------------------------------------------------------

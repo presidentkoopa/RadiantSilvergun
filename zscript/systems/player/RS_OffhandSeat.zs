@@ -35,11 +35,23 @@ class RS_OffhandSeat : EventHandler
 				continue;
 			}
 
+			if (tries[i] == 1)
+				Console.Printf("RS_DIAG: RS_OffhandSeat reached WorldTick for player %d, walking inventory", i);
+
 			Weapon mainGun = null, mainFallback = null;
 			Weapon offGun = null, offFallback = null;
 
+			int invWalkGuard = 0;
 			for (Inventory item = pawn.Inv; item != null; item = item.Inv)
 			{
+				invWalkGuard++;
+				if (invWalkGuard == 1)
+					Console.Printf("RS_DIAG: inventory walk started");
+				if (invWalkGuard > 500)
+				{
+					Console.Printf("RS_DIAG: inventory walk exceeded 500 items -- likely a cycle, breaking");
+					break;
+				}
 				let w = Weapon(item);
 				if (!w)
 					continue;

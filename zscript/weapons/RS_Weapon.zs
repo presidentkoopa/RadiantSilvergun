@@ -399,6 +399,20 @@ class RS_Weapon : Weapon abstract
 			invoker.bWaitingForRelease = false;
 	}
 
+	// RS_DIAG: temporary. Called as the first frame of a weapon's Ready
+	// state -- if this prints, that weapon's Select->Raise sequence
+	// completed and reached Ready. Printed once only, so it doesn't spam
+	// every tic the weapon stays ready.
+	bool bDiagReadyPrinted;
+	action void A_RS_DiagReady()
+	{
+		if (!invoker.bDiagReadyPrinted)
+		{
+			invoker.bDiagReadyPrinted = true;
+			Console.Printf("RS_DIAG: %s reached Ready state", invoker.GetClassName() .. "");
+		}
+	}
+
 	// -------------------------------------------------------------
 	// Universal reload plumbing.
 	//

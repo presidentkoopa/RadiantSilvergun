@@ -114,6 +114,12 @@ OptionMenu "RS_PanelOptions"
 	StaticText " "
 	StaticText "Elite drops", 1
 	Option "Elites drop class weapons", "rs_elitedrop_enabled", "OnOff"
+	StaticText " "
+	StaticText "Monster drops", 1
+	Option "Monsters drop items", "rs_monsterdrops", "OnOff"
+	StaticText "Off: monsters pay out in kill rewards only.", "DarkGray"
+	StaticText "On: restores the original ammo, armour and", "DarkGray"
+	StaticText "weapon drops. Takes effect on the next kill.", "DarkGray"
 }
 
 // ---------------------------------------------------------------------
