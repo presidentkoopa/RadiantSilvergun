@@ -1,4 +1,4 @@
-﻿version "4.14"
+version "4.14"
 
 #include "zscript/player/VR_PlayerClasses.zs"
 
@@ -11,25 +11,20 @@
 #include "zscript/systems/player/RS_Bits.zs"
 #include "zscript/systems/score/RS_Score.zs"
 
-// RS_MonsterMaster.Tier for the tier-boss axis, so it depends on the
-// monster include below in the same "for readers, not the compiler" sense
-// TEMPORARILY DISABLED 2026-08-05. These six files were written last
-// session and never compiled once. Between them they produce 114 script
-// errors -- type mismatches, Color vs int returns, play functions called
-// from a data context -- and a single script error stops the WHOLE MOD
-// from loading, so nothing else in the tree could be tested while they
-// were in. Commented out, NOT deleted: the files are untouched on disk.
-// file's AddEventHandlers after these were commented out, and an event
-// handler naming a class that does not exist is a HARD CRASH AT MAP
-// LOAD -- not a warning. The owner hit it. It has been removed there;
-// PUT IT BACK IN THE SAME CHANGE that uncomments these lines.
-// Re-enable by uncommenting, once the 114 are fixed.
-
 // World-space health bars over monsters. Reads
-// RS_MonsterMaster.TierMaxHealth when the owner is one of ours, so it
-// depends on the monster include below -- ZScript is one translation
-// unit, so this ordering is for readers, not the compiler.
+// RS_SystemsMaster.TierMaxHealth when the owner is one of ours.
 // RS_HealthBarHandler must also be in MAPINFO.txt's AddEventHandlers.
+//
+// (There used to be a large block here announcing "six files TEMPORARILY
+// DISABLED... 114 script errors... re-enable by uncommenting". Removed
+// 2026-08-07: there was nothing left to uncomment. The six were the OLD
+// elite system -- RS_Elites.zs and its five RS_EliteProfiles_* files --
+// and they were deleted from disk and SUPERSEDED by the rebuilt elite
+// system that ships today, included further down as RS_Elite.zs /
+// RS_EliteColors.zs / RS_EliteFX.zs. Following that instruction would
+// have resurrected a dead system on top of its own replacement. The
+// same block also claimed a dependency on RS_MonsterMaster, a class
+// deleted in the same sweep; RS_SystemsMaster.zs replaced it.)
 #include "zscript/systems/monster/RS_HealthBars.zs"
 
 // Must load after RS_Weapon.zs and VR_PlayerClasses.zs (needs GetFamily()
@@ -57,8 +52,20 @@
 #include "zscript/systems/weapon/RS_PACKCatalog.zs"
 #include "zscript/systems/weapon/RS_Keywords.zs"
 
-// Predictive-lead-fire utility (ZScript port of the useful half of CH's
-// anything yet.
+// RS_Material -- "what did I just shoot?". A LineTrace from the impact
+// point resolves the surface texture (or the body) into one of ten
+// materials, and every impact effect dispatches off that instead of
+// being surface-blind. This is what stopped every bullet in the game
+// playing a ricochet sound into a Baron's chest. See the file header.
+#include "zscript/systems/weapon/RS_Material.zs"
+
+// (A truncated comment sat here -- "Predictive-lead-fire utility (ZScript
+// port of the useful half of CH's / anything yet." -- the two surviving
+// ends of a block whose middle line and #include were deleted with the
+// file they described, zscript/systems/RS_MonsterAim.zs. Removed
+// 2026-08-07. NOTE FOR ANY FUTURE ACS-PORT WORK: three docs still cite
+// RS_MonsterAim.GetLeadAngle / PredictInterceptPoint with line numbers as
+// if the file exists. It does not.)
 
 // RS_NoHitscan: intercepts WorldHitscanPreFired and flies a projectile
 // down the line the hitscan would have taken. Touches none of the 163
@@ -76,7 +83,9 @@
 
 // --- Monsters ---
 // CH Zombieman family, rebuilt native 2026-08-05 from
-// C:\Users\Command\Desktop\CH (Zombies.txt read whole, 2786 lines).
+// E:\New folder\ART SOURCE\CH (Zombies.txt read whole, 2786 lines).
+// (Path corrected 2026-08-07 -- it named a Desktop folder that does
+// not exist; that Desktop holds CHP, a different pack.)
 // FX first: RS_Zombieman.zs references its support classes by string,
 // but readers go support -> monsters.
 #include "zscript/monsters/zombieman/RS_ZombiemanFX.zs"
@@ -172,7 +181,7 @@
 // nothing there fires it, no replaces, no ACS hook -- and is imported inert,
 // verbatim. It stays inert until the owner designs a trigger.
 #include "zscript/monsters/chshared/RS_CHShared.zs"
-#include "zscript/monsters/chshared/RS_CHEvents.zs"
+#include "zscript/monsters/chshared/RS_MonEvents.zs"
 // Debug lineup spawner (netevent rs_spawnall). RS_MonsterDebugHandler is
 // ALSO in MAPINFO.txt's AddEventHandlers -- the two are a pair.
 #include "zscript/monsters/RS_MonsterDebug.zs"
@@ -186,22 +195,16 @@
 // two are a pair, and a name there without this include is a hard crash.
 #include "zscript/monsters/RS_ReserveSquads.zs"
 
-// RS_MonsterMaster: the monster-side parallel of RS_Weapon. Owns tier,
-// the per-tier body-sprite/TRNSLATE table, the per-tier attack slot,
-// and the shared behaviour primitives (summon-with-cap, threshold
-// enrage, timed pulse, orbit-attach, morph). The three empty per-family
-// base classes it used to declare were removed 2026-08-04 -- see the
-// note at the bottom of that file.
-// #include "zscript/monsters/RS_MonsterMaster.zs"
-// The CHP-era tier machinery, split out 2026-08-05. Only the quarantined
-// families inherit it; nothing rebuilt from CH is in its path.
-// #include "zscript/monsters/_chp_legacy/RS_MonsterLadder.zs"
-
-// Monster parts bin -- summon rosters, satellites, portals, morph
-// stages, monster projectiles. Same job RS_Catalog.zs does for weapons
-// and the same rule: no monster file names a raw class inline.
-// #include "zscript/systems/RS_MonsterCatalog.zs"
-// The systems contract -- what a monster must offer the health
+// The systems contract -- what a monster must offer the health bars,
+// the score system and Kill Rewards. Replaced RS_MonsterMaster.zs, which
+// was deleted 2026-08-04 along with the CHP-era tier machinery and the
+// RS_MonsterCatalog parts bin; the prose describing all three was still
+// sitting here until 2026-08-07.
+//
+// WORTH KNOWING: nothing in the tree currently inherits this, so the
+// IsSummonedMinion / IsTransientStage guards that RS_Score.zs and
+// RS_Bits.zs read through it always answer "no". Flagged in the
+// 2026-08-07 review; the owner rules on whether monsters adopt it.
 #include "zscript/systems/RS_SystemsMaster.zs"
 
 // Monsters pay out in kill rewards only. Suppresses dropped items at
@@ -209,33 +212,24 @@
 // MAPINFO's AddEventHandlers or it does nothing.
 #include "zscript/systems/RS_NoMonsterDrops.zs"
 
+// RS_SummonMark -- marks anything that became a monster AFTER the map was
+// built, so summons pay no score and no Bits (owner ruling 2026-08-07).
+// Closes the infinite Pain-Elemental farm. RS_SummonMarker must ALSO be
+// in MAPINFO.txt's AddEventHandlers. Read its header before "simplifying"
+// it to a kill-time master check -- the engine's own A_PainShootSkull
+// sets no master, so that check cannot work.
+#include "zscript/systems/RS_SummonMark.zs"
+
 // CH/CHP's pack-buff ACS, rebuilt as ZScript Powerups. The import
 // dropped these as "empty ACS wrappers"; the behaviour lived in the ACS
 // script, so the mechanic went with them. docs/rs_19_acs_inventory.txt
 // has the full audit. Revert = delete this one line.
-// #include "zscript/monsters/RS_MonsterCommands.zs"
 
 // Monster attack components (474 catalogued projectiles, one file per
 // family) -- extracted per docs/catalog_notes.txt so monster attacks
 // can be recombined rather than hardcoded per monster. Sprite refs
 // verified against ART SOURCE/IWAD; three inherited broken references
 // corrected on import (noted in-file).
-// #include "zscript/monsters/monsterfx/RS_dk_shared.zs"
-// #include "zscript/monsters/monsterfx/RS_human_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_imp_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_demon_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_spectre_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_lostsoul_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_caco_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_pe_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_baron_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_hk_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_rev_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_manc_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_arach_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_archvile_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_spidermind_projectiles.zs"
-// #include "zscript/monsters/monsterfx/RS_cyberdemon_projectiles.zs"
 
 // One file per monster (not grouped by family) -- CHP-behaviour work
 // coming next will add real weight per monster (summons, orbiting
@@ -253,86 +247,33 @@
 // The attacks are included BEFORE the monster purely so this block reads
 // bottom-up like the folder does; ZScript is one translation unit and
 // does not care.
-// #include "zscript/monsters/_chp_legacy/Zombieman/attacks/RS_Zombieman_Undertaker.zs"
-// #include "zscript/monsters/_chp_legacy/Zombieman/attacks/RS_Zombieman_BoneTornado.zs"
-// #include "zscript/monsters/_chp_legacy/Zombieman/RS_Zombieman.zs"
 
 // --- families not yet ported under rs_21 -- flat, one file each -------
-// #include "zscript/monsters/_chp_legacy/RS_Shotgunner.zs"
 // The Crew Commander's squad -- a distinct actor with a five-stance AI,
 // not a lower-tier shotgunner. See the file header.
-// #include "zscript/monsters/_chp_legacy/RS_BlackSGTrooper.zs"
-// --- CH-only rebuild, one class per creature ------------------------
-// Family 04. Fourteen files, fourteen of CH's own Chaingunners.txt
-// actors, one apiece. These are CH's numbers, NOT CHP's -- CHP is a
-// separate layer that lands on top later, deliberately.
+// KEPT FROM A DELETED BLOCK -- the one thing in it still true, and the
+// most expensive lesson in this tree:
 //
-// EACH ONE IS AN RS_MonsterMaster DIRECTLY. There is no family base
-// class and no abstract anywhere in the chain -- Colourful Hell uses
-// `abstract` exactly zero times, and every time this project has used
-// it the actors rendered INVISIBLE while ticking and firing normally.
-// It cost the weapons once and the chaingunners once. Do not add it.
-// CH's floating tier marker -- its COLOURBLIND AID, not decoration.
-// Off by default exactly as CH ships it; rs_mon_tiericons turns it on.
-// Family-agnostic, so it sits at the top of the family block.
-// #include "zscript/monsters/chaingunner/RS_ColorTierIcon.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_C0001_Common.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0001_Green.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0002_Blue.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0003_Cyan.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0004_Purple.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0005_Yellow.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0006_Brown.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0007_Gray.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0008_Abyss.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0009_Fireblu.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_T0010_Red.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_B0001_Black.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_B0002_White.zs"
-// #include "zscript/monsters/chaingunner/RS_Chaingunner_X0001_BlackEX.zs"
-
-// #include "zscript/monsters/_chp_legacy/RS_Imp.zs"
-// #include "zscript/monsters/_chp_legacy/RS_Demon.zs"
-// #include "zscript/monsters/_chp_legacy/RS_Spectre.zs"
-// #include "zscript/monsters/_chp_legacy/RS_LostSoul.zs"
-// #include "zscript/monsters/_chp_legacy/RS_Cacodemon.zs"
-// #include "zscript/monsters/_chp_legacy/RS_PainElemental.zs"
-// #include "zscript/monsters/_chp_legacy/RS_Baron.zs"
-// #include "zscript/monsters/_chp_legacy/RS_HellKnight.zs"
-// #include "zscript/monsters/_chp_legacy/RS_Revenant.zs"
-// #include "zscript/monsters/_chp_legacy/RS_Mancubus.zs"
-// #include "zscript/monsters/_chp_legacy/RS_Arachnotron.zs"
-// #include "zscript/monsters/_chp_legacy/RS_Archvile.zs"
-// #include "zscript/monsters/_chp_legacy/RS_Mastermind.zs"
-// #include "zscript/monsters/_chp_legacy/RS_Cyberdemon.zs"
-
-// Summoned monsters. Real RS_MonsterMaster monsters (they carry a tier
-// and can be retiered), deliberately not throwaway actors -- see the
-// file header. Excluded from the level kill count.
-// #include "zscript/monsters/_chp_legacy/RS_Minions.zs"
-
-// Multi-stage boss bodies (shrink chains, shades) and pack minions that
-// belong to no single family file. Referenced through RS_MonsterCatalog.
-// #include "zscript/monsters/_chp_legacy/RS_MonsterStages.zs"
-
-// EX tier -- set-piece boss encounters, TierLocked so the ambient dial
-// leaves them alone. Rebuilt from CHP's BlackEX/WhiteEX variants; these
-// replace the removed RS_TEX_* files, which were still HF_-prefixed
-// classes from an older import and could not have compiled.
-// #include "zscript/monsters/_chp_legacy/RS_ExBosses.zs"
-
-// Monster diagnostics. Registered in MAPINFO.txt's AddEventHandlers --
-// without that line this file compiles but never runs.
-// #include "zscript/systems/RS_MonsterDebug.zs"
+// NO `abstract` ANYWHERE IN A MONSTER CHAIN. Colourful Hell uses that
+// keyword exactly zero times, and every time this project has used it
+// the actors rendered INVISIBLE while ticking and firing normally. It
+// cost the weapons once and the chaingunners once. Do not add it.
 
 // The unified UI's play-scope half: screen models + rs-ui-* netevents.
 // Also MAPINFO-registered. UI-scope half lives in the GunBonsai tree
 // (rs_menu/RS_UIMenus.zsc). Spec: docs/rs_10_ui_spec.txt.
 #include "zscript/systems/player/RS_Screens.zs"
 
-// Spinning weapon display stand -- the world prop for in-world UI scenes
-// (drop cards, armory). Test toggle: `netevent rs-showcase`.
-#include "zscript/systems/player/RS_Showcase.zs"
+// What the engine's VR weapon wheel writes in its info panel. Answers
+// PlayerPawn.GetVRWheelInfo, which the engine calls for the hovered entry.
+// After RS_Screens because it reuses RS_UIStyle's tier names and pips.
+#include "zscript/systems/ui/RS_WheelInfo.zs"
+
+// RS_Showcase.zs DELETED 2026-08-07 at the owner's direction -- a dev
+// prop that proved a point nobody needed proving, and the sole consumer
+// of the billboard natives that were absent from the engine. That one
+// branch stopped the ENTIRE mod compiling: 17 monster families, every
+// weapon, the lot, taken down by four unresolved names in a demo.
 
 // --- IN-WORLD PANELS -------------------------------------------------
 // The diegetic UI lane: world-oriented textured quads that can be
@@ -350,6 +291,22 @@
 // MAPINFO.txt's AddEventHandlers -- a name there with no class is a
 // hard crash at map load, and a class with no name there compiles and
 // silently never runs.
+// RS_Billboard -- the script wrapper over the engine's billboard
+// primitive (AddBillboardPersistent / AttachBillboard / AimBillboard /
+// TouchBillboard, doombase.zs:536-582 in E:\UZDXREMA, THE engine this
+// mod is built for). Handles are not actors and nothing collects them,
+// so every handle lives in an object with a Release().
+//
+// One engine gap remains, and it is not this file's fault: payload 1
+// (texture) needs TextureID.GetIndex(), which the billboard API's own
+// comment references but which is not exposed to ZScript. The screens
+// below are built from payloads 0/2/3/4/5 and do not need it; canvas
+// art on a billboard will.
+#include "zscript/systems/ui/RS_Billboard.zs"
+// The level-up card picker and the weapon status sheet, IN THE WORLD.
+// RS_BBUIHandler must ALSO be in MAPINFO.txt's AddEventHandlers.
+#include "zscript/systems/ui/RS_BillboardUI.zs"
+
 #include "zscript/systems/ui/RS_Panel.zs"
 #include "zscript/systems/ui/RS_PanelCard.zs"
 #include "zscript/systems/ui/RS_PanelController.zs"
@@ -365,11 +322,20 @@
 
 // Twin weapon wheel PROOF OF CONCEPT -- disposable; see file header.
 // RS_WheelHandler must also be in MAPINFO's AddEventHandlers.
-#include "zscript/systems/player/RS_WheelPoC.zs"
 
 // Archetype -> eligible Catalog slice, the fence PACK assembly reads so
 // a Shotgun stays a Shotgun instead of pooling the entire Catalog flat.
 #include "zscript/systems/weapon/RS_FamilyPalette.zs"
+
+// RS_PACKAssembly -- THE DOOR into PACK, built 2026-08-07.
+//
+// RS_PACKCatalog (409 monster projectiles), RS_FamilyPalette (the fence)
+// and ApplyTheme() were all finished and CALLED BY NOTHING: every Make*
+// in the tree ran at compile time inside a weapon file, so no attack
+// profile had ever been built at runtime. This is the one file that
+// does it. Must load after RS_PACKCatalog, RS_FamilyPalette,
+// RS_AttackProfile and RS_Weapon -- it calls into all four.
+#include "zscript/systems/weapon/RS_PACKAssembly.zs"
 
 // Granted-keyword -> live shot multipliers. The generic resolver: an
 // affix's whole job becomes wpn.GrantKeyword(...), A_RS_FireSlot reads
@@ -399,6 +365,16 @@
 #include "zscript/weapons/rs_weapon/RS_RocketLauncher.zs"
 #include "zscript/weapons/rs_weapon/RS_PlasmaRifle.zs"
 #include "zscript/weapons/rs_weapon/RS_BFG9000.zs"
+
+// RS_Grenade -- hold a key to charge, release to throw. Rebuilt from the
+// UAC Survival Pack's jGrenade, which needed 22 classes and an ACS
+// library to do it: DECORATE cannot set a projectile's speed at fire
+// time, so it pre-built 11 weapons firing 11 projectiles and hot-swapped
+// your gun to pick one. ZScript sets the velocity, so this is one weapon
+// and one projectile with a continuous charge -- and your deployed gun
+// is never touched.
+#include "zscript/weapons/rs_weapon/RS_Grenade.zs"
+
 
 // --- GunstarHeroes set (RS_GH_) -- imported from the HB arsenal,
 // rebuilt on RS_Weapon + attack profiles, attacks sourced from RS_Catalog.
@@ -479,6 +455,9 @@
 #include "zscript/weapons/weaponfx/RS_FX_MuzzleLight.zs"
 #include "zscript/weapons/weaponfx/RS_FX_Casings.zs"
 #include "zscript/weapons/weaponfx/RS_FX_Explosions.zs"
+// The grenade detonation -- the source's own layered explosion, imported
+// at the owner's request rather than substituted from the FX above.
+#include "zscript/weapons/weaponfx/RS_FX_Blast.zs"
 #include "zscript/weapons/weaponfx/RS_FX_Flares.zs"
 #include "zscript/weapons/weaponfx/RS_FX_Fire.zs"
 #include "zscript/weapons/weaponfx/RS_FX_HiFiFX.zs"
@@ -500,15 +479,50 @@
 // revival fire cone. RS_ScoreHandler must ALSO be listed in MAPINFO's
 // AddEventHandlers or none of it runs.
 #include "zscript/systems/score/RS_ScoreHUD.zs"
+// RS_ScoreLives -- the earnable extra-lives economy (earn by damage
+// taken, damage dealt, score thresholds; per-level floors and caps).
+// MUST precede RS_ScoreRevival.zs, which references RS_LifeInfo.
+//
+// This file existed on disk for a full compile cycle without this line,
+// and the result was four "Unable to resolve RS_LifeInfo as a type"
+// errors that stopped the whole mod loading -- the exact trap CLAUDE.md
+// documents: a .zs that is not in this list SILENTLY DOES NOT EXIST.
+// RS_LivesHandler MUST be in MAPINFO.txt's AddEventHandlers, and it is.
+//
+// This comment previously said the opposite -- that a StaticEventHandler
+// "registers itself, so it deliberately does NOT go in MAPINFO". That was
+// my assumption and it is FALSE. EventManager::InitStaticHandlers
+// (E:\UZDXREMA\src\events.cpp:590-622) builds the handler list from
+// exactly two places: gameinfo.EventHandlers and the per-map
+// Level->info->EventHandlers, both of which are MAPINFO. There is no
+// self-registration path for any handler type.
+//
+// The cost of believing it: the ENTIRE lives system was dead code.
+// Nothing granted RS_LifeForce, so its AbsorbDamage hook was never
+// installed -- no lives earned, none spent, no death saves, no fire
+// cone, and every rs_lives_* cvar and menu row inert while looking
+// perfectly alive. The exact failure this project keeps hitting: no
+// error, no warning, just a system that silently is not there.
+#include "zscript/systems/score/RS_ScoreLives.zs"
 #include "zscript/systems/score/RS_ScoreRevival.zs"
 
-// Roll probe -- disposable instrument for the wheel design. Measures
-// AttackRoll/OffhandRoll, which nothing in this mod has ever read.
-// RS_RollProbe must ALSO be in MAPINFO's AddEventHandlers.
-#include "zscript/systems/player/RS_RollProbe.zs"
-
-// Weapon diag -- disposable. Prints both hands' psprite state to the
-// console automatically for the first 20 tics after spawn, for the
-// raise/lower investigation. RS_WeaponDiag must ALSO be in MAPINFO's
-// AddEventHandlers.
-#include "zscript/systems/player/RS_WeaponDiag.zs"
+// THE THREE DISPOSABLE INSTRUMENTS ARE GONE. 2026-08-07, owner ruling,
+// and the previous commit message had already said they "MUST COME OUT
+// BEFORE SHIP":
+//
+//   RS_WeaponDiag  -- raise/lower diagnostic. Printed 10-25 console
+//                     lines at the start of EVERY map.
+//   RS_RollProbe   -- measured AttackRoll/OffhandRoll for the wheel
+//                     design. Nothing in this mod has ever read those.
+//   RS_WheelPoC    -- the twin weapon wheel proof-of-concept, which
+//                     disproved itself: its header claims WorldTick runs
+//                     before player thinkers so it can eat the input,
+//                     and the engine does the opposite (p_tick.cpp:175
+//                     then :178). The wheel could not stop your guns
+//                     firing while it was open, which is the one thing
+//                     it had to do. If a wheel is built again it belongs
+//                     in PlayerThink like RS_PanelInput and the grenade.
+//
+// Files deleted, MAPINFO names removed in the same change (a name there
+// with no class is a hard crash at map load), and their V / J / K
+// default binds freed in KEYCONF.
