@@ -330,21 +330,50 @@ class RS_PanelDropHandler : EventHandler
 	}
 
 	// -----------------------------------------------------------------
-	// HOW MANY OF THE SIX CLASS WEAPONS THIS PLAYER HAS FOUND.
+	// HOW MANY OF THIS PLAYER'S OWN SIX IDENTITIES THEY OWN.
+	//
+	// CORRECTED 2026-08-06. This used to loop ClassWeapon()'s hardcoded
+	// list of 6 DIFFERENT weapon TYPES (Revolver/Rifle/Shotgun/SMG/
+	// Chaingun/PlasmaRifle), counting how many different types the
+	// player had found at least one of. That list was already wrong on
+	// its own terms -- missing Pistol and SuperShotgun, which both have
+	// real Dual_X classes (VR_Dual_Pistol, VR_Dual_SSG), and including
+	// Plasma, which isn't even a gated family -- and it stopped meaning
+	// anything the moment pedestals and elites were rewired to hand out
+	// copies of the PLAYER'S OWN type instead of different types. A
+	// Dual_Pistol or Dual_SSG player could never advance this count at
+	// all, because neither type was in the list, so their tier ceiling
+	// was permanently stuck at the starting window regardless of how
+	// much they'd actually collected.
+	//
+	// This now counts the SAME six identities NextMissingIdentity
+	// (RS_ClassGating.zs) already tracks for the same player. 1 and 4
+	// are the guaranteed spawn grant, so a fresh player starts at 2
+	// here -- which is exactly what TierCeiling already expects at
+	// "0-2 owned", so its thresholds needed no change, only the count
+	// feeding them.
 	//
 	// Ownership, not what is in your hands -- you only carry two at a
 	// time, so "holding" would be a meaningless test. FindInventory
-	// answers for the whole inventory.
+	// answers for the whole inventory. Sequential checks, not a loop
+	// over an array: `static const TYPE name[] = {...}` does not
+	// reliably resolve on this engine build (see CLAUDE.md).
 	// -----------------------------------------------------------------
 	static int ArsenalCount(PlayerPawn pawn)
 	{
 		if (!pawn) return 0;
+		let pc = VR_DualClassBase(pawn);
+		if (!pc) return 0;
+		string mainhand = pc.GetMainhandClass();
+		if (mainhand.Length() == 0) return 0;
+
 		int n = 0;
-		for (int i = 0; i < 6; i++)
-		{
-			let c = ClassWeapon(i);
-			if (c && pawn.FindInventory(c)) n++;
-		}
+		if (pawn.FindInventory(mainhand))        n++;
+		if (pawn.FindInventory(mainhand .. "2")) n++;
+		if (pawn.FindInventory(mainhand .. "3")) n++;
+		if (pawn.FindInventory(mainhand .. "4")) n++;
+		if (pawn.FindInventory(mainhand .. "5")) n++;
+		if (pawn.FindInventory(mainhand .. "6")) n++;
 		return n;
 	}
 
