@@ -204,6 +204,11 @@
 // The systems contract -- what a monster must offer the health
 #include "zscript/systems/RS_SystemsMaster.zs"
 
+// Monsters pay out in kill rewards only. Suppresses dropped items at
+// runtime; does NOT edit the monster drop tables. Must also be listed in
+// MAPINFO's AddEventHandlers or it does nothing.
+#include "zscript/systems/RS_NoMonsterDrops.zs"
+
 // CH/CHP's pack-buff ACS, rebuilt as ZScript Powerups. The import
 // dropped these as "empty ACS wrappers"; the behaviour lived in the ACS
 // script, so the mechanic went with them. docs/rs_19_acs_inventory.txt
@@ -496,3 +501,8 @@
 // AddEventHandlers or none of it runs.
 #include "zscript/systems/score/RS_ScoreHUD.zs"
 #include "zscript/systems/score/RS_ScoreRevival.zs"
+
+// Roll probe -- disposable instrument for the wheel design. Measures
+// AttackRoll/OffhandRoll, which nothing in this mod has ever read.
+// RS_RollProbe must ALSO be in MAPINFO's AddEventHandlers.
+#include "zscript/systems/player/RS_RollProbe.zs"

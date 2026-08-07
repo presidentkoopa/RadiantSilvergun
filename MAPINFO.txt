@@ -9,7 +9,7 @@ GameInfo
 	// currently commented out (114 script errors, never compiled), so the
 	// class is absent and this entry killed the game on load.
 	// THE TWO ARE A PAIR. Never comment out one without the other.
-	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating", "RS_EliteHandler", "RS_MonsterDebugHandler", "RS_WheelHandler", "RS_ConditionHandler", "RS_ReserveSquads", "RS_PanelHandler", "RS_PanelDropHandler"
+	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating", "RS_EliteHandler", "RS_MonsterDebugHandler", "RS_WheelHandler", "RS_ConditionHandler", "RS_ReserveSquads", "RS_PanelHandler", "RS_PanelDropHandler", "RS_NoMonsterDrops", "RS_RollProbe"
 }
 
 // C05's creep and poison kill under this type -- without the block the

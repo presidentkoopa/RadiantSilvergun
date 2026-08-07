@@ -283,6 +283,21 @@ class RS_PanelDropHandler : EventHandler
 		let tok = RS_EliteToken(e.Thing.FindInventory("RS_EliteToken"));
 		if (!tok || !tok.revealed) return;
 
+		// -------------------------------------------------------------
+		// ELIGIBILITY GATE (owner's direct instruction, 2026-08-06).
+		// Elites only drop for a class whose weapon carries the VR_
+		// prefix -- checked once, generically, off GetMainhandClass()
+		// rather than a hardcoded list of which classes qualify. A
+		// GH/PS/CZ-prefixed class (RS_GH_Weaponset, RS_PS_Weaponset, and
+		// any future weapon set) currently gets NOTHING from elites --
+		// not a bug, the stated default. If a weapon set is ever brought
+		// into the VR_ system, it becomes elite-eligible for free, with
+		// no change needed here.
+		// -------------------------------------------------------------
+		let pc = VR_DualClassBase(players[0].mo);
+		if (!pc) return;
+		if (pc.GetMainhandClass().Left(3) != "VR_") return;
+
 		// Rate control. Before this every revealed elite dropped, which
 		// was never a decision -- just a question nobody asked.
 		if (random[RSDrop](1, 100) > RS_PanelController.DropChance()) return;
@@ -291,10 +306,27 @@ class RS_PanelDropHandler : EventHandler
 		// deliberately, matching the rest of this handler's single-player
 		// assumptions -- flagged rather than hidden.
 		int tier = RollDropTier(players[0].mo);
-		int which = random[RSDrop](0, 5);
+
+		// -------------------------------------------------------------
+		// THE CLASS WEAPON, NOT THE OLD 6-TYPE LOOP (owner's direct
+		// instruction, 2026-08-06). An elite drop is now another copy
+		// of THIS PLAYER'S OWN weapon type, gap-filled in the same
+		// order (2, 3, then 5, 6) pedestals use -- via the SAME
+		// function, RS_ClassGating.NextMissingIdentity, so the two
+		// triggers can never disagree about what's still missing.
+		//
+		// All six already owned: nothing to drop here. The OTHER side
+		// of the eligible-elite branch -- a data/rarity packet -- is
+		// deliberately not built yet; its content and visuals are
+		// still undecided, and a placeholder would be worse than an
+		// honest no-op.
+		// -------------------------------------------------------------
+		string mainhand = pc.GetMainhandClass();
+		string gap = RS_ClassGating.NextMissingIdentity(players[0].mo, mainhand);
+		if (gap == "") return;
 
 		Vector3 where = (e.Thing.pos.x, e.Thing.pos.y, e.Thing.pos.z + 8);
-		RS_WeaponDrop.Create(where, ClassWeapon(which), tier);
+		RS_WeaponDrop.Create(where, mainhand .. gap, tier);
 	}
 
 	// -----------------------------------------------------------------

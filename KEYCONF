@@ -72,3 +72,14 @@ defaultbind MOUSE3 rs_panel_use
 addmenukey "In-World Panel: Dismiss Card" rs_panel_dismiss
 alias rs_panel_dismiss "netevent rs-panel-dismiss"
 defaultbind N rs_panel_dismiss
+
+// Roll probe -- disposable. Toggles a HUD readout of AttackRoll /
+// OffhandRoll so the wheel design can be built against a measured
+// axis instead of a guessed one. See RS_RollProbe.zs.
+addmenukey "Roll Probe: Toggle" rs_rollprobe
+alias rs_rollprobe "netevent rs-rollprobe"
+defaultbind J rs_rollprobe
+
+addmenukey "Roll Probe: Reset Peaks" rs_rollprobe_reset
+alias rs_rollprobe_reset "netevent rs-rollprobe-reset"
+defaultbind K rs_rollprobe_reset

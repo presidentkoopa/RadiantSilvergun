@@ -2,20 +2,30 @@
 // RS_ClassGating -- one chokepoint, not per-weapon logic.
 // ---------------------------------------------------------------------
 // Every map-placed weapon pickup gets checked once, at the moment the
-// map spawns it, against the player's chosen class family. A mismatch is
-// REPLACED WITH RESERVE AMMO for the class you're actually playing,
-// before it's ever collidable -- play Dual_Revolver and the pistol, SMG,
-// chaingun, shotgun, SSG and rifle pickups become Clip. It used to
-// simply destroy the pickup, which stripped items out of maps and left
-// nothing in their place. Player.StartItem
-// grants and GiveInventory calls (monster drops, "Allow Big Guns", console
-// give) never go through WorldThingSpawned, so this only ever touches
-// actual floor pickups -- it can't clobber anything already handed to
-// the player directly.
+// map spawns it, against the player's chosen class. Before it's ever
+// collidable, a Dual_X player has EVERY pickup that isn't already an
+// owned copy of their own class weapon REPLACED WITH ANOTHER COPY OF
+// THAT CLASS WEAPON -- play Dual_SMG and the pistol, revolver, rifle,
+// shotgun, SSG, chaingun (and, per rs_dualclass_allowbigguns, plasma/
+// rocket/BFG) pedestals all become SMG copies instead. This is now the
+// primary way a Dual_X player's arsenal grows past the two copies
+// (identity 1 mainhand, 4 offhand) granted at spawn -- see
+// WorldThingSpawned's own comment for the fill order and the heavy-
+// ordnance carve-out. Once all six identities are owned, a pedestal of
+// this kind falls back to leaving reserve ammo instead of a pickup,
+// which is what this file used to do for every mismatch, always.
 //
-// New weapons are covered automatically: as long as a weapon type
-// overrides RS_Weapon.GetFamily() (see the 7 Dual_X-owned weapon files),
-// nobody has to touch this file again.
+// Player.StartItem grants and GiveInventory calls (monster drops,
+// "Allow Big Guns", console give) never go through WorldThingSpawned, so
+// this only ever touches actual floor pickups -- it can't clobber
+// anything already handed to the player directly.
+//
+// This now catches ANY Weapon, not just RS_Weapon -- vanilla Doom's own
+// Pistol/Shotgun/SuperShotgun/Chaingun/RocketLauncher/PlasmaRifle/
+// BFG9000 pickups are never wrapped in this mod's own classes, so the
+// old RS_Weapon-only cast never saw them at all. New RS_Weapon families
+// need no new code here; the fill logic is keyed off the player's own
+// VR_DualClassBase.GetMainhandClass(), not the pickup's type.
 // =====================================================================
 
 class RS_ClassGating : EventHandler
@@ -96,8 +106,20 @@ class RS_ClassGating : EventHandler
 		if (RS_VanillaPlusSwaps.TrySwap(e))
 			return;
 
-		let wep = RS_Weapon(e.Thing);
-		if (!wep || wep.owner || !IsGatedFamily(wep.GetFamily()))
+		// BROAD CAST, ON PURPOSE. Vanilla Doom's own Pistol/Shotgun/
+		// SuperShotgun/Chaingun/RocketLauncher/PlasmaRifle/BFG9000 are
+		// never wrapped in this mod's own classes (verified: none of
+		// zscript/weapons/rs_weapon declare `replaces`), so casting to
+		// RS_Weapon here -- the old behaviour -- never saw them at all.
+		// Weapon is the common ancestor of both (DoomWeapon : Weapon,
+		// verified in the engine source), so this is the narrowest cast
+		// that catches everything a pedestal can hold.
+		//
+		// Melee is exempt: there is no per-class melee identity ladder,
+		// only Fist and its shared variants (RS_Fist.zs), which are the
+		// same for every class and have nothing to fill.
+		let wep = Weapon(e.Thing);
+		if (!wep || wep.owner || wep.bMeleeWeapon)
 			return;
 
 		// consoleplayer is deliberate, not a multiplayer oversight -- this
@@ -106,26 +128,124 @@ class RS_ClassGating : EventHandler
 		if (!pawn)
 			return;
 
+		// Not a Dual_X class (Vanilla+, or no class system in play) --
+		// let everything through untouched.
 		let pc = VR_DualClassBase(pawn);
-		EVR_Family allowed = pc ? pc.GetFamily() : EVR_Family_None;
-
-		// EVR_Family_None here means "not a gated class" (Vanilla+, or no
-		// class system in play) -- let everything through.
-		if (allowed == EVR_Family_None)
+		if (!pc || pc.GetFamily() == EVR_Family_None)
 			return;
 
-		// A mismatch is REPLACED, not deleted. Playing Dual_Revolver, the
-		// pistol/SMG/chaingun/shotgun/SSG/rifle pickups don't spawn -- but
-		// what's left behind is ammo you can actually use, not an empty
-		// floor. Deleting outright was the old behaviour and it silently
-		// stripped pickups out of every map.
-		if (wep.GetFamily() != allowed)
+		string mainhand = pc.GetMainhandClass();
+		if (mainhand.Length() == 0)
+			return;
+
+		// -------------------------------------------------------------
+		// HEAVY ORDNANCE CARVE-OUT. Rocket/Plasma/BFG (vanilla or this
+		// mod's own VR_ versions) aren't one of the 7 class families and
+		// have no per-class identity ladder of their own -- they're
+		// governed by the SAME cvar VR_DualClassBase.PostBeginPlay
+		// already uses to grant them universally at spawn:
+		//
+		//   true  -- every class already gets these for free, so a
+		//            pedestal stays a universal weapon too. Only
+		//            normalised to the VR_ version if it was the
+		//            vanilla one, so it carries this mod's stats
+		//            instead of stock Doom damage.
+		//   false (default) -- the player has no other way to get them,
+		//            so they're funnelled into the SAME class-weapon
+		//            copy pool as everything else below.
+		// -------------------------------------------------------------
+		if (IsHeavyOrdnance(wep.GetClassName()))
 		{
-			string ammo = AmmoForFamily(allowed);
-			if (ammo != "")
-				Actor.Spawn(ammo, wep.Pos, ALLOW_REPLACE);
-			wep.Destroy();
+			if (AllowBigGuns())
+			{
+				NormalizeHeavyOrdnance(wep);
+				return;
+			}
+			// else fall through -- treated exactly like any other
+			// non-owned pickup from here down.
 		}
+
+		// -------------------------------------------------------------
+		// THE FILL. Extra mainhand copies (2, 3) before extra offhand
+		// copies (5, 6) -- the owner's specified order. 1 and 4 are
+		// never targets: those are the spawn grant, not a gap.
+		//
+		// Sequential ifs, not a loop over an array: `static const TYPE
+		// name[] = {...}` does not reliably resolve on this engine
+		// build (see CLAUDE.md) -- found and fixed three times
+		// elsewhere in this project already. Not worth a fourth.
+		// -------------------------------------------------------------
+		string gap = NextMissingIdentity(pawn, mainhand);
+		if (gap != "")
+		{
+			let repl = Actor.Spawn(mainhand .. gap, wep.pos);
+			if (repl)
+				repl.angle = wep.angle;
+			wep.Destroy();
+			return;
+		}
+
+		// All six already owned. Leave reserve ammo instead of an empty
+		// floor -- this is the old mismatch behaviour, unchanged, just
+		// reached by a different condition now.
+		string ammo = AmmoForFamily(pc.GetFamily());
+		if (ammo != "")
+			Actor.Spawn(ammo, wep.pos, ALLOW_REPLACE);
+		wep.Destroy();
+	}
+
+	static bool AllowBigGuns()
+	{
+		let cv = CVar.GetCVar("rs_dualclass_allowbigguns", null);
+		return cv && cv.GetBool();
+	}
+
+	// Switch, not an array -- see the CLAUDE.md caveat quoted above.
+	static bool IsHeavyOrdnance(Name cls)
+	{
+		switch (cls)
+		{
+			case 'RocketLauncher':
+			case 'PlasmaRifle':
+			case 'BFG9000':
+			case 'VR_RocketLauncher':
+			case 'VR_PlasmaRifle':
+			case 'VR_BFG9000':
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	// Vanilla Rocket/Plasma/BFG become this mod's own VR_ version, which
+	// carries this mod's stats instead of stock Doom damage. Already a
+	// VR_ pickup is left alone -- nothing to normalise.
+	static void NormalizeHeavyOrdnance(Weapon wep)
+	{
+		string vrName;
+		switch (wep.GetClassName())
+		{
+			case 'RocketLauncher': vrName = "VR_RocketLauncher"; break;
+			case 'PlasmaRifle':    vrName = "VR_PlasmaRifle";    break;
+			case 'BFG9000':        vrName = "VR_BFG9000";        break;
+			default: return;
+		}
+		let repl = Actor.Spawn(vrName, wep.pos);
+		if (repl)
+			repl.angle = wep.angle;
+		wep.Destroy();
+	}
+
+	// Which class-weapon identity this player is missing, in fill order.
+	// "" if all six (2, 3, 5, 6 -- 1 and 4 are the spawn grant) are
+	// already owned.
+	static string NextMissingIdentity(PlayerPawn pawn, string mainhand)
+	{
+		if (!pawn.FindInventory(mainhand .. "2")) return "2";
+		if (!pawn.FindInventory(mainhand .. "3")) return "3";
+		if (!pawn.FindInventory(mainhand .. "5")) return "5";
+		if (!pawn.FindInventory(mainhand .. "6")) return "6";
+		return "";
 	}
 }
 
