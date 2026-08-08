@@ -8,6 +8,15 @@
 // =====================================================================
 server int rs_fx_hifitier = 2;
 server bool rs_fx_ricochet = true;
+// How often a HARD surface (metal / stone / glass) throws a ricochet.
+// Soft surfaces and bodies never do, whatever this is set to -- that is
+// a material rule, not a chance (RS_Material.CanRicochet).
+//
+// Added 2026-08-07 with the material system. Before it, every ballistic
+// impact in the game spawned a ricochet and played its sound, including
+// into monsters, because the gate that was meant to stop it tested the
+// cvar HANDLE rather than its value and so never fired at all.
+server int rs_fx_ricochet_chance = 25;
 server bool rs_fx_hqvanillasounds = false;
 
 // GPU-dependent ceiling on simultaneous muzzle lights (Hi-Fi tier only).
@@ -43,7 +52,6 @@ server bool rs_dualclass_allowbigguns = false;
 // a health readout: slow while healthy, frantic near death. Silver
 // deliberately, since gold already means "tier transform".
 // Off switch here rather than nowhere; it is a strong visual.
-server bool rs_monster_enragetell = true;
 
 
 // =====================================================================
@@ -92,7 +100,11 @@ user int bonsai_vfx_mode = 2;
 
 server int bonsai_upgrade_choices_per_gun_level = 4;
 server int bonsai_upgrade_choices_per_player_level = 4;
-server int bonsai_gun_levels_per_player_level = 7;
+// 3, not upstream's 7. Owner ruling 2026-08-07: "players level up once
+// they have X number of gun levels. i.e. 3 gun levels = 1 player level."
+// This is the player track's ONLY income -- each weapon level grants
+// exactly 1 (WeaponInfo.zsc), nothing else feeds it.
+server int bonsai_gun_levels_per_player_level = 3;
 
 server int bonsai_base_level_cost = 1200;
 
@@ -203,6 +215,15 @@ user int rs_soundchoice_melee = 0;
 user int rs_soundchoice_launcher = 0;
 user int rs_soundchoice_energy = 0;
 user int rs_soundchoice_bfg = 0;
+// Added 2026-08-07. RS_Weapon.zs:1157 builds the name as
+// "rs_soundchoice_" .. archetype, and there are THIRTEEN archetypes in
+// the tree, not eleven -- railgun (RS_GH_Railgun.zs:35) and flamethrower
+// (RS_GH_Flamethrower.zs:34) were the two the original pass missed. An
+// undeclared name makes FindCVar return null, which the resolver reads
+// as "default", so this was inert rather than broken; declaring it is
+// what makes the row on RS_WeaponOptions honest.
+user int rs_soundchoice_railgun = 0;
+user int rs_soundchoice_flamethrower = 0;
 
 // =====================================================================
 // existing "randomize everything" behavior is unchanged unless you
@@ -226,12 +247,10 @@ user int rs_soundchoice_bfg = 0;
 
 // Retiering mid-fight keeps the monster's health FRACTION rather than
 // full-healing it or leaving it on a sliver.
-user bool rs_mon_retier_preserve_fraction = true;
 
 // The staggered transform. On: a retier picks a short random delay per
 // monster and the monster flashes while it waits, so a roomful changes
 // as a ripple instead of snapping in one frame. Off: instant snap.
-user bool rs_mon_transform_tell = true;
 
 
 
@@ -240,8 +259,6 @@ user bool rs_mon_transform_tell = true;
 // zscript/systems/RS_MonsterDebug.zs. user scope: local inspection
 // preference, nothing gameplay-affecting is synced from here.
 // =====================================================================
-user int  rs_mon_dbg_tier = 0;
-user bool rs_mon_dbg_hostile = false;
 
 // --- RS unified UI (docs/rs_10_ui_spec.txt) --------------------------
 // 0 = offer count is tier-driven (3/4/5/6 by tier band); >0 forces a
@@ -294,6 +311,14 @@ server int rs_score_interval = 5000;
 // How much a monster's TIER inflates its point value above raw health.
 // 0.12 -> a T13 (EX) monster is worth ~2.5x its hit points, a T03 ~1.36x.
 // Set to 0 to score purely on health.
+//
+// NOTHING READS THIS ANY MORE -- 2026-08-07. Tier weighting came out of
+// RS_Score.BasePointsFor(); the only hits in the whole tree are this
+// line and the docs. The MENUDEF slider that pointed at it was removed
+// the same day rather than left telling the player it did something.
+// Kept declared, not deleted: it is the name the feature would come back
+// under, and a declared-but-unread cvar costs nothing. If you wire it up
+// again, put the row back on RS_ScoreOptions.
 server float rs_score_tierweight = 0.12;
 
 // What survives a map change.
@@ -315,7 +340,10 @@ server int rs_score_regen_amount = 1;
 server bool rs_score_regen_secondary = true;
 
 // --- Extra lives and the revival fire cone --------------------------
-server bool rs_score_lives_enable = true;
+// rs_score_lives_enable MOVED to the EXTRA LIVES block near the end of
+// this file, next to rs_lives_enable -- there are two master switches on
+// two different code paths and they belong side by side where that is
+// visible. Same name, same scope, same default; only the line moved.
 server int rs_score_revive_health = 100;
 server int rs_score_revive_invuln = 70;
 server bool rs_score_revive_cone = true;
@@ -386,34 +414,315 @@ server int rs_score_ut_hpdiv = 400;           // stacks gained per kill
 server int rs_score_ut_maxstacks = 20;
 server int rs_score_redline_hp = 25;          // your health at or under this
 server float rs_score_pointblank_dist = 64.0; // edge-to-edge, not center
+// DEAD, same story as rs_score_tierweight above -- 2026-08-07. The live
+// Giant Slayer gate is rs_score_giantslayer_hp (RS_Score.zs:882), which
+// had no menu row at all while THIS one had a slider. The slider now
+// points at the hp gate. Kept declared for the same reason as above.
 server int rs_score_giantslayer_tier = 8;     // lowest tier that counts
 
-// --- HUD (user scope -- your screen only) ---------------------------
+// --- HUD ------------------------------------------------------------
+// The fifteen readout cvars that used to be declared here have MOVED, not
+// gone: they now sit in the SCORE READOUT PRESENTATION block below,
+// beside the forty-odd new ones the rebuilt readout reads, so the whole
+// widget is described in one place instead of two. Their names, scopes
+// and defaults are unchanged -- this was a move, not a retune.
+//
+// Redeclaring a cvar is not a merge, so leaving copies here would have
+// meant two lines fighting over the same name with load order deciding.
+// The comments those lines carried went with them.
+
+// =====================================================================
+// SCORE READOUT PRESENTATION -- the Score & HUD menu branch, 2026-08-07.
+//
+// READER: zscript/systems/score/RS_ScoreHUD.zs, the rebuilt readout,
+// plus rs_score_hud_enable / _onautomap which RS_Score.zs:1281-1285
+// checks before it draws at all.
+//
+// EVERY NAME AND EVERY DEFAULT IN THIS BLOCK WAS COPIED OFF THE READER,
+// NOT INVENTED HERE. That is not a style note, it is the whole point:
+// RS_ScoreHUD.zs's own CVAR ACCESS comment says "Every default here must
+// be the value that makes the readout look right when the cvar DOES NOT
+// EXIST YET. The menu lane declares these" -- so a default typed here
+// that disagrees with the one typed there does not fail, it silently
+// moves the widget the first time the cvar is written. The per-group Y
+// values are the sharpest case: they are POSITIONS with real defaults
+// (DEF_SCORE_Y -2, DEF_BAR_Y 13, DEF_LIVES_Y -16, DEF_SPREE_Y 30,
+// DEF_UNDER_Y 21, DEF_COMBO_Y 45), not zero-nudges. Declaring them 0
+// would collapse all six element groups onto the same line.
+//
+// This whole block is user scope. None of it changes a single point
+// scored -- it is what the readout looks like on your own screen.
+// =====================================================================
+
+// --- Whole widget ----------------------------------------------------
 user bool rs_score_hud_enable = true;
 user bool rs_score_hud_onautomap = false;
-// Top-CENTRE, so the readout lives between the mainhand and offhand Gun
-// Bonsai XP bars (bonsai_hud_x 0.01 puts one top-left and mirrors the
-// other to top-right at the same height).
-user int rs_score_hud_x = 50;                 // percent across the screen
-user int rs_score_hud_y = 5;                  // percent down the screen
-user int rs_score_hud_scale = 100;            // 25-400
-user bool rs_score_hud_flash = true;
+// Opacity in PERCENT, not a 0-1 float -- the reader is CVInt.
+user int rs_score_hud_alpha = 100;
+// Placement preset. 0 = Custom, which is the only value that reads
+// rs_score_hud_x/y; 1-8 are positions chosen not to collide with the two
+// Gun Bonsai XP widgets. Clamped 0-8 by RS_ScoreHUD.Preset().
+user int rs_score_hud_preset = 0;
+// 0 Auto (follows the preset), 1 Centre, 2 Left, 3 Right.
+user int rs_score_hud_align = 0;
+user int rs_score_hud_x = 50;                 // percent across, Custom only
+user int rs_score_hud_y = 5;                  // percent down, Custom only
+user int rs_score_hud_scale = 100;            // 25-400, scales everything
 
+// --- Score number ----------------------------------------------------
 user bool rs_score_hud_showscore = true;
-user bool rs_score_hud_showbar = true;
-user bool rs_score_hud_showlives = true;
-user bool rs_score_hud_showbonuses = true;
-// The streak is otherwise invisible state you infer from the Spree bonus
-// appearing. Off by default: showing it changes how the readout reads.
-user bool rs_score_hud_showspree = false;
-// The base line is the kill itself, labelled "Base". An earlier pass hid
-// it and renamed it KILL; both are reverted.
-user bool rs_score_hud_showbase = true;
-user bool rs_score_hud_barnumbers = false;    // "1240 / 5000" under the bar
+user bool rs_score_hud_label = true;          // draw the "Score:" word
+user int rs_score_hud_score_x = 0;
+user int rs_score_hud_score_y = -2;           // DEF_SCORE_Y
+user int rs_score_hud_score_scale = 100;
+// The number takes the live spree tier's colour instead of sitting on
+// one ramp forever, so the readout changes hue as a streak climbs.
+user bool rs_score_hud_score_tint = true;
+user bool rs_score_hud_flash = true;
+user int rs_score_hud_flashtime = 12;         // tics of afterglow
 
-// How long a bonus popup stays on screen, in tics (35 = 1 second).
-// An earlier pass tripled this to 105 without saying why.
+// --- Reward bar ------------------------------------------------------
+user bool rs_score_hud_showbar = true;
+user bool rs_score_hud_barframe = true;       // the RSSCBKT surround
+user bool rs_score_hud_barnumbers = false;    // "1240 / 5000" under the bar
+user bool rs_score_hud_rewardlabel = false;   // name the next reward in words
+user int rs_score_hud_bar_x = 0;
+user int rs_score_hud_bar_y = 13;             // DEF_BAR_Y
+user int rs_score_hud_bar_scale = 100;
+// Bar size in the readout's virtual pixels. Defaults are the art's own
+// dimensions (BAR_ART_W 120, BAR_ART_H 6).
+user int rs_score_hud_bar_width = 120;
+user int rs_score_hud_bar_height = 6;
+// FILL PATTERN. 0 Solid, 1 Segmented, 2 Pips, 3 Gradient, 4 Sweep.
+// All five draw from the shipped RSSCBG/RSSCBR lumps -- none needs new
+// art. The 1/2 pairing of those lumps encodes WHICH REWARD IS NEXT and
+// is not a style choice; it stays live in every pattern.
+user int rs_score_hud_barstyle = 0;
+user int rs_score_hud_barsegments = 12;       // Segmented and Pips only
+user int rs_score_hud_sweeptics = 70;         // Sweep only: one pass, tics
+// The numbers under the bar are their own element, positioned and sized
+// apart from the bar so they can sit clear of it.
+user int rs_score_hud_under_y = 21;           // DEF_UNDER_Y
+user int rs_score_hud_under_scale = 100;
+
+// --- Extra life pips -------------------------------------------------
+user bool rs_score_hud_showlives = true;
+user int rs_score_hud_lives_x = 0;
+user int rs_score_hud_lives_y = -16;          // DEF_LIVES_Y
+user int rs_score_hud_lives_scale = 100;
+// Tics per frame of the RSSCLF1..4 pip animation. Lower is faster.
+user int rs_score_hud_lives_rate = 4;
+
+// --- Spree counter ---------------------------------------------------
+// Off by default: showing the streak changes how the readout reads.
+user bool rs_score_hud_showspree = false;
+user int rs_score_hud_spree_x = 0;
+user int rs_score_hud_spree_y = 30;           // DEF_SPREE_Y
+user int rs_score_hud_spree_scale = 100;
+// 0 = "x12" (the count), 1 = "+30%" (what it is worth), 2 = both.
+user int rs_score_hud_spree_mode = 0;
+// Streak lengths at which the counter changes colour. Also what tints
+// the score number when rs_score_hud_score_tint is on, so these three
+// numbers are the arc of a run made visible.
+user int rs_score_hud_spree_t1 = 5;
+user int rs_score_hud_spree_t2 = 12;
+user int rs_score_hud_spree_t3 = 20;
+
+// --- Combo stack (the bonus popups) ----------------------------------
+user bool rs_score_hud_showbonuses = true;
+user bool rs_score_hud_showbase = true;       // the "Base" line, the kill itself
+user int rs_score_hud_combo_x = 0;
+user int rs_score_hud_combo_y = 45;           // DEF_COMBO_Y
+user int rs_score_hud_combo_scale = 100;
+// Distance between the amount column and the name column, and the
+// height of one line. Defaults are COMBO_GAP / COMBO_LINEH.
+user int rs_score_hud_combo_gap = 43;
+user int rs_score_hud_combo_lineh = 13;
+// Most lines at once; older ones fall off. The stack COMPACTS, so this
+// counts lines that actually paid, not bonus slots.
+user int rs_score_hud_combo_max = 8;
+// Stack upward from the anchor instead of down -- for a readout parked
+// near the bottom of the screen.
+user bool rs_score_hud_combo_up = false;
+// How long a popup lives, in tics (35 = 1 second).
 user int rs_score_bonustime = 35;
+// Fade envelope, taken FROM the life above rather than added to it.
+user int rs_score_hud_fadein = 3;
+user int rs_score_hud_fadeout = 24;
+// The overshoot on a popup's way in: it arrives this many percent
+// oversized and settles. 0, or Pop off, is a hard cut.
+user bool rs_score_hud_pop = true;
+user int rs_score_hud_popsize = 35;
+
+// --- Colour ----------------------------------------------------------
+// Each of these is an INDEX into the eight RSScore_* ramps in
+// TEXTCOLO.txt, in RS_ScoreHUD.PaletteColor()'s order:
+//   0 Gold   1 White       2 Efficiency  3 Style
+//   4 Daring 5 Base        6 GoldFlash   7 WhiteFlash
+//
+// THAT ORDER IS THE CONTRACT AND IT IS NOT TEXTCOLO'S DECLARATION ORDER.
+// The number is what is stored, so the menu's OptionValue list and that
+// switch statement have to agree entry for entry; if a ramp is ever
+// added it goes on the END of both, never in the middle.
+//
+// An index, not a ColorPicker, because these are GRADIENTS -- a picker
+// would have to flatten them, which TEXTCOLO.txt's own header records
+// being done once already and being wrong.
+user int rs_score_hud_col_score = 0;
+user int rs_score_hud_col_label = 1;
+user int rs_score_hud_col_barnum = 1;
+user int rs_score_hud_col_lives = 1;
+user int rs_score_hud_col_comboname = 1;
+// The four bonus flavours. Defaults put each on its own ramp, which is
+// the pairing TEXTCOLO.txt's header describes.
+user int rs_score_hud_col_base = 5;
+user int rs_score_hud_col_efficiency = 2;
+user int rs_score_hud_col_style = 3;
+user int rs_score_hud_col_daring = 4;
+// The bar's numbers change colour with WHICH reward is coming next.
+user int rs_score_hud_col_reward_ammo = 3;
+user int rs_score_hud_col_reward_life = 4;
+// The four spree tiers, crossing the thresholds above.
+user int rs_score_hud_col_spree0 = 1;
+user int rs_score_hud_col_spree1 = 3;
+user int rs_score_hud_col_spree2 = 0;
+user int rs_score_hud_col_spree3 = 4;
+
+// --- Graphic tints ---------------------------------------------------
+// These three are real colour cvars, not ramp indices, because they
+// multiply ARTWORK rather than translating a font. White is no tint at
+// all, which is why that is the default -- see RS_ScoreHUD.CVTint(),
+// which also forces the alpha byte opaque so a picked colour cannot
+// erase the element it is tinting.
+user color rs_score_hud_bar_tint = "FF FF FF";
+user color rs_score_hud_frame_tint = "FF FF FF";
+user color rs_score_hud_lives_tint = "FF FF FF";
+
+// --- Declared, NOT yet read, and deliberately NOT on any menu page ---
+// Per-flavour filters for the combo stack: show the Style bonuses but
+// not the Daring ones, and so on. The spec asked for "which bonus types
+// display"; the readout implements the whole-stack switch
+// (rs_score_hud_showbonuses) and the base line (rs_score_hud_showbase)
+// and has no per-flavour gate, so these three have no reader today.
+//
+// THEY GET NO MENU ROW UNTIL THEY DO. A row bound to a name nothing
+// reads is a lie to the player, and this file already carries the scars
+// of two of those. The hook is one condition in RS_ScoreHUD's combo
+// loop, next to the existing RS_SB_BASE test -- when it lands, add the
+// three rows to RS_ScoreHUDBonus in MENUDEF.txt and delete this comment.
+user bool rs_score_hud_showflavor_efficiency = true;
+user bool rs_score_hud_showflavor_style = true;
+user bool rs_score_hud_showflavor_daring = true;
+
+// =====================================================================
+// EXTRA LIVES -- MENUDEF's RS_LivesOptions page, 2026-08-07.
+//
+// READERS, and there are two files because there are two halves:
+//   zscript/systems/score/RS_ScoreLives.zs     the economy: how many you
+//                                              have, how you earn them
+//   zscript/systems/score/RS_ScoreRevival.zs   the save itself: what
+//                                              spending one does to you
+//
+// EVERY NAME BELOW WAS READ OFF THOSE TWO FILES. This block was first
+// written from the spec while that lane was still in flight, and SEVEN
+// of the names guessed that way were wrong -- rs_lives_start for
+// rs_lives_starting, rs_lives_floor_per_level for rs_lives_min_per_level,
+// rs_lives_damage_taken_per for rs_lives_damage_taken_per_life, and so
+// on. Every one of them would have compiled, booted, and put a slider on
+// the page that moved nothing. The defaults were wrong too:
+// rs_lives_max was guessed at 0 and the reader's own fallback is 9.
+// Do not reintroduce any of them, and do not add a name here that you
+// have not seen in one of those two files.
+//
+// SCOPE: server. How many lives a player has is a rule of the match, not
+// a preference -- same reasoning as rs_score_rewards_enable.
+// =====================================================================
+
+// Master switch for the whole system (RS_ScoreLives.Enabled()).
+server bool rs_lives_enable = true;
+
+// --- THE OLD PATH, AND WHY THIS DEFAULT CHANGED ----------------------
+// rs_score_lives_enable gates RS_Score.zs:1200, the ORIGINAL revival:
+// a CF_BUDDHA heal paid out of the reward bar. It predates RS_ScoreLives
+// and does the same job by different means.
+//
+// IT NOW DEFAULTS OFF, and that is not a taste call. RS_ScoreLives.zs
+// reads it with a `false` fallback and prints three red console lines if
+// it finds both systems on -- in its own words, the old revival "is
+// still running and will fight this system." Two death-saves racing for
+// the same death is not a configuration a player should be able to reach
+// by accident, let alone be shipped into.
+//
+// The row is still on the menu page rather than removed, because WHICH
+// system should own dying is the owner's call, not this lane's.
+server bool rs_score_lives_enable = false;
+
+// --- The economy (RS_ScoreLives.zs) ----------------------------------
+// Lives carried into a fresh game.
+server int rs_lives_starting = 1;
+// Ceiling on how many may be held. The reader's own fallback is 9, not
+// unlimited -- an uncapped stack turns a run into a warm bath.
+server int rs_lives_max = 9;
+// Paid on reaching the exit, subject to rs_lives_completion below.
+server int rs_lives_per_level = 1;
+// Topped up to at least this on entering a level, after the level-clear
+// payout. Stops a bad run from arriving at a new map empty.
+server int rs_lives_min_per_level = 1;
+// Extra condition on the level-clear payout. Values are
+// RS_ScoreLives's own COMPLETION_* constants (:76-81):
+//   0 none            1 100% kills      2 100% secrets
+//   3 either          4 either, and both pays DOUBLE
+//   5 both
+server int rs_lives_completion = 0;
+// Paid per boss killed.
+server int rs_lives_per_boss = 1;
+// Attrition. Health actually LOST, not damage absorbed by armour.
+server int rs_lives_damage_taken_per_life = 700;
+// The aggressive mirror: damage you deal.
+server int rs_lives_damage_dealt_per_life = 10000;
+// Raw score. OFF by default (0) and it should stay that way while
+// rs_lives_take_score_rewards is on -- the reward bar already pays lives
+// through that route, and turning both on is two ladders paying the same
+// reward, which is the "never duplicate a design space" rule in
+// CLAUDE.md. Opt-in for a player who wants score itself to be the
+// economy.
+server int rs_lives_score_per_life = 0;
+// Kill-streak milestones: one life every N kills without dying. Also
+// off by default; the spree already pays in points.
+server int rs_lives_spree_per_life = 0;
+// Absorb lives that RS_Score's own reward thresholds grant, so the
+// reward bar and this system share one pool instead of each keeping
+// their own count. On by default -- off, a reward-bar life is invisible
+// to the pip readout.
+server bool rs_lives_take_score_rewards = true;
+// Keep the life count across a level transition that empties your
+// inventory (death exit, pistol start).
+server bool rs_lives_ignore_death_exits = true;
+// Speak the count when it changes. On -- a life gained or spent with no
+// message is indistinguishable from nothing happening.
+server bool rs_lives_message = true;
+// Answer life-grant events raised by ANOTHER mod. OFF by default: if the
+// mod this was modelled on is also loaded, both systems would answer the
+// same event and the grant would land twice.
+server bool rs_lives_accept_foreign_events = false;
+
+// --- The save (RS_ScoreRevival.zs) -----------------------------------
+// NOTE there is no separate "invulnerable yes/no" switch and this block
+// deliberately does not invent one: the reader gates BOTH the shield and
+// the damage bonus on `invuln > 0`, so rs_score_revive_invuln at 0 is
+// the off switch, and a second bool would only be able to disagree with
+// it. See RS_ScoreRevival.zs:207-212.
+server bool rs_score_revive_dmgbonus = true;
+server float rs_score_revive_dmgmult = 2.0;
+// Bullet Time X hook. INERT unless that mod is loaded -- the reader
+// probes for it and finding it absent is not an error.
+//
+// DEFAULT IS TRUE ON PURPOSE, and it is not a taste call: the reader's
+// guard is `if (c && !c.GetBool()) return;`, so an UNDECLARED cvar means
+// the hook fires. Declaring this false would have silently switched off
+// a feature that lane shipped on. Declared true = no behaviour change,
+// and now there is a row to turn it off with.
+server bool rs_score_revive_bullettime = true;
 
 // =====================================================================
 // MONSTER HEALTH BARS -- zscript/systems/monster/RS_HealthBars.zs
@@ -500,7 +809,6 @@ user bool rs_hpbar_onlydamaged = true;
 // on ~93% of its chase decisions -- it stops moving and hoses you. The
 // tier tables keep CH's real value; this is the floor applied at use.
 // 0 = no floor, full CHP fidelity. Higher = calmer.
-user float rs_mon_missilechance_floor = 0.125;
 
 
 // =====================================================================
@@ -534,12 +842,10 @@ user float rs_mon_missilechance_floor = 0.125;
 
 // CH's "extra challenge" tiers. Family 04: cyan, gray, brown, abyss,
 // fireblu -- 250 of Colourset12's 1748 weight.
-server bool rs_mon_band_optional = true;
 
 // The boss band. Family 04: 2 and 1 of 1748, so roughly one boss per
 // eight hundred chaingunners. The rarity IS the mechanic -- turning this
 // off removes the moment a run changes shape.
-server bool rs_mon_band_boss = true;
 
 // Giant Slayer gate, rebuilt for vanilla monsters 2026-08-05. Was a TIER
 // comparison; there is no tier system. Vanilla health IS a difficulty
@@ -868,6 +1174,16 @@ server bool rs_monsterdrops = false;
 // comfortable point is, and no single default is right for everyone.
 //
 // 0 SmallFont, 1 NewSmallFont, 2 BigFont, 3 ConFont.
+// Draw drop cards out of billboard payloads instead of painting them onto a
+// canvas. A painted panel needs a canvastexture declared by hand in ANIMDEFS,
+// and two billboards on one canvas show the SAME picture -- so every card on
+// screen costs a texture, there are eleven, and the triptych spends nine. A
+// composed card costs none, which is what makes a second elite drop possible
+// while the first card is still up.
+//
+// Off keeps the painted path, which is still the right one for artwork.
+server bool rs_panel_compose = true;
+
 server int rs_panel_font = 0;
 server int rs_panel_titlefont = 2;
 
@@ -936,3 +1252,312 @@ server float rs_panel_punch = 1.5;
 // the trigger, so a press with no sound is indistinguishable from a
 // dead button.
 server bool rs_panel_sound = true;
+
+// =====================================================================
+// RS_Grenade -- the charge-throw grenade (zscript/weapons/rs_weapon/
+// RS_Grenade.zs). Hold the bound key to charge, release to throw at that
+// fraction of maximum range; hold past full to cook the fuse.
+// =====================================================================
+
+// Which hand it leaves from. 0 = offhand (default -- more likely to be
+// holding a fist), 1 = mainhand. Your deployed weapon is never touched
+// either way; the grenade is spawned from the hand pose, not fired by a
+// weapon state.
+user int rs_grenade_hand = 0;
+
+// Bounce (default, the source's behaviour) vs detonate on first contact.
+// Same projectile -- impact mode simply doesn't set the bounce flags.
+server bool rs_grenade_impact = false;
+
+// The charge readout style.
+//   0 Off
+//   1 Original -- the source's own layout, reconstructed from its ACS
+//     HudMessage calls: "Strength" and the percentage bottom-right in a
+//     730x560 hud space, with the grenade count and icon beside it.
+//   2 Bar -- a centred fill bar. The alternative, not the default.
+user int rs_grenade_meter = 1;
+
+// Tics from nothing to a full-strength throw. 20 is the source's value
+// (it added 5 per tic to a cap of 100). Longer makes short-versus-long
+// throws a decision you can feel; shorter makes it a reflex.
+server int rs_grenade_charge = 20;
+
+// Fuse in tics once thrown. 70 is the source's ~2 seconds.
+server int rs_grenade_fuse = 70;
+
+// Cooking: hold PAST full charge to burn the fuse before you throw, so
+// the grenade can air-burst instead of landing and rolling. Hold long
+// enough and it goes off in your hand -- that is the deal. Off makes
+// the charge purely a range dial.
+server bool rs_grenade_cook = true;
+
+// How many you can carry.
+server int rs_grenade_max = 8;
+
+// Shrapnel particles per detonation. 73 is the source's authored count
+// and the default, so out of the box the explosion is identical to it.
+// This is a slider because 73 client-side actors per blast is a
+// performance call, not a design one.
+user int rs_grenade_shrapnel = 73;
+
+// =====================================================================
+// Elite food drops (RS_EliteDrop.zs, ScatterFood). Every revealed elite
+// scatters food regardless of class or weapon-drop eligibility -- the
+// weapon drop is gated on a VR_ class and on still missing an identity,
+// so without this a Vanilla+/MeatGrinder player got nothing from elites
+// at all. Count scales off the monster's own starting health.
+// =====================================================================
+server bool rs_elite_food = true;
+
+// Percentage scale on the drop count. 100 = the source's own numbers
+// (5% of starting health, floored at 4, capped at 25, doubled on a gib
+// and doubled again on a boss).
+server int rs_elite_food_mult = 100;
+
+// =====================================================================
+// CURSES -- TWO POOLS, TWO ORIGINS, ONE CURE. Owner rulings 2026-08-07.
+//
+// The design in one paragraph, because it is spread across four files:
+//
+//   WEAPON CURSES are the five stat-locks. They come from a Cursed-tier
+//   find or from Promotion. They live on the RS_Weapon instance. A
+//   cursed stat is HALVED and hidden on the sheet; while any curse is on
+//   the weapon it cannot accept an elite imprint ABOVE its current tier.
+//   Lifting one restores the stat to its pre-curse value, adds a bonus,
+//   raises the damage ceiling by the same amount, and tiers the weapon
+//   up one step.
+//
+//   PLAYER CURSES are the eight flaws. They come from DEATH -- the
+//   moment a life-save spends your last life. They live on the player,
+//   scoped per HAND, so "mainhand-jam-prone" and "offhand-jam-prone" are
+//   two independent curses. Lifting one pays a small permanent bonus.
+//
+//   DIVINE is player-wide and counts BOTH pools. Cure enough curses of
+//   either kind and curses stop applying to you entirely.
+//
+// WHY NOT ONE POOL: the origin is the point. Reading a weapon's curses
+// tells you it was promoted hard; reading your own tells you how many
+// times the run nearly ended.
+// =====================================================================
+
+// Chance a freshly rolled weapon arrives with a stat cursed. The Cursed
+// TIER floors far higher than this in code -- that tier is not a flavour
+// label, it is the tier that is definitionally cursed.
+server int rs_curse_chance = 12;
+
+// Master switch for everything below. Off, no curse of either kind is
+// ever rolled and the ledger stays empty; weapons and player alike are
+// clean. Existing curses are NOT stripped by turning this off -- they
+// simply stop being added to.
+server bool rs_curse_enable = true;
+
+// --- WEAPON CURSES: the lift ---------------------------------------
+// Lifting restores the stat to its PRE-CURSE value and then adds a
+// bonus. The bonus escalates with how deep the stack on that stat was,
+// because a stat cursed three times is a dead weapon and clearing it
+// should beat anything levelling could have given you.
+//
+// SCALE: a damage level card gives +2..4 flat, and ALL levelling in a
+// promotion cycle is capped at baseline * 1.8 (i.e. +80% total). So a
+// single lift at +25% already beats a few levels, and clearing a triple
+// stack (+110%) is worth more than a whole cycle of cards. That is the
+// intended relationship; keep it in view if these are retuned.
+server int rs_curse_lift_bonus1 = 25;   // % of base, 1st lift on a stat
+server int rs_curse_lift_bonus2 = 35;   // % of base, 2nd lift on that stat
+server int rs_curse_lift_bonus3 = 50;   // % of base, 3rd and beyond
+
+// Lifting also raises the damage ceiling by the bonus it just paid.
+// WITHOUT THIS, clearing a deep stack pushes damage past
+// GetDamageCeiling() and the GunBonsai damage card silently stops being
+// offered -- you would have spent bits to disable your own upgrades.
+// The curse was suppressing the weapon's POTENTIAL, not just its number.
+server bool rs_curse_lift_raises_ceiling = true;
+
+// One tier per lifted weapon curse, capped at Prototype.
+server bool rs_curse_lift_tiers_up = true;
+
+// While a weapon carries any curse it refuses an elite imprint of a
+// HIGHER tier than it currently is. Lower-tier cards still apply, which
+// is what keeps Promotion (a Basic card onto a Prototype) available to a
+// cursed weapon -- curses stall your climb, they do not trap you.
+server bool rs_curse_blocks_imprint = true;
+
+// --- PLAYER CURSES: the death roll ----------------------------------
+// Fires from RS_LifeForce.AbsorbDamage at the instant a save spends your
+// LAST life, and lands on whichever hand fired most recently. 100 =
+// guaranteed, which is the default because that moment should read as
+// "you are out, and it cost you" rather than another dice roll.
+server int rs_curse_death_chance = 100;
+
+// Also roll on saves that were NOT your last life. Off by default: the
+// last-life save is the one that should mark you. Turn this up to make
+// every brush with death a gamble.
+server int rs_curse_death_chance_early = 0;
+
+// Condition lost by BOTH equipped weapons on EVERY life-save, last or
+// not. Separate from the curse roll on purpose: near-death costs
+// Condition (the "that hurt" tax), running out costs a curse (the
+// "you're out" tax). For scale, a normal hit of 20+ raw damage already
+// costs 3, and 10 Grey Bits repair 1 point -- so 10 here is 100 bits.
+server int rs_curse_death_condition = 10;
+
+// Per-flaw switches. All eight ship on; a player who hates exactly one
+// of these can drop it out of the pool without disabling the system.
+server bool rs_curse_flaw_bitrepel = true;
+server bool rs_curse_flaw_golddrain = true;
+server bool rs_curse_flaw_jamprone = true;
+server bool rs_curse_flaw_loud = true;
+server bool rs_curse_flaw_fragile = true;
+server bool rs_curse_flaw_heavy = true;
+server bool rs_curse_flaw_blind = true;
+server bool rs_curse_flaw_hungry = true;
+
+// --- PLAYER CURSES: magnitudes --------------------------------------
+// bit-repellent: the player pushes loose bits AWAY, radially. Radius in
+// map units, strength in units of push per tic. Bits are ordinarily
+// inert pickups; this is the only thing in the mod that moves them.
+server int rs_curse_bitrepel_radius = 192;
+server int rs_curse_bitrepel_force = 4;
+
+// jam-prone: percentage points added to the Condition backfire chance
+// for that hand, INDEPENDENT of Condition -- a pristine weapon can jam.
+server int rs_curse_jam_add = 12;
+
+// loud: the tinnitus ring. A shot starts it for this many tics; a shot
+// fired while it is STILL ringing adds half again, up to maxstack times
+// the base. Owner design 2026-08-07. 70 tics is two seconds.
+//
+// It MASKS rather than ducks -- there is no listener volume in ZScript,
+// so the ring simply plays over the room, which is how this is done in
+// practice anyway. Music is untouched and the player's master volume is
+// never exceeded (GZDoom already scales every sound by snd_sfxvolume).
+server int rs_curse_loud_tics = 70;
+server int rs_curse_loud_maxstack = 4;
+
+// Ceiling on the ring's own volume, percent. Deliberately not 100: a
+// curse should not be the loudest thing in the game.
+server int rs_curse_loud_volume = 70;
+
+// fragile: Condition decay multiplier for that hand's weapon.
+server int rs_curse_fragile_mult = 200;   // percent, 200 = double
+
+// heavy: movement speed penalty per cursed hand. Both hands cursed
+// stacks to double this.
+server int rs_curse_heavy_slow = 15;      // percent
+
+// hungry: ammo cost multiplier for that hand.
+server int rs_curse_hungry_mult = 200;    // percent, 200 = double
+
+// --- PLAYER CURSES: the lift reward ---------------------------------
+// A player curse is not pinned to a weapon, so lifting one cannot tier
+// anything up. It pays a small PERMANENT player-side bonus instead --
+// the inverse of the flaw it cured, on the same hand. Percent.
+server int rs_curse_playerlift_bonus = 10;
+
+// --- THE PRICE ------------------------------------------------------
+// Curse Bits to lift one curse, by how much the curse actually hurts.
+// A halved damage stat is felt every shot; a halved magazine is an
+// annoyance. Same principle across the flaw roster.
+server int rs_curse_cost_damage = 40;
+server int rs_curse_cost_critchance = 30;
+server int rs_curse_cost_accuracy = 25;
+server int rs_curse_cost_velocity = 20;
+server int rs_curse_cost_capacity = 15;
+
+server int rs_curse_cost_jamprone = 40;
+server int rs_curse_cost_hungry = 30;
+server int rs_curse_cost_blind = 30;
+server int rs_curse_cost_fragile = 25;
+server int rs_curse_cost_loud = 25;
+server int rs_curse_cost_golddrain = 20;
+server int rs_curse_cost_bitrepel = 20;
+server int rs_curse_cost_heavy = 15;
+
+// --- DIVINE ---------------------------------------------------------
+// Total curses cured across the run, BOTH pools, player-wide. On
+// reaching it: no curse of any kind is ever rolled on you again.
+// Owner ruling 2026-08-07: "all cured curses (player or weapon) move the
+// player themselves closer to divine status (need 10 cured curses) upon
+// which curses no longer apply (we can expand this to other boons
+// later)." The expansion room is deliberate -- Divine is a STATUS with
+// one effect today, not a single effect wearing a name.
+server int rs_curse_divine_threshold = 10;
+
+// Announce the milestone. It is the run's one permanent upgrade and
+// arrives with no other fanfare.
+server bool rs_curse_divine_announce = true;
+
+// Summons pay nothing by default (owner ruling 2026-08-07) -- a Pain
+// Elemental would otherwise be an infinite score and Bits farm. Turn this
+// on to let anything spawned mid-map pay out again.
+server bool rs_summons_pay = false;
+
+// =====================================================================
+// HOLD USE TO TAKE (RS_EliteDrop.zs). The drop card's own wing text has
+// always read "hold USE to take" and nothing implemented it -- the only
+// working routes were point+trigger, MOUSE3 and the punch. This is the
+// fallback, on a toggle.
+// =====================================================================
+server bool rs_panel_usetake = true;
+
+// How long USE must be held, in tics. A TAP is how you open doors, so a
+// drop sitting in a doorway must not eat that -- the take needs a
+// deliberate hold. 21 tics is about 0.6s.
+server int rs_panel_useholdtics = 21;
+
+// =====================================================================
+// REMOVED 2026-08-07: eight cvars from the deleted RS_MonsterMaster era.
+//
+//   rs_mon_band_boss   rs_mon_band_optional   rs_mon_dbg_hostile
+//   rs_mon_dbg_tier    rs_mon_missilechance_floor
+//   rs_mon_retier_preserve_fraction   rs_mon_transform_tell
+//   rs_monster_enragetell
+//
+// Every one was read only by RS_MonsterMaster.zs / RS_MonsterDebug.zs,
+// both deleted 2026-08-05. They had no readers left anywhere in the mod
+// and no menu rows -- so they were console options that silently did
+// nothing. rs_monster_enragetell's own comment claimed "off switch here
+// rather than nowhere", and there was no switch behind it.
+//
+// The live CH gates are the rs_ch_* set, which ARE read (via RS_Zom.CV).
+// =====================================================================
+
+// =====================================================================
+// RS_Hook -- the grappling hook. A DEFAULT MECHANIC, always available;
+// there is no pickup and nothing grants it.
+//
+// Fire it: hit a wall and YOU are pulled to it, hit a monster and IT is
+// pulled to you, and either way the shot sweeps loose bits toward you.
+//
+// The bit sweep is unconditional and is NOT a curse feature. It happens
+// on a hit, on a miss, cursed or clean. It merely happens to be the
+// answer to bit-repellent (RS_Curses.zs), which pushes bits away --
+// owner, 2026-08-07: "it's just a solution to a problem coincidentially".
+// =====================================================================
+server bool rs_hook_enable = true;
+
+// Which hand it launches from. 0 = mainhand, 1 = offhand.
+// Offhand by default -- the mainhand is your gun, and interrupting it to
+// grapple is the wrong trade mid-firefight.
+server int rs_hook_hand = 1;
+
+// Lateral spawn offset from the firing hand, map units. Mirrored
+// automatically for the mainhand.
+server float rs_hook_hand_offset = 8.0;
+
+// Tics before it can be fired again.
+server int rs_hook_cooldown = 20;
+
+// PULL STRENGTH. Distance to the hook point is DIVIDED by these, so
+// LOWER = STRONGER. Horizontal and vertical are separate because a
+// single divisor that feels right on a flat pull launches you over any
+// ledge you hook.
+server float rs_hook_pull_divisor = 12.0;
+server float rs_hook_pull_zdivisor = 4.0;
+
+// THE BIT SWEEP. Radius searched on every shot, and the speed bits are
+// given toward the player. Bits are pushed, not teleported -- watching
+// them come in is the point, and a bit behind a wall bumps into it
+// rather than phasing through.
+server float rs_hook_bit_radius = 512.0;
+server float rs_hook_bit_force = 12.0;

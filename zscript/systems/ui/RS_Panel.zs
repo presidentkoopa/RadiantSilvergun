@@ -60,6 +60,17 @@ enum ERS_PanelEdge
 	RSPE_Bottom = 3
 }
 
+// Which primitive draws a panel. BOTH ARE SUPPORTED AND BOTH ARE
+// CORRECT FOR DIFFERENT JOBS -- this is not a migration with an old side
+// and a new side. Owner ruling 2026-08-07: "i want to still have
+// flatsprites for thigns ... as long as I can have the ability for both".
+enum ERS_PanelBackend
+{
+	RSPB_Flatsprite = 0,   // an Actor with +FLATSPRITE and a picnum
+	RSPB_Billboard  = 1,   // one engine billboard showing this panel's canvas
+	RSPB_Composed   = 2    // many payload billboards, no canvas at all
+}
+
 class RS_Panel : Actor
 {
 	// --- identity -------------------------------------------------
@@ -86,6 +97,29 @@ class RS_Panel : Actor
 	int      mHingeMyEdge;
 	double   mHingeAngle;
 	bool     mHinged;
+
+	// --- backend ------------------------------------------------------
+	// Which primitive actually draws this panel. See SetBackend() for the
+	// full reasoning; the short version is that a flatsprite is an actor
+	// and cannot be locked to the view without swimming, and a billboard
+	// can. Everything else about a panel is identical either way.
+	int          mBackend;   // ERS_PanelBackend
+	RS_Billboard mBB;        // null unless mBackend == RSPB_Billboard
+
+	// [BB] Composed backend. The panel stops being a picture entirely and
+	// becomes a transform that a pile of payload billboards ride on, so it
+	// costs no canvastexture -- which is the whole point, since canvases are
+	// the thing there are only eleven of.
+	//
+	// mComposed holds the parts and their panel-local offsets; mContent is
+	// what to lay out. Content is held rather than laid out immediately
+	// because Create() runs before the assembly has solved a transform, and
+	// laying out into an unsolved panel would place every part at the origin.
+	RS_BBComposedPanel mComposed;
+	Weapon             mContentWeapon;
+	string             mContentHeading;
+	bool               mContentDirty;
+	Color        mTint;      // last SetTint, replayed onto the billboard
 
 	Vector3  mAnchorOfs;     // root panels only: offset from the anchor actor
 	Actor    mAnchor;        // root panels only: what the assembly hangs on
@@ -160,6 +194,12 @@ class RS_Panel : Actor
 	// -----------------------------------------------------------------
 	void SetTint(Color c)
 	{
+		// Remembered as well as applied, because the BILLBOARD backend
+		// takes its colour as a call argument rather than reading the
+		// actor's shade -- without a stored copy, a tint set before the
+		// backend swap would be lost on the next sync.
+		mTint = c;
+
 		// fillcolor is `native READONLY color` (actor.zs:120) and its own
 		// comment says it "must be set with SetShade to initialize
 		// correctly" -- assigning it directly is the "Expression must be a
@@ -300,6 +340,172 @@ class RS_Panel : Actor
 		angle = mYaw;
 		pitch = RS_PanelController.PitchBias() + mTilt;
 		roll  = RS_PanelController.RollBias();
+
+		SyncBackend();
+	}
+
+	// =================================================================
+	// TWO BACKENDS, ONE PANEL. Added 2026-08-07 at the owner's direction:
+	// "i want to still have flatsprites for thigns but yes, get on this
+	// too ... as long as I can have the ability for both".
+	//
+	// WHICH TO USE, AND WHY IT IS NOT A PREFERENCE:
+	//
+	//   FLATSPRITE  anchored in the world. Drop cards on a pedestal,
+	//               panels you walk around. It is an ACTOR, so the engine
+	//               interpolates it for free and it needs no engine
+	//               support at all -- which is why this shipped first and
+	//               why it still works.
+	//
+	//   BILLBOARD   attached to the VIEW, or many elements at once, or
+	//               needing pixel-exact hit testing.
+	//
+	// THE ONE THING A FLATSPRITE CANNOT DO. Script moves an actor once
+	// per TIC. Anything locked to the head therefore lags a frame and
+	// then snaps, which in VR reads as the UI swimming and is genuinely
+	// unpleasant. BBFL_VIEWLOCKED resolves at RENDER rate. That is not an
+	// optimisation problem -- there is no script rate that fixes it.
+	//
+	// Likewise the aim ray: AimBillboard returns the UV the SHADER used.
+	// RS_PanelController's ray/plane maths returns the UV we believe the
+	// shader used. Those two drift, and the drift is invisible until a
+	// row stops being clickable where it looks clickable.
+	//
+	// HOW THE SWAP WORKS. The panel keeps owning its transform either
+	// way -- position, yaw, tilt, size, and the whole hinge solver are
+	// unchanged and are still correct, because they are OURS and they
+	// were never the part the engine does better. Only the DRAW moves.
+	// In billboard mode the actor stops rendering (bInvisible) and a
+	// billboard handle is created at the same transform and updated with
+	// it. Nothing above this line, and no caller, changes.
+	//
+	// HINGES SURVIVE THE SWAP, and that is not luck. A BBF_FIXED
+	// billboard keeps the explicit yaw/tilt it is given:
+	// HWSprite::CalculateVertices opens with an early return for
+	// billboards (hw_sprites.cpp:417) that copies the four corners
+	// straight out of bbVerts, skipping the RF_FLATSPRITE rotation
+	// matrix and all camera-facing logic below it. Without that bypass a
+	// hinged assembly would be re-oriented downstream and collapse into
+	// parallel planes. Verified in the engine source before this was
+	// written, because the whole triptych depends on it.
+	//
+	// WHAT THIS DOES *NOT* SOLVE: canvases. A BB_TEXTURE billboard still
+	// needs a hand-declared ANIMDEFS canvas, and two billboards sharing
+	// one canvas show the SAME PICTURE -- eleven exist and a triptych
+	// spends nine. So swapping backends buys view-locking and native aim,
+	// NOT more screens. For readouts that should cost zero textures, use
+	// the composed path (RS_BBCompose.zs) instead of a panel at all.
+	// Panels are for artwork; composition is for numbers and bars.
+	// =================================================================
+	void SetBackend(int backend)
+	{
+		if (mBackend == backend) return;
+		mBackend = backend;
+
+		// Leaving a backend always hands its resources back first. A handle
+		// dropped without Release is a leak the collector cannot see, and
+		// switching backend at runtime is exactly when that would happen.
+		if (mBB) { mBB.Release(); mBB = null; }
+		if (mComposed) { mComposed.ReleaseAll(); mComposed = null; }
+
+		if (mBackend == RSPB_Flatsprite)
+		{
+			bInvisible = false;
+			return;
+		}
+
+		bInvisible = true;   // the actor is now a transform, not a picture
+		mContentDirty = true;
+		SyncBackend();
+	}
+
+	// -----------------------------------------------------------------
+	// What a composed panel should say. Held until the next SyncBackend
+	// rather than laid out now, because a panel is created before the
+	// assembly solves its transform and a layout done here would place
+	// every part at the world origin.
+	// -----------------------------------------------------------------
+	void SetContent(Weapon wep, string heading)
+	{
+		mContentWeapon  = wep;
+		mContentHeading = heading;
+		mContentDirty   = true;
+	}
+
+	// Create or update the billboard to match this panel's transform.
+	// Cheap no-op in flatsprite mode, which is why ApplyOrientation can
+	// call it unconditionally.
+	void SyncBackend()
+	{
+		if (mBackend == RSPB_Composed)
+		{
+			if (!mComposed) mComposed = new("RS_BBComposedPanel");
+
+			// Lay out only when the content changed. A panel re-aims every
+			// tic, so rebuilding here would destroy and recreate forty
+			// billboards per tic for a player who is merely walking.
+			if (mContentDirty)
+			{
+				mComposed.ReleaseAll();
+				RS_BBWeaponCard.Build(mComposed, mWidth, mHeight,
+					mContentWeapon, mContentHeading);
+				mContentDirty = false;
+			}
+
+			// Moving is the cheap path: no allocation, no handles touched,
+			// just every part repositioned from the offset it remembers.
+			mComposed.Place(pos, mYaw, mTilt);
+			return;
+		}
+
+		if (mBackend != RSPB_Billboard) return;
+
+		TextureID t = TexMan.CheckForTexture(mCanvas, TexMan.Type_Any);
+		if (!t.IsValid()) return;
+
+		double bbTilt = mTilt;
+
+		if (!mBB)
+		{
+			mBB = RS_Billboard.Make(pos, mWidth, mHeight, mYaw, bbTilt,
+				LevelLocals.BB_TEXTURE, t.GetIndex(),
+				mTint == 0 ? Color(255, 255, 255) : mTint,
+				LevelLocals.BBF_FIXED);
+			return;
+		}
+
+		mBB.MoveTo(pos);
+		mBB.Orient(mYaw, bbTilt, LevelLocals.BBF_FIXED);
+		mBB.SetData(t.GetIndex(), mTint == 0 ? Color(255, 255, 255) : mTint);
+	}
+
+	// The handle is not garbage-collectable -- it is an integer the engine
+	// hands out, and dropping it without RemoveBillboard leaks a quad that
+	// survives until the level ends. Every path that destroys a panel must
+	// come through here.
+	override void OnDestroy()
+	{
+		if (mBB) { mBB.Release(); mBB = null; }
+		if (mComposed) { mComposed.ReleaseAll(); mComposed = null; }
+		Super.OnDestroy();
+	}
+
+	// The billboard handle, for the controller's native aim. 0 when this
+	// panel is a flatsprite, which is also the engine's own "no hit"
+	// value -- so a flatsprite can never be matched by a stray hit id.
+	int BillboardHandle() const
+	{
+		return mBB ? mBB.Handle() : 0;
+	}
+
+	// Does this panel own the native hit id? A composed panel has no single
+	// handle -- it is dozens -- so aim has to ask rather than compare, or
+	// pointing at a composed card would never resolve to anything.
+	bool OwnsBillboard(int id) const
+	{
+		if (id == 0) return false;
+		if (mBB && mBB.Handle() == id) return true;
+		return mComposed && mComposed.OwnsHandle(id);
 	}
 
 	override void Tick()
@@ -352,13 +558,51 @@ class RS_PanelAssembly play
 	bool            mComfort;
 	double          mComfortDist;
 
+	// Backend for every panel in this assembly. Set it BEFORE adding
+	// panels and they are born correct; set it after and SetBackend()
+	// swaps the live ones over, which is safe but does a texture lookup
+	// per panel, so prefer the former.
+	//
+	// DEFAULTS TO FLATSPRITE, deliberately. That is the backend that is
+	// known to work in this mod today -- the drop cards are the one
+	// in-world thing that has been seen running -- so nothing silently
+	// changes rendering path just because billboards now exist. A screen
+	// opts IN.
+	int             mBackend;
+
 	static RS_PanelAssembly Create(Actor anchor, Vector3 ofs)
 	{
 		let a = new("RS_PanelAssembly");
 		a.mAnchor    = anchor;
 		a.mAnchorOfs = ofs;
 		a.mAlive     = true;
+		a.mBackend   = RSPB_Flatsprite;
 		return a;
+	}
+
+	// Switch the whole assembly, live panels included.
+	void SetBackend(int backend)
+	{
+		mBackend = backend;
+		for (int i = 0; i < mPanels.Size(); i++)
+			if (mPanels[i]) mPanels[i].SetBackend(backend);
+	}
+
+	// Resolve a native billboard hit id back to a panel index, or -1.
+	// This is what lets RS_PanelController use AimBillboard instead of
+	// its own ray/plane maths when an assembly is on the billboard
+	// backend -- the engine returns a handle, and only the assembly knows
+	// which of its panels owns it.
+	int PanelForHandle(int id) const
+	{
+		if (id == 0) return -1;
+		// Asks rather than compares, because a composed panel has no single
+		// handle -- it is dozens -- and comparing against one would mean
+		// pointing at a composed card never resolved to anything.
+		for (int i = 0; i < mPanels.Size(); i++)
+			if (mPanels[i] && mPanels[i].OwnsBillboard(id))
+				return i;
+		return -1;
 	}
 
 	RS_Panel AddRoot(string canvasName, double w, double h)
@@ -367,6 +611,7 @@ class RS_PanelAssembly play
 		let p = RS_Panel.Create(where, canvasName, w, h, mPanels.Size());
 		if (!p) return null;
 		p.mFacing = RSPF_CameraYaw;
+		if (mBackend != RSPB_Flatsprite) p.SetBackend(mBackend);
 		mPanels.Push(p);
 		return p;
 	}
@@ -378,6 +623,7 @@ class RS_PanelAssembly play
 		let p = RS_Panel.Create(parent.pos, canvasName, w, h, mPanels.Size());
 		if (!p) return null;
 		p.HingeTo(parent, parentEdge, myEdge, degrees);
+		if (mBackend != RSPB_Flatsprite) p.SetBackend(mBackend);
 		mPanels.Push(p);
 		return p;
 	}

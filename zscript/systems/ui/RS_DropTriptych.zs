@@ -482,6 +482,23 @@ class RS_DropTriptych play
 			if (wingMain) t.mAsm.AddHinged(wingMain, RSPE_Bottom, RSPE_Top,     st, "RSPNL09", w, h * 0.3);
 		}
 
+		// [BB] Composed backend. The three core panels stop being painted
+		// canvases and become transforms carrying payload billboards, so the
+		// card costs no canvastexture and a second drop can raise its own.
+		// The stacked strips keep the painted path: they carry affix and
+		// identity text, which is prose rather than a readout, and prose is
+		// what a canvas is still better at.
+		if (RS_PanelController.Composed())
+		{
+			Weapon offW  = pawn.player ? pawn.player.OffhandWeapon : null;
+			Weapon mainW = pawn.player ? pawn.player.ReadyWeapon   : null;
+
+			// Order matches construction above: root, then the two wings.
+			t.SetComposed(0, drop,  "THE DROP");
+			t.SetComposed(1, offW,  "OFFHAND");
+			t.SetComposed(2, mainW, "MAINHAND");
+		}
+
 		t.Refresh(pawn, drop);
 		return t;
 	}
@@ -518,6 +535,19 @@ class RS_DropTriptych play
 			mCards[TRI_CoreOff].AddRow("> TAKE TO OFFHAND", "", Font.CR_GREEN, "rs-panel-take", 0);
 		if (main && !IsRealFist(main))
 			mCards[TRI_CoreMain].AddRow("> TAKE TO MAINHAND", "", Font.CR_GREEN, "rs-panel-take", 1);
+	}
+
+	// Switch one panel to the composed backend and give it its content.
+	// Silent no-op on a panel that does not exist, so a layout that did not
+	// build its wings -- a drop with nothing in the other hand -- does not
+	// have to guard every call.
+	void SetComposed(int index, Weapon wep, string heading)
+	{
+		if (!mAsm) return;
+		let p = mAsm.Get(index);
+		if (!p) return;
+		p.SetContent(wep, heading);
+		p.SetBackend(RSPB_Composed);
 	}
 
 	RS_PanelCard CardFor(int slot) const

@@ -80,6 +80,14 @@ class RS_PanelController
 	// 0 = TALL (one panel per weapon), 1 = STACKED (three hinged
 	// panels per weapon, curving toward the reader). Both are built;
 	// this picks which one a triptych assembles.
+	// Which backend a card should use. Composed costs no canvastexture,
+	// which is the only reason more than one card can be up at once.
+	static bool Composed()
+	{
+		let cv = CVar.FindCVar("rs_panel_compose");
+		return cv ? cv.GetBool() : true;
+	}
+
 	static int Density()
 	{
 		let cv = CVar.FindCVar("rs_panel_density");
@@ -196,6 +204,23 @@ class RS_PanelController
 	}
 
 	// --- drop marker --------------------------------------------------
+	// HOLD-USE TAKE. The card's wing text has always promised this and
+	// nothing implemented it until 2026-08-07. Off makes the card
+	// point-and-trigger / MOUSE3 / punch only, as it was.
+	static bool UseTakeEnabled()
+	{
+		let cv = CVar.FindCVar("rs_panel_usetake");
+		return !cv || cv.GetBool();
+	}
+
+	// How long USE must be held. A TAP opens doors -- a drop sitting in
+	// a doorway must not eat that -- so the take needs a deliberate hold.
+	static int UseHoldTics()
+	{
+		let cv = CVar.FindCVar("rs_panel_useholdtics");
+		return cv ? clamp(cv.GetInt(), 5, 105) : 21;
+	}
+
 	static bool BeamEnabled()
 	{
 		let cv = CVar.FindCVar("rs_drop_beam");
@@ -606,12 +631,76 @@ class RS_PanelHandler : EventHandler
 
 	// One hand's ray against every live panel. `best` carries in so a
 	// nearer hit from the other hand is not overwritten by a farther one.
+	// Is any live assembly using the billboard backend? Guards the native
+	// call so a mod running purely on flatsprites never touches it -- and
+	// so this whole file still works if the engine build in front of it
+	// has no billboard support at all.
+	play bool AnyBillboardBacked() const
+	{
+		for (int a = 0; a < mLive.Size(); a++)
+			if (mLive[a] && mLive[a].mBackend == RSPB_Billboard)
+				return true;
+		return false;
+	}
+
 	play void TraceHand(Vector3 origin, Vector3 dir, int hand, out double best)
 	{
+		// -------------------------------------------------------------
+		// NATIVE PATH FIRST, for assemblies on the billboard backend.
+		//
+		// AimBillboard returns the hit id and the UV THE SHADER USED. The
+		// hand-rolled maths below returns the UV we BELIEVE the shader
+		// used, and the two drift -- silently, and only in the way that
+		// matters: a row stops being clickable where it looks clickable.
+		// One engine call removes that entire class of bug.
+		//
+		// Runs once per hand rather than per panel, because the engine
+		// tests every registered billboard itself.
+		// -------------------------------------------------------------
+		if (AnyBillboardBacked())
+		{
+			int hitId; Vector2 uv;
+			[hitId, uv] = level.AimBillboard(origin, dir);
+
+			if (hitId != 0)
+			{
+				for (int a = 0; a < mLive.Size(); a++)
+				{
+					let asm = mLive[a];
+					if (!asm) continue;
+
+					int p = asm.PanelForHandle(hitId);
+					if (p < 0) continue;
+
+					let pan = asm.Get(p);
+					if (!pan) continue;
+
+					// Distance so this competes fairly with the flatsprite
+					// hits below -- the two backends can be on screen at
+					// once and the NEAREST must win regardless of which
+					// primitive drew it.
+					double t = (pan.pos - origin).Length();
+					if (t <= 0 || t >= best) continue;
+
+					best         = t;
+					mHotAssembly = a;
+					mHotPanel    = p;
+					mHotHand     = hand;
+					mHotUV       = uv;
+					break;
+				}
+			}
+		}
+
 		for (int a = 0; a < mLive.Size(); a++)
 		{
 			let asm = mLive[a];
 			if (!asm) continue;
+
+			// Billboard-backed panels were resolved natively above; running
+			// them through the ray/plane test too would let the OLD maths
+			// overwrite the engine's own answer, which is exactly backwards.
+			if (asm.mBackend == RSPB_Billboard) continue;
 
 			for (int p = 0; p < asm.Size(); p++)
 			{

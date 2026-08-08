@@ -26,9 +26,20 @@ OptionMenu "RS_MainOptions"
 	StaticText " "
 
 	Submenu "Weapon Options", "RS_WeaponOptions"
+	Submenu "Grenade Options", "RS_GrenadeOptions"
+	Submenu "Grappling Hook", "RS_HookOptions"
 	Submenu "Monster Control Center", "RS_MonsterControl"
 	Submenu "RS Score Options", "RS_ScoreOptions"
+	// Both new pages are one hop from here as well as living under the
+	// score branch. Score & HUD is presentation and Extra Lives is a
+	// system a player looks for by name -- neither should need three
+	// dives to reach. Repeating a Submenu is this file's own habit
+	// (RS_CHTierLegend and the tier-icon row already appear more than
+	// once); a page has one definition and any number of doors.
+	Submenu "$RS_OPT_TITLE_SCOREHUD", "RS_ScoreHUDOptions"
+	Submenu "$RS_OPT_TITLE_LIVES", "RS_LivesOptions"
 	Submenu "Kill Rewards", "RS_BitsSettings"
+	Submenu "Curses", "RS_CurseOptions"
 
 	StaticText " "
 	StaticText " "
@@ -98,6 +109,7 @@ OptionMenu "RS_UIOptions"
 	StaticText " "
 	Submenu "In-World Panels", "RS_PanelOptions"
 	Submenu "UI Debug", "RS_UIDebug"
+	Submenu "Billboard / In-World Display", "RS_BillboardOptions"
 }
 
 // ---------------------------------------------------------------------
@@ -139,6 +151,11 @@ OptionMenu "RS_PanelOptions"
 	StaticText " "
 	Option "Enable in-world panels", "rs_panel_enabled", "OnOff"
 	Option "Density", "rs_panel_density", "RS_PanelDensity"
+	Option "Composed cards", "rs_panel_compose", "OnOff"
+	StaticText "On: cards are built from engine shapes and cost no", "DarkGray"
+	StaticText "textures, so several drops can show cards at once.", "DarkGray"
+	StaticText "Off: cards are painted, which limits how many can", "DarkGray"
+	StaticText "be on screen but suits artwork better.", "DarkGray"
 	StaticText " "
 	StaticText "Taking a drop", 1
 	Control "Select row (keybind)", "rs_panel_use"
@@ -189,6 +206,14 @@ OptionMenu "RS_PanelOptions"
 	StaticText "Off: monsters pay out in kill rewards only.", "DarkGray"
 	StaticText "On: restores the original ammo, armour and", "DarkGray"
 	StaticText "weapon drops. Takes effect on the next kill.", "DarkGray"
+
+	StaticText " "
+	StaticText "Taking a drop", "Gold"
+	Option "Hold USE to take",      "rs_panel_usetake",     "OnOff"
+	StaticText "  The card's own text promises this. Off leaves point +", "DarkGray"
+	StaticText "  trigger, MOUSE3 and the punch as the only ways to take.", "DarkGray"
+	Slider "USE hold time (tics)",  "rs_panel_useholdtics", 5, 105, 2, 0
+	StaticText "  A tap opens doors -- a drop in a doorway must not eat it.", "DarkGray"
 }
 
 // ---------------------------------------------------------------------
@@ -219,7 +244,15 @@ OptionMenu "RS_WeaponOptions"
 	StaticText "Fidelity", 1
 	Option "Hi-Fi Weapon Effects", "rs_fx_hifitier", "RS_HiFiTierOption"
 	Option "Ricochet effects", "rs_fx_ricochet", "OnOff"
-	Option "HQ vanilla sound pack", "rs_fx_hqvanillasounds", "OnOff"
+	Slider "$RS_OPT_NAME_RICOCHET_CHANCE", "rs_fx_ricochet_chance", 0, 100, 5, 0
+	StaticText "$RS_OPT_TT_RICOCHET_CHANCE_1", "DarkGray"
+	StaticText "$RS_OPT_TT_RICOCHET_CHANCE_2", "DarkGray"
+	// "HQ vanilla sound pack" (rs_fx_hqvanillasounds) was here and is
+	// gone -- 2026-08-07. The only hits for that name in the whole tree
+	// were the cvar, this row, and two SNDINFO comments saying the pack
+	// was "staged"; no ZScript ever read it, so the toggle did nothing
+	// in either position. The sounds are still staged and the cvar is
+	// still declared -- when something reads it, the row comes back.
 	Slider "Max simultaneous muzzle lights", "rs_fx_maxmuzzlelights", 0, 256, 4, 0
 
 	// --- Sound Assignment, inlined from RS_WeaponSoundOptions ---
@@ -243,6 +276,12 @@ OptionMenu "RS_WeaponOptions"
 	Option "Rocket Launcher",      "rs_soundchoice_launcher", "RS_SoundChoice_DefaultOnly"
 	Option "Plasma Rifle (Energy)","rs_soundchoice_energy",   "RS_SoundChoice_DefaultOnly"
 	Option "BFG9000",              "rs_soundchoice_bfg",      "RS_SoundChoice_DefaultOnly"
+	// The two archetypes this list was missing. RS_Weapon.zs:1157 builds
+	// the cvar name from the archetype keyword, and there are thirteen of
+	// those in the tree; railgun and flamethrower had no cvar declared,
+	// so they had no row either. Both are now in CVARINFO.txt.
+	Option "Railgun",              "rs_soundchoice_railgun",  "RS_SoundChoice_DefaultOnly"
+	Option "Flamethrower",         "rs_soundchoice_flamethrower", "RS_SoundChoice_DefaultOnly"
 }
 
 // ---------------------------------------------------------------------
@@ -266,8 +305,13 @@ OptionMenu "RS_UIDebug"
 	StaticText "Twin wheel is a HOLD bind -- hold V in game,", "DarkGray"
 	StaticText "it cannot be driven from inside a menu.", "DarkGray"
 	StaticText " "
-	Command "Give Current Weapon a Random Profile", "netevent rs_debug_random_profile"
-	StaticText " "
+	// "Give Current Weapon a Random Profile" was here and is gone --
+	// 2026-08-07. It fired `netevent rs_debug_random_profile`, and there
+	// is NO NetworkProcess handler for that name anywhere in zscript/ --
+	// the event was raised and silently dropped, so the button did
+	// nothing at all. KEYCONF still carries the same dead event on three
+	// lines (an addmenukey, an alias, and a PGDN defaultbind); that file
+	// belongs to another lane and was reported rather than edited.
 	Submenu "Elite Drop Simulator", "RS_DropDebug"
 }
 
@@ -549,8 +593,14 @@ OptionMenu "GunBonsaiOptions"
   TFLV_Tooltip "$TFLV_OPT_TT_IGNORE_DEATH_EXITS"
   Option "$TFLV_OPT_NAME_USE_BUILTIN_ACTORS", "bonsai_use_builtin_actors", "OnOff"
   TFLV_Tooltip "$TFLV_OPT_TT_USE_BUILTIN_ACTORS"
-  Option "$TFLV_OPT_NAME_AMMOLESS_WEAPONS_ARE_WIMPY", "bonsai_ammoless_weapons_are_wimpy", "OnOff"
-  TFLV_Tooltip "$TFLV_OPT_TT_AMMOLESS_WEAPONS_ARE_WIMPY"
+  // "Ammoless weapons are wimpy" (bonsai_ammoless_weapons_are_wimpy) was
+  // here and is gone -- 2026-08-07. Upstream reads it; THIS FORK DOES
+  // NOT. There is not one hit for "ammoless" anywhere under zscript/ --
+  // WeaponTypeInference.zsc decides wimpy on its own and never consults
+  // the cvar, so the toggle did nothing in either position. Removed from
+  // BELOW `DefaultSelection 4` on purpose: that directive counts rows
+  // from the top, so deleting one down here cannot move the cursor's
+  // landing row, and deleting one above it would have.
 
   StaticText ""
   StaticText "$TFLV_OPT_HEADER_XP_SOURCE", PURPLE
@@ -730,15 +780,20 @@ OptionMenu "GunBonsaiNewLDEffectMenu"
   Title "$TFLV_MENU_LD_NEW_EFFECT_TITLE"
 }
 
-OptionMenu "GunBonsaiStatusDisplay"
-{
-  class TFLV_Menu_StatusDisplay
-  Title "$TFLV_MENU_STATUS_TITLE"
-}
-
+// ONE definition, not two -- 2026-08-07. This name was declared twice in
+// a row: an upstream block naming TFLV_Menu_StatusDisplay, immediately
+// followed by the RS block naming TFLV_Menu_UnifiedStatusDisplay. A
+// repeated OptionMenu REPLACES the earlier descriptor rather than merging
+// with it, so the first block had never done anything except carry the
+// Title the second one then threw away -- the status page has been
+// running untitled. The dead block is gone and its Title moved here, so
+// the page keeps the class it was already using and gets its heading
+// back. TFLV_Menu_UnifiedStatusDisplay extends TFLV_Menu_StatusDisplay
+// (zscript/gunbonsai/OffhandStatusDisplay.zsc:4), so nothing is lost.
 OptionMenu "GunBonsaiStatusDisplay"
 {
   Class "TFLV_Menu_UnifiedStatusDisplay"
+  Title "$TFLV_MENU_STATUS_TITLE"
 }
 
 // ---------------------------------------------------------------------
@@ -786,14 +841,23 @@ OptionMenu "RS_ScoreOptions"
 	StaticText " "
 
 	Submenu "Style Bonuses", "RS_ScoreBonusOptions"
-	Submenu "Rewards & Extra Lives", "RS_ScoreRewardOptions"
-	Submenu "Score Display", "RS_ScoreHUDOptions"
+	Submenu "Rewards", "RS_ScoreRewardOptions"
+	Submenu "$RS_OPT_TITLE_LIVES", "RS_LivesOptions"
+	Submenu "$RS_OPT_TITLE_SCOREHUD", "RS_ScoreHUDOptions"
+	// Curses sit under the score branch at the owner's direction. They
+	// belong to the same economy: Curse Bits are a kill reward, and the
+	// death that hands you a curse is the same death that spends a life.
+	Submenu "Curses", "RS_CurseOptions"
 	StaticText " "
 
 	StaticText "Scoring Rules"
 	Option "Carry Score Between Maps", "rs_score_startmode", "RS_ScoreStartMode"
-	Slider "Monster Tier Bonus", "rs_score_tierweight", 0.0, 0.5, 0.01, 2
-	StaticText "How much a monster's tier raises its value above raw health.", "DarkGray"
+	// "Monster Tier Bonus" (rs_score_tierweight) was here and is gone --
+	// 2026-08-07. Tier weighting came out of RS_Score.BasePointsFor();
+	// the only hits left in the tree are the cvar declaration and some
+	// docs, so the slider moved a number nothing consulted. The cvar is
+	// kept declared with a note -- see CVARINFO.txt -- so the row can
+	// come straight back if the feature does.
 	StaticText " "
 
 	StaticText "Reward Bar Length"
@@ -801,7 +865,13 @@ OptionMenu "RS_ScoreOptions"
 	Slider "Bar Size Multiplier", "rs_score_monsterscalar", 0.05, 2.0, 0.05, 2
 	Slider "Min. Monsters Counted", "rs_score_monstermin", 0, 500, 10, 0
 	Slider "Max. Monsters Counted", "rs_score_monstermax", 50, 2000, 50, 0
-	Slider "Round Threshold To", "rs_score_interval", 10, 1000, 10, 0
+	// RANGE FIXED 2026-08-07. This slider read 10-1000 while the cvar
+	// ships at 5000, so the value was OFF THE SLIDER: touching the row at
+	// all clamped the threshold to 1000 or below -- a fivefold change to
+	// how often a reward pays -- with no way to get back to the shipped
+	// value from the menu. The DEFAULT is the correct number (RS_Score.zs
+	// rounds the per-map threshold to it), so the range is what moved.
+	Slider "Round Threshold To", "rs_score_interval", 500, 20000, 500, 0
 	StaticText " "
 
 	Option "Debug Output", "rs_score_debug", "OnOff"
@@ -869,13 +939,27 @@ OptionMenu "RS_ScoreBonusOptions"
 	Slider "  Value", "rs_score_m_brawler", 0.0, 2.0, 0.05, 2
 	Option "Giant Slayer", "rs_score_b_giantslayer", "OnOff"
 	Slider "  Per Tier Above Floor", "rs_score_m_giantslayer", 0.0, 1.0, 0.05, 2
-	Slider "  Lowest Tier That Counts", "rs_score_giantslayer_tier", 0, 13, 1, 0
+	// REWIRED 2026-08-07. This row was "Lowest Tier That Counts" on
+	// rs_score_giantslayer_tier, which nothing reads -- the gate was
+	// rebuilt for vanilla monsters and is HIT POINTS now
+	// (rs_score_giantslayer_hp, RS_Score.zs:882). So the page carried a
+	// live-looking slider for the dead knob while the real one appeared
+	// in no menu at all. Same row, pointed at the gate that runs.
+	Slider "$RS_OPT_NAME_GIANTSLAYER_HP", "rs_score_giantslayer_hp", 100, 4000, 50, 0
+	StaticText "$RS_OPT_TT_GIANTSLAYER_HP", "DarkGray"
 }
 
 // ---------------------------------------------------------------------
+// This page used to be "Rewards & Extra Lives" and carried the whole
+// revival payload inline. The lives economy grew a page of its own
+// (RS_LivesOptions, below) when the earning schedule landed, so the rows
+// that describe WHAT A LIFE DOES moved there to sit next to the rows
+// that describe HOW YOU GET ONE. What stays here is the reward bar's own
+// business: whether it pays, what it pays, and the ammo regen payout,
+// which has no home anywhere else.
 OptionMenu "RS_ScoreRewardOptions"
 {
-	Title "Rewards & Extra Lives"
+	Title "Rewards"
 	StaticText " "
 
 	Option "Enable Rewards", "rs_score_rewards_enable", "OnOff"
@@ -890,21 +974,8 @@ OptionMenu "RS_ScoreRewardOptions"
 	Option "Refill Secondary Ammo", "rs_score_regen_secondary", "OnOff"
 	StaticText " "
 
-	StaticText "Extra Lives"
-	Option "Enable Extra Lives", "rs_score_lives_enable", "OnOff"
-	Slider "Health On Revival", "rs_score_revive_health", 1, 200, 5, 0
-	Slider "Invulnerable For -- Tics", "rs_score_revive_invuln", 0, 350, 5, 0
-	StaticText " "
-
-	StaticText "Revival Fire Cone"
-	Option "Spawn The Cone", "rs_score_revive_cone", "OnOff"
-	Option "Revival Sound", "rs_score_revive_sound", "OnOff"
-	Option "Screen Flash", "rs_score_revive_flash", "OnOff"
-	Slider "Opening Blast Damage", "rs_score_revive_blast", 0, 1000, 16, 0
-	Slider "Opening Blast Radius", "rs_score_revive_blastradius", 16, 1024, 16, 0
-	Slider "Flame Streams", "rs_score_revive_arms", 1, 24, 1, 0
-	Slider "Spin Duration -- Tics", "rs_score_revive_tics", 5, 210, 5, 0
-	StaticText "Blast damage 0 makes the cone purely cosmetic.", "DarkGray"
+	StaticText "The other half of the payout has its own page.", "DarkGray"
+	Submenu "$RS_OPT_TITLE_LIVES", "RS_LivesOptions"
 }
 
 OptionValue "RS_ScoreRewardMode"
@@ -915,46 +986,541 @@ OptionValue "RS_ScoreRewardMode"
 	3, "Extra Lives Only"
 }
 
-// ---------------------------------------------------------------------
+// =====================================================================
+// SCORE & HUD -- everything about how the arcade readout LOOKS, and
+// nothing about what it is worth. Rebuilt 2026-08-07 from a single
+// "Score Display" page of eleven rows.
+//
+// SIX ELEMENT GROUPS, and they are the six the readout draws: the score
+// number, the reward bar, the numbers under the bar, the extra-life
+// pips, the spree counter, and the combo stack. Every position, scale
+// and colour row on these pages belongs to exactly one of them, which is
+// how the sub-pages are cut.
+//
+// EVERY CVAR NAME AND DEFAULT ON THESE PAGES WAS READ OFF
+// zscript/systems/score/RS_ScoreHUD.zs, not chosen here. That file's own
+// CVAR ACCESS comment says the menu lane declares them and that its
+// fallbacks are what the readout needs when a cvar does not exist yet --
+// so a row here that invents a name is not a small mistake, it is a
+// control that does nothing while looking exactly like one that works.
+// If a row and the reader ever disagree, THE READER IS RIGHT.
+//
+// COLOURS ARE RAMPS, NOT PICKERS. The eight choices are the RSScore_*
+// gradients in TEXTCOLO.txt, and the stored value is an INDEX into
+// RS_ScoreHUD.PaletteColor()'s switch -- which is NOT TEXTCOLO's
+// declaration order. The one exception is the three artwork tints at the
+// bottom of the colours page: those multiply graphics rather than
+// translate a font, so they are real ColorPickers.
+// =====================================================================
 OptionMenu "RS_ScoreHUDOptions"
 {
-	Title "Score Display"
+	Title "$RS_OPT_TITLE_SCOREHUD"
+	StaticText " "
+	StaticText "$RS_OPT_TT_SCOREHUD_1", "DarkGray"
+	StaticText "$RS_OPT_TT_SCOREHUD_2", "DarkGray"
 	StaticText " "
 
-	Option "Show Score HUD", "rs_score_hud_enable", "OnOff"
-	Option "Show On Automap", "rs_score_hud_onautomap", "OnOff"
+	Option "$RS_OPT_NAME_HUD_ENABLE", "rs_score_hud_enable", "OnOff"
+	Option "$RS_OPT_NAME_HUD_AUTOMAP", "rs_score_hud_onautomap", "OnOff"
+	Slider "$RS_OPT_NAME_HUD_ALPHA", "rs_score_hud_alpha", 10, 100, 5, 0
 	StaticText " "
 
-	StaticText "Position & Size"
-	Slider "Horizontal (%)", "rs_score_hud_x", 0, 100, 1, 0
-	Slider "Vertical (%)", "rs_score_hud_y", 0, 100, 1, 0
-	Slider "Scale (%)", "rs_score_hud_scale", 25, 400, 5, 0
+	Option "$RS_OPT_NAME_HUD_PRESET", "rs_score_hud_preset", "RS_ScoreHUDPreset"
+	StaticText "$RS_OPT_TT_HUD_PRESET_1", "DarkGray"
+	StaticText "$RS_OPT_TT_HUD_PRESET_2", "DarkGray"
+	Option "$RS_OPT_NAME_HUD_ALIGN", "rs_score_hud_align", "RS_ScoreHUDAlign"
+	StaticText "$RS_OPT_TT_HUD_ALIGN", "DarkGray"
 	StaticText " "
 
-	StaticText "Elements"
-	Option "Score Number", "rs_score_hud_showscore", "OnOff"
-	Option "Reward Bar", "rs_score_hud_showbar", "OnOff"
-	Option "Bar Numbers", "rs_score_hud_barnumbers", "OnOff"
-	Option "Extra Life Pips", "rs_score_hud_showlives", "OnOff"
-	Option "Bonus Popups", "rs_score_hud_showbonuses", "OnOff"
-	Option "Show Base Points Line", "rs_score_hud_showbase", "OnOff"
-	Option "Flash On Score", "rs_score_hud_flash", "OnOff"
+	StaticText "$RS_OPT_HEADER_HUD_ELEMENTS", "Cyan"
+	Option "$RS_OPT_NAME_HUD_SHOWSCORE", "rs_score_hud_showscore", "OnOff"
+	Option "$RS_OPT_NAME_HUD_LABEL", "rs_score_hud_label", "OnOff"
+	Option "$RS_OPT_NAME_HUD_SHOWBAR", "rs_score_hud_showbar", "OnOff"
+	Option "$RS_OPT_NAME_HUD_BARFRAME", "rs_score_hud_barframe", "OnOff"
+	Option "$RS_OPT_NAME_HUD_BARNUMBERS", "rs_score_hud_barnumbers", "OnOff"
+	Option "$RS_OPT_NAME_HUD_REWARDLABEL", "rs_score_hud_rewardlabel", "OnOff"
+	StaticText "$RS_OPT_TT_HUD_REWARDLABEL", "DarkGray"
+	Option "$RS_OPT_NAME_HUD_SHOWLIVES", "rs_score_hud_showlives", "OnOff"
+	Option "$RS_OPT_NAME_HUD_SHOWBONUSES", "rs_score_hud_showbonuses", "OnOff"
+	Option "$RS_OPT_NAME_HUD_SHOWBASE", "rs_score_hud_showbase", "OnOff"
+	Option "$RS_OPT_NAME_HUD_SHOWSPREE", "rs_score_hud_showspree", "OnOff"
+	StaticText "$RS_OPT_TT_HUD_SHOWSPREE", "DarkGray"
+	Option "$RS_OPT_NAME_HUD_FLASH", "rs_score_hud_flash", "OnOff"
+	Slider "$RS_OPT_NAME_HUD_FLASHTIME", "rs_score_hud_flashtime", 0, 70, 1, 0
 	StaticText " "
 
-	StaticText "Additions", "GOLD"
-	StaticText "Off by default -- changes how the readout reads.", "DarkGray"
-	Option "Spree Counter", "rs_score_hud_showspree", "OnOff"
+	StaticText "$RS_OPT_HEADER_HUD_PAGES", "Cyan"
+	Submenu "$RS_OPT_NAME_HUD_SUB_LAYOUT", "RS_ScoreHUDLayout"
+	Submenu "$RS_OPT_NAME_HUD_SUB_COLOURS", "RS_ScoreHUDColours"
+	Submenu "$RS_OPT_NAME_HUD_SUB_BAR", "RS_ScoreHUDBar"
+	Submenu "$RS_OPT_NAME_HUD_SUB_BONUS", "RS_ScoreHUDBonus"
+	Submenu "$RS_OPT_NAME_HUD_SUB_SPREE", "RS_ScoreHUDSpree"
+}
+
+// Placement presets. 0 is Custom and is the ONLY value that reads the
+// two percentage sliders; 1-8 are fixed spots picked so the readout does
+// not land on top of the two weapon XP widgets. Values and their meanings
+// are RS_ScoreHUD.GroupOrigin()'s own switch.
+OptionValue "RS_ScoreHUDPreset"
+{
+	0, "$RS_OPT_ENUM_PRESET_0"
+	1, "$RS_OPT_ENUM_PRESET_1"
+	2, "$RS_OPT_ENUM_PRESET_2"
+	3, "$RS_OPT_ENUM_PRESET_3"
+	4, "$RS_OPT_ENUM_PRESET_4"
+	5, "$RS_OPT_ENUM_PRESET_5"
+	6, "$RS_OPT_ENUM_PRESET_6"
+	7, "$RS_OPT_ENUM_PRESET_7"
+	8, "$RS_OPT_ENUM_PRESET_8"
+}
+
+OptionValue "RS_ScoreHUDAlign"
+{
+	0, "$RS_OPT_ENUM_ALIGN_0"
+	1, "$RS_OPT_ENUM_ALIGN_1"
+	2, "$RS_OPT_ENUM_ALIGN_2"
+	3, "$RS_OPT_ENUM_ALIGN_3"
+}
+
+// ---------------------------------------------------------------------
+// Position & scale. The anchor first, then one block per element group.
+//
+// The per-group Y values are POSITIONS with real shipped defaults, not
+// zero-nudges -- score -2, bar 13, numbers 21, pips -16, spree 30, combo
+// 45, all in the readout's 640x480 space. That is why every one of these
+// sliders spans the negative side too.
+// ---------------------------------------------------------------------
+OptionMenu "RS_ScoreHUDLayout"
+{
+	Title "$RS_OPT_TITLE_HUDLAYOUT"
+	StaticText " "
+	StaticText "$RS_OPT_TT_HUDLAYOUT_1", "DarkGray"
+	StaticText "$RS_OPT_TT_HUDLAYOUT_2", "DarkGray"
 	StaticText " "
 
-	Slider "Bonus Popup Time -- Tics", "rs_score_bonustime", 5, 350, 5, 0
+	StaticText "$RS_OPT_HEADER_HUD_ANCHOR", "Cyan"
+	Option "$RS_OPT_NAME_HUD_PRESET", "rs_score_hud_preset", "RS_ScoreHUDPreset"
+	Slider "$RS_OPT_NAME_HUD_X", "rs_score_hud_x", 0, 100, 1, 0
+	Slider "$RS_OPT_NAME_HUD_Y", "rs_score_hud_y", 0, 100, 1, 0
+	StaticText "$RS_OPT_TT_HUD_ANCHOR", "DarkGray"
+	Slider "$RS_OPT_NAME_HUD_SCALE", "rs_score_hud_scale", 25, 400, 5, 0
+	Option "$RS_OPT_NAME_HUD_ALIGN", "rs_score_hud_align", "RS_ScoreHUDAlign"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_G_SCORE", "Cyan"
+	Slider "$RS_OPT_NAME_HUD_OFF_X", "rs_score_hud_score_x", -320, 320, 2, 0
+	Slider "$RS_OPT_NAME_HUD_OFF_Y", "rs_score_hud_score_y", -240, 240, 1, 0
+	Slider "$RS_OPT_NAME_HUD_G_SCALE", "rs_score_hud_score_scale", 25, 400, 5, 0
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_G_BAR", "Cyan"
+	Slider "$RS_OPT_NAME_HUD_OFF_X", "rs_score_hud_bar_x", -320, 320, 2, 0
+	Slider "$RS_OPT_NAME_HUD_OFF_Y", "rs_score_hud_bar_y", -240, 240, 1, 0
+	Slider "$RS_OPT_NAME_HUD_G_SCALE", "rs_score_hud_bar_scale", 25, 400, 5, 0
+	Slider "$RS_OPT_NAME_BAR_WIDTH", "rs_score_hud_bar_width", 40, 400, 4, 0
+	Slider "$RS_OPT_NAME_BAR_HEIGHT", "rs_score_hud_bar_height", 2, 32, 1, 0
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_G_UNDER", "Cyan"
+	Slider "$RS_OPT_NAME_HUD_OFF_Y", "rs_score_hud_under_y", -240, 240, 1, 0
+	Slider "$RS_OPT_NAME_HUD_G_SCALE", "rs_score_hud_under_scale", 25, 400, 5, 0
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_G_LIVES", "Cyan"
+	Slider "$RS_OPT_NAME_HUD_OFF_X", "rs_score_hud_lives_x", -320, 320, 2, 0
+	Slider "$RS_OPT_NAME_HUD_OFF_Y", "rs_score_hud_lives_y", -240, 240, 1, 0
+	Slider "$RS_OPT_NAME_HUD_G_SCALE", "rs_score_hud_lives_scale", 25, 400, 5, 0
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_G_SPREE", "Cyan"
+	Slider "$RS_OPT_NAME_HUD_OFF_X", "rs_score_hud_spree_x", -320, 320, 2, 0
+	Slider "$RS_OPT_NAME_HUD_OFF_Y", "rs_score_hud_spree_y", -240, 240, 1, 0
+	Slider "$RS_OPT_NAME_HUD_G_SCALE", "rs_score_hud_spree_scale", 25, 400, 5, 0
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_G_BONUS", "Cyan"
+	Slider "$RS_OPT_NAME_HUD_OFF_X", "rs_score_hud_combo_x", -320, 320, 2, 0
+	Slider "$RS_OPT_NAME_HUD_OFF_Y", "rs_score_hud_combo_y", -240, 240, 1, 0
+	Slider "$RS_OPT_NAME_HUD_G_SCALE", "rs_score_hud_combo_scale", 25, 400, 5, 0
+	Slider "$RS_OPT_NAME_COMBO_GAP", "rs_score_hud_combo_gap", 8, 240, 1, 0
+	Slider "$RS_OPT_NAME_COMBO_LINEH", "rs_score_hud_combo_lineh", 6, 40, 1, 0
+	Option "$RS_OPT_NAME_COMBO_UP", "rs_score_hud_combo_up", "OnOff"
+	StaticText "$RS_OPT_TT_COMBO_UP", "DarkGray"
+	StaticText " "
+
+	StaticText "$RS_OPT_TT_HUD_NUDGE", "DarkGray"
+	StaticText "$RS_OPT_TT_HUD_RESET", "DarkGray"
+	StaticText "$RS_OPT_TT_HUD_RESET2", "DarkGray"
+}
+
+// ---------------------------------------------------------------------
+// Colours. Fifteen ramp pickers and three artwork tints.
+// ---------------------------------------------------------------------
+OptionMenu "RS_ScoreHUDColours"
+{
+	Title "$RS_OPT_TITLE_HUDCOLOURS"
+	StaticText " "
+	StaticText "$RS_OPT_TT_HUDCOLOURS_1", "DarkGray"
+	StaticText "$RS_OPT_TT_HUDCOLOURS_2", "DarkGray"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_C_READOUT", "Cyan"
+	Option "$RS_OPT_NAME_C_NUMBER", "rs_score_hud_col_score", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_SCORETINT", "rs_score_hud_score_tint", "OnOff"
+	StaticText "$RS_OPT_TT_C_SCORETINT_1", "DarkGray"
+	StaticText "$RS_OPT_TT_C_SCORETINT_2", "DarkGray"
+	Option "$RS_OPT_NAME_C_LABEL", "rs_score_hud_col_label", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_BARNUM", "rs_score_hud_col_barnum", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_LIVES", "rs_score_hud_col_lives", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_COMBONAME", "rs_score_hud_col_comboname", "RS_ScoreColorRamp"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_C_REWARD", "Cyan"
+	Option "$RS_OPT_NAME_C_REWARD_AMMO", "rs_score_hud_col_reward_ammo", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_REWARD_LIFE", "rs_score_hud_col_reward_life", "RS_ScoreColorRamp"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_C_FLAVOURS", "Cyan"
+	StaticText "$RS_OPT_TT_HUD_C_FLAVOURS", "DarkGray"
+	Option "$RS_OPT_NAME_C_BASE", "rs_score_hud_col_base", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_EFFICIENCY", "rs_score_hud_col_efficiency", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_STYLE", "rs_score_hud_col_style", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_DARING", "rs_score_hud_col_daring", "RS_ScoreColorRamp"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_C_TINTS", "Cyan"
+	StaticText "$RS_OPT_TT_HUD_C_TINTS_1", "DarkGray"
+	StaticText "$RS_OPT_TT_HUD_C_TINTS_2", "DarkGray"
+	ColorPicker "$RS_OPT_NAME_TINT_BAR", "rs_score_hud_bar_tint"
+	ColorPicker "$RS_OPT_NAME_TINT_FRAME", "rs_score_hud_frame_tint"
+	ColorPicker "$RS_OPT_NAME_TINT_LIVES", "rs_score_hud_lives_tint"
+	StaticText " "
+
+	Submenu "$RS_OPT_NAME_HUD_SUB_SPREE", "RS_ScoreHUDSpree"
+}
+
+// The eight ramps, in RS_ScoreHUD.PaletteColor()'s switch order.
+//
+// THAT ORDER IS THE CONTRACT AND IT IS NOT TEXTCOLO.txt's DECLARATION
+// ORDER. The cvar stores this index, so this list and that switch have to
+// agree entry for entry -- inserting a ramp in the middle silently
+// repaints every element below it. Append only, at both ends.
+OptionValue "RS_ScoreColorRamp"
+{
+	0, "$RS_OPT_ENUM_RAMP_0"
+	1, "$RS_OPT_ENUM_RAMP_1"
+	2, "$RS_OPT_ENUM_RAMP_2"
+	3, "$RS_OPT_ENUM_RAMP_3"
+	4, "$RS_OPT_ENUM_RAMP_4"
+	5, "$RS_OPT_ENUM_RAMP_5"
+	6, "$RS_OPT_ENUM_RAMP_6"
+	7, "$RS_OPT_ENUM_RAMP_7"
+}
+
+// ---------------------------------------------------------------------
+// Reward bar look. All five patterns draw from the shipped RSSCBG/RSSCBR
+// lumps -- none of them needs new art, and the 1/2 pairing of those
+// lumps (which reward is next) stays live in every one of them.
+// ---------------------------------------------------------------------
+OptionMenu "RS_ScoreHUDBar"
+{
+	Title "$RS_OPT_TITLE_HUDBAR"
+	StaticText " "
+	StaticText "$RS_OPT_TT_HUDBAR_1", "DarkGray"
+	StaticText "$RS_OPT_TT_HUDBAR_2", "DarkGray"
+	StaticText " "
+
+	Option "$RS_OPT_NAME_HUD_SHOWBAR", "rs_score_hud_showbar", "OnOff"
+	Option "$RS_OPT_NAME_HUD_BARFRAME", "rs_score_hud_barframe", "OnOff"
+	StaticText " "
+
+	Option "$RS_OPT_NAME_BARSTYLE", "rs_score_hud_barstyle", "RS_ScoreBarStyle"
+	Slider "$RS_OPT_NAME_BARSEGMENTS", "rs_score_hud_barsegments", 2, 40, 1, 0
+	StaticText "$RS_OPT_TT_BARSEGMENTS", "DarkGray"
+	Slider "$RS_OPT_NAME_SWEEPTICS", "rs_score_hud_sweeptics", 10, 350, 5, 0
+	StaticText "$RS_OPT_TT_SWEEPTICS", "DarkGray"
+	StaticText " "
+
+	Slider "$RS_OPT_NAME_BAR_WIDTH", "rs_score_hud_bar_width", 40, 400, 4, 0
+	Slider "$RS_OPT_NAME_BAR_HEIGHT", "rs_score_hud_bar_height", 2, 32, 1, 0
+	StaticText " "
+
+	Option "$RS_OPT_NAME_HUD_BARNUMBERS", "rs_score_hud_barnumbers", "OnOff"
+	Option "$RS_OPT_NAME_HUD_REWARDLABEL", "rs_score_hud_rewardlabel", "OnOff"
+	StaticText "$RS_OPT_TT_HUD_REWARDLABEL", "DarkGray"
+	Option "$RS_OPT_NAME_C_BARNUM", "rs_score_hud_col_barnum", "RS_ScoreColorRamp"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_HUD_C_REWARD", "Cyan"
+	Option "$RS_OPT_NAME_C_REWARD_AMMO", "rs_score_hud_col_reward_ammo", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_REWARD_LIFE", "rs_score_hud_col_reward_life", "RS_ScoreColorRamp"
+	StaticText " "
+
+	ColorPicker "$RS_OPT_NAME_TINT_BAR", "rs_score_hud_bar_tint"
+	ColorPicker "$RS_OPT_NAME_TINT_FRAME", "rs_score_hud_frame_tint"
+}
+
+OptionValue "RS_ScoreBarStyle"
+{
+	0, "$RS_OPT_ENUM_BARSTYLE_0"
+	1, "$RS_OPT_ENUM_BARSTYLE_1"
+	2, "$RS_OPT_ENUM_BARSTYLE_2"
+	3, "$RS_OPT_ENUM_BARSTYLE_3"
+	4, "$RS_OPT_ENUM_BARSTYLE_4"
+}
+
+// ---------------------------------------------------------------------
+// Bonus stack. WHICH BONUSES EARN is the Style Bonuses page; this page
+// only decides how they are shown. That separation is deliberate -- a
+// player quieting the readout should not be quietly nerfing their run.
+//
+// There is deliberately NO per-flavour show/hide here. Three cvars for
+// that are declared in CVARINFO.txt and nothing reads them yet; the rows
+// go in when the reader does, and not one build earlier.
+// ---------------------------------------------------------------------
+OptionMenu "RS_ScoreHUDBonus"
+{
+	Title "$RS_OPT_TITLE_HUDBONUS"
+	StaticText " "
+	StaticText "$RS_OPT_TT_HUDBONUS_1", "DarkGray"
+	StaticText "$RS_OPT_TT_HUDBONUS_2", "DarkGray"
+	StaticText "$RS_OPT_TT_HUDBONUS_3", "DarkGray"
+	StaticText " "
+
+	Option "$RS_OPT_NAME_HUD_SHOWBONUSES", "rs_score_hud_showbonuses", "OnOff"
+	Option "$RS_OPT_NAME_HUD_SHOWBASE", "rs_score_hud_showbase", "OnOff"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_BONUS_SHAPE", "Cyan"
+	Slider "$RS_OPT_NAME_BONUS_MAXLINES", "rs_score_hud_combo_max", 1, 16, 1, 0
+	StaticText "$RS_OPT_TT_BONUS_MAXLINES", "DarkGray"
+	Slider "$RS_OPT_NAME_COMBO_GAP", "rs_score_hud_combo_gap", 8, 240, 1, 0
+	Slider "$RS_OPT_NAME_COMBO_LINEH", "rs_score_hud_combo_lineh", 6, 40, 1, 0
+	Option "$RS_OPT_NAME_COMBO_UP", "rs_score_hud_combo_up", "OnOff"
+	StaticText "$RS_OPT_TT_COMBO_UP", "DarkGray"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_BONUS_TIMING", "Cyan"
+	Slider "$RS_OPT_NAME_BONUSTIME", "rs_score_bonustime", 5, 350, 5, 0
+	Slider "$RS_OPT_NAME_FADEIN", "rs_score_hud_fadein", 0, 35, 1, 0
+	Slider "$RS_OPT_NAME_FADEOUT", "rs_score_hud_fadeout", 0, 70, 1, 0
+	StaticText "$RS_OPT_TT_FADE", "DarkGray"
+	Option "$RS_OPT_NAME_POP", "rs_score_hud_pop", "OnOff"
+	Slider "$RS_OPT_NAME_POPSIZE", "rs_score_hud_popsize", 0, 200, 5, 0
+	StaticText "$RS_OPT_TT_POP", "DarkGray"
+	StaticText " "
+
+	Option "$RS_OPT_NAME_C_COMBONAME", "rs_score_hud_col_comboname", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_BASE", "rs_score_hud_col_base", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_EFFICIENCY", "rs_score_hud_col_efficiency", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_STYLE", "rs_score_hud_col_style", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_DARING", "rs_score_hud_col_daring", "RS_ScoreColorRamp"
+}
+
+// ---------------------------------------------------------------------
+// Spree counter. Its own page because it is four colours, three
+// thresholds and a format, and because those same three thresholds also
+// drive the score number's tint -- so they are one decision, not two.
+// ---------------------------------------------------------------------
+OptionMenu "RS_ScoreHUDSpree"
+{
+	Title "$RS_OPT_TITLE_HUDSPREE"
+	StaticText " "
+	StaticText "$RS_OPT_TT_HUDSPREE_1", "DarkGray"
+	StaticText "$RS_OPT_TT_HUDSPREE_2", "DarkGray"
+	StaticText " "
+
+	Option "$RS_OPT_NAME_HUD_SHOWSPREE", "rs_score_hud_showspree", "OnOff"
+	Option "$RS_OPT_NAME_SPREE_MODE", "rs_score_hud_spree_mode", "RS_ScoreSpreeMode"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_SPREE_TIERS", "Cyan"
+	StaticText "$RS_OPT_TT_SPREE_TIERS_1", "DarkGray"
+	StaticText "$RS_OPT_TT_SPREE_TIERS_2", "DarkGray"
+	Slider "$RS_OPT_NAME_SPREE_T1", "rs_score_hud_spree_t1", 2, 100, 1, 0
+	Slider "$RS_OPT_NAME_SPREE_T2", "rs_score_hud_spree_t2", 2, 100, 1, 0
+	Slider "$RS_OPT_NAME_SPREE_T3", "rs_score_hud_spree_t3", 2, 100, 1, 0
+	StaticText " "
+
+	Option "$RS_OPT_NAME_C_SPREE0", "rs_score_hud_col_spree0", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_SPREE1", "rs_score_hud_col_spree1", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_SPREE2", "rs_score_hud_col_spree2", "RS_ScoreColorRamp"
+	Option "$RS_OPT_NAME_C_SPREE3", "rs_score_hud_col_spree3", "RS_ScoreColorRamp"
+	StaticText " "
+
+	Option "$RS_OPT_NAME_C_SCORETINT", "rs_score_hud_score_tint", "OnOff"
+	StaticText "$RS_OPT_TT_C_SCORETINT_1", "DarkGray"
+	StaticText "$RS_OPT_TT_C_SCORETINT_2", "DarkGray"
+	StaticText " "
+
+	Slider "$RS_OPT_NAME_HUD_OFF_X", "rs_score_hud_spree_x", -320, 320, 2, 0
+	Slider "$RS_OPT_NAME_HUD_OFF_Y", "rs_score_hud_spree_y", -240, 240, 1, 0
+	Slider "$RS_OPT_NAME_HUD_G_SCALE", "rs_score_hud_spree_scale", 25, 400, 5, 0
+}
+
+OptionValue "RS_ScoreSpreeMode"
+{
+	0, "$RS_OPT_ENUM_SPREEMODE_0"
+	1, "$RS_OPT_ENUM_SPREEMODE_1"
+	2, "$RS_OPT_ENUM_SPREEMODE_2"
 }
 
 // The RS_ScoreColor preset list lived here. It drove three cvars that
 // tinted the old Screen.Dim rectangles; the readout now draws the
 // RSSCBG/RSSCBR/RSSCLF art in graphics/score/ and the RSScore_* gradients
-// from TEXTCOLO.txt, so there is nothing left for a flat preset colour to
-// apply to. Removed along with the cvars rather than left as a menu page
-// that silently does nothing.
+// from TEXTCOLO.txt, so there was nothing left for a flat preset colour
+// to apply to. Removed along with the cvars rather than left as a menu
+// page that silently does nothing. The rows on RS_ScoreHUDColours are the
+// replacement, and they pick RAMPS -- except the three artwork tints,
+// which are pickers because they multiply graphics, not fonts.
+
+// =====================================================================
+// EXTRA LIVES -- how you earn one, and what spending one does for you.
+//
+// The two halves used to live apart: the payload was a section on the
+// rewards page, and there was no earning schedule at all beyond the
+// reward bar. This page is both, in the order a player meets them.
+//
+// TWO MASTER SWITCHES, AND BOTH ARE ON THIS PAGE ON PURPOSE.
+// RS_ScoreLives.zs gates this system on rs_lives_enable;
+// RS_Score.zs:1200 still gates the ORIGINAL reward-bar revival on
+// rs_score_lives_enable. They are different code racing for the same
+// death, and RS_ScoreLives.zs prints three red console lines if it finds
+// both on. The old one now ships OFF (see CVARINFO.txt), and its row
+// stays here, labelled, rather than being deleted -- which system owns
+// dying is the owner's call, not this lane's.
+//
+// EVERY ROW ON THIS PAGE IS BOUND TO A NAME ONE OF THOSE TWO FILES
+// ACTUALLY READS. It was not always so: this page was first built from
+// the spec while that lane was in flight, and seven of its rows pointed
+// at names that were never going to exist -- rs_lives_start for
+// rs_lives_starting, rs_lives_floor_per_level for rs_lives_min_per_level,
+// and so on. They would have looked exactly like working sliders. If you
+// add a row here, get the name out of the reader first.
+// =====================================================================
+OptionMenu "RS_LivesOptions"
+{
+	Title "$RS_OPT_TITLE_LIVES"
+	StaticText " "
+	StaticText "$RS_OPT_TT_LIVES_1", "DarkGray"
+	StaticText "$RS_OPT_TT_LIVES_2", "DarkGray"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_LIVES_MASTER", "Cyan"
+	Option "$RS_OPT_NAME_LIVES_ENABLE", "rs_lives_enable", "OnOff"
+	StaticText "$RS_OPT_TT_LIVES_ENABLE", "DarkGray"
+	Option "$RS_OPT_NAME_LIVES_REWARDPATH", "rs_score_lives_enable", "OnOff"
+	StaticText "$RS_OPT_TT_LIVES_REWARDPATH_1", "DarkGray"
+	StaticText "$RS_OPT_TT_LIVES_REWARDPATH_2", "DarkGray"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_LIVES_START", "Cyan"
+	// ScaleSlider's trailing string replaces the number at 0 (engine:
+	// OptionMenuItemScaleSlider.Draw), which is how "0 means no ceiling"
+	// reads as a word instead of as a ceiling of zero. There is no -1
+	// stop on either row: the reader clamps the starting count with
+	// max(0, ...) and treats any cap <= 0 as no cap, so a negative value
+	// would present a state the code cannot be in.
+	ScaleSlider "$RS_OPT_NAME_LIVES_START", "rs_lives_starting", 0, 20, 1, "$RS_OPT_SLIDER_NONE"
+	ScaleSlider "$RS_OPT_NAME_LIVES_MAX", "rs_lives_max", 0, 20, 1, "$RS_OPT_SLIDER_NOCAP"
+	StaticText "$RS_OPT_TT_LIVES_MAX", "DarkGray"
+	Slider "$RS_OPT_NAME_LIVES_FLOOR", "rs_lives_min_per_level", 0, 20, 1, 0
+	StaticText "$RS_OPT_TT_LIVES_FLOOR_1", "DarkGray"
+	StaticText "$RS_OPT_TT_LIVES_FLOOR_2", "DarkGray"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_LIVES_EARN", "Cyan"
+	Slider "$RS_OPT_NAME_LIVES_PER_LEVEL", "rs_lives_per_level", 0, 20, 1, 0
+	Option "$RS_OPT_NAME_LIVES_COMPLETION", "rs_lives_completion", "RS_LivesCompletion"
+	StaticText "$RS_OPT_TT_LIVES_COMPLETION", "DarkGray"
+	Slider "$RS_OPT_NAME_LIVES_PER_BOSS", "rs_lives_per_boss", 0, 20, 1, 0
+	ScaleSlider "$RS_OPT_NAME_LIVES_DMG_TAKEN", "rs_lives_damage_taken_per_life", 0, 5000, 50, "$RS_OPT_SLIDER_OFF"
+	StaticText "$RS_OPT_TT_LIVES_DMG_TAKEN", "DarkGray"
+	ScaleSlider "$RS_OPT_NAME_LIVES_DMG_DEALT", "rs_lives_damage_dealt_per_life", 0, 50000, 500, "$RS_OPT_SLIDER_OFF"
+	StaticText "$RS_OPT_TT_LIVES_DMG_DEALT", "DarkGray"
+	ScaleSlider "$RS_OPT_NAME_LIVES_SCORE", "rs_lives_score_per_life", 0, 100000, 2500, "$RS_OPT_SLIDER_OFF"
+	StaticText "$RS_OPT_TT_LIVES_SCORE_1", "DarkGray"
+	StaticText "$RS_OPT_TT_LIVES_SCORE_2", "DarkGray"
+	ScaleSlider "$RS_OPT_NAME_LIVES_SPREE", "rs_lives_spree_per_life", 0, 100, 5, "$RS_OPT_SLIDER_OFF"
+	StaticText "$RS_OPT_TT_LIVES_SPREE", "DarkGray"
+	Option "$RS_OPT_NAME_LIVES_TAKEREWARDS", "rs_lives_take_score_rewards", "OnOff"
+	StaticText "$RS_OPT_TT_LIVES_TAKEREWARDS_1", "DarkGray"
+	StaticText "$RS_OPT_TT_LIVES_TAKEREWARDS_2", "DarkGray"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_LIVES_KEEPING", "Cyan"
+	Option "$RS_OPT_NAME_LIVES_DEATHEXITS", "rs_lives_ignore_death_exits", "OnOff"
+	StaticText "$RS_OPT_TT_LIVES_DEATHEXITS", "DarkGray"
+	Option "$RS_OPT_NAME_LIVES_MESSAGE", "rs_lives_message", "OnOff"
+	StaticText "$RS_OPT_TT_LIVES_MESSAGE", "DarkGray"
+	Option "$RS_OPT_NAME_LIVES_FOREIGN", "rs_lives_accept_foreign_events", "OnOff"
+	StaticText "$RS_OPT_TT_LIVES_FOREIGN_1", "DarkGray"
+	StaticText "$RS_OPT_TT_LIVES_FOREIGN_2", "DarkGray"
+	StaticText " "
+
+	StaticText "$RS_OPT_HEADER_LIVES_SAVE", "Cyan"
+	Slider "$RS_OPT_NAME_SAVE_HEALTH", "rs_score_revive_health", 1, 200, 5, 0
+	// This one slider is the whole protected window. There is
+	// deliberately no separate "invulnerable yes/no" row: the reader
+	// gates BOTH the shield and the damage bonus on invuln > 0
+	// (RS_ScoreRevival.zs:207-212), so 0 IS the off switch and a second
+	// toggle could only disagree with it.
+	Slider "$RS_OPT_NAME_SAVE_DURATION", "rs_score_revive_invuln", 0, 350, 5, 0
+	StaticText "$RS_OPT_TT_SAVE_DURATION_1", "DarkGray"
+	StaticText "$RS_OPT_TT_SAVE_DURATION_2", "DarkGray"
+	Option "$RS_OPT_NAME_SAVE_DMGBONUS", "rs_score_revive_dmgbonus", "OnOff"
+	Slider "$RS_OPT_NAME_SAVE_DMGMULT", "rs_score_revive_dmgmult", 1.0, 16.0, 0.5, 1
+	Option "$RS_OPT_NAME_SAVE_CONE", "rs_score_revive_cone", "OnOff"
+	StaticText "$RS_OPT_TT_SAVE_CONE", "DarkGray"
+	Option "$RS_OPT_NAME_SAVE_FLASH", "rs_score_revive_flash", "OnOff"
+	Option "$RS_OPT_NAME_SAVE_SOUND", "rs_score_revive_sound", "OnOff"
+	Option "$RS_OPT_NAME_SAVE_BULLETTIME", "rs_score_revive_bullettime", "OnOff"
+	StaticText "$RS_OPT_TT_SAVE_BULLETTIME_1", "DarkGray"
+	StaticText "$RS_OPT_TT_SAVE_BULLETTIME_2", "DarkGray"
+	StaticText " "
+
+	Submenu "$RS_OPT_NAME_LIVES_SUB_CONE", "RS_LivesConeOptions"
+	// The pip readout itself is a HUD element and is owned by the Score &
+	// HUD branch; repeated here because "how many lives do I have" is the
+	// question this page is about, and a player who turns lives on and
+	// sees nothing on screen should not have to go looking.
+	Option "$RS_OPT_NAME_HUD_SHOWLIVES", "rs_score_hud_showlives", "OnOff"
+}
+
+OptionValue "RS_LivesCompletion"
+{
+	0, "$RS_OPT_ENUM_COMPLETION_0"
+	1, "$RS_OPT_ENUM_COMPLETION_1"
+	2, "$RS_OPT_ENUM_COMPLETION_2"
+	3, "$RS_OPT_ENUM_COMPLETION_3"
+	4, "$RS_OPT_ENUM_COMPLETION_4"
+	5, "$RS_OPT_ENUM_COMPLETION_5"
+}
+
+// ---------------------------------------------------------------------
+// The revival fire ring's own numbers. Every one of these is read by
+// RS_ScoreRevival.zs; they were inline on the rewards page and are a
+// sub-page now because they are the detail behind one switch, not five
+// decisions a player makes.
+// ---------------------------------------------------------------------
+OptionMenu "RS_LivesConeOptions"
+{
+	Title "$RS_OPT_TITLE_LIVES_CONE"
+	StaticText " "
+
+	Option "$RS_OPT_NAME_SAVE_CONE", "rs_score_revive_cone", "OnOff"
+	StaticText " "
+
+	Slider "$RS_OPT_NAME_CONE_BLAST", "rs_score_revive_blast", 0, 1000, 16, 0
+	Slider "$RS_OPT_NAME_CONE_BLASTRADIUS", "rs_score_revive_blastradius", 16, 1024, 16, 0
+	Slider "$RS_OPT_NAME_CONE_ARMS", "rs_score_revive_arms", 1, 24, 1, 0
+	Slider "$RS_OPT_NAME_CONE_TICS", "rs_score_revive_tics", 5, 210, 5, 0
+	StaticText "$RS_OPT_TT_CONE_BLAST", "DarkGray"
+	StaticText " "
+
+	Option "$RS_OPT_NAME_SAVE_SOUND", "rs_score_revive_sound", "OnOff"
+	Option "$RS_OPT_NAME_SAVE_FLASH", "rs_score_revive_flash", "OnOff"
+}
 
 // ---------------------------------------------------------------------
 // Monster Health Bars -- zscript/systems/monster/RS_HealthBars.zs
@@ -1018,6 +1584,17 @@ OptionMenu "RS_MonsterControl"
 	StaticText "Spawn settings only affect monsters that have not spawned", "DarkGray"
 	StaticText "yet -- start a new map to see them take effect.", "DarkGray"
 	StaticText "Drop and behaviour settings apply straight away.", "DarkGray"
+
+	StaticText " "
+	StaticText "No More Hitscans", "Gold"
+	StaticText "  Monster bullets become visible, dodgeable projectiles", "DarkGray"
+	StaticText "  instead of instant hits. ON by default -- it changes how", "DarkGray"
+	StaticText "  every hitscanner in the game fights you.", "DarkGray"
+	Option "Convert Monster Hitscans", "rs_nohitscan_enabled", "OnOff"
+	Slider "Projectile Speed",         "rs_nohitscan_speed", 20, 200, 5, 0
+	StaticText "  Lower = more dodgeable, and less like a bullet.", "DarkGray"
+	Slider "Projectile Visibility",    "rs_nohitscan_alpha", 0.0, 1.0, 0.05, 2
+	StaticText "  0 = invisible (instant-hit feel, still travels).", "DarkGray"
 }
 
 // ---------------------------------------------------------------------
@@ -1712,4 +2289,299 @@ OptionMenu "RS_CHTierLegend"
 
 	StaticText "The five extra challenge tiers can each be switched off", "DarkGray"
 	StaticText "on the Extra Challenge Tiers page.", "DarkGray"
+}
+
+// =====================================================================
+// RS_GrenadeOptions -- the charge-throw grenade.
+// =====================================================================
+OptionMenu "RS_GrenadeOptions"
+{
+	Title "Grenade Options"
+	StaticText " "
+
+	// The bind lives here as well as in Customize Controls. A setting you
+	// cannot reach from the page that explains it is a setting nobody
+	// finds -- same reason the panel page carries its own Control rows.
+	StaticText "Key", "Gold"
+	Control "Throw / charge grenade",  "+user4"
+	StaticText "  HOLD to charge, RELEASE to throw. Your deployed weapon", "DarkGray"
+	StaticText "  is never put away -- the grenade leaves from a hand.", "DarkGray"
+
+	StaticText " "
+	StaticText "Throwing", "Gold"
+	Option  "Throws From Hand",        "rs_grenade_hand",    "RS_GrenadeHandVals"
+	Slider  "Charge Time (tics)",      "rs_grenade_charge",  4, 140, 2, 0
+	StaticText "  20 tics is the original: about half a second to full.", "DarkGray"
+	Option  "Cooking",                 "rs_grenade_cook",    "OnOff"
+	StaticText "  Hold past full charge to burn the fuse early, so it can", "DarkGray"
+	StaticText "  air-burst. Hold too long and it goes off in your hand.", "DarkGray"
+	Option  "Charge Readout",          "rs_grenade_meter",   "RS_GrenadeMeterVals"
+	StaticText "  Original is the source mod's own layout.", "DarkGray"
+
+	StaticText " "
+	StaticText "Behaviour", "Gold"
+	Option  "Detonate On Impact",      "rs_grenade_impact",  "OnOff"
+	StaticText "  Off: bounces off floors and walls, detonates on its fuse.", "DarkGray"
+	Slider  "Fuse Length (tics)",      "rs_grenade_fuse",    5, 350, 5, 0
+	Slider  "Grenades Carried",        "rs_grenade_max",     1, 30, 1, 0
+
+	StaticText " "
+	StaticText "Explosion", "Gold"
+	Slider  "Shrapnel Particles",      "rs_grenade_shrapnel", 0, 150, 1, 0
+	StaticText "  73 is the original count. Lower it if the blast costs", "DarkGray"
+	StaticText "  you frames -- it is the densest part of the effect.", "DarkGray"
+}
+
+OptionValue "RS_GrenadeHandVals"
+{
+	0, "Offhand"
+	1, "Mainhand"
+}
+
+// =====================================================================
+// RS_HookOptions -- the grappling hook.
+//
+// Always available; there is no pickup and nothing grants it, so this
+// page is the only place its behaviour is explained.
+// =====================================================================
+OptionMenu "RS_HookOptions"
+{
+	Title "Grappling Hook"
+	StaticText " "
+
+	StaticText "Key", "Gold"
+	Control "Fire grappling hook",     "+user1"
+	StaticText "  Hit a wall and YOU are pulled to it. Hit a monster and", "DarkGray"
+	StaticText "  IT is pulled to you. Your weapon is never put away.", "DarkGray"
+
+	StaticText " "
+	StaticText "Deployment", "Gold"
+	Option  "Enable Hook",             "rs_hook_enable",     "OnOff"
+	Option  "Fires From Hand",         "rs_hook_hand",       "RS_HookHandVals"
+	Slider  "Hand Offset",             "rs_hook_hand_offset", 0, 24, 1, 0
+	Slider  "Cooldown (tics)",         "rs_hook_cooldown",   1, 105, 1, 0
+
+	StaticText " "
+	StaticText "Pull Strength", "Gold"
+	StaticText "  LOWER IS STRONGER -- these divide the distance.", "DarkGray"
+	Slider  "Horizontal Divisor",      "rs_hook_pull_divisor",  2, 40, 1, 0
+	Slider  "Vertical Divisor",        "rs_hook_pull_zdivisor", 1, 20, 1, 0
+	StaticText "  Vertical is separate on purpose: one divisor that feels", "DarkGray"
+	StaticText "  right flat will launch you clean over any ledge.", "DarkGray"
+
+	StaticText " "
+	StaticText "Bit Sweep", "Gold"
+	StaticText "  EVERY shot drags loose bits toward you -- on a hit, on a", "DarkGray"
+	StaticText "  miss, cursed or not. It is how the hook always works.", "DarkGray"
+	Slider  "Sweep Radius",            "rs_hook_bit_radius", 0, 1536, 64, 0
+	Slider  "Sweep Force",             "rs_hook_bit_force",  0, 40, 1, 0
+	StaticText "  Set the radius to 0 to switch the sweep off entirely.", "DarkGray"
+}
+
+OptionValue "RS_HookHandVals"
+{
+	0, "Mainhand"
+	1, "Offhand"
+}
+
+// =====================================================================
+// RS_CurseOptions -- the curse system.
+//
+// Lives under the Score branch at the owner's direction ("build options
+// into our menus somewhere, in the score system").
+//
+// TWO POOLS, and the page is laid out to make the split legible because
+// it is the design's whole point:
+//   WEAPON curses (five stat-locks) come from Promotion and Cursed-tier
+//   finds, live on the gun, and gate its climb.
+//   PLAYER curses (eight flaws, per hand) come from DEATH, live on you,
+//   and follow you across every weapon.
+// =====================================================================
+OptionMenu "RS_CurseOptions"
+{
+	Title "Curses"
+	StaticText " "
+
+	Option "Enable Curses",            "rs_curse_enable",  "OnOff"
+	StaticText "  Off: nothing new is ever cursed. Curses you already", "DarkGray"
+	StaticText "  carry are NOT stripped -- they just stop being added to.", "DarkGray"
+
+	StaticText " "
+	Command "Spend Curse Bits (lift a curse)", "netevent rs_curse_list"
+	StaticText "  Lists what you carry, what each costs, and how close", "DarkGray"
+	StaticText "  you are to Divine. Printed to the console.", "DarkGray"
+
+	StaticText " "
+	StaticText "Divine", "Gold"
+	Slider "Cures Needed For Divine",  "rs_curse_divine_threshold", 1, 40, 1, 0
+	StaticText "  Counts BOTH pools. On reaching it, no curse of any kind", "DarkGray"
+	StaticText "  ever takes hold again.", "DarkGray"
+	Option "Announce Divine",          "rs_curse_divine_announce", "OnOff"
+
+	StaticText " "
+	StaticText "Weapon Curses -- from Promotion", "Gold"
+	Slider "Curse Chance On Roll (%)", "rs_curse_chance", 0, 100, 1, 0
+	Option "Blocks Higher Imprints",   "rs_curse_blocks_imprint", "OnOff"
+	StaticText "  On: a cursed weapon refuses an elite card ABOVE its own", "DarkGray"
+	StaticText "  tier. Lower cards still apply, so it can still promote.", "DarkGray"
+	Option "Lifting Raises Tier",      "rs_curse_lift_tiers_up", "OnOff"
+	Option "Lifting Raises Ceiling",   "rs_curse_lift_raises_ceiling", "OnOff"
+	StaticText "  Leave this ON. Without it, clearing a deep stack pushes", "DarkGray"
+	StaticText "  damage past its ceiling and level-up cards stop being", "DarkGray"
+	StaticText "  offered -- you would pay to disable your own upgrades.", "DarkGray"
+
+	StaticText " "
+	StaticText "Weapon Curses -- lift reward (% of base)", "Gold"
+	Slider "1st Lift On A Stat",       "rs_curse_lift_bonus1", 0, 200, 5, 0
+	Slider "2nd Lift On A Stat",       "rs_curse_lift_bonus2", 0, 200, 5, 0
+	Slider "3rd And Beyond",           "rs_curse_lift_bonus3", 0, 200, 5, 0
+	StaticText "  For scale: a damage card gives +2-4 flat, and ALL", "DarkGray"
+	StaticText "  levelling in one promotion cycle is capped at +80%.", "DarkGray"
+
+	StaticText " "
+	StaticText "Player Curses -- from Death", "Gold"
+	Slider "Chance On Last Life (%)",  "rs_curse_death_chance", 0, 100, 5, 0
+	Slider "Chance On Other Saves (%)","rs_curse_death_chance_early", 0, 100, 5, 0
+	StaticText "  Lands on whichever hand fired last.", "DarkGray"
+	Slider "Condition Lost Per Save",  "rs_curse_death_condition", 0, 50, 1, 0
+	StaticText "  Every save, both hands, last life or not. 10 Grey Bits", "DarkGray"
+	StaticText "  repair 1 point, so 10 here costs 100 bits to undo.", "DarkGray"
+	Slider "Lift Bonus (%)",           "rs_curse_playerlift_bonus", 0, 100, 5, 0
+
+	StaticText " "
+	Submenu "Which Flaws Can Happen",  "RS_CurseFlawOptions"
+	Submenu "Flaw Strength",           "RS_CurseStrengthOptions"
+	Submenu "Lift Prices",             "RS_CursePriceOptions"
+}
+
+OptionMenu "RS_CurseFlawOptions"
+{
+	Title "Which Flaws Can Happen"
+	StaticText " "
+	StaticText "Each can land on EITHER HAND, independently -- so", "DarkGray"
+	StaticText "mainhand-jam-prone and offhand-jam-prone are two", "DarkGray"
+	StaticText "separate curses with separate prices.", "DarkGray"
+	StaticText " "
+	Option "Bit-Repellent",  "rs_curse_flaw_bitrepel",  "OnOff"
+	StaticText "  Bits are pushed away from you. Fire the hook to reel", "DarkGray"
+	StaticText "  them back -- the hook always sweeps, cursed or not.", "DarkGray"
+	Option "Gold-Drain",     "rs_curse_flaw_golddrain", "OnOff"
+	StaticText "  Kills with that hand yield no Gold.", "DarkGray"
+	Option "Jam-Prone",      "rs_curse_flaw_jamprone",  "OnOff"
+	StaticText "  That hand backfires even in perfect repair.", "DarkGray"
+	Option "Loud",           "rs_curse_flaw_loud",      "OnOff"
+	StaticText "  Each shot leaves your ears ringing. It layers over the", "DarkGray"
+	StaticText "  gunfire and builds if you keep firing. Music unaffected.", "DarkGray"
+	Option "Fragile",        "rs_curse_flaw_fragile",   "OnOff"
+	StaticText "  That hand's weapon wears out faster.", "DarkGray"
+	Option "Heavy",          "rs_curse_flaw_heavy",     "OnOff"
+	StaticText "  That hand's weapon slows you down. Both hands stacks.", "DarkGray"
+	Option "Blind",          "rs_curse_flaw_blind",     "OnOff"
+	StaticText "  MAINHAND hides monster health bars. OFFHAND hides bit", "DarkGray"
+	StaticText "  drops -- they are still there and still pick up.", "DarkGray"
+	Option "Hungry",         "rs_curse_flaw_hungry",    "OnOff"
+	StaticText "  That hand eats multiplied ammo per shot.", "DarkGray"
+}
+
+OptionMenu "RS_CurseStrengthOptions"
+{
+	Title "Flaw Strength"
+	StaticText " "
+	StaticText "Bit-Repellent", "Gold"
+	Slider "Push Radius",        "rs_curse_bitrepel_radius", 0, 512, 16, 0
+	Slider "Push Force",         "rs_curse_bitrepel_force",  0, 20, 1, 0
+	StaticText " "
+	StaticText "Jam-Prone", "Gold"
+	Slider "Added Backfire (%)", "rs_curse_jam_add",         0, 60, 1, 0
+	StaticText " "
+	StaticText "Loud", "Gold"
+	Slider "Ring Length (tics)", "rs_curse_loud_tics",       5, 210, 5, 0
+	Slider "Max Stack",          "rs_curse_loud_maxstack",   1, 10, 1, 0
+	Slider "Ring Volume (%)",    "rs_curse_loud_volume",     0, 100, 5, 0
+	StaticText "  A shot rings for the full length. Firing again before", "DarkGray"
+	StaticText "  it fades adds half again, up to Max Stack.", "DarkGray"
+	StaticText " "
+	StaticText "Fragile", "Gold"
+	Slider "Wear Multiplier (%)","rs_curse_fragile_mult",    100, 500, 25, 0
+	StaticText " "
+	StaticText "Heavy", "Gold"
+	Slider "Slow Per Hand (%)",  "rs_curse_heavy_slow",      0, 45, 5, 0
+	StaticText " "
+	StaticText "Hungry", "Gold"
+	Slider "Ammo Multiplier (%)","rs_curse_hungry_mult",     100, 500, 25, 0
+}
+
+OptionMenu "RS_CursePriceOptions"
+{
+	Title "Lift Prices"
+	StaticText " "
+	StaticText "Curse Bits to lift one curse. Priced by how much each", "DarkGray"
+	StaticText "actually hurts, not alphabetically.", "DarkGray"
+	StaticText " "
+	Slider "Curse Bit Drop Chance (%)", "rs_bits_curse_chance", 0, 100, 1, 0
+	StaticText " "
+	StaticText "Weapon Curses", "Gold"
+	Slider "Damage",       "rs_curse_cost_damage",     1, 200, 5, 0
+	Slider "Crit Chance",  "rs_curse_cost_critchance", 1, 200, 5, 0
+	Slider "Accuracy",     "rs_curse_cost_accuracy",   1, 200, 5, 0
+	Slider "Velocity",     "rs_curse_cost_velocity",   1, 200, 5, 0
+	Slider "Capacity",     "rs_curse_cost_capacity",   1, 200, 5, 0
+	StaticText " "
+	StaticText "Player Curses", "Gold"
+	Slider "Jam-Prone",    "rs_curse_cost_jamprone",   1, 200, 5, 0
+	Slider "Hungry",       "rs_curse_cost_hungry",     1, 200, 5, 0
+	Slider "Blind",        "rs_curse_cost_blind",      1, 200, 5, 0
+	Slider "Fragile",      "rs_curse_cost_fragile",    1, 200, 5, 0
+	Slider "Loud",         "rs_curse_cost_loud",       1, 200, 5, 0
+	Slider "Gold-Drain",   "rs_curse_cost_golddrain",  1, 200, 5, 0
+	Slider "Bit-Repellent","rs_curse_cost_bitrepel",   1, 200, 5, 0
+	Slider "Heavy",        "rs_curse_cost_heavy",      1, 200, 5, 0
+}
+
+OptionValue "RS_GrenadeMeterVals"
+{
+	0, "Off"
+	1, "Original"
+	2, "Bar"
+}
+
+// =====================================================================
+// RS_BillboardOptions -- the engine's billboard renderer.
+//
+// THESE CVARS ARE DECLARED IN C++, NOT IN CVARINFO.txt. MENUDEF reaches
+// them by name and they are live the moment the engine is running. Do
+// NOT add them to CVARINFO -- a second declaration collides with the
+// engine's own and is the "cvar already exists" failure this project
+// has already eaten once.
+//
+// Owner's call, relayed from the engine lane 2026-08-07: the billboard
+// options page lives in RS_Main, not in the glow mod.
+// =====================================================================
+OptionMenu "RS_BillboardOptions"
+{
+	Title "In-World Display"
+	StaticText " "
+
+	StaticText "Comfort -- set these while looking at a card", "Gold"
+	Slider "Billboard Scale",        "bb_scale",      0.25, 3.0, 0.05, 2
+	StaticText "  Size of every in-world panel. Comfortable reading size", "DarkGray"
+	StaticText "  is a headset-by-headset thing -- there is no right value.", "DarkGray"
+	Slider "Tilt Bias (degrees)",    "bb_tiltbias",   -45, 45, 1, 0
+	StaticText "  Added to every panel's lean. Nudge until a card looks", "DarkGray"
+	StaticText "  upright to YOU rather than upright on paper.", "DarkGray"
+
+	StaticText " "
+	StaticText "Performance", "Gold"
+	Slider "Max Panels Drawn",       "rs_bb_maxpanels",  0, 64, 1, 0
+	StaticText "  0 = unlimited. Over budget the FARTHEST panels drop", "DarkGray"
+	StaticText "  first; a panel locked to your view is never dropped.", "DarkGray"
+	Slider "Cull Distance",          "rs_bb_cullradius", 0, 4096, 64, 0
+	StaticText "  0 = no limit. Panels beyond this are skipped entirely.", "DarkGray"
+
+	StaticText " "
+	StaticText "Repair", "Gold"
+	Option "Flip Panel Facing",      "bb_flipu",      "OnOff"
+	StaticText "  NOT a preference. Only touch this if card text renders", "DarkGray"
+	StaticText "  BACKWARDS -- it settles a handedness question in the", "DarkGray"
+	StaticText "  renderer, and the fault is invisible until text appears.", "DarkGray"
 }

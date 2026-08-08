@@ -1,116 +1,98 @@
 // =====================================================================
 // RS_BBWeaponCard -- one weapon card, composed, costing no textures.
 // ---------------------------------------------------------------------
-// This is zscript/CardTemplate.txt built for real. The owner's drawing
-// is three of these side by side: offhand on the left, the new drop in
-// the centre, mainhand on the right, and the take action on the wings.
+// zscript/CardTemplate.txt built for real. The owner's drawing is three
+// of these side by side: offhand on the left, the drop in the centre,
+// mainhand on the right, and the take action on the wings.
 //
-// WHY THIS EXISTS RATHER THAN A CANVAS. A painted card needs a
-// canvastexture declared by hand in ANIMDEFS, and two billboards
-// pointing at the same canvas show the SAME picture -- so every
-// simultaneously-visible card costs one texture. RS has eleven and the
-// triptych spends nine. That is not a budget, it is a ceiling: a second
-// elite dropping while the first card is up had nowhere to draw.
+// WHY, RATHER THAN A CANVAS. A painted card needs a canvastexture
+// declared by hand in ANIMDEFS, and two billboards pointing at one
+// canvas show the SAME picture -- so every simultaneously-visible card
+// costs one texture. RS has eleven and the triptych spends nine. That
+// was not a budget, it was a ceiling: a second elite dropping while the
+// first card was up had nowhere to draw.
 //
-// Composed of payloads it costs none, so the answer to "how many cards
-// can be up at once" stops being a number.
-//
-// LAYOUT IS IN PANEL UNITS, not map units. Everything is a fraction of
-// the card's own width and height, so one card scales whole and a
-// wing does not need its own set of magic numbers.
+// Layout is in MAP UNITS relative to the panel's centre, matching what
+// RS_BBComposedPanel stores, and derived from the panel's own width and
+// height so one card scales whole.
 // =====================================================================
 
 class RS_BBWeaponCard
 {
-	// Rows, top to bottom, matching CardTemplate.txt's order. Kept as a
-	// count rather than a list because the stat block is fixed: the card
-	// is a comparison, and a comparison whose rows move between the
-	// things being compared is not one.
-	const ROWS = 8;
-
 	// -----------------------------------------------------------------
-	// Build one card into `grp`.
+	// Lay a card out into `p`. The panel is placed afterwards by
+	// RS_BBComposedPanel.Place, so nothing here knows or cares where in
+	// the world it ends up.
 	//
-	// `at` is the card's centre. `row` is the hit-test row index the
-	// whole card answers to, so pointing anywhere on it -- plate, name,
-	// any number -- resolves to the same choice. Pass -1 for a card that
-	// is display only, which is what the centre panel of a comparison is.
+	// heading: "MAINHAND", "OFFHAND", "DROP" -- which column this is.
 	// -----------------------------------------------------------------
-	static void Build(RS_BillboardGroup grp, Vector3 at, double w, double h,
-		double yaw, double tilt, Weapon wep, string heading, int row = -1,
-		int facing = LevelLocals.BBF_FIXED, int flags = 0)
+	static void Build(RS_BBComposedPanel p, double w, double h,
+		Weapon wep, string heading)
 	{
-		if (!grp || !wep) return;
+		if (!p || w <= 0 || h <= 0) return;
 
-		let rsw = RS_Weapon(wep);
-		Color tier = rsw ? RS_BBWeaponCard.TierRGB(rsw.Tier) : Color(255, 200, 200, 200);
-
-		Vector3 upVec = (0, 0, 1);
+		let rsw = wep ? RS_Weapon(wep) : null;
+		Color tier = rsw ? TierRGB(rsw.Tier) : Color(255, 200, 200, 200);
 		double line = h * 0.055;
 
-		// --- the plate. Carries the row index: it is far and away the
-		// biggest target on the card, and pointing at a card should mean
-		// the card, not whichever glyph the ray happened to cross. ---
-		RS_BBCompose.Plate(grp, at, w, h, yaw, tilt,
-			Color(210, 18, 18, 22), row, facing, flags);
+		// The plate first, so everything else draws over it. Depth testing
+		// is off for billboards, so submission order is the only thing
+		// deciding what wins.
+		RS_BBCompose.Plate(p, 0, 0, w, h, Color(210, 18, 18, 22));
 
-		// --- heading: which hand, or that this is the drop ---
-		RS_BBCompose.Text(grp, at + upVec * (h * 0.43), heading, line * 0.9,
-			yaw, tilt, Color(255, 190, 190, 190), 0, row, facing, flags);
+		if (!wep)
+		{
+			RS_BBCompose.Text(p, 0, 0, heading .. " EMPTY", line * 1.1,
+				Color(255, 130, 130, 130), 0);
+			return;
+		}
 
-		// --- name, in tier colour. The one place rarity appears as
-		// decoration is nowhere; it appears here as data. (rs_10 L4) ---
-		RS_BBCompose.Text(grp, at + upVec * (h * 0.35), wep.GetTag(), line * 1.15,
-			yaw, tilt, tier, 0, row, facing, flags);
+		RS_BBCompose.Text(p, 0, h * 0.43, heading, line * 0.9,
+			Color(255, 190, 190, 190), 0);
 
-		// --- the weapon's own icon ---
+		// Rarity appears as data, never as decoration (rs_10 L4). The name
+		// is where it appears.
+		RS_BBCompose.Text(p, 0, h * 0.35, wep.GetTag(), line * 1.15, tier, 0);
+
 		TextureID icon = wep.Icon;
 		if (icon.IsValid())
 		{
-			RS_BBCompose.Picture(grp, at + upVec * (h * 0.20), icon,
-				w * 0.55, h * 0.16, yaw, tilt, Color(255, 255, 255, 255),
-				row, facing, flags);
+			RS_BBCompose.Picture(p, 0, h * 0.20, icon, w * 0.55, h * 0.16,
+				Color(255, 255, 255, 255));
 		}
 
 		if (!rsw)
 		{
-			// Outside the roll system -- an import, a vanilla leftover.
-			// Say so rather than printing a column of zeroes that reads
+			// Outside the roll system -- an import, a vanilla leftover. Say
+			// so rather than printing a column of zeroes, which would read
 			// as the worst weapon ever generated.
-			RS_BBCompose.Text(grp, at, "NOT ROLLED", line,
-				yaw, tilt, Color(255, 140, 140, 140), 0, row, facing, flags);
+			RS_BBCompose.Text(p, 0, 0, "NOT ROLLED", line,
+				Color(255, 140, 140, 140), 0);
 			return;
 		}
 
-		// --- the stat block ---
-		double y = h * 0.06;
 		Color labelCol = Color(255, 170, 160, 140);
 		Color valueCol = Color(255, 255, 255, 255);
+		double y = h * 0.06;
+		double step = line * 1.5;
 
-		y -= RS_BBCompose.StatRow(grp, at + upVec * y, w, "DAMAGE",
-			rsw.DamagePerShot, line, yaw, tilt, labelCol, valueCol, row);
-		y -= RS_BBCompose.StatRow(grp, at + upVec * y, w, "ACCURACY",
-			int(rsw.Accuracy), line, yaw, tilt, labelCol, valueCol, row);
-		y -= RS_BBCompose.StatRow(grp, at + upVec * y, w, "CRIT",
-			int(rsw.CritChance * 100), line, yaw, tilt, labelCol, valueCol, row);
-		y -= RS_BBCompose.StatRow(grp, at + upVec * y, w, "CAPACITY",
-			rsw.Capacity, line, yaw, tilt, labelCol, valueCol, row);
-		y -= RS_BBCompose.StatRow(grp, at + upVec * y, w, "PELLETS",
-			rsw.PelletCount, line, yaw, tilt, labelCol, valueCol, row);
-		y -= RS_BBCompose.StatRow(grp, at + upVec * y, w, "SOCKETS",
-			rsw.GunBonaiSockets, line, yaw, tilt, labelCol, valueCol, row);
+		RS_BBCompose.StatRow(p, y, w, "DAMAGE",   rsw.DamagePerShot,      line, labelCol, valueCol); y -= step;
+		RS_BBCompose.StatRow(p, y, w, "ACCURACY", int(rsw.Accuracy),      line, labelCol, valueCol); y -= step;
+		RS_BBCompose.StatRow(p, y, w, "CRIT",     int(rsw.CritChance*100), line, labelCol, valueCol); y -= step;
+		RS_BBCompose.StatRow(p, y, w, "CAPACITY", rsw.Capacity,           line, labelCol, valueCol); y -= step;
+		RS_BBCompose.StatRow(p, y, w, "PELLETS",  rsw.PelletCount,        line, labelCol, valueCol); y -= step;
+		RS_BBCompose.StatRow(p, y, w, "SOCKETS",  rsw.GunBonaiSockets,    line, labelCol, valueCol); y -= step;
 
-		// --- condition as a meter, not a number. It is the one stat
-		// answering "is this about to fail", and a bar answers that at a
-		// glance where a number has to be read. ---
-		RS_BBCompose.Text(grp, at + upVec * y - (sin(yaw), -cos(yaw), 0) * (w * 0.44),
-			"CONDITION", line, yaw, tilt, labelCol, -1, row, facing, flags);
+		// Condition is a meter where every other stat is a number. It is
+		// the one answering "is this about to fail", and a bar answers that
+		// at a glance where a number has to be read.
+		RS_BBCompose.Text(p, -(w * 0.44), y, "CONDITION", line, labelCol, -1);
 		y -= line * 1.4;
-		RS_BBCompose.Bar(grp, at + upVec * y, int(rsw.Condition), w * 0.80, line * 0.8,
-			yaw, tilt, ConditionRGB(rsw.Condition), row, facing, flags);
+		RS_BBCompose.Bar(p, 0, y, int(rsw.Condition), w * 0.80, line * 0.8,
+			ConditionRGB(rsw.Condition));
 	}
 
-	// RS_UIStyle's ramp, as real colours rather than font ranges, since a
+	// RS_UIStyle's ramp as real colours rather than font ranges, since a
 	// billboard is tinted rather than translated.
 	static Color TierRGB(int t)
 	{
