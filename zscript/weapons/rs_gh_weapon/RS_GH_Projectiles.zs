@@ -79,10 +79,24 @@ class RS_GH_GrenadeLaunched : Actor
 		JGRN ABCDEFGH 2;
 		Loop;
 
+	// THE EXPLOSION HAD NO VISUAL. Fixed 2026-08-07.
+	//
+	// Every frame in this state was TNT1 (the invisible sprite), so a
+	// grenade landed, dealt its damage, made a noise, and produced
+	// nothing to look at. RS_FireProfileHeavy only applies a profile's
+	// ExplosionVisual to the three RS_Enhanced* classes, so this one was
+	// never going to get one from the dispatch either.
+	//
+	// RS_ExplosionFireball is the same visual the rest of the arsenal's
+	// ordnance uses, spawned here rather than added to the dispatch's
+	// hardcoded is-chain -- which is exactly the chain that has now
+	// missed two whole weapon sets.
 	Death:
 		TNT1 A 0 A_NoBlocking;
 		TNT1 A 0 A_AlertMonsters;
 		TNT1 A 0 A_ChangeFlag("NOGRAVITY", true);
+		TNT1 A 0 A_SpawnItemEx("RS_ExplosionFireball", 0, 0, 0, 0, 0, 0, 0,
+			SXF_NOCHECKPOSITION);
 		// Two-stage blast, same shape as the source: a tighter hard hit
 		// inside a wider concussion.
 		TNT1 A 1 Bright A_Explode(Splash1(), BASE_RADIUS1, 1);

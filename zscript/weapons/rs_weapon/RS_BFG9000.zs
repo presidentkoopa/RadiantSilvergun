@@ -53,7 +53,7 @@ class VR_BFG9000 : RS_Weapon
 		GunBonaiSockets   = RS_Roll.SocketsForTier(t);
 
 		if (!bStatsRolled)
-			Condition = RS_Roll.RollDouble(1, 100);
+			Condition = RS_Roll.RollDouble(RS_Roll.STARTING_CONDITION_MIN, 100);
 
 		bStatsRolled = true;
 	}
@@ -101,10 +101,30 @@ class VR_BFG9000 : RS_Weapon
 		TNT1 A 0 A_JumpIf(CountInv("Cell") >= 40, "Shoot");
 		Goto OutOfAmmo;
 
+	// THE DRY-FIRE RACE, closed 2026-08-07.
+	//
+	// The gate above checks Cell >= 40, then this state winds up for 30
+	// tics before A_RS_FireSlot actually spends anything. On a dual-wield
+	// mod the OTHER hand draws from the same Cell pool -- an offhand
+	// plasma rifle can empty it below 40 during that windup. FireSlot
+	// then refuses, and the player gets the full charge sound, the full
+	// flash, the full animation, and no ball.
+	//
+	// Re-checking on the last frame before the shot costs one jump and
+	// turns a silent dud into an honest out-of-ammo. The rotation is
+	// untouched either way: FireSlot never advances the cursor on a shot
+	// it refuses.
 	Shoot:
 		BFGG A 20 A_PlaySound("bfgf", CHAN_WEAPON);
 		BFGG B 10 A_GunFlash();
+		TNT1 A 0 A_JumpIf(CountInv("Cell") < 40, "Fizzle");
 		TNT1 A 0 A_RS_FireSlot(0);
+		BFGG A 1 A_WeaponReady(WRF_ALLOWRELOAD);
+		Goto Ready;
+
+	// The other hand drained the pool mid-windup.
+	Fizzle:
+		TNT1 A 0 A_StartSound("rs_fx_weapon_empty", CHAN_WEAPON);
 		BFGG A 1 A_WeaponReady(WRF_ALLOWRELOAD);
 		Goto Ready;
 

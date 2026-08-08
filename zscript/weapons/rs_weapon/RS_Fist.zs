@@ -129,7 +129,7 @@ class VR_Fist : RS_Weapon
 		}
 
 		if (!bStatsRolled)
-			Condition = RS_Roll.RollDouble(1, 100);
+			Condition = RS_Roll.RollDouble(RS_Roll.STARTING_CONDITION_MIN, 100);
 
 		bStatsRolled = true;
 	}

@@ -253,9 +253,25 @@ class RS_EliteE01 : RS_EliteColorController
 				remains.translation = elite.translation;
 				remains.CopyBloodColor(elite);
 			}
-			// Park the live body in a far map corner while the remains
-			// stand in for it.
-			elite.SetOrigin((16384, 16384, 0), false);
+			// THE BODY STAYS WHERE IT FELL. Changed 2026-08-07.
+			//
+			// This used to teleport the live body to the fixed map
+			// coordinate (16384, 16384, 0) -- "a far map corner". It is
+			// only a far corner on a normal-sized map: on a very large or
+			// portal-heavy one that point is inside playable space, and
+			// the player would walk into an invisible, unshootable body
+			// with a health bar floating over it.
+			//
+			// The body does not need to move. It is already non-solid,
+			// unshootable, untargetable and invisible -- the ONE thing
+			// still giving it away was the health bar, because
+			// RS_HealthBars.RS_WantsBar skips bNoInteraction and nothing
+			// here set it. Setting that flag hides the bar AND makes the
+			// teleport pointless in the same stroke.
+			//
+			// Cleared again on both un-hide paths below, or the body
+			// would come back unable to collide with anything.
+			elite.bNOINTERACTION = true;
 		}
 
 		if (hidden && remains && remains.health < 1)
@@ -263,6 +279,7 @@ class RS_EliteE01 : RS_EliteColorController
 			// The remains were destroyed in time: the elite dies for real.
 			elite.SetOrigin(remains.pos, false);
 			hidden = false;
+			elite.bNOINTERACTION = false;
 			elite.bSOLID = true;
 			elite.bSHOOTABLE = true;
 			elite.bBUDDHA = false;
@@ -278,6 +295,7 @@ class RS_EliteE01 : RS_EliteColorController
 			{
 				// Timer ran out: it comes back.
 				hidden = false;
+				elite.bNOINTERACTION = false;
 				elite.A_XScream();
 				elite.SetStateLabel("Spawn");
 				elite.SetOrigin(remains.pos, false);
@@ -607,9 +625,21 @@ class RS_EliteE08 : RS_EliteColorController
 		tiers = int(tiers * (elite.bBOSS ? 1.5 : 1));
 	}
 
+	// THE BOOST MADE IT WEAKER. Fixed 2026-08-07, owner ruling.
+	//
+	// Base is int((radius * 0.33) * 2) = 0.66 x radius. This set
+	// 0.50 x radius -- strictly fewer, at every radius. On a radius-20
+	// monster that is 13 fireballs unboosted and 10 boosted, so
+	// rs_elite_booster (which is ON by default) made the Blue elite
+	// LESS dangerous, while the comment above promised "more
+	// projectiles". Nobody would ever notice from play; it just made
+	// the boost setting quietly pointless.
+	//
+	// 1.0 x radius is a real increase over the 0.66 base and keeps the
+	// same "scales with the monster's size" shape the type is built on.
 	override void BoostEffect()
 	{
-		projectiles = int(elite.radius * 0.50);
+		projectiles = int(elite.radius * 1.00);
 	}
 
 	override void TickEffect()
@@ -844,8 +874,27 @@ class RS_EliteE11 : RS_EliteColorController
 				!(dtok && dtok.colorId == RSET_E11) &&
 				!mo.CountInv("RS_EliteNullToken"))
 			{
+				// A PERCENTAGE OF WHAT IT HAS, NOT OF WHAT IT HAD.
+				// Owner ruling 2026-08-07: "make it a % of a %, not a
+				// flat deduction, so it can't kill itself but it can run
+				// out of summons and get easily killed."
+				//
+				// This was `startHealth * 0.2` -- a FLAT cost off its
+				// ORIGINAL health, charged once per corpse inside a
+				// single iterator pass. The "last fifth" floor at the top
+				// of TickEffect is only checked BEFORE the pass, so five
+				// raisable corpses in range drained it 100% of its
+				// starting health in one tick and killed it outright.
+				//
+				// Taking a fifth of CURRENT health instead is
+				// geometric: 20% off what remains, every time. It
+				// approaches zero and never reaches it, so the necromancer
+				// can always raise one more -- it just gets weaker and
+				// weaker doing it, which is exactly the trade the type is
+				// supposed to be making. It ends up trivially killable
+				// rather than dead by its own hand.
 				if (mo.RaiseActor(mo))
-					elite.A_DamageSelf(int(startHealth * 0.2));
+					elite.A_DamageSelf(max(1, int(elite.health * 0.2)));
 			}
 		}
 	}
@@ -872,9 +921,26 @@ class RS_EliteE11 : RS_EliteColorController
 // ---------------------------------------------------------------------
 class RS_EliteE12 : RS_EliteColorController
 {
+	// THE GLASS CANNON WAS A 4x CANNON. Fixed 2026-08-07, owner ruling.
+	//
+	// `DamageMultiply *= 2.0` looks like "this elite deals double", and
+	// it does not -- it doubles a number the REVEAL has already doubled.
+	// RS_EliteToken.Reveal sets DamageMultiply to rs_elite_damagemult
+	// (2.0 by default, 1.5 for bosses) on every elite of every type, so
+	// C12 was landing 4x player-facing damage, not 2x. On a Cyberdemon
+	// elite that is a one-hit kill through armour.
+	//
+	// SET, don't MULTIPLY. C12 now declares what it wants the total to
+	// be -- 2x, the number its own description promises -- so it reads
+	// the same whatever the reveal multiplier is tuned to, and a future
+	// change to rs_elite_damagemult cannot silently double it again.
+	//
+	// The incoming half (DamageFactor) is left multiplying: taking 2x
+	// ON TOP of whatever else is in play is the trade that makes it a
+	// glass cannon, and nothing else was already inflating it.
 	override void InitEffect()
 	{
-		elite.DamageMultiply *= 2.0;
+		elite.DamageMultiply = 2.0;
 		elite.DamageFactor *= 2.0;
 	}
 

@@ -74,7 +74,7 @@ class RS_AffixFireWisp : RS_BallisticFired
 		RSI1 ABCDEFGHIJKLM 2 Bright;
 		Loop;
 	Death:
-		TNT1 A 0 A_PlaySound("rs_fx_impact_bullet", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("rs_fx_impact_bullet", CHAN_AUTO);
 		RSE5 A 3 Bright
 		{
 			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
@@ -115,7 +115,7 @@ class RS_AffixFireEmber : RS_BallisticFired
 		BAL2 AB 4 Bright;
 		Loop;
 	Death:
-		TNT1 A 0 A_PlaySound("rs_fx_impact_bullet", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("rs_fx_impact_bullet", CHAN_AUTO);
 		RSE4 A 2 Bright
 		{
 			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
@@ -183,7 +183,7 @@ class RS_AffixBoneTracer : RS_BallisticFired
 		FATB AB 2 Bright;
 		Loop;
 	Death:
-		TNT1 A 0 A_PlaySound("skeleton/tracex", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("skeleton/tracex", CHAN_AUTO);
 		BFE2 A 4 Bright
 		{
 			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
@@ -218,7 +218,7 @@ class RS_AffixIceShard : RS_BallisticFired
 		ICEY AB 3 Bright;
 		Loop;
 	Death:
-		TNT1 A 0 A_PlaySound("rs_fx_ice_hit", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("rs_fx_ice_hit", CHAN_AUTO);
 		ICEY F 3 Bright
 		{
 			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
@@ -262,7 +262,7 @@ class RS_AffixIceOrb : RS_AffixPartActor
 		ICEY AB 3 Bright;
 		Loop;
 	Death:
-		TNT1 A 0 A_PlaySound("rs_fx_ice_shatter", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("rs_fx_ice_shatter", CHAN_AUTO);
 		ICEY F 3 Bright A_Explode(20, 96, 0, false);
 		ICEY GHI 3 Bright;
 		Stop;
@@ -292,7 +292,7 @@ class RS_AffixCacoBall : RS_BallisticFired
 		BAL2 AB 4 Bright;
 		Loop;
 	Death:
-		TNT1 A 0 A_PlaySound("caco/shotx", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("caco/shotx", CHAN_AUTO);
 		BAL2 C 4 Bright
 		{
 			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
@@ -334,7 +334,7 @@ class RS_AffixPainOrbMaster : RS_AffixIceOrb
 	States
 	{
 	Death:
-		TNT1 A 0 A_PlaySound("rs_fx_ice_shatter", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("rs_fx_ice_shatter", CHAN_AUTO);
 		ICEY F 3 Bright
 		{
 			A_Explode(24, 112, 0, false);
@@ -389,7 +389,7 @@ class RS_AffixArachPlasma : RS_BallisticFired
 		APLS AB 3 Bright;
 		Loop;
 	Death:
-		TNT1 A 0 A_PlaySound("baby/shotx", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("baby/shotx", CHAN_AUTO);
 		APBX A 3 Bright
 		{
 			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
@@ -424,6 +424,18 @@ class RS_AffixSwarmMote : Actor
 		+THRUSPECIES
 		+SEEKERMISSILE
 		Species "Player";
+	}
+
+	// "FIXED AND SMALL ON PURPOSE" IS ONLY TRUE WITH THIS OVERRIDE.
+	// Added 2026-08-07. Damage 4 on a missile is 4 x random(1,8) at
+	// impact (engine p_map.cpp:1430), i.e. 4 to 32 per mote -- and a
+	// swarm is many motes. The comment above described an intent the
+	// code did not implement. RS_AffixPartActor at the top of this file
+	// already carries the correct contract; these two plain-Actor parts
+	// never inherited it.
+	override int DoSpecialDamage(Actor target, int damage, Name damagetype)
+	{
+		return 4;
 	}
 
 	bool Hunts;
@@ -494,7 +506,7 @@ class RS_AffixSwarmCarrier : RS_BallisticFired
 		LFX1 ABCD 3 Bright;
 		Loop;
 	Death:
-		TNT1 A 0 A_PlaySound("rs_fx_impact_bullet", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("rs_fx_impact_bullet", CHAN_AUTO);
 		LFX1 D 3 Bright
 		{
 			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();
@@ -528,6 +540,16 @@ class RS_AffixNovaBead : Actor
 		+THRUSPECIES
 		+SEEKERMISSILE
 		Species "Player";
+	}
+
+	// Exact damage -- see RS_AffixSwarmMote above for the mechanism.
+	// Without this, Damage 5 became 5 to 40 per bead, and the header
+	// says the nova throws up to SIXTEEN of them: a worst-case 640 from
+	// beads the design describes as "fixed small damage, not the round's
+	// roll". That is the difference between an accent and a nuke.
+	override int DoSpecialDamage(Actor target, int damage, Name damagetype)
+	{
+		return 5;
 	}
 
 	bool Hunts;
@@ -570,7 +592,7 @@ class RS_AffixNovaShell : RS_BallisticFired
 		BFS1 AB 3 Bright;
 		Loop;
 	Death:
-		TNT1 A 0 A_PlaySound("weapons/bfgx", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("weapons/bfgx", CHAN_AUTO);
 		BFE1 A 4 Bright
 		{
 			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();

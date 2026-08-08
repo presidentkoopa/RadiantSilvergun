@@ -17,12 +17,31 @@ class RS_BlueFlarePlasma : RS_FlareGeneral
 		Alpha 0.5;
 		Scale 0.1;
 	}
+	// ENGINE-FREEZING LOOP, fixed 2026-08-07 before it could ship.
+	//
+	// This read:
+	//     Spawn1:
+	//       TNT1 A 0 A_JumpIfMasterCloser(1, "Spawn1");
+	// A 0-tic frame whose action jumps to ITSELF. The moment one of
+	// these spawned with a master closer than the threshold, the state
+	// machine would spin inside a single tic and never advance -- a hard
+	// hang, no error, no log line, exactly like the class-gating fill
+	// loop found in the same audit.
+	//
+	// The offset of 1 was meant to be "skip the next frame", but the
+	// jump target is a LABEL, and the label points at the jumping frame.
+	// Now it skips forward to the visible frame instead, which is what
+	// the code was reaching for.
+	//
+	// Latent rather than live -- nothing currently spawns this class --
+	// but it is a catalog entry one profile edit from being fired.
 	States
 	{
 	Spawn:
 		TNT1 A 0 A_Warp(AAPTR_MASTER);
 	Spawn1:
-		TNT1 A 0 A_JumpIfMasterCloser(1, "Spawn1");
+		TNT1 A 0 A_JumpIfMasterCloser(1, "Visible");
+	Visible:
 		RSF0 A 1 Bright A_FadeOut(0.1);
 		Wait;
 	}

@@ -50,6 +50,36 @@ class RS_Weapon : Weapon abstract
 
 	bool LockedDamage, LockedAccuracy, LockedVelocity, LockedCritChance, LockedCapacity;
 
+	// -----------------------------------------------------------------
+	// CURSE BOOKKEEPING. Added 2026-08-07 with the curse rework.
+	//
+	// PRE-CURSE VALUES. A curse HALVES a stat; lifting it must restore
+	// the stat to what it was BEFORE, not multiply the halved number.
+	//
+	// This is the bug the rework exists to fix and it is worth stating
+	// plainly, because the old code looked correct: a curse did x0.5 and
+	// a lift did x1.5, so 100 -> 50 -> 75. You paid Curse Bits to end up
+	// 25% BELOW where you started. The "reward" was a punishment, and
+	// with stacking curses it got worse -- 100 -> 50 -> 25, one lift,
+	// x1.5, 37. The un-halving IS the reward; the bonus rides on top of
+	// a real restore.
+	//
+	// Damage already had this in PromotionDamageBaseline (captured before
+	// the curse roll, deliberately -- see AttachToOwner). The other four
+	// had no equivalent, which is why they are here.
+	//
+	// 0 means "never cursed, nothing to restore".
+	double PreCurseAccuracy, PreCurseVelocity, PreCurseCritChance;
+	int    PreCurseDamage, PreCurseCapacity;
+
+	// How many curses are stacked on each stat. Owner ruling 2026-08-07:
+	// "double curses on a stat or more is fine with me if penalties and
+	// rewards are legit." Each stack halves again; each LIFT restores and
+	// pays an escalating bonus, so a triple-cursed stat cleared out is
+	// worth more than an entire promotion cycle of level-up cards.
+	int CurseStackDamage, CurseStackAccuracy, CurseStackVelocity;
+	int CurseStackCritChance, CurseStackCapacity;
+
 	bool bStatsRolled;
 
 	Class<RS_BallisticFired> ProjectileClass; // swappable at runtime by future upgrade systems
@@ -262,7 +292,14 @@ class RS_Weapon : Weapon abstract
 		// refires the instant its cadence reopens -- a beep every cycle
 		// would be 35/sec noise on the GH Minigun. The tell exists for a
 		// WAITING trigger finger, so a held trigger silences it.
-		if (owner.player.cmd.buttons & BT_ATTACK) return;
+		//
+		// PER-HAND, same reason as A_RS_ClearTriggerGate above: this read
+		// BT_ATTACK for both hands until 2026-08-07, so an offhand
+		// full-auto beeped every cycle while its own trigger was held
+		// (the exact noise this guard exists to stop), and a held MAIN
+		// trigger wrongly silenced the offhand's legitimate beep.
+		int trigger = bOffhandWeapon ? BT_OFFHANDATTACK : BT_ATTACK;
+		if (owner.player.cmd.buttons & trigger) return;
 		if (!CVar.GetCVar("rs_allclear_enable", owner.player).GetBool()) return;
 
 		double pitch = AllClearPitch();
@@ -307,7 +344,7 @@ class RS_Weapon : Weapon abstract
 	// hard limit or ROF stops meaning anything for these weapons.
 	action bool AutoCooldownReady()
 	{
-		return level.time >= invoker.NextFireTic;
+		return Level.maptime >= invoker.NextFireTic;
 	}
 
 	// How many tics the last shot came early by, relative to
@@ -317,7 +354,7 @@ class RS_Weapon : Weapon abstract
 	// hard block. Firing faster than intended costs Accuracy instead.
 	action int GetCadenceOvershoot()
 	{
-		int shortfall = invoker.NextFireTic - level.time;
+		int shortfall = invoker.NextFireTic - Level.maptime;
 		return max(0, shortfall);
 	}
 
@@ -327,7 +364,30 @@ class RS_Weapon : Weapon abstract
 	action void A_RS_MarkFired()
 	{
 		invoker.bWaitingForRelease = true;
-		invoker.NextFireTic = level.time + max(1, int(invoker.GetTimeBetweenShots() * 35));
+		// ONE CLOCK: Level.maptime, everywhere in the cadence system.
+		//
+		// This stamped from level.time while DoEffect compared against
+		// Level.maptime (and AutoCooldownReady / GetCadenceOvershoot read
+		// level.time too). They are identical on a single-map run, so it
+		// tested clean forever -- and diverge in a HUB, where level.time
+		// is the accumulated total and maptime restarts per map. After
+		// one hub transition the equality in DoEffect could never be
+		// satisfied again and the AllClear beep went permanently silent,
+		// with the full-auto cooldown gate reading a different clock than
+		// the thing that set it. Unified 2026-08-07.
+		// ROUND, DON'T TRUNCATE. Fixed 2026-08-07.
+		//
+		// This was int(...), which floors. Tics are integers, so any
+		// rate of fire that does not divide 35 evenly came out FASTER
+		// than the sheet claimed -- Plasma's ROF 9 is 3.89 tics, floored
+		// to 3, so it actually fired at 11.7/sec against a stated 9. The
+		// error is always in the same direction (never slower), so every
+		// non-dividing weapon in the arsenal has been quietly
+		// out-shooting its own displayed stat.
+		//
+		// Rounding costs nothing and is right to within half a tic.
+		invoker.NextFireTic = Level.maptime
+			+ max(1, int(round(invoker.GetTimeBetweenShots() * 35)));
 	}
 
 	// Called every tic while in Ready -- the moment the trigger is
@@ -393,9 +453,26 @@ class RS_Weapon : Weapon abstract
 			psp.Tics = max(1, int(round(psp.Tics / speed)));
 	}
 
+	// HAND-AWARE. The offhand fires on BT_OFFHANDATTACK, never BT_ATTACK
+	// (engine player.zs:463-479 -- the offhand path sets its own bit and
+	// does not touch BT_ATTACK). Testing BT_ATTACK for both hands, which
+	// this did until 2026-08-07, broke every offhand semi-auto in two
+	// opposite ways at once: holding the OFFHAND trigger left BT_ATTACK
+	// up, so the gate cleared every Ready tic and the gun went full-auto;
+	// holding the MAIN trigger held BT_ATTACK down, so the offhand gate
+	// never cleared and the gun fired once then locked until you let go
+	// of the other hand.
 	action void A_RS_ClearTriggerGate()
 	{
-		if (!(player.cmd.buttons & BT_ATTACK))
+		// Inlined deliberately -- do NOT factor this back out into an
+		// `action` helper. Inside an action function `self` is the PAWN
+		// and `invoker` is the weapon, so an unqualified call to a second
+		// action function leans on invoker-chaining that is subtle at
+		// best. This runs from every weapon's Ready state, every tic, on
+		// both hands; it is the last place in the mod that should be
+		// clever. One ternary, read straight off invoker.
+		int trigger = invoker.bOffhandWeapon ? BT_OFFHANDATTACK : BT_ATTACK;
+		if (!(player.cmd.buttons & trigger))
 			invoker.bWaitingForRelease = false;
 	}
 
@@ -584,11 +661,41 @@ class RS_Weapon : Weapon abstract
 		if (!pool && p.AmmoCost > 0)
 			pool = invoker.AmmoType2;
 
-		if (pool && p.AmmoCost > 0 && CountInv(pool) < p.AmmoCost)
+		// PLAYER CURSE: `hungry` -- this hand eats multiplied ammo.
+		// Resolved BEFORE the affordability check, so a hungry hand can
+		// genuinely run dry on a shot a clean hand would have made.
+		int hand = invoker.bOffhandWeapon ? RS_Curse.HAND_OFF : RS_Curse.HAND_MAIN;
+		int ammoCost = p.AmmoCost;
+		if (ammoCost > 0 && RS_CurseLedger.Has(self, RS_Curse.FLAW_HUNGRY, hand))
+			ammoCost = max(1, ammoCost * RS_Curse.CVInt("rs_curse_hungry_mult", 200) / 100);
+
+		// LIFT REWARD, `hungry` cured: ammo efficiency. A shot has a
+		// chance to cost nothing -- the only shape that can express "a
+		// bit cheaper" when the cost is an integer, usually 1.
+		double effBonus = RS_CurseLedger.BonusFor(self, RS_Curse.FLAW_HUNGRY, hand);
+		if (ammoCost > 0 && effBonus > 0 && FRandom(0, 1) < effBonus)
+			ammoCost = 0;
+
+		if (pool && ammoCost > 0 && CountInv(pool) < ammoCost)
 			return false;
 
 		double dmgMult, pelletMult, backfireChance;
 		RS_Roll.GetConditionEffects(invoker.Condition, dmgMult, pelletMult, backfireChance);
+
+		// PLAYER CURSE: `jam-prone` -- flat percentage points of backfire
+		// added to whatever Condition already produced, INDEPENDENT of
+		// Condition. A pristine weapon in a cursed hand still jams; that
+		// is the difference between this and simply being worn out.
+		if (RS_CurseLedger.Has(self, RS_Curse.FLAW_JAMPRONE, hand))
+			backfireChance += RS_Curse.CVInt("rs_curse_jam_add", 12) / 100.0;
+
+		// LIFT REWARD, `jam-prone` cured: the hand is steadier than it
+		// ever was. Multiplies DOWN whatever backfire chance Condition
+		// produced, so it stays useful at any state of repair rather than
+		// only mattering on a worn weapon.
+		double jamCured = RS_CurseLedger.BonusFor(self, RS_Curse.FLAW_JAMPRONE, hand);
+		if (jamCured > 0)
+			backfireChance *= max(0.0, 1.0 - jamCured);
 
 		// Granted-keyword layer -- composes with Condition, doesn't
 		// replace it. An affix's whole job is wpn.GrantKeyword(...) /
@@ -702,7 +809,16 @@ class RS_Weapon : Weapon abstract
 		{
 			Class<Actor> puff = p.MeleePuff;
 			if (!puff) puff = "BulletPuff";
-			A_CustomPunch(int(dmg), false, 0, puff, p.MeleeRange);
+			// norandom=TRUE. `dmg` already has Condition, crit and every
+			// keyword multiplier folded in; it IS the number that should
+			// land. This passed false until 2026-08-07, and the engine
+			// then did `damage *= random(1,8)` on top of all of it
+			// (stateprovider.zs:332-333) -- so every fist and chainsaw
+			// swing was 1x to 8x the sheet, with a crit multiplying
+			// underneath the random. The hitscan branch six lines up
+			// already passes FBF_NORANDOM for exactly this reason; melee
+			// was the one mode that never got the memo.
+			A_CustomPunch(int(dmg), true, 0, puff, p.MeleeRange);
 		}
 		else if (p.Mode == RS_ATK_HEAVY)
 		{
@@ -746,8 +862,40 @@ class RS_Weapon : Weapon abstract
 			RS_HiFiFX.CasingEject(self, fxCasing);
 
 		invoker.RS_LastShotTic = Level.maptime;
+
+		// WHICH HAND FIRED LAST. Stamped here because this is the one
+		// place that knows for certain, for every Mode, on both hands --
+		// the same reason RS_GunBonsaiBridge.NotifyFired sits here.
+		//
+		// Read by the death hook (RS_ScoreRevival) to decide which hand a
+		// player curse lands on: "whatever gun you fired last".
+		RS_Weapon.StampFiringHand(self, invoker.bOffhandWeapon);
+
 		A_RS_MarkFired();
 		return true;
+	}
+
+	// The stamp itself. A static on the weapon rather than a field on the
+	// pawn, so it works for any PlayerPawn subclass without requiring one
+	// -- the GH/PS Weaponset classes are not VR_DualClassBase.
+	//
+	// Stored on the curse ledger because that is the one per-player object
+	// guaranteed to exist for the whole run and already reachable from
+	// both the fire path and the damage hook.
+	static void StampFiringHand(Actor pawn, bool offhand)
+	{
+		if (!pawn) return;
+		let led = RS_CurseLedger.For(pawn);
+		if (!led) return;
+
+		int hand = offhand ? RS_Curse.HAND_OFF : RS_Curse.HAND_MAIN;
+		led.mLastFiredHand = hand;
+
+		// PLAYER CURSE: `loud` -- each shot from this hand deafens you
+		// briefly. Owner ruling 2026-08-07: "loud drops the player's
+		// hearing for two tics after each shot. music is unaffected."
+		if (led.IsActive(RS_Curse.SlotOf(RS_Curse.FLAW_LOUD, hand)))
+			led.Deafen();
 	}
 
 	// Condition backfire -- was an identical copy on all 11 weapons.
@@ -1034,6 +1182,47 @@ class RS_Weapon : Weapon abstract
 				RS_GH_PlasmaShot(proj).SetupStats(int(dmg), crit);
 			else if (proj is "RS_GH_UnmakerShot")
 				RS_GH_UnmakerShot(proj).SetupStats(int(dmg), crit);
+			// --- MeatGrinder heavies. Added 2026-08-07; they had shipped
+			// with SetupStats written and NEVER CALLED, because this chain
+			// only ever learned the VR_ and GH class names. RS_PS_Rocket
+			// and RS_PS_BFGShot declare no Default Damage at all, so their
+			// direct hits dealt ZERO -- and since the PS rocket then had
+			// only splash, and Cyberdemon/Mastermind are splash-immune, the
+			// Grinder rocket launcher could not hurt them at all. PS plasma
+			// meanwhile ran at inherited vanilla PlasmaBall damage (5) at
+			// every tier. Tier, Condition, promotion and crit were
+			// decorative for this whole set.
+			else if (proj is "RS_PS_Rocket")
+				RS_PS_Rocket(proj).SetupStats(int(dmg), crit);
+			else if (proj is "RS_PS_BFGShot")
+				RS_PS_BFGShot(proj).SetupStats(int(dmg), crit);
+			else if (proj is "RS_PS_PlasmaShot")
+				RS_PS_PlasmaShot(proj).SetupStats(int(dmg), crit);
+			// --- GH grenades. Same omission. These carry Damage 0 by
+			// design and pay out through A_Explode(Splash1/Splash2), which
+			// scale off RolledDamage -- so with SetupStats never called,
+			// DamageRatio() returned its 1.0 baseline forever and every
+			// grenade in the game was a fixed vanilla-weight blast.
+			// RS_GH_GrenadeThrown inherits Launched, so the `is` test
+			// covers both.
+			else if (proj is "RS_GH_GrenadeLaunched")
+				RS_GH_GrenadeLaunched(proj).SetupStats(int(dmg), crit);
+			// --- NOT SILENT ANY MORE.
+			// The three defects above were all the same defect: a heavy
+			// projectile class this chain does not name gets spawned,
+			// flies, hits, and quietly uses whatever its Default block
+			// said -- no error, no warning, nothing to grep for. It went
+			// unnoticed across two whole weapon sets. Any future heavy
+			// class that is added without a branch here now says so out
+			// loud the first time it is fired.
+			else
+			{
+				Console.Printf("\cgRS_Weapon: heavy projectile %s has no "
+					"SetupStats branch in RS_FireProfileHeavy -- it is "
+					"firing at its Default damage, ignoring tier, "
+					"Condition, crit and keywords.",
+					proj.GetClassName() .. "");
+			}
 		}
 	}
 
@@ -1115,39 +1304,206 @@ class RS_Weapon : Weapon abstract
 		Tier = t;
 	}
 
-	// Lifting a curse (Cursed-tier's original lock, or a Promotion-rolled
-	// one from RollPromotionCurse below -- same Locked* flags, same unlock
-	// path either way) doesn't just free the stat, it rewards clearing it:
-	// a 1.5x boost on top of whatever the stat was sitting at while locked.
-	// Guarded on the flag actually being set so calling this twice (or on
-	// a stat that was never locked) can't double-dip the boost.
-	void UnlockStat(String statName)
+	// =================================================================
+	// LIFTING A CURSE. Rewritten 2026-08-07.
+	//
+	// The old version multiplied the CURRENT (halved) value by 1.5, so
+	// clearing a curse left the weapon 25% WORSE than if it had never
+	// been cursed: 100 -> 50 -> 75. You paid to lose. See the PreCurse*
+	// field comments for the full history.
+	//
+	// Now: RESTORE the stat to its pre-curse value, then add a bonus
+	// that ESCALATES with how deep the stack was.
+	//
+	//   1st lift on a stat   +25% of base
+	//   2nd                  +35%
+	//   3rd and beyond       +50%
+	//
+	// Why escalating: a flat bonus small enough to be safe on a single
+	// curse doesn't beat a few level-up cards, so lifting would be a
+	// worse use of resources than just playing. At these numbers one
+	// lift already beats several levels, and a cleared triple stack
+	// (+110%) beats an entire promotion cycle's worth of cards -- which
+	// is the payoff that justifies carrying a crippled weapon around.
+	//
+	// Owner ruling 2026-08-07: "we need to make lifitng curses worth it,
+	// and rewarding, more than just what a few levels would give you."
+	//
+	// Returns true if a curse was actually lifted.
+	// =================================================================
+	int LiftBonusPercent(int stackDepthCleared)
 	{
+		// stackDepthCleared is 1 for the first lift on this stat, 2 for
+		// the second, and so on.
+		if (stackDepthCleared <= 1)
+			return RS_Curse.CVInt("rs_curse_lift_bonus1", 25);
+		if (stackDepthCleared == 2)
+			return RS_Curse.CVInt("rs_curse_lift_bonus2", 35);
+		return RS_Curse.CVInt("rs_curse_lift_bonus3", 50);
+	}
+
+	bool UnlockStat(String statName)
+	{
+		bool lifted = false;
+		int bonusPct = 0;
+
 		if (statName == "damage" && LockedDamage)
 		{
-			LockedDamage = false;
-			DamagePerShot = max(1, int(DamagePerShot * 1.5));
+			bonusPct = LiftBonusPercent(CurseStackDamage);
+			int base = PreCurseDamage > 0 ? PreCurseDamage : DamagePerShot;
+
+			CurseStackDamage = max(0, CurseStackDamage - 1);
+			// Only the LAST lift on a stat frees it. A stat cursed twice
+			// stays locked (and stays halved-once) after one lift.
+			if (CurseStackDamage <= 0)
+			{
+				LockedDamage = false;
+				DamagePerShot = max(1, int(base * (1.0 + bonusPct / 100.0)));
+				PreCurseDamage = 0;
+			}
+			else
+			{
+				// Partial: undo one halving, no bonus until it is clean.
+				DamagePerShot = max(1, DamagePerShot * 2);
+			}
+			lifted = true;
 		}
 		else if (statName == "accuracy" && LockedAccuracy)
 		{
-			LockedAccuracy = false;
-			Accuracy *= 1.5;
+			bonusPct = LiftBonusPercent(CurseStackAccuracy);
+			double base = PreCurseAccuracy > 0 ? PreCurseAccuracy : Accuracy;
+
+			CurseStackAccuracy = max(0, CurseStackAccuracy - 1);
+			if (CurseStackAccuracy <= 0)
+			{
+				LockedAccuracy = false;
+				Accuracy = base * (1.0 + bonusPct / 100.0);
+				PreCurseAccuracy = 0;
+			}
+			else Accuracy *= 2.0;
+			lifted = true;
 		}
 		else if (statName == "velocity" && LockedVelocity)
 		{
-			LockedVelocity = false;
-			Velocity *= 1.5;
+			bonusPct = LiftBonusPercent(CurseStackVelocity);
+			double base = PreCurseVelocity > 0 ? PreCurseVelocity : Velocity;
+
+			CurseStackVelocity = max(0, CurseStackVelocity - 1);
+			if (CurseStackVelocity <= 0)
+			{
+				LockedVelocity = false;
+				Velocity = base * (1.0 + bonusPct / 100.0);
+				PreCurseVelocity = 0;
+			}
+			else Velocity *= 2.0;
+			lifted = true;
 		}
 		else if (statName == "critchance" && LockedCritChance)
 		{
-			LockedCritChance = false;
-			CritChance *= 1.5;
+			bonusPct = LiftBonusPercent(CurseStackCritChance);
+			double base = PreCurseCritChance > 0 ? PreCurseCritChance : CritChance;
+
+			CurseStackCritChance = max(0, CurseStackCritChance - 1);
+			if (CurseStackCritChance <= 0)
+			{
+				LockedCritChance = false;
+				CritChance = base * (1.0 + bonusPct / 100.0);
+				PreCurseCritChance = 0;
+			}
+			else CritChance *= 2.0;
+			lifted = true;
 		}
 		else if (statName == "capacity" && LockedCapacity)
 		{
-			LockedCapacity = false;
-			Capacity = max(1, int(Capacity * 1.5));
+			bonusPct = LiftBonusPercent(CurseStackCapacity);
+			int base = PreCurseCapacity > 0 ? PreCurseCapacity : Capacity;
+
+			CurseStackCapacity = max(0, CurseStackCapacity - 1);
+			if (CurseStackCapacity <= 0)
+			{
+				LockedCapacity = false;
+				Capacity = max(1, int(base * (1.0 + bonusPct / 100.0)));
+				PreCurseCapacity = 0;
+			}
+			else Capacity = max(1, Capacity * 2);
+			lifted = true;
 		}
+
+		if (!lifted)
+			return false;
+
+		// -------------------------------------------------------------
+		// RAISE THE CEILING BY WHAT WE JUST PAID.
+		//
+		// GetDamageCeiling() is PromotionDamageBaseline * 1.8, and the
+		// GunBonsai damage card stops being OFFERED at the ceiling
+		// (IsSuitableForWeapon returns false). Without this, clearing a
+		// deep stack pushes damage past the ceiling and silently disables
+		// your own upgrades for the rest of the cycle -- you would have
+		// spent Curse Bits to lock yourself out of level-ups.
+		//
+		// Conceptually right as well as mechanically necessary: the curse
+		// was suppressing the weapon's POTENTIAL, not just its number.
+		// -------------------------------------------------------------
+		if (bonusPct > 0 && RS_Curse.CVBool("rs_curse_lift_raises_ceiling", true))
+			PromotionDamageBaseline = max(PromotionDamageBaseline,
+				int(PromotionDamageBaseline * (1.0 + bonusPct / 100.0)));
+
+		// -------------------------------------------------------------
+		// TIER UP. Owner ruling 2026-08-07: lifting a curse "causes the
+		// weapon to tier-up as a reward".
+		//
+		// Capped at Prototype. Fires per lift, so a stat cursed three
+		// times pays three tiers as it is cleaned.
+		// -------------------------------------------------------------
+		if (RS_Curse.CVBool("rs_curse_lift_tiers_up", true) && Tier < VRT_Prototype)
+		{
+			Tier = EVR_Tier(int(Tier) + 1);
+			GunBonaiSockets = RS_Roll.SocketsForTier(Tier);
+		}
+
+		// -------------------------------------------------------------
+		// DIVINE. Both pools report into ONE player-wide counter.
+		//
+		// Owner ruling 2026-08-07: "fuck weapon divinity, all cured
+		// curses (player or weapon) move the player themselves closer to
+		// divine status (need 10 cured curses) upon which curses no
+		// longer apply."
+		// -------------------------------------------------------------
+		if (owner)
+		{
+			let led = RS_CurseLedger.For(owner);
+			if (led) led.CountCure();
+		}
+
+		return true;
+	}
+
+	// Does this weapon carry ANY stat-lock right now? Drives the imprint
+	// gate below and the "cursed" tell on the weapon sheet.
+	bool HasAnyCurse() const
+	{
+		return LockedDamage || LockedAccuracy || LockedVelocity
+		    || LockedCritChance || LockedCapacity;
+	}
+
+	int TotalCurseStacks() const
+	{
+		return CurseStackDamage + CurseStackAccuracy + CurseStackVelocity
+		     + CurseStackCritChance + CurseStackCapacity;
+	}
+
+	// Is this named stat STILL cursed? Asked after a lift, because a stat
+	// cursed twice is still cursed after the first one -- which is what
+	// decides whether the `curse:` keyword comes off.
+	bool IsStatCursed(String statName) const
+	{
+		if (statName == "damage")     return LockedDamage;
+		if (statName == "accuracy")   return LockedAccuracy;
+		if (statName == "velocity")   return LockedVelocity;
+		if (statName == "critchance") return LockedCritChance;
+		if (statName == "capacity")   return LockedCapacity;
+		return false;
 	}
 
 	// The DamagePerShot ceiling a stat level-up may not exceed until the
@@ -1166,8 +1522,42 @@ class RS_Weapon : Weapon abstract
 		return max(1, int(PromotionDamageBaseline * 1.8));
 	}
 
+	// =================================================================
+	// THE IMPRINT GATE. Owner ruling 2026-08-07:
+	//
+	//   "a weapon with curses cannot accept a dropped elite imprint that
+	//    is higher than its current tier until curse is lifted, which
+	//    also causes the weapon to tier-up as a reward"
+	//
+	// So curses GATE progress; they do not CAP it. An earlier design made
+	// the curse count the weapon's maximum tier and the owner rejected it
+	// for the right reason -- "you'll never get to promote your shit."
+	//
+	// NOTE WHAT THIS DELIBERATELY LEAVES OPEN. Promotion applies a BASIC
+	// card to a PROTOTYPE weapon, and Basic is LOWER, so a cursed weapon
+	// can still promote. Only climbing is blocked. That is intended:
+	// curses stall you, they do not trap you.
+	// =================================================================
+	bool CanAcceptImprint(EVR_Tier newTier) const
+	{
+		if (!RS_Curse.CVBool("rs_curse_blocks_imprint", true))
+			return true;
+		if (!HasAnyCurse())
+			return true;
+		// Same tier or lower is always allowed -- including the
+		// Prototype -> Basic promotion sacrifice.
+		return int(newTier) <= int(Tier);
+	}
+
 	virtual void ApplyUpgradeCard(EVR_Tier newTier)
 	{
+		if (!CanAcceptImprint(newTier))
+		{
+			if (owner && owner.player == players[consoleplayer])
+				Console.Printf("\c[Red]The curse refuses it.\c- Lift a curse before this weapon can take a higher imprint.");
+			return;
+		}
+
 		if (Tier == VRT_Prototype && newTier == VRT_Basic)
 			Promote();
 		else
@@ -1197,6 +1587,29 @@ class RS_Weapon : Weapon abstract
 	{
 		if (PromotionDamageBaseline <= 0)
 			PromotionDamageBaseline = DamagePerShot;
+	}
+
+	// Forget the captured baseline so the next CaptureInitialDamageBaseline
+	// takes a fresh reading.
+	//
+	// Needed because PostBeginPlay ALWAYS rolls Basic and captures from it,
+	// while anything that re-rolls a weapon at a real tier afterwards --
+	// today that is only the elite drop (RS_EliteDrop.zs's RollStats(tier)
+	// call) -- left the throwaway Basic number in place. The guard above is
+	// "capture once", which is right for the normal life of a weapon and
+	// exactly wrong for a weapon that is re-rolled before the player ever
+	// sees it.
+	//
+	// The damage the player is looking at then had no relationship to the
+	// ceiling measured against it: GetDamageCeiling() is baseline * 1.8, so
+	// a Prototype drop rolling well above a stale Basic baseline sat pinned
+	// at ceilingRatio >= 0.90 for the rest of its life -- which pins the
+	// state-ladder tracer to its "Peak" body permanently (the ladder never
+	// steps) and feeds the GunBonsai damage-card gate a number it was never
+	// meant to compare against.
+	void ResetDamageBaseline()
+	{
+		PromotionDamageBaseline = 0;
 	}
 
 	// The Prototype -> Basic sacrifice. See docs/rs_01_promotion_system.txt
@@ -1250,6 +1663,11 @@ class RS_Weapon : Weapon abstract
 
 	const PROMOTION_CURSE_CHANCE = 0.15;
 
+	// Chance that a freshly rolled weapon arrives with one stat cursed.
+	// Overridden by rs_curse_chance; the Cursed tier floors much higher.
+	const ROLL_CURSE_CHANCE = 0.12;
+	const ROLL_CURSE_CHANCE_CURSEDTIER = 0.85;
+
 	// Each held affix at promote-time cuts 3 percentage points off every
 	// roll (floor 2%) -- design settled earlier: PromotionCount drives
 	// the ESCALATION (more rolls, see below), held-affix count drives
@@ -1273,47 +1691,111 @@ class RS_Weapon : Weapon abstract
 	// actual flavor/name is a placeholder ("curse:<statname>") until a
 	// real curse list exists to roll the keyword's value from instead --
 	// "we will roll from a list later," per design discussion.
-	// STUBBED OFF -- disabled for now, mechanism kept intact for later.
-	// Same shape as RS_Roll.GetConditionEffects' own disable.
+	//
+	// UN-STUBBED 2026-08-07. This opened with `if (true) return;` so
+	// promotion never cursed anything -- promotion was pure upside, and
+	// the whole risk half of the mechanic was inert.
 	void RollPromotionCurse(int heldAffixes = 0)
 	{
-		if (true)
-			return;
-
 		double chance = max(PROMOTION_CURSE_CHANCE_FLOOR,
 			PROMOTION_CURSE_CHANCE - heldAffixes * PROMOTION_CURSE_MITIGATION_PER_AFFIX);
 		for (int i = 0; i < PromotionCount; i++)
 			RollOneCurse(chance);
 	}
 
+	// CURSES ON THE INITIAL ROLL. Owner ruling 2026-08-07: "curses have a
+	// % chance to happen when a class weapon or imprint is rolled."
+	//
+	// Before this, the only curse source was Promotion -- so a weapon you
+	// found could never be cursed, which made the whole Cursed tier and
+	// the gold-lifting economy unreachable on anything but a promoted gun.
+	//
+	// Runs exactly once per weapon (bCursesRolled), from AttachToOwner
+	// after the statline exists. A Cursed-tier weapon rolls at a much
+	// higher chance -- that is what the tier MEANS -- and everything else
+	// takes the base rate.
+	bool bCursesRolled;
+
+	void RollInitialCurses()
+	{
+		if (bCursesRolled) return;
+		bCursesRolled = true;
+
+		double chance = ROLL_CURSE_CHANCE;
+		let cv = CVar.FindCVar("rs_curse_chance");
+		if (cv) chance = clamp(cv.GetInt(), 0, 100) / 100.0;
+
+		// The Cursed tier is not a flavour label: it is the tier that is
+		// supposed to arrive broken.
+		if (Tier == VRT_Cursed)
+			chance = max(chance, ROLL_CURSE_CHANCE_CURSEDTIER);
+
+		RollOneCurse(chance);
+	}
+
+	// =================================================================
+	// ROLL ONE STAT-LOCK.
+	//
+	// Each hit HALVES the stat and stacks -- owner ruling 2026-08-07:
+	// "double curses on a stat or more is fine with me if penalties and
+	// rewards are legit." Two curses on damage is x0.25, three is
+	// x0.125. That is a dead weapon, and it is meant to be: the escalating
+	// lift bonus in UnlockStat is what makes clearing it the jackpot.
+	//
+	// THE PRE-CURSE VALUE IS CAPTURED ON THE FIRST STACK ONLY, so a
+	// second curse cannot overwrite the honest baseline with an already-
+	// halved one. Without that, lifting could never restore the real
+	// number and the whole reward collapses.
+	//
+	// Refuses entirely if the player is Divine.
+	// =================================================================
 	void RollOneCurse(double chance = PROMOTION_CURSE_CHANCE)
 	{
+		if (!RS_Curse.CVBool("rs_curse_enable", true))
+			return;
+
+		// DIVINE: no curse of any kind takes hold again. Checked here
+		// rather than at the call sites so every present and future
+		// source of a stat-lock obeys it automatically.
+		if (owner && RS_CurseLedger.IsDivine(owner))
+			return;
+
 		if (FRandom(0, 1) >= chance)
 			return;
 
 		switch (Random(0, 4))
 		{
 			case 0:
+				if (CurseStackDamage == 0) PreCurseDamage = DamagePerShot;
+				CurseStackDamage++;
 				DamagePerShot = max(1, int(DamagePerShot * 0.5));
 				LockedDamage = true;
 				GrantKeyword("curse", "damage");
 				break;
 			case 1:
+				if (CurseStackAccuracy == 0) PreCurseAccuracy = Accuracy;
+				CurseStackAccuracy++;
 				Accuracy *= 0.5;
 				LockedAccuracy = true;
 				GrantKeyword("curse", "accuracy");
 				break;
 			case 2:
+				if (CurseStackVelocity == 0) PreCurseVelocity = Velocity;
+				CurseStackVelocity++;
 				Velocity *= 0.5;
 				LockedVelocity = true;
 				GrantKeyword("curse", "velocity");
 				break;
 			case 3:
+				if (CurseStackCritChance == 0) PreCurseCritChance = CritChance;
+				CurseStackCritChance++;
 				CritChance *= 0.5;
 				LockedCritChance = true;
 				GrantKeyword("curse", "critchance");
 				break;
 			case 4:
+				if (CurseStackCapacity == 0) PreCurseCapacity = Capacity;
+				CurseStackCapacity++;
 				Capacity = max(1, int(Capacity * 0.5));
 				LockedCapacity = true;
 				GrantKeyword("curse", "capacity");
@@ -1330,6 +1812,35 @@ class RS_Weapon : Weapon abstract
 	// takes a hit (both hands independently).
 	void OnPlayerDamaged(int rawDamageTaken)
 	{
+		// PLAYER CURSE: `fragile` -- this hand's weapon wears out faster.
+		// Applied by scaling the LOSS, not by calling the degrade twice:
+		// DegradeCondition has a damage threshold, and running it twice
+		// would also double-test that threshold rather than double the
+		// wear from one qualifying hit.
+		if (owner)
+		{
+			int h = bOffhandWeapon ? RS_Curse.HAND_OFF : RS_Curse.HAND_MAIN;
+			bool cursed = RS_CurseLedger.Has(owner, RS_Curse.FLAW_FRAGILE, h);
+			// LIFT REWARD, `fragile` cured: the hand's weapon holds up
+			// better than stock. Scales the same loss the other way.
+			double cured = RS_CurseLedger.BonusFor(owner, RS_Curse.FLAW_FRAGILE, h);
+
+			if (cursed || cured > 0)
+			{
+				double before = Condition;
+				double after = RS_Roll.DegradeCondition(Condition, rawDamageTaken);
+				double loss = before - after;
+
+				if (cursed)
+					loss *= RS_Curse.CVInt("rs_curse_fragile_mult", 200) / 100.0;
+				if (cured > 0)
+					loss *= max(0.0, 1.0 - cured);
+
+				Condition = max(0.0, before - loss);
+				return;
+			}
+		}
+
 		Condition = RS_Roll.DegradeCondition(Condition, rawDamageTaken);
 	}
 
@@ -1370,6 +1881,14 @@ class RS_Weapon : Weapon abstract
 			RollStats(VRT_Basic);
 		CaptureInitialDamageBaseline();
 		EnsureAttackProfiles();
+
+		// The curse roll goes AFTER the baseline capture, deliberately.
+		// A curse halves a stat, and the promotion ceiling is measured
+		// from the baseline -- capturing after the curse would bake the
+		// halved number in as this weapon's "normal" and permanently
+		// lower its ceiling. Lifting the curse would then never restore
+		// it. Capture the honest roll, then curse it.
+		RollInitialCurses();
 
 		// AmmoType2 is this project's magazine slot (AmmoType1 is reserve).
 		// Weapons with no magazine at all -- fists, chainsaw, and the heavy
@@ -1440,7 +1959,7 @@ class RS_Weapon : Weapon abstract
 	{
 		if (RS_Keywords.StringHas(GetBaseKeywords(), key, value))
 			return true;
-		string needle = key .. ":" .. value;
+		string needle = RS_Keywords.Norm(key) .. ":" .. RS_Keywords.Norm(value);
 		for (int i = 0; i < GrantedKeywords.Size(); i++)
 			if (GrantedKeywords[i] == needle)
 				return true;
@@ -1453,7 +1972,7 @@ class RS_Weapon : Weapon abstract
 	string GetKeywordValue(string key)
 	{
 		string v = RS_Keywords.GetValue(GetBaseKeywords(), key);
-		string prefix = key .. ":";
+		string prefix = RS_Keywords.Norm(key) .. ":";
 		for (int i = 0; i < GrantedKeywords.Size(); i++)
 			if (GrantedKeywords[i].Left(prefix.Length()) == prefix)
 				v = GrantedKeywords[i].Mid(prefix.Length());
@@ -1466,7 +1985,7 @@ class RS_Weapon : Weapon abstract
 	void GetKeywordValues(string key, out Array<string> results)
 	{
 		RS_Keywords.GetValues(GetBaseKeywords(), key, results);
-		string prefix = key .. ":";
+		string prefix = RS_Keywords.Norm(key) .. ":";
 		for (int i = 0; i < GrantedKeywords.Size(); i++)
 			if (GrantedKeywords[i].Left(prefix.Length()) == prefix)
 				results.Push(GrantedKeywords[i].Mid(prefix.Length()));
@@ -1480,7 +1999,7 @@ class RS_Weapon : Weapon abstract
 	// shotgun in the arsenal at half damage per pellet.
 	void GetGrantedValues(string key, out Array<string> results)
 	{
-		string prefix = key .. ":";
+		string prefix = RS_Keywords.Norm(key) .. ":";
 		for (int i = 0; i < GrantedKeywords.Size(); i++)
 			if (GrantedKeywords[i].Left(prefix.Length()) == prefix)
 				results.Push(GrantedKeywords[i].Mid(prefix.Length()));
@@ -1491,9 +2010,13 @@ class RS_Weapon : Weapon abstract
 	// without an intervening OnDeactivate (reselecting the weapon,
 	// re-leveling, etc.), so a repeat grant must not stack duplicate
 	// entries.
+	// Stored NORMALISED (RS_Keywords.Norm), so the array only ever holds
+	// lowercase entries and every reader below can compare directly. See
+	// Norm's own comment for the bug this closes -- String == is
+	// case-sensitive in a language where everything else is not.
 	void GrantKeyword(string key, string value)
 	{
-		string entry = key .. ":" .. value;
+		string entry = RS_Keywords.Norm(key) .. ":" .. RS_Keywords.Norm(value);
 		for (int i = 0; i < GrantedKeywords.Size(); i++)
 			if (GrantedKeywords[i] == entry)
 				return;
@@ -1505,7 +2028,7 @@ class RS_Weapon : Weapon abstract
 	// if the entry isn't present (no-op).
 	void UngrantKeyword(string key, string value)
 	{
-		string entry = key .. ":" .. value;
+		string entry = RS_Keywords.Norm(key) .. ":" .. RS_Keywords.Norm(value);
 		for (int i = 0; i < GrantedKeywords.Size(); i++)
 		{
 			if (GrantedKeywords[i] == entry)

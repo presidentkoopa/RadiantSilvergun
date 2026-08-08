@@ -222,14 +222,23 @@ class TFLV_EventHandler : StaticEventHandler {
       ChooseLevelUpOption(evt.player, evt.args[0]);
     } else if (evt.name == "bonsai-toggle-upgrade") {
       // args[0] holds the bag index, args[1] the index of the upgrade within that bag.
-      // In the future this might be extended to allow viewing and toggling of upgrades
-      // on weapons not presently equipped, but for now [0] is always either 0 (player
-      // upgrades) or 1 (currently equipped weapon upgrades).
-      ToggleUpgrade(evt.player, evt.args[0] != 0, evt.args[1]);
+      //   0 = player upgrades
+      //   1 = currently equipped (MAINHAND) weapon upgrades
+      //   2 = OFFHAND weapon upgrades  [GBOH]
+      //
+      // FIXED 2026-08-07. This read `evt.args[0] != 0`, which collapsed
+      // 1 and 2 into the same case -- so every offhand row in the
+      // unified status display (OffhandStatusDisplay.zsc pushes them
+      // with bag index 2) was dispatched against the MAINHAND's upgrade
+      // list. Pressing Enter on an offhand row silently toggled a
+      // different upgrade on a different gun, and if the offhand's list
+      // was longer than the mainhand's it indexed off the end of the
+      // array and took the whole session down with a VM abort.
+      ToggleUpgrade(evt.player, evt.args[0], evt.args[1]);
     } else if (evt.name == "bonsai-tune-upgrade") {
       // Same as above, except that args[2] holds the amount to tune by, which
       // may be negative.
-      TuneUpgrade(evt.player, evt.args[0] != 0, evt.args[1], evt.args[2]);
+      TuneUpgrade(evt.player, evt.args[0], evt.args[1], evt.args[2]);
     } else if (evt.name.IndexOf("bonsai-debug") == 0) {
       TFLV_Debug.DebugCommand(service, evt.player, evt.name, evt.args[0]);
     } else if (evt.name == "gboh-unified-info") {
@@ -273,28 +282,62 @@ class TFLV_EventHandler : StaticEventHandler {
     ShowInfo(p);
   }
 
-  void ToggleUpgrade(int player, bool on_weapon, int index) {
+  // Resolve a bag index to the WeaponInfo it names, or null for the
+  // player bag / an unresolvable one.
+  //   1 = mainhand (currently equipped)
+  //   2 = offhand   [GBOH]
+  // Returns null for bag 0 (player) and for any bag whose weapon is not
+  // currently held -- callers treat null as "player bag or nothing".
+  TFLV_WeaponInfo BagInfo(int player, int bag) {
     let stats = playerstats[player];
-//    DEBUG("toggle: %d %d", on_weapon, index);
-    // TFLV_Upgrade_BaseUpgrade upgrade;
-    if (on_weapon) {
-//      DEBUG("weapon has upgrades: %d", stats.GetInfoForCurrentWeapon().upgrades != null);
-      stats.GetInfoForCurrentWeapon().ToggleUpgrade(index);
-    } else {
-//      DEBUG("player has upgrades: %d", stats.upgrades != null);
-      stats.ToggleUpgrade(index);
+    if (!stats) return null;
+    if (bag == 1) return stats.GetInfoForCurrentWeapon();
+    if (bag == 2) {
+      let pawn = players[player].mo;
+      if (!pawn || !pawn.player || !pawn.player.OffhandWeapon) return null;
+      return stats.GetInfoFor(pawn.player.OffhandWeapon);
     }
+    return null;
   }
 
-  void TuneUpgrade(int player, bool on_weapon, int index, int amount) {
+  void ToggleUpgrade(int player, int bag, int index) {
     let stats = playerstats[player];
-//    DEBUG("tune: %d %d %d", on_weapon, index, amount);
-    // TFLV_Upgrade_BaseUpgrade upgrade;
-    if (on_weapon) {
-      stats.GetInfoForCurrentWeapon().TuneUpgrade(index, amount);
-    } else {
-      stats.TuneUpgrade(index, amount);
+    if (!stats) return;
+
+    if (bag == 0) {
+      // Player bag. Bounds-checked for the same reason as below.
+      if (!stats.upgrades || index < 0 || index >= stats.upgrades.upgrades.Size())
+        return;
+      stats.ToggleUpgrade(index);
+      return;
     }
+
+    // Weapon bag (mainhand or offhand). EVERY step is guarded: the row
+    // indices come from a menu that was built on an earlier tic, and the
+    // weapon it described can be gone by the time the netevent lands --
+    // dropped, destroyed, swapped hands. An unguarded index here is a VM
+    // abort, which ends the session, not the menu.
+    let info = BagInfo(player, bag);
+    if (!info || !info.upgrades) return;
+    if (index < 0 || index >= info.upgrades.upgrades.Size()) return;
+    info.ToggleUpgrade(index);
+  }
+
+  void TuneUpgrade(int player, int bag, int index, int amount) {
+    let stats = playerstats[player];
+    if (!stats) return;
+
+    if (bag == 0) {
+      if (!stats.upgrades || index < 0 || index >= stats.upgrades.upgrades.Size())
+        return;
+      stats.TuneUpgrade(index, amount);
+      return;
+    }
+
+    let info = BagInfo(player, bag);
+    if (!info || !info.upgrades) return;
+    if (index < 0 || index >= info.upgrades.upgrades.Size()) return;
+    info.TuneUpgrade(index, amount);
   }
 
   static PlayerPawn GetPlayerDamageSource(WorldEvent evt) {
@@ -384,8 +427,33 @@ class TFLV_EventHandler : StaticEventHandler {
       // zscript/systems/weapon/RS_GunBonsaiBridge.zs (NotifyFired) and
       // docs/rs_01_promotion_system.txt. Cast to VR_DualClassBase --
       // that's where the field actually lives, not on PlayerPawn itself.
+      //
+      // GUARDED BY THE MASTER POINTER, 2026-08-07. The fallback must only
+      // speak when the inflictor cannot speak for itself.
+      //
+      // Every RS projectile sets `proj.master = self` at spawn for BOTH
+      // hands (RS_Weapon.zs, RS_FireProfileBullet / FireAffixPartRound /
+      // FireProfileHeavy). So a projectile that has a master has ALREADY
+      // named its firing weapon, and the check above either matched it or
+      // proved it was the mainhand's. Consulting RS_LastFiredWeapon after
+      // that overrules a fact with a guess -- and the guess is stale by
+      // construction, because it records the LAST trigger pull, not the
+      // one that launched this particular round.
+      //
+      // The bug that produced: fire a mainhand rocket, pull the offhand
+      // trigger while it is still in the air, and when the rocket lands
+      // its damage, its XP and its on-kill procs (Overkill's corpse
+      // detonation, and so on) were all credited to the offhand weapon.
+      // The reverse direction was already safe; this one was not.
+      //
+      // Melee and hitscan are exactly the case the fallback exists for --
+      // they have no projectile actor, so evt.inflictor is null or has no
+      // master, and RS_LastFiredWeapon is the only thing that knows.
+      bool inflictorNamedItsFirer = (evt.inflictor && evt.inflictor.master);
+
       let rssource = VR_DualClassBase(source);
-      if (!offhand_fired && rssource && rssource.RS_LastFiredWeapon
+      if (!offhand_fired && !inflictorNamedItsFirer
+          && rssource && rssource.RS_LastFiredWeapon
           && source.player.OffhandWeapon
           && rssource.RS_LastFiredWeapon == source.player.OffhandWeapon)
       {

@@ -35,6 +35,31 @@ class TFLV_Upgrade_Registry : Object play {
     return cv && cv.GetBool();
   }
 
+  // PLAYER-SCOPE UPGRADES ARE NOT GATED. Owner ruling 2026-08-07:
+  // "gunbonsai has player-affixes or level up rewards, we will make our
+  // own, but for now they can stay."
+  //
+  // Why this needs to be a separate gate at all: the WEAPON pool is
+  // deliberately RS-only (the designed slate), so IsRSAllowed sends
+  // every vendored upgrade away unless rs_gb_legacy_affixes is on. That
+  // is correct for weapons and catastrophic for the player, because NOT
+  // ONE RS-authored upgrade overrides IsSuitableForPlayer -- the base
+  // returns false (BaseUpgrade.zsc). So the player candidate list was
+  // ALWAYS EMPTY.
+  //
+  // What the player actually experienced: weapon levels fed 1 XP each
+  // into a player track, the track filled, it announced "level up
+  // ready" -- and there was nothing to give. Reached via console it
+  // deducted the XP, incremented the level, and granted NOTHING,
+  // silently. A progress bar wired to a door that was never built.
+  //
+  // Until RS has its own player rewards, the vendored ones fill that
+  // slot. They are all player-scope by construction, so this cannot
+  // leak stock upgrades into the weapon pool.
+  static bool IsPlayerUpgradeAllowed(string upgrade_name) {
+    return true;
+  }
+
   bool Register(string upgrade) {
 //    DEBUG("Register: %s", upgrade);
     if (IsUnregistered(upgrade)) {
@@ -65,9 +90,16 @@ class TFLV_Upgrade_Registry : Object play {
 
   // Returns true if Indestructable has delegated management of lives to Gun Bonsai.
   static bool IsIndestructableDelegated() {
-    return CVar.FindCVar("indestructable_starting_lives").GetInt() == 0
-      && CVar.FindCVar("indestructable_lives_per_level").GetInt() == 0
-      && CVar.FindCVar("indestructable_max_lives_per_level").GetInt() == 0;
+    // NULL-GUARDED 2026-08-07, same reason as
+    // TFLV_Upgrade_Indestructable.IsSuitableForPlayer: these three cvars
+    // exist only when the Indestructable mod is loaded, FindCVar returns
+    // null when it is not, and .GetInt() on null is a VM abort. Nothing
+    // is delegated when the mod is absent, so the honest answer is false.
+    let a = CVar.FindCVar("indestructable_starting_lives");
+    let b = CVar.FindCVar("indestructable_lives_per_level");
+    let c = CVar.FindCVar("indestructable_max_lives_per_level");
+    if (!a || !b || !c) return false;
+    return a.GetInt() == 0 && b.GetInt() == 0 && c.GetInt() == 0;
   }
 
   void PickN(Array<TFLV_Upgrade_BaseUpgrade> dst, Array<TFLV_Upgrade_BaseUpgrade> src, uint n) {
@@ -91,7 +123,11 @@ class TFLV_Upgrade_Registry : Object play {
     }
 
     for (uint i = 0; i < upgrades.size(); ++i) {
-      if (IsRSAllowed(upgrade_names[i]) && upgrades[i].IsSuitableForPlayer(stats))
+      // IsPlayerUpgradeAllowed, not IsRSAllowed -- see its comment. The
+      // weapon generator below keeps the RS-only gate; only the PLAYER
+      // pool is open, because RS has no player upgrades of its own yet
+      // and the alternative is an empty offer.
+      if (IsPlayerUpgradeAllowed(upgrade_names[i]) && upgrades[i].IsSuitableForPlayer(stats))
         candidates.push(upgrades[i]);
     }
 

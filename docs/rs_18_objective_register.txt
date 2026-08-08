@@ -1,3 +1,26 @@
+// =====================================================================
+// !! DO NOT TRUST THIS DOCUMENT. ASK THE OWNER.
+//
+// Nothing in docs/ is authoritative -- not the handoffs, not the specs,
+// not the ones the owner asked for himself. This file describes what was
+// true when somebody wrote it, and this project has repeatedly proven
+// that "true when written" and "true now" are different things.
+//
+// Verify anything you are about to act on against the DISK, the
+// COMPILER, or the RUNNING GAME. Ask the owner about anything to do with
+// scope, priority, or what to build next. Never inherit a task from a
+// document.
+//
+// Real examples from this repo, every one a document confidently stating
+// something false: an engine path that did not exist for weeks; a source
+// pack path pointing at the wrong pack; "87% of sounds are missing" that
+// was true when written and false when read; a rule forbidding an
+// extraction that had already happened; a note that ORDERED sessions not
+// to attempt a fix that turned out to be four lines.
+//
+// Banner added 2026-08-07 at the owner's instruction.
+// =====================================================================
+
 ================================================================================
    RS_18 -- THE OBJECTIVE REGISTER.  2026-08-04.
    Every objective gleaned from the handoff chain, large and small.
@@ -193,7 +216,11 @@ PART D -- MONSTER AND LINT CORRECTNESS.
       ONE `out Vector3` existed in the whole tree, so this was isolated
       rather than a class. Recorded because the NEXT one will not announce
       itself as a compile error either.
-      NOTE: RS_MonsterAim is still wired to no monster -- the utility works
+      NOTE: RS_MonsterAim is still wired to no monster
+  !! RS_MonsterAim.zs WAS DELETED 2026-08-05 and does not exist. The
+     reference below is historical. Recoverable from git history;
+     do not build against it as live code. Noted 2026-08-07.
+ -- the utility works
       and nothing calls it. That is a content decision, not a defect.
 
 ================================================================================

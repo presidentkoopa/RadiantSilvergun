@@ -67,9 +67,23 @@ class RS_PS_PlasmaShot : PlasmaBall
 		+EXTREMEDEATH
 	}
 
+	int RolledDamage;
+	double ShotCritChance;
+
 	void SetupStats(int finalDamage, double critChance)
 	{
+		RolledDamage   = finalDamage;
+		ShotCritChance = critChance;
 		SetDamage(finalDamage);
+	}
+
+	// EXACT DAMAGE, same contract as the RS_Enhanced* heavies and the
+	// ballistic tree: the engine multiplies a missile's Damage by
+	// random(1,8) at impact (p_map.cpp:1430), and this hook runs after
+	// that roll, so returning RolledDamage replaces it outright.
+	override int DoSpecialDamage(Actor target, int damage, Name damagetype)
+	{
+		return RolledDamage > 0 ? RolledDamage : damage;
 	}
 
 	States
@@ -144,9 +158,23 @@ class RS_PS_BFGShot : Actor
 		Obituary "$OB_MPBFG_BOOM";
 	}
 
+	int RolledDamage;
+	double ShotCritChance;
+
 	void SetupStats(int finalDamage, double critChance)
 	{
+		RolledDamage   = finalDamage;
+		ShotCritChance = critChance;
 		SetDamage(finalDamage);
+	}
+
+	// EXACT DAMAGE, same contract as the RS_Enhanced* heavies and the
+	// ballistic tree: the engine multiplies a missile's Damage by
+	// random(1,8) at impact (p_map.cpp:1430), and this hook runs after
+	// that roll, so returning RolledDamage replaces it outright.
+	override int DoSpecialDamage(Actor target, int damage, Name damagetype)
+	{
+		return RolledDamage > 0 ? RolledDamage : damage;
 	}
 
 	States
@@ -201,9 +229,23 @@ class RS_PS_Rocket : Actor
 		Decal "ScorchSmall";
 	}
 
+	int RolledDamage;
+	double ShotCritChance;
+
 	void SetupStats(int finalDamage, double critChance)
 	{
+		RolledDamage   = finalDamage;
+		ShotCritChance = critChance;
 		SetDamage(finalDamage);
+	}
+
+	// EXACT DAMAGE, same contract as the RS_Enhanced* heavies and the
+	// ballistic tree: the engine multiplies a missile's Damage by
+	// random(1,8) at impact (p_map.cpp:1430), and this hook runs after
+	// that roll, so returning RolledDamage replaces it outright.
+	override int DoSpecialDamage(Actor target, int damage, Name damagetype)
+	{
+		return RolledDamage > 0 ? RolledDamage : damage;
 	}
 
 	States
@@ -354,7 +396,11 @@ class RS_PS_HitPuff : Actor
 	States
 	{
 	Spawn:
-		TNT1 A 0 A_PlaySound("ricochet/hit", CHAN_AUTO);
+		// "ricochet/hit" is undefined -- this mod's ricochet names are
+		// rs_fx_ricochet (a $random over rs_fx_rico1-7, SNDINFO:180).
+		// An unresolved sound is silent rather than an error, so this
+		// impact has never made a noise.
+		TNT1 A 0 A_StartSound("rs_fx_ricochet", CHAN_AUTO);
 		TNT1 A 0 A_SpawnItem("RS_PS_BlastSmokeTiny");
 		TNT1 A 0 A_Jump(128, "Live");
 		TNT1 A 0 A_SetScale(-0.4, 0.4);

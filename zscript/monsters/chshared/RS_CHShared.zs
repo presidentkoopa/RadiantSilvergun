@@ -152,49 +152,49 @@ class RS_CH_BadItch : Actor   // CH DECORATE.txt:1004
 		TNT1 A 0 A_Jump(6,"Pack3","Pack4","Pack5","Boon","PackMisc10");
 		Loop;
 	Boon:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusBoon",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusBoon",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack1:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusEnemy1",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusEnemy1",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack2:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusEnemy2",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusEnemy2",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack6:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusEnemy3",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusEnemy3",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack7:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusEnemy4",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusEnemy4",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack8:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusEnemy5",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusEnemy5",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack9:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusEnemy6",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusEnemy6",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack10:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusEnemy7",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusEnemy7",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack11:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusEnemy8",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusEnemy8",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack12:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusEnemy9",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusEnemy9",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack3:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusMisc1",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusMisc1",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack4:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusMisc2",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusMisc2",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	Pack5:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusMisc3",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusMisc3",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	PackMisc10:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusMisc4",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusMisc4",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	PackCommon:
-		TNT1 A 0 A_SpawnItemEx("RS_CH_BonusEnemySingle",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
+		TNT1 A 0 A_SpawnItemEx("RS_Mon_BonusEnemySingle",0,0,0,random(77,120),0,random(-25,25),random(0,360),SXF_NOCHECKPOSITION);
 		Goto CoolDown;
 	CoolDown:
 		TNT1 A 150;

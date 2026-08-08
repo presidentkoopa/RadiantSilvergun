@@ -246,6 +246,23 @@ class RS_ST_StickyProjectile : Actor
 		return -1;
 	}
 
+	// What this sticks to, for the follow logic. NOT `master`.
+	//
+	// `master` used to hold it, and that would have quietly broken XP.
+	// Every RS projectile carries `master = the firing weapon` -- set at
+	// spawn in RS_Weapon (RS_FireProfileBullet / FireAffixPartRound /
+	// FireProfileHeavy) -- and GunBonsai reads exactly that pointer to
+	// decide which hand earned the damage
+	// (zscript/gunbonsai/EventHandler.zsc, the offhand attribution test).
+	// Overwriting it with the victim would make the round stop naming its
+	// firer, so its damage, its XP and its on-kill procs would fall
+	// through to whatever the fallback guessed.
+	//
+	// Latent rather than live -- nothing currently fires this class --
+	// which is the cheapest possible moment to fix it. A separate field
+	// costs nothing and leaves the sacred pointer alone.
+	Actor StuckTo;
+
 	void StickTo(Actor victim)
 	{
 		if (Stuck) return;
@@ -253,7 +270,7 @@ class RS_ST_StickyProjectile : Actor
 		bNoGravity = true;
 		bMissile = false;
 		vel = (0, 0, 0);
-		master = victim;
+		StuckTo = victim;
 		if (StickFuse > 0) SetStateLabel("Detonate");
 	}
 

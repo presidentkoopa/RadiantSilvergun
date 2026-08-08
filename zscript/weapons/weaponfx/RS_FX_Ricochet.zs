@@ -24,11 +24,19 @@ class RS_RicochetBullet : Actor
 		RenderStyle "Add";
 		Alpha 0.8;
 	}
+	// NoDelay: without it the engine skips this frame's action on the tic
+	// the actor spawns, so the spark never appeared. The sound survived
+	// only because it sat on the SECOND frame.
+	//
+	// Whether this actor exists at all is now decided by the puff, which
+	// asks RS_Material whether the surface can ricochet and then rolls
+	// for it. Reaching this state means a ricochet genuinely happened,
+	// so the sound is unconditional HERE and correct.
 	States
 	{
 	Spawn:
-		TNT1 "A" 0 A_CustomMissile("RS_SparkXNoModel", 2, 0, Random(0, 360), 2, Random(0, 360));
-		TNT1 A 0 A_PlaySound("rs_fx_ricochet");
+		TNT1 A 0 NoDelay A_SpawnProjectile("RS_SparkXNoModel", 2, 0, random(0, 360), CMF_AIMDIRECTION, random(0, 360));
+		TNT1 A 0 A_StartSound("rs_fx_ricochet", CHAN_AUTO);
 		RSU0 A 2;
 		Stop;
 	}
@@ -39,9 +47,9 @@ class RS_RicochetShell : RS_RicochetBullet
 	States
 	{
 	Spawn:
-		TNT1 A 0 A_CustomMissile("RS_ShotgunParticles", 2, 0, Random(0, 360), 2, Random(0, 360));
-		TNT1 A 0 A_CustomMissile("RS_ShotgunParticles2", 2, 0, Random(0, 360), 2, Random(0, 360));
-		TNT1 A 0 A_PlaySound("rs_fx_ricochet");
+		TNT1 A 0 NoDelay A_SpawnProjectile("RS_ShotgunParticles", 2, 0, random(0, 360), CMF_AIMDIRECTION, random(0, 360));
+		TNT1 A 0 A_SpawnProjectile("RS_ShotgunParticles2", 2, 0, random(0, 360), CMF_AIMDIRECTION, random(0, 360));
+		TNT1 A 0 A_StartSound("rs_fx_ricochet", CHAN_AUTO);
 		RSU0 A 2;
 		Stop;
 	}

@@ -55,6 +55,10 @@ register
   TFLV_Upgrade_RS_ArachPlasma
   TFLV_Upgrade_RS_Swarm
   TFLV_Upgrade_RS_Nova
+  # SALVAGE -- installs a captured monster round as an extra beat in the
+  # weapon's firing rotation. The only card that reaches RS_PACKCatalog's
+  # 409 projectiles; without it the whole PACK apparatus is unreachable.
+  TFLV_Upgrade_RS_Salvage
   # Wave D2 general lane (docs/rs_11 candidate pool)
   TFLV_Upgrade_RS_PainTrain
   TFLV_Upgrade_RS_Momentum

@@ -32,7 +32,14 @@ class RS_GH_BFGShot : Actor
 		Damage 100;
 		Scale 0.9; Alpha 0.95; RenderStyle "Add";
 		+BRIGHT +FORCEXYBILLBOARD
-		DeathSound "BFGEXPLO";
+		// "BFGEXPLO" was defined NOWHERE -- not in SNDINFO, not a lump,
+		// not vanilla -- so this explosion was silent. An unresolved
+		// sound name in GZDoom is completely inert: no error, no
+		// warning, no log line, which is why it survived unnoticed.
+		//
+		// rs_fx_bfg_explode is the name that actually exists (SNDINFO:545,
+		// a $random over the four BFGEXPL1-4 takes already on disk).
+		DeathSound "rs_fx_bfg_explode";
 	}
 
 	void SetupStats(int finalDamage, double critChance)

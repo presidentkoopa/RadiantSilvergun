@@ -133,11 +133,27 @@ class RS_BallisticFired : FastProjectile
 			// trail bit keeps the streak facing the viewer -- which is what
 			// stops it going edge-on and vanishing in VR.
 			//
-			// Cost is 3 short-lived +NOINTERACTION +CLIENTSIDEONLY actors per
-			// two tics per round, same class as before; if this ever needs a
-			// budget it belongs on rs_fx_hifitier alongside the other density
-			// dials, not hardcoded here.
-			for (int i = 1; i <= 3; i++)
+			// NOW ON THE PERFORMANCE DIAL, as this comment always said it
+			// should be. Fixed 2026-08-07.
+			//
+			// This was the single highest-volume effect in the game and
+			// the ONLY one exempt from rs_fx_hifitier: 3 actors per 2 tics
+			// per round, and a round is per PELLET -- so one shotgun blast
+			// with 9 pellets was 27 actors every other tic for the whole
+			// flight. The heavy projectiles all gate their trails
+			// correctly (RS_FX_HeavyProjectiles.zs); only the bullet path
+			// didn't. Setting FX to Off left the worst offender running at
+			// full density, which made the dial look broken.
+			//
+			// Off = no trail at all. Standard = the single head bit, which
+			// is what this effect was before the layered version. Hi-Fi =
+			// the full three-bit tapered streak.
+			int tier = RS_HiFiFX.Tier();
+			if (tier == RS_HiFiFX.RSFX_OFF)
+				return;
+			int bits = (tier == RS_HiFiFX.RSFX_STANDARD) ? 1 : 3;
+
+			for (int i = 1; i <= bits; i++)
 			{
 				double f = i * 0.2;
 				let p = Spawn(trail, pos - (vel.x * f, vel.y * f, vel.z * f));
@@ -240,7 +256,7 @@ class RS_BallisticFired : FastProjectile
 		Loop;
 
 	Death:
-		TNT1 A 0 A_PlaySound("rs_fx_impact_bullet", CHAN_AUTO);
+		TNT1 A 0 A_StartSound("rs_fx_impact_bullet", CHAN_AUTO);
 		TNT1 A 0
 		{
 			Class<Actor> puff = ImpactPuffOverride ? ImpactPuffOverride : RS_Catalog.PUFF_Bullet();

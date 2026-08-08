@@ -7098,3 +7098,45 @@ Model VR_RocketLauncher
 
 	FrameIndex RLP1 A 0 0
 }
+
+
+// ============================================================================
+// RS_Grenade. Model + PBR set from E:\New folder\ART SOURCE\Models\weapons\
+// hud\Grenade. One static pose mapped to every frame both actors use --
+// deliberate, and it is why the throw tumbles convincingly: the spin is REAL
+// rotation applied in RS_GrenadeThrown.Tick (roll += 13, pitch += 7 per tic).
+// A sprite-frame cycle, which is what the source used, does nothing to a model.
+// ============================================================================
+Model RS_GrenadeThrown
+{
+	Path "models/weapons/hud/RS_Grenade"
+	Model 0 "nade.md3"
+	Skin 0 "nade.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	FrameIndex JGRN A 0 0
+	FrameIndex JGRN B 0 0
+	FrameIndex JGRN C 0 0
+	FrameIndex JGRN D 0 0
+	FrameIndex JGRN E 0 0
+	FrameIndex JGRN F 0 0
+	FrameIndex JGRN G 0 0
+}
+
+Model RS_Grenade
+{
+	Path "models/weapons/hud/RS_Grenade"
+	Model 0 "nade.md3"
+	Skin 0 "nade.png"
+	Scale 1.0 1.0 1.0
+	Offset 0.0 0.0 0.0
+	FrameIndex JHND A 0 0
+	FrameIndex JHND B 0 0
+	FrameIndex JHND C 0 0
+	FrameIndex JHND D 0 0
+	FrameIndex JHND E 0 0
+	FrameIndex JHND F 0 0
+	FrameIndex JHND G 0 0
+	FrameIndex JHND H 0 0
+	FrameIndex JGND D 0 0
+}

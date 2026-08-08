@@ -410,10 +410,26 @@ class RS_AttackProfile : Object
 		return p;
 	}
 
+	// ammoCost DEFAULTS TO 1, not 0. Changed 2026-08-07.
+	//
+	// It used to default to 0, and MakeBullet/MakeHitscan beside it both
+	// default to 1 -- so heavy was the one factory where forgetting the
+	// field gave you a free shot instead of a paid one. That is not
+	// hypothetical: it is exactly how the Rocket Launcher, Plasma Rifle
+	// and BFG9000 shipped with infinite ammo for a month. A_RS_FireSlot
+	// spends via the profile's AmmoCost and nothing else -- the vanilla
+	// Weapon.AmmoUse machinery is dead weight in this mod -- so a 0 there
+	// is a gun that fires forever, silently, with no error and no log.
+	//
+	// Verified safe: all 15 MakeHeavy call sites in the tree pass
+	// ammoCost explicitly, so this changes no current behaviour. It only
+	// makes the NEXT beat that forgets the field fail closed instead of
+	// open -- and a generated one (PACK, an affix) is the likeliest place
+	// for that to happen, since no human reads it.
 	static RS_AttackProfile MakeHeavy(
 		Class<Actor> proj = null,
 		sound fireSnd = "",
-		int ammoCost = 0,
+		int ammoCost = 1,
 		Class<Ammo> ammo = null,
 		bool bigMuzzle = true,
 		double spawnHeight = 0.0,

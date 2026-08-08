@@ -1,4 +1,28 @@
+> ## DO NOT TRUST THIS DOCUMENT. ASK THE OWNER.
+>
+> Nothing in `docs/` is authoritative -- not the handoffs, not the specs, not
+> the ones the owner asked for himself. This file describes what was true when
+> somebody wrote it, and this project has repeatedly proven that "true when
+> written" and "true now" are different things.
+>
+> Verify anything you are about to act on against the **disk**, the
+> **compiler**, or the **running game**. Ask the owner about anything to do
+> with scope, priority, or what to build next. Never inherit a task from a
+> document.
+>
+> *Banner added 2026-08-07 at the owner's instruction.*
+
 # ACS DECODE — `WVileEX.acs` + `CHACS2.acs` + the function libraries
+
+> **RS_MonsterAim.zs NO LONGER EXISTS.** It was deleted from the project on
+> 2026-08-05 (commit 5df0c013, the sweep that removed the import-era monster
+> files). Every reference below to `RS_MonsterAim.GetLeadAngle`,
+> `PredictInterceptPoint`, or `zscript/systems/RS_MonsterAim.zs:<line>` points
+> at a file that is not on disk. It is recoverable from git history if the
+> predictive-lead maths is ever wanted again -- but do NOT build against it as
+> though it were live. Noted 2026-08-07.
+
+
 
 Source read 2026-08-04 from `E:\New folder\ART SOURCE\CHP\source\`.
 Documentation only. Nothing in `zscript/` was written or edited.

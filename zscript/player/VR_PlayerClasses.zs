@@ -175,9 +175,36 @@ class VR_DualClassBase : DoomPlayer abstract
 	// under a pointing hand, so in the common case this is a couple of
 	// null checks per tic.
 	// -----------------------------------------------------------------
+	// The grenade charge lives here for the same reason the panel input
+	// does: PlayerThink runs BEFORE the weapon thinks, so a button read
+	// here is seen before CheckWeaponFire looks at it. An EventHandler's
+	// WorldTick runs AFTER (p_tick.cpp:175 then :178) -- which is exactly
+	// why RS_WheelPoC's input capture is a no-op.
+	//
+	// Created lazily rather than in PostBeginPlay so a player who never
+	// picks up a grenade never allocates it.
+	RS_GrenadeThrower mGrenade;
+
+	// The grappling hook rides here for exactly the same reason: it reads
+	// BT_USER1 out of original_cmd, and that read has to happen before
+	// CheckWeaponFire looks at the button, or firing the hook could also
+	// discharge whatever is in your hands.
+	//
+	// Unlike the grenade this is NOT lazy-on-pickup -- the hook is a
+	// default mechanic with no pickup at all, so every player has one
+	// from their first tic.
+	RS_HookThrower mHook;
+
 	override void PlayerThink()
 	{
 		RS_PanelInput.Capture(self);
+
+		if (!mGrenade) mGrenade = new("RS_GrenadeThrower");
+		mGrenade.Update(self);
+
+		if (!mHook) mHook = new("RS_HookThrower");
+		mHook.Update(self);
+
 		Super.PlayerThink();
 	}
 }

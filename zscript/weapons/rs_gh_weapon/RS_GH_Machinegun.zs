@@ -159,7 +159,7 @@ class RS_GH_Machinegun : RS_Weapon
 		GunBonaiSockets = RS_Roll.SocketsForTier(t);
 
 		if (!bStatsRolled)
-			Condition = RS_Roll.RollDouble(1, 100);
+			Condition = RS_Roll.RollDouble(RS_Roll.STARTING_CONDITION_MIN, 100);
 
 		bStatsRolled = true;
 	}

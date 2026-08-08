@@ -14,6 +14,52 @@
 // ancestor to hang common state on.
 class RS_BitUtil
 {
+	// -----------------------------------------------------------------
+	// IS THIS ACTOR A BIT? Lives HERE, with the bits, because it is a
+	// fact about bits and nothing else.
+	//
+	// Two unrelated systems ask: the grappling hook (which sweeps loose
+	// bits toward the player on every shot) and bit-repellent (a player
+	// curse that pushes them away). Neither of those owns the answer and
+	// neither should have to ask the other -- an earlier version had the
+	// hook calling into the curse system purely to run this test, which
+	// coupled a default mechanic to an optional one for no reason.
+	//
+	// Named explicitly rather than testing a shared base: Health,
+	// BasicArmorBonus, CustomInventory and Inventory are four unrelated
+	// engine bases (see the classes below), so there IS no common
+	// ancestor to test against.
+	// -----------------------------------------------------------------
+	static bool IsBit(Actor mo)
+	{
+		return mo is "RS_Bit_Health"
+		    || mo is "RS_Bit_Armor"
+		    || mo is "RS_Bit_Ammo"
+		    || mo is "RS_Bit_Grey"
+		    || mo is "RS_Bit_Gold"
+		    || mo is "RS_Bit_Curse";
+	}
+
+	// -----------------------------------------------------------------
+	// BLIND (OFFHAND) -- the bit is still there, you just cannot see it.
+	//
+	// Owner ruling 2026-08-07: "offhand blind hides bit drops - they're
+	// there but you cnt see them". So this hides the SPRITE and nothing
+	// else: the pickup still works, the expiry still runs, the hook still
+	// sweeps it in. You can walk over a bit you cannot see and get it.
+	//
+	// Called from every bit's Tick alongside TickLife, which is the one
+	// path all six bit classes already share -- they have four unrelated
+	// engine base classes between them, so a common override is not
+	// available.
+	// -----------------------------------------------------------------
+	static void ApplyBlind(Actor bit)
+	{
+		if (!bit) return;
+		let mo = players[consoleplayer].mo;
+		bit.bInvisible = mo && RS_CurseLedger.BitsHidden(mo);
+	}
+
 	static bool TickLife(in out int bitLife)
 	{
 		int ticks = CVar.GetCVar("rs_bits_life_ticks", null).GetInt();
@@ -72,8 +118,27 @@ class RS_KillRewardsHandler : EventHandler
 		// (Note the check above gates on bIsMonster only and never
 		// looked at bCOUNTKILL, which is why both cases paid out before
 		// this existed.)
-		let rsmon = RS_SystemsMaster(a);
-		if (rsmon && (rsmon.IsSummonedMinion() || rsmon.IsTransientStage()))
+		// SUMMONS PAY NOTHING -- same rule and the same single source as
+		// RS_Score, so the two systems cannot disagree about what a kill
+		// is worth. The RS_SystemsMaster cast that stood here was dead
+		// code: nothing implements that contract.
+		if (!RS_SummonMarker.PaysRewards(a))
+			return;
+
+		// C01 (Dark Red) elite REMAINS never pay. Owner ruling 2026-08-07.
+		//
+		// C01's whole gimmick is that it returns unless you destroy the
+		// corpse it leaves behind, so that corpse is +ISMONSTER +SHOOTABLE
+		// with real health -- which means killing it fires WorldThingDied
+		// and passes the bIsMonster gate above, paying bits a second time
+		// for the same elite. Every C01 in the game was worth two payouts.
+		//
+		// Fixed HERE rather than on the corpse actor: RS_EliteFX.zs is
+		// under the protected /monsters/-rule set and the corpse genuinely
+		// does need to be a shootable monster for the mechanic to work.
+		// The defect is in what the reward system counts, so that is where
+		// it is corrected. RS_Score.HandleKill carries the same exclusion.
+		if (a is "RS_EliteFX_Corpse")
 			return;
 
 		int bossMult = CVar.GetCVar("rs_bits_boss_mult", null).GetInt();
@@ -161,17 +226,64 @@ class RS_KillRewardsHandler : EventHandler
 				}
 			}
 
+			// PLAYER CURSE: `gold-drain` -- no Gold while it is on the
+			// hand that fired last. Suppressed at the SPAWN rather than
+			// by zeroing the weight, so the roll distribution for every
+			// other bit type is untouched: a cursed player gets the same
+			// number of bits, just never a gold one.
+			if (spawn == "RS_Bit_Gold" && GoldDrained())
+				spawn = "";
+
 			if (spawn != "")
+				a.A_SpawnItemEx(spawn, 0, 0, 32, random(1, 6), 0, random(1, 6), random(0, 360));
+
+			// Cured gold-drain: a chance at a second one.
+			if (spawn == "RS_Bit_Gold" && GoldDoubled())
 				a.A_SpawnItemEx(spawn, 0, 0, 32, random(1, 6), 0, random(1, 6), random(0, 360));
 		}
 
-		// Curse Bits: STUBBED OFF along with curse-rolling on Promote() --
-		// no point dropping currency with nothing to spend it on yet.
-		// `false &&` short-circuits the roll below without touching the
-		// cvar or the drop-chance math, so re-enabling is a one-word flip.
+		// CURSE BITS -- LIVE as of 2026-08-07.
+		//
+		// This was `if (false && ...)` for as long as curses had nothing
+		// to spend them on. Both curse pools now exist and both lift
+		// through RS_Curses.zs, so the currency has a sink and the stub
+		// is gone. Independent per-kill roll, outside the weighted pool
+		// above and not scaled by the batch settings -- deliberately
+		// rarer than the routine bits.
 		int curseChance = CVar.GetCVar("rs_bits_curse_chance", null).GetInt();
-		if (false && curseChance > 0 && random(1, 100) <= curseChance)
+		if (curseChance > 0 && random(1, 100) <= curseChance)
 			a.A_SpawnItemEx("RS_Bit_Curse", 0, 0, 32, random(1, 6), 0, random(1, 6), random(0, 360));
+	}
+
+	// Is the hand that most recently fired carrying `gold-drain`?
+	//
+	// Reads the LAST-FIRED hand rather than testing both, because that
+	// is the hand that made the kill -- the same stamp the death curse
+	// uses. Single-player read of players[consoleplayer]; this whole
+	// handler is already written against one local player.
+	static bool GoldDrained()
+	{
+		let mo = players[consoleplayer].mo;
+		if (!mo) return false;
+		let led = RS_CurseLedger.For(mo);
+		if (!led) return false;
+		return led.IsActive(RS_Curse.SlotOf(RS_Curse.FLAW_GOLDDRAIN, led.mLastFiredHand));
+	}
+
+	// LIFT REWARD, `gold-drain` cured: a chance for a kill to pay a
+	// SECOND gold bit. The inverse of "no gold at all", and the only
+	// shape available when a spawn is a yes/no rather than an amount.
+	//
+	// Rolled per spawned gold bit, so it composes with the weighting
+	// above instead of overriding it.
+	static bool GoldDoubled()
+	{
+		let mo = players[consoleplayer].mo;
+		if (!mo) return false;
+		let led = RS_CurseLedger.For(mo);
+		if (!led) return false;
+		double b = led.LiftBonus(RS_Curse.FLAW_GOLDDRAIN, led.mLastFiredHand);
+		return b > 0 && frandom(0, 1) < b;
 	}
 }
 
@@ -192,6 +304,7 @@ class RS_Bit_Ammo : CustomInventory
 	override void Tick()
 	{
 		Super.Tick();
+		RS_BitUtil.ApplyBlind(self);
 		if (RS_BitUtil.TickLife(bit_life))
 			Destroy();
 	}
@@ -269,6 +382,7 @@ class RS_Bit_Health : Health
 	override void Tick()
 	{
 		Super.Tick();
+		RS_BitUtil.ApplyBlind(self);
 		if (RS_BitUtil.TickLife(bit_life))
 			Destroy();
 	}
@@ -299,6 +413,7 @@ class RS_Bit_Armor : BasicArmorBonus
 	override void Tick()
 	{
 		Super.Tick();
+		RS_BitUtil.ApplyBlind(self);
 		if (RS_BitUtil.TickLife(bit_life))
 			Destroy();
 	}
@@ -312,15 +427,35 @@ class RS_Bit_Armor : BasicArmorBonus
 	}
 }
 
-// Repair currency -- accumulates in inventory like ammo, spent later via
-// RS_Weapon.RepairWithGreyBits() (the spend UI itself isn't built yet).
-// Deliberately NOT an instant-effect bit like Health/Armor/Ammo above --
-// no auto-activate, just stacks. Reuses the Health Bit's gem sprite,
-// recolored via STYLE_Shaded + SetShade instead of new art -- same
-// color-variant trick this project already uses elsewhere (monster
-// tiers), just without a TRNSLATE lump.
+// Repair currency. AUTOMATIC, NOT SPENT AT A VENDOR.
+//
+// Owner ruling 2026-08-07: "every 10 repair bits collected raises current
+// equipped wpn by 1 ... i don't want a menu where people spend them, that
+// seems wild." So there is no shop, no spend UI, no prompt: you pick
+// these up, and every tenth one quietly repairs what you are holding.
+//
+// This also closes a real dead end. RS_Weapon.RepairWithGreyBits() had
+// ZERO callers -- degradation ran all run (damage hits, hazard floors)
+// and nothing in the game could ever undo it, so weapons only ever
+// walked one direction, toward the backfire basement, while Grey Bits
+// piled up against a vendor that was never built.
+//
+// BOTH HANDS. Repair applies to the mainhand and the offhand together --
+// they wear down independently and separately, so repairing only the
+// "current" one would leave the offhand permanently rotting on a
+// dual-wield mod.
+//
+// Reuses the Health Bit's gem sprite, recolored via STYLE_Shaded +
+// SetShade instead of new art -- the same color-variant trick this
+// project uses for monster tiers, without a TRNSLATE lump.
 class RS_Bit_Grey : Inventory
 {
+	// How many pickups buy one point of Condition. NOT a second copy of
+	// the number -- RS_Roll already owns it as GREY_BITS_PER_CND_POINT
+	// (and it already read 10, exactly matching the ruling), so this
+	// tracks it and the two can never drift.
+	const REPAIR_PER_POINT = RS_Roll.GREY_BITS_PER_CND_POINT;
+
 	Default
 	{
 		Radius 10;
@@ -333,9 +468,61 @@ class RS_Bit_Grey : Inventory
 
 	int bit_life;
 
+	// Counts pickups toward the next repair. Lives on the ITEM class as a
+	// static-style counter carried by the owner's stack instead: see
+	// AttachToOwner below, which does the work at the moment of pickup
+	// rather than polling.
+	override bool HandlePickup(Inventory item)
+	{
+		bool handled = Super.HandlePickup(item);
+		if (item.GetClass() == "RS_Bit_Grey")
+			TryRepair();
+		return handled;
+	}
+
+	override void AttachToOwner(Actor other)
+	{
+		Super.AttachToOwner(other);
+		TryRepair();
+	}
+
+	// Every REPAIR_PER_POINT bits held, convert ten of them into one
+	// point of Condition on both equipped weapons.
+	//
+	// Consuming the ten (rather than checking Amount % 10) keeps this
+	// honest across save/load and means the counter can never drift out
+	// of step with what the player actually collected.
+	private void TryRepair()
+	{
+		if (!owner || !owner.player)
+			return;
+
+		while (Amount >= REPAIR_PER_POINT)
+		{
+			Amount -= REPAIR_PER_POINT;
+
+			// RepairWithGreyBits takes BITS, not points -- it divides by
+			// GREY_BITS_PER_CND_POINT internally. Handing it the ten we
+			// just consumed yields exactly +1 Condition.
+			bool any = false;
+			let main = RS_Weapon(owner.player.ReadyWeapon);
+			if (main) { main.RepairWithGreyBits(REPAIR_PER_POINT); any = true; }
+
+			let off = RS_Weapon(owner.player.OffhandWeapon);
+			if (off && off != main) { off.RepairWithGreyBits(REPAIR_PER_POINT); any = true; }
+
+			if (any)
+			{
+				owner.A_StartSound("rs_bit_repair", CHAN_AUTO,
+					CHANF_DEFAULT, 0.6);
+			}
+		}
+	}
+
 	override void Tick()
 	{
 		Super.Tick();
+		RS_BitUtil.ApplyBlind(self);
 		if (RS_BitUtil.TickLife(bit_life))
 			Destroy();
 	}
@@ -372,6 +559,7 @@ class RS_Bit_Gold : Inventory
 	override void Tick()
 	{
 		Super.Tick();
+		RS_BitUtil.ApplyBlind(self);
 		if (RS_BitUtil.TickLife(bit_life))
 			Destroy();
 	}
@@ -410,6 +598,7 @@ class RS_Bit_Curse : Inventory
 	override void Tick()
 	{
 		Super.Tick();
+		RS_BitUtil.ApplyBlind(self);
 		if (RS_BitUtil.TickLife(bit_life))
 			Destroy();
 	}

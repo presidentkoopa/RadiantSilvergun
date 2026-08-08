@@ -1,2 +1,6 @@
 # Testing/packaging output -- zipped up locally for Doom testing, not source.
 *.zip
+
+# Scratch listings of an external drive -- regenerable, machine-specific,
+# and they were going into every test zip. Untracked 2026-08-07.
+*.tmp

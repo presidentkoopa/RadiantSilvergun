@@ -452,6 +452,24 @@ no competing copy of either prefix exists anywhere else under `sprites/`
 the folder, and all 330 lumps are genuine raw Doom patches by magic byte.
 The Mancubus fireball and its explosion render on Ultimate Doom.
 
+**`APLS` AND `APBX` ADDED 2026-08-07 — THE SET IS NOW 337 IN 8 PREFIXES.**
+The owner authorised this out loud ("take sprites from doom2wad its mine")
+after a review found the Arach-Plasma affix invisible on Ultimate Doom:
+`RS_FX_AffixParts.zs` draws `APLS` (the Arachnotron plasma round, 2 lumps)
+and `APBX` (its impact burst, 5), and the Arachnotron is a Doom 2 monster,
+so neither prefix exists in `doom.wad` and neither was in the original
+extraction. Same method as the other 330 — raw patches out of the
+`S_START`/`S_END` range, `.lmp`, no PNG conversion — and verified
+byte-identical to the IWAD by MD5, 7/7, with no competing copy anywhere
+else under `sprites/`.
+
+The lesson worth keeping is not the seven lumps. It is that the compat
+set is only as complete as the list of prefixes someone thought to check,
+and that list came from the MONSTERS. `APLS`/`APBX` were missed because
+they are drawn by a WEAPON AFFIX, and nobody sweeping monster sprites
+would ever look there. If another Doom-2-only prefix turns up in weapon
+or FX code, it belongs here too.
+
 **Do not let a stale doc talk you out of shipped art.** A cataloguing pass
 this same day read THIS paragraph instead of the disk and reported the
 Common Revenant's signature missile as invisible on Doom 1. It is not. The

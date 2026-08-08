@@ -166,6 +166,25 @@ class RS_ST_EnergyShot : Actor
 		DeathSound "rs_st/bfg_explode";
 	}
 
+	// EXACT DAMAGE, like every other RS projectile. Added 2026-08-07.
+	//
+	// This is a plain Actor with `Damage 100` in its Default block, and
+	// the engine multiplies a missile's Damage by random(1,8) on impact
+	// (p_map.cpp) -- so if this class were ever fired it would land
+	// 100 to 800 from a "100 damage" round, and SetupStats' careful
+	// rolled figure would be multiplied on top of that too.
+	//
+	// Latent, not live: RS_Catalog exposes it as PROJ_ST_EnergyShot()
+	// but no profile draws it yet. That makes now the cheapest possible
+	// moment -- it is one profile edit away from being a 800-damage
+	// surprise.
+	override int DoSpecialDamage(Actor target, int damage, Name damagetype)
+	{
+		if (RolledDamage > 0)
+			return RolledDamage;
+		return Super.DoSpecialDamage(target, damage, damagetype);
+	}
+
 	void SetupStats(int finalDamage, double critChance)
 	{
 		RolledDamage = finalDamage;

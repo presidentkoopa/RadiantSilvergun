@@ -30,50 +30,76 @@
 
 class RS_ClassGating : EventHandler
 {
-	// RE-ENTRANCY GUARD, added 2026-08-06 after Dual_X classes hung the
-	// game on any map with a pickup near spawn (MG/GH never hit this --
-	// they return before reaching the code below, at the GetFamily()
-	// check).
+	// RE-ENTRANCY GUARD -- REBUILT 2026-08-07. Read this before touching it.
 	//
-	// Actor.Spawn fires WorldThingSpawned AGAIN, synchronously, for
-	// whatever it just spawned -- this file already learned that lesson
-	// once, for a DIFFERENT spawn site (RS_PanelDropHandler.mSpawningDrop,
-	// guarding RS_WeaponDrop's elite-drop payload). The pedestal-fill
-	// spawn below is a second site with the exact same shape and had no
-	// guard: the freshly-spawned replacement is not yet owned -- it is
-	// just sitting on the floor -- so NextMissingIdentity reports the
-	// SAME gap again, and the handler spawns another replacement, which
-	// fires the event again. Forever, inside one synchronous call chain.
-	// No error, no crash, no log line -- a hang, because the tic never
-	// finishes. Set before every Spawn call this file makes past the
-	// gating checks, cleared right after, on every exit path.
-	bool mFilling;
+	// This was a bool (`mFilling`) set immediately before every Actor.Spawn
+	// and cleared immediately after, on the belief -- stated in this file
+	// and repeated in RS_EliteDrop.zs -- that "Actor.Spawn fires
+	// WorldThingSpawned AGAIN, synchronously." IT DOES NOT, and that is
+	// why the freeze this guard was written to stop was never actually
+	// fixed. Verified in the engine source at E:\UZDXREMA:
+	//
+	//   * WorldThingSpawned is fired from exactly one place --
+	//     AActor::CallPostBeginPlay (src/playsim/p_mobj.cpp:5164-5167).
+	//   * CallPostBeginPlay is reached only from the FRESH-THINKER pass
+	//     (src/playsim/dthinker.cpp:602-611), driven by RunThinkers'
+	//     do-while at dthinker.cpp:152-160, which keeps ticking fresh
+	//     thinkers "until there are no new ones".
+	//
+	// So the event for anything we spawn arrives AFTER this handler has
+	// returned and already cleared the flag. A boolean window cannot
+	// possibly be open at delivery time, which made all three guards in
+	// this project dead code:
+	//
+	//   1. the pedestal fill below -- replacement spawns, its own deferred
+	//      event finds the same still-unowned gap, spawns another, forever
+	//      inside one tic's fresh-thinker walk. The tic never ends: a hard
+	//      freeze at map load on any Dual_X class near a weapon pickup.
+	//   2. TryRandomBFG -- its output classes ARE its input set, so every
+	//      reroll re-matches itself. Unbounded destroy+spawn until an
+	//      allocation fails; this is the "could not malloc" crash.
+	//   3. RS_EliteDrop's mSpawningDrop -- closed before the payload's
+	//      event lands, so elite drops fed straight into (1).
+	//
+	// A REFERENCE survives deferred delivery where a boolean cannot, so
+	// the guard is now a list of the actors this handler spawned. Each is
+	// claimed exactly once, when its event finally arrives, and removed.
+	// Sized-bounded by construction: one entry per spawn, one removal per
+	// event, and WorldUnloaded clears the rest.
+	Array<Actor> mOurSpawns;
 
-	// Which families the Dual_X class system actually filters on.
-	//
-	// ONLY the original seven. Every other family -- melee, launcher,
-	// energy, BFG, railgun, flamethrower -- is identity only and is never
-	// filtered, which keeps heavy ordnance universal (the documented
-	// design) and keeps the imported GunstarHeroes / MeatGrinder sets
-	// spawning for every class, exactly as they did when they all still
-	// returned EVR_Family_None.
-	//
-	// This is the ONE place that decides gated-vs-not. When the class
-	// system is redone so every weapon can be a candidate, change this
-	// function -- not GetFamily() on 30+ weapon files.
-	//
-	// Comparison chain, not a static const table: this engine build
-	// doesn't resolve `static const TYPE name[] = {...}` in a class body.
-	static bool IsGatedFamily(EVR_Family f)
+	// Record an actor we just spawned so its deferred WorldThingSpawned
+	// passes straight through. Call this at EVERY Actor.Spawn site that
+	// can produce something this handler would otherwise re-process.
+	void NoteOurSpawn(Actor a)
 	{
-		return f == EVR_Family_Pistol
-		    || f == EVR_Family_Revolver
-		    || f == EVR_Family_Rifle
-		    || f == EVR_Family_SMG
-		    || f == EVR_Family_Shotgun
-		    || f == EVR_Family_SuperShotgun
-		    || f == EVR_Family_Chaingun;
+		if (a) mOurSpawns.Push(a);
 	}
+
+	// True exactly once per noted actor -- the event it was waiting for.
+	private bool ClaimOurSpawn(Actor a)
+	{
+		if (!a) return false;
+		int i = mOurSpawns.Find(a);
+		if (i == mOurSpawns.Size()) return false;
+		mOurSpawns.Delete(i);
+		return true;
+	}
+
+	override void WorldUnloaded(WorldEvent e)
+	{
+		super.WorldUnloaded(e);
+		mOurSpawns.Clear();
+	}
+
+	// (IsGatedFamily() was removed 2026-08-07. It listed the seven
+	// families the class system filters on and had ZERO callers -- the
+	// real gate is `pc.GetFamily() == EVR_Family_None` in
+	// WorldThingSpawned below, which tests the PLAYER's family, not the
+	// pickup's. Its own comment called it "the ONE place that decides
+	// gated-vs-not" and told future sessions to edit it there instead of
+	// on 30+ weapon files; editing it would have done nothing at all.
+	// RS_Roll.zs carried the same claim and has been corrected too.)
 
 	// What a gated-out pickup leaves behind: reserve ammo for the class
 	// you're actually playing. Taken from the Dual_X-owned weapons'
@@ -92,8 +118,9 @@ class RS_ClassGating : EventHandler
 		if (f == EVR_Family_Chaingun)
 			return "VR_ChaingunAmmo";
 
-		// Not a gated family -- never reached from the handler below,
-		// which checks IsGatedFamily() first. Empty means "leave nothing".
+		// Not a gated family -- never reached, because the handler below
+		// returns early on EVR_Family_None and only the seven gated
+		// families can reach it. Empty means "leave nothing".
 		return "";
 	}
 
@@ -101,10 +128,11 @@ class RS_ClassGating : EventHandler
 	{
 		super.WorldThingSpawned(e);
 
-		// Our own re-entrant spawn, arriving back through the same event
-		// it was spawned from. See mFilling's declaration for why this
-		// exists and what happens without it.
-		if (mFilling) return;
+		// Our own spawn, arriving on a later tic through the same event it
+		// was spawned from. A reference, not a time window -- see
+		// mOurSpawns' declaration for the engine ordering that makes the
+		// window approach impossible.
+		if (ClaimOurSpawn(e.Thing)) return;
 
 		// AN ELITE DROP'S PAYLOAD IS EXEMPT FROM BOTH PASSES BELOW.
 		//
@@ -115,12 +143,17 @@ class RS_ClassGating : EventHandler
 		// the floor where the pedestal should have been. The Vanilla+ swap
 		// above would eat it too.
 		//
-		// The flag is set only for the duration of that one Spawn call
-		// (RS_EliteDrop.zs, RS_WeaponDrop.Create), so nothing else can slip
-		// through behind it. It lives on the handler because ZScript has no
-		// mutable statics.
-		let dh = RS_PanelDropHandler(EventHandler.Find("RS_PanelDropHandler"));
-		if (dh && dh.mSpawningDrop)
+		// RECOGNISED BY STATE, NOT BY A FLAG (2026-08-07). This used to
+		// read RS_PanelDropHandler.mSpawningDrop, a window opened around
+		// the payload's Actor.Spawn and closed "immediately and
+		// unconditionally" -- i.e. always shut by the time the deferred
+		// event actually arrived, so the exemption never once applied and
+		// every elite drop fed the fill loop below. The payload does not
+		// need a flag to be identifiable: RS_WeaponDrop.Create sets
+		// bSpecial=false and bNoInteraction=true on it BEFORE the event
+		// fires, and no ordinary floor pickup is ever non-interactive.
+		// That state is the exemption.
+		if (e.Thing && e.Thing.bNoInteraction)
 			return;
 
 		// Vanilla+ Options world-spawn substitution -- runs first, on the
@@ -129,22 +162,42 @@ class RS_ClassGating : EventHandler
 		// never reaches the gating check below at all.
 		//
 		// GUARDED, and this one is not theoretical. Every swap in here
-		// ends in Actor.Spawn, which re-fires this event synchronously --
-		// and TryRandomBFG's replacement is drawn from the SAME three
-		// classes it matches on (RS_GH_Unmaker / BFG10k / BFG9000), so
-		// its output always re-matches its own input. Unguarded that is
-		// unbounded spawning inside a single tic: no error, no crash,
-		// just memory consumed until an allocation fails. Same defect
-		// shape as the identity-fill spawn below, which is why the guard
-		// is the same flag rather than a second mechanism.
+		// ends in Actor.Spawn, and TryRandomBFG's replacement is drawn
+		// from the SAME three classes it matches on (RS_GH_Unmaker /
+		// BFG10k / BFG9000), so its output always re-matches its own
+		// input. Unguarded that is unbounded destroy+spawn: no error, no
+		// crash, just memory consumed until an allocation fails.
 		//
-		// Set around the whole TrySwap call, not around each Spawn: the
-		// spawns live on RS_VanillaPlusSwaps (a different class, static
-		// methods) and cannot reach this handler's field, so the guard
-		// belongs at the call site that can.
-		mFilling = true;
-		bool swapped = RS_VanillaPlusSwaps.TrySwap(e);
-		mFilling = false;
+		// The handler is now passed IN so each swap can register the
+		// actor it spawned (NoteOurSpawn) at the moment it creates it.
+		// The old code set a boolean around this whole call because the
+		// swaps live on a different class with static methods and could
+		// not reach this handler's field -- but a boolean was never going
+		// to survive until the deferred event arrived. Passing `self`
+		// costs nothing and makes the guard work.
+		// OWNERSHIP GUARD, AHEAD OF THE SWAP. Added 2026-08-07.
+		//
+		// TrySwapPair/TryRandomBFG match on the class NAME and a cvar, and
+		// then call e.Thing.Destroy() -- they never ask whether anybody is
+		// holding it. And a weapon handed straight into inventory DOES
+		// arrive here: GiveInventory spawns a real actor, so its
+		// WorldThingSpawned fires on the fresh-thinker pass with `owner`
+		// already set (p_mobj.cpp:5164 via dthinker.cpp:602-611).
+		//
+		// So any RS_GH_Chainsaw / SSG / RocketLauncher / Plasma / Minigun /
+		// Unmaker / BFG10k / BFG9000 that reached inventory by ANY route --
+		// an elite drop taken, a card grant, a console give -- could be
+		// deleted out of the player's hands and re-spawned on the floor at
+		// their feet, on the tic after they got it.
+		//
+		// The gating pass below has always had this guard (see the cast a
+		// few lines down); the swap pass ran in front of it without one.
+		// The swaps are meant for things lying on the floor, which is
+		// exactly what this checks.
+		if (e.Thing.owner)
+			return;
+
+		bool swapped = RS_VanillaPlusSwaps.TrySwap(e, self);
 		if (swapped)
 			return;
 
@@ -162,6 +215,27 @@ class RS_ClassGating : EventHandler
 		// same for every class and have nothing to fill.
 		let wep = Weapon(e.Thing);
 		if (!wep || wep.owner || wep.bMeleeWeapon)
+			return;
+
+		// A MONSTER'S OWN DROP IS NOT A PEDESTAL. Added 2026-08-07.
+		//
+		// This handler is for things the MAP placed. A weapon a monster
+		// dropped arrives through the same event, and without this check
+		// it was converted into the player's next missing class-weapon
+		// identity -- so killing one shotgunguy handed you a permanent
+		// arsenal slot, and the six-weapon set completed itself in the
+		// first map off hitscanner corpses.
+		//
+		// Worse, it defeated RS_NoMonsterDrops entirely: that handler
+		// suppresses the DROPPED item a tic later, but by then this code
+		// had already destroyed it and spawned a replacement with
+		// Actor.Spawn -- which carries no bTossed, so the replacement
+		// sailed straight through the suppressor.
+		//
+		// bTossed is set in exactly one place in the engine
+		// (Actor.A_DropItem), which makes it the honest test for "a
+		// monster dropped this". Owner ruling: only elites drop weapons.
+		if (wep.bTossed)
 			return;
 
 		// consoleplayer is deliberate, not a multiplayer oversight -- this
@@ -200,9 +274,7 @@ class RS_ClassGating : EventHandler
 		{
 			if (AllowBigGuns())
 			{
-				mFilling = true;
-				NormalizeHeavyOrdnance(wep);
-				mFilling = false;
+				NormalizeHeavyOrdnance(wep, self);
 				return;
 			}
 			// else fall through -- treated exactly like any other
@@ -219,29 +291,40 @@ class RS_ClassGating : EventHandler
 		// build (see CLAUDE.md) -- found and fixed three times
 		// elsewhere in this project already. Not worth a fourth.
 		// -------------------------------------------------------------
-		// RS_DIAG: temporary. This is the deep path only GATED (Dual_X)
-		// classes reach -- GH/MeatGrinder return at the GetFamily check
-		// above -- which makes it the prime suspect for a Dual_X-only
-		// failure. If this prints for the player's OWN starting weapons
-		// during spawn, this code is destroying and replacing inventory
-		// mid-grant, which is a very different thing from replacing a
-		// floor pickup.
-		Console.Printf("RS_DIAG gating: saw %s (owner=%s) mainhand=%s",
-			wep.GetClassName() .. "",
-			wep.owner ? "yes" : "NONE",
-			mainhand);
+		// SECOND, INDEPENDENT SAFETY NET against the fill loop.
+		//
+		// If this pickup is ALREADY one of the player's own identity
+		// classes, there is nothing to convert -- leave it on the floor
+		// and let them walk over it. This matters beyond tidiness: it is
+		// what makes the fill idempotent. Even if a replacement's event
+		// somehow reaches this point unclaimed, it now recognises itself
+		// as already-correct and stops, instead of spawning another copy
+		// of what it already is. Belt and braces, deliberately, because
+		// the failure mode here is a frozen game rather than a wrong
+		// number.
+		string here = wep.GetClassName();
+		if (here == mainhand
+		 || here == mainhand .. "2" || here == mainhand .. "3"
+		 || here == mainhand .. "4" || here == mainhand .. "5"
+		 || here == mainhand .. "6")
+			return;
 
 		string gap = NextMissingIdentity(pawn, mainhand);
 		if (gap != "")
 		{
-			Console.Printf("RS_DIAG gating: REPLACING %s -> %s%s",
-				wep.GetClassName() .. "", mainhand, gap);
-			mFilling = true;
 			let repl = Actor.Spawn(mainhand .. gap, wep.pos);
-			mFilling = false;
+			// Register BEFORE anything else can run: this actor's own
+			// WorldThingSpawned is already queued for the fresh-thinker
+			// pass and must find itself claimed when it arrives.
+			NoteOurSpawn(repl);
 			if (repl)
 				repl.angle = wep.angle;
-			wep.Destroy();
+			// Only consume the pedestal if we actually produced something
+			// to stand in its place. Spawn() returns null for an abstract
+			// class and prints one console line; destroying regardless
+			// would silently delete the pickup and leave bare floor.
+			if (repl)
+				wep.Destroy();
 			return;
 		}
 
@@ -249,15 +332,11 @@ class RS_ClassGating : EventHandler
 		// floor -- this is the old mismatch behaviour, unchanged, just
 		// reached by a different condition now. Ammo classes are never
 		// Weapon subclasses, so this one was never actually re-entrant
-		// -- guarded anyway, for the same reason the codebase avoids
-		// three narrow guards where one consistent rule reads clearer.
+		// -- noted anyway, for the same reason the codebase avoids three
+		// narrow guards where one consistent rule reads clearer.
 		string ammo = AmmoForFamily(pc.GetFamily());
 		if (ammo != "")
-		{
-			mFilling = true;
-			Actor.Spawn(ammo, wep.pos, ALLOW_REPLACE);
-			mFilling = false;
-		}
+			NoteOurSpawn(Actor.Spawn(ammo, wep.pos, ALLOW_REPLACE));
 		wep.Destroy();
 	}
 
@@ -287,7 +366,9 @@ class RS_ClassGating : EventHandler
 	// Vanilla Rocket/Plasma/BFG become this mod's own VR_ version, which
 	// carries this mod's stats instead of stock Doom damage. Already a
 	// VR_ pickup is left alone -- nothing to normalise.
-	static void NormalizeHeavyOrdnance(Weapon wep)
+	// Takes the handler so the replacement can be registered against its
+	// own deferred WorldThingSpawned -- see mOurSpawns.
+	static void NormalizeHeavyOrdnance(Weapon wep, RS_ClassGating h)
 	{
 		string vrName;
 		switch (wep.GetClassName())
@@ -298,9 +379,12 @@ class RS_ClassGating : EventHandler
 			default: return;
 		}
 		let repl = Actor.Spawn(vrName, wep.pos);
+		if (h) h.NoteOurSpawn(repl);
 		if (repl)
+		{
 			repl.angle = wep.angle;
-		wep.Destroy();
+			wep.Destroy();
+		}
 	}
 
 	// Which class-weapon identity this player is missing, in fill order.
@@ -350,7 +434,7 @@ class RS_VanillaPlusSwaps : Object
 		return "not-a-match";
 	}
 
-	static play bool TrySwapPair(WorldEvent e, string actualClass, string baseClass, string cvarName, string swapToClass)
+	static play bool TrySwapPair(WorldEvent e, RS_ClassGating h, string actualClass, string baseClass, string cvarName, string swapToClass)
 	{
 		string suffix = IdentitySuffix(actualClass, baseClass);
 		if (suffix == "not-a-match")
@@ -363,6 +447,7 @@ class RS_VanillaPlusSwaps : Object
 
 		string newClass = swapToClass .. suffix;
 		let repl = Actor.Spawn(newClass, e.Thing.pos);
+		if (h) h.NoteOurSpawn(repl);
 		if (repl)
 		{
 			repl.angle = e.Thing.angle;
@@ -378,7 +463,7 @@ class RS_VanillaPlusSwaps : Object
 	// underscore) is handled by IdentitySuffix the same as any other --
 	// "RS_GH_BFG9000" is just the base class string, digits after it are
 	// still 2..6 the same way.
-	static play bool TryRandomBFG(WorldEvent e, string actualClass)
+	static play bool TryRandomBFG(WorldEvent e, RS_ClassGating h, string actualClass)
 	{
 		let cv = CVar.GetCVar("rs_vp_randombfg", null);
 		if (!cv || !cv.GetBool())
@@ -398,6 +483,7 @@ class RS_VanillaPlusSwaps : Object
 		int roll = Random(0, 2);
 		string newClass = bases[roll] .. suffix;
 		let repl = Actor.Spawn(newClass, e.Thing.pos);
+		if (h) h.NoteOurSpawn(repl);
 		if (repl)
 		{
 			repl.angle = e.Thing.angle;
@@ -407,19 +493,19 @@ class RS_VanillaPlusSwaps : Object
 		return true;
 	}
 
-	static play bool TrySwap(WorldEvent e)
+	static play bool TrySwap(WorldEvent e, RS_ClassGating h)
 	{
 		if (!e.Thing)
 			return false;
 		string cls = e.Thing.GetClassName();
 
-		if (TryRandomBFG(e, cls))
+		if (TryRandomBFG(e, h, cls))
 			return true;
 
-		if (TrySwapPair(e, cls, "RS_GH_Chainsaw", "rs_vp_swap_flamethrower_chainsaw", "RS_GH_Flamethrower")) return true;
-		if (TrySwapPair(e, cls, "RS_GH_SSG", "rs_vp_swap_autoshotgun_ssg", "RS_GH_AssaultShotgun")) return true;
-		if (TrySwapPair(e, cls, "RS_GH_RocketLauncher", "rs_vp_swap_grenadelauncher_rocketlauncher", "RS_GH_GrenadeLauncher")) return true;
-		if (TrySwapPair(e, cls, "RS_GH_Plasma", "rs_vp_swap_railgun_plasmarifle", "RS_GH_Railgun")) return true;
+		if (TrySwapPair(e, h, cls, "RS_GH_Chainsaw", "rs_vp_swap_flamethrower_chainsaw", "RS_GH_Flamethrower")) return true;
+		if (TrySwapPair(e, h, cls, "RS_GH_SSG", "rs_vp_swap_autoshotgun_ssg", "RS_GH_AssaultShotgun")) return true;
+		if (TrySwapPair(e, h, cls, "RS_GH_RocketLauncher", "rs_vp_swap_grenadelauncher_rocketlauncher", "RS_GH_GrenadeLauncher")) return true;
+		if (TrySwapPair(e, h, cls, "RS_GH_Plasma", "rs_vp_swap_railgun_plasmarifle", "RS_GH_Railgun")) return true;
 
 		// Minigun has two independent possible substitutes.
 		string suf = IdentitySuffix(cls, "RS_GH_Minigun");
@@ -430,6 +516,7 @@ class RS_VanillaPlusSwaps : Object
 			if (c1 > 0 && Random(1, 100) <= c1)
 			{
 				let repl = Actor.Spawn("RS_GH_Rifle" .. suf, e.Thing.pos);
+				if (h) h.NoteOurSpawn(repl);
 				if (repl) { repl.angle = e.Thing.angle; Console.Printf("Vanilla+: world spawn swapped %s -> RS_GH_Rifle%s.", cls, suf); }
 				e.Thing.Destroy();
 				return true;
@@ -439,6 +526,7 @@ class RS_VanillaPlusSwaps : Object
 			if (c2 > 0 && Random(1, 100) <= c2)
 			{
 				let repl = Actor.Spawn("RS_GH_Machinegun" .. suf, e.Thing.pos);
+				if (h) h.NoteOurSpawn(repl);
 				if (repl) { repl.angle = e.Thing.angle; Console.Printf("Vanilla+: world spawn swapped %s -> RS_GH_Machinegun%s.", cls, suf); }
 				e.Thing.Destroy();
 				return true;

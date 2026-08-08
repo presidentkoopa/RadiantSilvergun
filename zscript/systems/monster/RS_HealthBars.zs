@@ -646,6 +646,23 @@ class RS_HPBar : RS_HPBarBase
 			if (cvEnable && !cvEnable.GetInt())
 				bInvisible = true;
 
+			// PLAYER CURSE: `mainhand-blind` -- you cannot see monster
+			// health. Owner ruling 2026-08-07: "main hand blind hides
+			// monster hp bars, offhand blind hides bit drops - they're
+			// there but you cnt see them".
+			//
+			// Same visibility-flag treatment as the master switch above,
+			// and for the same reason: lifting the curse must restore the
+			// bars instantly, without waiting for anything to respawn.
+			//
+			// EDIT AUTHORISED BY THE OWNER, IN SESSION, 2026-08-07. This
+			// file sits under the protected `/systems/monster/**` path and
+			// is not to be touched otherwise; he was asked and answered
+			// "changfe healthbars.zs ... it isnt an actualt monster monster
+			// it is just a zs file under the folder."
+			if (RS_CurseLedger.HealthBarsHidden())
+				bInvisible = true;
+
 			// "Allow Stealth" already applied by RS_HPBarBase.Tick, on
 			// this actor and on the chip independently.
 

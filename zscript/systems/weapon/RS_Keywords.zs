@@ -11,11 +11,26 @@
 
 class RS_Keywords
 {
+	// CASE FOLD. Every comparison in this system goes through here.
+	//
+	// The trap this closes: ZScript is case-INSENSITIVE for class names
+	// and state labels, so everything else in this project can be written
+	// in any case and still resolve -- but String `==` is case-SENSITIVE.
+	// So the first affix author who writes GrantKeyword("Payload", "Multi")
+	// instead of ("payload", "multi") gets a keyword that stores fine,
+	// reads back fine, and matches NOTHING. No error, no warning, an affix
+	// that simply does nothing. Every call site today happens to be
+	// lowercase, which is exactly why it has never been caught.
+	static string Norm(string s)
+	{
+		return s.MakeLower();
+	}
+
 	static bool StringHas(string kwString, string key, string value)
 	{
 		Array<string> tokens;
-		kwString.Split(tokens, " ");
-		string needle = key .. ":" .. value;
+		Norm(kwString).Split(tokens, " ");
+		string needle = Norm(key) .. ":" .. Norm(value);
 		for (int i = 0; i < tokens.Size(); i++)
 			if (tokens[i] == needle)
 				return true;
@@ -27,8 +42,8 @@ class RS_Keywords
 	static string GetValue(string kwString, string key)
 	{
 		Array<string> tokens;
-		kwString.Split(tokens, " ");
-		string prefix = key .. ":";
+		Norm(kwString).Split(tokens, " ");
+		string prefix = Norm(key) .. ":";
 		string result = "";
 		for (int i = 0; i < tokens.Size(); i++)
 			if (tokens[i].Left(prefix.Length()) == prefix)
@@ -39,8 +54,8 @@ class RS_Keywords
 	static void GetValues(string kwString, string key, out Array<string> results)
 	{
 		Array<string> tokens;
-		kwString.Split(tokens, " ");
-		string prefix = key .. ":";
+		Norm(kwString).Split(tokens, " ");
+		string prefix = Norm(key) .. ":";
 		for (int i = 0; i < tokens.Size(); i++)
 			if (tokens[i].Left(prefix.Length()) == prefix)
 				results.Push(tokens[i].Mid(prefix.Length()));

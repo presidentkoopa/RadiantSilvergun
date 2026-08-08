@@ -333,10 +333,26 @@ class TFLV_Upgrade_RS_Ghost : TFLV_Upgrade_RS_SlateBase
 // ---------------------------------------------------------------------
 class TFLV_Upgrade_RS_Cacospit : TFLV_Upgrade_RS_SlateBase
 {
-	// -1 = not yet rolled. Rolled exactly once per upgrade instance --
-	// GB persists this object for the weapon's whole life, so the
-	// wardrobe roll is permanent until Promotion strips the affix.
-	int WardrobeRoll;
+	// THE ROLL, and a separate flag saying whether it has happened.
+	//
+	// This used to be "-1 = not yet rolled" on WardrobeRoll alone, and
+	// that sentinel could never be observed: ZScript zero-initialises a
+	// new object's fields, so a fresh Cacospit arrives with
+	// WardrobeRoll == 0, and the guard below (`< 0 || > 1`) read that as
+	// an already-made roll of zero. Random(0,1) therefore NEVER RAN.
+	// Every Cacospit gun in the game got family A (RS_AffixCacoBall),
+	// and RS_AffixFireWisp was unreachable content -- defined, spawnable,
+	// referenced by the parts file, and impossible to ever see.
+	//
+	// The Init() below that sets -1 has zero callers anywhere in the
+	// tree (GB constructs upgrades with a bare new()), so it could not
+	// rescue it either.
+	//
+	// A bool cannot be faked by zero-init the way a sentinel value can:
+	// false is exactly "not rolled yet", which is the truth for a fresh
+	// object.
+	int  WardrobeRoll;
+	bool WardrobeRolled;
 
 	override string KeyAxis() { return "element"; }
 
@@ -355,8 +371,11 @@ class TFLV_Upgrade_RS_Cacospit : TFLV_Upgrade_RS_SlateBase
 
 	override void ExtraActivate(RS_Weapon wpn)
 	{
-		if (WardrobeRoll < 0 || WardrobeRoll > 1)
+		if (!WardrobeRolled)
+		{
 			WardrobeRoll = Random(0, 1);
+			WardrobeRolled = true;
+		}
 		wpn.AffixProjectile = (WardrobeRoll == 0)
 			? (Class<Actor>)("RS_AffixCacoBall")
 			: (Class<Actor>)("RS_AffixFireWisp");
@@ -387,9 +406,17 @@ class TFLV_Upgrade_RS_Cacospit : TFLV_Upgrade_RS_SlateBase
 	}
 
 	// Fresh roll if this affix is ever re-taken after a Promotion strip.
+	//
+	// NOTE: this has no callers -- GunBonsai builds upgrades with a bare
+	// new() (Registry.zsc, WeaponInfo.zsc), so it has never run. It is
+	// kept because it is correct and harmless, and because a Promotion
+	// strip destroys the upgrade object anyway: the replacement arrives
+	// with WardrobeRolled false and re-rolls on its own. If a future
+	// construction path ever wants an explicit reset, this is it.
 	TFLV_Upgrade_RS_Cacospit Init()
 	{
-		WardrobeRoll = -1;
+		WardrobeRoll = 0;
+		WardrobeRolled = false;
 		return self;
 	}
 }

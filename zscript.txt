@@ -9,6 +9,13 @@ version "4.14"
 // ALSO be in MAPINFO.txt's AddEventHandlers.
 #include "zscript/systems/weapon/RS_Condition.zs"
 #include "zscript/systems/player/RS_Bits.zs"
+
+// RS_Curses -- the PLAYER half of the curse system (the eight flaws,
+// hand-scoped) plus the run-wide Divine ledger that BOTH pools report
+// into. The weapon half (the five stat-locks) lives on RS_Weapon.
+// RS_CurseHandler is an EventHandler and is in MAPINFO's list.
+// Must load AFTER RS_Bits -- RS_CurseLedger.IsBit names the bit classes.
+#include "zscript/systems/player/RS_Curses.zs"
 #include "zscript/systems/score/RS_Score.zs"
 
 // World-space health bars over monsters. Reads
@@ -381,6 +388,15 @@ version "4.14"
 // and one projectile with a continuous charge -- and your deployed gun
 // is never touched.
 #include "zscript/weapons/rs_weapon/RS_Grenade.zs"
+
+// RS_Hook -- the grappling hook. A DEFAULT MECHANIC, not a pickup:
+// always available, on BT_USER1. Wall hit pulls YOU, body hit pulls IT,
+// and every shot sweeps loose bits toward you regardless of what it
+// hits. Rebuilt in ZScript from a reference that needed an ACS library
+// and 47 lines of DECORATE -- almost all of that ACS was TID plumbing
+// to work around not being able to hold a pointer to an actor, which
+// ZScript simply has. No ACS, no loadacs, no dependency.
+#include "zscript/weapons/rs_weapon/RS_Hook.zs"
 
 
 // --- GunstarHeroes set (RS_GH_) -- imported from the HB arsenal,

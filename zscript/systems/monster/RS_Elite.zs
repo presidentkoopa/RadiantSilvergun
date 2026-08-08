@@ -249,10 +249,43 @@ class RS_EliteHandler : EventHandler
 			return;
 		}
 
+		let tok = RS_EliteToken(mon.FindInventory("RS_EliteToken"));
+
+		// =============================================================
+		// THE ARCHVILE BYPASS, CLOSED 2026-08-07 at the owner's order.
+		//
+		// A vile raises a corpse to its CLASS SpawnHealth -- the plain,
+		// unboosted number. An elite's reveal fires at boostedHealth/2,
+		// and boostedHealth is 300% of SpawnHealth. So a raised elite
+		// came back at 100% while its reveal line sat at 150%, which
+		// means it revealed INSTANTLY, on its first tic, at full health.
+		//
+		// What that bought the player: kill an elite before it reveals
+		// and the contract says you get nothing -- you never knew it was
+		// one. But let a vile raise it and it immediately reveals, hands
+		// you the full-heal spectacle, and becomes a payable drop. A
+		// no-payout kill laundered into a payout by standing next to an
+		// archvile. Worse, it also skipped the whole "fight it down to
+		// half" beat the reveal is supposed to reward.
+		//
+		// The fix is to raise it back to what it WAS: a hidden elite at
+		// its boosted health. It has to be fought down again, and the
+		// contract holds either way -- kill it fast the second time and
+		// it still pays nothing.
+		//
+		// A revealed elite is left alone: DoEffect below already rebuilds
+		// its controller and re-applies its damage multiplier, and it is
+		// SUPPOSED to come back dangerous.
+		// =============================================================
+		if (tok && !tok.revealed && tok.boostedHealth > 0)
+		{
+			mon.health = tok.boostedHealth;
+			mon.A_SpawnItemEx("RS_EliteFX_WakeFire");
+		}
+
 		// A raised C01 was parked with its hiding flags still set (the
 		// remains-destroyed death path leaves them on the corpse) --
 		// give it its body back, or it returns invisible and unshootable.
-		let tok = RS_EliteToken(mon.FindInventory("RS_EliteToken"));
 		if (tok && tok.colorId == RSET_E01)
 		{
 			mon.bSOLID = mon.default.bSOLID;

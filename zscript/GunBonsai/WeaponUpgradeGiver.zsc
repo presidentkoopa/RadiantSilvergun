@@ -19,6 +19,44 @@ class TFLV_WeaponUpgradeGiver : TFLV_UpgradeGiver {
       wielded, candidates, rsExtraCards);
   }
 
+  // ADD a card to the current offer without disturbing the ones already
+  // on screen. RS GRAFT, 2026-08-07.
+  //
+  // "ANOTHER CARD" used to call CreateUpgradeCandidates(), which clears
+  // and redraws the whole list -- so the player paid 12+ Gold Bits for
+  // one extra option and the cards they were reading vanished and were
+  // replaced by different ones. The label says "another card"; it has to
+  // mean another card.
+  //
+  // Draws a fresh pool, then appends only entries the player is not
+  // already being offered. Falls back gracefully when the pool is
+  // exhausted (a narrow weapon with few eligible upgrades simply gets
+  // nothing new, rather than a reshuffle).
+  void RS_AddCandidate() {
+    Array<TFLV_Upgrade_BaseUpgrade> kept;
+    for (uint i = 0; i < candidates.size(); ++i) kept.push(candidates[i]);
+
+    candidates.clear();
+    TFLV_Upgrade_Registry.GetRegistry().GenerateUpgradesForWeapon(
+      wielded, candidates, rsExtraCards);
+
+    // Everything the player was already looking at goes back, in order.
+    Array<TFLV_Upgrade_BaseUpgrade> merged;
+    for (uint i = 0; i < kept.size(); ++i) merged.push(kept[i]);
+
+    // Then the first genuinely new one from the fresh draw.
+    for (uint i = 0; i < candidates.size(); ++i) {
+      bool dupe = false;
+      for (uint j = 0; j < kept.size(); ++j) {
+        if (candidates[i].GetClassName() == kept[j].GetClassName()) { dupe = true; break; }
+      }
+      if (!dupe) { merged.push(candidates[i]); break; }
+    }
+
+    candidates.clear();
+    for (uint i = 0; i < merged.size(); ++i) candidates.push(merged[i]);
+  }
+
   void InstallUpgrade(int index) {
     if (index < 0) {
       wielded.RejectLevelUp();

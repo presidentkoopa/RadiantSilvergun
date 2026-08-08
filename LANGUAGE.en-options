@@ -127,3 +127,289 @@ TFLV_OPT_LDMODE_3 = "all weapons";
 TFLV_OPT_SLIDER_DISABLED = "Disabled";
 TFLV_OPT_SLIDER_ALLUPGRADES = "All available upgrades";
 TFLV_OPT_SLIDER_NOUPGRADES = "Upgrades disabled";
+
+// =====================================================================
+// RADIANT SILVERGUN OPTION STRINGS
+//
+// Everything above this line is the vendored Gun Bonsai file and keeps
+// its TFLV_ namespace so it stays a clean drop-in against upstream.
+// RS-authored rows use RS_OPT_ and the same four shapes upstream uses:
+//
+//   RS_OPT_TITLE_x    a page title
+//   RS_OPT_HEADER_x   a section header inside a page
+//   RS_OPT_NAME_x     the row's own label
+//   RS_OPT_TT_x       the explanatory line(s) under a row. This project
+//                     has no TFLV_Tooltip outside the Gun Bonsai pages,
+//                     so a "tooltip" here is a DarkGray StaticText and
+//                     must fit one menu line -- keep them short, and
+//                     split a long one into _1 / _2 rather than relying
+//                     on wrapping that does not happen.
+//   RS_OPT_ENUM_x_n   one entry of an OptionValue list
+//
+// Every key below is referenced from MENUDEF.txt. Nothing here is read
+// by ZScript.
+// =====================================================================
+
+// --- Score & HUD : front page ----------------------------------------
+RS_OPT_TITLE_SCOREHUD = "Score & HUD";
+RS_OPT_TT_SCOREHUD_1 = "Where the arcade readout sits, how big it is, and";
+RS_OPT_TT_SCOREHUD_2 = "what colour each part of it draws in.";
+
+RS_OPT_NAME_HUD_ENABLE = "Show Score Readout";
+RS_OPT_NAME_HUD_AUTOMAP = "Show On Automap";
+RS_OPT_NAME_HUD_ALPHA = "Opacity (%)";
+RS_OPT_NAME_HUD_PRESET = "Placement";
+RS_OPT_TT_HUD_PRESET_1 = "The named spots are chosen not to collide with the";
+RS_OPT_TT_HUD_PRESET_2 = "two weapon XP widgets. Custom uses your own numbers.";
+RS_OPT_NAME_HUD_ALIGN = "Text Alignment";
+RS_OPT_TT_HUD_ALIGN = "Auto follows the placement -- a side spot reads inward.";
+
+RS_OPT_HEADER_HUD_ELEMENTS = "Which Parts Show";
+RS_OPT_NAME_HUD_SHOWSCORE = "Score Number";
+RS_OPT_NAME_HUD_LABEL = "\"Score:\" Label";
+RS_OPT_NAME_HUD_SHOWBAR = "Reward Bar";
+RS_OPT_NAME_HUD_BARFRAME = "Bar Frame";
+RS_OPT_NAME_HUD_BARNUMBERS = "Numbers Under The Bar";
+RS_OPT_NAME_HUD_REWARDLABEL = "Name The Next Reward";
+RS_OPT_TT_HUD_REWARDLABEL = "Says \"Extra Life\" or \"Ammo\" instead of only colour.";
+RS_OPT_NAME_HUD_SHOWLIVES = "Extra Life Pips";
+RS_OPT_NAME_HUD_SHOWBONUSES = "Bonus Popups";
+RS_OPT_NAME_HUD_SHOWBASE = "Base Points Line";
+RS_OPT_NAME_HUD_SHOWSPREE = "Spree Counter";
+RS_OPT_TT_HUD_SHOWSPREE = "Off by default -- it changes how the readout reads.";
+RS_OPT_NAME_HUD_FLASH = "Flash On Score";
+RS_OPT_NAME_HUD_FLASHTIME = "Flash Length -- Tics";
+
+RS_OPT_HEADER_HUD_PAGES = "Presentation";
+RS_OPT_NAME_HUD_SUB_LAYOUT = "Position & Scale...";
+RS_OPT_NAME_HUD_SUB_COLOURS = "Colours...";
+RS_OPT_NAME_HUD_SUB_BAR = "Reward Bar Look...";
+RS_OPT_NAME_HUD_SUB_BONUS = "Bonus Stack...";
+RS_OPT_NAME_HUD_SUB_SPREE = "Spree Counter...";
+
+RS_OPT_ENUM_PRESET_0 = "Custom -- use the numbers below";
+RS_OPT_ENUM_PRESET_1 = "Top Centre, under the XP band";
+RS_OPT_ENUM_PRESET_2 = "Upper Left, under the mainhand widget";
+RS_OPT_ENUM_PRESET_3 = "Upper Right, under the offhand widget";
+RS_OPT_ENUM_PRESET_4 = "Lower Centre, above the status bar";
+RS_OPT_ENUM_PRESET_5 = "Lower Left";
+RS_OPT_ENUM_PRESET_6 = "Lower Right";
+RS_OPT_ENUM_PRESET_7 = "Left Flank";
+RS_OPT_ENUM_PRESET_8 = "Right Flank";
+
+RS_OPT_ENUM_ALIGN_0 = "Auto -- follows the placement";
+RS_OPT_ENUM_ALIGN_1 = "Centred";
+RS_OPT_ENUM_ALIGN_2 = "Left";
+RS_OPT_ENUM_ALIGN_3 = "Right";
+
+// --- Score & HUD : position and scale --------------------------------
+RS_OPT_TITLE_HUDLAYOUT = "Position & Scale";
+RS_OPT_TT_HUDLAYOUT_1 = "The anchor moves the whole readout. Each group below";
+RS_OPT_TT_HUDLAYOUT_2 = "then sits at its own offset from that anchor.";
+RS_OPT_HEADER_HUD_ANCHOR = "Anchor -- moves everything together";
+RS_OPT_NAME_HUD_X = "Horizontal (%)";
+RS_OPT_NAME_HUD_Y = "Vertical (%)";
+RS_OPT_NAME_HUD_SCALE = "Scale (%)";
+RS_OPT_TT_HUD_ANCHOR = "The two percentages apply on Custom placement only.";
+RS_OPT_HEADER_HUD_G_SCORE = "Score Number";
+RS_OPT_HEADER_HUD_G_BAR = "Reward Bar";
+RS_OPT_HEADER_HUD_G_UNDER = "Numbers Under The Bar";
+RS_OPT_HEADER_HUD_G_BONUS = "Bonus Stack";
+RS_OPT_HEADER_HUD_G_LIVES = "Extra Life Pips";
+RS_OPT_HEADER_HUD_G_SPREE = "Spree Counter";
+RS_OPT_NAME_HUD_OFF_X = "Across";
+RS_OPT_NAME_HUD_OFF_Y = "Down";
+RS_OPT_NAME_HUD_G_SCALE = "Size (%)";
+RS_OPT_TT_HUD_NUDGE = "Offsets are in the readout's own 640x480 space.";
+RS_OPT_TT_HUD_RESET = "The shipped values are a set -- moving one group a";
+RS_OPT_TT_HUD_RESET2 = "long way without the others pulls the widget apart.";
+RS_OPT_NAME_BAR_WIDTH = "Bar Width";
+RS_OPT_NAME_BAR_HEIGHT = "Bar Height";
+RS_OPT_NAME_COMBO_GAP = "Amount / Name Column Gap";
+RS_OPT_NAME_COMBO_LINEH = "Line Height";
+RS_OPT_NAME_COMBO_UP = "Stack Upward";
+RS_OPT_TT_COMBO_UP = "For a readout parked near the bottom of the screen.";
+
+// --- Score & HUD : colours -------------------------------------------
+RS_OPT_TITLE_HUDCOLOURS = "Score Colours";
+RS_OPT_TT_HUDCOLOURS_1 = "Eight gradient ramps, not flat colours -- each has a";
+RS_OPT_TT_HUDCOLOURS_2 = "dark low end so it stays readable over a bright floor.";
+RS_OPT_HEADER_HUD_C_READOUT = "The Readout";
+RS_OPT_NAME_C_LABEL = "\"Score:\" Label";
+RS_OPT_NAME_C_NUMBER = "Score Number";
+RS_OPT_NAME_C_SCORETINT = "Number Follows The Spree";
+RS_OPT_TT_C_SCORETINT_1 = "The number takes the live streak's colour instead of";
+RS_OPT_TT_C_SCORETINT_2 = "sitting on one ramp forever.";
+RS_OPT_NAME_C_BARNUM = "Numbers Under The Bar";
+RS_OPT_NAME_C_LIVES = "Extra Life Pips";
+RS_OPT_NAME_C_COMBONAME = "Bonus Names";
+RS_OPT_HEADER_HUD_C_REWARD = "By Which Reward Is Next";
+RS_OPT_NAME_C_REWARD_AMMO = "Ammo Regeneration";
+RS_OPT_NAME_C_REWARD_LIFE = "Extra Life";
+RS_OPT_HEADER_HUD_C_FLAVOURS = "Bonus Flavours";
+RS_OPT_TT_HUD_C_FLAVOURS = "The four families of bonus, each with its own ramp.";
+RS_OPT_NAME_C_BASE = "Base -- the kill itself";
+RS_OPT_NAME_C_EFFICIENCY = "Efficiency -- Spree, Untouchable, Infighter";
+RS_OPT_NAME_C_STYLE = "Style -- Switcharoo, Curveball, Air, Darwin";
+RS_OPT_NAME_C_DARING = "Daring -- Redline, Swan Song, Point-Blank";
+RS_OPT_HEADER_HUD_C_TINTS = "Artwork Tints";
+RS_OPT_TT_HUD_C_TINTS_1 = "These three multiply the graphics rather than pick a";
+RS_OPT_TT_HUD_C_TINTS_2 = "ramp. White is no tint at all.";
+RS_OPT_NAME_TINT_BAR = "Bar Fill";
+RS_OPT_NAME_TINT_FRAME = "Bar Frame";
+RS_OPT_NAME_TINT_LIVES = "Life Pips";
+
+// Ramp list. THE ORDER IS RS_ScoreHUD.PaletteColor()'s switch, NOT
+// TEXTCOLO.txt's declaration order -- see the note in CVARINFO.txt.
+RS_OPT_ENUM_RAMP_0 = "Gold";
+RS_OPT_ENUM_RAMP_1 = "White";
+RS_OPT_ENUM_RAMP_2 = "Efficiency red";
+RS_OPT_ENUM_RAMP_3 = "Style green";
+RS_OPT_ENUM_RAMP_4 = "Daring orange";
+RS_OPT_ENUM_RAMP_5 = "Base gold";
+RS_OPT_ENUM_RAMP_6 = "Gold -- bright";
+RS_OPT_ENUM_RAMP_7 = "White -- bright";
+
+// --- Score & HUD : reward bar ----------------------------------------
+RS_OPT_TITLE_HUDBAR = "Reward Bar Look";
+RS_OPT_TT_HUDBAR_1 = "The bar fills toward the next reward. Its colour already";
+RS_OPT_TT_HUDBAR_2 = "says which reward that is -- ammo regen or a life.";
+RS_OPT_NAME_BARSTYLE = "Fill Pattern";
+RS_OPT_NAME_BARSEGMENTS = "Segments";
+RS_OPT_TT_BARSEGMENTS = "How many blocks. Segmented and Pips only.";
+RS_OPT_NAME_SWEEPTICS = "Sweep Period -- Tics";
+RS_OPT_TT_SWEEPTICS = "One pass of the highlight. Sweep only.";
+
+RS_OPT_ENUM_BARSTYLE_0 = "Solid -- one unbroken fill";
+RS_OPT_ENUM_BARSTYLE_1 = "Segmented -- blocks with gaps";
+RS_OPT_ENUM_BARSTYLE_2 = "Pips -- discrete chunks, one at a time";
+RS_OPT_ENUM_BARSTYLE_3 = "Gradient -- brightens toward the far end";
+RS_OPT_ENUM_BARSTYLE_4 = "Sweep -- a highlight travels the fill";
+
+// --- Score & HUD : bonus stack ---------------------------------------
+RS_OPT_TITLE_HUDBONUS = "Bonus Stack";
+RS_OPT_TT_HUDBONUS_1 = "The list of named bonuses that climbs off a good kill.";
+RS_OPT_TT_HUDBONUS_2 = "Which ones EARN is on the Style Bonuses page; this is";
+RS_OPT_TT_HUDBONUS_3 = "only how they are shown.";
+RS_OPT_HEADER_BONUS_TIMING = "Timing";
+RS_OPT_NAME_BONUSTIME = "Popup Life -- Tics";
+RS_OPT_NAME_FADEIN = "Fade In -- Tics";
+RS_OPT_NAME_FADEOUT = "Fade Out -- Tics";
+RS_OPT_TT_FADE = "Part of the popup life above, not added to it.";
+RS_OPT_NAME_POP = "Overshoot On Arrival";
+RS_OPT_NAME_POPSIZE = "Overshoot Amount (%)";
+RS_OPT_TT_POP = "A line arrives oversized and settles. Off is a hard cut.";
+RS_OPT_HEADER_BONUS_SHAPE = "Shape";
+RS_OPT_NAME_BONUS_MAXLINES = "Most Lines At Once";
+RS_OPT_TT_BONUS_MAXLINES = "Older lines drop off past this. The stack compacts.";
+
+// --- Score & HUD : spree counter -------------------------------------
+RS_OPT_TITLE_HUDSPREE = "Spree Counter";
+RS_OPT_TT_HUDSPREE_1 = "The kill streak, which is otherwise invisible state you";
+RS_OPT_TT_HUDSPREE_2 = "infer from the Spree bonus turning up.";
+RS_OPT_NAME_SPREE_MODE = "Reads As";
+RS_OPT_HEADER_SPREE_TIERS = "Colour Steps";
+RS_OPT_TT_SPREE_TIERS_1 = "Streak lengths where the counter changes colour. These";
+RS_OPT_TT_SPREE_TIERS_2 = "also tint the score number, if that is switched on.";
+RS_OPT_NAME_SPREE_T1 = "Second Colour At";
+RS_OPT_NAME_SPREE_T2 = "Third Colour At";
+RS_OPT_NAME_SPREE_T3 = "Fourth Colour At";
+RS_OPT_NAME_C_SPREE0 = "Starting Colour";
+RS_OPT_NAME_C_SPREE1 = "Second Colour";
+RS_OPT_NAME_C_SPREE2 = "Third Colour";
+RS_OPT_NAME_C_SPREE3 = "Fourth Colour";
+
+RS_OPT_ENUM_SPREEMODE_0 = "The count -- x12";
+RS_OPT_ENUM_SPREEMODE_1 = "What it is worth -- +30%";
+RS_OPT_ENUM_SPREEMODE_2 = "Both";
+
+// --- Extra Lives -----------------------------------------------------
+RS_OPT_TITLE_LIVES = "Extra Lives";
+RS_OPT_TT_LIVES_1 = "A life is spent automatically the moment you would have";
+RS_OPT_TT_LIVES_2 = "died: you stay up, healed, for a short protected window.";
+
+RS_OPT_HEADER_LIVES_MASTER = "Switches";
+RS_OPT_NAME_LIVES_ENABLE = "Death Saves";
+RS_OPT_TT_LIVES_ENABLE = "The save itself -- whether dying spends a life.";
+RS_OPT_NAME_LIVES_REWARDPATH = "Old Reward-Bar Revival";
+RS_OPT_TT_LIVES_REWARDPATH_1 = "The system this one replaced. LEAVE IT OFF: with both";
+RS_OPT_TT_LIVES_REWARDPATH_2 = "on, two saves race for the same death.";
+
+RS_OPT_HEADER_LIVES_START = "Starting Conditions";
+RS_OPT_NAME_LIVES_START = "Lives On A New Game";
+RS_OPT_NAME_LIVES_MAX = "Most You May Hold";
+RS_OPT_TT_LIVES_MAX = "Caps EARNED lives. The floor below ignores it.";
+RS_OPT_NAME_LIVES_FLOOR = "Floor On Entering A Level";
+RS_OPT_TT_LIVES_FLOOR_1 = "Topped up to this after level-clear lives are paid, and";
+RS_OPT_TT_LIVES_FLOOR_2 = "a floor the ceiling can veto is not a floor -- so it wins.";
+
+RS_OPT_HEADER_LIVES_EARN = "Earning Them";
+RS_OPT_NAME_LIVES_PER_LEVEL = "Lives Per Level Cleared";
+RS_OPT_NAME_LIVES_COMPLETION = "Level Must Also Be";
+RS_OPT_TT_LIVES_COMPLETION = "An extra condition on the level-clear payout above.";
+RS_OPT_NAME_LIVES_PER_BOSS = "Lives Per Boss Killed";
+RS_OPT_NAME_LIVES_DMG_TAKEN = "Damage Taken Per Life";
+RS_OPT_TT_LIVES_DMG_TAKEN = "Health lost, not damage soaked by armour.";
+RS_OPT_NAME_LIVES_DMG_DEALT = "Damage Dealt Per Life";
+RS_OPT_TT_LIVES_DMG_DEALT = "Damage you inflict.";
+RS_OPT_NAME_LIVES_SCORE = "Score Per Life";
+RS_OPT_TT_LIVES_SCORE_1 = "A SECOND path to a life, on raw points. Off by default";
+RS_OPT_TT_LIVES_SCORE_2 = "-- the reward bar already pays lives out below.";
+RS_OPT_NAME_LIVES_SPREE = "Kill Streak Per Life";
+RS_OPT_TT_LIVES_SPREE = "One life every N kills without dying.";
+RS_OPT_NAME_LIVES_TAKEREWARDS = "Reward Bar Feeds This Pool";
+RS_OPT_TT_LIVES_TAKEREWARDS_1 = "A life paid by the reward bar joins the same count.";
+RS_OPT_TT_LIVES_TAKEREWARDS_2 = "Off, the bar's lives never reach the pips.";
+
+RS_OPT_HEADER_LIVES_KEEPING = "Keeping Them";
+RS_OPT_NAME_LIVES_DEATHEXITS = "Survive Pistol Starts";
+RS_OPT_TT_LIVES_DEATHEXITS = "Keep the count through a level that empties you.";
+RS_OPT_NAME_LIVES_MESSAGE = "Announce The Count";
+RS_OPT_TT_LIVES_MESSAGE = "A life spent in silence reads as nothing happening.";
+RS_OPT_NAME_LIVES_FOREIGN = "Answer Other Mods' Life Grants";
+RS_OPT_TT_LIVES_FOREIGN_1 = "Off by default -- with a second lives mod loaded, both";
+RS_OPT_TT_LIVES_FOREIGN_2 = "would answer the same event and pay twice.";
+
+RS_OPT_HEADER_LIVES_SAVE = "What The Save Does";
+RS_OPT_NAME_SAVE_HEALTH = "Health Restored";
+RS_OPT_NAME_SAVE_DURATION = "Save Lasts -- Tics";
+RS_OPT_TT_SAVE_DURATION_1 = "35 tics is one second. At 0 there is no protected";
+RS_OPT_TT_SAVE_DURATION_2 = "window at all -- no shield and no damage bonus.";
+RS_OPT_NAME_SAVE_DMGBONUS = "Hit Harder While It Lasts";
+RS_OPT_NAME_SAVE_DMGMULT = "Damage Multiplier";
+RS_OPT_NAME_SAVE_CONE = "Fire Ring";
+RS_OPT_TT_SAVE_CONE = "The ring of flame that opens as you come back up.";
+RS_OPT_NAME_SAVE_FLASH = "Screen Flash";
+RS_OPT_NAME_SAVE_SOUND = "Revival Sound";
+RS_OPT_NAME_SAVE_BULLETTIME = "Bullet Time X (if loaded)";
+RS_OPT_TT_SAVE_BULLETTIME_1 = "Asks Bullet Time X to slow the world as you come back.";
+RS_OPT_TT_SAVE_BULLETTIME_2 = "Does nothing at all unless that mod is loaded.";
+RS_OPT_NAME_LIVES_SUB_CONE = "Fire Ring Detail...";
+
+RS_OPT_TITLE_LIVES_CONE = "Revival Fire Ring";
+RS_OPT_NAME_CONE_BLAST = "Opening Blast Damage";
+RS_OPT_NAME_CONE_BLASTRADIUS = "Opening Blast Radius";
+RS_OPT_NAME_CONE_ARMS = "Flame Streams";
+RS_OPT_NAME_CONE_TICS = "Spin Duration -- Tics";
+RS_OPT_TT_CONE_BLAST = "Blast damage 0 makes the ring purely cosmetic.";
+
+RS_OPT_ENUM_COMPLETION_0 = "Nothing extra -- just reach the exit";
+RS_OPT_ENUM_COMPLETION_1 = "100% kills";
+RS_OPT_ENUM_COMPLETION_2 = "100% secrets";
+RS_OPT_ENUM_COMPLETION_3 = "Either one";
+RS_OPT_ENUM_COMPLETION_4 = "Either one -- both pays twice";
+RS_OPT_ENUM_COMPLETION_5 = "Both kills and secrets";
+
+// Non-numeric slider stops. A ScaleSlider shows TextZero at 0 and
+// TextNegOne at -1 and the ordinary slider otherwise
+// (engine: OptionMenuItemScaleSlider.Draw).
+RS_OPT_SLIDER_NONE = "None";
+RS_OPT_SLIDER_NOCAP = "No cap";
+RS_OPT_SLIDER_OFF = "Off";
+
+// --- Rows added to existing pages ------------------------------------
+RS_OPT_NAME_RICOCHET_CHANCE = "Ricochet Chance (%)";
+RS_OPT_TT_RICOCHET_CHANCE_1 = "How often a HARD surface throws one. Soft surfaces and";
+RS_OPT_TT_RICOCHET_CHANCE_2 = "bodies never do, whatever this says.";
+RS_OPT_NAME_GIANTSLAYER_HP = "  Health To Count As Big";
+RS_OPT_TT_GIANTSLAYER_HP = "  Vanilla health IS the ladder: Imp 60, Baron 1000.";

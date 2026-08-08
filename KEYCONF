@@ -21,15 +21,7 @@ defaultbind P bonsai_cycle_ld_effect
 
 addkeysection "Radiant Silvergun" RSMain
 
-addmenukey "Give Current Weapon a Random Profile (Debug)" rs_debug_random_profile
-alias rs_debug_random_profile "netevent rs_debug_random_profile"
-defaultbind PGDN rs_debug_random_profile
 
-// Twin weapon wheel PoC -- hold to open, release to equip both hands.
-addmenukey "Twin Weapon Wheel (Hold)" +rs_wheel
-alias +rs_wheel "netevent rs-wheel-on"
-alias -rs_wheel "netevent rs-wheel-off"
-defaultbind V +rs_wheel
 
 // One-key door into the UI Debug page -- no console needed.
 addmenukey "UI Debug Menu" rs_ui_debug
@@ -73,13 +65,66 @@ addmenukey "In-World Panel: Dismiss Card" rs_panel_dismiss
 alias rs_panel_dismiss "netevent rs-panel-dismiss"
 defaultbind N rs_panel_dismiss
 
-// Roll probe -- disposable. Toggles a HUD readout of AttackRoll /
 // OffhandRoll so the wheel design can be built against a measured
-// axis instead of a guessed one. See RS_RollProbe.zs.
-addmenukey "Roll Probe: Toggle" rs_rollprobe
-alias rs_rollprobe "netevent rs-rollprobe"
-defaultbind J rs_rollprobe
 
-addmenukey "Roll Probe: Reset Peaks" rs_rollprobe_reset
-alias rs_rollprobe_reset "netevent rs-rollprobe-reset"
-defaultbind K rs_rollprobe_reset
+
+// ---------------------------------------------------------------------
+// IN-WORLD SCREENS (zscript/systems/ui/RS_BillboardUI.zs)
+//
+// The level-up card picker and the weapon status sheet, rendered as
+// engine billboards in the world instead of as flat menus that pause
+// the game. Point a hand at a row to highlight it, confirm to take it.
+//
+// Aliased and menu-bindable but NOT default-bound: the audit found this
+// mod already ships debug binds on V, J, K and PGDN, and adding three
+// more keys a player will hit by accident is the same mistake. Bind
+// them from the Controls menu.
+// ---------------------------------------------------------------------
+addmenukey "Weapon Status (mainhand)" rs_bb_status
+alias rs_bb_status "netevent rs-bb-status"
+defaultbind V rs_bb_status
+
+addmenukey "Weapon Status (offhand)" rs_bb_status_off
+alias rs_bb_status_off "netevent rs-bb-status-off"
+defaultbind B rs_bb_status_off
+
+addmenukey "Level-Up Cards (in world)" rs_bb_cards
+alias rs_bb_cards "netevent rs-bb-cards"
+
+addmenukey "In-World Screen: Confirm" rs_bb_confirm
+alias rs_bb_confirm "netevent rs-bb-confirm"
+defaultbind J rs_bb_confirm
+
+addmenukey "In-World Screen: Close" rs_bb_close
+alias rs_bb_close "netevent rs-bb-close"
+defaultbind K rs_bb_close
+
+// ---------------------------------------------------------------------
+// RS_Grenade -- hold to charge, release to throw.
+//
+// BT_USER4 is the button the weapon code reads (RS_GrenadeThrower reads
+// it out of original_cmd in PlayerThink, so it is seen before the weapon
+// thinks and cannot fight your gun). Bound to G by default; your
+// deployed weapon is never put away.
+// ---------------------------------------------------------------------
+addmenukey "Throw Grenade (hold to charge)" +user4
+defaultbind G +user4
+
+// ---------------------------------------------------------------------
+// RS_Hook -- the grappling hook. Always available, not a pickup.
+//
+// BT_USER1, read out of original_cmd in PlayerThink (RS_HookThrower),
+// same as the grenade and for the same reason: PlayerThink runs before
+// the weapon thinks, so the read cannot fight your gun.
+//
+// H is unbound in both defbinds.txt and commonbinds.txt, so this bind
+// actually takes -- see the MOUSE3 note above for what happens when it
+// does not.
+// ---------------------------------------------------------------------
+addmenukey "Fire Grappling Hook" +user1
+defaultbind H +user1
+
+// Curse ledger -- what you carry, what it costs, how close to Divine.
+addmenukey "Curses: List / Spend" rs_curse_list
+alias rs_curse_list "netevent rs_curse_list"
+defaultbind Y rs_curse_list

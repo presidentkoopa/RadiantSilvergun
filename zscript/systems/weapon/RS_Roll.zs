@@ -30,14 +30,14 @@ enum EVR_Tier
 //   1. IDENTITY -- what kind of gun this is. Every family below.
 //   2. CLASS GATING -- whether a Dual_X starting class filters it at
 //      world spawn. ONLY the original seven do this; see
-//      RS_ClassGating.IsGatedFamily(), which is the single place that
+//      RS_ClassGating's own EVR_Family_None check, which is the place that
 //      decides, and the place to revisit when the class system is redone.
 //
 // The split exists because RS_ClassGating DESTROYS a gated weapon whose
 // family doesn't match the player's class. Before this enum grew, the
 // GunstarHeroes and MeatGrinder sets all returned EVR_Family_None, and
 // None was doing double duty as both "no identity" and "never filtered".
-// Giving them real identities without the IsGatedFamily() split would
+// Giving them real identities without that split would
 // have silently removed most of both sets from the game.
 //
 // Heavy ordnance staying universal is the original design, not an
@@ -66,6 +66,26 @@ enum EVR_Family
 
 class RS_Roll : Object
 {
+	// -------------------------------------------------------------
+	// CONDITION FLOOR AT ROLL TIME. Owner ruling, 2026-08-07.
+	//
+	// Every weapon in all three sets rolled `Condition = RollDouble(1,
+	// 100)`, so a brand-new gun -- including the one you spawn holding --
+	// could arrive at single-digit Condition and backfire in your hands
+	// on the way out of the starting room. Wear is meant to be something
+	// the run does to your weapon, not the state it hands you.
+	//
+	// A weapon can still DEGRADE below this at any time; this is the
+	// floor on the initial roll only (RS_Condition.zs owns degradation,
+	// and it clamps at 1, not here).
+	//
+	// Named rather than inlined at 42 call sites so the next tuning pass
+	// is one edit. Scalar const, not a `static const TYPE name[]` array
+	// -- the array form is the one that doesn't resolve on this engine
+	// build (CLAUDE.md).
+	// -------------------------------------------------------------
+	const STARTING_CONDITION_MIN = 60;
+
 	// -------------------------------------------------------------
 	// Generic dice. Every weapon's RollStats() calls through these
 	// instead of calling Random()/FRandom() directly, so there's one
@@ -195,15 +215,18 @@ class RS_Roll : Object
 		}
 		else if (cnd >= 20.0)
 		{
-			// First real backfire risk. Was 0.40 -- cut to a quarter of
-			// that; this band is "worn, not ruined."
+			// NO BACKFIRE IN THIS BAND. Owner ruling 2026-08-07: backfire
+			// happens BELOW 20, full stop. 20-29 keeps the gamble's upside
+			// -- the weapon is rattling and hitting harder for it -- but a
+			// gun at 20+ Condition never blows up in your hands. This band
+			// carried a 0.10 chance until that ruling.
 			dmgMult = 1.25;
 			pelletMult = 1.25;
-			backfireChance = 0.10;
 		}
 		else if (cnd >= 10.0)
 		{
-			// Was 0.60.
+			// Below 20 -- backfire territory begins here (owner ruling
+			// 2026-08-07). Was 0.60 before an earlier pass, 0.20 after.
 			dmgMult = 1.5;
 			pelletMult = 1.5;
 			backfireChance = 0.20;

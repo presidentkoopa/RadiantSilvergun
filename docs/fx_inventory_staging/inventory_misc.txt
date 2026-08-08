@@ -1,3 +1,26 @@
+// =====================================================================
+// !! DO NOT TRUST THIS DOCUMENT. ASK THE OWNER.
+//
+// Nothing in docs/ is authoritative -- not the handoffs, not the specs,
+// not the ones the owner asked for himself. This file describes what was
+// true when somebody wrote it, and this project has repeatedly proven
+// that "true when written" and "true now" are different things.
+//
+// Verify anything you are about to act on against the DISK, the
+// COMPILER, or the RUNNING GAME. Ask the owner about anything to do with
+// scope, priority, or what to build next. Never inherit a task from a
+// document.
+//
+// Real examples from this repo, every one a document confidently stating
+// something false: an engine path that did not exist for weeks; a source
+// pack path pointing at the wrong pack; "87% of sounds are missing" that
+// was true when written and false when read; a rule forbidding an
+// extraction that had already happened; a note that ORDERED sessions not
+// to attempt a fix that turned out to be four lines.
+//
+// Banner added 2026-08-07 at the owner's instruction.
+// =====================================================================
+
 ================================================================================
 RS_MAIN ART SOURCE INVENTORY -- "MISC / MECHANICAL / CATCH-ALL" SET
 Agent scope: SFX, CASINGS, JUNK, DECORATION, mg  (+ discovery mandate)

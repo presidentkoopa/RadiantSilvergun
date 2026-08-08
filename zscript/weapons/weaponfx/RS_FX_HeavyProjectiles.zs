@@ -85,6 +85,23 @@ class RS_EnhancedRocket : Rocket replaces Rocket
 		SetDamage(finalDamage);
 	}
 
+	// EXACT DAMAGE -- added 2026-08-07, the heavy tree's oldest silent
+	// defect. Without this the engine multiplies a missile's Damage by
+	// random(1,8) at impact (p_map.cpp:1430), so the roll SetupStats
+	// just wrote was never what landed: a Basic rocket rolling 80-140
+	// dealt 80-1120 direct (mean ~495 vs vanilla's ~90), with matching
+	// oversized splash and self-splash. DoSpecialDamage, not
+	// GetMissileDamage -- the latter is native non-virtual and cannot be
+	// overridden. This hook runs AFTER the engine's roll, so returning
+	// RolledDamage replaces it outright. Same mechanism, same reasoning
+	// and same comment as RS_FX_BallisticFired.zs:153-162, which has
+	// done this since it was built. All four fire modes now agree:
+	// DamagePerShot is what lands.
+	override int DoSpecialDamage(Actor target, int damage, Name damagetype)
+	{
+		return RolledDamage > 0 ? RolledDamage : damage;
+	}
+
 	// Splash scales with how far the roll landed from vanilla's direct
 	// damage, so a better rocket launcher makes a bigger crater -- but
 	// proportionally, not linearly off the raw roll.
@@ -154,6 +171,23 @@ class RS_EnhancedPlasmaBall : PlasmaBall replaces PlasmaBall
 		SetDamage(finalDamage);
 	}
 
+	// EXACT DAMAGE -- added 2026-08-07, the heavy tree's oldest silent
+	// defect. Without this the engine multiplies a missile's Damage by
+	// random(1,8) at impact (p_map.cpp:1430), so the roll SetupStats
+	// just wrote was never what landed: a Basic rocket rolling 80-140
+	// dealt 80-1120 direct (mean ~495 vs vanilla's ~90), with matching
+	// oversized splash and self-splash. DoSpecialDamage, not
+	// GetMissileDamage -- the latter is native non-virtual and cannot be
+	// overridden. This hook runs AFTER the engine's roll, so returning
+	// RolledDamage replaces it outright. Same mechanism, same reasoning
+	// and same comment as RS_FX_BallisticFired.zs:153-162, which has
+	// done this since it was built. All four fire modes now agree:
+	// DamagePerShot is what lands.
+	override int DoSpecialDamage(Actor target, int damage, Name damagetype)
+	{
+		return RolledDamage > 0 ? RolledDamage : damage;
+	}
+
 	override void Tick()
 	{
 		Super.Tick();
@@ -212,6 +246,23 @@ class RS_EnhancedBFGBall : BFGBall replaces BFGBall
 		SetDamage(finalDamage);
 	}
 
+	// EXACT DAMAGE -- added 2026-08-07, the heavy tree's oldest silent
+	// defect. Without this the engine multiplies a missile's Damage by
+	// random(1,8) at impact (p_map.cpp:1430), so the roll SetupStats
+	// just wrote was never what landed: a Basic rocket rolling 80-140
+	// dealt 80-1120 direct (mean ~495 vs vanilla's ~90), with matching
+	// oversized splash and self-splash. DoSpecialDamage, not
+	// GetMissileDamage -- the latter is native non-virtual and cannot be
+	// overridden. This hook runs AFTER the engine's roll, so returning
+	// RolledDamage replaces it outright. Same mechanism, same reasoning
+	// and same comment as RS_FX_BallisticFired.zs:153-162, which has
+	// done this since it was built. All four fire modes now agree:
+	// DamagePerShot is what lands.
+	override int DoSpecialDamage(Actor target, int damage, Name damagetype)
+	{
+		return RolledDamage > 0 ? RolledDamage : damage;
+	}
+
 	override void Tick()
 	{
 		Super.Tick();
@@ -228,15 +279,28 @@ class RS_EnhancedBFGBall : BFGBall replaces BFGBall
 
 	States
 	{
+	// SPRAY TIMING RESTORED 2026-08-07.
+	//
+	// The comment here claimed A_BFGSpray was "kept exactly as vanilla,
+	// on its original frame". It was not. Vanilla is:
+	//
+	//     BFE1 AB 8 Bright          <- two frames of flash first
+	//     BFE1 C  8 Bright A_BFGSpray
+	//
+	// This fired the spray on frame A, 16 tics EARLY. That is not
+	// cosmetic: the BFG's signature technique is firing at a wall, then
+	// turning to face the targets during the flash, because the rays are
+	// traced from where you are LOOKING when the spray happens, not from
+	// where the ball landed. Sixteen tics is exactly the window that
+	// trick lives in, and this deleted it.
+	//
+	// The explosion visual stays on the first frame -- that part should
+	// be immediate.
 	Death:
-		// A_BFGSpray is the real damage/ray mechanic -- kept exactly as
-		// vanilla, on its original frame. RS_EnhancedBFGExtra/
-		// RS_BFGRailPuff (RS_FX_BFG.zs) already give each ray hit its own
-		// green-plasma flourish; this only adds a detonation-point visual
-		// alongside the untouched spray.
-		BFE1 A 8 Bright A_BFGSpray;
-		TNT1 A 0 A_SpawnItemEx(ExplosionVisual, 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-		BFE1 BCDEF 8 Bright;
+		BFE1 A 8 Bright A_SpawnItemEx(ExplosionVisual, 0, 0, 0, 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		BFE1 B 8 Bright;
+		BFE1 C 8 Bright A_BFGSpray;
+		BFE1 DEF 8 Bright;
 		Stop;
 	}
 }

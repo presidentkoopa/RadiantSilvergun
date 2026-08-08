@@ -157,6 +157,59 @@ impact7  Sounds/combatfx/impact/impact7.wav
 impact8  Sounds/combatfx/impact/impact8.wav
 impact9  Sounds/combatfx/impact/impact9.mp3
 
+// =====================================================================
+// PER-MATERIAL IMPACT SOUNDS -- added 2026-08-07 with RS_Material.
+// ---------------------------------------------------------------------
+// RS_Material.ImpactSound() returns one of these logical names, and the
+// puff plays it. Before this, every impact in the game played a ricochet
+// regardless of what was hit; these are what it plays instead.
+//
+// THESE ARE PLACEHOLDER MAPPINGS. There are ten generic impact lumps on
+// disk and ten materials, so the groups below are subsets chosen to at
+// least sound DIFFERENT from each other -- they are not authored
+// per-material sets. Replacing any one of these groups with real audio
+// is a pure SNDINFO edit; no code changes with it.
+//
+// A logical name with no lump behind it is completely silent and
+// produces no error, so an unfinished group costs nothing but silence.
+// =====================================================================
+
+$random rs_impact/stone      { impact0 impact1 impact2 }
+$random rs_impact/metal      { impact3 impact4 }
+$random rs_impact/wood       { impact5 impact6 }
+$random rs_impact/dirt       { impact7 impact8 }
+$random rs_impact/glass      { impact9 impact3 }
+$random rs_impact/liquid     { impact8 impact7 }
+
+// Bodies. Organic leans on the wetter end of the set; armored and
+// mechanical borrow the harder hits; energy has no good stand-in in the
+// current library and is deliberately left pointing at the quietest one
+// until something better is authored.
+$random rs_impact/flesh      { impact5 impact8 }
+$random rs_impact/armored    { impact2 impact3 }
+$random rs_impact/mechanical { impact3 impact4 }
+$random rs_impact/energy     { impact9 }
+
+$volume rs_impact/stone      0.55
+$volume rs_impact/metal      0.60
+$volume rs_impact/wood       0.55
+$volume rs_impact/dirt       0.45
+$volume rs_impact/glass      0.60
+$volume rs_impact/liquid     0.50
+$volume rs_impact/flesh      0.50
+$volume rs_impact/armored    0.55
+$volume rs_impact/mechanical 0.60
+$volume rs_impact/energy     0.50
+
+// The repair tick -- plays when ten Grey Bits convert into one point of
+// Condition on your equipped weapons (RS_Bits.zs, RS_Bit_Grey.TryRepair).
+// It is the ONLY feedback that the automatic repair happened, since the
+// owner ruled out a spend menu, so it wants to be a distinct little
+// noise rather than another pickup blip. Placeholder points at the
+// all-clear tone until something is authored for it.
+$alias  rs_bit_repair  rs_allclear_ready
+$volume rs_bit_repair  0.6
+
 // --- Enhanced FX: bullets (casings, ricochet) ---
 // Staged here with the assets already copied in; not yet called by any
 // code -- these are consumed once the Enhanced Weapon FX effects system
@@ -695,7 +748,7 @@ under/goodie        WZMGDI
 // conversion is silent unless CH is loaded under it, and Player X's laugh
 // is silent always.
 // We define the plain tokens, so both play here.
-AbyssForm           AbyssForm      // the T06 abyss conversion, Pain.AbyssPE
+AbyssForm           Sounds/monsters/AbyssForm.ogg   // the T06 abyss conversion, Pain.AbyssPE
 HEHEEENH            HEHEEENH       // Player X's gloat, Missile.TEX.Taunt
 $random skelpai { gethit1 gethit2 gethit3 gethit4 gethit5 gethit6 gethit7 }
 gethit1             GETHIT1
@@ -1563,14 +1616,14 @@ FRGOPAI3	FRGOPAI3
 FRGODEA1	FRGODEA1
 FRGODEA2	FRGODEA2
 FRGODEA3	FRGODEA3
-incubus/sight			dsincsit2
+incubus/sight			Sounds/ch/DSINCSIT2.ogg
 incubus/attack1			dsincat1
 incubus/attack2			dsincat2
 incubus/pain			dsincpai
-incubus/death			dsincdth2
-incubus/active			dsincact2
+incubus/death			Sounds/ch/DSINCDTH2.ogg
+incubus/active			Sounds/ch/DSINCACT2.ogg
 incubus/shot			dsincsht
-incubus/hit			dsinchit2
+incubus/hit			Sounds/ch/DSINCHIT2.ogg
 weapons/hominglaunch		dshomlnc
 weapons/homingexplode		dshomxpl
 dsinwlk1	dsinwlk1
@@ -1709,3 +1762,58 @@ $volume SlimeBall/Splat 0.7
 // demon block above. (CH SNDINFO.txt:853-854.)
 $limit Hornet/Fly 0
 $volume Hornet/fly 0.5
+
+
+// =====================================================================
+// RS_Grenade. Lumps in sounds/rs_grenade/, imported with the actor.
+//
+// NOTE: these files have NO EXTENSION on disk, so the path form below is
+// the complete filename and is correct. Do not add .ogg -- that is how a
+// working sound gets made silent.
+// =====================================================================
+rs_gren/pin      Sounds/rs_grenade/DSGRPIN
+rs_gren/toss     Sounds/rs_grenade/DSGRTOSS
+rs_gren/bounce   Sounds/rs_grenade/GBOUNCE
+rs_gren/farexpl  Sounds/rs_grenade/FAREXPL
+
+$random rs_gren/explode { rs_gren_bang1 rs_gren_bang2 rs_gren_bang3 rs_gren_bang4 rs_gren_bang5 rs_gren_bang6 rs_gren_bang7 rs_gren_bang8 }
+rs_gren_bang1    Sounds/rs_grenade/GBANG1
+rs_gren_bang2    Sounds/rs_grenade/GBANG2
+rs_gren_bang3    Sounds/rs_grenade/GBANG3
+rs_gren_bang4    Sounds/rs_grenade/GBANG4
+rs_gren_bang5    Sounds/rs_grenade/GBANG5
+rs_gren_bang6    Sounds/rs_grenade/GBANG6
+rs_gren_bang7    Sounds/rs_grenade/GBANG7
+rs_gren_bang8    Sounds/rs_grenade/GBANG8
+
+$rolloff rs_gren/explode 1100 1600
+$rolloff rs_gren/farexpl 3200 5400
+$volume  rs_gren/farexpl 0.5
+$volume  rs_gren/bounce  0.8
+
+// =====================================================================
+// RS_Hook -- the grappling hook (zscript/weapons/rs_weapon/RS_Hook.zs).
+// Five lumps, Sounds/rs_hook/, extensionless DMX like the rest of the
+// imported audio in this file.
+// =====================================================================
+rs_hook/fire         Sounds/rs_hook/RSHKFIRE
+rs_hook/swish        Sounds/rs_hook/RSHKSWSH
+rs_hook/loop         Sounds/rs_hook/RSHKLOOP
+rs_hook/hit/terrain  Sounds/rs_hook/RSHKHITW
+rs_hook/hit/flesh    Sounds/rs_hook/RSHKHITF
+
+// =====================================================================
+// `loud` -- the tinnitus ring (RS_Curses.zs).
+//
+// Layers ON TOP of the weapon's own fire sound rather than replacing it,
+// and masks by being loud rather than by ducking anything -- there is no
+// listener volume in ZScript to duck with.
+//
+// Asset: owner-supplied 28s tone, trimmed to 4s with an 8ms attack (so
+// it lands ON the gunshot, not after it) and a 1.2s decay. Downsampled
+// 48k -> 22050 mono 16-bit.
+//
+// NO $limit: this is deliberately allowed to retrigger, because
+// re-firing before the ring fades is what extends it.
+// =====================================================================
+rs_curse/tinnitus  Sounds/rs_curse/RSTINNIT.wav

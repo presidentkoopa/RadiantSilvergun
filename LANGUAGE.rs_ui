@@ -129,6 +129,22 @@ TFLV_Upgrade_RS_Overkill_Name = "Overkill";
 TFLV_Upgrade_RS_Overkill_Desc = "damage past a kill detonates on the corpse";
 TFLV_Upgrade_RS_Overkill_TT = "Whatever damage was wasted killing something comes back as a blast on the body -- 20% of it per level, in a growing radius. The harder this gun hits, the more waste there is to spend. Mastery: the full excess, uncapped by level.";
 
+TFLV_Upgrade_RS_Salvage_Name = "Salvage";
+TFLV_Upgrade_RS_Salvage_Desc = "your gun works a captured monster round into its cycle";
+TFLV_Upgrade_RS_Salvage_TT = "Salvaged ordnance. A round pulled off something you killed gets fed into your firing rotation -- it keeps its own damage, speed and impact, while your gun supplies the bang, the brass and the flash. Levels buy frequency first (every 4th shot, then 3rd, then 2nd) and then breadth: at 5 a second, different round joins the cycle. Mastery: the salvage is re-rolled every time you raise the weapon, so it is never quite the same gun twice. What you can draw depends on what you are holding -- a flamethrower only ever salvages fire, a railgun only coherent energy, but a bullet gun can pull anything in the bestiary.";
+
 TFLV_Upgrade_RS_Scavenger_Name = "Scavenger";
 TFLV_Upgrade_RS_Scavenger_Desc = "kills on a dry magazine give rounds back";
 TFLV_Upgrade_RS_Scavenger_TT = "Kill something while your magazine is in its bottom quarter and you recover rounds -- 10% of capacity per level. A big magazine makes the window rarer but the refund larger. Mastery: the whole magazine, instantly.";
+
+
+// --- RS_Grenade ---
+TAG_RS_GRENADE = "Frag Grenade";
+AMMO_RS_GRENADE = "Frag Grenades";
+PICKUP_RS_GRENADE = "Picked up a frag grenade.";
+PICKUP_RS_GRENADEAMMO = "Picked up a frag grenade.";
+OB_RS_GRENADE = "%o was popped by %k's grenade.";
+
+// --- Elite food scatter ---
+TAG_RS_FOOD = "Rations";
+PICKUP_RS_FOOD = "Rations.";

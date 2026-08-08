@@ -1,0 +1,132 @@
+// =====================================================================
+// SALVAGE -- the card that turns PACK on.
+// ---------------------------------------------------------------------
+// Built 2026-08-07. Until this file existed, the entire PACK apparatus
+// was unreachable: RS_PACKCatalog's 409 catalogued monster projectiles,
+// RS_FamilyPalette's archetype fence and ApplyTheme() were all finished
+// and called by nothing, because every Make* in the tree runs at compile
+// time inside a weapon file. Nothing built an attack profile at runtime.
+// RS_PACKAssembly is the door; this is the hand on it.
+//
+// WHAT THE PLAYER GETS: your gun starts working a captured monster round
+// into its rotation. Not a stat bump and not a keyword -- an actual
+// extra beat in the firing cycle, so at level 1 every fourth shot spits
+// something that came off a Baron or an Arachnotron, and it keeps its
+// own damage, speed and impact behaviour while your gun supplies the
+// bang, the brass and the flash.
+//
+// This is a SLATE affix, so it obeys everything the slate obeys:
+// sockets gate it (Cursed/Trash/Basic have none, per rs_00), re-picking
+// deepens rather than stacking, and turning it off removes what it
+// added. That last one matters more here than for any other card in the
+// slate -- a beat that outlives its card is a permanent free upgrade,
+// which is why UninstallAll exists and why OnDeactivate calls it.
+//
+// LEVELS -- frequency first, then breadth:
+//   1  every 4th shot, one rolled theme
+//   2  every 3rd shot, same theme
+//   3  every 3rd shot, re-rolls its theme on each install
+//   4  every 2nd shot
+//   5  every 2nd shot, two beats (two different themes in the rotation)
+//   6  MASTERY: two beats, and the roll is re-made every time the weapon
+//      is raised, so the gun is never quite the same twice
+// =====================================================================
+
+class TFLV_Upgrade_RS_Salvage : TFLV_Upgrade_RS_SlateBase
+{
+	// Salvage grants no keyword -- it installs profiles instead. The
+	// base class calls ApplyLeveled() off ValueForLevel(), and returning
+	// "" means "grant nothing", which is exactly right: the whole effect
+	// lives in ExtraActivate below.
+	override string ValueForLevel(int lvl) { return ""; }
+
+	// How often the salvaged beat comes up, by level.
+	int RotationForLevel(int lvl)
+	{
+		if (lvl >= 4) return 2;   // every other shot
+		if (lvl >= 2) return 3;   // every third
+		return 4;                 // every fourth
+	}
+
+	// How many distinct salvaged beats ride the rotation.
+	int BeatsForLevel(int lvl)
+	{
+		return (lvl >= 5) ? 2 : 1;
+	}
+
+	// Install fresh. Always clears first so re-picking the card (which
+	// re-activates it at the new level) cannot stack beat on beat --
+	// levels are depth, never accumulation.
+	void Reinstall(RS_Weapon wpn)
+	{
+		if (!wpn) return;
+
+		RS_PACKAssembly.UninstallAll(wpn);
+
+		int rot   = RotationForLevel(level);
+		int beats = BeatsForLevel(level);
+
+		// First beat sets the rotation length; any second beat is simply
+		// appended after it, so [own, own, PACK] becomes
+		// [own, own, PACK, PACK2] -- two different monsters, alternating
+		// through the same cycle rather than doubling its length.
+		int firstTheme = -1;
+		for (int i = 0; i < beats; i++)
+		{
+			if (i == 0)
+			{
+				let p = RS_PACKAssembly.Install(wpn, rot);
+				if (!p) return;    // archetype can draw nothing; nothing to do
+			}
+			else
+			{
+				// Second beat: build and append without re-padding, so it
+				// joins the existing cycle instead of lengthening it.
+				let p = RS_PACKAssembly.Build(wpn);
+				if (p) wpn.AppendProfile(0, p);
+			}
+		}
+	}
+
+	override void ExtraActivate(RS_Weapon wpn)
+	{
+		Reinstall(wpn);
+	}
+
+	override void ExtraDeactivate(RS_Weapon wpn)
+	{
+		// MANDATORY. GunBonsai can deactivate an upgrade (respec, or the
+		// bag being stripped on promotion via RS_GunBonsaiBridge), and a
+		// profile appended to the weapon's slot has no owner -- it would
+		// just keep firing forever with no card behind it.
+		RS_PACKAssembly.UninstallAll(wpn);
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		if (!wpn) return false;
+
+		// Standard slate gate: sockets exist, and either we already hold
+		// this affix (leveling is always allowed) or a socket is free.
+		if (!CanTake(wpn, info, "TFLV_Upgrade_RS_Salvage"))
+			return false;
+
+		// Cap at Mastery like every other slate card.
+		if (info.upgrades.Level("TFLV_Upgrade_RS_Salvage") >= 6)
+			return false;
+
+		// The gun must have a bullet or hitscan beat to sit alongside --
+		// a salvaged round is a travelling projectile on the bullet
+		// path, and offering this on a pure-melee weapon would be an
+		// offer that does nothing.
+		if (!wpn.HasBeatMode(RS_ATK_BULLET) && !wpn.HasBeatMode(RS_ATK_HITSCAN))
+			return false;
+
+		// AND the fence must actually leave this archetype something to
+		// draw. A flamethrower may only take Fire; if that theme were
+		// ever emptied, this card would be an offer with no content, so
+		// it asks rather than assuming.
+		return RS_PACKAssembly.AllowedThemeCount(wpn.GetPaletteArchetype()) > 0;
+	}
+}

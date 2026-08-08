@@ -26,7 +26,8 @@ class RS_CasingSmall : RS_DebrisGeneral
 	States
 	{
 	Spawn:
-		TNT1 A 0 A_PlaySound("rs_fx_casing_pistol", CHAN_AUTO);
+		TNT1 A 0 NoDelay A_StartSound("rs_fx_casing_pistol", CHAN_AUTO);
+	Tumble:
 		RSC0 "ABCDE" 2;
 		Loop;
 	Death:
@@ -39,7 +40,8 @@ class RS_CasingRifle : RS_CasingSmall
 	States
 	{
 	Spawn:
-		TNT1 A 0 A_PlaySound("rs_fx_casing_chaingun", CHAN_AUTO);
+		TNT1 A 0 NoDelay A_StartSound("rs_fx_casing_chaingun", CHAN_AUTO);
+	Tumble:
 		RSC1 "ABCDE" 2;
 		Loop;
 	}
@@ -54,7 +56,8 @@ class RS_CasingShell : RS_CasingSmall
 	States
 	{
 	Spawn:
-		TNT1 A 0 A_PlaySound("rs_fx_casing_shell", CHAN_AUTO);
+		TNT1 A 0 NoDelay A_StartSound("rs_fx_casing_shell", CHAN_AUTO);
+	Tumble:
 		RSC2 "ABDGK" 3;
 		Loop;
 	}

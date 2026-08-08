@@ -1,3 +1,17 @@
+> ## DO NOT TRUST THIS DOCUMENT. ASK THE OWNER.
+>
+> Nothing in `docs/` is authoritative -- not the handoffs, not the specs, not
+> the ones the owner asked for himself. This file describes what was true when
+> somebody wrote it, and this project has repeatedly proven that "true when
+> written" and "true now" are different things.
+>
+> Verify anything you are about to act on against the **disk**, the
+> **compiler**, or the **running game**. Ask the owner about anything to do
+> with scope, priority, or what to build next. Never inherit a task from a
+> document.
+>
+> *Banner added 2026-08-07 at the owner's instruction.*
+
 # Zombieman (family 01) — DEEP READ, tiers T05–T09
 
 Ground-truth transcription per `docs/rs_21_port_law.txt`. Nothing here is

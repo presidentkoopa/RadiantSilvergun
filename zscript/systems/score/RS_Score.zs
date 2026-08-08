@@ -498,8 +498,30 @@ class RS_ScoreHandler : EventHandler
 		// transient boss stage become a score farm. RS_Bits documents
 		// this gate; score has to honor it or the two systems disagree
 		// about what a kill is.
-		let rsmon = RS_SystemsMaster(victim);
-		if (rsmon && (rsmon.IsSummonedMinion() || rsmon.IsTransientStage()))
+		// SUMMONS PAY NOTHING. Owner ruling 2026-08-07.
+		//
+		// The RS_SystemsMaster cast that stood here was DEAD: no monster
+		// in the tree implements that contract, so it always returned
+		// null and every summon in the game scored full points. A Pain
+		// Elemental is an infinite score fountain.
+		//
+		// RS_SummonMarker marks anything that became a monster after the
+		// map was built -- see its header for why a kill-time master
+		// check cannot work (the engine's own A_PainShootSkull sets no
+		// master at all).
+		if (!RS_SummonMarker.PaysRewards(victim))
+			return;
+
+		// C01 (Dark Red) elite REMAINS never score. Owner ruling
+		// 2026-08-07, and the same exclusion RS_Bits.zs now carries -- the
+		// two systems have to agree about what a kill is.
+		//
+		// C01 leaves a shootable, +ISMONSTER corpse you must destroy to
+		// stop it returning. Destroying it fired this handler and scored a
+		// second time for one elite. The corpse has to stay a real monster
+		// for the mechanic to work, and RS_EliteFX.zs is protected, so the
+		// fix belongs on the counting side.
+		if (victim is "RS_EliteFX_Corpse")
 			return;
 
 		int basePoints = BasePointsFor(victim);
@@ -508,9 +530,33 @@ class RS_ScoreHandler : EventHandler
 
 		// Walk to the real killer: a rocket's killer is whoever fired it,
 		// and a rocket fired by a summon belongs to whoever summoned it.
+		//
+		// WALKS `master` TOO, added 2026-08-07. The loop used to follow
+		// only bMissile->target, which misses two whole categories:
+		//
+		//   * A BARREL. Shoot a barrel, it kills three monsters, you get
+		//     nothing -- a barrel is not a missile, so the walk stopped
+		//     on it, and HandleNonPlayerKill's own gate then rejected it
+		//     for not being a monster either. Barrels carry their
+		//     detonator as `target`.
+		//   * A FRIENDLY MONSTER or a summon that is not itself a
+		//     missile. Same dead end.
+		//
+		// Every RS projectile also sets master = the firing weapon, so
+		// following master closes the case where a round outlives the
+		// gun that fired it.
+		//
+		// Bounded at 8 hops: a master/target chain can be cyclic (a
+		// summon whose master is a summon whose master is the first),
+		// and an unbounded walk there is a hang, not a wrong score.
 		Actor killer = e.Inflictor ? e.Inflictor : victim.target;
-		while (killer && killer.bMissile && killer.target)
-			killer = killer.target;
+		for (int hops = 0; hops < 8 && killer && !killer.player; hops++)
+		{
+			if (killer.bMissile && killer.target)      killer = killer.target;
+			else if (killer.master && killer.master != killer) killer = killer.master;
+			else if (killer.target && killer.target.player)    killer = killer.target;
+			else break;
+		}
 
 		// Monster died to something that isn't a player.
 		PlayerInfo pi = killer ? killer.player : null;
@@ -922,7 +968,18 @@ class RS_ScoreHandler : EventHandler
 
 			TrackAir(sp, pmo);
 			TrackWeapons(sp, pmo, now);
-			TickLives(i, sp, pmo);
+			// TickLives REMOVED 2026-08-07. The CF_BUDDHA revival that lived
+			// here is superseded by RS_ScoreLives.zs / RS_LifeForce, which
+			// intercepts damage in AbsorbDamage BEFORE the engine subtracts
+			// health -- no cheat flags, no resurrection, so weapon state and
+			// VR hand poses survive a save.
+			//
+			// It had to be DELETED rather than left switched off: its own
+			// disabled branch still ran `pi.cheats &= ~CF_BUDDHA` every tic,
+			// so even with rs_score_lives_enable off it silently cancelled a
+			// `buddha` the player had typed themselves, or any other mod's
+			// grant. sp.extraLives survives as the HUD's readout and is now
+			// written by the new system.
 			TickDisplay(sp);
 			TickRegen(i, sp, pmo);
 			ExpireBonuses(sp, now);
@@ -971,24 +1028,59 @@ class RS_ScoreHandler : EventHandler
 	// weapon and works on weapons we did not write -- the alternative is
 	// a hook in every fire state of every gun, which rots the moment
 	// someone adds a weapon and forgets.
+	// SWITCHAROO now counts the OFFHAND as a switch. Owner ruling
+	// 2026-08-07 ("get switcharoo to work, or rename it, or make a new
+	// thing that does the thing") -- so it was made to work.
+	//
+	// It used to sample BT_ATTACK / BT_ALTATTACK and read only
+	// pi.ReadyWeapon, which on a dual-wield mod meant the offhand was
+	// invisible to it: the engine fires the offhand on its own button
+	// bit, BT_OFFHANDATTACK (player.zs:463-479, which never sets
+	// BT_ATTACK), holding a different weapon in a different slot. So
+	// pulling the left trigger recorded NOTHING -- the function returned
+	// at the buttons check -- and the one bonus named after switching
+	// could never be paid by switching hands, on the mod whose entire
+	// identity is two guns.
+	//
+	// Both hands now feed the same A/B weapon slots, so all three of
+	// these read as a switcharoo: mainhand -> other mainhand, primary ->
+	// alt fire, and mainhand -> offhand.
 	void TrackWeapons(RS_ScorePlayer sp, Actor mo, int now)
 	{
 		let pi = mo.player;
-		if (!pi || !pi.ReadyWeapon)
+		if (!pi)
 			return;
 
-		bool firing = (pi.cmd.buttons & BT_ATTACK) != 0;
+		bool firing    = (pi.cmd.buttons & BT_ATTACK) != 0;
 		bool altFiring = (pi.cmd.buttons & BT_ALTATTACK) != 0;
+		bool offFiring = (pi.cmd.buttons & BT_OFFHANDATTACK) != 0;
 
-		if (!firing && !altFiring)
+		if (!firing && !altFiring && !offFiring)
 			return;
 
 		if (firing)
 			sp.lastPrimaryTime = now;
 		if (altFiring)
 			sp.lastAltTime = now;
+		// The offhand counts as an alternate attack for the primary/alt
+		// half of the bonus as well -- it IS the other trigger.
+		if (offFiring)
+			sp.lastAltTime = now;
 
-		Name wn = pi.ReadyWeapon.GetClassName();
+		// Which weapon this pull actually came from. The offhand check is
+		// first: if both triggers are down on the same tic the offhand is
+		// the newer information, since the mainhand will keep re-stamping
+		// itself for as long as it is held.
+		Weapon fired = null;
+		if (offFiring && pi.OffhandWeapon)
+			fired = pi.OffhandWeapon;
+		else if ((firing || altFiring) && pi.ReadyWeapon)
+			fired = pi.ReadyWeapon;
+
+		if (!fired)
+			return;
+
+		Name wn = fired.GetClassName();
 
 		if (wn == sp.lastWeaponA)
 		{
@@ -1143,77 +1235,6 @@ class RS_ScoreHandler : EventHandler
 	// 1hp state is the revive. Resurrecting an already-dead pawn is the
 	// obvious alternative and it is worse -- it loses the weapon state
 	// and looks wrong.
-	// -----------------------------------------------------------------
-	void TickLives(int pln, RS_ScorePlayer sp, Actor mo)
-	{
-		let pi = mo.player;
-		if (!pi)
-			return;
-
-		if (!CVBool("rs_score_lives_enable", true))
-		{
-			pi.cheats &= ~CF_BUDDHA;
-			return;
-		}
-
-		if (sp.extraLives <= 0)
-		{
-			// No lives left -- take buddha back off, or the player
-			// becomes quietly immortal.
-			pi.cheats &= ~CF_BUDDHA;
-			return;
-		}
-
-		pi.cheats |= CF_BUDDHA;
-
-		// Buddha floors lethal damage at 1. That is the revive cue.
-		if (mo.health > 1)
-			return;
-
-		sp.extraLives--;
-
-		int heal = CVInt("rs_score_revive_health", 100);
-		mo.A_SetHealth(max(1, heal));
-
-		if (sp.extraLives <= 0)
-			pi.cheats &= ~CF_BUDDHA;
-
-		// Brief immunity so the same shot that dropped you cannot
-		// immediately drop you again mid-animation.
-		int invuln = CVInt("rs_score_revive_invuln", 70);
-		if (invuln > 0)
-		{
-			mo.A_GiveInventory("PowerInvulnerable", 1);
-			let pow = Powerup(mo.FindInventory("PowerInvulnerable"));
-			// max(), not assignment: never shorten an invulnerability
-			// the player already had from a pickup.
-			if (pow)
-				pow.EffectTics = max(pow.EffectTics, invuln);
-		}
-
-		// The cone.
-		if (CVBool("rs_score_revive_cone", true))
-		{
-			// Actor.Spawn, qualified: this is an EventHandler, not an
-			// Actor, so there is no unqualified Spawn in scope here.
-			Actor cone = Actor.Spawn("RS_ReviveExplosion", mo.pos + (0, 0, 32), ALLOW_REPLACE);
-			if (cone)
-			{
-				cone.target = mo;
-				cone.angle = mo.angle;
-			}
-		}
-
-		if (CVBool("rs_score_revive_flash", true))
-			mo.A_SetBlend("FF 7F 00", 0.75, 40);
-
-		// Streaks do not survive dying. Getting killed is exactly the
-		// thing Untouchable is measuring the absence of.
-		sp.utKills = 0;
-		sp.utDamage = 0;
-		sp.utStacks = 0;
-		sp.spreeCount = 0;
-	}
 
 	// -----------------------------------------------------------------
 	// HUD. Same shape GunBonsai's handler uses (EventHandler.zsc:123):

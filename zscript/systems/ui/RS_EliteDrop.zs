@@ -74,24 +74,29 @@ class RS_WeaponDrop : Actor
 		// -- and takes a luminance-preserving tier tint on top of it.
 		// Only its pickup behaviour is removed, not its visibility.
 		//
-		// THE FLAG IS NOT OPTIONAL. This is a world spawn of a real
-		// RS_Weapon, so it goes through WorldThingSpawned like any floor
-		// pickup -- which means RS_ClassGating destroys it outright when its
-		// family does not match the player's class, and Vanilla+ may swap it
-		// for something else. On a Dual_X class that silently ate four of
-		// the six possible drops INSIDE this Spawn call: w came back null,
-		// mPayload stayed null, and the pedestal deleted itself on its next
-		// tic, leaving a Clip on the floor where the drop should have been.
-		// The pedestal design dodges the two PICKUP traps; it never dodged
-		// this one, which fires at spawn.
-		let dh = RS_PanelDropHandler(EventHandler.Find("RS_PanelDropHandler"));
-		if (dh) dh.mSpawningDrop = true;
-
+		// EXEMPTION FROM CLASS GATING -- HOW IT ACTUALLY WORKS, 2026-08-07.
+		//
+		// This is a world spawn of a real RS_Weapon, so it goes through
+		// WorldThingSpawned like any floor pickup -- which means
+		// RS_ClassGating would destroy or convert it, and Vanilla+ might
+		// swap it. That is a real hazard and it needed a real exemption.
+		//
+		// It USED to be a boolean window: set dh.mSpawningDrop true, spawn,
+		// set it false, with a comment promising "the exempt window is
+		// exactly this one Spawn." That was wrong at the root, because
+		// WorldThingSpawned is NOT synchronous -- the engine defers it to
+		// the fresh-thinker pass (p_mobj.cpp:5164 via dthinker.cpp:602-611),
+		// so the flag was always back to false by the time the payload's
+		// event arrived. The exemption never once applied, and on a Dual_X
+		// class every elite drop fell into the class-gating fill loop.
+		//
+		// THE PAYLOAD IS NOW RECOGNISED BY ITS OWN STATE instead. The
+		// bSpecial=false / bNoInteraction=true pair below is set before the
+		// deferred event can fire, and nothing else on a floor is ever
+		// non-interactive, so RS_ClassGating simply checks that. No window,
+		// nothing to keep in sync across two files, and it cannot rot the
+		// way a flag did.
 		let w = Weapon(Actor.Spawn(what, where));
-
-		// Cleared immediately and unconditionally -- the exempt window is
-		// exactly this one Spawn, so nothing can ride through behind it.
-		if (dh) dh.mSpawningDrop = false;
 
 		if (w)
 		{
@@ -126,7 +131,24 @@ class RS_WeaponDrop : Actor
 			// EVR_Tier(x) is not a cast -- ZScript has no enum-constructor
 			// syntax, so it parses as a call to an undefined function. An
 			// int converts to the enum parameter on its own.
-			if (rsw) rsw.RollStats(tier);
+			if (rsw)
+			{
+				rsw.RollStats(tier);
+
+				// RE-ANCHOR THE PROMOTION/CEILING BASELINE ON THE ROLL THE
+				// PLAYER ACTUALLY GETS. PostBeginPlay already rolled this
+				// weapon at Basic a moment ago and captured THAT number as
+				// the baseline; the RollStats above then replaced every
+				// stat with the real tier's roll, but the capture is
+				// "once only" and kept the stale Basic figure. Everything
+				// measured against the baseline was therefore measured
+				// against a roll that never appeared on the weapon --
+				// GetDamageCeiling(), the damage-card gate, and the
+				// state-ladder tracer body, which sat pinned at "Peak" on
+				// every elite drop in the game.
+				rsw.ResetDamageBaseline();
+				rsw.CaptureInitialDamageBaseline();
+			}
 
 			d.mPayload = w;
 		}
@@ -230,6 +252,10 @@ class RS_PanelDropHandler : EventHandler
 	// rather than 35 times a second.
 	int             mLastHotRow;
 	int             mLastHotPanel;
+	// Tics BT_USE has been held while a live row sits under the hand.
+	// Reset the moment the button lifts or the row goes dead, so a hold
+	// that wanders off the card does not carry over.
+	int             mUseHeld;
 
 	// The six RS class weapons.
 	//
@@ -270,6 +296,70 @@ class RS_PanelDropHandler : EventHandler
 	// options menu already advertises to the player; this is the first
 	// code that honours it.
 	// -----------------------------------------------------------------
+	// =================================================================
+	// THE FOOD SCATTER.
+	//
+	// Ported from the champions pack's champion_SpawnBundles: how much a
+	// dead elite is worth is a function of how much health it had, in
+	// six brackets, doubled if you gibbed it and doubled again if it was
+	// a boss. That is a good rule and it is kept as-is -- a Cyberdemon
+	// elite should bury you in food and a zombieman elite should not.
+	//
+	// The pack pushed a weighted pool and drew from it; we scatter
+	// directly, because the pool only existed so one bundle actor could
+	// mix food with ammo and armour, and RS pays those through Kill
+	// Rewards instead.
+	//
+	// SURVIVES RS_NoMonsterDrops BY CONSTRUCTION: that handler suppresses
+	// items carrying bTossed, which only A_DropItem sets. A_SpawnItemEx
+	// does not, so this is invisible to it -- the same reason kill-reward
+	// Bits survive.
+	// =================================================================
+	static int FoodTierFor(int startHealth)
+	{
+		if (startHealth >= 2000) return 5;
+		if (startHealth >= 1000) return 4;
+		if (startHealth >=  500) return 3;
+		if (startHealth >=  300) return 2;
+		if (startHealth >=  150) return 1;
+		return 0;
+	}
+
+	void ScatterFood(Actor victim)
+	{
+		if (!victim) return;
+
+		let cv = CVar.FindCVar("rs_elite_food");
+		if (cv && !cv.GetBool()) return;
+
+		int startHealth = victim.SpawnHealth();
+		int tier = FoodTierFor(startHealth);
+
+		// The pack's own count, kept: 5% of starting health, floored at 4
+		// and capped at 25 so a Cyberdemon does not carpet the map.
+		int n = clamp(int(startHealth * 0.05), 4, 25);
+
+		// Gibbed things burst harder.
+		if (victim.health <= victim.GetGibHealth()) n *= 2;
+		if (victim.bBoss) n *= 2;
+
+		// Scaled by the difficulty the elite actually presented.
+		n = int(n * max(1.0, victim.DamageMultiply));
+
+		let mult = CVar.FindCVar("rs_elite_food_mult");
+		if (mult) n = int(n * clamp(mult.GetInt(), 0, 400) / 100.0);
+		n = clamp(n, 0, 120);
+
+		for (int i = 0; i < n; i++)
+		{
+			victim.A_SpawnItemEx("RS_FoodBonus",
+				0, 0, 8,
+				frandom(1.0, 2.0), 0, frandom(8.0, 10.0),
+				frandom(0, 359.9),
+				SXF_NOCHECKPOSITION);
+		}
+	}
+
 	override void WorldThingDied(WorldEvent e)
 	{
 		if (!DropsEnabled()) return;
@@ -282,6 +372,16 @@ class RS_PanelDropHandler : EventHandler
 
 		let tok = RS_EliteToken(e.Thing.FindInventory("RS_EliteToken"));
 		if (!tok || !tok.revealed) return;
+
+		// FOOD FIRST, AND UNCONDITIONALLY. Owner ruling 2026-08-07:
+		// "elites will drop their normal assortment of food icons."
+		//
+		// Deliberately ahead of every gate below. The weapon drop is
+		// gated on a VR_ class, on a percentage roll, and on the player
+		// still missing an identity -- so a GH/MeatGrinder player, or one
+		// who already owns all six, would otherwise get NOTHING at all
+		// from an elite. Food is the payout every class always gets.
+		ScatterFood(e.Thing);
 
 		// -------------------------------------------------------------
 		// ELIGIBILITY GATE (owner's direct instruction, 2026-08-06).
@@ -413,13 +513,34 @@ class RS_PanelDropHandler : EventHandler
 	// of the game and becomes a permanent property -- the bottom three
 	// tiers are stat-only, always.
 	// -----------------------------------------------------------------
+	// TWO PHASES, NOT A RAMP. Owner ruling 2026-08-07:
+	//
+	//   "when player has less than six class weapons, elites drop rolled
+	//    Basic or Trash class weapons until a player has 6, then drop
+	//    frames of trash -> prototype"
+	//
+	// So the drop does one job at a time. Below six, an elite is how you
+	// COMPLETE THE SET -- it hands you a missing identity, and the tier
+	// is deliberately poor (Trash or Basic) because the weapon itself is
+	// the prize. At six, the set is done and the drop switches jobs
+	// entirely: now it is about QUALITY, and the whole Trash-to-Prototype
+	// range opens up.
+	//
+	// This replaces a five-step ramp that raised the ceiling one tier per
+	// weapon owned (3 owned -> Common, 4 -> Uncommon, 5 -> Advanced). That
+	// blurred the two phases together: a player at five weapons was
+	// already being handed Advanced guns, so completing the set stopped
+	// meaning anything.
 	static int TierCeiling(int owned)
 	{
-		if (owned >= 6) return VRT_Prototype;
-		if (owned == 5) return VRT_Advanced;
-		if (owned == 4) return VRT_Uncommon;
-		if (owned == 3) return VRT_Common;
-		return VRT_Basic;               // 0-2 owned: the starting window
+		return owned >= 6 ? VRT_Prototype : VRT_Basic;
+	}
+
+	// The floor moves with the phase too. Before the set is complete the
+	// window is exactly Trash..Basic; after, it is Trash..Prototype.
+	static int TierFloor(int owned)
+	{
+		return VRT_Trash;
 	}
 
 	// Weighted toward the bottom of whatever window is open, so the top
@@ -428,15 +549,24 @@ class RS_PanelDropHandler : EventHandler
 	// curve applies however wide the window is.
 	static int RollDropTier(PlayerPawn pawn)
 	{
-		int top = TierCeiling(ArsenalCount(pawn));
-		int span = top - VRT_Cursed;          // 2 at the start, 7 complete
+		int owned = ArsenalCount(pawn);
+		int top   = TierCeiling(owned);
+		int bot   = TierFloor(owned);
+		int span  = top - bot;
 
-		// Two rolls, lower kept. A clean triangular bias to the floor --
-		// no table to keep in step with the tier enum, and it degrades
-		// correctly at span 0.
+		// PHASE 1 (under six owned): a flat coin-flip between Trash and
+		// Basic. No bias worth having across two values, and the tier is
+		// not the point yet -- the missing identity is.
+		if (owned < 6)
+			return bot + random[RSDropTier](0, span);
+
+		// PHASE 2 (set complete): Trash through Prototype, biased low.
+		// Two rolls, lower kept -- a triangular curve that makes
+		// Prototype genuinely rare without a lookup table to keep in
+		// step with the tier enum.
 		int a = random[RSDropTier](0, span);
 		int b = random[RSDropTier](0, span);
-		return VRT_Cursed + min(a, b);
+		return bot + min(a, b);
 	}
 
 	// -----------------------------------------------------------------
@@ -545,6 +675,26 @@ class RS_PanelDropHandler : EventHandler
 		let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
 		if (!ph) return;
 
+		// ORPHANED-CARD GUARD, added 2026-08-07.
+		//
+		// A card is normally torn down by the take path, by walking out
+		// of radius, or by the pedestal's own Tick calling DropCard().
+		// All three require the pedestal to still exist. If the
+		// RS_WeaponDrop or its payload is destroyed ANY OTHER WAY --
+		// console `remove`, a map script, a crusher -- that Tick stops,
+		// mCardOwner goes null, and nothing ever tells the card.
+		//
+		// The panels then stay registered in RS_PanelHandler.mLive,
+		// solved every tic and repainted every frame, for the rest of
+		// the map. In comfort mode they hold station in front of the
+		// reader, so the player is left staring through a stat sheet for
+		// a weapon that no longer exists, with no way to dismiss it.
+		//
+		// One check, every tic, on the only condition that can produce
+		// it: a card with no owner, or an owner with no payload.
+		if (mCard && (!mCardOwner || !mCardOwner.mPayload))
+			DropCard();
+
 		bool live;
 		int row = ResolveHotRow(ph, live);
 		ph.PublishHotRow(row, live);
@@ -559,6 +709,44 @@ class RS_PanelDropHandler : EventHandler
 
 		if (live) { mLastHotRow = row;  mLastHotPanel = ph.mHotPanel; }
 		else      { mLastHotRow = -1;   mLastHotPanel = -1; }
+
+		// =============================================================
+		// HOLD USE TO TAKE. Built 2026-08-07.
+		//
+		// The card's own wing text has always said "hold USE to take"
+		// and NOTHING implemented it -- grep found no WorldThingActivated,
+		// no BT_USE read, anywhere in the tree, and the pedestal is
+		// +NOINTERACTION so it cannot be used in the ordinary way either.
+		// The only working takes were point-and-trigger, MOUSE3 and the
+		// punch. On a flat-play setup with no tracked controllers, that
+		// left the most obvious instruction in the UI reading as broken.
+		//
+		// This is the fallback the owner asked for, on a toggle.
+		//
+		// READ FROM original_cmd, not cmd. RS_PanelInput edits `cmd` to
+		// steal the trigger, which poisons the ordinary
+		// buttons/oldbuttons edge test -- the raw pair is the only
+		// honest source. Same reason that file uses it.
+		//
+		// HOLD, not tap: a tap of USE is how you open doors, and a drop
+		// sitting in a doorway must not eat that.
+		if (live && RS_PanelController.UseTakeEnabled() && pawn && pawn.player)
+		{
+			bool useDown = (pawn.player.original_cmd.buttons & BT_USE) != 0;
+			if (useDown)
+			{
+				mUseHeld++;
+				if (mUseHeld == RS_PanelController.UseHoldTics())
+				{
+					// == not >=, so one hold fires exactly once and does
+					// not repeat while the button stays down.
+					RS_PanelInput.Say(pawn, "menu/choose");
+					EventHandler.SendNetworkEvent("rs-panel-use", 0);
+				}
+			}
+			else mUseHeld = 0;
+		}
+		else mUseHeld = 0;
 
 		// THE PUNCH. Read-and-clear even when the row is dead, so a
 		// swing at an inert part of the card is spent rather than banked
@@ -890,5 +1078,48 @@ class RS_PanelDropHandler : EventHandler
 	override void WorldUnloaded(WorldEvent e)
 	{
 		DropCard();
+	}
+}
+
+// =====================================================================
+// RS_FoodBonus -- the elite's food scatter.
+// ---------------------------------------------------------------------
+// A HealthBonus wearing the FRUT sprite set (8 frames, sprites/rs_food/,
+// imported 2026-08-07 from the champions pack at the owner's direction).
+//
+// Each one picks a random frame and a random horizontal flip at spawn,
+// so a pile of twenty reads as an assortment of different food rather
+// than twenty copies of one icon. That trick is the whole reason this
+// is a separate class instead of a retextured HealthBonus.
+//
+// -COUNTITEM is deliberate and inherited from the source: dozens of
+// these per elite would wreck the level's item percentage, and they are
+// a combat payout, not a secret to be found.
+// =====================================================================
+class RS_FoodBonus : HealthBonus
+{
+	Default
+	{
+		+RANDOMIZE
+		-COUNTITEM
+		Inventory.PickupMessage "$PICKUP_RS_FOOD";
+		Tag "$TAG_RS_FOOD";
+	}
+
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		bSpriteFlip = random(0, 1);
+		frame = random(0, 7);
+	}
+
+	States
+	{
+	Spawn:
+		// '#' holds whatever frame PostBeginPlay picked -- the state does
+		// not advance it, which is what keeps each item on its own food.
+		FRUT "#" 35;
+		FRUT "#" 1 Bright;
+		Loop;
 	}
 }

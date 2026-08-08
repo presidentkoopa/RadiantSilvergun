@@ -104,28 +104,18 @@ class RS_UIHandler : EventHandler
 	// Sheet cycle position: 0 offhand, 1 mainhand, 2 player.
 	int mCycle;
 
-	// The test showcase stand (`netevent rs-showcase` toggles it). One
-	// slot, console-player oriented -- it's a dev/preview prop, not a
-	// per-player system.
-	RS_ShowcaseStand mShowcase;
-
 	// True only while the loaded model is a cycling sheet (weapon /
 	// player). RS_Menu_Dynamic reads it: Left/Right cycle subjects on
 	// sheets, and stay inert on confirm/repair screens.
 	bool mCycleNav;
 
-	// --- The world card: first consumer of the billboard renderer. ---
-	// A canvas texture (RSCARDA, ANIMDEFS) drawn in RenderOverlay from
-	// this model, displayed in-world by an engine billboard attached to
-	// the showcase stand. Separate arrays from the menu model on
-	// purpose -- opening a sheet must not clobber the floating card.
-	bool mCardActive;
-	int mCardBB;
-	string mCardTitle;  int mCardTitleColor;
-	string mCardSub;    int mCardSubColor;
-	Array<string> mCardKey;
-	Array<string> mCardVal;
-	Array<int>    mCardColor;
+	// (The showcase stand and its floating world card were removed
+	// 2026-08-07 -- see the rs-showcase note in NetworkProcess. The
+	// canvas-painting half went with them: it displayed through
+	// billboard payload 1 (texture), which needs TextureID.GetIndex(),
+	// and that native still does not exist in ZScript. In-world screens
+	// now live in zscript/systems/ui/RS_BillboardUI.zs and are built
+	// from payloads that need no texture handle.)
 
 	// Reroll cost escalation: 5 << rsRerolls (5/10/20/40...), tracked on
 	// the giver itself (fresh giver per offer = automatic reset).
@@ -135,6 +125,18 @@ class RS_UIHandler : EventHandler
 	// 12 << rsExtraCards (12/24/48...).
 	const EXPAND_BASE_COST = 12;
 	const REPAIR_BITS_PER_PRESS = 50;   // 50 grey = +5 condition per press
+	// CURSE_LIFT_COST (a flat 25 GOLD) was here and is gone, 2026-08-07.
+	//
+	// The curse rework gave lifting a real price list -- Curse Bits, and
+	// a different amount per stat depending on how much that curse hurts
+	// (RS_Curse.StatCost, all sliders on the Curses options page). This
+	// screen was the only thing still charging a flat rate in a different
+	// currency, which meant the same action cost two different things
+	// depending on whether the player found this route or the console one.
+	//
+	// A cursed stat still reads ??? until lifted, so the "you are buying
+	// information as much as power" reasoning behind the original number
+	// survives -- it is just priced with everything else now.
 
 	void ClearModel()
 	{
@@ -243,20 +245,42 @@ class RS_UIHandler : EventHandler
 
 		// --- Stats: what the gun actually is. ---
 		int dps = int(rsw.DamagePerShot * max(1, rsw.PelletCount) * max(1, rsw.RateOfFire));
+		// A CURSED STAT SHOWS ???, NOT ITS NUMBER. Owner ruling
+		// 2026-08-07: "curses obscure the actual value of a rolled stat
+		// until they are lifted by spending gold."
+		//
+		// These rows used to print the halved value with a [LOCKED] tag
+		// beside it, which gives the whole thing away -- you could see
+		// exactly what you were buying and simply never buy a bad one.
+		// Hiding the number is what makes the gold a gamble: a cursed
+		// stat may be a ruined masterpiece or a ruined dud, and paying
+		// is the only way to find out.
 		AddRow("DAMAGE/SHOT",
-			string.format("%d   (ceiling %d)", rsw.DamagePerShot, rsw.GetDamageCeiling()),
+			rsw.LockedDamage ? "???   (cursed)"
+				: string.format("%d   (ceiling %d)", rsw.DamagePerShot, rsw.GetDamageCeiling()),
 			rsw.LockedDamage ? Font.CR_DARKRED : Font.CR_TAN, "", 0,
 			"Per-pellet damage, exact -- what you see is what lands.\nThe ceiling rises with every Promotion.");
-		AddRow("DPS", string.format("%d", dps), Font.CR_TAN, "", 0,
+		// DPS is derived from damage, so it must hide too -- otherwise it
+		// leaks the exact number the curse is concealing.
+		AddRow("DPS", rsw.LockedDamage ? "???" : string.format("%d", dps),
+			rsw.LockedDamage ? Font.CR_DARKRED : Font.CR_TAN, "", 0,
 			"Damage x pellets x rate of fire. Derived, not rolled.");
 		AddRow("RATE OF FIRE", string.format("%d/s", rsw.RateOfFire), Font.CR_TAN);
-		AddRow("ACCURACY", string.format("%d%s", int(rsw.Accuracy), rsw.LockedAccuracy ? "  [LOCKED]" : ""),
+		AddRow("ACCURACY",
+			rsw.LockedAccuracy ? "???   (cursed)" : string.format("%d", int(rsw.Accuracy)),
 			rsw.LockedAccuracy ? Font.CR_DARKRED : Font.CR_TAN);
-		AddRow("CRIT", string.format("%.1f%%%s", rsw.CritChance * 100.0, rsw.LockedCritChance ? "  [LOCKED]" : ""),
+		AddRow("CRIT",
+			rsw.LockedCritChance ? "???   (cursed)" : string.format("%.1f%%", rsw.CritChance * 100.0),
 			rsw.LockedCritChance ? Font.CR_DARKRED : Font.CR_TAN);
-		AddRow("VELOCITY", string.format("%d", int(rsw.Velocity)), Font.CR_TAN);
+		AddRow("VELOCITY",
+			rsw.LockedVelocity ? "???   (cursed)" : string.format("%d", int(rsw.Velocity)),
+			rsw.LockedVelocity ? Font.CR_DARKRED : Font.CR_TAN);
 		int magNow = wep.AmmoType2 ? pawn.CountInv(wep.AmmoType2) : 0;
-		AddRow("MAGAZINE", string.format("%d / %d", magNow, rsw.Capacity), Font.CR_TAN);
+		// The loaded count is honest either way; only CAPACITY is cursed.
+		AddRow("MAGAZINE",
+			rsw.LockedCapacity ? string.format("%d / ???", magNow)
+				: string.format("%d / %d", magNow, rsw.Capacity),
+			rsw.LockedCapacity ? Font.CR_DARKRED : Font.CR_TAN);
 		AddRow("PELLETS", string.format("%d", rsw.PelletCount), Font.CR_TAN, "", 0,
 			"Promotion's permanent reward: +1 per cash-in.");
 		if (rsw.Choke > 0)
@@ -331,8 +355,27 @@ class RS_UIHandler : EventHandler
 		// reads (PerPlayerStats.GetCurrentStats: stats.pmax).
 		double pmax = bonsai_gun_levels_per_player_level;
 		AddRow(string.format("LEVEL %d", stats.level),
-			string.format("XP %s %d/%d", RS_UIStyle.XPBar(stats.XP, pmax), int(stats.XP), int(pmax)),
+			string.format("GUN LEVELS %s %d/%d", RS_UIStyle.XPBar(stats.XP, pmax), int(stats.XP), int(pmax)),
 			Font.CR_WHITE);
+
+		// THE MISSING DOOR, added 2026-08-07.
+		//
+		// The player track had no way to be spent. Weapon levels fed it
+		// 1 each, it filled, GunBonsai logged "player level up ready"
+		// (PerPlayerStats.zsc:249) -- and then nothing, forever, because
+		// upstream deliberately stopped auto-opening the screen and
+		// GBOH_UnifiedInfo's fallback path is unreachable: the RS UI
+		// handler intercepts it and cycles sheets instead, on the stated
+		// promise that "level-ups launch from the sheets' own LEVEL UP
+		// rows" (EventHandler.zsc). The weapon sheets have that row.
+		// This one never did.
+		//
+		// Same shape as the weapon sheet's row 200 lines up, with -1 as
+		// the hand argument to mean "the player, not a weapon".
+		if (stats.XP >= pmax)
+			AddRow(">> PLAYER LEVEL UP! <<", "choose a player upgrade",
+				Font.CR_ORANGE, "rs-ui-levelup", -1,
+				"A player level is banked. Confirm to open the picker.\nEarned from gun levels, not from kills directly.");
 		AddRule();
 		AddRow("GOLD BITS", string.format("%d", pawn.CountInv("RS_Bit_Gold")), Font.CR_GOLD,
 			"", 0, "Spent on card-picker rerolls. Dropped by kills.");
@@ -422,41 +465,6 @@ class RS_UIHandler : EventHandler
 			RS_UIStyle.ConditionColor(rsw.Condition));
 	}
 
-	// -----------------------------------------------------------------
-	// The floating drop card's model -- the compact readout, built into
-	// its own arrays (never the menu model). Content is the drop-card
-	// subset: name, tier, pips, the numbers that sell the gun.
-	// -----------------------------------------------------------------
-	void BuildShowcaseCard(PlayerPawn pawn, Weapon wep)
-	{
-		mCardKey.Clear(); mCardVal.Clear(); mCardColor.Clear();
-
-		mCardTitle = wep.GetTag();
-		mCardTitleColor = Font.CR_WHITE;
-		mCardSub = "";
-		mCardSubColor = Font.CR_WHITE;
-
-		let rsw = RS_Weapon(wep);
-		if (!rsw)
-		{
-			mCardKey.Push("(not an RS weapon)"); mCardVal.Push(""); mCardColor.Push(Font.CR_DARKGRAY);
-			return;
-		}
-
-		mCardTitleColor = RS_UIStyle.TierColor(rsw.Tier);
-		mCardSub = RS_UIStyle.TierName(rsw.Tier) .. "   " .. RS_UIStyle.Pips(rsw.PromotionCount);
-		mCardSubColor = RS_UIStyle.TierColor(rsw.Tier);
-
-		int dps = int(rsw.DamagePerShot * max(1, rsw.PelletCount) * max(1, rsw.RateOfFire));
-		mCardKey.Push("DAMAGE");   mCardVal.Push(string.format("%d", rsw.DamagePerShot));       mCardColor.Push(Font.CR_TAN);
-		mCardKey.Push("DPS");      mCardVal.Push(string.format("%d", dps));                      mCardColor.Push(Font.CR_TAN);
-		mCardKey.Push("ROF");      mCardVal.Push(string.format("%d/s", rsw.RateOfFire));         mCardColor.Push(Font.CR_TAN);
-		mCardKey.Push("ACCURACY"); mCardVal.Push(string.format("%d", int(rsw.Accuracy)));        mCardColor.Push(Font.CR_TAN);
-		mCardKey.Push("CRIT");     mCardVal.Push(string.format("%.1f%%", rsw.CritChance * 100)); mCardColor.Push(Font.CR_TAN);
-		mCardKey.Push("PELLETS");  mCardVal.Push(string.format("%d", rsw.PelletCount));          mCardColor.Push(Font.CR_TAN);
-		mCardKey.Push("CONDITION"); mCardVal.Push(string.format("%d%%", int(rsw.Condition)));
-		mCardColor.Push(RS_UIStyle.ConditionColor(rsw.Condition));
-	}
 
 	// -----------------------------------------------------------------
 	// S6 -- THE DROP TRIPTYCH.
@@ -686,56 +694,69 @@ class RS_UIHandler : EventHandler
 			AddRow("(condition is perfect)", "", Font.CR_DARKGRAY);
 		AddRule();
 
-		bool anyLocked = rsw.LockedDamage || rsw.LockedAccuracy || rsw.LockedVelocity
-			|| rsw.LockedCritChance || rsw.LockedCapacity;
-		AddRow("CURSES", "", Font.CR_PURPLE);
+		// CURSE LIFTING, built 2026-08-07. This row used to read
+		// "(curse-lifting not yet awakened)" -- the flags were set, the
+		// unlock function existed with its 1.5x reward, and nothing in
+		// the game could ever call it.
+		//
+		// Owner ruling: a curse OBSCURES the stat's real value until it
+		// is lifted by spending gold, and lifting it adds 1.5x to that
+		// stat. So the row shows ??? rather than the halved number --
+		// you are buying information as much as power, and you cannot
+		// tell a cursed masterpiece from a cursed dud until you pay.
+		// CURSE BITS, NOT GOLD, AND PER-STAT PRICING. Changed 2026-08-07
+		// with the curse rework.
+		//
+		// This screen charged a flat 25 GOLD while the rest of the system
+		// charges RS_Bit_Curse at a price that varies by how much the
+		// curse hurts. Two prices in two currencies for the same action is
+		// the kind of split that only shows up when a player finds one
+		// route and not the other. One source of truth now:
+		// RS_Curse.StatCost().
+		int bits = pawn.CountInv("RS_Bit_Curse");
+		bool anyLocked = rsw.HasAnyCurse();
+		AddRow("CURSES", string.format("%d curse bits", bits), Font.CR_PURPLE);
 		if (!anyLocked)
 			AddRow("  (no locked stats)", "", Font.CR_DARKGRAY);
 		else
 		{
-			if (rsw.LockedDamage)     AddRow("  DAMAGE", "[LOCKED]", Font.CR_DARKRED);
-			if (rsw.LockedAccuracy)   AddRow("  ACCURACY", "[LOCKED]", Font.CR_DARKRED);
-			if (rsw.LockedVelocity)   AddRow("  VELOCITY", "[LOCKED]", Font.CR_DARKRED);
-			if (rsw.LockedCritChance) AddRow("  CRIT", "[LOCKED]", Font.CR_DARKRED);
-			if (rsw.LockedCapacity)   AddRow("  CAPACITY", "[LOCKED]", Font.CR_DARKRED);
-			AddRow("  (curse-lifting not yet awakened)", "", Font.CR_DARKGRAY);
+			AddCurseRow(rsw, bits, hand, "damage",     "  > LIFT DAMAGE",
+				rsw.LockedDamage,     rsw.CurseStackDamage,     0);
+			AddCurseRow(rsw, bits, hand, "accuracy",   "  > LIFT ACCURACY",
+				rsw.LockedAccuracy,   rsw.CurseStackAccuracy,   1);
+			AddCurseRow(rsw, bits, hand, "velocity",   "  > LIFT VELOCITY",
+				rsw.LockedVelocity,   rsw.CurseStackVelocity,   2);
+			AddCurseRow(rsw, bits, hand, "critchance", "  > LIFT CRIT",
+				rsw.LockedCritChance, rsw.CurseStackCritChance, 3);
+			AddCurseRow(rsw, bits, hand, "capacity",   "  > LIFT CAPACITY",
+				rsw.LockedCapacity,   rsw.CurseStackCapacity,   4);
+
+			AddRow("  (price varies by stat -- see Curses options)", "",
+				Font.CR_DARKGRAY);
 		}
 	}
 
-	// -----------------------------------------------------------------
-	// The canvas painter. Runs ui-side each frame while a card is up:
-	// repaints RSCARDA from the card model, and the engine billboard
-	// showing that texture updates in-world for free. Doom-toned dark
-	// panel, gold frame, rows in the sheet's color language.
-	// -----------------------------------------------------------------
-	override void RenderOverlay(RenderEvent e)
+	// One lift row. Shows the stack depth, because a stat cursed twice
+	// needs two lifts and the first one pays no bonus -- a player looking
+	// at "x2" understands why the number did not jump.
+	void AddCurseRow(RS_Weapon rsw, int bits, int hand, string stat,
+		string label, bool locked, int stack, int idx)
 	{
-		if (!mCardActive) return;
-		let cv = TexMan.GetCanvas("RSCARDA");
-		if (!cv) return;
+		if (!locked) return;
 
-		cv.Clear(0, 0, 256, 384, Color(255, 20, 15, 12));
-		cv.DrawLineFrame(Color(255, 106, 88, 54), 2, 2, 252, 380);
-		cv.DrawLineFrame(Color(255, 58, 46, 30), 5, 5, 246, 374);
+		int cost = RS_Curse.StatCost(stat);
+		bool afford = bits >= cost;
+		int  col = afford ? Font.CR_GOLD : Font.CR_DARKGRAY;
 
-		cv.DrawText(BigFont, mCardTitleColor, 14, 14, mCardTitle);
-		cv.DrawText(SmallFont, mCardSubColor, 14, 44, mCardSub);
-		cv.Clear(14, 62, 242, 63, Color(255, 74, 64, 56));
+		string tip = afford
+			? "Lift it: the stat is RESTORED to its real value, boosted, and the weapon gains a tier."
+			: string.format("Costs %d Curse Bits. You have %d.", cost, bits);
 
-		int y = 76;
-		for (int i = 0; i < mCardKey.Size(); i++)
-		{
-			cv.DrawText(SmallFont, mCardColor[i], 14, y, mCardKey[i]);
-			cv.DrawText(SmallFont, mCardColor[i],
-				242 - SmallFont.StringWidth(mCardVal[i]), y, mCardVal[i]);
-			y += 20;
-		}
+		string shown = (stack > 1) ? string.format("??? x%d", stack) : "???";
+
+		AddRow(label, shown, col, afford ? "rs-ui-uncurse" : "",
+			hand * 8 + idx, tip);
 	}
-
-	// (No WorldLoaded cleanup here on purpose: the engine serializes
-	// billboards -- persistent, attached, and transient -- as of
-	// b073c20cb7, so a save mid-showcase restores the stand, the card,
-	// and their attachment intact. A mod-side rebuild would double them.)
 
 	// -----------------------------------------------------------------
 	// Netevents -- every game mutation the UI can cause.
@@ -749,11 +770,22 @@ class RS_UIHandler : EventHandler
 
 		if (evt.name == "rs-ui-levelup")
 		{
-			// Open the card picker for this hand's weapon, via GB's own
-			// giver flow (which opens our re-pointed menu).
-			let wep = HandWeapon(pawn, evt.args[0]);
-			let info = (stats && wep) ? stats.GetInfoFor(wep) : null;
-			if (info) info.StartLevelUp();
+			// arg -1 = THE PLAYER's own level, not a weapon's. The player
+			// sheet's LEVEL UP row sends this; every weapon sheet sends a
+			// real hand index. Without this branch the player track had
+			// no spend path at all -- see BuildPlayerSheet.
+			if (evt.args[0] < 0)
+			{
+				if (stats) stats.StartLevelUp();
+			}
+			else
+			{
+				// Open the card picker for this hand's weapon, via GB's own
+				// giver flow (which opens our re-pointed menu).
+				let wep = HandWeapon(pawn, evt.args[0]);
+				let info = (stats && wep) ? stats.GetInfoFor(wep) : null;
+				if (info) info.StartLevelUp();
+			}
 		}
 		else if (evt.name == "rs-ui-promote-ask")
 		{
@@ -807,78 +839,77 @@ class RS_UIHandler : EventHandler
 					Menu.SetMenu("RSDynamicSheet");
 			}
 		}
-		else if (evt.name == "rs-showcase")
-		{
-			// Dev/preview toggle: spin this hand's weapon 96 units ahead
-			// with its drop card floating above -- the first in-world
-			// panel. No args = offhand slot; falls back to ready weapon.
-			if (mShowcase)
-			{
-				// RE-ENABLED 2026-08-06 at the owner's direction, same day
-				// it was disabled. The comment that stood here said UZDXREMA
-				// "has NO billboard API AT ALL -- verified by grep over its
-				// whole src tree". True when written; the port landed after
-				// it. LevelLocals declares all seven natives at
-				// wadsrc/static/zscript/doombase.zs:633-647, verified against
-				// the engine tree before this edit rather than inferred from
-				// this file.
-				//
-				// Worth keeping as a pattern, not an anecdote: a disabling
-				// comment ages into an instruction not to look. Check the
-				// engine, not the note about the engine.
-				if (mCardActive) level.RemoveBillboard(mCardBB);
-				mCardActive = false;
-				mShowcase.Destroy();
-				mShowcase = null;
-			}
-			else
-			{
-				let wep = HandWeapon(pawn, evt.args[0]);
-				if (!wep) wep = pawn.player.ReadyWeapon;
-				if (wep)
-				{
-					Vector3 spot = pawn.Vec3Angle(96, pawn.angle);
-					spot.z = pawn.pos.z + 40;
-					mShowcase = RS_ShowcaseStand.Create(spot, wep.GetClass());
-
-					let tex = TexMan.CheckForTexture("RSCARDA", TexMan.Type_Any);
-					if (mShowcase && tex.IsValid())
-					{
-						BuildShowcaseCard(pawn, wep);
-						// BB_TEXTURE: the canvas card painted each frame in
-						// RenderOverlay. col modulates texels -- full white
-						// + full alpha = untinted. Needs engine d9f35d40f3+
-						// (TextureID.GetIndex is a compiler intrinsic).
-						//
-						// RE-ENABLED 2026-08-06 with the RemoveBillboard call
-						// above. The note that stood here said UZDXREMA has no
-						// billboard API -- true when written, false now; the
-						// port landed after it. Verified against
-						// doombase.zs:633-647 in the engine tree, not inferred
-						// from this file.
-						//
-						// Named payload rather than the bare 1 this carried:
-						// doombase.zs:405 warns a wrong id draws the wrong
-						// payload SILENTLY rather than erroring, so the
-						// constant is what turns a mistake into a compile
-						// error. BB_TEXTURE is also the one payload still
-						// rendering, which is why this site comes back first.
-						//
-						// AttachBillboard returns -1 when mo is null, so the
-						// handle is what mCardActive keys off -- RenderOverlay
-						// paints the canvas only while it is true, and the
-						// remove path above only fires while it is true.
-						mCardBB = level.AttachBillboard(mShowcase, (0, 0, 56),
-							44, BB_TEXTURE, tex.GetIndex(),
-							Color(255, 255, 255, 255));
-						mCardActive = (mCardBB >= 0);
-					}
-				}
-			}
-		}
+		// rs-showcase REMOVED 2026-08-07, at the owner's direction: "the
+		// showcase has no purpose apart to prove something to me i don't
+		// care about." It was a dev toggle that spun a weapon on a
+		// pedestal with a card above it, and it was the ONLY consumer of
+		// the billboard natives in this file.
+		//
+		// It is also the whole reason the mod stopped booting: this branch
+		// called AttachBillboard / RemoveBillboard / BB_TEXTURE /
+		// tex.GetIndex(), and every one of those was absent from the
+		// engine, so a single unresolved name here took the entire mod
+		// down at codegen -- all 17 monster families, every weapon, the
+		// lot. Three separate comments in this branch claimed the natives
+		// had been "verified against the engine tree"; they had not.
+		//
+		// The in-world UI lives in zscript/systems/ui/ now:
+		// RS_Billboard wraps the natives with handle lifetimes, and
+		// RS_BillboardUI puts the level-up card picker and the weapon
+		// status sheet in the world where this was only ever pretending to.
 		else if (evt.name == "rs-ui-repair-menu")
 		{
 			BuildCurseRepair(pawn, evt.args[0]);
+			if (players[consoleplayer].mo == pawn)
+				Menu.SetMenu("RSDynamicSheet");
+		}
+		else if (evt.name == "rs-ui-uncurse")
+		{
+			// arg packs hand and which stat: hand*8 + statIndex.
+			int hand = evt.args[0] / 8;
+			int which = evt.args[0] % 8;
+			let rsw = RS_Weapon(HandWeapon(pawn, hand));
+			if (!rsw) return;
+
+			// Work out WHICH stat first, so an unlocked one costs nothing
+			// and a double-press cannot be charged twice.
+			string statName = "";
+			switch (which)
+			{
+				case 0: if (rsw.LockedDamage)     statName = "damage";     break;
+				case 1: if (rsw.LockedAccuracy)   statName = "accuracy";   break;
+				case 2: if (rsw.LockedVelocity)   statName = "velocity";   break;
+				case 3: if (rsw.LockedCritChance) statName = "critchance"; break;
+				case 4: if (rsw.LockedCapacity)   statName = "capacity";   break;
+			}
+			if (statName == "") return;
+
+			int cost = RS_Curse.StatCost(statName);
+			if (pawn.CountInv("RS_Bit_Curse") < cost)
+			{
+				pawn.A_Log(string.format("Lifting %s costs %d Curse Bits. You have %d.",
+					statName, cost, pawn.CountInv("RS_Bit_Curse")), true);
+				return;
+			}
+
+			// Charge only if the lift actually happened. UnlockStat now
+			// returns whether it did, so this cannot take bits for nothing.
+			if (!rsw.UnlockStat(statName))
+				return;
+
+			pawn.TakeInventory("RS_Bit_Curse", cost);
+
+			// Only drop the keyword when the LAST stack on that stat is
+			// gone -- a doubly-cursed stat is still cursed after one lift,
+			// and the keyword is what the rest of the mod reads to know.
+			if (!rsw.IsStatCursed(statName))
+				rsw.UngrantKeyword("curse", statName);
+
+			pawn.A_StartSound("rs_bit_repair", CHAN_AUTO, CHANF_DEFAULT, 0.7);
+			pawn.A_Log(string.format("Curse lifted: %s restored and boosted.",
+				statName), true);
+
+			BuildCurseRepair(pawn, hand);
 			if (players[consoleplayer].mo == pawn)
 				Menu.SetMenu("RSDynamicSheet");
 		}
@@ -919,9 +950,22 @@ class RS_UIHandler : EventHandler
 			else
 			{
 				pawn.TakeInventory("RS_Bit_Gold", cost);
-				if (expanding) giver.rsExtraCards++;
-				else           giver.rsRerolls++;
-				giver.CreateUpgradeCandidates();
+				if (expanding)
+				{
+					// ADD a card; keep the ones on screen. Both branches
+					// used to call CreateUpgradeCandidates(), which
+					// clears and redraws -- so "another card" silently
+					// rerolled the whole offer and the cards the player
+					// was reading were gone. Reroll SHOULD redraw; that
+					// is what it is for. Expand should not.
+					giver.rsExtraCards++;
+					giver.RS_AddCandidate();
+				}
+				else
+				{
+					giver.rsRerolls++;
+					giver.CreateUpgradeCandidates();
+				}
 			}
 
 			// Release the menu claim either way, then let the giver

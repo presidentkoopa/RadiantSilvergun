@@ -86,12 +86,21 @@
 //     (digit zero) and ROMTHATL. Two of the six members of Romero's attack
 //     bark are silent in CH itself. The repo carries CH's SNDINFO line and
 //     both real lumps verbatim; not touched from here.
-//   * Translations BRCybGren01..05, BBCybGren06 and CYANCYB01/CYANCYB02 --
-//     defined at CH TRNSLATE.txt:8,9,12-17 but NOT present in this repo's
-//     TRNSLATE.txt. The A_SetTranslation calls are kept verbatim; see the
-//     report for the exact block. Note BBCybGren06 is itself a CH typo:
-//     CYBIES.txt:216 calls "BBCybGren06", TRNSLATE.txt:17 defines
-//     "BRCybGren06". Kept as CH wrote it.
+//   * Translations BRCybGren01..05 and CYANCYB01/CYANCYB02 -- PRESENT in
+//     this repo's TRNSLATE.txt (lines 281-288), and they render.
+//
+//     CORRECTED 2026-08-07, comment only, no code touched. This block
+//     used to say they were "NOT present in this repo's TRNSLATE.txt".
+//     That was true when it was written and false by the time anyone
+//     read it -- they landed afterwards and nobody came back to the
+//     comment. A 2026-08-07 audit read this paragraph instead of the
+//     file and reported working art as missing, which is exactly the
+//     failure mode this project keeps paying for.
+//
+//     BBCybGren06 remains a genuine CH typo and is still worth the
+//     warning: CYBIES.txt:216 calls "BBCybGren06", TRNSLATE.txt defines
+//     "BRCybGren06". Kept as CH wrote it, so that one A_SetTranslation
+//     silently no-ops. Deliberate -- verbatim beats visible here.
 //
 // ---------------------------------------------------------------------------
 // STRIPS, each preserved at its site as a "// CH:" comment:

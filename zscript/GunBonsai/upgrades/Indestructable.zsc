@@ -14,8 +14,20 @@ class TFLV_Upgrade_Indestructable : TFLV_Upgrade_BaseUpgrade {
   }
 
   override bool IsSuitableForPlayer(TFLV_PerPlayerStats stats) {
-    return stats.upgrades.Level("TFLV_Upgrade_Indestructable") < 3
-      && CVar.FindCVar("indestructable_gun_bonsai_mode").GetBool() == true;
+    // NULL-GUARDED 2026-08-07. This upgrade only means anything when the
+    // Indestructable mod is also loaded, and its cvars only exist when
+    // it is -- so FindCVar returns NULL here in every load order that
+    // does not include it, and calling .GetBool() on null is a VM ABORT,
+    // not a false.
+    //
+    // It never fired before because RS gates the vendored upgrade pool
+    // (Registry.IsRSAllowed) and the && short-circuited long before this
+    // line. Opening the PLAYER pool -- so player levels have something
+    // to grant at all -- made this reachable for the first time.
+    let cv = CVar.FindCVar("indestructable_gun_bonsai_mode");
+    if (!cv || !cv.GetBool())
+      return false;
+    return stats.upgrades.Level("TFLV_Upgrade_Indestructable") < 3;
   }
 
   // Charge between lives starts at 200 and asymptotically approaches 100.
