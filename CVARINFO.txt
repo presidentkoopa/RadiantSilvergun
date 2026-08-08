@@ -1555,9 +1555,19 @@ server int rs_hook_cooldown = 20;
 server float rs_hook_pull_divisor = 12.0;
 server float rs_hook_pull_zdivisor = 4.0;
 
-// THE BIT SWEEP. Radius searched on every shot, and the speed bits are
-// given toward the player. Bits are pushed, not teleported -- watching
-// them come in is the point, and a bit behind a wall bumps into it
-// rather than phasing through.
-server float rs_hook_bit_radius = 512.0;
+// THE BIT SWEEP -- AT THE IMPACT POINT, ON CONTACT.
+//
+// When the hook hits something it searches a SMALL radius AROUND ITSELF
+// and pulls any bits it finds toward the player. Not around the player,
+// and not at the moment of firing: the point of the hook is that it
+// REACHES, so the sweep happens where it landed.
+//
+// That is also why it answers bit-repellent (RS_Curses.zs) without
+// being built for it. The curse shoves bits away from you; the hook
+// goes and gets them. Neither system references the other.
+//
+// Bits are pushed, not teleported -- watching them come in is the
+// point, and a bit behind a wall bumps into it rather than phasing
+// through, which is correct.
+server float rs_hook_bit_radius = 192.0;
 server float rs_hook_bit_force = 12.0;

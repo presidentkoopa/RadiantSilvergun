@@ -12,7 +12,10 @@
 // class still owns its own bit_life field, since Health/BasicArmorBonus/
 // CustomInventory are three unrelated engine base classes with no shared
 // ancestor to hang common state on.
-class RS_BitUtil
+// `play`: ApplyBlind reaches the player's curse ledger, which is an
+// Inventory and therefore play scope. An unscoped Object is DATA scope
+// and cannot call into it.
+class RS_BitUtil play
 {
 	// -----------------------------------------------------------------
 	// IS THIS ACTOR A BIT? Lives HERE, with the bits, because it is a
@@ -265,7 +268,7 @@ class RS_KillRewardsHandler : EventHandler
 	{
 		let mo = players[consoleplayer].mo;
 		if (!mo) return false;
-		let led = RS_CurseLedger.For(mo);
+		let led = RS_CurseLedger.Fetch(mo);
 		if (!led) return false;
 		return led.IsActive(RS_Curse.SlotOf(RS_Curse.FLAW_GOLDDRAIN, led.mLastFiredHand));
 	}
@@ -280,7 +283,7 @@ class RS_KillRewardsHandler : EventHandler
 	{
 		let mo = players[consoleplayer].mo;
 		if (!mo) return false;
-		let led = RS_CurseLedger.For(mo);
+		let led = RS_CurseLedger.Fetch(mo);
 		if (!led) return false;
 		double b = led.LiftBonus(RS_Curse.FLAW_GOLDDRAIN, led.mLastFiredHand);
 		return b > 0 && frandom(0, 1) < b;

@@ -268,7 +268,7 @@ class RS_CurseLedger : Inventory
 	// means "no ledger", which every caller must treat as "no curses"
 	// rather than as an error. A player mid-spawn legitimately has none.
 	// -----------------------------------------------------------------
-	static RS_CurseLedger For(Actor mo)
+	static RS_CurseLedger Fetch(Actor mo)
 	{
 		if (!mo) return null;
 		return RS_CurseLedger(mo.FindInventory("RS_CurseLedger"));
@@ -278,7 +278,7 @@ class RS_CurseLedger : Inventory
 	// Static so a fire path can ask in one line without null-dancing.
 	static bool Has(Actor mo, int flaw, int hand)
 	{
-		let led = For(mo);
+		let led = Fetch(mo);
 		return led && led.IsActive(RS_Curse.SlotOf(flaw, hand));
 	}
 
@@ -323,7 +323,7 @@ class RS_CurseLedger : Inventory
 	// Same, as a static one-liner for the fire paths.
 	static double BonusFor(Actor mo, int flaw, int hand)
 	{
-		let led = For(mo);
+		let led = Fetch(mo);
 		return led ? led.LiftBonus(flaw, hand) : 0.0;
 	}
 
@@ -460,7 +460,7 @@ class RS_CurseLedger : Inventory
 	// stat-lock, and RollCurse checks it above.
 	static bool IsDivine(Actor mo)
 	{
-		let led = For(mo);
+		let led = Fetch(mo);
 		return led && led.mDivine;
 	}
 
@@ -654,7 +654,7 @@ class RS_CurseLedger : Inventory
 	{
 		let mo = players[consoleplayer].mo;
 		if (!mo) return false;
-		let led = For(mo);
+		let led = Fetch(mo);
 		return led && led.IsActive(
 			RS_Curse.SlotOf(RS_Curse.FLAW_BLIND, RS_Curse.HAND_MAIN));
 	}
@@ -662,7 +662,7 @@ class RS_CurseLedger : Inventory
 	// Is offhand-blind live on this player? Read by the bits themselves.
 	static bool BitsHidden(Actor mo)
 	{
-		let led = For(mo);
+		let led = Fetch(mo);
 		return led && led.IsActive(RS_Curse.SlotOf(RS_Curse.FLAW_BLIND, RS_Curse.HAND_OFF));
 	}
 
@@ -883,7 +883,7 @@ class RS_CurseHandler : EventHandler
 
 		let mo = players[e.Player].mo;
 		if (!mo || !mo.player) return;
-		let led = RS_CurseLedger.For(mo);
+		let led = RS_CurseLedger.Fetch(mo);
 		if (!led) return;
 
 		if (e.Name == "rs_curse_list")

@@ -221,6 +221,21 @@ class VR_Dual_Pistol : VR_DualClassBase
 		Player.StartItem "Clip", 72;
 		Player.StartItem "VR_PistolLoaded", 12;
 		Player.StartItem "VR_PistolLoaded4", 12;
+		// GRENADES. Added to every class 2026-08-07 at the owner's order:
+		// three, from the start, for everyone.
+		//
+		// LAST IN THE BLOCK ON PURPOSE. Player.StartItem grants in REVERSE
+		// declaration order, and GiveDefaultInventory sets ReadyWeapon for
+		// every granted weapon that has ammo -- so the LAST grant wins the
+		// main hand. Being last here means being granted FIRST, so the
+		// grenade cannot end up in your hand at spawn. See the ordering
+		// note at the top of this file.
+		//
+		// It also carries Weapon.SlotNumber 0 and +WEAPON.NO_AUTO_SWITCH,
+		// so nothing selects it by number and nothing auto-switches to it.
+		// It is thrown from a bind, never wielded.
+		Player.StartItem "RS_Grenade";
+		Player.StartItem "RS_GrenadeAmmo", 3;
 	}
 
 	override string GetMainhandClass() { return "VR_Pistol"; }
@@ -239,6 +254,21 @@ class VR_Dual_Revolver : VR_DualClassBase
 		Player.StartItem "Clip", 36;
 		Player.StartItem "VR_RevLoaded", 6;
 		Player.StartItem "VR_RevLoaded4", 6;
+		// GRENADES. Added to every class 2026-08-07 at the owner's order:
+		// three, from the start, for everyone.
+		//
+		// LAST IN THE BLOCK ON PURPOSE. Player.StartItem grants in REVERSE
+		// declaration order, and GiveDefaultInventory sets ReadyWeapon for
+		// every granted weapon that has ammo -- so the LAST grant wins the
+		// main hand. Being last here means being granted FIRST, so the
+		// grenade cannot end up in your hand at spawn. See the ordering
+		// note at the top of this file.
+		//
+		// It also carries Weapon.SlotNumber 0 and +WEAPON.NO_AUTO_SWITCH,
+		// so nothing selects it by number and nothing auto-switches to it.
+		// It is thrown from a bind, never wielded.
+		Player.StartItem "RS_Grenade";
+		Player.StartItem "RS_GrenadeAmmo", 3;
 	}
 
 	override string GetMainhandClass() { return "VR_Revolver"; }
@@ -257,6 +287,21 @@ class VR_Dual_Rifle : VR_DualClassBase
 		Player.StartItem "Clip", 60;
 		Player.StartItem "VR_RifleLoaded", 20;
 		Player.StartItem "VR_RifleLoaded4", 20;
+		// GRENADES. Added to every class 2026-08-07 at the owner's order:
+		// three, from the start, for everyone.
+		//
+		// LAST IN THE BLOCK ON PURPOSE. Player.StartItem grants in REVERSE
+		// declaration order, and GiveDefaultInventory sets ReadyWeapon for
+		// every granted weapon that has ammo -- so the LAST grant wins the
+		// main hand. Being last here means being granted FIRST, so the
+		// grenade cannot end up in your hand at spawn. See the ordering
+		// note at the top of this file.
+		//
+		// It also carries Weapon.SlotNumber 0 and +WEAPON.NO_AUTO_SWITCH,
+		// so nothing selects it by number and nothing auto-switches to it.
+		// It is thrown from a bind, never wielded.
+		Player.StartItem "RS_Grenade";
+		Player.StartItem "RS_GrenadeAmmo", 3;
 	}
 
 	override string GetMainhandClass() { return "VR_Rifle"; }
@@ -275,6 +320,21 @@ class VR_Dual_SMG : VR_DualClassBase
 		Player.StartItem "Clip", 90;
 		Player.StartItem "VR_SMGLoaded", 30;
 		Player.StartItem "VR_SMGLoaded4", 30;
+		// GRENADES. Added to every class 2026-08-07 at the owner's order:
+		// three, from the start, for everyone.
+		//
+		// LAST IN THE BLOCK ON PURPOSE. Player.StartItem grants in REVERSE
+		// declaration order, and GiveDefaultInventory sets ReadyWeapon for
+		// every granted weapon that has ammo -- so the LAST grant wins the
+		// main hand. Being last here means being granted FIRST, so the
+		// grenade cannot end up in your hand at spawn. See the ordering
+		// note at the top of this file.
+		//
+		// It also carries Weapon.SlotNumber 0 and +WEAPON.NO_AUTO_SWITCH,
+		// so nothing selects it by number and nothing auto-switches to it.
+		// It is thrown from a bind, never wielded.
+		Player.StartItem "RS_Grenade";
+		Player.StartItem "RS_GrenadeAmmo", 3;
 	}
 
 	override string GetMainhandClass() { return "VR_SMG"; }
@@ -293,6 +353,21 @@ class VR_Dual_Shotgun : VR_DualClassBase
 		Player.StartItem "VR_Shell", 24;
 		Player.StartItem "VR_ShotLoaded", 8;
 		Player.StartItem "VR_ShotLoaded4", 8;
+		// GRENADES. Added to every class 2026-08-07 at the owner's order:
+		// three, from the start, for everyone.
+		//
+		// LAST IN THE BLOCK ON PURPOSE. Player.StartItem grants in REVERSE
+		// declaration order, and GiveDefaultInventory sets ReadyWeapon for
+		// every granted weapon that has ammo -- so the LAST grant wins the
+		// main hand. Being last here means being granted FIRST, so the
+		// grenade cannot end up in your hand at spawn. See the ordering
+		// note at the top of this file.
+		//
+		// It also carries Weapon.SlotNumber 0 and +WEAPON.NO_AUTO_SWITCH,
+		// so nothing selects it by number and nothing auto-switches to it.
+		// It is thrown from a bind, never wielded.
+		Player.StartItem "RS_Grenade";
+		Player.StartItem "RS_GrenadeAmmo", 3;
 	}
 
 	override string GetMainhandClass() { return "VR_Shotgun"; }
@@ -311,6 +386,21 @@ class VR_Dual_SSG : VR_DualClassBase
 		Player.StartItem "VR_Shell", 12;
 		Player.StartItem "VR_SSGLoaded", 2;
 		Player.StartItem "VR_SSGLoaded4", 2;
+		// GRENADES. Added to every class 2026-08-07 at the owner's order:
+		// three, from the start, for everyone.
+		//
+		// LAST IN THE BLOCK ON PURPOSE. Player.StartItem grants in REVERSE
+		// declaration order, and GiveDefaultInventory sets ReadyWeapon for
+		// every granted weapon that has ammo -- so the LAST grant wins the
+		// main hand. Being last here means being granted FIRST, so the
+		// grenade cannot end up in your hand at spawn. See the ordering
+		// note at the top of this file.
+		//
+		// It also carries Weapon.SlotNumber 0 and +WEAPON.NO_AUTO_SWITCH,
+		// so nothing selects it by number and nothing auto-switches to it.
+		// It is thrown from a bind, never wielded.
+		Player.StartItem "RS_Grenade";
+		Player.StartItem "RS_GrenadeAmmo", 3;
 	}
 
 	override string GetMainhandClass() { return "VR_SuperShotgun"; }
@@ -327,6 +417,21 @@ class VR_Dual_Chaingun : VR_DualClassBase
 		Player.StartItem "VR_Chaingun";
 		Player.StartItem "VR_Chaingun4";
 		Player.StartItem "VR_ChaingunAmmo", 60;
+		// GRENADES. Added to every class 2026-08-07 at the owner's order:
+		// three, from the start, for everyone.
+		//
+		// LAST IN THE BLOCK ON PURPOSE. Player.StartItem grants in REVERSE
+		// declaration order, and GiveDefaultInventory sets ReadyWeapon for
+		// every granted weapon that has ammo -- so the LAST grant wins the
+		// main hand. Being last here means being granted FIRST, so the
+		// grenade cannot end up in your hand at spawn. See the ordering
+		// note at the top of this file.
+		//
+		// It also carries Weapon.SlotNumber 0 and +WEAPON.NO_AUTO_SWITCH,
+		// so nothing selects it by number and nothing auto-switches to it.
+		// It is thrown from a bind, never wielded.
+		Player.StartItem "RS_Grenade";
+		Player.StartItem "RS_GrenadeAmmo", 3;
 	}
 
 	override string GetMainhandClass() { return "VR_Chaingun"; }
@@ -359,6 +464,21 @@ class RS_GH_Weaponset : VR_DualClassBase
 		// Reserve ammo -- covers the starting pistols (or rifles, if the
 		// swap option is on) and anything picked up later.
 		Player.StartItem "Clip", 200;
+		// GRENADES. Added to every class 2026-08-07 at the owner's order:
+		// three, from the start, for everyone.
+		//
+		// LAST IN THE BLOCK ON PURPOSE. Player.StartItem grants in REVERSE
+		// declaration order, and GiveDefaultInventory sets ReadyWeapon for
+		// every granted weapon that has ammo -- so the LAST grant wins the
+		// main hand. Being last here means being granted FIRST, so the
+		// grenade cannot end up in your hand at spawn. See the ordering
+		// note at the top of this file.
+		//
+		// It also carries Weapon.SlotNumber 0 and +WEAPON.NO_AUTO_SWITCH,
+		// so nothing selects it by number and nothing auto-switches to it.
+		// It is thrown from a bind, never wielded.
+		Player.StartItem "RS_Grenade";
+		Player.StartItem "RS_GrenadeAmmo", 3;
 	}
 
 	override string GetMainhandClass()
@@ -422,6 +542,21 @@ class RS_PS_Weaponset : VR_DualClassBase
 		// Reserve for the starting TEC-9s. MeatGrinder has no reload
 		// mechanic, so these feed straight from the pool.
 		Player.StartItem "Clip", 200;
+		// GRENADES. Added to every class 2026-08-07 at the owner's order:
+		// three, from the start, for everyone.
+		//
+		// LAST IN THE BLOCK ON PURPOSE. Player.StartItem grants in REVERSE
+		// declaration order, and GiveDefaultInventory sets ReadyWeapon for
+		// every granted weapon that has ammo -- so the LAST grant wins the
+		// main hand. Being last here means being granted FIRST, so the
+		// grenade cannot end up in your hand at spawn. See the ordering
+		// note at the top of this file.
+		//
+		// It also carries Weapon.SlotNumber 0 and +WEAPON.NO_AUTO_SWITCH,
+		// so nothing selects it by number and nothing auto-switches to it.
+		// It is thrown from a bind, never wielded.
+		Player.StartItem "RS_Grenade";
+		Player.StartItem "RS_GrenadeAmmo", 3;
 	}
 
 	override string GetMainhandClass() { return "RS_PS_Machinegun"; }

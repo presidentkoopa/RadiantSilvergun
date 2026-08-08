@@ -46,7 +46,15 @@ class RS_BBScreen : Object abstract play
 
 	int  mHotRow;      // row the hand is pointing at, -1 = none
 	bool mAlive;
-	bool mDirty;       // set by play, cleared by the painter
+	// A VERSION COUNTER, NOT A FLAG. Play bumps it whenever the content
+	// changes; the painter remembers the last value it drew.
+	//
+	// It was a bool that the painter cleared, and that CANNOT WORK: the
+	// painter runs in RenderOverlay, which is UI scope, and UI may read
+	// play state but never write it -- "Expression must be a modifiable
+	// value". A counter needs no write-back, so each side only ever
+	// touches its own.
+	int mDirty;        // bumped by play; compared by the painter
 
 	// The canvas we paint and the billboard that shows it.
 	RS_Billboard mBoard;
@@ -67,14 +75,14 @@ class RS_BBScreen : Object abstract play
 	{
 		mKey.Clear(); mVal.Clear(); mColor.Clear(); mSelectable.Clear();
 		mHotRow = -1;
-		mDirty = true;
+		mDirty++;
 	}
 
 	void AddRow(string k, string v, int col, bool selectable = false)
 	{
 		mKey.Push(k); mVal.Push(v); mColor.Push(col);
 		mSelectable.Push(selectable);
-		mDirty = true;
+		mDirty++;
 	}
 
 	virtual void Build(PlayerPawn pawn) {}
@@ -99,7 +107,7 @@ class RS_BBScreen : Object abstract play
 			Color(255, 255, 255, 255));
 
 		mAlive = mBoard && mBoard.Alive();
-		mDirty = true;
+		mDirty++;
 	}
 
 	void Close()
@@ -150,7 +158,7 @@ class RS_BBScreen : Object abstract play
 			}
 		}
 
-		if (row != mHotRow) { mHotRow = row; mDirty = true; }
+		if (row != mHotRow) { mHotRow = row; mDirty++; }
 	}
 }
 
@@ -271,6 +279,10 @@ class RS_BBCardPicker : RS_BBScreen
 class RS_BBUIHandler : EventHandler
 {
 	RS_BBScreen mScreen;
+
+	// Last content version the painter actually drew. UI-scoped, because
+	// only the painter reads or writes it.
+	ui int mPaintedVersion;
 	bool mOffhandAim;
 
 	override void WorldTick()
@@ -302,11 +314,14 @@ class RS_BBUIHandler : EventHandler
 	// -----------------------------------------------------------------
 	override void RenderOverlay(RenderEvent e)
 	{
-		if (!mScreen || !mScreen.mAlive || !mScreen.mDirty) return;
+		if (!mScreen || !mScreen.mAlive) return;
+		if (mScreen.mDirty == mPaintedVersion) return;   // nothing changed
 
 		let cv = TexMan.GetCanvas("RSCARDA");
 		if (!cv) return;
-		mScreen.mDirty = false;
+		// Remembered on OUR side. The play-side counter is never written
+		// from here -- see the mDirty declaration.
+		mPaintedVersion = mScreen.mDirty;
 
 		int W = RS_BBScreen.CV_W, H = RS_BBScreen.CV_H;
 		int P = RS_BBScreen.PAD;

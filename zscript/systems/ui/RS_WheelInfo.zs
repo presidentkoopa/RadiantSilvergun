@@ -82,10 +82,10 @@ extend class VR_DualClassBase
 		}
 
 		// --- line 1: name, in tier colour. The engine draws it larger. ---
-		string out = RS_TierColorTag(rsw.Tier) .. wep.GetTag();
+		string text = RS_TierColorTag(rsw.Tier) .. wep.GetTag();
 
 		// --- line 2: tier and promotion pips ---
-		out = out .. "\n" .. RS_UIStyle.TierName(rsw.Tier)
+		text = text .. "\n" .. RS_UIStyle.TierName(rsw.Tier)
 			.. "  " .. RS_UIStyle.Pips(rsw.PromotionCount);
 
 		// --- line 3: level, damage, condition ---
@@ -101,7 +101,7 @@ extend class VR_DualClassBase
 		statLine = statLine .. String.Format("DMG %d", rsw.DamagePerShot);
 		statLine = statLine .. "   " .. RS_ConditionColorTag(rsw.Condition)
 			.. String.Format("CND %d%%", int(rsw.Condition));
-		out = out .. "\n" .. statLine;
+		text = text .. "\n" .. statLine;
 
 		// --- line 4: affixes, as a count. Which ones is a sheet question; how
 		// many is a "does this gun do anything special" question, and that is
@@ -115,7 +115,7 @@ extend class VR_DualClassBase
 			}
 			if (held > 0)
 			{
-				out = out .. "\n" .. String.Format("%d affix%s", held, held == 1 ? "" : "es");
+				text = text .. "\n" .. String.Format("%d affix%s", held, held == 1 ? "" : "es");
 			}
 		}
 
@@ -126,13 +126,13 @@ extend class VR_DualClassBase
 		if (wep.Ammo2 != null)
 		{
 			int reserve = wep.Ammo1 != null ? wep.Ammo1.Amount : 0;
-			out = out .. "\n" .. String.Format("%d / %d", wep.Ammo2.Amount, reserve);
+			text = text .. "\n" .. String.Format("%d / %d", wep.Ammo2.Amount, reserve);
 		}
 		else if (wep.Ammo1 != null)
 		{
-			out = out .. "\n" .. String.Format("%d", wep.Ammo1.Amount);
+			text = text .. "\n" .. String.Format("%d", wep.Ammo1.Amount);
 		}
 
-		return out;
+		return text;
 	}
 }

@@ -885,7 +885,7 @@ class RS_Weapon : Weapon abstract
 	static void StampFiringHand(Actor pawn, bool offhand)
 	{
 		if (!pawn) return;
-		let led = RS_CurseLedger.For(pawn);
+		let led = RS_CurseLedger.Fetch(pawn);
 		if (!led) return;
 
 		int hand = offhand ? RS_Curse.HAND_OFF : RS_Curse.HAND_MAIN;
@@ -1458,7 +1458,13 @@ class RS_Weapon : Weapon abstract
 		// -------------------------------------------------------------
 		if (RS_Curse.CVBool("rs_curse_lift_tiers_up", true) && Tier < VRT_Prototype)
 		{
-			Tier = EVR_Tier(int(Tier) + 1);
+			// int, then plain assignment. EVR_Tier(x) is NOT a cast --
+			// ZScript has no enum-constructor syntax, so it parses as a
+			// call to an undefined function ("Call to unknown function
+			// 'EVR_Tier'"). An int converts to the enum on its own.
+			// Same trap, same fix, as RS_EliteDrop.zs:131.
+			int nextTier = int(Tier) + 1;
+			Tier = nextTier;
 			GunBonaiSockets = RS_Roll.SocketsForTier(Tier);
 		}
 
@@ -1472,7 +1478,7 @@ class RS_Weapon : Weapon abstract
 		// -------------------------------------------------------------
 		if (owner)
 		{
-			let led = RS_CurseLedger.For(owner);
+			let led = RS_CurseLedger.Fetch(owner);
 			if (led) led.CountCure();
 		}
 

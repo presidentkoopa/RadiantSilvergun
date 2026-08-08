@@ -194,7 +194,13 @@ class RS_ClassGating : EventHandler
 		// few lines down); the swap pass ran in front of it without one.
 		// The swaps are meant for things lying on the floor, which is
 		// exactly what this checks.
-		if (e.Thing.owner)
+		// Inventory(e.Thing).owner, not e.Thing.owner -- `owner` is
+		// declared on Inventory, not on Actor, so the bare form is an
+		// unknown identifier and the file will not compile. The cast is
+		// also the right test on its own: a non-Inventory actor has no
+		// owner to speak of and should fall through to the swap anyway.
+		let asInv = Inventory(e.Thing);
+		if (asInv && asInv.owner)
 			return;
 
 		bool swapped = RS_VanillaPlusSwaps.TrySwap(e, self);

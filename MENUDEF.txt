@@ -2371,11 +2371,13 @@ OptionMenu "RS_HookOptions"
 
 	StaticText " "
 	StaticText "Bit Sweep", "Gold"
-	StaticText "  EVERY shot drags loose bits toward you -- on a hit, on a", "DarkGray"
-	StaticText "  miss, cursed or not. It is how the hook always works.", "DarkGray"
-	Slider  "Sweep Radius",            "rs_hook_bit_radius", 0, 1536, 64, 0
+	StaticText "  Where the hook LANDS, it grabs loose bits nearby and", "DarkGray"
+	StaticText "  drags them back to you. Aim it at the pile you cannot", "DarkGray"
+	StaticText "  reach. Works the same cursed or not.", "DarkGray"
+	Slider  "Sweep Radius",            "rs_hook_bit_radius", 0, 768, 32, 0
 	Slider  "Sweep Force",             "rs_hook_bit_force",  0, 40, 1, 0
-	StaticText "  Set the radius to 0 to switch the sweep off entirely.", "DarkGray"
+	StaticText "  Radius is measured from the impact point, not from you.", "DarkGray"
+	StaticText "  Set it to 0 to switch the sweep off entirely.", "DarkGray"
 }
 
 OptionValue "RS_HookHandVals"

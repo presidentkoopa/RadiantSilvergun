@@ -252,7 +252,7 @@ class RS_LifeForce : Inventory
 		if (chance <= 0 || random(1, 100) > chance)
 			return;
 
-		let led = RS_CurseLedger.For(owner);
+		let led = RS_CurseLedger.Fetch(owner);
 		if (!led) return;
 
 		int slot = led.RollCurse(led.mLastFiredHand);

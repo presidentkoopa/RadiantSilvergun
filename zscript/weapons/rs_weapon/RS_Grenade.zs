@@ -195,7 +195,11 @@ class RS_Grenade : RS_Weapon
 		Weapon.SlotNumber 0;             // no slot -- it is thrown, not wielded
 		+WEAPON.NO_AUTO_SWITCH
 		+WEAPON.NOAUTOAIM
-		+NOALERT
+		// WEAPON.NOALERT, not a bare +NOALERT. It is declared on Weapon
+		// (weapons.zs:86, `flagdef NoAlert: WeaponFlags, 4`), not on
+		// Actor, so without the scope prefix it is simply an unknown flag
+		// and the whole file fails to load.
+		+WEAPON.NOALERT
 		Scale 0.5;
 	}
 
@@ -297,7 +301,13 @@ class RS_GrenadeAmmo : Ammo
 // WorldTick runs AFTER the player has already thought -- the exact
 // ordering mistake that made RS_WheelPoC's input capture a no-op.
 // =====================================================================
-class RS_GrenadeThrower : Object
+// `play`, for the same reason RS_HookThrower and RS_PanelAssembly are:
+// an unscoped Object subclass is DATA scope, and Actor.Spawn,
+// TakeInventory and RS_GrenadeThrown.FuseLen are all play functions.
+// Without it every one of them is "Can't call play function X from
+// data context", and the `let g = ...` that follows cascades into
+// "Unknown identifier 'g'" on every later line that touches it.
+class RS_GrenadeThrower : Object play
 {
 	// Tics to a full-strength throw. The source's number is 20 (+5/tic
 	// to a cap of 100) and that is the default; the cvar lets it be
@@ -538,32 +548,44 @@ class RS_GrenadeHUD : EventHandler
 	}
 
 	// --- STYLE 2: the bar. Mine, kept as the alternative. -----------
-	void DrawBar(RS_GrenadeThrower g)
+	// `ui`: called from RenderOverlay, which is UI scope. An unscoped
+	// method on an EventHandler is not, so the call was "Can't call play
+	// function DrawBar from ui context".
+	ui void DrawBar(RS_GrenadeThrower g)
 	{
 		if (!g.Active()) return;
 
 		double charge = g.ChargeFraction();
 		double cook   = g.CookFraction();
 
-		int vw = 320, vh = 200;
-		int w = 96, h = 6;
+		// REAL SCREEN PIXELS, NOT A VIRTUAL 320x200 CANVAS.
+		//
+		// Screen.Dim is `native static void Dim(Color, double, int x, int
+		// y, int w, int h, ERenderStyle style)` (base.zs:562) -- it takes
+		// NO DTA_ tags, so the DTA_VirtualWidth/Height pairs this used to
+		// pass were "Too many arguments in call to Dim" and, had they been
+		// accepted, would still have been ignored. Everything here is
+		// therefore sized off the actual backbuffer.
+		//
+		// (Screen.DrawTexture and DrawText DO take DTA_ tags, which is why
+		// the original-layout path above can keep using them. Dim is the
+		// odd one out.)
+		int vw = Screen.GetWidth(), vh = Screen.GetHeight();
+		int w = int(vw * 0.30), h = max(4, int(vh * 0.012));
 		int x = (vw - w) / 2;
-		int y = vh - 44;
+		int y = vh - int(vh * 0.22);
 
-		Screen.Dim(Color(255, 10, 8, 6), 0.65, x - 2, y - 2, w + 4, h + 4,
-			DTA_VirtualWidth, vw, DTA_VirtualHeight, vh);
+		Screen.Dim(Color(255, 10, 8, 6), 0.65, x - 2, y - 2, w + 4, h + 4);
 
 		int fill = int(w * clamp(charge, 0.0, 1.0));
 		if (fill > 0)
-			Screen.Dim(Color(255, 230, 200, 90), 0.95, x, y, fill, h,
-				DTA_VirtualWidth, vw, DTA_VirtualHeight, vh);
+			Screen.Dim(Color(255, 230, 200, 90), 0.95, x, y, fill, h);
 
 		if (cook > 0)
 		{
 			int burn = int(w * clamp(cook, 0.0, 1.0));
 			if (burn > 0)
-				Screen.Dim(Color(255, 220, 60, 40), 0.95, x, y, burn, h,
-					DTA_VirtualWidth, vw, DTA_VirtualHeight, vh);
+				Screen.Dim(Color(255, 220, 60, 40), 0.95, x, y, burn, h);
 		}
 
 		string label = (cook > 0)
@@ -572,7 +594,6 @@ class RS_GrenadeHUD : EventHandler
 		int col = (cook > 0) ? Font.CR_RED : Font.CR_GOLD;
 
 		Screen.DrawText(SmallFont, col,
-			x + (w - SmallFont.StringWidth(label)) / 2, y - 12, label,
-			DTA_VirtualWidth, vw, DTA_VirtualHeight, vh);
+			x + (w - SmallFont.StringWidth(label)) / 2, y - 12, label);
 	}
 }

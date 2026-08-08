@@ -5,10 +5,13 @@
 // WHAT IT DOES, IN ONE PARAGRAPH
 //
 // Fire it. If it hits a wall, YOU get pulled to the wall. If it hits a
-// monster, the MONSTER gets pulled to you. Either way, the moment it
-// leaves your hand it sweeps a radius around you and drags every loose
-// bit in. That third behaviour is unconditional -- it happens on a hit,
-// on a miss, on a wall, on a body, every single time.
+// monster, the MONSTER gets pulled to you. And wherever it LANDS, it
+// sweeps a small radius around ITSELF and drags any loose bits back to
+// you.
+//
+// All three happen on CONTACT. A shot that hits nothing expires and does
+// nothing, which is the only case that pays you nothing -- correctly,
+// because the hook is a thing you aim, not a button you press.
 //
 // IT IS NOT A SWING. There is no rope you hang from, no momentum you
 // carry through an arc. It is a one-shot yank, which is the whole reason
@@ -19,8 +22,11 @@
 // THE BIT SWEEP IS NOT A CURSE FEATURE, AND THAT IS THE POINT
 //
 // `mainhand-bit-repellent` / `offhand-bit-repellent` (RS_Curses.zs) push
-// loose bits AWAY from the player, radially, forever. The hook pulls
-// them back.
+// loose bits AWAY from the player, radially, forever. The hook reaches
+// out to where they were shoved and drags them back -- which works
+// precisely BECAUSE the sweep happens at the impact point rather than
+// around the player. A sweep centred on you could never recover a bit
+// the curse had already pushed out of your reach.
 //
 // The hook was NOT built to solve that and is NOT granted by it. It is
 // always present, works identically for an uncursed player, and would
@@ -177,6 +183,66 @@ class RS_HookShot : FastProjectile
 		victim.vel.z += delta.z / (zdiv * 0.5);
 	}
 
+	// -----------------------------------------------------------------
+	// THE BIT SWEEP -- AT THE POINT OF IMPACT, ON CONTACT.
+	//
+	// Owner, 2026-08-07: "when it fires and makes contact, it makes a
+	// radial seatrch in a small area for bits, and pulls them to you".
+	//
+	// THIS RUNS FROM THE HOOK, NOT FROM THE PLAYER, AND THAT IS THE WHOLE
+	// MECHANIC. An earlier version swept a large radius around the player
+	// at the moment of firing, which is a different and much worse thing:
+	// it collected what was already within reach and did nothing about
+	// anything out of it. Sweeping where the hook LANDS is what makes the
+	// hook a tool -- you aim it at the pile you cannot get to.
+	//
+	// It is also why the hook answers bit-repellent without being built
+	// for it. That curse pushes bits away from you; the hook reaches out
+	// to where they went and drags them back. Nothing here reads the
+	// curse ledger, and nothing in the curse system knows this exists.
+	//
+	// Fires on EVERY contact -- wall, floor, body, gibbed or not. A miss
+	// that hits nothing simply expires and sweeps nothing, which is the
+	// one case where you get no bits, and correctly so.
+	// -----------------------------------------------------------------
+	void SweepBitsHere()
+	{
+		if (!mShooter) return;
+
+		double radius = RS_HookSettings.CVFloat("rs_hook_bit_radius", 192.0);
+		double force  = RS_HookSettings.CVFloat("rs_hook_bit_force", 12.0);
+		if (radius <= 0 || force <= 0) return;
+
+		// Centred on the HOOK. `self` is the impact point.
+		let it = BlockThingsIterator.Create(self, radius);
+		while (it.Next())
+		{
+			let mo = it.thing;
+			if (!mo || mo == self || mo == mShooter) continue;
+			if (!RS_BitUtil.IsBit(mo)) continue;
+
+			// Only bits actually near the impact, not the whole block grid
+			// the iterator hands back.
+			if ((mo.pos - pos).Length() > radius) continue;
+
+			// Pulled toward the PLAYER, not toward the hook -- the hook is
+			// the reach, the player is the destination.
+			Vector3 delta = mShooter.pos - mo.pos;
+			double dist = delta.Length();
+			if (dist < 1.0) continue;
+
+			// Constant speed rather than distance-scaled, so a bit across
+			// the room arrives instead of crawling.
+			mo.vel.x += (delta.x / dist) * force;
+			mo.vel.y += (delta.y / dist) * force;
+			mo.vel.z += (delta.z / dist) * force * 0.5;
+
+			// Bits sit on floors; without this they scrape along instead
+			// of travelling.
+			mo.bNOGRAVITY = true;
+		}
+	}
+
 	// A body hit resolves through the tracer pointer (+HITTRACER), which
 	// is what the flag is for -- the thing we struck without damaging it.
 	override int DoSpecialDamage(Actor victim, int damage, Name damagetype)
@@ -194,14 +260,14 @@ class RS_HookShot : FastProjectile
 	Death:
 		// Geometry.
 		HOOK B 0 A_StartSound("rs_hook/hit/terrain", CHAN_BODY);
-		HOOK B 0 { PullPlayer(); }
+		HOOK B 0 { PullPlayer(); SweepBitsHere(); }
 		HOOK B 16;
 		Stop;
 
 	XDeath:
 		// A body, gibbed.
 		HOOK B 0 A_StartSound("rs_hook/hit/flesh", CHAN_BODY);
-		HOOK B 0 { PullVictim(tracer); }
+		HOOK B 0 { PullVictim(tracer); SweepBitsHere(); }
 		HOOK B 16;
 		Stop;
 
@@ -209,7 +275,7 @@ class RS_HookShot : FastProjectile
 		// A body, not gibbed. Same outcome -- the reference routes both
 		// through one path and so do we.
 		HOOK B 0 A_StartSound("rs_hook/hit/flesh", CHAN_BODY);
-		HOOK B 0 { PullVictim(tracer); }
+		HOOK B 0 { PullVictim(tracer); SweepBitsHere(); }
 		HOOK B 16;
 		Stop;
 	}
@@ -225,7 +291,12 @@ class RS_HookShot : FastProjectile
 // runs AFTER the player has already thought (p_tick.cpp:175 then :178),
 // which is why input handling cannot live there.
 // =====================================================================
-class RS_HookThrower : Object
+// `play` is load-bearing, not decoration. An unscoped Object subclass is
+// DATA scope, and data scope cannot call a play function -- which is
+// every method this class exists to call (SpawnPlayerMissile, and the
+// velocity writes behind it). Same reasoning, same fix, as
+// RS_PanelAssembly in RS_Panel.zs.
+class RS_HookThrower : Object play
 {
 	bool mHeld;      // button state last tic, for edge detection
 	int  mCooldown;  // tics until the next shot is allowed
@@ -258,17 +329,16 @@ class RS_HookThrower : Object
 	}
 
 	// -----------------------------------------------------------------
-	// FIRE.
+	// FIRE. Spawns the hook and hands it the shooter; that is all.
 	//
-	// The bit sweep runs FIRST and unconditionally -- before the
-	// projectile is even spawned, so it happens whether or not the shot
-	// goes anywhere. That ordering is deliberate: the sweep is a property
-	// of firing the hook, not of hitting something with it.
+	// THE BIT SWEEP IS NOT HERE. It belongs to the hook, at the point of
+	// impact -- see RS_HookShot.SweepBitsHere(). This function used to
+	// sweep a wide radius around the PLAYER at the moment of firing,
+	// which collected only what was already within reach and did nothing
+	// about anything out of it. That is not what the hook is for.
 	// -----------------------------------------------------------------
 	void Fire(PlayerPawn pawn)
 	{
-		SweepBits(pawn);
-
 		int hand = RS_HookSettings.Hand();
 
 		// SpawnPlayerMissile, NOT A_FireProjectile. A_FireProjectile is
@@ -297,53 +367,4 @@ class RS_HookThrower : Object
 			shot.mShooter = pawn;
 	}
 
-	// -----------------------------------------------------------------
-	// THE BIT SWEEP. Every loose bit within the radius is dragged to the
-	// player.
-	//
-	// Owner ruling 2026-08-07: "whenever we fire it, it runs a small
-	// radian detectection for bits and brings them toi the player,
-	// regardlkss of the polayer is flying to a wall or a monster is
-	// flying to the player".
-	//
-	// GIVES the bit velocity toward the player rather than teleporting
-	// it: a bit that arrives instantly is indistinguishable from a bit
-	// that was picked up remotely, and watching them come is the whole
-	// appeal. It also means a bit behind a wall does not phase through
-	// one -- it just bumps into it, which is correct.
-	// -----------------------------------------------------------------
-	void SweepBits(PlayerPawn pawn)
-	{
-		if (!pawn) return;
-
-		double radius = RS_HookSettings.CVFloat("rs_hook_bit_radius", 512.0);
-		double force  = RS_HookSettings.CVFloat("rs_hook_bit_force", 12.0);
-		if (radius <= 0 || force <= 0) return;
-
-		let it = BlockThingsIterator.Create(pawn, radius);
-		while (it.Next())
-		{
-			let mo = it.thing;
-			if (!mo || mo == pawn) continue;
-			if (!RS_BitUtil.IsBit(mo)) continue;
-
-			Vector3 delta = pawn.pos - mo.pos;
-			double dist = delta.Length();
-			if (dist > radius) continue;
-
-			if (dist < 1.0)
-				continue;   // already on top of us; the pickup will fire
-
-			// Constant speed rather than distance-scaled: a far bit and a
-			// near one should both arrive, and scaling by distance makes
-			// the far ones crawl.
-			mo.vel.x += (delta.x / dist) * force;
-			mo.vel.y += (delta.y / dist) * force;
-			mo.vel.z += (delta.z / dist) * force * 0.5;
-
-			// Bits are dropped items sitting on floors; without this they
-			// slide rather than travel.
-			mo.bNOGRAVITY = true;
-		}
-	}
 }
