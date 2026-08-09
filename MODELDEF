@@ -7487,3 +7487,121 @@ Model RS_Grenade
 	FrameIndex JHND H 0 0
 	FrameIndex JGND D 0 0
 }
+
+// =====================================================================
+// CARD PLINTHS -- the weapon as a turning 3D model on an offer card.
+// Added 2026-08-09.
+//
+// Every OTHER binding in this file attaches a model to a HUD FRAME
+// (PISG, SMGR, SHTG...) under Models/Weapons/hud/. Those are first-person
+// view frames: a thing standing in the world never enters one, so it can
+// never resolve them. The .md3 and skin are shared; the BINDING cannot
+// be, which is why these blocks exist at all.
+//
+// All eleven share the sprite RSPL A -- a 1x1 transparent lump that
+// exists only to be bound to, since TNT1 is special-cased invisible and
+// will not carry a model. MODELDEF keys on ACTOR CLASS, so one class per
+// weapon is the only way to vary the model.
+//
+// Paths, model files and skins below were read out of the blocks above
+// rather than typed from memory.
+// =====================================================================
+
+Model RS_Plinth_Pistol
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
+
+Model RS_Plinth_Revolver
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
+	Model 0 "rev.md3"
+	Skin 0 "WPN-REV.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
+
+Model RS_Plinth_Rifle
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Rifle"
+	Model 0 "m16.md3"
+	Skin 0 "WPN-M16.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
+
+Model RS_Plinth_SMG
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
+	Model 0 "SMG.md3"
+	Skin 0 "SMG.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
+
+Model RS_Plinth_Shotgun
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
+	Model 0 "shotgun.md3"
+	Skin 0 "WPN-SHTGUN.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
+
+Model RS_Plinth_SuperShotgun
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
+	Model 0 "ssg.md3"
+	Skin 0 "WPN-SSHTGUN.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
+
+Model RS_Plinth_Chaingun
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chaingun"
+	Model 0 "chaingun.md3"
+	Skin 0 "chaingun.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
+
+Model RS_Plinth_PlasmaRifle
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
+	Model 0 "PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
+
+Model RS_Plinth_RocketLauncher
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
+	Model 0 "RPG.md3"
+	Skin 0 "RPG.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
+
+Model RS_Plinth_BFG
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
+	Model 0 "BFG.md3"
+	Skin 0 "BFG.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
+
+Model RS_Plinth_Chainsaw
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Chainsaw"
+	Model 0 "chainsaw.md3"
+	Skin 0 "chainsaw.png"
+	Scale 1.0 1.0 1.0
+	FrameIndex RSPL A 0 0
+}
