@@ -98,7 +98,16 @@ class RS_GunBonsaiBridge : Object play
 		for (int i = 0; i < info.upgrades.upgrades.Size(); i++)
 		{
 			let upg = info.upgrades.upgrades[i];
-			if (upg && upg.level > 0)
+			// SAME FILTER AS CountActiveAffixes, twelve lines up. Without
+			// it this returned EVERY upgrade with a level -- including
+			// pure stat cards, which occupy no socket -- so a gun could
+			// list more fittings than it has sockets to hold them.
+			//
+			// Two functions answering "what is on this weapon" with
+			// different definitions of "on" is exactly the kind of quiet
+			// disagreement that survives for months. Found by the imprint
+			// card session reading both.
+			if (upg && upg.level > 0 && (upg is "TFLV_Upgrade_RS_SlateBase"))
 				outv.Push(upg.GetName());
 		}
 	}
