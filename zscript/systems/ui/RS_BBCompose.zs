@@ -340,6 +340,28 @@ class RS_BBCompose
 		return h * GLYPH_PITCH_FALLBACK * txt.Length();
 	}
 
+	// A NUMBER AS A SEGMENT READOUT -- the arcade display look.
+	//
+	// BB_SEGMENT, not BB_DIGITS. BB_DIGITS draws raster glyph quads: a
+	// picture of a number, which goes blocky as you walk toward it and
+	// carries no glow. BB_SEGMENT is built from arithmetic in the shader,
+	// so it stays exactly sharp at any size, cannot break on a missing
+	// font lump, and takes a glow like the SDF payloads do.
+	//
+	// This is the thing the owner pointed at -- the readouts in the other
+	// lane's screenshots are this payload.
+	//
+	// `data` is PACKED GLOW on this payload (and on BB_TEXT/SEGLCD/SEAM),
+	// not a value: the number itself rides in `text`. Passing an integer
+	// here the way BB_DIGITS wants would silently set a nonsense glow.
+	static RS_Billboard Segment(RS_BBComposedPanel p, double x, double y, string txt,
+		double w, double h, Color col, double glowReach = 0.35, double glowStr = 0.6)
+	{
+		if (!p) return null;
+		return p.Add(Raw(w, h, LevelLocals.BB_SEGMENT,
+			LevelLocals.BBGlow(glowReach, glowStr), col, txt), x, y);
+	}
+
 	// A NUMBER. One billboard whatever the magnitude -- the engine fits
 	// the digits to the box, shrinking a long value rather than letting
 	// it run off the ends of its own panel.

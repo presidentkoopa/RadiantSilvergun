@@ -121,10 +121,20 @@ class RS_BBWeaponCard play
 		double numW   = cw * 0.26;
 		double numCx  = cx + half - pad - numW * 0.5;
 
-		RS_BBCompose.Text(p, cx - half + pad, cy, key, lineH,
+		let lbl = RS_BBCompose.Text(p, cx - half + pad, cy, key, lineH,
 			StatRGB(key), -1, cw * 0.56);
-		RS_BBCompose.Number(p, numCx, cy, value,
-			numW, lineH, Color(255, 245, 245, 240));
+		// A little glow on the label so the per-stat colour reads as lit
+		// rather than printed -- it is the colour that lets you find a
+		// stat without reading the word, and glow is what makes a colour
+		// carry at distance.
+		if (lbl) lbl.SetGlow(0.25, 0.45);
+		// SEGMENT, NOT DIGITS. BB_DIGITS is a raster glyph quad -- a
+		// picture of a number that goes blocky up close and cannot glow.
+		// BB_SEGMENT is shader arithmetic: sharp at any size, no font
+		// involved, and it takes the glow that makes the readouts in the
+		// reference shots read as lit rather than printed.
+		RS_BBCompose.Segment(p, numCx, cy, "" .. value,
+			numW, lineH, Color(255, 245, 245, 240), 0.30, 0.55);
 	}
 
 	// -----------------------------------------------------------------
@@ -329,8 +339,8 @@ class RS_BBWeaponCard play
 			Color(255, 22, 22, 30));
 		RS_BBCompose.Text(p, gx0 + gw * 0.03, sy, "SOCKETS", line * 0.62,
 			faint, -1, gw * 0.4);
-		RS_BBCompose.Number(p, gx0 + gw * 0.94, sy, socks,
-			gw * 0.10, line * 0.7, tier);
+		RS_BBCompose.Segment(p, gx0 + gw * 0.94, sy, "" .. socks,
+			gw * 0.10, line * 0.7, tier, 0.35, 0.7);
 
 		// NAMED ROWS, NOT ANONYMOUS PIPS. Rebuilt 2026-08-09 toward the
 		// mockup: the card used to draw coloured dots, so you could count
