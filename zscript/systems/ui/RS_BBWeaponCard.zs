@@ -93,13 +93,34 @@ class RS_BBWeaponCard
 	private static void Cell(RS_BBComposedPanel p, double cx, double cy,
 		double cw, double lineH, string key, int value)
 	{
-		double half = cw * 0.5;
-		// 0.60 of the cell to the label, the rest to the value. Enough for
-		// four characters (CRIT, CMUL) at the intended card proportions,
-		// which is the widest key in the set.
-		RS_BBCompose.Text(p, cx - half, cy, key, lineH, StatRGB(key), -1, cw * 0.60);
-		RS_BBCompose.Number(p, cx + half * 0.94, cy, value,
-			cw * 0.34, lineH, Color(255, 245, 245, 240));
+		// EVERY PIECE STAYS INSIDE ITS OWN CELL. Fixed 2026-08-08 after
+		// seeing it in game: the value was centred at 0.94 of the half-
+		// width, which put its RIGHT edge at 0.94*half + numHalf -- past
+		// the cell boundary -- so column 4's number hung off the panel
+		// entirely, and every other column's number landed on top of the
+		// NEXT column's label. That is what rendered as "1CRIT" and
+		// "3RLD": two cells overlapping, not one string.
+		//
+		// 56/26 with a 0.04 pad each side, solved rather than guessed: it
+		// is the widest label allocation that still fits FOUR characters
+		// (CRIT and CMUL are the longest keys) while leaving a 0.52-unit
+		// gap before the number. 52/30 fitted only three and would have
+		// clipped CRIT to CRI.
+		//
+		// Now the label owns the left 56% and the value is RIGHT-ALIGNED
+		// against the cell's inner edge, with a real gap between them.
+		// A BB_DIGITS billboard is CENTRED on its position, so the centre
+		// has to be pulled in by half its own width plus the margin --
+		// placing it at the edge would hang half the number over.
+		double half   = cw * 0.5;
+		double pad    = cw * 0.04;
+		double numW   = cw * 0.26;
+		double numCx  = cx + half - pad - numW * 0.5;
+
+		RS_BBCompose.Text(p, cx - half + pad, cy, key, lineH,
+			StatRGB(key), -1, cw * 0.56);
+		RS_BBCompose.Number(p, numCx, cy, value,
+			numW, lineH, Color(255, 245, 245, 240));
 	}
 
 	// -----------------------------------------------------------------
