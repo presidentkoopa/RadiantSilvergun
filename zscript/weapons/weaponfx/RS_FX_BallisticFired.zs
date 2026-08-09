@@ -10,7 +10,23 @@
 class RS_BallisticFired : FastProjectile
 {
 	double ShotCritChance;
-	int ghostTimer;
+
+	// Map units between trail bits. 12 is the spacing the reference
+	// behaviour uses and it reads as continuous rather than dotted at
+	// arcade projectile speeds (~30-90 units/tic after the 2026-08-08
+	// velocity rescale). Smaller = denser = more actors.
+	const TRAIL_SPACING = 12.0;
+
+	// Never spawn more than this many bits for a single tic, whatever
+	// the distance says. Guards against one pathological step costing a
+	// frame.
+	const TRAIL_MAX_PER_TIC = 24;
+
+	// Where this round was at the end of the previous tic. The trail
+	// fills the segment between there and here, so it cannot leave gaps
+	// no matter how fast the round is moving.
+	Vector3 prevPos;
+	bool    hasPrevPos;
 
 	// Player Feedback layer override -- null means "use this Sequence's
 	// own built-in default impact." Set via SetupFeedback(), called from
@@ -115,53 +131,78 @@ class RS_BallisticFired : FastProjectile
 					A_SeekerMissile(6, 10, flags);
 			}
 		}
-		if (++ghostTimer >= 2)
+		// ---------------------------------------------------------
+		// CONTINUOUS TRAIL. Rewritten 2026-08-08.
+		//
+		// The old version emitted every 2 tics, three bits at 0.2/0.4/0.6
+		// of the velocity vector. That is a FRACTION of the distance
+		// crossed, so it left most of the path empty and read as beads --
+		// and the faster the round, the worse it got, because the gap grew
+		// while the coverage did not.
+		//
+		// This walks the ACTUAL segment travelled since the last tic and
+		// drops a bit every TRAIL_SPACING units along it. Coverage is
+		// therefore independent of speed: a fast round gets more bits, not
+		// a longer gap. That is the whole trick -- it is a distance loop,
+		// not a fixed count.
+		//
+		// Nothing here is exempt from the performance dial. This is still
+		// the highest-volume effect in the game (per PELLET, so a 9-pellet
+		// shotgun blast multiplies everything by nine), which is why the
+		// tier gate below is checked BEFORE any spawning and why spacing
+		// widens rather than the trail simply switching off at Standard.
+		// ---------------------------------------------------------
+		if (!hasPrevPos)
 		{
-			ghostTimer = 0;
-			Class<Actor> trail = TrailOverride ? TrailOverride : RS_Catalog.TRAIL_Ballistic();
+			prevPos = pos;
+			hasPrevPos = true;
+			return;
+		}
 
-			// Layered echo trail. One bit at the round's own position used to
-			// be the whole effect, which reads as a dotted line at speed
-			// because a fast round moves further between emissions than the
-			// bit is wide. Instead drop three, walked BACKWARDS along this
-			// tic's velocity vector at 0.2/0.4/0.6 of it -- i.e. into the gap
-			// the round just crossed -- each one smaller than the last.
-			//
-			// The gap gets filled, so it reads as a tapered streak with a
-			// bright head rather than beads. Additive blending means the
-			// overlaps brighten on their own, and FORCEXYBILLBOARD on the
-			// trail bit keeps the streak facing the viewer -- which is what
-			// stops it going edge-on and vanishing in VR.
-			//
-			// NOW ON THE PERFORMANCE DIAL, as this comment always said it
-			// should be. Fixed 2026-08-07.
-			//
-			// This was the single highest-volume effect in the game and
-			// the ONLY one exempt from rs_fx_hifitier: 3 actors per 2 tics
-			// per round, and a round is per PELLET -- so one shotgun blast
-			// with 9 pellets was 27 actors every other tic for the whole
-			// flight. The heavy projectiles all gate their trails
-			// correctly (RS_FX_HeavyProjectiles.zs); only the bullet path
-			// didn't. Setting FX to Off left the worst offender running at
-			// full density, which made the dial look broken.
-			//
-			// Off = no trail at all. Standard = the single head bit, which
-			// is what this effect was before the layered version. Hi-Fi =
-			// the full three-bit tapered streak.
-			int tier = RS_HiFiFX.Tier();
-			if (tier == RS_HiFiFX.RSFX_OFF)
-				return;
-			int bits = (tier == RS_HiFiFX.RSFX_STANDARD) ? 1 : 3;
+		Vector3 from = prevPos;
+		prevPos = pos;
 
-			for (int i = 1; i <= bits; i++)
+		int tier = RS_HiFiFX.Tier();
+		if (tier == RS_HiFiFX.RSFX_OFF)
+			return;
+
+		Class<Actor> trail = TrailOverride ? TrailOverride : RS_Catalog.TRAIL_Ballistic();
+		if (!trail)
+			return;
+
+		// Standard halves the density rather than dropping the effect --
+		// a thinner streak still reads as a streak, where every-other-bit
+		// gaps read as a bug.
+		double spacing = (tier == RS_HiFiFX.RSFX_STANDARD)
+			? TRAIL_SPACING * 2.0 : TRAIL_SPACING;
+
+		Vector3 seg = pos - from;
+		double dist = seg.Length();
+		if (dist < 0.1)
+			return;
+
+		int steps = int(dist / spacing);
+
+		// HARD CEILING, not a nicety. Without it a round that teleports or
+		// takes an enormous first step would try to spawn thousands of
+		// actors in one tic and hitch the game.
+		if (steps > TRAIL_MAX_PER_TIC)
+			steps = TRAIL_MAX_PER_TIC;
+
+		Vector3 dir = seg / dist;
+
+		for (int i = 1; i <= steps; i++)
+		{
+			let p = Spawn(trail, from + dir * (spacing * i));
+			if (p)
 			{
-				double f = i * 0.2;
-				let p = Spawn(trail, pos - (vel.x * f, vel.y * f, vel.z * f));
-				if (p)
-				{
-					double s = 0.40 - i * 0.09;   // 0.31 / 0.22 / 0.13
-					p.Scale = (s, s);
-				}
+				// Taper toward the tail: the newest bit (nearest the round)
+				// is brightest and biggest, so the streak has a readable head
+				// and direction instead of being a uniform line of dots.
+				double f = double(i) / double(steps);
+				double sc = 0.16 + 0.20 * f;
+				p.Scale = (sc, sc);
+				p.Alpha = 0.35 + 0.55 * f;
 			}
 		}
 	}
@@ -286,6 +327,29 @@ class RS_BallisticType1 : RS_BallisticFired
 		RSB0 C 2 Bright;
 		RSB0 D 2 Bright;
 		RSB0 E 2 Bright;
+		Loop;
+	}
+}
+
+// =====================================================================
+// RS_BallisticType3 -- Third Selectable Ballistic Visual Type
+// ---------------------------------------------------------------------
+// RSB2: a hot-cored round, red/orange with a bright centre. Directional
+// like RSB1 -- both ship as 8 rotations of a single frame (A1, A2A8,
+// A3A7, A4A6, A5), not as an animation, so they turn to face the viewer
+// instead of flickering. RSB0 by contrast is 5 animation frames with no
+// rotations, which is why it reads as a glowing dot rather than a bullet.
+//
+// The art was imported long ago and referenced by nothing until
+// 2026-08-08. Added so the ballistic families have a third distinct body
+// to draw from rather than three of them sharing one.
+// =====================================================================
+class RS_BallisticType3 : RS_BallisticFired
+{
+	States
+	{
+	Spawn:
+		RSB2 A 2 Bright;
 		Loop;
 	}
 }

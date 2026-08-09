@@ -294,7 +294,15 @@ class RS_Catalog
 	// Read as the default when an AttackProfile doesn't set its own
 	// Trail override (RS_AttackProfile.Trail), same null-means-default
 	// shape as the puff/spark/smoke entries above.
-	static Class<Actor> TRAIL_Ballistic() { return "RS_StreakTrail"; }
+	// RS_TracerBit, not RS_StreakTrail, since 2026-08-08: the trail is a
+	// DENSE distance-spaced line now rather than a few sparse bits, and
+	// RST0's long smear turns into a solid bar when overlapped at that
+	// density. RSB0's small dot is what the reference implementation
+	// uses and it tapers correctly. RS_StreakTrail is kept as a named
+	// option (TRAIL_Streak) rather than deleted -- it is still the right
+	// look for anything that wants a sparse smear.
+	static Class<Actor> TRAIL_Ballistic() { return "RS_TracerBit"; }
+	static Class<Actor> TRAIL_Streak()    { return "RS_StreakTrail"; }
 
 	// Streak set cosmetics -- no damage of their own, safe in any
 	// ImpactPuff/Trail/ExplosionVisual slot. Kept as separate entries

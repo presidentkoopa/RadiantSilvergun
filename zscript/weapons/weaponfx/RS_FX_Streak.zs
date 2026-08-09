@@ -20,6 +20,45 @@
 // sounds/rs_st_weapon/.
 // =====================================================================
 
+// The trail bit the distance loop in RS_BallisticFired spawns. One per
+// TRAIL_SPACING units of path, so this class is instanced HARD -- keep it
+// cheap and keep its lifetime short.
+//
+// RSB0, not RST0. RSB0 is a 5x5 additive dot and is the exact sprite the
+// reference implementation uses for this effect (verified byte-identical,
+// frame for frame, against its own copy on 2026-08-08 -- it was imported
+// into this project under the RS naming scheme long ago and then never
+// pointed at anything). RST0 is a longer streak smear, which is the right
+// look for a SPARSE trail and the wrong one for a dense line: overlapping
+// smears turn into a solid bar instead of a tapered streak.
+//
+// Lifetime is deliberately ~7 tics, not the 3 the old sparse trail used.
+// At 12-unit spacing a bit must outlive the round's next several tics or
+// the tail erases itself faster than the head draws it, and the streak
+// never visibly forms.
+class RS_TracerBit : Actor
+{
+	Default
+	{
+		+NOINTERACTION +CLIENTSIDEONLY +FORCEXYBILLBOARD +NOGRAVITY +NOTIMEFREEZE
+		RenderStyle "Add";
+		Scale 0.30;
+		Alpha 0.9;
+	}
+	States
+	{
+	Spawn:
+		RSB0 A 1 Bright;
+		RSB0 A 1 Bright A_FadeOut(0.12);
+		RSB0 B 1 Bright A_FadeOut(0.14);
+		RSB0 C 1 Bright A_FadeOut(0.16);
+		RSB0 D 1 Bright A_FadeOut(0.20);
+		RSB0 E 1 Bright A_FadeOut(0.24);
+		RSB0 E 1 Bright A_FadeOut(0.30);
+		Stop;
+	}
+}
+
 class RS_StreakTrail : Actor
 {
 	Default
@@ -38,10 +77,26 @@ class RS_StreakTrail : Actor
 	}
 }
 
+// FIXED 2026-08-08. Every sibling puff in RS_FX_Puffs.zs (RS_ChainsawPuff,
+// RS_EnhancedShotPuff) declares its OWN Spawn: label that calls
+// A_RS_SurfaceImpact() and then reaches its own Puff: frames -- this
+// class was the one that skipped declaring Spawn: at all. It is the
+// default impact puff for every main-arsenal family (RS_Catalog.
+// PUFF_Bullet()), so the whole arsenal's impacts were silently missing
+// per-material sound, debris, hard-surface sparks, ricochet, and the
+// sky check that should suppress the impact outright on a sky hit.
+//
+// Matches RS_EnhancedShotPuff's exact shape: call the surface impact,
+// then an explicit Goto Puff rather than relying on any inherited
+// fall-through, so this can't go quietly wrong again the way it did
+// the first time.
 class RS_StreakPuff : RS_EnhancedBulletPuff
 {
 	States
 	{
+	Spawn:
+		TNT1 A 0 NoDelay A_RS_SurfaceImpact();
+		Goto Puff;
 	Puff:
 		RST0 CDE 1 Bright;
 		Stop;
