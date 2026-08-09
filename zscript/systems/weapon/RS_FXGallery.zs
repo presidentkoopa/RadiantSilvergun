@@ -155,9 +155,11 @@ class RS_FXGalleryHandler : EventHandler
 	// walk rather than a set you can compare at a glance.
 	private void SpawnGrid(PlayerPawn pawn, Array<RS_FXEntry> hits)
 	{
-		const COLS    = 5;
-		const SPACING = 48.0;
-		const STANDOFF = 160.0;
+		// Plain locals, not const: ZScript allows `const` only at class
+		// scope, not inside a function body.
+		int    COLS     = 5;
+		double SPACING  = 48.0;
+		double STANDOFF = 160.0;
 
 		double yaw = pawn.angle;
 		Vector3 fwd = (cos(yaw), sin(yaw), 0);
