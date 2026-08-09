@@ -131,6 +131,19 @@ class RS_Weapon : Weapon abstract
 	// -----------------------------------------------------------------
 	Class<Actor> AffixProjectile;      // bullet path checked-casts this; heavy path fences ballistic classes out
 	sound        AffixFireSound;
+	// LAYERED, NOT AXIS 5. Plays IN ADDITION to whatever axis 5 resolved
+	// to, on its own channel, so the gun keeps its own report and the
+	// affix's voice rides underneath it.
+	//
+	// Added 2026-08-08 because AffixFireSound is an OVERRIDE: an affix
+	// setting it silenced the weapon entirely for that shot. A caco-round
+	// shotgun sounded like only a caco, which is precisely backwards --
+	// the owner's rule is that the weapon's own report is an IDENTITY
+	// ANCHOR and must survive whatever gets bolted onto the gun.
+	//
+	// AffixFireSound is kept for the genuine replace case (a suppressor,
+	// a weapon that stops being a firearm). Themed voices belong here.
+	sound        AffixExtraFireSound;
 	Class<Actor> AffixImpactPuff;
 	Class<Actor> AffixImpactSparks;
 	Class<Actor> AffixMuzzleSmoke;
@@ -142,6 +155,7 @@ class RS_Weapon : Weapon abstract
 	{
 		AffixProjectile      = null;
 		AffixFireSound       = "";
+		AffixExtraFireSound  = "";
 		AffixImpactPuff      = null;
 		AffixImpactSparks    = null;
 		AffixMuzzleSmoke     = null;
@@ -853,8 +867,14 @@ class RS_Weapon : Weapon abstract
 		// time behaviour can't let this steal or be stolen by the gun's
 		// own report -- both are audible together, which is the entire
 		// point.
+		// Both layered sources play. The profile's is the PACK beat's own
+		// theme; the weapon's is an affix installed on the gun. They are
+		// independent and an affix should not silence a themed beat, so
+		// they get separate channels rather than one winning.
 		if (p.ExtraFireSound)
 			A_PlaySound(p.ExtraFireSound, CHAN_ITEM);
+		if (invoker.AffixExtraFireSound)
+			A_PlaySound(invoker.AffixExtraFireSound, CHAN_7);
 
 		Class<Actor> fxSmoke = invoker.AffixMuzzleSmoke;
 		if (!fxSmoke) fxSmoke = p.MuzzleSmoke;
