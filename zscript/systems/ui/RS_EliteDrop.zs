@@ -1199,11 +1199,15 @@ class RS_PanelDropHandler : EventHandler
 	// together:
 	//
 	//   SCALE     CardMinScale() at the outer edge, 1.0 at the inner.
-	//   DISTANCE  the card stands ON THE DROP at the outer edge and
-	//             walks in to Comfort() as you approach.
-	//   HEIGHT    it sits at the top of the drop's own pillar at the
-	//             outer edge -- exactly where the marker was -- and
-	//             settles to eye level as it grows.
+	//             THE ONLY THING THAT CHANGES -- owner, 2026-08-09.
+	//   DISTANCE  fixed. The card sits ON THE DROP at every range.
+	//   HEIGHT    fixed. Top of the drop's own pillar, exactly where the
+	//             marker is, at every range.
+	//
+	// Distance and height USED to interpolate as well, so an approach
+	// slid the card in two axes while it was also scaling. Growing in
+	// place reads better and keeps a card obviously attached to its own
+	// pickup, which matters the moment two drops share a room.
 	//
 	// All three from ONE parameter, so they cannot disagree. The far
 	// result is a card the size and position of the marker it replaced;
@@ -1266,23 +1270,36 @@ class RS_PanelDropHandler : EventHandler
 		double minS = RS_PanelController.CardMinScale();
 		ApplyCardScale(1.0 - t * (1.0 - minS));
 
-		// Stand-off. mComfortDist is used as min(mComfortDist, d) by the
-		// assembly's own solver, so handing it `dist` at the far end puts
-		// the card exactly on the drop -- there is no separate "pinned"
-		// mode to maintain, just the same one number opened up.
-		double comfort = RS_PanelController.Comfort();
-		mCard.mAsm.mComfortDist = comfort + t * max(0.0, dist - comfort);
+		// PINNED ABOVE THE DROP. ALWAYS. Owner, 2026-08-09: the card
+		// "doesn't even have to cover a distance, just has to get larger
+		// above drop as player approaches".
+		//
+		// This used to interpolate the stand-off, so the card slid from
+		// the drop toward the reader while it grew -- two things moving
+		// at once for one approach. Growing in place is the simpler read
+		// and it keeps the card locked to the thing it describes, which
+		// matters when several drops are in a room: a card that drifts
+		// toward you stops obviously belonging to its own pickup.
+		//
+		// mComfortDist is used as min(mComfortDist, dist) by the
+		// assembly's solver, so handing it `dist` means "no stand-off,
+		// sit on the drop" without needing a separate pinned mode.
+		mCard.mAsm.mComfortDist = dist;
 
-		// Height. The assembly places its root at eye.z + mAnchorOfs.z,
-		// so the offset is what the marker's world height has to be
-		// converted into -- and TopZ is asked of the beacon rather than
-		// recomputed here, so the card cannot land somewhere the marker
-		// was not.
+		// HEIGHT IS PINNED TOO, for the same reason as the stand-off. This
+		// interpolated from the marker's height down to eye level as the
+		// card grew, so an approach moved the card in TWO axes while it
+		// was also scaling. "Larger above drop" means the only thing that
+		// changes is size.
+		//
+		// It stays at the top of the drop's own pillar -- exactly where
+		// the marker is, which is the point the card is meant to grow out
+		// of. TopZ is asked of the beacon rather than recomputed here, so
+		// the card cannot land somewhere the marker was not.
 		double eyez = pawn.player.viewz;
-		double base = RS_PanelController.HeightOfs();
 		double top  = d.mBeacon ? d.mBeacon.TopZ(d.pos)
 		                        : d.pos.z + RS_PanelController.BeamHeight();
-		mCard.mAsm.mAnchorOfs = (0, 0, base + t * ((top - eyez) - base));
+		mCard.mAsm.mAnchorOfs = (0, 0, top - eyez);
 	}
 
 	// -----------------------------------------------------------------
@@ -1405,14 +1422,20 @@ class RS_PanelDropHandler : EventHandler
 			}
 		}
 
-		// The card belongs to the reader: it holds a comfortable
-		// distance in front of you on the line toward the drop, at eye
-		// level, instead of being pinned to the pickup. Walking up to a
-		// drop must not shove the card into your face.
+		// The card belongs to the DROP: it sits above the pickup at every
+		// range and only its size changes. This comment used to say the
+		// opposite -- that the card held a comfortable distance in front
+		// of the reader at eye level -- which was true until 2026-08-09,
+		// when the owner asked for it to simply "get larger above drop as
+		// player approaches".
+		// mComfortDist is overwritten by TrackCard on the first update
+		// with the live distance, which pins the card to the drop. Set
+		// here only so the very first frame is not a stand-off the card
+		// then immediately snaps out of.
 		if (mCard.mAsm)
 		{
 			mCard.mAsm.mComfort     = true;
-			mCard.mAsm.mComfortDist = RS_PanelController.Comfort();
+			mCard.mAsm.mComfortDist = (d.pos - pawn.pos).Length();
 		}
 
 		// FULL SIZE IS WHATEVER THE CARD BUILT ITSELF AS, captured here
