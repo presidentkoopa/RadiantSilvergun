@@ -401,8 +401,41 @@ class RS_EliteToken : Inventory
 			: CVar.FindCVar("rs_elite_damagemult").GetFloat();
 
 		mon.bALWAYSFAST = true;
-		mon.bMISSILEMORE = true;
-		mon.bMISSILEEVENMORE = true;
+
+		// =============================================================
+		// THIS IS WHY ELITES STOOD STILL AND TURRETED. Fixed 2026-08-07,
+		// owner's order ("diagnose and fix this shit").
+		//
+		// It set BOTH bMISSILEMORE and bMISSILEEVENMORE. Those are the
+		// deprecated names for one property, and together they multiply
+		// the monster's "don't fire this time" chance to 0.0625 -- so a
+		// revealed elite passed its fire check roughly SIXTEEN times more
+		// often than a normal monster.
+		//
+		//   MISSILEMORE      -> MissileChanceMult 0.5
+		//   MISSILEEVENMORE  -> MissileChanceMult 0.125
+		//   both             -> MissileChanceMult 0.0625
+		//
+		// A Doom monster only walks in A_Chase, and A_Chase hands off to
+		// the Missile state the moment its fire check passes. At 0.0625
+		// that check almost always passes, so the elite re-entered its
+		// attack before it ever took a step: it planted itself and fired
+		// on the spot forever. It reads as broken AI; it is actually the
+		// AI working exactly as told.
+		//
+		// Set as the real property now rather than the deprecated flags
+		// -- the engine's own deprecation message says to ("Use
+		// missilechancemult property instead"), and it makes the number
+		// visible instead of hidden behind two booleans that multiply.
+		// Cvar-driven so it can be tuned without a rebuild.
+		//
+		// NOTE: LOWER IS MORE AGGRESSIVE. 1.0 is a normal monster.
+		// =============================================================
+		{
+			let cv = CVar.FindCVar("rs_elite_missilechance");
+			double mult = cv ? clamp(cv.GetFloat(), 0.05, 1.0) : 0.5;
+			mon.MissileChanceMult = mult;
+		}
 		mon.bNOINFIGHTING = true;
 		mon.bNOTARGET = true;
 		mon.bQUICKTORETALIATE = true;
