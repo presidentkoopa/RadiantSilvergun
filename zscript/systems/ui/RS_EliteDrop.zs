@@ -1247,9 +1247,21 @@ class RS_PanelDropHandler : EventHandler
 		// ramp, not a divide by zero.
 		double inner = clamp(RS_PanelController.CardNear(), 1.0, outer - 1.0);
 
-		// 0 = fully grown and in your hands' reach. 1 = a token standing
-		// on the pillar, a room away.
-		double t = clamp((dist - inner) / (outer - inner), 0.0, 1.0);
+		// THE RAMP IS SHORT AND ENDS WELL INSIDE THE DETECT RADIUS.
+		// Changed 2026-08-09: this used to run from `inner` all the way to
+		// `outer`, so the card inflated across the entire approach and was
+		// already most of its size by the time it could be read. The owner
+		// wants the card to come "from a single point out into itself" --
+		// invisible, then a fast bloom on arrival.
+		//
+		// Clamped under `outer` so a long ramp cannot swallow the whole
+		// detect radius and reintroduce the slow inflate.
+		double ramp = min(RS_PanelController.CardRamp(), outer - inner);
+		double far  = inner + max(1.0, ramp);
+
+		// 0 = fully grown and in your hands' reach. 1 = a speck on the
+		// marker. Beyond `far` it stays a speck rather than growing again.
+		double t = clamp((dist - inner) / (far - inner), 0.0, 1.0);
 
 		double minS = RS_PanelController.CardMinScale();
 		ApplyCardScale(1.0 - t * (1.0 - minS));

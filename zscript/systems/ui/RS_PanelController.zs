@@ -192,15 +192,39 @@ class RS_PanelController
 		return cv ? cv.GetFloat() : 88.0;
 	}
 
+	// HOW LONG THE GROWTH RAMP IS, in map units, measured OUTWARD from
+	// CardNear. Added 2026-08-09.
+	//
+	// The ramp used to run from CardNear all the way to the outer detect
+	// radius -- hundreds of units -- so the card spent an entire room
+	// slowly inflating and was already most of its size before you could
+	// read it. The owner wants the opposite: nothing, then a fast bloom
+	// from a point as you arrive.
+	//
+	// 96 is about two body-widths: close enough to read as "on arrival",
+	// long enough that the bloom is a movement rather than a pop.
+	static double CardRamp()
+	{
+		let cv = CVar.FindCVar("rs_drop_cardramp");
+		return cv ? clamp(cv.GetFloat(), 8.0, 512.0) : 96.0;
+	}
+
 	// How big the card is at the OUTER radius, as a fraction of full
 	// size. Deliberately close to MarkerSize() in world terms so the
 	// swap from marker to card is a substitution rather than a pop --
 	// the marker is ~11 units and a 0.30 card is ~16 across its three
 	// panels.
+	// THE FLOOR WAS 0.05 AND THE DEFAULT WAS 0.30, which is why the card
+	// never grew "from a point" -- it could not get smaller than a third
+	// of full size, so the whole singularity end of the ramp did not
+	// exist. Floor is 0.0 now and the default is a genuine speck.
+	//
+	// Zero is allowed deliberately: at the far end the card is meant to
+	// be INVISIBLE, indistinguishable from the marker it grows out of.
 	static double CardMinScale()
 	{
 		let cv = CVar.FindCVar("rs_drop_cardminscale");
-		return cv ? clamp(cv.GetFloat(), 0.05, 1.0) : 0.30;
+		return cv ? clamp(cv.GetFloat(), 0.0, 1.0) : 0.02;
 	}
 
 	static int MaxAssemblies()

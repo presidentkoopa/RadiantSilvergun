@@ -1276,7 +1276,19 @@ server float rs_drop_cardnear = 88.0;
 // The card's size at the OUTER radius, as a fraction of full size.
 // Chosen to land near rs_drop_markersize in world terms, so the marker
 // becoming a card reads as a substitution rather than a pop.
-server float rs_drop_cardminscale = 0.30;
+// A GENUINE SPECK, not a third of full size. 0.30 meant the card could
+// never grow "from a point" -- the whole singularity end of the ramp did
+// not exist, because the floor was above it. Zero is permitted: at the
+// far end the card should be indistinguishable from the marker it grows
+// out of.
+server float rs_drop_cardminscale = 0.02;
+
+// HOW LONG THE BLOOM IS, in map units outward from rs_drop_cardnear.
+// The ramp used to run all the way to rs_panel_radius -- hundreds of
+// units -- so the card inflated across a whole room and was already most
+// of its size before it could be read. Short and fast instead: nothing,
+// then a bloom on arrival.
+server float rs_drop_cardramp = 96.0;
 
 // How big the dropped weapon itself is on the floor, as a multiplier on
 // its own default scale.
