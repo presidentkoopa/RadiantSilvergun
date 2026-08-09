@@ -7489,7 +7489,7 @@ Model RS_Grenade
 }
 
 // =====================================================================
-// CARD PLINTHS -- the weapon as a turning 3D model on an offer card.
+// CARD WEAPON MODELS -- the weapon as a turning 3D model on an offer card.
 // Added 2026-08-09.
 //
 // Every OTHER binding in this file attaches a model to a HUD FRAME
@@ -7507,7 +7507,7 @@ Model RS_Grenade
 // rather than typed from memory.
 // =====================================================================
 
-Model RS_Plinth_Pistol
+Model RS_CardModel_Pistol
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
 	Model 0 "pistolet.md3"
@@ -7516,7 +7516,7 @@ Model RS_Plinth_Pistol
 	FrameIndex RSPL A 0 0
 }
 
-Model RS_Plinth_Revolver
+Model RS_CardModel_Revolver
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
 	Model 0 "rev.md3"
@@ -7525,7 +7525,7 @@ Model RS_Plinth_Revolver
 	FrameIndex RSPL A 0 0
 }
 
-Model RS_Plinth_Rifle
+Model RS_CardModel_Rifle
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_Rifle"
 	Model 0 "m16.md3"
@@ -7534,7 +7534,7 @@ Model RS_Plinth_Rifle
 	FrameIndex RSPL A 0 0
 }
 
-Model RS_Plinth_SMG
+Model RS_CardModel_SMG
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
 	Model 0 "SMG.md3"
@@ -7543,7 +7543,7 @@ Model RS_Plinth_SMG
 	FrameIndex RSPL A 0 0
 }
 
-Model RS_Plinth_Shotgun
+Model RS_CardModel_Shotgun
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
 	Model 0 "shotgun.md3"
@@ -7552,7 +7552,7 @@ Model RS_Plinth_Shotgun
 	FrameIndex RSPL A 0 0
 }
 
-Model RS_Plinth_SuperShotgun
+Model RS_CardModel_SuperShotgun
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
 	Model 0 "ssg.md3"
@@ -7561,7 +7561,7 @@ Model RS_Plinth_SuperShotgun
 	FrameIndex RSPL A 0 0
 }
 
-Model RS_Plinth_Chaingun
+Model RS_CardModel_Chaingun
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_Chaingun"
 	Model 0 "chaingun.md3"
@@ -7570,7 +7570,7 @@ Model RS_Plinth_Chaingun
 	FrameIndex RSPL A 0 0
 }
 
-Model RS_Plinth_PlasmaRifle
+Model RS_CardModel_PlasmaRifle
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
 	Model 0 "PlasmaRifle.md3"
@@ -7579,7 +7579,7 @@ Model RS_Plinth_PlasmaRifle
 	FrameIndex RSPL A 0 0
 }
 
-Model RS_Plinth_RocketLauncher
+Model RS_CardModel_RocketLauncher
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "RPG.md3"
@@ -7588,7 +7588,7 @@ Model RS_Plinth_RocketLauncher
 	FrameIndex RSPL A 0 0
 }
 
-Model RS_Plinth_BFG
+Model RS_CardModel_BFG
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
 	Model 0 "BFG.md3"
@@ -7597,7 +7597,7 @@ Model RS_Plinth_BFG
 	FrameIndex RSPL A 0 0
 }
 
-Model RS_Plinth_Chainsaw
+Model RS_CardModel_Chainsaw
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_Chainsaw"
 	Model 0 "chainsaw.md3"

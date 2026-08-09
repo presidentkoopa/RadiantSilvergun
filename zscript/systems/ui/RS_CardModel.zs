@@ -1,5 +1,5 @@
 // =====================================================================
-// RS_ModelPlinth -- the weapon, as a real 3D model, turning on the card.
+// RS_CardModel -- the weapon, as a real 3D model, turning on the card.
 // ---------------------------------------------------------------------
 // Built 2026-08-09. The owner asked for this twice: "i'd love to see a
 // 3d spinning weapon model instead of the sprite above the word Manners"
@@ -10,7 +10,7 @@
 //
 // A model-only actor still has to bind its model to a real SPRITE FRAME.
 // TNT1 is special-cased as invisible and will not carry one, so the
-// plinth ships a 1x1 fully transparent PNG (sprites/rs_plinth/RSPLA0.png)
+// card model ships a 1x1 fully transparent PNG (sprites/rs_cardmodel/RSPLA0.png)
 // purely as something for MODELDEF to attach to. Nothing ever sees it --
 // if the model fails to load you get nothing rather than a stray pixel,
 // which is the correct failure.
@@ -38,7 +38,7 @@
 // there is no way to know what reads well without looking at it.
 // =====================================================================
 
-class RS_ModelPlinth : Actor
+class RS_CardModel : Actor
 {
 	// Degrees per tic. 3.0 is a full turn in ~4 seconds, slow enough to
 	// read the weapon's silhouette rather than smear it.
@@ -72,7 +72,7 @@ class RS_ModelPlinth : Actor
 		angle += SpinRate;
 	}
 
-	// The plinth rides its card rather than being placed once: a card
+	// The model rides its card rather than being placed once: a card
 	// that moves with the player would otherwise leave its model behind.
 	// Called by whatever owns the card.
 	void PlaceAt(Vector3 where)
@@ -80,7 +80,7 @@ class RS_ModelPlinth : Actor
 		SetOrigin(where, true);
 	}
 
-	// RSPL A is the frame every plinth MODELDEF block binds to. Without a
+	// RSPL A is the frame every card-model MODELDEF block binds to. Without a
 	// States block the actor has NO frame at all and the model can never
 	// resolve -- it would spawn, tick, turn, and draw nothing, with no
 	// error anywhere. -1 duration because the model is the whole visual;
@@ -99,24 +99,24 @@ class RS_ModelPlinth : Actor
 // be keyed on anything but the class.
 //
 // ELEVEN, matching the eleven MODELDEF blocks exactly. There is no Fist
-// plinth: VR_Fist has no model block of its own to copy, and a class
+// Fist model: VR_Fist has no model block of its own to copy, and a class
 // with no binding spawns, turns, and draws NOTHING -- silently. Melee
 // maps to the chainsaw instead, which does have one.
 // ---------------------------------------------------------------------
-class RS_Plinth_Pistol        : RS_ModelPlinth {}
-class RS_Plinth_Revolver      : RS_ModelPlinth {}
-class RS_Plinth_Rifle         : RS_ModelPlinth {}
-class RS_Plinth_SMG           : RS_ModelPlinth {}
-class RS_Plinth_Shotgun       : RS_ModelPlinth {}
-class RS_Plinth_SuperShotgun  : RS_ModelPlinth {}
-class RS_Plinth_Chaingun      : RS_ModelPlinth {}
-class RS_Plinth_PlasmaRifle   : RS_ModelPlinth {}
-class RS_Plinth_RocketLauncher: RS_ModelPlinth {}
-class RS_Plinth_BFG           : RS_ModelPlinth {}
-class RS_Plinth_Chainsaw      : RS_ModelPlinth {}
+class RS_CardModel_Pistol        : RS_CardModel {}
+class RS_CardModel_Revolver      : RS_CardModel {}
+class RS_CardModel_Rifle         : RS_CardModel {}
+class RS_CardModel_SMG           : RS_CardModel {}
+class RS_CardModel_Shotgun       : RS_CardModel {}
+class RS_CardModel_SuperShotgun  : RS_CardModel {}
+class RS_CardModel_Chaingun      : RS_CardModel {}
+class RS_CardModel_PlasmaRifle   : RS_CardModel {}
+class RS_CardModel_RocketLauncher: RS_CardModel {}
+class RS_CardModel_BFG           : RS_CardModel {}
+class RS_CardModel_Chainsaw      : RS_CardModel {}
 
 // ---------------------------------------------------------------------
-// WHICH PLINTH FOR WHICH WEAPON.
+// WHICH MODEL FOR WHICH WEAPON.
 //
 // Keyed on the weapon's own archetype keyword rather than on its class,
 // so a GH_ or PS_ set weapon of the same archetype gets the right model
@@ -124,7 +124,7 @@ class RS_Plinth_Chainsaw      : RS_ModelPlinth {}
 // a null is a legitimate answer -- the card simply shows no model rather
 // than a wrong one.
 // ---------------------------------------------------------------------
-class RS_PlinthFor
+class RS_CardModelFor
 {
 	static Class<Actor> ForWeapon(RS_Weapon w)
 	{
@@ -132,17 +132,17 @@ class RS_PlinthFor
 
 		string a = w.GetPaletteArchetype();
 
-		if (a == "pistol")        return "RS_Plinth_Pistol";
-		if (a == "revolver")      return "RS_Plinth_Revolver";
-		if (a == "rifle")         return "RS_Plinth_Rifle";
-		if (a == "smg")           return "RS_Plinth_SMG";
-		if (a == "shotgun")       return "RS_Plinth_Shotgun";
-		if (a == "supershotgun")  return "RS_Plinth_SuperShotgun";
-		if (a == "chaingun")      return "RS_Plinth_Chaingun";
-		if (a == "energy")        return "RS_Plinth_PlasmaRifle";
-		if (a == "launcher")      return "RS_Plinth_RocketLauncher";
-		if (a == "bfg")           return "RS_Plinth_BFG";
-		if (a == "melee")         return "RS_Plinth_Chainsaw";
+		if (a == "pistol")        return "RS_CardModel_Pistol";
+		if (a == "revolver")      return "RS_CardModel_Revolver";
+		if (a == "rifle")         return "RS_CardModel_Rifle";
+		if (a == "smg")           return "RS_CardModel_SMG";
+		if (a == "shotgun")       return "RS_CardModel_Shotgun";
+		if (a == "supershotgun")  return "RS_CardModel_SuperShotgun";
+		if (a == "chaingun")      return "RS_CardModel_Chaingun";
+		if (a == "energy")        return "RS_CardModel_PlasmaRifle";
+		if (a == "launcher")      return "RS_CardModel_RocketLauncher";
+		if (a == "bfg")           return "RS_CardModel_BFG";
+		if (a == "melee")         return "RS_CardModel_Chainsaw";
 
 		return null;
 	}
