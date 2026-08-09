@@ -36,8 +36,8 @@
 
 class RS_ElitePackage : Actor
 {
-	int      mTier;
-	RS_Panel mBeam;
+	int           mTier;
+	RS_DropBeacon mBeacon;
 
 	Default
 	{
@@ -78,57 +78,59 @@ class RS_ElitePackage : Actor
 		// The aura IS the rarity read. Radius scales with tier so a
 		// Prototype announces itself from further away than a Trash --
 		// rarity as magnitude, not as a different feature.
+		//
+		// Detail follows the same slider the weapon drop's light does --
+		// this used to pass a hardcoded 0 (plain falloff) while the
+		// weapon drop passed LF_ATTENUATE, so the two payouts lit a room
+		// differently for no stated reason. Same call, same dial.
 		Color glow = RS_PanelController.TierGlow(tier);
-		p.A_AttachLight('RSPkgGlow', DynamicLight.PointLight, glow,
-			RS_PanelController.LightRadius(),
-			RS_PanelController.LightRadius() / 2,
-			0, (0, 0, 10));
+		if (RS_PanelController.LightDetail() > 0 &&
+		    RS_PanelController.LightRadius() > 0)
+		{
+			p.A_AttachLight('RSPkgGlow', DynamicLight.PointLight, glow,
+				RS_PanelController.LightRadius(),
+				RS_PanelController.LightRadius() / 2,
+				RS_PanelController.LightFlags(), (0, 0, 10));
+		}
 
 		p.RaiseBeam();
 		return p;
 	}
 
-	// Same vertical marker the weapon drops use, on purpose: the BEAM
-	// means "an elite paid out here", and that reads identically whether
-	// the payout is a gun or a package. The object under it is what
-	// differs.
+	// THE SAME BEACON THE WEAPON DROPS USE, and now literally the same
+	// code: the pillar means "an elite paid out here" and reads
+	// identically whichever payout it is. What differs is the SHAPE on
+	// top of it -- RSDK_Imprint gives this one a CIRCLE where a class
+	// weapon gets a DIAMOND.
+	//
+	// This file used to carry a hand-copied second version of the beam,
+	// and it had already drifted: it never picked up the "paint before
+	// raising" guard the weapon drop's did until that bug was found
+	// twice. One object now, so there is nothing left to drift.
 	void RaiseBeam()
 	{
-		if (!RS_PanelController.BeamEnabled()) return;
-		if (mBeam) return;
-
-		double h = RS_PanelController.BeamHeight();
-		mBeam = RS_Panel.Create((pos.x, pos.y, pos.z + h * 0.5),
-			"RSPNLBM", RS_PanelController.BeamWidth(), h, 0);
-
-		if (mBeam)
-		{
-			mBeam.mFacing = RSPF_CameraYaw;
-			mBeam.SetTint(RS_PanelController.TierGlow(mTier));
-		}
+		if (mBeacon) return;
+		mBeacon = RS_DropBeacon.Create(pos, mTier, RSDK_Imprint);
 	}
 
 	override void Tick()
 	{
 		Super.Tick();
 
-		// The beam has no parent and no hinge, so it re-aims itself --
-		// same as RS_WeaponDrop's.
-		if (mBeam)
-		{
-			PlayerPawn viewer = players[consoleplayer].mo;
-			if (viewer)
-			{
-				mBeam.FaceViewer((viewer.pos.x, viewer.pos.y,
-					viewer.player ? viewer.player.viewz : viewer.pos.z + 41));
-				mBeam.ApplyOrientation();
-			}
-		}
+		// The beacon sizes itself against the viewer's distance every tic.
+		// The marker is always shown here: a package has no comparison
+		// card of its own to be replaced by.
+		if (!mBeacon) return;
+
+		PlayerPawn viewer = players[consoleplayer].mo;
+		if (!viewer) return;
+
+		mBeacon.Update(pos, (pos - viewer.pos).Length(), true);
 	}
 
 	override void OnDestroy()
 	{
-		if (mBeam) mBeam.Destroy();
+		if (mBeacon) mBeacon.Release();
 		Super.OnDestroy();
 	}
 }

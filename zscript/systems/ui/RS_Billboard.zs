@@ -31,17 +31,35 @@
 //
 // CONSTANTS COME FROM THE ENGINE, NOT FROM HERE. This file used to
 // declare its own BBP_*/BBF_*/BBFACE_* copies of the payload, flag and
-// facing numbers. The engine now exposes them on LevelLocals, and its
-// own comment on that enum says exactly why they should be used:
-// "so callers are not obliged to invent their own copies of the same
-// numbers, which is how two sets of constants for one thing start
-// drifting apart." Mine matched at the time of the swap; they were one
-// engine edit away from not matching.
+// facing numbers. The engine exposes them, and its own comment on that
+// enum says exactly why they should be used: "so callers are not obliged
+// to invent their own copies of the same numbers, which is how two sets
+// of constants for one thing start drifting apart." Mine matched at the
+// time of the swap; they were one engine edit away from not matching.
 //
-//   payloads  LevelLocals.BB_PANEL / BB_TEXTURE / BB_DIGITS /
+// THEY MUST BE QUALIFIED -- write the LevelLocals. prefix on every one.
+// A bare name will not compile. The enums are declared INSIDE LevelLocals
+// (doombase.zs:542-565) and their values stay members of it -- ZScript
+// does not hoist them to global scope. A bare name is "Unknown
+// identifier".
+//
+// Settled by experiment on 2026-08-08, and worth recording because the
+// first attempt got it backwards. An earlier boot reported "BBF_FIXED is
+// not a member of LevelLocals", which reads as proof the qualified form
+// is wrong -- so all 23 uses were changed to bare names. That was a
+// misread: the engine .pk3 loaded at the time was STALE and contained no
+// billboard enums at all, so BOTH forms failed, each with the error its
+// own syntax produces. Only after a clean engine build did the real
+// answer appear.
+//
+// The lesson is about diagnosis, not syntax: an error message about a
+// symbol proves nothing until you know the file defining that symbol is
+// the one actually loaded.
+//
+//   payloads  BB_PANEL / BB_TEXTURE / BB_DIGITS /
 //             BB_GLYPH / BB_RING / BB_BAR
-//   facing    LevelLocals.BBF_FIXED / BBF_CAMERAYAW / BBF_CAMERA
-//   flags     LevelLocals.BBFL_PERSISTENT / BBFL_ATTACHED /
+//   facing    BBF_FIXED / BBF_CAMERAYAW / BBF_CAMERA
+//   flags     BBFL_PERSISTENT / BBFL_ATTACHED /
 //             BBFL_NODEPTH / BBFL_VIEWLOCKED / BBFL_FOLLOWANGLE
 //
 // ---------------------------------------------------------------------

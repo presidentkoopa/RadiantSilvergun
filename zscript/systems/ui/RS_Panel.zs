@@ -213,10 +213,42 @@ class RS_Panel : Actor
 	// Basis vectors in design space.
 	//
 	// Facing yaw y with zero tilt:   F = (cos y, sin y, 0)
-	//                                R = (sin y, -cos y, 0)   [viewer's right]
+	//                                R = (-sin y, cos y, 0)   [viewer's right]
 	//                                U = (0, 0, 1)
 	// Tilting by t rotates U toward -F, which leans the TOP toward the
 	// viewer for positive t.
+	//
+	// *** RIGHT WAS (sin y, -cos y). CORRECTED 2026-08-08. ***
+	//
+	// That is the viewer's LEFT, and it is the same inversion the engine
+	// carried in three places until the same day (BillboardBasis, in
+	// g_levellocals.h, is where the derivation lives now). The mod's own
+	// drawing side was ALREADY right -- RS_BBCompose.RightOf returns
+	// (-sin, cos) and lays every composed part out with it -- so this file
+	// and that one disagreed about which way a panel runs, and the two
+	// things that disagreed were WHERE A PANEL IS DRAWN and WHERE IT IS
+	// TOUCHED.
+	//
+	// What it actually broke, all of it silent:
+	//
+	//   * HingeTo/SolveFromParent walk to a parent's edge along this
+	//     vector, so RSPE_Left placed a wing on the reader's RIGHT. The
+	//     drop card's OFFHAND wing sat where the mainhand wing looked like
+	//     it should be -- and since the Hand Law is "the hand that touches
+	//     is the hand that receives", reaching left handed you the wrong
+	//     gun. This is the "wings are on swapped sides" note in
+	//     docs/rs_state_20260808.md, and this is its cause.
+	//   * PanelUnderHand and TraceHand both build u from `local dot
+	//     RightVec()`, so every uv was mirrored: the row you pressed was
+	//     the row's mirror image across the panel's centre line. On a card
+	//     whose only live rows are single lines on the wings, that reads
+	//     as "the panel ignores me", not as a mirror.
+	//
+	// FaceVec is deliberately left flat -- it is the yaw-only face
+	// direction, used for "is this panel pointing at me" and for the punch
+	// test, both of which want the horizontal answer. The true face normal
+	// of a TILTED panel is RightVec cross UpVec; nothing here needs it,
+	// and the drop card runs at tilt 0.
 	// -----------------------------------------------------------------
 	Vector3 FaceVec() const
 	{
@@ -225,7 +257,7 @@ class RS_Panel : Actor
 
 	Vector3 RightVec() const
 	{
-		return (sin(mYaw), -cos(mYaw), 0);
+		return (-sin(mYaw), cos(mYaw), 0);
 	}
 
 	Vector3 UpVec() const

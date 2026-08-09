@@ -34,12 +34,63 @@
 // each.
 // =====================================================================
 
+// =====================================================================
+// WHAT KIND OF DROP THIS IS -- the SHAPE half of the read.
+//
+// Colour says how good it is; SHAPE says what it is. Two facts, two
+// channels, never mixed -- a player reading a room full of pillars gets
+// count, quality and kind with no text at all.
+//
+// File scope rather than nested in a class, following ERS_PanelFacing
+// and ERS_TriSlot: a nested enum referenced from another file is exactly
+// the kind of resolution question that has cost this project a failed
+// boot before.
+// =====================================================================
+enum ERS_DropKind
+{
+	RSDK_Weapon  = 0,   // a class weapon -- DIAMOND
+	RSDK_Imprint = 1    // an imprint     -- CIRCLE
+}
+
 class RS_WeaponDrop : Actor
 {
-	Weapon   mPayload;       // the real, rolled instance the card reads
-	RS_Panel mBeam;          // the vertical marker glow
-	bool     mCardUp;
-	int      mTier;
+	Weapon      mPayload;    // the real, rolled instance the card reads
+	RS_DropBeacon mBeacon;   // the tapering pillar and the shape on top of it
+	RS_DropHalo mGlow;       // the additive tier halo worn by the payload
+	bool        mCardUp;
+	int         mTier;
+
+	// Distance from the viewer as of this tic, measured ONCE in Tick and
+	// read by everything that ramps with range. The card scale, the
+	// pillar's growth and the marker all have to agree about how far away
+	// this drop is, or they disagree at the range boundaries -- which is
+	// the pop the ramp exists to remove.
+	double      mViewDist;
+
+	// ------------------------------------------------------------------
+	// NON-NULL MAKES THIS AN IMPRINT OFFER RATHER THAN A CLASS WEAPON.
+	//
+	// Set only by RS_Imprint.Drop (zscript/systems/weapon/RS_Imprint.zs),
+	// which is the late-game half of the elite payout: once the player
+	// owns all six identities there is no missing weapon to hand out, so
+	// the elite offers a rolled STAT PACKAGE for a gun they already
+	// carry instead.
+	//
+	// The payload weapon is still spawned and still rolled -- it IS the
+	// package's dice, and the comparison card already reads it -- but on
+	// an imprint it is never handed over. Accepting writes the package
+	// onto the weapon in the chosen hand and the payload is destroyed
+	// with the pedestal.
+	//
+	// FOR THE FLOOR-VISUALS LANE: this is the branch. An imprint drop
+	// currently wears the donor weapon's pickup sprite, so it looks
+	// exactly like a class-weapon drop; RS_ElitePackage in this same
+	// folder is the black EPKG body already built for the data drop and
+	// still used by nothing.
+	// ------------------------------------------------------------------
+	RS_Imprint  mImprint;
+
+	bool IsImprint() const { return mImprint != null; }
 
 	Default
 	{
@@ -62,12 +113,33 @@ class RS_WeaponDrop : Actor
 		Stop;
 	}
 
-	static RS_WeaponDrop Create(Vector3 where, class<Weapon> what, int tier)
+	// `ip` ARRIVES EMPTY AND IS FILLED BY THE CALLER AFTERWARDS, and that
+	// is the whole reason it is a parameter rather than something
+	// RS_Imprint.Drop assigns once this returns.
+	//
+	// The ordering is load-bearing: RaiseBeam() at the bottom of this
+	// function reads DropKind(), which reads IsImprint(), which reads
+	// mImprint. Setting the field after Create() returned would raise
+	// every imprint's marker as a DIAMOND -- the class-weapon shape --
+	// and nothing would ever correct it, because RaiseBeam self-guards on
+	// mBeacon and never runs twice. Shape is the entire "what kind of
+	// drop is that" read at range, so it would have been silently wrong
+	// in exactly the case it exists for.
+	//
+	// The package's STATS cannot be known any earlier than they are:
+	// they are read off the payload weapon this function spawns and
+	// rolls. So the object is handed in empty, its identity is enough to
+	// answer DropKind(), and RS_Imprint.Drop fills the numbers in a
+	// moment later. Passing the KIND as an int instead would have put a
+	// second source of truth next to IsImprint(); this keeps one.
+	static RS_WeaponDrop Create(Vector3 where, class<Weapon> what, int tier,
+	                            RS_Imprint ip = null)
 	{
 		let d = RS_WeaponDrop(Actor.Spawn("RS_WeaponDrop", where));
 		if (!d) return null;
 
-		d.mTier = tier;
+		d.mTier    = tier;
+		d.mImprint = ip;
 
 		// The payload IS the marker. It keeps its own pickup sprite --
 		// so you can still tell a shotgun from a revolver across a room
@@ -105,6 +177,35 @@ class RS_WeaponDrop : Actor
 			w.bNoGravity     = true;
 			w.A_ChangeLinkFlags(1);      // bNoBlockmap is not directly assignable
 
+			// A_ChangeLinkFlags(blockmap, sector) and ONLY the first
+			// argument is passed on purpose. The second defaults to
+			// FLAG_NO_CHANGE, so bNoSector is left alone
+			// (actor.zs:1067-1073) -- and it has to be, because a
+			// sector-unlinked actor is not in any sector's thing list and
+			// is therefore never submitted for rendering. Passing a second
+			// 1 here would make the drop invisible, silently, and would
+			// look exactly like a sprite problem.
+
+			// FULLBRIGHT. The tier tint is the entire rarity read, and a
+			// drop lands wherever the elite died -- which is usually a
+			// dark corner, where an unlit sprite renders every tier as the
+			// same grey silhouette. Cleared again on take (see the take
+			// branch) so the weapon does not carry it into your hands.
+			w.bBright = true;
+
+			// PICKUP-SIZED, NOT HAND-SIZED. See
+			// RS_PanelController.PayloadScale for the engine reference --
+			// five of the six families draw their FIRST-PERSON mesh in the
+			// world at MODELDEF scale 1.35, which stands a gun the size of
+			// a car on the floor. Seen running before this line existed.
+			//
+			// Scale is a Vector2 and the Default's copy is the honest
+			// baseline: several families set their own, so a flat
+			// assignment here would silently normalise them all to one
+			// size and lose whatever per-weapon scaling MODELDEF and the
+			// sprite art already agree on.
+			w.Scale = w.default.Scale * RS_PanelController.PayloadScale();
+
 			// Rarity tint. '%' in TRNSLATE is a DESATURATED remap: the
 			// engine interpolates along the range using each pixel's
 			// LUMINANCE, so shading and shape survive and only hue
@@ -115,11 +216,45 @@ class RS_WeaponDrop : Actor
 			// Soft dynamic light in the tier colour. Attached to the
 			// weapon rather than the pedestal so it sits where the
 			// object visually is.
+			//
+			// LF_ATTENUATE is what makes it SOFT rather than merely small.
+			// Without it a dynamic light falls off linearly and ends in a
+			// visible disc on the floor; attenuated lights use the
+			// inverse-square falloff, which reads as a glow around the
+			// object instead of a spotlight under it. The flag lives on
+			// DynamicLight (dynlights.zs:36) next to the light type this
+			// call already names.
+			//
+			// radius2 is inert for a plain PointLight -- only the pulse
+			// and flicker types read the second intensity -- so it is left
+			// at half the first purely so the number means something if
+			// the type is ever changed.
+			//
+			// SOFTNESS IS A SETTING, because "soft" costs something. An
+			// attenuated light is the inverse-square one and it is what
+			// the owner asked for; a plain one is cheaper on a machine
+			// that is struggling, and 0 turns the light off entirely for
+			// anyone who finds a lit floor distracting in a headset.
+			// Radius stays on its own slider -- the two are different
+			// questions and a single "quality" dial would conflate them.
 			Color glow = RS_PanelController.TierGlow(tier);
-			w.A_AttachLight('RSDropGlow', DynamicLight.PointLight, glow,
-				RS_PanelController.LightRadius(),
-				RS_PanelController.LightRadius() / 2,
-				0, (0, 0, 8));
+			if (RS_PanelController.LightDetail() > 0 &&
+			    RS_PanelController.LightRadius() > 0)
+			{
+				w.A_AttachLight('RSDropGlow', DynamicLight.PointLight, glow,
+					RS_PanelController.LightRadius(),
+					RS_PanelController.LightRadius() / 2,
+					RS_PanelController.LightFlags(), (0, 0, 8));
+			}
+
+			// THE GLOW ON THE SPRITE ITSELF, which the translation above
+			// is NOT. A translation only re-maps the colours already in
+			// the sprite; it cannot make the object brighter than its own
+			// art, so a Prototype and a Trash differed only in hue. The
+			// halo is a second copy of the SAME silhouette, one size up,
+			// drawn additively in the tier colour -- so the object appears
+			// to be emitting its rarity rather than painted with it.
+			d.mGlow = RS_DropHalo.Create(w, glow);
 
 			// Every world spawn in this project hardcodes VRT_Basic --
 			// PostBeginPlay rolls Basic and nothing else ever re-rolls.
@@ -158,36 +293,59 @@ class RS_WeaponDrop : Actor
 	}
 
 	// -----------------------------------------------------------------
-	// THE BEAM. A thin vertical glow rising out of the pickup and
-	// tapering to nothing around eye level, so a drop reads from across
-	// a room without a HUD marker painted on your face.
+	// THE LIGHT PILLAR. A thin vertical shaft rising out of the pickup
+	// and tapering to nothing around eye level, so a drop reads from
+	// across a room without a HUD marker painted on your face.
 	//
 	// It is a PANEL, not a stack of sprite actors: one camera-facing
 	// quad wearing a shared gradient canvas, tinted per tier through
 	// AddStencil. So every beam in a map costs one canvas between them
 	// and one quad each, and the taper is exact rather than approximated
 	// by stepping alpha down a column of actors.
+	//
+	// WHY IT STAYS ON THE FLATSPRITE BACKEND. Checked 2026-08-08 against
+	// the engine, because RS_Panel now offers three and picking by taste
+	// would have been a coin flip:
+	//
+	//   RSPB_Billboard is WRONG HERE, and for one disqualifying reason:
+	//   ProcessBillboard hardcodes `RenderStyle = STYLE_Translucent`
+	//   (hw_sprites.cpp:2014) and the billboard API has no renderstyle
+	//   argument at all -- colour is a tint, not a blend mode. A light
+	//   shaft is ADDITIVE or it is not a light shaft; a translucent
+	//   tinted quad standing in a room is a coloured slab you can see
+	//   the wall through. Everything else about the backend is better
+	//   for this job (facing resolves at render rate rather than per
+	//   tic, no actor, no swim in VR) and none of it matters against
+	//   that. If the engine ever takes a blend mode on a billboard, this
+	//   is the first thing that should move.
+	//
+	//   RSPB_Composed is wrong by definition -- it is a transform with
+	//   no canvas, for readouts assembled out of bars and digits. There
+	//   is no artwork path in it.
+	//
+	//   RSPB_Flatsprite CAN be additive: SetTint goes through
+	//   A_SetRenderStyle(alpha, STYLE_AddStencil), which draws the
+	//   gradient's SHAPE in the tier colour with DestAlpha = One. The
+	//   painted alpha ramp survives as coverage, so the taper is real.
 	// -----------------------------------------------------------------
 	void RaiseBeam()
 	{
-		if (!RS_PanelController.BeamEnabled()) return;
-		if (mBeam) return;
+		if (mBeacon) return;
 
-		// From the pickup up to roughly standing eye level. The taper is
-		// painted INTO the gradient, so the quad is a plain rectangle
-		// and the fade is texture, not geometry. Cvar-driven because it
-		// is the number that decides whether the taper actually dies at
-		// eye level, and eye level is per-player in VR.
-		double h = RS_PanelController.BeamHeight();
+		// THE KIND IS READ, NOT PASSED. mImprint is already set by
+		// RS_Imprint.Drop before this runs, and IsImprint() is the only
+		// question the shape has to answer -- so there is no second
+		// "kind" argument to keep in step with it, and a future third
+		// drop type changes DropKind() and nothing else.
+		mBeacon = RS_DropBeacon.Create(pos, mTier, DropKind());
+	}
 
-		mBeam = RS_Panel.Create((pos.x, pos.y, pos.z + h * 0.5),
-			"RSPNLBM", RS_PanelController.BeamWidth(), h, 0);
-
-		if (mBeam)
-		{
-			mBeam.mFacing = RSPF_CameraYaw;
-			mBeam.SetTint(RS_PanelController.TierGlow(mTier));
-		}
+	// DIAMOND for a class weapon, CIRCLE for an imprint. Shape carries
+	// WHAT; colour carries HOW GOOD. Neither ever carries both, which is
+	// what lets a player read a room full of drops without text.
+	int DropKind() const
+	{
+		return IsImprint() ? RSDK_Imprint : RSDK_Weapon;
 	}
 
 	override void Tick()
@@ -199,18 +357,21 @@ class RS_WeaponDrop : Actor
 		// finds it somewhere else.
 		mPayload.SetOrigin(pos, true);
 
-		// The beam is not part of an assembly -- it has no parent and no
-		// hinge -- so it re-aims itself here.
-		if (mBeam)
-		{
-			PlayerPawn viewer = players[consoleplayer].mo;
-			if (viewer)
-			{
-				mBeam.FaceViewer((viewer.pos.x, viewer.pos.y,
-				                  viewer.player ? viewer.player.viewz : viewer.pos.z + 41));
-				mBeam.ApplyOrientation();
-			}
-		}
+		PlayerPawn viewer = players[consoleplayer].mo;
+		if (!viewer) return;
+
+		// ONE DISTANCE, MEASURED ONCE, USED BY EVERYTHING.
+		//
+		// The pillar's growth, the marker's visibility and the card's
+		// scale are all functions of the same number, and they have to
+		// be the SAME number or the three ranges disagree at their
+		// boundaries -- which is exactly how a "continuous" ramp ends up
+		// popping anyway.
+		mViewDist = (pos - viewer.pos).Length();
+
+		// The marker hides while this drop's card is up: the card
+		// REPLACES the marker, it does not stand next to it.
+		if (mBeacon) mBeacon.Update(pos, mViewDist, !mCardUp);
 
 		let handler = RS_PanelDropHandler(EventHandler.Find("RS_PanelDropHandler"));
 		if (handler) handler.ConsiderDrop(self);
@@ -219,8 +380,417 @@ class RS_WeaponDrop : Actor
 	override void OnDestroy()
 	{
 		if (mPayload) mPayload.Destroy();
-		if (mBeam)    mBeam.Destroy();
+		if (mBeacon)  mBeacon.Release();
+		if (mGlow)    mGlow.Destroy();
 		Super.OnDestroy();
+	}
+}
+
+// =====================================================================
+// RS_DropBeacon -- the FAR half of the three-range presence, and the
+// only part of a drop that is meant to be read from across a level.
+//
+// Two pieces, and the split is the whole design:
+//
+//   THE PILLAR   a tapering shaft of light in the drop's TIER COLOUR.
+//                It answers "there is a drop there, and how good is
+//                it" at any range, with no text and no HUD marker.
+//   THE MARKER   a small shape sitting on top of the pillar. It
+//                answers "what KIND of drop" -- DIAMOND for a class
+//                weapon, CIRCLE for an imprint.
+//
+// Colour is quality, shape is kind, and NEITHER is ever asked to carry
+// the other. That is what makes a room full of drops legible: count the
+// pillars, read their colours, read their shapes, and you know
+// everything before you have walked a step.
+//
+// WHY IT IS ITS OWN OBJECT. RS_WeaponDrop and RS_ElitePackage both need
+// exactly this and had two hand-copied versions of the beam between
+// them, already drifting -- the package's copy never got the paint
+// guard the weapon drop's did. One object, one behaviour, and adding
+// the marker meant adding it once.
+//
+// ---------------------------------------------------------------------
+// IT IS ORDINARY SPRITES NOW, NOT RS_Panel. SEEN RUNNING 2026-08-08.
+//
+// The pillar was an RS_Panel wearing the RSPNLBM canvas, and it has
+// NEVER ONCE BEEN VISIBLE. Proved in the running game, not argued: a
+// probe spawned two panels at the same spot in the same tic, one on the
+// canvas and one on a plain wall texture (BROWN1). The plain one drew.
+// The canvas one did not -- with a valid picnum, alpha 1.0, bInvisible
+// false and a correct 32x256 scaled size, all four printed to the
+// console from the spawn itself. Screenshots at pitch bias -90, 0 and
+// +90 all showed nothing, so it is not orientation either.
+//
+// (The probe found a second, separate defect worth passing on: the
+// BROWN1 panel rendered LYING FLAT at the shipped rs_panel_pitchbias of
+// -90. That is RS_Panel's own dial and this file no longer depends on
+// it, but a flatsprite panel that will not stand up is still wrong.)
+//
+// So the floor presence stopped depending on that path entirely. A
+// pillar and a marker are ART, and art is what an ordinary sprite is
+// for. What that buys, beyond simply working:
+//
+//   * CAMERA-FACING IS FREE. A normal sprite always faces the viewer
+//     and always stands upright. No mFacing, no FaceViewer, no
+//     ApplyOrientation, no pitch bias, and no per-tic re-aim -- which
+//     also means it cannot lag the head by a tic and swim in VR.
+//   * ADDITIVE IS AVAILABLE. STYLE_AddStencil draws the sprite's SHAPE
+//     in fillcolor, so one white gradient serves all eight tiers, which
+//     is exactly what the canvas was there to do. A billboard could not
+//     have done this -- ProcessBillboard hardcodes STYLE_Translucent
+//     (hw_sprites.cpp:2014) and a translucent slab is not a shaft of
+//     light.
+//   * NO SCARCE RESOURCE. A canvas has to be hand-declared in ANIMDEFS
+//     and there are eleven. Three PNGs in sprites/rs_dropfx/ cost none
+//     of them.
+//
+// The art is generated geometry, not drawn: RSBM is a white column with
+// the taper painted into its ALPHA, RSMD an alpha diamond and RSMC an
+// alpha disc, all bottom- or centre-anchored through their own grAb
+// chunks so placement here is one SetOrigin with no fudge factor.
+// ---------------------------------------------------------------------
+//
+// PLAY SCOPE IS LOAD-BEARING, not decoration: an unscoped Object
+// subclass is DATA scope, and every call in here (Actor.Spawn,
+// SetOrigin, Destroy) is a play function. Without it this class
+// produces a wall of "Can't call play function from data context".
+// Same reasoning RS_PanelAssembly records for itself.
+// =====================================================================
+class RS_DropBeacon play
+{
+	RS_DropGlyph mBeam;      // the tapering shaft
+	RS_DropGlyph mMark;      // the shape on top of it
+	int          mTier;
+	int          mKind;
+	double       mGrow;      // last applied distance factor; resize on change only
+
+	static RS_DropBeacon Create(Vector3 foot, int tier, int kind)
+	{
+		let b = new("RS_DropBeacon");
+		b.mTier = tier;
+		b.mKind = kind;
+		b.mGrow = -1;
+
+		Color glow = RS_PanelController.TierGlow(tier);
+
+		if (RS_PanelController.BeamEnabled())
+			b.mBeam = RS_DropGlyph.Create(foot, RSDG_Beam, glow);
+
+		if (RS_PanelController.MarkerEnabled())
+		{
+			b.mMark = RS_DropGlyph.Create(foot,
+				kind == RSDK_Imprint ? RSDG_Circle : RSDG_Diamond, glow);
+		}
+
+		// SIZE AND PLACE THEM AT BIRTH. Update() does it every tic, but
+		// Update is next tic -- and on a drop the player is already
+		// looking at, that first frame is the one they see.
+		PlayerPawn viewer = players[consoleplayer].mo;
+		double d0 = viewer ? (foot - viewer.pos).Length() : 0.0;
+		b.Update(foot, d0, true);
+		return b;
+	}
+
+	// -----------------------------------------------------------------
+	// Once per tic, from the owner's Tick.
+	//
+	// `dist` drives the SIZE and nothing else -- see BeamGrow() for why a
+	// world-fixed pillar is invisible at the range this is supposed to be
+	// read at. `showMark` is false while this drop's card is up, because
+	// the card stands where the marker was and two of them there at once
+	// is the pop the whole ramp exists to remove.
+	//
+	// No eye vector and no aiming: a sprite faces the camera by itself.
+	// -----------------------------------------------------------------
+	void Update(Vector3 foot, double dist, bool showMark)
+	{
+		double g = RS_PanelController.BeamGrow(dist);
+		bool   resize = (g != mGrow);
+		mGrow = g;
+
+		double h = RS_PanelController.BeamHeight() * g;
+		double m = RS_PanelController.MarkerSize() * g;
+
+		if (mBeam)
+		{
+			// RSBM is bottom-anchored, so the actor sits AT the pickup and
+			// the column grows upward out of it. No half-height offset,
+			// which is one fewer place for the two to disagree.
+			if (resize) mBeam.SetSpan(RS_PanelController.BeamWidth() * g, h);
+			mBeam.SetOrigin(foot, true);
+		}
+
+		if (mMark)
+		{
+			// bInvisible rather than Destroy/recreate: the marker comes
+			// back the moment the card goes away, and a spawn per crossing
+			// of the card radius would be a churn the player can walk back
+			// and forth through.
+			mMark.bInvisible = !showMark;
+			if (showMark)
+			{
+				if (resize) mMark.SetSpan(m, m);
+				// RSMD/RSMC are centre-anchored, so half the marker sits
+				// below the point given -- put its BOTTOM on the top of the
+				// pillar rather than its middle.
+				mMark.SetOrigin((foot.x, foot.y, foot.z + h + m * 0.5), true);
+			}
+		}
+	}
+
+	// Where the marker sits, in world z. The card is handed this so it
+	// can rise to meet it at the far end of the ramp -- which is what
+	// makes the swap read as the marker GROWING into a card rather than
+	// as a second object appearing somewhere else.
+	double TopZ(Vector3 foot) const
+	{
+		double g = mGrow > 0 ? mGrow : 1.0;
+		return foot.z + RS_PanelController.BeamHeight() * g
+		              + RS_PanelController.MarkerSize() * g * 0.5;
+	}
+
+	// Release(), not Destroy(): Object already declares Destroy() as a
+	// native, and shadowing it here would be a redefinition rather than
+	// an override -- ZScript has no shadowing.
+	void Release()
+	{
+		if (mBeam) mBeam.Destroy();
+		if (mMark) mMark.Destroy();
+		mBeam = null;
+		mMark = null;
+	}
+}
+
+// Which artwork a glyph wears. An int rather than a StateLabel argument
+// because the glyph has to be able to ask itself which one it is later
+// (SetSpan needs the texture), and there is no way back from a state to
+// a label.
+enum ERS_DropGlyphArt
+{
+	RSDG_Beam    = 0,
+	RSDG_Diamond = 1,
+	RSDG_Circle  = 2
+}
+
+// =====================================================================
+// RS_DropGlyph -- one piece of a beacon: the pillar, or the shape on
+// top of it. Three frames, one actor, because they differ in artwork
+// and in nothing else.
+//
+// STYLE_AddStencil is the whole trick and it is the same one the halo
+// uses: it throws away the texture's RGB, draws its ALPHA as coverage
+// in `fillcolor`, and ADDS the result. So one white shape becomes any
+// tier colour, and it reads as light rather than as a painted slab you
+// can see the wall through.
+//
+// The art is deliberately pure white with all the shape in the ALPHA
+// channel, so nothing about the source image can survive into the
+// colour -- if these are ever repainted, only alpha matters.
+//
+// +FORCEXYBILLBOARD: a tall sprite drawn Y-billboarded pivots about its
+// base as you look up or down, which on a 44-unit column standing at
+// your feet is very visible. XY billboarding keeps it facing you
+// squarely instead.
+// =====================================================================
+class RS_DropGlyph : Actor
+{
+	// Which of the three it is. Kept because a state cannot be mapped
+	// back to a label, and SetSpan needs to know which texture it is
+	// scaling.
+	int mArt;
+
+	Default
+	{
+		+NOINTERACTION
+		+NOGRAVITY
+		+NOBLOCKMAP
+		+BRIGHT
+		+NOTONAUTOMAP
+		Radius 1;
+		Height 1;
+		RenderStyle "AddStencil";
+		Alpha 1.0;
+	}
+
+	States
+	{
+	Spawn:
+		TNT1 A -1;
+		Stop;
+	Beam:
+		RSBM A -1;
+		Stop;
+	Diamond:
+		RSMD A -1;
+		Stop;
+	Circle:
+		RSMC A -1;
+		Stop;
+	}
+
+	static RS_DropGlyph Create(Vector3 where, int art, Color c)
+	{
+		let g = RS_DropGlyph(Actor.Spawn("RS_DropGlyph", where));
+		if (!g) return null;
+
+		g.mArt = art;
+		if (art == RSDG_Diamond)     g.SetStateLabel("Diamond");
+		else if (art == RSDG_Circle) g.SetStateLabel("Circle");
+		else                         g.SetStateLabel("Beam");
+
+		// BILLBOARDING DIFFERS BETWEEN THE TWO PIECES, and it is not a
+		// detail. A sprite's default Y-billboard turns about the vertical
+		// axis only, which is exactly right for the PILLAR: a shaft of
+		// light is supposed to stay vertical, and one that tilts to face
+		// you when you look down at it stops reading as light and starts
+		// reading as a card lying on the floor.
+		//
+		// The MARKER wants the opposite. Its whole job is to be a
+		// recognisable SHAPE, and a diamond seen from above under
+		// Y-billboarding foreshortens into a slot. Full XY facing keeps a
+		// diamond a diamond and a circle a circle from any angle, which is
+		// the entire point of having two of them.
+		g.bForceXYBillboard = (art != RSDG_Beam);
+
+		// fillcolor is `native READONLY color` and its own comment says it
+		// "must be set with SetShade to initialize correctly" -- assigning
+		// it directly is the "Expression must be a modifiable value"
+		// error. Same pairing RS_Panel.SetTint and RS_DropHalo use.
+		g.SetShade(c);
+		g.A_SetRenderStyle(g.alpha, STYLE_AddStencil);
+		return g;
+	}
+
+	// Size in MAP UNITS, converted to the actor scale the renderer wants.
+	// A sprite's world size is its texture size times its scale, which is
+	// the same arithmetic RS_Panel.BindCanvas does -- written out here
+	// rather than borrowed, so the pillar depends on the panel primitive
+	// for nothing at all.
+	void SetSpan(double w, double h)
+	{
+		TextureID t = TexMan.CheckForTexture(ArtName() .. "A0", TexMan.Type_Any);
+		if (!t.IsValid()) return;
+
+		Vector2 texels = TexMan.GetScaledSize(t);
+		if (texels.x <= 0 || texels.y <= 0) return;
+
+		Scale = (w / texels.x, h / texels.y);
+	}
+
+	string ArtName() const
+	{
+		if (mArt == RSDG_Diamond) return "RSMD";
+		if (mArt == RSDG_Circle)  return "RSMC";
+		return "RSBM";
+	}
+}
+
+// =====================================================================
+// RS_DropHalo -- the coloured glow ON the pickup sprite.
+//
+// A translation is not a glow. TierTranslation re-maps the colours the
+// sprite already has, so a Prototype and a Trash differ in hue and in
+// nothing else -- and neither is any brighter than the artwork. What the
+// drop needs is to look like it is EMITTING its rarity.
+//
+// So this is the same silhouette again, one size up, drawn additively in
+// the tier colour underneath the real one. It wears whatever sprite and
+// frame the subject is on right now rather than a fixed frame, so it
+// works for every weapon in the game with no per-weapon art and follows
+// an animated pickup if one is ever added.
+//
+// STYLE_AddStencil, not STYLE_Add: AddStencil replaces the texture's RGB
+// with fillcolor and keeps its ALPHA as coverage, so the halo is the
+// exact shape of the gun in exactly the tier colour. Plain Add would
+// wash the sprite's own colours in, and a dark weapon would add almost
+// nothing.
+//
+// LIMIT, STATED RATHER THAN HIDDEN: a payload that renders as a MODEL
+// (Pistol, Plasma, Rocket, BFG -- see the world/pickup blocks in
+// MODELDEF) has no sprite to copy, so its halo is empty. Those four are
+// carried by the dynamic light and the pillar instead. Giving this class
+// its own model would mean duplicating every weapon's MODELDEF onto it,
+// which is a worse trade than a missing halo on four families.
+// =====================================================================
+class RS_DropHalo : Actor
+{
+	// Inventory, not Actor, and that is forced rather than chosen:
+	// `owner` is declared on Inventory, NOT on Actor, so the take test in
+	// Tick below does not compile against a plain Actor. The subject is
+	// always the payload weapon, so nothing is lost by saying so.
+	Inventory mSubject;
+
+	Default
+	{
+		+NOINTERACTION
+		+NOGRAVITY
+		+NOBLOCKMAP
+		+BRIGHT
+		+NOTONAUTOMAP
+		Radius 1;
+		Height 1;
+		RenderStyle "AddStencil";
+		Alpha 0.45;
+	}
+
+	States
+	{
+	Spawn:
+		TNT1 A -1;
+		Stop;
+	}
+
+	static RS_DropHalo Create(Inventory subject, Color c)
+	{
+		if (!subject) return null;
+		let h = RS_DropHalo(Actor.Spawn("RS_DropHalo", subject.pos));
+		if (!h) return null;
+
+		h.mSubject = subject;
+
+		// fillcolor is `native READONLY color` and its own comment says it
+		// "must be set with SetShade to initialize correctly" -- assigning
+		// it directly is the "Expression must be a modifiable value" error.
+		// Same pairing RS_Panel.SetTint uses, for the same reason.
+		h.SetShade(c);
+
+		// STRENGTH IS PLAYER-FACING, and the reason is the headset. On a
+		// flat monitor an additive halo at 0.45 reads as a glow; through
+		// lenses the same value can bloom into a smear that hides the gun
+		// it is supposed to be advertising. Passed to A_SetRenderStyle
+		// rather than left on the Default's alpha, because that call takes
+		// the alpha it is going to use.
+		h.alpha = RS_PanelController.GlowAlpha();
+		h.A_SetRenderStyle(h.alpha, STYLE_AddStencil);
+		return h;
+	}
+
+	override void Tick()
+	{
+		Super.Tick();
+
+		// Dies with the thing it is haloing, INCLUDING on take: an
+		// Inventory that has been picked up has an owner, and a halo left
+		// hanging in the air over an empty floor is the exact leak shape
+		// this project keeps finding.
+		if (!mSubject || mSubject.bDestroyed || mSubject.owner)
+		{
+			Destroy();
+			return;
+		}
+
+		sprite = mSubject.sprite;
+		frame  = mSubject.frame;
+
+		// SIZE IS A SETTING. How far the halo stands proud of the gun
+		// decides whether it reads as an aura or as a second, blurrier
+		// gun -- and where that line falls depends on the sprite, the
+		// display and the player. 1.0 turns it off without turning it
+		// off: the halo sits exactly under the silhouette and only
+		// brightens it.
+		Scale  = mSubject.Scale * RS_PanelController.GlowSize();
+		SetOrigin(mSubject.pos, true);
 	}
 }
 
@@ -234,6 +804,20 @@ class RS_PanelDropHandler : EventHandler
 {
 	RS_DropTriptych mCard;
 	RS_WeaponDrop   mCardOwner;
+
+	// --- the distance ramp ---------------------------------------------
+	// The live card's panel sizes at FULL scale, captured when it is
+	// raised and parallel to the assembly's own panel list. Held rather
+	// than recomputed because the triptych's layout policy lives in
+	// RS_DropTriptych; a second copy of it here would drift.
+	Array<double>   mCardBaseW;
+	Array<double>   mCardBaseH;
+
+	// Which quantised step the card is currently laid out at, or -1 for
+	// "no card / not yet applied". An int and not the raw float on
+	// purpose: this is the thing an equality test is allowed to be exact
+	// about, and it is what stops a composed card rebuilding every tic.
+	int             mCardScaleStep;
 
 	// PLAY, and it must stay play: PaintBeamTexture writes it, and that
 	// painter is called from WorldThingDied (play), not from RenderOverlay.
@@ -252,10 +836,12 @@ class RS_PanelDropHandler : EventHandler
 	// rather than 35 times a second.
 	int             mLastHotRow;
 	int             mLastHotPanel;
-	// Tics BT_USE has been held while a live row sits under the hand.
-	// Reset the moment the button lifts or the row goes dead, so a hold
-	// that wanders off the card does not carry over.
-	int             mUseHeld;
+
+	// The USE key's tap/hold state used to live here as mUseHeld. It now
+	// lives on RS_PanelHandler, next to the poke's debounce, because the
+	// code that classifies the press had to move upstream of the engine's
+	// own use-line check -- see RS_PanelInput.CaptureUse for the whole
+	// argument. Nothing in this handler reads the button any more.
 
 	// The six RS class weapons.
 	//
@@ -402,11 +988,6 @@ class RS_PanelDropHandler : EventHandler
 		// was never a decision -- just a question nobody asked.
 		if (random[RSDrop](1, 100) > RS_PanelController.DropChance()) return;
 
-		// The ceiling is per-player, so the roll needs the pawn. Player 0
-		// deliberately, matching the rest of this handler's single-player
-		// assumptions -- flagged rather than hidden.
-		int tier = RollDropTier(players[0].mo);
-
 		// -------------------------------------------------------------
 		// THE CLASS WEAPON, NOT THE OLD 6-TYPE LOOP (owner's direct
 		// instruction, 2026-08-06). An elite drop is now another copy
@@ -415,17 +996,43 @@ class RS_PanelDropHandler : EventHandler
 		// function, RS_ClassGating.NextMissingIdentity, so the two
 		// triggers can never disagree about what's still missing.
 		//
-		// All six already owned: nothing to drop here. The OTHER side
-		// of the eligible-elite branch -- a data/rarity packet -- is
-		// deliberately not built yet; its content and visuals are
-		// still undecided, and a placeholder would be worse than an
-		// honest no-op.
+		// ALL SIX ALREADY OWNED -> AN IMPRINT, NOT A NO-OP.
+		//
+		// This used to `return` here, and that return was the single
+		// biggest hole in the loop: the moment a player finished
+		// collecting, every elite in the game paid food and nothing
+		// else, so the hardest content in the mod became worth less
+		// than a zombieman for the rest of the run. The comment that
+		// stood here called the data packet "deliberately not built
+		// yet"; it is built now, in zscript/systems/weapon/RS_Imprint.zs,
+		// and this is its trigger.
+		//
+		// Everything above still applies to it unchanged -- the reveal
+		// gate, the VR_-class eligibility gate and the drop-chance roll
+		// are all upstream of this line, so "killed before the 50%
+		// reveal pays nothing, ever" is inherited rather than
+		// re-implemented and cannot drift out of step.
 		// -------------------------------------------------------------
 		string mainhand = pc.GetMainhandClass();
 		string gap = RS_ClassGating.NextMissingIdentity(players[0].mo, mainhand);
-		if (gap == "") return;
 
 		Vector3 where = (e.Thing.pos.x, e.Thing.pos.y, e.Thing.pos.z + 8);
+
+		if (gap == "")
+		{
+			// The imprint rolls its OWN tier -- the full Trash..Prototype
+			// ladder off the eight rs_elite_dropweight_* sliders plus the
+			// post-roll tier bonus (owner's R2) -- rather than reusing
+			// RollDropTier, whose job is the pre-completion window and
+			// whose curve is a triangular bias with no sliders behind it.
+			RS_Imprint.Drop(where, mainhand);
+			return;
+		}
+
+		// The ceiling is per-player, so the roll needs the pawn. Player 0
+		// deliberately, matching the rest of this handler's single-player
+		// assumptions -- flagged rather than hidden.
+		int tier = RollDropTier(players[0].mo);
 		RS_WeaponDrop.Create(where, mainhand .. gap, tier);
 	}
 
@@ -570,9 +1177,31 @@ class RS_PanelDropHandler : EventHandler
 	}
 
 	// -----------------------------------------------------------------
-	// Radius. One card at a time -- the nearest drop wins, so walking
-	// past a field of them reads as the card following you rather than
-	// nine cards fighting for the same air.
+	// THE MID AND NEAR RANGES. One card at a time -- the nearest drop
+	// wins, so walking past a field of them reads as the card following
+	// you rather than nine cards fighting for the same air.
+	//
+	// WHAT CHANGED 2026-08-08, and why the old shape was wrong.
+	//
+	// This used to be a HARD SWITCH: one radius, and a fixed-size card
+	// that appeared at full size the instant you crossed a circle you
+	// could not see. Everything about that reads as a bug in play -- the
+	// card does not arrive, it APPEARS, at reading size, several rooms
+	// away from where you are looking.
+	//
+	// It is now a RAMP between two radii, and three things move along it
+	// together:
+	//
+	//   SCALE     CardMinScale() at the outer edge, 1.0 at the inner.
+	//   DISTANCE  the card stands ON THE DROP at the outer edge and
+	//             walks in to Comfort() as you approach.
+	//   HEIGHT    it sits at the top of the drop's own pillar at the
+	//             outer edge -- exactly where the marker was -- and
+	//             settles to eye level as it grows.
+	//
+	// All three from ONE parameter, so they cannot disagree. The far
+	// result is a card the size and position of the marker it replaced;
+	// the near result is the card as it has always been.
 	// -----------------------------------------------------------------
 	void ConsiderDrop(RS_WeaponDrop d)
 	{
@@ -581,18 +1210,109 @@ class RS_PanelDropHandler : EventHandler
 		PlayerPawn pawn = players[consoleplayer].mo;
 		if (!pawn) return;
 
-		double dist = (d.pos - pawn.pos).Length();
-		double r    = RS_PanelController.CardRadius();
+		double dist  = (d.pos - pawn.pos).Length();
+		double outer = RS_PanelController.CardRadius();
 
-		if (dist <= r && mCardOwner != d)
+		if (dist <= outer && mCardOwner != d)
 		{
 			// A nearer drop takes the card off a farther one.
 			if (mCardOwner && (mCardOwner.pos - pawn.pos).Length() <= dist) return;
 			RaiseCard(pawn, d);
 		}
-		else if (dist > r && mCardOwner == d)
+		else if (dist > outer && mCardOwner == d)
 		{
 			DropCard();
+			return;
+		}
+
+		if (mCardOwner == d) TrackCard(pawn, d, dist, outer);
+	}
+
+	// -----------------------------------------------------------------
+	// The ramp itself, run every tic for whichever drop holds the card.
+	// -----------------------------------------------------------------
+	void TrackCard(PlayerPawn pawn, RS_WeaponDrop d, double dist, double outer)
+	{
+		if (!mCard || !mCard.mAsm || !pawn.player) return;
+
+		// The near radius is clamped UNDER the outer one rather than
+		// trusted: they are two independent sliders and a player who
+		// drags them past each other should get a degenerate-but-sane
+		// ramp, not a divide by zero.
+		double inner = clamp(RS_PanelController.CardNear(), 1.0, outer - 1.0);
+
+		// 0 = fully grown and in your hands' reach. 1 = a token standing
+		// on the pillar, a room away.
+		double t = clamp((dist - inner) / (outer - inner), 0.0, 1.0);
+
+		double minS = RS_PanelController.CardMinScale();
+		ApplyCardScale(1.0 - t * (1.0 - minS));
+
+		// Stand-off. mComfortDist is used as min(mComfortDist, d) by the
+		// assembly's own solver, so handing it `dist` at the far end puts
+		// the card exactly on the drop -- there is no separate "pinned"
+		// mode to maintain, just the same one number opened up.
+		double comfort = RS_PanelController.Comfort();
+		mCard.mAsm.mComfortDist = comfort + t * max(0.0, dist - comfort);
+
+		// Height. The assembly places its root at eye.z + mAnchorOfs.z,
+		// so the offset is what the marker's world height has to be
+		// converted into -- and TopZ is asked of the beacon rather than
+		// recomputed here, so the card cannot land somewhere the marker
+		// was not.
+		double eyez = pawn.player.viewz;
+		double base = RS_PanelController.HeightOfs();
+		double top  = d.mBeacon ? d.mBeacon.TopZ(d.pos)
+		                        : d.pos.z + RS_PanelController.BeamHeight();
+		mCard.mAsm.mAnchorOfs = (0, 0, base + t * ((top - eyez) - base));
+	}
+
+	// -----------------------------------------------------------------
+	// SCALING A LIVE CARD.
+	//
+	// A panel's size in map units is mWidth/mHeight; what turns that into
+	// pixels depends on the backend, so both have to be told:
+	//
+	//   FLATSPRITE  BindCanvas re-derives the actor Scale from the canvas
+	//               size. Cheap -- a texture lookup and two divides.
+	//   COMPOSED    the card is dozens of billboards whose sizes were
+	//               baked in at layout time, so it has to be laid out
+	//               again. NOT cheap, which is the whole reason for the
+	//               quantisation below.
+	//
+	// QUANTISED, DELIBERATELY. Distance is continuous, so an unquantised
+	// scale would re-lay-out a composed card thirty-five times a second
+	// for a player who is merely walking -- forty billboards destroyed
+	// and rebuilt per tic, forever. Twelve steps across the whole ramp
+	// bounds that at twelve rebuilds for an entire approach, and twelve
+	// steps between 0.30 and 1.0 is under 6% per step: below what reads
+	// as a jump on something you are walking toward.
+	// -----------------------------------------------------------------
+	const CARD_SCALE_STEPS = 12;
+
+	void ApplyCardScale(double f)
+	{
+		if (!mCard || !mCard.mAsm) return;
+
+		int step = int(clamp(f, 0.05, 1.0) * CARD_SCALE_STEPS + 0.5);
+		if (step < 1) step = 1;
+		if (step == mCardScaleStep) return;
+		mCardScaleStep = step;
+
+		double s = double(step) / CARD_SCALE_STEPS;
+
+		for (int i = 0; i < mCard.mAsm.Size() && i < mCardBaseW.Size(); i++)
+		{
+			let p = mCard.mAsm.Get(i);
+			if (!p) continue;
+
+			p.mWidth  = mCardBaseW[i] * s;
+			p.mHeight = mCardBaseH[i] * s;
+
+			// The hinge solver reads live widths, so the wings re-meet the
+			// centre exactly at every scale with nothing else to update.
+			if (p.mBackend == RSPB_Composed) p.mContentDirty = true;
+			else                             p.BindCanvas();
 		}
 	}
 
@@ -614,11 +1334,38 @@ class RS_PanelDropHandler : EventHandler
 			mCard.mAsm.mComfortDist = RS_PanelController.Comfort();
 		}
 
+		// FULL SIZE IS WHATEVER THE CARD BUILT ITSELF AS, captured here
+		// rather than recomputed from cvars. The triptych derives nine
+		// panel sizes from four dials (width, height, density, stack
+		// tilt) and a stacked column is not a uniform grid -- so asking
+		// the panels what they are is the only way to scale them without
+		// duplicating that layout policy in this file, where it would
+		// silently drift the first time the card's shape changed.
+		mCardBaseW.Clear();
+		mCardBaseH.Clear();
+		if (mCard.mAsm)
+		{
+			for (int i = 0; i < mCard.mAsm.Size(); i++)
+			{
+				let p = mCard.mAsm.Get(i);
+				mCardBaseW.Push(p ? p.mWidth  : 0.0);
+				mCardBaseH.Push(p ? p.mHeight : 0.0);
+			}
+		}
+		mCardScaleStep = -1;
+
 		mCardOwner = d;
 		d.mCardUp  = true;
 
 		let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
 		if (ph && mCard.mAsm) ph.RegisterAssembly(mCard.mAsm);
+
+		// Start at the size the ramp says, not at full. Otherwise the
+		// card is born full-size for exactly one tic before TrackCard
+		// shrinks it -- which is the pop this whole change removes,
+		// merely made one frame long.
+		TrackCard(pawn, d, (d.pos - pawn.pos).Length(),
+			RS_PanelController.CardRadius());
 	}
 
 	void DropCard()
@@ -632,6 +1379,10 @@ class RS_PanelDropHandler : EventHandler
 		mCard = null;
 		if (mCardOwner) mCardOwner.mCardUp = false;
 		mCardOwner = null;
+
+		mCardBaseW.Clear();
+		mCardBaseH.Clear();
+		mCardScaleStep = -1;
 
 		// Otherwise the next card that comes up on the same row index
 		// starts already-hovered and never chirps.
@@ -650,17 +1401,29 @@ class RS_PanelDropHandler : EventHandler
 	// the row that fires, and the press that is eaten cannot disagree
 	// about which row it was.
 	// -----------------------------------------------------------------
+	// ONE resolver, asked twice -- once for whatever won overall (touch
+	// beats pointing) and once for the aim ray alone, which is what the
+	// weapon trigger reads. Taking a panel index and a uv rather than
+	// reading ph.mHot* directly is what lets it serve both without
+	// becoming two copies of the same rule about what a row is.
+	int ResolveRow(int panel, Vector2 uv, out bool live)
+	{
+		live = false;
+		if (!mCard || panel < 0) return -1;
+
+		let c = mCard.CardFor(panel);
+		if (!c) return -1;
+
+		int row = c.RowAtUV(uv);
+		live = c.RowIsSelectable(row);
+		return row;
+	}
+
 	int ResolveHotRow(RS_PanelHandler ph, out bool live)
 	{
 		live = false;
-		if (!mCard || !ph || ph.mHotPanel < 0) return -1;
-
-		let c = mCard.CardFor(ph.mHotPanel);
-		if (!c) return -1;
-
-		int row = c.RowAtUV(ph.mHotUV);
-		live = c.RowIsSelectable(row);
-		return row;
+		if (!ph) return -1;
+		return ResolveRow(ph.mHotPanel, ph.mHotUV, live);
 	}
 
 	// Publish it where the trigger capture can see it. That capture runs
@@ -699,6 +1462,16 @@ class RS_PanelDropHandler : EventHandler
 		int row = ResolveHotRow(ph, live);
 		ph.PublishHotRow(row, live);
 
+		// And the aim ray's own row, for the SHOOT route. Same resolver, one
+		// line apart, so the two answers cannot come from different rules --
+		// they differ only in which geometry they were asked about. The
+		// trigger needs its own because touch overwrites the hot record and
+		// a hand resting on the card would otherwise silently disarm the
+		// other hand's trigger. See RS_PanelInput.CaptureAttack.
+		bool aimLive;
+		int aimRow = ResolveRow(ph.mAimPanel, ph.mAimUV, aimLive);
+		ph.PublishAimRow(aimRow, aimLive);
+
 		PlayerPawn pawn = players[consoleplayer].mo;
 
 		// HOVER. Only LIVE rows chirp. Sweeping a hand across a card of
@@ -711,49 +1484,94 @@ class RS_PanelDropHandler : EventHandler
 		else      { mLastHotRow = -1;   mLastHotPanel = -1; }
 
 		// =============================================================
-		// HOLD USE TO TAKE. Built 2026-08-07.
+		// THE USE KEY IS NOT READ HERE, AND MUST NOT BE PUT BACK.
 		//
-		// The card's own wing text has always said "hold USE to take"
-		// and NOTHING implemented it -- grep found no WorldThingActivated,
-		// no BT_USE read, anywhere in the tree, and the pedestal is
-		// +NOINTERACTION so it cannot be used in the ordinary way either.
-		// The only working takes were point-and-trigger, MOUSE3 and the
-		// punch. On a flat-play setup with no tracked controllers, that
-		// left the most obvious instruction in the UI reading as broken.
+		// Hold-to-take was built in this function on 2026-08-07 and it
+		// was in the wrong scope. WorldTick runs at p_tick.cpp:305, AFTER
+		// P_PlayerThink at :302, and the engine's use-line check is
+		// inside that think: player.zs:1793 calls CheckUse, which tests
+		// `player->cmd.ucmd.buttons & BT_USE` and opens the door
+		// (p_user.cpp:1326-1334). So a USE read from here is reading a
+		// button that has already been spent -- the hold worked, but it
+		// also opened whatever you were standing in front of, and a TAP
+		// route could not be built at all, because by the time a tap is
+		// known to be a tap the door is open.
 		//
-		// This is the fallback the owner asked for, on a toggle.
+		// It now lives in RS_PanelInput.CaptureUse, called from
+		// VR_DualClassBase.PlayerThink BEFORE Super, where the press can
+		// actually be taken away. Exactly the same reasoning that put the
+		// trigger capture there.
 		//
-		// READ FROM original_cmd, not cmd. RS_PanelInput edits `cmd` to
-		// steal the trigger, which poisons the ordinary
-		// buttons/oldbuttons edge test -- the raw pair is the only
-		// honest source. Same reason that file uses it.
+		// THE PUNCH. Read-and-clear whatever the row underneath is, so a
+		// swing at the card is spent on this tic rather than banked and
+		// delivered to whatever you point at next.
 		//
-		// HOLD, not tap: a tap of USE is how you open doors, and a drop
-		// sitting in a doorway must not eat that.
-		if (live && RS_PanelController.UseTakeEnabled() && pawn && pawn.player)
-		{
-			bool useDown = (pawn.player.original_cmd.buttons & BT_USE) != 0;
-			if (useDown)
-			{
-				mUseHeld++;
-				if (mUseHeld == RS_PanelController.UseHoldTics())
-				{
-					// == not >=, so one hold fires exactly once and does
-					// not repeat while the button stays down.
-					RS_PanelInput.Say(pawn, "menu/choose");
-					EventHandler.SendNetworkEvent("rs-panel-use", 0);
-				}
-			}
-			else mUseHeld = 0;
-		}
-		else mUseHeld = 0;
-
-		// THE PUNCH. Read-and-clear even when the row is dead, so a
-		// swing at an inert part of the card is spent rather than banked
-		// and delivered to whatever row you point at next.
+		// The striking hand is passed on as the hand hint. If the hand
+		// landed on a live row that row still wins, exactly as before; if
+		// it landed on the stat block or the header, the hint is what
+		// makes "reach out and touch it" mean something -- the drop goes
+		// to the hand that touched it. A punch is not something you do by
+		// accident: it has to cross rs_panel_punch of travel INTO the
+		// face in one tic.
 		int strike = ph.ConsumePokeStrike();
-		if (strike >= 0 && live)
-			EventHandler.SendNetworkEvent("rs-panel-use", 0);
+		if (strike >= 0)
+			EventHandler.SendNetworkEvent("rs-panel-use", strike + 1);
+	}
+
+	// -----------------------------------------------------------------
+	// IS THERE ANYTHING TO TAKE RIGHT NOW?
+	//
+	// The gate on the USE key, asked live from PlayerThink rather than
+	// published a tic late, because the answer decides whether a door
+	// opens. Four conditions, and each one is a case where swallowing USE
+	// would be wrong rather than merely unnecessary:
+	//
+	//   * no card, or a card whose pedestal has lost its payload -- there
+	//     is nothing this press could mean;
+	//   * neither hand can receive it. A REAL fist refuses a class weapon
+	//     (the card says so and the take honours it), so if both hands
+	//     are fists the key is not ours to eat. An EMPTY hand is not a
+	//     fist and is the most takeable case there is -- the card's own
+	//     "ACCEPT -- GOES HERE" header promises USE fills it;
+	//   * the drop is behind you. In comfort mode the card sits on the
+	//     line from your eye toward the pedestal, so turning away from
+	//     the drop turns away from the card, and the door you ARE facing
+	//     goes back to working normally.
+	// -----------------------------------------------------------------
+	// A generous cone rather than a narrow one: this only has to
+	// distinguish "the card is in front of me" from "I have turned to
+	// face something else", and in VR the pawn's yaw and the headset can
+	// disagree by a fair margin. 0.35 is about a 140-degree total cone,
+	// so a door directly beside you is already outside it. Not a cvar --
+	// it is a geometric disambiguation, not a taste dial, the same
+	// argument RS_PanelHandler.POKE_COOLDOWN_TICS makes for itself.
+	const USE_FACING_DOT = 0.35;
+
+	static bool CanReceive(Weapon w)
+	{
+		// Null is an empty hand, which is takeable. Only a REAL fist
+		// refuses -- VR_Fist2 and its descendants are the empty-slot
+		// filler, which is why this asks IsRealFist and not `is VR_Fist`.
+		return !RS_DropTriptych.IsRealFist(w);
+	}
+
+	bool CanTake(PlayerPawn pawn)
+	{
+		if (!mCard || !mCardOwner || !mCardOwner.mPayload) return false;
+		if (!pawn || !pawn.player) return false;
+
+		if (!CanReceive(pawn.player.OffhandWeapon) &&
+		    !CanReceive(pawn.player.ReadyWeapon))
+			return false;
+
+		Vector2 flat = (mCardOwner.pos.x - pawn.pos.x,
+		                mCardOwner.pos.y - pawn.pos.y);
+		double d = flat.Length();
+		if (d < 1) return true;          // standing on it; there is no "away"
+
+		Vector2 dir = flat / d;
+		Vector2 fwd = (cos(pawn.angle), sin(pawn.angle));
+		return (dir dot fwd) >= USE_FACING_DOT;
 	}
 
 	// -----------------------------------------------------------------
@@ -791,9 +1609,48 @@ class RS_PanelDropHandler : EventHandler
 			let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
 			if (!ph) return;
 
+			// THE HAND HINT, AND WHY IT IS OFFSET BY ONE.
+			//
+			// 0 means "no hand information" and must keep meaning that:
+			// the KEYCONF alias and a bare `netevent rs-panel-use` at the
+			// console both arrive as 0, and they have always meant "use
+			// whatever row the pointer is on". So a route that KNOWS
+			// which hand acted sends hand+1 -- see RS_PanelInput.Fire --
+			// and this decodes it back to -1/0/1.
+			int hint = evt.args[0] - 1;
+
 			bool live;
 			int row = ResolveHotRow(ph, live);
-			if (!live) return;
+
+			// -------------------------------------------------------------
+			// NOTHING IS BEING POINTED AT, BUT A HAND STILL ACTED.
+			//
+			// This is the tap/hold USE fallback and the punch that landed
+			// on the stat block. There is no row to dispatch, so the hint
+			// IS the instruction: take the drop to that hand.
+			//
+			// It goes out as the same rs-panel-take netevent a row would
+			// have carried, so there is exactly one implementation of
+			// "take this" and this branch cannot drift away from the one
+			// the wings use. The take's own guards -- the fist check, the
+			// pointing-hand override, the seating -- all still apply,
+			// because it is literally the same code.
+			// -------------------------------------------------------------
+			if (!live)
+			{
+				if (hint < 0)
+				{
+					// A press with nothing under it and nothing to infer.
+					// Say so: the press was CONSUMED on most routes, so
+					// silence here is indistinguishable from a dead bind.
+					RS_PanelInput.Say(pawn, "menu/invalid");
+					return;
+				}
+
+				RS_PanelInput.Say(pawn, "menu/activate");
+				EventHandler.SendNetworkEvent("rs-panel-take", hint);
+				return;
+			}
 
 			let c = mCard.CardFor(ph.mHotPanel);
 			if (!c) return;
@@ -903,7 +1760,112 @@ class RS_PanelDropHandler : EventHandler
 				return;
 			}
 
+			// =============================================================
+			// AN IMPRINT IS APPLIED, NOT TAKEN.
+			//
+			// Everything above -- which hand the gesture chose, the
+			// pointing-hand override, the fist refusal -- is identical for
+			// both kinds of drop, which is why this branch sits here and
+			// not at the top: hand resolution is the same question and
+			// must have exactly one answer.
+			//
+			// From here the two diverge completely. A class weapon is
+			// SEATED (the instance itself goes into the hand). An imprint
+			// is a stat package: nothing enters inventory, the weapon
+			// already in that hand is rewritten in place, and the pedestal
+			// and its payload are torn down.
+			//
+			// AN EMPTY HAND CANNOT TAKE ONE. That inverts the class-weapon
+			// case, where an empty hand is the most takeable state there
+			// is -- an imprint needs a chassis to land on and there is no
+			// gun there to improve.
+			// =============================================================
+			if (mCardOwner.IsImprint())
+			{
+				let ip  = mCardOwner.mImprint;
+				let rsw = RS_Weapon(held);
+
+				if (!held)
+				{
+					RS_PanelInput.Say(pawn, "menu/invalid");
+					if (pawn.player == players[consoleplayer])
+						Console.Printf("\c[Gold]An imprint needs a weapon.\c- That hand is empty.");
+					return;
+				}
+
+				if (!rsw)
+				{
+					RS_PanelInput.Say(pawn, "menu/invalid");
+					if (pawn.player == players[consoleplayer])
+						Console.Printf("\c[Gold]That weapon has no rolled stats to imprint.");
+					return;
+				}
+
+				string reason;
+				if (!ip.CanApplyTo(rsw, reason))
+				{
+					// R3: A REJECTED PACKAGE DOES NOT DESPAWN. The card and
+					// the pedestal both stay, so a refusal is a "not yet"
+					// -- lift the curse, come back, apply it -- and not a
+					// reward silently destroyed by a mistimed press.
+					RS_PanelInput.Say(pawn, "menu/invalid");
+					if (pawn.player == players[consoleplayer])
+						Console.Printf("\c[Red]%s", reason);
+					return;
+				}
+
+				if (!ip.ApplyTo(rsw))
+				{
+					RS_PanelInput.Say(pawn, "menu/invalid");
+					return;
+				}
+
+				if (pawn.player == players[consoleplayer])
+					Console.Printf("\c[Gold]%s applied to %s.\c- %s",
+						ip.DisplayName(), rsw.GetTag(), ip.FamilyLine());
+
+				RS_PanelInput.Say(pawn, "misc/w_pkup");
+
+				// Tear the whole pedestal down rather than nulling the
+				// payload: OnDestroy already takes the payload, the beam
+				// and the halo with it, and an imprint leaves nothing
+				// behind on the floor to pick up later.
+				let spent = mCardOwner;
+				DropCard();
+				spent.Destroy();
+				return;
+			}
+
 			mCardOwner.mPayload = null;
+
+			// UNDRESS THE DROP BEFORE HANDING IT OVER. Everything the
+			// pedestal put ON the weapon to make it read as a drop is a
+			// property of the WEAPON ACTOR, not of the pedestal, so it
+			// travels with the instance into your inventory unless it is
+			// taken off here.
+			//
+			//   RSDropGlow -- an attached dynamic light follows its actor,
+			//     and an inventory item is moved to the owner's position
+			//     every tic. Without this removal, taking a Prototype left
+			//     the player permanently haloed in gold and carrying a
+			//     light source they could not put down. It also stacks:
+			//     six taken drops is six lights.
+			//   bBright   -- set so the tier tint reads in a dark corner.
+			//     On a weapon in hand it means the pickup form is drawn
+			//     fullbright wherever it is next seen.
+			//
+			// The tier TRANSLATION is deliberately left on: that is the
+			// weapon's rarity and it should stay visible on the object.
+			w.A_RemoveLight('RSDropGlow');
+			w.bBright        = false;
+
+			//   Scale -- shrunk to pickup size on the floor (see
+			//     PayloadScale). It cannot affect the gun in your hands,
+			//     because the engine only multiplies actor scale into
+			//     WORLD models -- but if this instance is ever put back on
+			//     a floor by anything else it should be its own size, so
+			//     the dressing comes off with the rest of it.
+			w.Scale          = w.default.Scale;
 
 			w.bInvisible     = false;
 			w.bNoInteraction = false;
@@ -961,6 +1923,29 @@ class RS_PanelDropHandler : EventHandler
 			Vector3 spot = pawn.Vec3Angle(96, pawn.angle);
 			spot.z = pawn.pos.z + 16;
 			RS_WeaponDrop.Create(spot, ClassWeapon(random[RSDrop](0, 5)), tier);
+		}
+		else if (evt.name == "rs-imprint-test")
+		{
+			// Dev harness for the OTHER half of the payout.
+			// `netevent rs-imprint-test <tier>`; anything outside
+			// Trash..Prototype rolls the weighted table instead.
+			//
+			// This exists because the imprint is the SET-COMPLETE reward,
+			// so without it the only way to look at one is to collect all
+			// six class weapons first -- which is several hours of play
+			// before the feature can be seen at all, let alone tuned.
+			int tier = evt.args[0];
+			if (tier < VRT_Trash || tier > VRT_Prototype) tier = -1;
+
+			string mainhand = "";
+			let pc = VR_DualClassBase(pawn);
+			if (pc) mainhand = pc.GetMainhandClass();
+
+			Vector3 spot = pawn.Vec3Angle(96, pawn.angle);
+			spot.z = pawn.pos.z + 16;
+
+			if (!RS_Imprint.Drop(spot, mainhand, tier))
+				Console.Printf("\c[Red]No imprint dropped.\c- rs_imprint_enabled is off, or the donor class failed to spawn.");
 		}
 	}
 
@@ -1057,12 +2042,44 @@ class RS_PanelDropHandler : EventHandler
 		let cv = TexMan.GetCanvas("RSPNLBM");
 		if (!cv) return;
 
+		// THE ALPHA RAMP BELOW IS THROWN AWAY WITHOUT THIS LINE, AND
+		// SILENTLY. Found 2026-08-08 in the engine source.
+		//
+		// A canvas texture defaults to bTranslucentCanvas = false, and both
+		// backends then bind it with TM_OPAQUE -- gl_renderstate.cpp:358 and
+		// vk_renderstate.cpp:394 pick the texture mode straight off that
+		// flag. TM_OPAQUE forces alpha to 1 for every texel, so the entire
+		// taper this function paints, and the transparent surround it is
+		// painted into, are discarded at sample time. What actually reached
+		// the screen was a solid 32x256 rectangle in the tier colour: a
+		// coloured slab standing on the drop, hard-edged top and sides,
+		// which is not a light pillar and does not read as one.
+		//
+		// The flag is per-texture and RSPNLBM is used by beams and nothing
+		// else, so this cannot affect the card canvases. The engine's own
+		// otherplayertags.zs:110 does exactly this for the same reason --
+		// world-space canvas art that needs to be see-through.
+		TexMan.SetCanvasTextureTranslucent("RSPNLBM", true);
+
 		cv.Clear(0, 0, 32, 256, Color(0, 0, 0, 0));
 
 		for (int y = 0; y < 256; y++)
 		{
 			// y = 0 is the TOP of the canvas, which is the top of the
 			// beam -- so strength rises as y does.
+			//
+			// *** IF THE PILLAR COMES OUT POINT-DOWN, THIS IS THE LINE. ***
+			// RS_PanelController's header records that canvas V handling is
+			// verified for the BILLBOARD path and explicitly NOT verified
+			// for FLATSPRITE, which is the path this beam takes. If a beam
+			// renders bright at the top and vanishing where it meets the
+			// pickup, V is inverted here and the whole fix is to swap this
+			// one expression for `double a = (1.0 - t) * (1.0 - t);` and the
+			// inset for `int((t) * 12.0)`. Nothing else changes, and no cvar
+			// is needed for a two-token edit that can only be one of two
+			// values. Do NOT go turning rs_panel_pitchbias for this -- an
+			// upside-down GRADIENT is a UV problem, not a geometry one, and
+			// the pillar will still be standing in the right place.
 			double t = double(y) / 255.0;
 			double a = t * t;
 
@@ -1070,8 +2087,19 @@ class RS_PanelDropHandler : EventHandler
 			// taper and not just a fade.
 			int inset = int((1.0 - t) * 12.0);
 			int a8 = int(a * 255.0);
+
+			// TWO BANDS, NOT ONE. A single Clear gives a column with hard
+			// vertical edges -- which is what a slab looks like, not what
+			// light looks like. The full-width band is the soft outer
+			// bloom and the inset one is the core, so the shaft falls off
+			// across its width as well as along its length. It costs one
+			// extra write in a paint that happens once per level.
+			int flank = int(a8 * 0.30);
+			if (flank > 0)
+				cv.Clear(0, y, 32, y + 1, Color(flank, 255, 255, 255));
 			cv.Clear(inset, y, 32 - inset, y + 1, Color(a8, 255, 255, 255));
 		}
+
 		mBeamPainted = true;
 	}
 
