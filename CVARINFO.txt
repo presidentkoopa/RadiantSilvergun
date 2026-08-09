@@ -17,6 +17,11 @@ server bool rs_fx_ricochet = true;
 // into monsters, because the gate that was meant to stop it tested the
 // cvar HANDLE rather than its value and so never fired at all.
 server int rs_fx_ricochet_chance = 25;
+// NO READER -- verified 2026-08-08, and it has no menu row for the same
+// reason (MENUDEF's RS_WeaponOptions records the removal). Zero hits
+// under zscript/; the only others in the tree are two SNDINFO comments
+// saying the pack is "staged". Kept declared, not deleted: it is the
+// name the feature would come back under. Don't go hunting for a reader.
 server bool rs_fx_hqvanillasounds = false;
 
 // GPU-dependent ceiling on simultaneous muzzle lights (Hi-Fi tier only).
@@ -108,10 +113,17 @@ server int bonsai_gun_levels_per_player_level = 3;
 
 server int bonsai_base_level_cost = 1200;
 
+// Only the first two have a reader. WeaponInfo.zsc:167,170 consults
+// _melee and _wimpy; NOTHING in this fork reads _explosive or _bfg --
+// verified 2026-08-08, zero hits under zscript/. Upstream applies all
+// four, this fork's WeaponInfo only min()s the two. Kept declared at
+// upstream's values so a future re-sync is a code change and not a cvar
+// hunt, and left OFF the menu for the same reason -- a row bound to a
+// name nothing reads is a lie to the player.
 server float bonsai_level_cost_mul_for_melee = 0.5;
 server float bonsai_level_cost_mul_for_wimpy = 0.5;
-server float bonsai_level_cost_mul_for_explosive = 1.5;
-server float bonsai_level_cost_mul_for_bfg = 1.5;
+server float bonsai_level_cost_mul_for_explosive = 1.5;   // NO READER
+server float bonsai_level_cost_mul_for_bfg = 1.5;         // NO READER
 
 server float bonsai_damage_to_xp_factor = 1.0;
 server float bonsai_score_to_xp_factor = 0.0;
@@ -123,6 +135,10 @@ server int bonsai_upgrade_binding_mode = 1;
 server bool bonsai_ignore_death_exits = true;
 
 server bool bonsai_use_builtin_actors = true;
+// NO READER -- verified 2026-08-08. Upstream consults it; this fork does
+// not. Not one hit for "ammoless" under zscript/: WeaponTypeInference.zsc
+// :121 decides wimpy on its own (`bWIMPY_WEAPON || no ammo types`) and
+// never asks. Its menu row was removed 2026-08-07 for exactly this.
 server bool bonsai_ammoless_weapons_are_wimpy = true;
 server bool bonsai_autosave_after_level = true;
 
@@ -319,7 +335,7 @@ server int rs_score_interval = 5000;
 // Kept declared, not deleted: it is the name the feature would come back
 // under, and a declared-but-unread cvar costs nothing. If you wire it up
 // again, put the row back on RS_ScoreOptions.
-server float rs_score_tierweight = 0.12;
+server float rs_score_tierweight = 0.12;   // NO READER -- re-verified 2026-08-08
 
 // What survives a map change.
 // 0 = reset everything, 1 = keep score and rewards (default),
@@ -418,7 +434,7 @@ server float rs_score_pointblank_dist = 64.0; // edge-to-edge, not center
 // Giant Slayer gate is rs_score_giantslayer_hp (RS_Score.zs:882), which
 // had no menu row at all while THIS one had a slider. The slider now
 // points at the hp gate. Kept declared for the same reason as above.
-server int rs_score_giantslayer_tier = 8;     // lowest tier that counts
+server int rs_score_giantslayer_tier = 8;     // NO READER -- re-verified 2026-08-08 (was: lowest tier that counts)
 
 // --- HUD ------------------------------------------------------------
 // The fifteen readout cvars that used to be declared here have MOVED, not
@@ -598,18 +614,21 @@ user color rs_score_hud_bar_tint = "FF FF FF";
 user color rs_score_hud_frame_tint = "FF FF FF";
 user color rs_score_hud_lives_tint = "FF FF FF";
 
-// --- Declared, NOT yet read, and deliberately NOT on any menu page ---
-// Per-flavour filters for the combo stack: show the Style bonuses but
-// not the Daring ones, and so on. The spec asked for "which bonus types
-// display"; the readout implements the whole-stack switch
-// (rs_score_hud_showbonuses) and the base line (rs_score_hud_showbase)
-// and has no per-flavour gate, so these three have no reader today.
+// --- Per-flavour filters for the combo stack -----------------------
+// Show the Style bonuses but not the Daring ones, and so on.
 //
-// THEY GET NO MENU ROW UNTIL THEY DO. A row bound to a name nothing
-// reads is a lie to the player, and this file already carries the scars
-// of two of those. The hook is one condition in RS_ScoreHUD's combo
-// loop, next to the existing RS_SB_BASE test -- when it lands, add the
-// three rows to RS_ScoreHUDBonus in MENUDEF.txt and delete this comment.
+// LIVE AS OF 2026-08-08, and this block said the opposite until then.
+// It read "Declared, NOT yet read, and deliberately NOT on any menu
+// page", and instructed the next session to add the rows and delete the
+// comment once a reader landed. The reader HAD landed --
+// RS_ScoreHUD.FlavorVisible() at :252, called from the combo loop at
+// :1115, exactly the "one condition next to the existing RS_SB_BASE
+// test" this paragraph predicted -- and the comment outlived it, so the
+// three cvars sat live and unreachable. Rows now on RS_ScoreHUDBonus.
+//
+// They hide LINES, not points: a hidden flavour scores exactly as much.
+// Base is deliberately NOT gated here -- it has rs_score_hud_showbase,
+// and gating one line twice makes one of the two rows look broken.
 user bool rs_score_hud_showflavor_efficiency = true;
 user bool rs_score_hud_showflavor_style = true;
 user bool rs_score_hud_showflavor_daring = true;
@@ -1113,8 +1132,16 @@ server int rs_panel_density = 0;
 // Panel size in MAP UNITS, FULL EXTENT (not half-extent). Full extent
 // is written down here because for a hinge it decides whether the wings
 // meet the centre panel exactly, overlap it, or leave a seam.
-server float rs_panel_width = 40.0;
-server float rs_panel_height = 80.0;
+// SIZES ARE IN MAP UNITS AND A PLAYER IS 56 TALL. These were 40x80 at
+// 72 units away -- a panel taller than the player, three of them, eight
+// feet from your face. Reduced 2026-08-08: owner, "they're ugly as
+// fuck, huige". Now roughly a tablet held at reading distance.
+// SQUAT AND WIDE. A stat row is a short label and a number -- it wants
+// horizontal room, not vertical. 18x24 was portrait and forced long
+// labels to overflow (see RS_BBCompose.Text's clip note). Owner,
+// 2026-08-08: "squish the cards down, make them wider".
+server float rs_panel_width = 30.0;
+server float rs_panel_height = 17.0;
 
 // How far the wings cant inward, in degrees. Canted, all three faces
 // are legible from one standing position; flat, they are not.
@@ -1193,7 +1220,7 @@ server int rs_panel_rowpitch = 18;
 // How far in front of you the card sits once it materialises. The card
 // belongs to the READER, not to the drop -- walking right up to a drop
 // should not push the card into your face.
-server float rs_panel_comfort = 72.0;
+server float rs_panel_comfort = 46.0;
 
 // The drop marker: a thin vertical glow rising from the pickup and
 // tapering out around eye level, so a drop reads from across a room
@@ -1208,36 +1235,151 @@ server float rs_drop_lightradius = 96.0;
 // like every other panel dimension.
 server float rs_drop_beamheight = 44.0;
 
+// =====================================================================
+// THREE-RANGE DROP PRESENCE (owner's design, 2026-08-08).
+//
+// FAR   every drop casts a tapering pillar in its tier colour, with a
+//       marker on top: DIAMOND = class weapon, CIRCLE = imprint. Count,
+//       quality and kind, across a level, with no text at all.
+// MID   the card replaces the marker and begins growing.
+// NEAR  fully grown, readable, touchable.
+//
+// It used to be a hard radius switch with a fixed-size card, so the card
+// appeared at reading size the instant you crossed an invisible circle.
+// These are the dials that turned it into a ramp.
+//
+// COLOURS ARE NOT HERE AND MUST NOT BE. Tier colour is the rarity read
+// and it is locked -- a player who could recolour Prototype has broken
+// the only channel the whole system communicates on.
+// =====================================================================
+
+// How far the pillar is allowed to grow to stay visible at range, as a
+// multiplier on its world size. It is exactly 1 inside the card radius,
+// so the near-range pillar is unchanged and its taper still dies at eye
+// level; beyond that it scales with distance up to this cap, which is
+// what keeps a shaft of light from becoming a sub-pixel sliver across a
+// large map. 1.0 = off, world-fixed size.
+server float rs_drop_beamgrow = 3.0;
+
+// The shape on top of the pillar. Shape says WHAT (diamond = a class
+// weapon, circle = an imprint); colour says HOW GOOD. Neither channel
+// ever carries the other's job.
+server bool rs_drop_marker = true;
+server float rs_drop_markersize = 11.0;
+
+// Where the card finishes growing. Outside rs_panel_radius there is no
+// card; at rs_panel_radius it appears at rs_drop_cardminscale standing
+// on the pillar; at this distance it is full size and holding station
+// at rs_panel_comfort. Everything in between is interpolated.
+server float rs_drop_cardnear = 88.0;
+
+// The card's size at the OUTER radius, as a fraction of full size.
+// Chosen to land near rs_drop_markersize in world terms, so the marker
+// becoming a card reads as a substitution rather than a pop.
+server float rs_drop_cardminscale = 0.30;
+
+// How big the dropped weapon itself is on the floor, as a multiplier on
+// its own default scale.
+//
+// NOT A TASTE DIAL WITH A DEFAULT -- a fix with a dial on it. Five of
+// the six class families draw their FIRST-PERSON model in the world
+// (MODELDEF maps SHTG A, CHGG A, REVO A, RIFK A and SAWG A to the HUD
+// mesh at scale 1.35), and a first-person gun standing on a floor is
+// about the size of a car. Seen running 2026-08-08 at 1.0: the drop was
+// taller than the corridor and clipped through the walls.
+//
+// It cannot affect the weapon in your hands: the engine multiplies the
+// actor's scale into WORLD models only (models.cpp:82), never into the
+// HUD path (models.cpp:245).
+server float rs_drop_spritescale = 0.42;
+
+// The tier-coloured halo worn by the dropped weapon's own sprite. Size
+// is how far it stands proud of the silhouette (1.0 = directly under
+// it, brightening only); strength is how hard it burns. Both are
+// player-facing because an additive glow that reads correctly on a
+// monitor can bloom into a smear through headset lenses.
+server float rs_drop_glowsize = 1.16;
+server float rs_drop_glowalpha = 0.45;
+
+// The soft dynamic light on the drop. 0 off, 1 plain, 2 attenuated.
+// Attenuated is the SOFT one -- inverse-square falloff, which reads as
+// a glow around the object; plain falls off linearly and ends in a
+// visible disc on the floor. Radius has its own slider because "how
+// big" and "how soft" are different questions.
+server int rs_drop_lightdetail = 2;
+
 // Percentage chance a REVEALED elite drops a class weapon. 100 = every
 // one. There was no rate control at all before this: every revealed
 // elite dropped, which on a busy map is a lot of weapons and was never
 // a design decision, just an unasked question.
 server int rs_elitedrop_chance = 100;
 
-// --- Panel confirm ----------------------------------------------------
-// How a row is pressed, on top of the always-available keybind.
-//   0  Bind only        -- the weapon trigger is never touched.
-//   1  Tracked hands    -- point or reach with a controller and pull
-//                          that hand's trigger. The press is taken from
-//                          the weapon before it fires. (default)
-//   2  Always           -- flat play too.
+// How readily a revealed elite fires, as a multiplier on its "hold fire"
+// chance. LOWER IS MORE AGGRESSIVE; 1.0 is an ordinary monster.
 //
-// 1 rather than 2 by default, and the asymmetry is deliberate. In flat
-// play the aim ray IS the view ray and the card holds station in front
-// of the reader, so a live row sits under the crosshair for much of the
-// time a card is up; capturing fire there would eat shots meant for the
-// world. With tracked controllers the ray comes off the hand and a take
-// row is a small target on a wing you have to actually point at.
+// This replaced +MISSILEMORE and +MISSILEEVENMORE being set TOGETHER,
+// which worked out to 0.0625 -- about sixteen times a normal monster's
+// fire rate. A Doom monster only moves inside A_Chase, and A_Chase
+// leaves for the Missile state as soon as its fire check passes, so at
+// that value elites never took a step: they planted and turreted.
+//
+// 0.5 is the old +MISSILEMORE alone -- noticeably pushier than a normal
+// monster while still leaving room to walk.
+server float rs_elite_missilechance = 0.5;
+
+// --- Panel confirm: SHOOT THE CARD -----------------------------------
+// Whether pointing a gun at a live row and pulling the trigger takes the
+// drop, on top of the always-available keybind.
+//   0  Bind only        -- the weapon trigger is never touched.
+//   1  Tracked hands    -- only when VR is really driving the hand
+//                          poses.
+//   2  Always           -- flat play too. (default)
+//
+// DEFAULT CHANGED 1 -> 2 ON 2026-08-08. At 1 a keyboard player had no
+// shot route at all, and the owner's spec is that all four ways of
+// taking a drop work: poke it, shoot it, hold USE, tap USE.
+//
+// The press is taken from the weapon BEFORE it fires, so this costs no
+// ammo and makes no noise -- it is not a shot that happens to also
+// confirm, it is a confirm instead of a shot.
 //
 // Only rows that carry a command capture the press -- reading the card
-// never disarms you.
-server int rs_panel_confirm = 1;
+// never disarms you, and on a drop card the only such rows are the two
+// "> TAKE TO ..." lines on the wings. See also rs_panel_shootrange.
+server int rs_panel_confirm = 2;
 
 // How far a tracked hand may sit off a panel's face and still count as
 // touching it, in map units. This is the PUNCH/POKE route: a position
 // test, not a ray, so putting your hand on a row beats pointing at one
 // from across the room. 0 disables it and leaves aim-only.
 server float rs_panel_poke = 6.0;
+
+// =====================================================================
+// TOUCH IS THE PRESS (RS_PanelInput.TouchPress). On by default,
+// 2026-08-08, at the owner's ruling that touch is the PRIMARY way to
+// work an in-world panel and the keys are the desktop fallback.
+//
+// Before this, putting your hand on a button did nothing at all unless
+// the hand was ALSO moving at rs_panel_punch. The touch resolved a row
+// and lit the highlight and stopped there, so the only way to take a
+// drop by hand was to hit the card hard enough -- which is not what
+// "reach out and touch it" means, and not something a player finds.
+//
+// Off restores that: touch highlights only, and a punch, the trigger,
+// USE or the keybind presses.
+// =====================================================================
+server bool rs_panel_touchpress = true;
+
+// How much WIDER the release band is than the entry band, as a multiple
+// of rs_panel_poke. Hysteresis, for the oldest reason there is: a hand
+// parked at the exact edge of the touch volume crosses it several times
+// a second, and with a single threshold that is a button pressing
+// itself. Enter at rs_panel_poke, and the hand must withdraw past this
+// times it before it can press again.
+//
+// Floored at 1.0 in code -- a release band narrower than the entry band
+// is not a preference, it is a repeat-fire.
+server float rs_panel_pokerelease = 2.5;
 
 // How hard a hand must drive INTO a panel to count as a punch rather
 // than a hand that merely happens to be resting in it. Map units of
@@ -1313,6 +1455,76 @@ server bool rs_elite_food = true;
 // (5% of starting health, floored at 4, capped at 25, doubled on a gib
 // and doubled again on a boss).
 server int rs_elite_food_mult = 100;
+
+// =====================================================================
+// IMPRINTS -- the elite payout AFTER the six-weapon set is complete.
+// (zscript/systems/weapon/RS_Imprint.zs)
+//
+// Until the set is complete an elite hands over the missing class
+// weapon. Once all six are owned there is nothing left to hand over, and
+// before this existed the drop branch simply returned -- so a finished
+// player got food from an elite and nothing else, for the rest of the
+// run. An imprint is a rolled STAT PACKAGE applied to a gun they already
+// carry: the chassis is permanent, the package deepens it.
+//
+// It rolls the FULL ladder, Trash..Prototype, unlike the pre-completion
+// class-weapon drop which is capped to Trash..Basic. Everything else is
+// inherited from the drop path above it and is not duplicated here: the
+// 50%-reveal gate, the VR_-class eligibility gate, and
+// rs_elitedrop_chance all apply to imprints exactly as they do to
+// weapons. AN ELITE KILLED BEFORE IT REVEALS PAYS NOTHING, EVER.
+// =====================================================================
+server bool rs_imprint_enabled = true;
+
+// HOW AN IMPRINT IS APPLIED.
+//
+//   0  RE-ROLL, KEEP BETTER (default). Each stat takes whichever value
+//      is higher -- the one the weapon has, or the one the imprint
+//      rolled. An imprint can therefore never make a weapon worse, which
+//      is also what makes a random-family package safe to hand out.
+//   1  STRAIGHT RE-ROLL. Every stat takes the imprint's value, up or
+//      down, and the tier is assigned rather than raised. The riskier
+//      version; opt-in.
+//
+// NEITHER MODE TOUCHES: PelletCount or PromotionCount (Promotion owns
+// that axis permanently), Condition (repair owns wear), RateOfFire
+// (pinned to the real fire-animation length), the curse locks, or
+// GunBonsai level/XP/upgrades.
+server int rs_imprint_mode = 0;
+
+// Owner's R2 reads "all drops random family", so on by default: the
+// package is rolled from a randomly chosen one of the six class weapons'
+// per-tier bands, not from the gun it will land on. Off rolls the
+// player's own chassis instead, which is the other defensible reading of
+// the same line (a data package being "family-agnostic" rather than
+// "randomly familied"). Keep-better is what makes the random reading
+// safe -- a mismatched family can lift a stat or do nothing, never cost.
+server bool rs_imprint_randomfamily = true;
+
+// --- THE EIGHT TIER WEIGHTS (owner's R2) -----------------------------
+// Relative weights, not percentages -- but the defaults sum to 100, so
+// at stock settings each one reads as one. Descending on purpose: the
+// top of the ladder has to stay an event, and a second rarity gate on
+// top of these would just be the same dial twice.
+//
+// THERE IS NO rs_elite_dropweight_cursed AND THERE MUST NOT BE ONE THAT
+// WORKS. Cursed is no longer a tier -- it is an effect, from Promotion
+// and from death -- and RS_Imprint.Weight() forces that slot to 0 in
+// code, so the ladder an imprint can roll is Trash..Prototype. The eight
+// EVR_Tier slots are still eight; only seven of them are rollable.
+server int rs_elite_dropweight_trash     = 25;
+server int rs_elite_dropweight_basic     = 25;
+server int rs_elite_dropweight_common    = 20;
+server int rs_elite_dropweight_uncommon  = 14;
+server int rs_elite_dropweight_advanced  = 9;
+server int rs_elite_dropweight_designer  = 5;
+server int rs_elite_dropweight_prototype = 2;
+
+// +0, +1 or +2 tiers, added AFTER the weighted roll and capped at
+// Prototype. Deliberately post-roll rather than folded into the weights
+// above: this shifts the WHOLE distribution up by a fixed step, which is
+// a different knob from making one tier likelier.
+server int rs_elite_imprint_tierbonus = 0;
 
 // =====================================================================
 // CURSES -- TWO POOLS, TWO ORIGINS, ONE CURE. Owner rulings 2026-08-07.
@@ -1493,17 +1705,46 @@ server bool rs_curse_divine_announce = true;
 server bool rs_summons_pay = false;
 
 // =====================================================================
-// HOLD USE TO TAKE (RS_EliteDrop.zs). The drop card's own wing text has
-// always read "hold USE to take" and nothing implemented it -- the only
-// working routes were point+trigger, MOUSE3 and the punch. This is the
-// fallback, on a toggle.
+// TAP AND HOLD USE TO TAKE (RS_PanelInput.CaptureUse).
+//
+// The drop card's own wing text has always read "hold USE to take" on
+// the offhand wing and "tap USE to take" on the mainhand wing. Only the
+// hold was ever built, and it was built in an EventHandler's WorldTick,
+// which the engine runs after the player has already thought -- so the
+// hold also opened whatever door you were standing in front of, and a
+// tap could not be distinguished from one at all.
+//
+// Both gestures are now real, both are classified before the engine sees
+// the button, and they mean different hands: TAP -> mainhand,
+// HOLD -> offhand, exactly as the card has always said. Off leaves the
+// key entirely to doors and switches, and the punch, the keybind and
+// shooting the card as the ways to take.
+//
+// USE is only taken away from you when a card is up, a hand can actually
+// receive the drop, and the drop is in front of you. Turn around and the
+// key goes back to opening doors.
 // =====================================================================
 server bool rs_panel_usetake = true;
 
-// How long USE must be held, in tics. A TAP is how you open doors, so a
-// drop sitting in a doorway must not eat that -- the take needs a
-// deliberate hold. 21 tics is about 0.6s.
+// The line between a tap and a hold, in tics, measured at the moment the
+// button comes back up. 21 tics is about 0.6s. Both sides of the line
+// take the drop; they differ only in which hand receives it.
 server int rs_panel_useholdtics = 21;
+
+// =====================================================================
+// SHOOTING THE CARD -- HOW FAR THE SHOT MAY REACH (RS_PanelInput.
+// CaptureAttack). Map units between the aiming hand and the panel the
+// ray hit, beyond which the trigger is left alone and the gun fires
+// normally.
+//
+// The card holds station at rs_panel_comfort (72 by default), so in
+// ordinary play this is never the deciding gate and must not be relied
+// on as the safety: what actually stops a stray shot from taking a drop
+// is that only a row CARRYING A COMMAND captures the press, and on a
+// drop card that is one line on each of the two angled wings. This is
+// the backstop for a panel that is not in comfort mode.
+// =====================================================================
+server float rs_panel_shootrange = 192.0;
 
 // =====================================================================
 // REMOVED 2026-08-07: eight cvars from the deleted RS_MonsterMaster era.
@@ -1522,52 +1763,63 @@ server int rs_panel_useholdtics = 21;
 // The live CH gates are the rs_ch_* set, which ARE read (via RS_Zom.CV).
 // =====================================================================
 
+// RS_Hook -- REMOVED 2026-08-07, owner's order. Two broken builds in a
+// row (wrong sweep origin, then an incomplete sprite rotation set that
+// failed to load) and it was pulled rather than fixed a third time.
+// bit-repellent (RS_Curses.zs) no longer has an in-fiction counter to
+// its push -- open, not silently patched over.
+
 // =====================================================================
-// RS_Hook -- the grappling hook. A DEFAULT MECHANIC, always available;
-// there is no pickup and nothing grants it.
+// RS_Slate -- THE PANEL (zscript/systems/ui/RS_Slate.zs)
 //
-// Fire it: hit a wall and YOU are pulled to it, hit a monster and IT is
-// pulled to you, and either way the shot sweeps loose bits toward you.
-//
-// The bit sweep is unconditional and is NOT a curse feature. It happens
-// on a hit, on a miss, cursed or clean. It merely happens to be the
-// answer to bit-repellent (RS_Curses.zs), which pushes bits away --
-// owner, 2026-08-07: "it's just a solution to a problem coincidentially".
+// One in-world screen class for the whole mod. Shape says what kind
+// (square = a class weapon, round = an imprint), colour says how good.
+// These are its taste dials; the interaction dials it shares with the
+// older panel stack (rs_panel_poke, rs_panel_comfort, rs_panel_sound,
+// rs_panel_shootrange) are up in the rs_panel_* block.
 // =====================================================================
-server bool rs_hook_enable = true;
+server bool rs_slate_enabled = true;
 
-// Which hand it launches from. 0 = mainhand, 1 = offhand.
-// Offhand by default -- the mainhand is your gun, and interrupting it to
-// grapple is the wrong trade mid-firefight.
-server int rs_hook_hand = 1;
+// Full size in map units. A ROUND panel is a square envelope and uses
+// the WIDTH for both axes -- a ring stretched to a tall quad is an
+// ellipse, and an ellipse does not read as "imprint", it reads as a
+// mistake.
+server float rs_slate_width = 22.0;
+server float rs_slate_height = 30.0;
 
-// Lateral spawn offset from the firing hand, map units. Mirrored
-// automatically for the mainhand.
-server float rs_hook_hand_offset = 8.0;
-
-// Tics before it can be fired again.
-server int rs_hook_cooldown = 20;
-
-// PULL STRENGTH. Distance to the hook point is DIVIDED by these, so
-// LOWER = STRONGER. Horizontal and vertical are separate because a
-// single divisor that feels right on a flat pull launches you over any
-// ledge you hook.
-server float rs_hook_pull_divisor = 12.0;
-server float rs_hook_pull_zdivisor = 4.0;
-
-// THE BIT SWEEP -- AT THE IMPACT POINT, ON CONTACT.
+// THE PRESENCE RAMP. Size follows distance to the thing the panel is
+// ABOUT, not to the panel -- in comfort mode the card holds station a
+// fixed distance from your eye, so its own distance never changes and
+// could not drive anything.
 //
-// When the hook hits something it searches a SMALL radius AROUND ITSELF
-// and pulls any bits it finds toward the player. Not around the player,
-// and not at the moment of firing: the point of the hook is that it
-// REACHES, so the sweep happens where it landed.
+// At or inside `near` the card is full size and its buttons answer. At
+// or beyond `far` it is not raised at all; past there a drop reads as a
+// pillar and a marker instead. Between them it grows continuously,
+// which is the thing the old hard radius switch could not do.
+server float rs_slate_near = 160.0;
+server float rs_slate_far = 640.0;
+
+// How small the far end of that ramp gets, as a fraction of full size.
+server float rs_slate_minscale = 0.35;
+
+// The soft tier-coloured halo behind the card. This is the PANEL's own
+// glow -- the floor pillar and the dynamic light belong to the drop.
+server bool rs_slate_glow = true;
+
+// Gold paid for refusing an offer, per tier step. The panel multiplies
+// it: Basic and below x1, Common x2, Uncommon x3, Advanced x5,
+// Designer x8, Prototype x12 -- so turning down a Prototype is a real
+// decision and turning down a Trash is not a windfall.
+server int rs_slate_recycle = 5;
+
+// Let the offer panel raise itself at elite drops.
 //
-// That is also why it answers bit-repellent (RS_Curses.zs) without
-// being built for it. The curse shoves bits away from you; the hook
-// goes and gets them. Neither system references the other.
-//
-// Bits are pushed, not teleported -- watching them come in is the
-// point, and a bit behind a wall bumps into it rather than phasing
-// through, which is correct.
-server float rs_hook_bit_radius = 192.0;
-server float rs_hook_bit_force = 12.0;
+// IT REFUSES TO ARM WHILE rs_panel_enabled IS ON, and that is
+// deliberate rather than a bug. The slate offer REPLACES the old
+// three-panel drop card; both watch the same drops, so with both armed
+// a player would get two cards at once and each would think it owned
+// the take. Turn rs_panel_enabled OFF and this ON to switch over.
+// Nothing is lost by doing so -- the slate's touch route is its own,
+// and the MOUSE3 keybind reaches it through the same rs-panel-use
+// netevent it always did.
+server bool rs_slate_offer = false;

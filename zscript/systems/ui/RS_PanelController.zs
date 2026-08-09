@@ -39,17 +39,40 @@ class RS_PanelController
 	//      on the floor, or standing but facing away. GEOMETRY is wrong.
 	//   2. U MIRRORING -- text reads right-to-left. The quad is placed
 	//      correctly; only the horizontal texture coordinate is flipped.
-	//      We build our own corners and assign UVs UNSWAPPED, following
-	//      the decal path (hw_decal.cpp:339-344) rather than the sprite
-	//      path's swap at hw_sprites.cpp:1658. That swap exists to
-	//      compensate for HWSprite's own corner naming and means nothing
-	//      to a path that never calls GetSpritePositioning. Note that
-	//      "unswapped" is not automatically safe either -- ProcessParticle
-	//      (:1559) is unswapped and WRONG, invisibly, because particles
-	//      are round.
+	//
+	//      *** SETTLED 2026-08-08, AND THE OLD TEXT HERE WAS WRONG. ***
+	//      It said the billboard path assigns UVs "UNSWAPPED, following
+	//      the decal path ... rather than the sprite path's swap", and
+	//      that the swap "means nothing to a path that never calls
+	//      GetSpritePositioning". That reasoning is what shipped the bug.
+	//      The swap has nothing to do with GetSpritePositioning: it
+	//      compensates for the CORNER ORDER, and the billboard path
+	//      produces the SAME corner order as the sprite path.
+	//
+	//      Proof, from the engine and not from us: the sprite path's
+	//      v[0]->v[1] runs along (-V.y, V.x) (hw_sprites.cpp:1285-1308)
+	//      and so does a billboard's, because a billboard's `right` is
+	//      (sin yaw, -cos yaw) and its view direction is -F
+	//      (hw_sprites.cpp:2083). Identical geometry, so it needs the
+	//      identical UV assignment -- and the sprite path's UNMIRRORED
+	//      branch is the SWAPPED one, ul = UR = 1, ur = UL = 0
+	//      (hw_sprites.cpp:1247-1248, gametexture.cpp:340-341).
+	//      ProcessBillboard defaults to ul = 0, ur = 1
+	//      (hw_sprites.cpp:2027-2028), which is the path's own MIRROR
+	//      branch. So every billboard draws mirrored unless `bb_flipu`
+	//      is ON. It is not a preference; ON is the correct value.
+	//
+	//      The mod's own half of the same mistake was RS_BBCompose.RightOf
+	//      -- see the correction note there. BOTH have to be right.
 	//   3. CANVAS V-FLIP -- text upside down. Canvas textures are stored
 	//      inverted and the sprite path, unlike walls and flats, does not
 	//      compensate. We do not pre-flip.
+	//
+	//      Checked 2026-08-08 for the BILLBOARD path and it is already
+	//      right: ProcessBillboard sets vt = 0 / vb = 1
+	//      (hw_sprites.cpp:2025-2026), and the engine's own hardware-canvas
+	//      case does the same (hw_sprites.cpp:2201-2202). So a canvas on a
+	//      billboard needs no pre-flip. Not verified for FLATSPRITE.
 	//
 	// THE TRAP: if (2) and (3) are BOTH wrong, the card appears rotated
 	// 180 degrees -- which looks exactly like a pitch/orientation problem
@@ -134,14 +157,50 @@ class RS_PanelController
 		return cv ? cv.GetFloat() : 0.0;
 	}
 
-	// Two-stage presence: the drop always glows at any range; the CARD
-	// only materialises inside this radius, and despawns outside it.
-	// Spawn/despawn on radius rather than an alpha fade -- far cheaper
-	// than holding a live panel set per drop across a whole map.
+	// -----------------------------------------------------------------
+	// THREE-RANGE PRESENCE -- THE OUTER RADIUS.
+	//
+	// This used to be the whole story: a hard on/off switch with a
+	// fixed-size card, so the card popped into existence at full size the
+	// instant you crossed a circle you could not see. Owner's design
+	// 2026-08-08 replaces the switch with a RAMP, and this is the FAR end
+	// of it -- the distance at which a card first appears, at
+	// CardMinScale(), standing on top of the drop's own pillar.
+	//
+	// Outside it there is no card at all, only the pillar and its marker.
+	// That is still spawn/despawn rather than an alpha fade, and for the
+	// same reason as before: a map full of drops costs a pillar each, not
+	// a live panel set each.
+	// -----------------------------------------------------------------
 	static double CardRadius()
 	{
 		let cv = CVar.FindCVar("rs_panel_radius");
 		return cv ? cv.GetFloat() : 320.0;
+	}
+
+	// The NEAR end of the ramp: inside this the card is fully grown,
+	// readable and holding station at Comfort(). Between the two the
+	// scale, the stand-off distance and the height all interpolate, so
+	// there is no frame at which anything jumps.
+	//
+	// Clamped against CardRadius by the caller rather than here, because
+	// a player who drags the two sliders past each other should get a
+	// degenerate-but-sane result, not a division by zero.
+	static double CardNear()
+	{
+		let cv = CVar.FindCVar("rs_drop_cardnear");
+		return cv ? cv.GetFloat() : 88.0;
+	}
+
+	// How big the card is at the OUTER radius, as a fraction of full
+	// size. Deliberately close to MarkerSize() in world terms so the
+	// swap from marker to card is a substitution rather than a pop --
+	// the marker is ~11 units and a 0.30 card is ~16 across its three
+	// panels.
+	static double CardMinScale()
+	{
+		let cv = CVar.FindCVar("rs_drop_cardminscale");
+		return cv ? clamp(cv.GetFloat(), 0.05, 1.0) : 0.30;
 	}
 
 	static int MaxAssemblies()
@@ -213,12 +272,36 @@ class RS_PanelController
 		return !cv || cv.GetBool();
 	}
 
-	// How long USE must be held. A TAP opens doors -- a drop sitting in
-	// a doorway must not eat that -- so the take needs a deliberate hold.
+	// How long USE must be held before it counts as a HOLD rather than a
+	// TAP. Both gestures are live and they mean different hands -- see
+	// RS_PanelInput.CaptureUse. Anything shorter than this, measured at
+	// the moment the button comes back up, is a tap.
 	static int UseHoldTics()
 	{
 		let cv = CVar.FindCVar("rs_panel_useholdtics");
 		return cv ? clamp(cv.GetInt(), 5, 105) : 21;
+	}
+
+	// -----------------------------------------------------------------
+	// THE SHOT'S REACH.
+	//
+	// How far the aiming hand may be from the panel it hit and still have
+	// the trigger count as "I shot the card" rather than "I shot past
+	// it". The card holds station at Comfort() -- 72 by default -- so
+	// anything at arm's length is comfortably inside this and a shot
+	// across a room is not, even in the case where a future non-comfort
+	// assembly is pinned to a distant pedestal.
+	//
+	// It is NOT the whole answer to accidental takes and must not be read
+	// as one: in comfort mode the card is ALWAYS about 72 units away, so
+	// this gate never fires there. What actually stops a stray shot is
+	// that only a row carrying a command captures the press, and the take
+	// rows are two lines on angled wings. See RS_PanelInput.CaptureAttack.
+	// -----------------------------------------------------------------
+	static double ShootRange()
+	{
+		let cv = CVar.FindCVar("rs_panel_shootrange");
+		return cv ? cv.GetFloat() : 192.0;
 	}
 
 	static bool BeamEnabled()
@@ -252,6 +335,117 @@ class RS_PanelController
 	}
 
 	// -----------------------------------------------------------------
+	// HOW THE PILLAR REFUSES TO VANISH.
+	//
+	// A 7x44 quad is a legible shaft of light at twenty feet and a
+	// sub-pixel sliver at two hundred. The pillar is supposed to be the
+	// thing you read a LEVEL by, so a world-fixed size cannot be right
+	// for both ends of that.
+	//
+	// So it grows with distance, and only ever OUTWARD from the card
+	// radius: inside that radius the factor is exactly 1 and the pillar
+	// is the size it has always been, with its taper still dying at eye
+	// level, which is what BeamHeight's own slider is for. Beyond it the
+	// factor rises linearly, capped, so the shaft holds roughly a
+	// constant angular size instead of shrinking to nothing.
+	//
+	// 1.0 turns the whole thing off and gives back the old world-fixed
+	// pillar. QUANTISED to eighths on purpose: the size is pushed into
+	// the panel with BindCanvas, and an unquantised factor would do that
+	// texture lookup every tic for every drop on the map.
+	static double BeamGrow(double dist)
+	{
+		let cv = CVar.FindCVar("rs_drop_beamgrow");
+		double cap = cv ? cv.GetFloat() : 3.0;
+		if (cap <= 1.0) return 1.0;
+
+		double r = CardRadius();
+		if (r <= 0 || dist <= r) return 1.0;
+
+		double g = clamp(dist / r, 1.0, cap);
+		return int(g * 8.0 + 0.5) / 8.0;
+	}
+
+	// --- the marker on top of the pillar -------------------------------
+	static bool MarkerEnabled()
+	{
+		let cv = CVar.FindCVar("rs_drop_marker");
+		return cv ? cv.GetBool() : true;
+	}
+
+	// Deliberately SMALL. The pillar is what carries across a level; the
+	// marker only has to resolve into a recognisable silhouette once you
+	// are close enough to care which drop you are walking toward. It
+	// grows with the pillar (see BeamGrow) so it holds that silhouette
+	// rather than dissolving into a dot.
+	static double MarkerSize()
+	{
+		let cv = CVar.FindCVar("rs_drop_markersize");
+		return cv ? cv.GetFloat() : 11.0;
+	}
+
+	// -----------------------------------------------------------------
+	// HOW BIG THE DROPPED WEAPON ITSELF IS.
+	//
+	// SEEN RUNNING 2026-08-08 AND IT IS NOT A TASTE DIAL, it is a fix
+	// with a dial on it. Five of the six class families render their
+	// FIRST-PERSON model in the world (SHTG A, CHGG A, REVO A, RIFK A,
+	// SAWG A all carry FrameIndex entries in MODELDEF, at Scale 1.35),
+	// and a first-person mesh at 1.35 standing on a floor is roughly the
+	// size of a car. A screenshot of a Prototype drop at 96 units away
+	// showed a gun taller than the corridor.
+	//
+	// The engine multiplies the ACTOR's scale into world models and NOT
+	// into HUD ones -- `scaleFactorX = actor->Scale.X * smf->xscale` at
+	// src/r_data/models.cpp:82, against the HUD path's `smf->xscale`
+	// alone at :245. So shrinking the payload actor fixes the drop and
+	// cannot touch the gun in your hands. It fixes the sprite-backed
+	// families (the SMG's SMP1) in the same stroke and by the same
+	// amount, which is why it is one number rather than per-family.
+	//
+	// Restored to the class default on take, next to bBright, for the
+	// same reason: it is dressing the pedestal put on, not a property of
+	// the weapon.
+	static double PayloadScale()
+	{
+		let cv = CVar.FindCVar("rs_drop_spritescale");
+		return cv ? clamp(cv.GetFloat(), 0.05, 2.0) : 0.42;
+	}
+
+	// --- the glow worn by the pickup sprite ----------------------------
+	// How far the additive halo stands proud of the weapon's own
+	// silhouette. 1.0 is "exactly under it" -- the halo only brightens,
+	// it does not outline.
+	static double GlowSize()
+	{
+		let cv = CVar.FindCVar("rs_drop_glowsize");
+		return cv ? clamp(cv.GetFloat(), 1.0, 2.0) : 1.16;
+	}
+
+	static double GlowAlpha()
+	{
+		let cv = CVar.FindCVar("rs_drop_glowalpha");
+		return cv ? clamp(cv.GetFloat(), 0.0, 1.0) : 0.45;
+	}
+
+	// --- the dynamic light ---------------------------------------------
+	// 0 off, 1 plain, 2 attenuated. LF_ATTENUATE is what makes the light
+	// SOFT rather than merely small: without it a dynamic light falls off
+	// linearly and ends in a visible disc on the floor, and with it the
+	// inverse-square falloff reads as a glow around the object. The flag
+	// lives on DynamicLight (dynlights.zs:36-38).
+	static int LightDetail()
+	{
+		let cv = CVar.FindCVar("rs_drop_lightdetail");
+		return cv ? clamp(cv.GetInt(), 0, 2) : 2;
+	}
+
+	static int LightFlags()
+	{
+		return LightDetail() >= 2 ? DynamicLight.LF_ATTENUATE : 0;
+	}
+
+	// -----------------------------------------------------------------
 	// Tier -> the TRNSLATE name that tints a dropped weapon's sprite,
 	// and the tier colour for its glow and light.
 	//
@@ -277,19 +471,11 @@ class RS_PanelController
 	// The same ramp as RS_UIStyle.TierColor, as literal RGB for the
 	// glow and the dynamic light. RS_UIStyle returns Font.CR_* constants,
 	// which are text-colour indices and cannot light a room.
+	// Forwards to RS_TierPalette -- the single tier table. This used to
+	// hold its own ladder, one of four that had drifted apart.
 	static Color TierGlow(int tier)
 	{
-		switch (tier)
-		{
-			case VRT_Cursed:    return Color(255, 168,  24,  24);
-			case VRT_Trash:     return Color(255, 150, 104,  56);
-			case VRT_Basic:     return Color(255, 184, 184, 184);
-			case VRT_Common:    return Color(255, 255, 255, 255);
-			case VRT_Uncommon:  return Color(255,  64, 224,  88);
-			case VRT_Advanced:  return Color(255,  96, 168, 255);
-			case VRT_Designer:  return Color(255, 184,  96, 255);
-			default:            return Color(255, 255, 208,  64);
-		}
+		return RS_TierPalette.RGB(tier);
 	}
 }
 
@@ -320,6 +506,19 @@ class RS_PanelHandler : EventHandler
 	int      mHotHand;
 	Vector2  mHotUV;
 
+	// How far the winning hit was from the hand that made it, in map
+	// units. 0 for a poke -- the hand is IN the panel. Kept because the
+	// SHOT route needs to distinguish "I put my muzzle on the card" from
+	// "the ray happened to cross a live row on its way somewhere else";
+	// TraceHand already computes this distance to sort competing hits and
+	// used to throw it away.
+	//
+	// NO_HIT rather than 0 when nothing is hot, because 0 is the poke's
+	// legitimate answer and a range test reading `<= range` would pass on
+	// a cleared value.
+	const NO_HIT_DIST = 1e9;
+	double   mHotDist;
+
 	// --- published BY the content side, read by the input side --------
 	// These two used to be deliberately absent, on the grounds that a
 	// geometry handler cannot know what a row is and the only value
@@ -333,6 +532,29 @@ class RS_PanelHandler : EventHandler
 	int      mHotRow;
 	bool     mHotRowLive;
 
+	// --- THE AIM RAY'S OWN ANSWER, KEPT SEPARATE ----------------------
+	// Snapshotted at the end of the two ray casts, BEFORE TracePoke is
+	// allowed to overwrite the hot record.
+	//
+	// TOUCH BEATS POINTING, and it should -- but only for the HIGHLIGHT
+	// and for the touch route's own press. Letting it also overwrite what
+	// the trigger reads produced a real, silent failure of the shoot
+	// route: rest your left hand anywhere on the card while aiming the
+	// right at a live row, and mHotHand became 0, so CaptureAttack asked
+	// for BT_OFFHANDATTACK and the right trigger was never read. The gun
+	// fired, nothing was taken, and there was nothing to see -- the
+	// highlight was still drawn, on the row your left hand was resting on.
+	//
+	// So the trigger reads THIS record and the touch reads the other one.
+	// Two records, still one confirm and one row resolver.
+	int      mAimAssembly;
+	int      mAimPanel;
+	int      mAimHand;
+	Vector2  mAimUV;
+	double   mAimDist;
+	int      mAimRow;
+	bool     mAimRowLive;
+
 	// --- the punch ----------------------------------------------------
 	// Hand positions as of last tic, and whether they are trustworthy.
 	// There is no native hand velocity, so a swing is measured as travel
@@ -345,17 +567,89 @@ class RS_PanelHandler : EventHandler
 	// by whoever owns the content, then cleared.
 	int      mPokeStrikeHand;
 
+	// =================================================================
+	// CONTACT IS THE PRESS. THE PUNCH IS ONLY A SECOND WAY TO PRESS.
+	//
+	// Owner's ruling 2026-08-08: touch is the PRIMARY route and the keys
+	// are the fallback. This code had that backwards. TracePoke found the
+	// hand, resolved the row and lit the highlight -- and then did nothing
+	// at all unless the hand was ALSO travelling at rs_panel_punch
+	// (1.5 units/tic, ~52 a second) along the face normal. Reaching out
+	// and putting your hand on a button did not press it. The only way to
+	// take a drop by touch was to hit the card hard enough, which is not
+	// what "reach out and touch the panel to choose" means and is not
+	// something a player discovers.
+	//
+	// A hand ARRIVING in the panel now presses it, once. The punch is
+	// kept, because it is the only way to press the SAME row twice without
+	// withdrawing your hand first, and because a jab is a real gesture
+	// people will make at a button.
+	//
+	// WHY A LATCH AND NOT A TIMER. A hand held in a panel is one press,
+	// not thirty-five a second, and the natural fix -- a cooldown -- is
+	// wrong in both directions at once: long enough to stop a resting hand
+	// re-firing is long enough to block a deliberate second press, and
+	// short enough to allow the second press is short enough to machine-gun
+	// on a hand that is merely resting. So the latch is positional: this
+	// hand pressed this panel, and it cannot press it again until it has
+	// LEFT.
+	//
+	// AND LEFT MEANS FURTHER OUT THAN IT CAME IN. Hysteresis, for the
+	// oldest reason there is -- a hand parked exactly on the boundary
+	// jitters across it, and without a wider release band that reads as
+	// the panel firing at random. Entry is rs_panel_poke off the face;
+	// release is rs_panel_pokerelease times that.
+	//
+	// Per hand, because two hands are two independent gestures. One shared
+	// latch would have let a resting left hand hold the right hand's press
+	// off, which is the same class of bug as the aim record above.
+	// =================================================================
+	bool     mTouchLatch0, mTouchLatch1;   // this hand has pressed and not yet left
+	int      mTouchOnAsm0,   mTouchOnAsm1;   // ...which assembly it latched on
+	int      mTouchOnPanel0, mTouchOnPanel1; // ...and which panel of it
+
 	// A swing spans several tics and would otherwise register on every
 	// one of them. Not a cvar: it is a debounce on a physical gesture,
 	// not a taste dial, and there is no value a player would want here
 	// that the punch threshold does not already express better.
+	//
+	// PER HAND since 2026-08-08. One shared counter meant a punch with one
+	// hand ate the next ten tics of the other hand's presses -- invisible,
+	// and exactly the "both hands work, but not at the same time" bug that
+	// is hardest to reproduce on purpose.
 	const POKE_COOLDOWN_TICS = 10;
-	int      mPokeCooldown;
+	int      mPokeCool0, mPokeCool1;
+
+	// --- the USE key --------------------------------------------------
+	// TAP and HOLD are two different takes and they share one button, so
+	// the classifier needs somewhere to keep score across tics. It lives
+	// HERE, next to the poke's own debounce, because this class is
+	// already the input letterbox -- and because the code that writes it
+	// (RS_PanelInput.CaptureUse) is a static called from PlayerThink and
+	// has no instance of its own to keep state in.
+	//
+	// mUseArmed is the load-bearing one. A press is only ours if it BEGAN
+	// while a take was on offer; a USE already held down when you walked
+	// into the card's radius belongs to whatever door you were opening,
+	// and swallowing it halfway through would be a take you never asked
+	// for AND a door that stopped working.
+	int      mUseHeld;    // tics held, counted only while armed
+	bool     mUseArmed;   // this press began on our watch and is ours to classify
+	bool     mUseFired;   // the HOLD already fired; the release must not also tap
 
 	play void PublishHotRow(int row, bool live)
 	{
 		mHotRow     = row;
 		mHotRowLive = live;
+	}
+
+	// The same letterbox for the aim ray's own row. Resolved by the same
+	// function on the content side, one line apart from the hot row, so the
+	// two cannot use different rules about what a row is.
+	play void PublishAimRow(int row, bool live)
+	{
+		mAimRow     = row;
+		mAimRowLive = live;
 	}
 
 	// Read-and-clear. A strike is an event, not a state -- leaving it
@@ -373,12 +667,35 @@ class RS_PanelHandler : EventHandler
 	{
 		mHotAssembly = -1; mHotPanel = -1; mHotHand = -1;
 		mHotRow = -1; mHotRowLive = false;
+		mHotDist = NO_HIT_DIST;
 		mPokeStrikeHand = -1;
+
+		mAimAssembly = -1; mAimPanel = -1; mAimHand = -1;
+		mAimRow = -1; mAimRowLive = false;
+		mAimDist = NO_HIT_DIST;
 
 		// The cooldown only ticks down while panels are live, so leaving
 		// it wound would carry over and swallow the first punch at the
 		// NEXT card. Nothing is up to debounce any more; drop it.
-		mPokeCooldown = 0;
+		mPokeCool0 = 0; mPokeCool1 = 0;
+
+		// Same for the contact latches. A latch says "this hand has already
+		// pressed this panel and must leave before it presses again", and
+		// with no panels left there is nothing to have left -- carrying one
+		// forward would swallow the first touch on the NEXT card, which is
+		// precisely the press a player is most sure they made.
+		mTouchLatch0 = false; mTouchLatch1 = false;
+		mTouchOnAsm0 = -1; mTouchOnAsm1 = -1;
+		mTouchOnPanel0 = -1; mTouchOnPanel1 = -1;
+
+		// Same argument for the USE classifier: with no panels up there
+		// is nothing to take, so a part-finished press is void. Dropping
+		// mUseArmed here also hands the button straight back to the
+		// engine, which is what makes a door work again the instant the
+		// card goes away.
+		mUseHeld  = 0;
+		mUseArmed = false;
+		mUseFired = false;
 	}
 
 	// -----------------------------------------------------------------
@@ -448,9 +765,17 @@ class RS_PanelHandler : EventHandler
 	play void SolveAim(PlayerPawn pawn)
 	{
 		mHotAssembly = -1; mHotPanel = -1; mHotHand = -1;
-		if (!pawn) { mHotRow = -1; mHotRowLive = false; return; }
+		mHotDist = NO_HIT_DIST;
+		mAimAssembly = -1; mAimPanel = -1; mAimHand = -1;
+		mAimDist = NO_HIT_DIST;
+		if (!pawn)
+		{
+			mHotRow = -1; mHotRowLive = false;
+			mAimRow = -1; mAimRowLive = false;
+			return;
+		}
 
-		double best = 1e9;
+		double best = NO_HIT_DIST;
 
 		// Hand 0 = offhand/left, 1 = mainhand/right. Two rays, nearest
 		// hit across both wins.
@@ -480,6 +805,14 @@ class RS_PanelHandler : EventHandler
 			Vector3 dir = (cos(yaw) * cos(pit), sin(yaw) * cos(pit), -sin(pit));
 			TraceHand(origin, dir, hand, best);
 		}
+
+		// SNAPSHOT THE RAY'S ANSWER BEFORE TOUCH IS ALLOWED TO SPEAK.
+		// This is what the trigger reads. See the mAim* declarations.
+		mAimAssembly = mHotAssembly;
+		mAimPanel    = mHotPanel;
+		mAimHand     = mHotHand;
+		mAimUV       = mHotUV;
+		mAimDist     = mHotDist;
 
 		// TOUCH BEATS POINTING, so it runs last and overwrites.
 		TracePoke(pawn);
@@ -515,12 +848,34 @@ class RS_PanelHandler : EventHandler
 	int      mScanAsm, mScanPanel;
 	Vector2  mScanUV;
 
+	// How far off the face the hand actually was, unsigned. Published
+	// because the contact latch needs TWO thresholds from ONE scan: enter
+	// at rs_panel_poke, release only past rs_panel_pokerelease times that.
+	// Scanning twice per hand per tic to get them would double the cost of
+	// the only per-tic loop in this file for a number the scan already had
+	// in a local and threw away.
+	double   mScanOff;
+
 	// Which panel is this hand inside, if any? Split out of TracePoke so
 	// the hand loop can compare TWO hands before deciding, which the
 	// first-hit-wins version could not.
 	play RS_Panel PanelUnderHand(Vector3 hp, double depth)
 	{
 		mScanAsm = -1; mScanPanel = -1; mScanUV = (0, 0);
+		mScanOff = NO_HIT_DIST;
+
+		// NEAREST FACE WINS, NOT THE FIRST ONE FOUND. Changed 2026-08-08.
+		//
+		// This used to return on its first containment hit, which was
+		// tolerable while the test band was thin and became wrong the
+		// moment hysteresis widened it: a triptych's wings are hinged at
+		// 35 degrees off a centre panel, so their release slabs overlap,
+		// and registration order rather than geometry decided which face
+		// your hand was on. The visible form of that is a highlight one
+		// panel to the side of your hand -- and since the wings are the
+		// only rows that DO anything, it is also the take going to the
+		// wrong hand.
+		RS_Panel found = null;
 
 		for (int a = 0; a < mLive.Size(); a++)
 		{
@@ -541,7 +896,9 @@ class RS_PanelHandler : EventHandler
 				// statement or explicitly parenthesised, and this is
 				// not the codebase to get clever about precedence in.
 				double off = local dot pan.FaceVec();
-				if (abs(off) > depth) continue;
+				double aoff = abs(off);
+				if (aoff > depth) continue;
+				if (aoff >= mScanOff) continue;   // a nearer face already won
 
 				double lx = local dot pan.RightVec();
 				double ly = local dot pan.UpVec();
@@ -552,10 +909,13 @@ class RS_PanelHandler : EventHandler
 				mScanAsm   = a;
 				mScanPanel = p;
 				mScanUV    = (lx / pan.mWidth + 0.5, 0.5 - ly / pan.mHeight);
-				return pan;
+				mScanOff   = aoff;
+				found      = pan;
 			}
 		}
-		return null;
+
+		if (!found) mScanOff = NO_HIT_DIST;
+		return found;
 	}
 
 	// mHavePrevHand is deliberately NOT touched here -- WorldTick owns
@@ -570,48 +930,137 @@ class RS_PanelHandler : EventHandler
 		double depth = RS_PanelInput.PokeDepth();
 		if (depth <= 0) return;
 
-		double punch = RS_PanelInput.PunchSpeed();
+		// The release band. Clamped at or above 1 so a misconfigured value
+		// can never make the release band NARROWER than the entry band,
+		// which would turn the hysteresis into a repeat-fire.
+		double release = depth * max(1.0, RS_PanelInput.PokeRelease());
 
+		double punch      = RS_PanelInput.PunchSpeed();
+		bool   contacts   = RS_PanelInput.TouchPress();
+
+		// WHICH HAND SPEAKS FOR THE PANEL THIS TIC, ranked rather than
+		// first-come:
+		//
+		//   2  this hand PRESSED       -- a deliberate act beats everything
+		//   1  this hand is in CONTACT -- on the panel, not pressing
+		//   0  this hand is HOVERING   -- inside the release band only
+		//
+		// Ranking matters because the two hands are usually in different
+		// states and the old "first hit, unless the other one struck" test
+		// could not express that. A left hand hovering an inch off the card
+		// outranked a right hand resting ON it purely by loop order, and the
+		// highlight -- and therefore the row a keypress would take -- sat
+		// under the wrong hand.
 		int     bestHand = -1, bestAsm = -1, bestPanel = -1;
 		Vector2 bestUV   = (0, 0);
-		bool    bestIsStrike = false;
+		int     bestRank = -1;
+		bool    bestIsPress = false;
 
 		for (int hand = 0; hand < 2; hand++)
 		{
 			Vector3 hp   = (hand == 0) ? pawn.OffhandPos : pawn.AttackPos;
 			Vector3 prev = (hand == 0) ? mPrevHand0      : mPrevHand1;
 
-			let pan = PanelUnderHand(hp, depth);
-			if (!pan) continue;
+			bool latched  = (hand == 0) ? mTouchLatch0   : mTouchLatch1;
+			int  latchAsm = (hand == 0) ? mTouchOnAsm0   : mTouchOnAsm1;
+			int  latchPan = (hand == 0) ? mTouchOnPanel0 : mTouchOnPanel1;
+			int  cool     = (hand == 0) ? mPokeCool0     : mPokeCool1;
+
+			// ONE scan, at the WIDER of the two bands. Everything inside
+			// `release` is still "near this panel" for the purpose of
+			// holding a latch; only what is also inside `depth` counts as
+			// contact. Scanning at the narrow band instead would drop the
+			// latch the instant a resting hand drifted a millimetre out,
+			// which is the jitter this exists to absorb.
+			let pan = PanelUnderHand(hp, release);
+
+			if (!pan)
+			{
+				// Out of the release band entirely: this hand has left, and
+				// its next arrival is a fresh press.
+				if (hand == 0) { mTouchLatch0 = false; mTouchOnAsm0 = -1; mTouchOnPanel0 = -1; }
+				else           { mTouchLatch1 = false; mTouchOnAsm1 = -1; mTouchOnPanel1 = -1; }
+				continue;
+			}
 
 			int     ai = mScanAsm;
 			int     pi = mScanPanel;
 			Vector2 uv = mScanUV;
+			bool    inContact = (mScanOff <= depth);
 
+			// A hand that has slid onto a DIFFERENT panel has left the one
+			// it was latched to, even without ever leaving the release band
+			// -- which is exactly what running a finger along a triptych's
+			// three faces does. Without this, the first face you touched
+			// would be the only one that ever pressed.
+			//
+			// Written through, not just held in the local: the stored flag
+			// is what the NEXT tic reads, and a hand that slides onto a new
+			// panel while still short of contact would otherwise arrive
+			// already latched and never press it.
+			if (latched && (latchAsm != ai || latchPan != pi))
+			{
+				latched = false;
+				if (hand == 0) mTouchLatch0 = false;
+				else           mTouchLatch1 = false;
+			}
+
+			// --- ROUTE A1: CONTACT. The hand arrived. -----------------
+			bool press = false;
+			if (contacts && inContact && !latched)
+				press = true;
+
+			// --- ROUTE A2: THE PUNCH. -----------------------------------
 			// A SWING, not a presence. Travel this tic projected onto the
 			// face normal, which points from the panel toward the reader
 			// (FaceViewer builds it that way) -- so pressing INTO the card
 			// is negative along it, and the sign flip makes "into" read
 			// positive.
-			bool strike = false;
-			if (mHavePrevHand && punch > 0)
+			//
+			// Still here after contact took over the ordinary case, and it
+			// earns its place: it is the only way to press the SAME row
+			// again without pulling your hand back out past the release
+			// band first.
+			if (inContact && mHavePrevHand && punch > 0)
 			{
 				Vector3 travel = hp - prev;
 				double  along  = travel dot pan.FaceVec();
-				strike = (-along >= punch);
+				if (-along >= punch) press = true;
 			}
 
-			// A hand driving into a panel beats one merely resting in it.
-			// Without this, a left hand left lying in the card would win
-			// every tic and a deliberate right-hand punch would never be
-			// seen -- the exact bug the old first-hit-wins loop had.
-			if (bestHand < 0 || (strike && !bestIsStrike))
+			// The cooldown is the last word on both routes, so a jitter at
+			// the very edge of the release band cannot machine-gun by
+			// crossing it repeatedly.
+			if (press && cool > 0) press = false;
+
+			if (inContact)
 			{
-				bestHand     = hand;
-				bestAsm      = ai;
-				bestPanel    = pi;
-				bestUV       = uv;
-				bestIsStrike = strike;
+				if (hand == 0) { mTouchLatch0 = true; mTouchOnAsm0 = ai; mTouchOnPanel0 = pi; }
+				else           { mTouchLatch1 = true; mTouchOnAsm1 = ai; mTouchOnPanel1 = pi; }
+			}
+			else if (!latched)
+			{
+				// Inside the release band but never latched -- hovering
+				// just short of contact. Nothing to remember.
+				if (hand == 0) { mTouchOnAsm0 = ai; mTouchOnPanel0 = pi; }
+				else           { mTouchOnAsm1 = ai; mTouchOnPanel1 = pi; }
+			}
+
+			if (press)
+			{
+				if (hand == 0) mPokeCool0 = POKE_COOLDOWN_TICS;
+				else           mPokeCool1 = POKE_COOLDOWN_TICS;
+			}
+
+			int rank = press ? 2 : (inContact ? 1 : 0);
+			if (rank > bestRank)
+			{
+				bestRank    = rank;
+				bestHand    = hand;
+				bestAsm     = ai;
+				bestPanel   = pi;
+				bestUV      = uv;
+				bestIsPress = press;
 			}
 		}
 
@@ -622,11 +1071,13 @@ class RS_PanelHandler : EventHandler
 		mHotHand     = bestHand;
 		mHotUV       = bestUV;
 
-		if (bestIsStrike && mPokeCooldown <= 0)
-		{
+		// A hand INSIDE the panel is at zero range by definition, and
+		// saying so is what lets the shot's range gate be a single test
+		// against mHotDist rather than a special case per route.
+		mHotDist     = 0;
+
+		if (bestIsPress)
 			mPokeStrikeHand = bestHand;
-			mPokeCooldown   = POKE_COOLDOWN_TICS;
-		}
 	}
 
 	// One hand's ray against every live panel. `best` carries in so a
@@ -657,6 +1108,10 @@ class RS_PanelHandler : EventHandler
 		// Runs once per hand rather than per panel, because the engine
 		// tests every registered billboard itself.
 		// -------------------------------------------------------------
+		// Whether the engine's answer actually landed on a panel we own. See
+		// the fallback note at the flatsprite loop below.
+		bool nativeResolved = false;
+
 		if (AnyBillboardBacked())
 		{
 			int hitId; Vector2 uv;
@@ -675,6 +1130,8 @@ class RS_PanelHandler : EventHandler
 					let pan = asm.Get(p);
 					if (!pan) continue;
 
+					nativeResolved = true;
+
 					// Distance so this competes fairly with the flatsprite
 					// hits below -- the two backends can be on screen at
 					// once and the NEAREST must win regardless of which
@@ -683,6 +1140,7 @@ class RS_PanelHandler : EventHandler
 					if (t <= 0 || t >= best) continue;
 
 					best         = t;
+					mHotDist     = t;
 					mHotAssembly = a;
 					mHotPanel    = p;
 					mHotHand     = hand;
@@ -700,7 +1158,24 @@ class RS_PanelHandler : EventHandler
 			// Billboard-backed panels were resolved natively above; running
 			// them through the ray/plane test too would let the OLD maths
 			// overwrite the engine's own answer, which is exactly backwards.
-			if (asm.mBackend == RSPB_Billboard) continue;
+			//
+			// UNLESS THE ENGINE'S ANSWER WAS ABOUT SOMETHING ELSE. AimBillboard
+			// tests EVERY registered billboard and returns only the nearest
+			// one, and a composed card is forty small billboards of its own
+			// text. So a decorative quad standing between the hand and a
+			// billboard-backed panel wins the native query, maps to no panel
+			// here, and the panel behind it silently stops being pointable --
+			// no hit, no fallback, nothing to see. Falling through to the
+			// script test only when nothing native resolved keeps the engine's
+			// answer authoritative where it exists and keeps the panel
+			// reachable where it does not.
+			//
+			// The real fix is BBFL_NOHIT (added to the engine 2026-08-08) on
+			// every decorative part, which makes the native query answer about
+			// panels only. This stays as the belt: an older engine, or a part
+			// someone forgets to flag, degrades to slightly-worse maths rather
+			// than to a dead panel.
+			if (asm.mBackend == RSPB_Billboard && nativeResolved) continue;
 
 			for (int p = 0; p < asm.Size(); p++)
 			{
@@ -723,6 +1198,7 @@ class RS_PanelHandler : EventHandler
 				if (abs(ly) > pan.mHeight * 0.5) continue;
 
 				best         = t;
+				mHotDist     = t;
 				mHotAssembly = a;
 				mHotPanel    = p;
 				mHotHand     = hand;
@@ -760,7 +1236,8 @@ class RS_PanelHandler : EventHandler
 		for (int i = 0; i < mLive.Size(); i++)
 			if (mLive[i]) mLive[i].Solve(eye);
 
-		if (mPokeCooldown > 0) mPokeCooldown--;
+		if (mPokeCool0 > 0) mPokeCool0--;
+		if (mPokeCool1 > 0) mPokeCool1--;
 
 		// Aim comes off the HANDS, not the view -- see SolveAim.
 		SolveAim(pawn);

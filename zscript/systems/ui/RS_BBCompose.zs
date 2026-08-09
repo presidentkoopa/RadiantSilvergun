@@ -43,13 +43,51 @@ class RS_BBComposedPanel : Object
 	bool Empty() const { return mParts.Size() == 0; }
 	int  PartCount() const { return mParts.Size(); }
 
-	// The engine's own basis, and it must stay the engine's own: right is
-	// (sin yaw, -cos yaw, 0) and positive tilt leans the TOP toward the
-	// viewer. Getting this backwards lays every card out mirrored, which
-	// survives a long time before anyone reads the text closely enough.
+	// CORRECTED 2026-08-08 -- THIS RETURNED (sin yaw, -cos yaw, 0) AND THAT
+	// IS THE VIEWER'S *LEFT*, NOT THE VIEWER'S RIGHT.
+	//
+	// The old body carried a comment warning that "getting this backwards
+	// lays every card out mirrored, which survives a long time before
+	// anyone reads the text closely enough". It was backwards, and it did
+	// survive, and the text read backwards. Because RS_BBCompose.Text
+	// places one BB_GLYPH per character at increasing localRight, a
+	// left-pointing "right" laid every string out from screen-right to
+	// screen-left -- the whole card mirrored, labels on the wrong side,
+	// stat values on the wrong side.
+	//
+	// PROVED AGAINST THE ENGINE, not reasoned from our own tree. A panel's
+	// yaw points FROM the panel TOWARD the eye (RS_Panel.FaceViewer uses
+	// Vec3Diff(pos, eye), and vmthunks.cpp:2699-2701 returns v2 - v1), so
+	// the view direction V = -F = (-cos y, -sin y, 0).
+	//
+	// The ordinary sprite path is the ground truth for "which way does a
+	// picture face", because every sprite in Doom depends on it:
+	//   hw_sprites.cpp:1285-1308  the sprite's horizontal extent runs from
+	//                             leftfac to rightfac along (-V.y, V.x);
+	//                             corner v[0] is the leftfac end.
+	//   hw_sprites.cpp:1247-1248  the UNMIRRORED branch gives v[0] u = UR
+	//                             (= 1, the texture's RIGHT edge) and v[1]
+	//                             u = UL (= 0, its LEFT edge).
+	//   gametexture.cpp:340-341   UL = 0, UR = 1 for an untrimmed texture.
+	// So (-V.y, V.x) runs from the picture's right edge to its left edge:
+	// it points to the VIEWER'S LEFT. Substituting V gives
+	// (-V.y, V.x) = (sin y, -cos y) -- the old value.
+	//
+	// The viewer's right is therefore (V.y, -V.x) = (-sin y, cos y, 0),
+	// which is what this now returns.
+	//
+	// THE ENGINE MAKES THE SAME MISTAKE and it is NOT fixed by this
+	// function -- see hw_sprites.cpp:2083. That half shows up as each
+	// individual GLYPH being mirrored, and the lever for it is the engine
+	// cvar `bb_flipu` (hw_sprites.cpp:93, 2027-2028): it must be ON.
+	// Both halves have to be right or the text is still unreadable; one
+	// alone turns a clean mirror into reversed-but-correctly-shaped
+	// letters. A mod cannot set bb_flipu from script (vmnatives.cpp:955 --
+	// non-CVAR_MOD cvars are menu-only), so it is a player setting, and
+	// the mod already exposes it at MENUDEF.txt:2633.
 	static Vector3 RightOf(double yaw)
 	{
-		return (sin(yaw), -cos(yaw), 0);
+		return (-sin(yaw), cos(yaw), 0);
 	}
 
 	static Vector3 UpOf(double yaw, double tilt)
@@ -138,6 +176,10 @@ class RS_BBCompose
 	// short all-caps strings these panels use.
 	const GLYPH_PITCH = 0.62;
 
+	// Breathing room at each edge, as a FRACTION of the width a string is
+	// given. Text is clipped to that width minus twice this.
+	const GLYPH_MARGIN = 0.04;
+
 	// Parts are created at the origin and moved into place by Place().
 	// Creating them at their final position instead would duplicate the
 	// basis maths in two places and let the two drift.
@@ -156,21 +198,76 @@ class RS_BBCompose
 	//
 	// align: -1 starts at x, 0 centres on it, +1 ends at it.
 	// -----------------------------------------------------------------
+	// maxW: the width this string must fit inside, IN WORLD UNITS, same
+	// units as x/y/h. 0 = do not clip.
+	//
+	// CORRECTED 2026-08-08, SAME DAY IT WAS BROKEN. The first version of
+	// this clip hardcoded the bounds to +/-0.5, having assumed the composed
+	// panel's local space was normalised to a 1.0-wide card. IT IS NOT --
+	// RS_BBWeaponCard.Build places its plate with Plate(p, 0, 0, w, h) and
+	// its rows at h * 0.43, so local coordinates are WORLD UNITS and a card
+	// is ~30 wide. Clamping those to 0.5 crushed every string into a
+	// one-unit strip at the centre of the card.
+	//
+	// The caller is the only thing that knows the width, so the caller
+	// passes it. Left at 0 this behaves exactly as it did before any clip
+	// existed, which is what every caller that has not been updated wants.
 	static void Text(RS_BBComposedPanel p, double x, double y, string txt,
-		double h, Color col, int align = -1)
+		double h, Color col, int align = -1, double maxW = 0)
 	{
 		if (!p || txt.Length() == 0 || h <= 0) return;
 
 		double pitch = h * GLYPH_PITCH;
-		double width = pitch * txt.Length();
+
+		// =============================================================
+		// TEXT IS CLIPPED TO THE PANEL. Added 2026-08-08.
+		//
+		// This laid out one glyph per character at a fixed pitch and
+		// NEVER checked the result against the panel it was drawing on.
+		// A label wider than the card simply kept going, off the edge and
+		// across the gap onto the NEXT panel -- so the triptych showed
+		// "ACCURA" on one card and "CY 59" on its neighbour, and the tail
+		// of every long word appeared to be the next card's data. Nothing
+		// errored; it just looked like the values were on the wrong card.
+		//
+		// Anything that does not fit is truncated rather than allowed to
+		// escape -- a clipped word is a legibility problem, an escaped one
+		// is a bug that reads as corrupted data.
+		//
+		// THE BOUND COMES FROM THE CALLER (maxW), NOT FROM A CONSTANT. The
+		// first version assumed composed space was normalised to a 1.0-wide
+		// panel and clamped to +/-0.5. Local coordinates here are WORLD
+		// UNITS -- a card is ~30 wide -- so that crushed every string into a
+		// one-unit strip at the middle of the card. maxW = 0 means the
+		// caller has not said, so nothing is clipped.
+		// =============================================================
+		string draw = txt;
+		if (maxW > 0)
+		{
+			double budget = maxW * (1.0 - GLYPH_MARGIN * 2.0);
+			int maxChars = int(budget / pitch);
+			if (maxChars < 1) maxChars = 1;
+			if (draw.Length() > maxChars)
+				draw = draw.Left(maxChars);
+		}
+
+		double width = pitch * draw.Length();
 
 		double start = x;
 		if (align == 0)      start = x - width * 0.5;
 		else if (align > 0)  start = x - width;
 
-		for (int i = 0; i < txt.Length(); i++)
+		// Never begin outside the span either -- a right-aligned string that
+		// overflows would otherwise start off the left edge.
+		if (maxW > 0)
 		{
-			int ch = txt.ByteAt(i);
+			double lo = -maxW * 0.5 + maxW * GLYPH_MARGIN;
+			if (start < lo) start = lo;
+		}
+
+		for (int i = 0; i < draw.Length(); i++)
+		{
+			int ch = draw.ByteAt(i);
 			if (ch == 32) continue;		// space: advance, draw nothing
 
 			p.Add(Raw(pitch, h, LevelLocals.BB_GLYPH, ch, col),
@@ -181,6 +278,22 @@ class RS_BBCompose
 	// A NUMBER. One billboard whatever the magnitude -- the engine fits
 	// the digits to the box, shrinking a long value rather than letting
 	// it run off the ends of its own panel.
+	//
+	// KNOWN DEFECT, ENGINE SIDE, NOT FIXABLE FROM HERE (2026-08-08).
+	// BB_DIGITS lays its glyphs out itself, walking a pen along the
+	// billboard's `right` -- which is the viewer's LEFT (see RightOf
+	// above). EmitBillboardGlyphs at hw_sprites.cpp:1884-1897 therefore
+	// puts the FIRST digit at screen-right, so a multi-digit value renders
+	// reversed: 120 reads 021. `bb_flipu` does NOT touch this -- it only
+	// flips U inside each quad, so it fixes the digit SHAPES and leaves
+	// the ORDER wrong.
+	//
+	// Two ways out, both the owner's call: fix `right` in the engine
+	// (hw_sprites.cpp:2083), which also removes the need for bb_flipu at
+	// all; or stop using BB_DIGITS here and place the digits from this
+	// file with Text(), which puts the order under our own control at the
+	// cost of one billboard per digit. Single-digit values are unaffected
+	// either way.
 	static RS_Billboard Number(RS_BBComposedPanel p, double x, double y, int value,
 		double w, double h, Color col)
 	{

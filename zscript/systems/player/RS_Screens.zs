@@ -18,20 +18,10 @@
 // color is DATA (tier words, card tags), never decoration.
 class RS_UIStyle
 {
+	// Forwards to RS_TierPalette -- see RS_PanelController.TierGlow.
 	static int TierColor(int tier)
 	{
-		switch (tier)
-		{
-			case VRT_Cursed:    return Font.CR_DARKRED;
-			case VRT_Trash:     return Font.CR_BROWN;
-			case VRT_Basic:     return Font.CR_GRAY;
-			case VRT_Common:    return Font.CR_WHITE;
-			case VRT_Uncommon:  return Font.CR_GREEN;
-			case VRT_Advanced:  return Font.CR_LIGHTBLUE;
-			case VRT_Designer:  return Font.CR_PURPLE;
-			case VRT_Prototype: return Font.CR_GOLD;
-		}
-		return Font.CR_GRAY;
+		return RS_TierPalette.FontColor(tier);
 	}
 
 	static string TierName(int tier)

@@ -274,6 +274,7 @@ version "4.14"
 // What the engine's VR weapon wheel writes in its info panel. Answers
 // PlayerPawn.GetVRWheelInfo, which the engine calls for the hovered entry.
 // After RS_Screens because it reuses RS_UIStyle's tier names and pips.
+#include "zscript/systems/ui/RS_TierPalette.zs"
 #include "zscript/systems/ui/RS_WheelInfo.zs"
 
 // RS_Showcase.zs DELETED 2026-08-07 at the owner's direction -- a dev
@@ -334,6 +335,25 @@ version "4.14"
 #include "zscript/systems/ui/RS_EliteDrop.zs"
 #include "zscript/systems/ui/RS_ElitePackage.zs"
 
+// RS_Slate -- THE PANEL. One in-world screen class: five regions, six
+// row types, shape says what kind and colour says how good. Ten content
+// sets become ten functions that fill a list, so no screen ever writes
+// panel code again.
+//
+// It SUPERSEDES RS_PanelCard, RS_BBWeaponCard, RS_DropTriptych,
+// RS_BillboardUI's two screens and RS_Screens' in-world builders --
+// none of which are deleted, because deleting them is the owner's call.
+// The offer's auto-raise refuses to arm while the old drop card is
+// enabled, so the two can never both be up. See the file header.
+//
+// After RS_EliteDrop: it reads RS_WeaponDrop's payload. (ZScript
+// compiles as one unit so the order does not actually matter -- this is
+// for the reader.)
+//
+// RS_SlateHandler must ALSO be in MAPINFO.txt's AddEventHandlers. A
+// handler class not named there compiles fine and silently never runs.
+#include "zscript/systems/ui/RS_Slate.zs"
+
 // Twin weapon wheel PROOF OF CONCEPT -- disposable; see file header.
 // RS_WheelHandler must also be in MAPINFO's AddEventHandlers.
 
@@ -358,6 +378,15 @@ version "4.14"
 
 // Weapon tempaltes moved here for file organization
 #include "zscript/weapons/RS_Weapon.zs"
+
+// IMPRINTS -- the elite payout after the six-weapon set is complete: a
+// rolled stat package applied to a gun the player already owns. Must
+// load after RS_Weapon.zs (it reads and writes the rolled stat fields
+// and calls CanAcceptImprint / ResetDamageBaseline). Also reached from
+// RS_EliteDrop.zs, which is included earlier -- fine, ZScript resolves
+// class references across the whole unit, but the DECLARATION belongs
+// next to the thing it extends.
+#include "zscript/systems/weapon/RS_Imprint.zs"
 
 // The parts bin for AFFIXES (not attacks) plus the generator that
 // assembles them -- picks eligible ingredients, tracks a running power
@@ -389,14 +418,13 @@ version "4.14"
 // is never touched.
 #include "zscript/weapons/rs_weapon/RS_Grenade.zs"
 
-// RS_Hook -- the grappling hook. A DEFAULT MECHANIC, not a pickup:
-// always available, on BT_USER1. Wall hit pulls YOU, body hit pulls IT,
-// and every shot sweeps loose bits toward you regardless of what it
-// hits. Rebuilt in ZScript from a reference that needed an ACS library
-// and 47 lines of DECORATE -- almost all of that ACS was TID plumbing
-// to work around not being able to hold a pointer to an actor, which
-// ZScript simply has. No ACS, no loadacs, no dependency.
-#include "zscript/weapons/rs_weapon/RS_Hook.zs"
+// RS_Hook -- REMOVED 2026-08-07, owner's order, after two broken
+// versions in a row: the first swept bits from the wrong point, the
+// second shipped with an incomplete rotation set on frame B
+// (R_InstallSprite: Sprite HOOK frame B is missing rotations). Pulled
+// entirely rather than patched a third time. Its five sound lumps,
+// eleven sprites and one CVARINFO/MENUDEF/KEYCONF block are gone with
+// it -- nothing else in the mod referenced any of it.
 
 
 // --- GunstarHeroes set (RS_GH_) -- imported from the HB arsenal,

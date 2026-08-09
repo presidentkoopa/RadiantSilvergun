@@ -26,20 +26,10 @@ extend class VR_DualClassBase
 	// GZDoom's own escape form. The engine's world-text drawer parses these
 	// exactly as the 2D one does, so \c[Gold] arrives as gold rather than as
 	// four visible characters.
+	// Forwards to RS_TierPalette -- see RS_PanelController.TierGlow.
 	static string RS_TierColorTag(int tier)
 	{
-		switch (tier)
-		{
-			case VRT_Cursed:    return "\c[DarkRed]";
-			case VRT_Trash:     return "\c[Brown]";
-			case VRT_Basic:     return "\c[Gray]";
-			case VRT_Common:    return "\c[White]";
-			case VRT_Uncommon:  return "\c[Green]";
-			case VRT_Advanced:  return "\c[LightBlue]";
-			case VRT_Designer:  return "\c[Purple]";
-			case VRT_Prototype: return "\c[Gold]";
-		}
-		return "\c[Gray]";
+		return RS_TierPalette.Tag(tier);
 	}
 
 	// Matches RS_UIStyle.ConditionColor's bands, in escape form.

@@ -1,29 +1,105 @@
 // =====================================================================
-// RS_BBWeaponCard -- one weapon card, composed, costing no textures.
+// RS_BBWeaponCard -- the class-weapon offer card, composed of billboards.
 // ---------------------------------------------------------------------
-// zscript/CardTemplate.txt built for real. The owner's drawing is three
-// of these side by side: offhand on the left, the drop in the centre,
-// mainhand on the right, and the take action on the wings.
+// Rebuilt 2026-08-08 against the owner's mockup. What changed and why,
+// because every one of these was a decision he made out loud:
 //
-// WHY, RATHER THAN A CANVAS. A painted card needs a canvastexture
-// declared by hand in ANIMDEFS, and two billboards pointing at one
-// canvas show the SAME picture -- so every simultaneously-visible card
-// costs one texture. RS has eleven and the triptych spends nine. That
-// was not a budget, it was a ceiling: a second elite dropping while the
-// first card was up had nowhere to draw.
+//   SQUAT AND WIDE, NOT PORTRAIT. A stat row is a short label and a
+//   number; it wants horizontal room. The old card was a tall column of
+//   twelve rows, which forced long labels and made them overflow.
 //
-// Layout is in MAP UNITS relative to the panel's centre, matching what
-// RS_BBComposedPanel stores, and derived from the panel's own width and
-// height so one card scales whole.
+//   THE STATS ARE A 4x3 GRID. Twelve stats down one column is what made
+//   the card tall in the first place. Four columns of three is what makes
+//   it wide by construction, and it is why short labels stopped being a
+//   compromise -- nothing can run off the edge any more.
+//
+//   COLUMN ORDER IS HIS, not alphabetical and not the order the fields
+//   happen to be declared in:
+//       1  DMG ROF DPS     DPS sits under the two it is computed from
+//       2  ACC MAG RLD
+//       3  PLT VEL CND
+//       4  CRIT CMUL SOC   the crit pair stacked
+//
+//   ONE COLOUR PER STAT, constant on every card, so a stat is found by
+//   colour and the word stops being read. Values come from his own
+//   HF_ColorConfig. This is also what keeps the card legible when it is
+//   small: the colour survives the glyph.
+//
+//   NO COMPARISON. A class weapon replaces nothing -- you are only ever
+//   offered one you do not own, so there is never a copy in hand to
+//   measure against. Plain values, no arrows. Inventing a baseline would
+//   be showing a comparison that cannot exist.
+//
+//   SOCKETS SAY WHAT A FITTING DOES. A name alone teaches nothing the
+//   first time you meet it. Empty sockets are listed too, so the count
+//   is visible rather than implied.
+//
+// TIER COLOUR COMES FROM RS_TierPalette AND NOWHERE ELSE. This file used
+// to carry its own ladder, one of four in the tree that had drifted apart.
+//
+// SUBMISSION ORDER IS DEPTH ORDER. Billboards do not depth-test against
+// each other, so a plate drawn after the text it should sit behind will
+// erase it. Everything here draws back to front, once, in one pass.
 // =====================================================================
 
 class RS_BBWeaponCard
 {
+	// ONE COLOUR PER STAT. Owner's HF_ColorConfig values, verbatim.
+	// Switch, not a static array -- `static const TYPE n[] = {...}` does
+	// not reliably resolve on this engine build.
+	static Color StatRGB(string key)
+	{
+		if (key == "DMG")  return Color(255, 255,  90,  90);
+		if (key == "ROF")  return Color(255, 255, 205,  40);
+		if (key == "DPS")  return Color(255, 110, 230,  90);
+		if (key == "ACC")  return Color(255, 255, 150,  70);
+		if (key == "MAG")  return Color(255,  60, 210, 210);
+		if (key == "RLD")  return Color(255, 210, 100, 255);
+		if (key == "PLT")  return Color(255,  90, 170, 255);
+		if (key == "VEL")  return Color(255, 180, 120, 255);
+		if (key == "CND")  return Color(255, 180, 192, 204);
+		if (key == "CRIT") return Color(255, 255,  90, 160);
+		if (key == "CMUL") return Color(255, 255, 180,  60);
+		if (key == "SOC")  return Color(255,  46, 210, 140);
+		return Color(255, 200, 200, 200);
+	}
+
+	static Color TierRGB(int t)
+	{
+		return RS_TierPalette.RGB(t);
+	}
+
+	static Color ConditionRGB(double cnd)
+	{
+		if (cnd >= 80.0) return Color(255,  80, 220,  90);
+		if (cnd >= 40.0) return Color(255, 235, 210,  70);
+		return Color(255, 230,  70,  60);
+	}
+
+	// How many affix sockets a tier grants.
+	static int SocketsForTier(int t)
+	{
+		if (t >= VRT_Prototype) return 5;
+		if (t >= VRT_Advanced)  return 4;
+		if (t >= VRT_Uncommon)  return 2;
+		return 1;
+	}
+
 	// -----------------------------------------------------------------
-	// Lay a card out into `p`. The panel is placed afterwards by
-	// RS_BBComposedPanel.Place, so nothing here knows or cares where in
-	// the world it ends up.
-	//
+	// One cell of the stat grid: coloured label on the left of the cell,
+	// value hard right. cw is the cell's own width, so the label clips to
+	// its cell and can never reach its neighbour.
+	// -----------------------------------------------------------------
+	private static void Cell(RS_BBComposedPanel p, double cx, double cy,
+		double cw, double lineH, string key, int value)
+	{
+		double half = cw * 0.5;
+		RS_BBCompose.Text(p, cx - half, cy, key, lineH, StatRGB(key), -1, cw * 0.58);
+		RS_BBCompose.Number(p, cx + half * 0.94, cy, value,
+			cw * 0.34, lineH, Color(255, 245, 245, 240));
+	}
+
+	// -----------------------------------------------------------------
 	// heading: "MAINHAND", "OFFHAND", "DROP" -- which column this is.
 	// -----------------------------------------------------------------
 	static void Build(RS_BBComposedPanel p, double w, double h,
@@ -33,32 +109,57 @@ class RS_BBWeaponCard
 
 		let rsw = wep ? RS_Weapon(wep) : null;
 		Color tier = rsw ? TierRGB(rsw.Tier) : Color(255, 200, 200, 200);
-		double line = h * 0.055;
+		double line = h * 0.075;
 
-		// The plate first, so everything else draws over it. Depth testing
-		// is off for billboards, so submission order is the only thing
-		// deciding what wins.
-		RS_BBCompose.Plate(p, 0, 0, w, h, Color(210, 18, 18, 22));
+		// --- ground, then frame, then regions -------------------------
+		// The frame is a tier-coloured plate one step larger than the
+		// ground, so the border IS the tier. Cheapest possible "colour the
+		// card by rarity" and it survives being far away, when nothing
+		// else on the card is legible.
+		RS_BBCompose.Plate(p, 0, 0, w * 1.012, h * 1.022, tier);
+		RS_BBCompose.Plate(p, 0, 0, w, h, Color(240, 14, 14, 20));
 
 		if (!wep)
 		{
-			RS_BBCompose.Text(p, 0, 0, heading .. " EMPTY", line * 1.1,
-				Color(255, 130, 130, 130), 0);
+			RS_BBCompose.Text(p, 0, 0, heading .. " EMPTY", line,
+				Color(255, 130, 130, 130), 0, w * 0.9);
 			return;
 		}
 
-		RS_BBCompose.Text(p, 0, h * 0.43, heading, line * 0.9,
-			Color(255, 190, 190, 190), 0);
+		// --- identity column ------------------------------------------
+		double idW  = w * 0.30;
+		double idCx = -w * 0.5 + idW * 0.5;
 
-		// Rarity appears as data, never as decoration (rs_10 L4). The name
-		// is where it appears.
-		RS_BBCompose.Text(p, 0, h * 0.35, wep.GetTag(), line * 1.15, tier, 0);
+		// A darker sub-plate so the identity block reads as its own region
+		// rather than as text that happens to be on the left.
+		RS_BBCompose.Plate(p, idCx, 0, idW * 0.94, h * 0.9,
+			Color(255, 20, 20, 28));
+
+		// Tier-filled header strip. The one place the tier is a solid fill
+		// rather than an outline, which is what makes it the first thing
+		// the eye lands on.
+		RS_BBCompose.Plate(p, idCx, h * 0.38, idW * 0.94, h * 0.13, tier);
+		RS_BBCompose.Text(p, idCx, h * 0.38, "CLASS WEAPON", line * 0.62,
+			Color(255, 10, 10, 14), 0, idW * 0.9);
 
 		TextureID icon = wep.Icon;
 		if (icon.IsValid())
 		{
-			RS_BBCompose.Picture(p, 0, h * 0.20, icon, w * 0.55, h * 0.16,
-				Color(255, 255, 255, 255));
+			RS_BBCompose.Picture(p, idCx, h * 0.15, icon,
+				idW * 0.78, h * 0.26, Color(255, 255, 255, 255));
+		}
+
+		RS_BBCompose.Text(p, idCx, -h * 0.10, wep.GetTag(), line * 1.05,
+			Color(255, 240, 236, 228), 0, idW * 0.9);
+
+		if (rsw)
+		{
+			RS_BBCompose.Text(p, idCx, -h * 0.21, RS_UIStyle.TierName(rsw.Tier),
+				line * 0.72, tier, 0, idW * 0.9);
+
+			// Level bar. Grows from the left, so only its right end moves.
+			RS_BBCompose.Bar(p, idCx, -h * 0.32, 64,
+				idW * 0.82, h * 0.045, tier);
 		}
 
 		if (!rsw)
@@ -66,55 +167,91 @@ class RS_BBWeaponCard
 			// Outside the roll system -- an import, a vanilla leftover. Say
 			// so rather than printing a column of zeroes, which would read
 			// as the worst weapon ever generated.
-			RS_BBCompose.Text(p, 0, 0, "NOT ROLLED", line,
-				Color(255, 140, 140, 140), 0);
+			RS_BBCompose.Text(p, w * 0.18, 0, "NOT ROLLED", line,
+				Color(255, 140, 140, 140), 0, w * 0.6);
 			return;
 		}
 
-		Color labelCol = Color(255, 170, 160, 140);
-		Color valueCol = Color(255, 255, 255, 255);
-		double y = h * 0.06;
-		double step = line * 1.5;
+		// --- stat grid: 4 wide, 3 tall --------------------------------
+		double gx0 = -w * 0.5 + idW;          // left edge of the grid area
+		double gw  = w - idW;
+		double cw  = gw / 4.0;
+		double rowH = line * 1.42;
+		double gyTop = h * 0.26;
 
-		RS_BBCompose.StatRow(p, y, w, "DAMAGE",   rsw.DamagePerShot,      line, labelCol, valueCol); y -= step;
-		RS_BBCompose.StatRow(p, y, w, "ACCURACY", int(rsw.Accuracy),      line, labelCol, valueCol); y -= step;
-		RS_BBCompose.StatRow(p, y, w, "CRIT",     int(rsw.CritChance*100), line, labelCol, valueCol); y -= step;
-		RS_BBCompose.StatRow(p, y, w, "CAPACITY", rsw.Capacity,           line, labelCol, valueCol); y -= step;
-		RS_BBCompose.StatRow(p, y, w, "PELLETS",  rsw.PelletCount,        line, labelCol, valueCol); y -= step;
-		RS_BBCompose.StatRow(p, y, w, "SOCKETS",  rsw.GunBonaiSockets,    line, labelCol, valueCol); y -= step;
+		Color faint = Color(255, 96, 92, 108);
+		RS_BBCompose.Text(p, gx0 + gw * 0.03, h * 0.40, "STATS", line * 0.62,
+			faint, -1, gw * 0.5);
 
-		// Condition is a meter where every other stat is a number. It is
-		// the one answering "is this about to fail", and a bar answers that
-		// at a glance where a number has to be read.
-		RS_BBCompose.Text(p, -(w * 0.44), y, "CONDITION", line, labelCol, -1);
-		y -= line * 1.4;
-		RS_BBCompose.Bar(p, 0, y, int(rsw.Condition), w * 0.80, line * 0.8,
-			ConditionRGB(rsw.Condition));
-	}
+		// Column 1 -- DMG ROF DPS. DPS last because it is the product of
+		// the two above it, so the column reads as inputs then result.
+		int dps = rsw.DamagePerShot * max(1, rsw.RateOfFire) * max(1, rsw.PelletCount);
 
-	// RS_UIStyle's ramp as real colours rather than font ranges, since a
-	// billboard is tinted rather than translated.
-	static Color TierRGB(int t)
-	{
-		switch (t)
+		for (int col = 0; col < 4; col++)
 		{
-			case VRT_Cursed:    return Color(255, 120,  20,  20);
-			case VRT_Trash:     return Color(255, 140, 100,  60);
-			case VRT_Basic:     return Color(255, 170, 170, 170);
-			case VRT_Common:    return Color(255, 255, 255, 255);
-			case VRT_Uncommon:  return Color(255,  80, 220,  90);
-			case VRT_Advanced:  return Color(255,  90, 170, 255);
-			case VRT_Designer:  return Color(255, 190, 110, 255);
-			case VRT_Prototype: return Color(255, 255, 205,  60);
-		}
-		return Color(255, 170, 170, 170);
-	}
+			double cx = gx0 + cw * (col + 0.5);
+			for (int row = 0; row < 3; row++)
+			{
+				double cy = gyTop - rowH * row;
+				string key = "";
+				int val = 0;
 
-	// Matches RS_UIStyle.ConditionColor's bands.
-	static Color ConditionRGB(double cnd)
-	{
-		if (cnd >= 80.0) return Color(255,  80, 220,  90);
-		if (cnd >= 40.0) return Color(255, 235, 210,  70);
-		return Color(255, 230,  70,  60);
+				if (col == 0)
+				{
+					if (row == 0) { key = "DMG";  val = rsw.DamagePerShot; }
+					if (row == 1) { key = "ROF";  val = rsw.RateOfFire; }
+					if (row == 2) { key = "DPS";  val = dps; }
+				}
+				else if (col == 1)
+				{
+					if (row == 0) { key = "ACC";  val = int(rsw.Accuracy); }
+					if (row == 1) { key = "MAG";  val = rsw.Capacity; }
+					if (row == 2) { key = "RLD";  val = int(rsw.ReloadSpeed * 100.0); }
+				}
+				else if (col == 2)
+				{
+					if (row == 0) { key = "PLT";  val = rsw.PelletCount; }
+					if (row == 1) { key = "VEL";  val = int(rsw.Velocity); }
+					if (row == 2) { key = "CND";  val = int(rsw.Condition); }
+				}
+				else
+				{
+					if (row == 0) { key = "CRIT"; val = int(rsw.CritChance * 100.0); }
+					if (row == 1) { key = "CMUL"; val = int(rsw.CritMult * 100.0); }
+					if (row == 2) { key = "SOC";  val = rsw.GunBonaiSockets; }
+				}
+
+				if (key != "") Cell(p, cx, cy, cw, line, key, val);
+			}
+		}
+
+		// --- sockets --------------------------------------------------
+		// A sub-plate behind the list, so the sockets read as a separate
+		// region from the numbers above them.
+		double sy = gyTop - rowH * 3.6;
+		int socks = max(rsw.GunBonaiSockets, SocketsForTier(rsw.Tier));
+
+		RS_BBCompose.Plate(p, gx0 + gw * 0.5, sy - h * 0.06, gw * 0.94, h * 0.24,
+			Color(255, 22, 22, 30));
+		RS_BBCompose.Text(p, gx0 + gw * 0.03, sy, "SOCKETS", line * 0.62,
+			faint, -1, gw * 0.4);
+		RS_BBCompose.Number(p, gx0 + gw * 0.94, sy, socks,
+			gw * 0.10, line * 0.7, tier);
+
+		// One pip per socket, in a row. Empty ones are drawn, not omitted:
+		// seeing four slots with two filled is the whole point.
+		double pipW = gw * 0.055;
+		double pipY = sy - line * 1.25;
+		for (int i = 0; i < socks && i < 5; i++)
+		{
+			double px = gx0 + gw * 0.06 + (pipW * 1.7) * i;
+			RS_BBCompose.Plate(p, px, pipY, pipW, pipW,
+				i < rsw.GunBonaiSockets ? tier : Color(255, 60, 58, 72));
+		}
+
+		// --- condition, the one stat with a live warning colour --------
+		RS_BBCompose.Text(p, gx0 + gw * 0.94, sy - line * 2.6,
+			rsw.Condition >= 80 ? "SOUND" : (rsw.Condition >= 40 ? "WORN" : "FAILING"),
+			line * 0.62, ConditionRGB(rsw.Condition), 1, gw * 0.4);
 	}
 }
