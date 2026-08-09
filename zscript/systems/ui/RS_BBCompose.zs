@@ -9,7 +9,8 @@
 // impossibility: there were no textures left to give them.
 //
 // A composed panel costs no textures at all. A number is BB_DIGITS, a
-// meter is BB_BAR, a plate is BB_PANEL, a letter is BB_GLYPH.
+// meter is BB_BAR, a plate is BB_PANEL, a STRING is BB_TEXT (one
+// billboard for the whole string, drawn through a distance field).
 //
 // WHEN TO STILL USE A CANVAS: real artwork. A painted card face, a
 // portrait, anything with a picture on it. Composition is for readouts
@@ -49,11 +50,16 @@ class RS_BBComposedPanel : Object
 	// The old body carried a comment warning that "getting this backwards
 	// lays every card out mirrored, which survives a long time before
 	// anyone reads the text closely enough". It was backwards, and it did
-	// survive, and the text read backwards. Because RS_BBCompose.Text
-	// places one BB_GLYPH per character at increasing localRight, a
+	// survive, and the text read backwards. At the time RS_BBCompose.Text
+	// placed one BB_GLYPH per character at increasing localRight, so a
 	// left-pointing "right" laid every string out from screen-right to
 	// screen-left -- the whole card mirrored, labels on the wrong side,
 	// stat values on the wrong side.
+	//
+	// Text() is one BB_TEXT now and does not walk a pen, but this basis
+	// is MORE load-bearing rather than less: the sfd lane confirmed the
+	// SDF glyph pen, the aim ray and the touch test all resolve through
+	// BillboardBasis, so an error here would still mirror everything.
 	//
 	// PROVED AGAINST THE ENGINE, not reasoned from our own tree. A panel's
 	// yaw points FROM the panel TOWARD the eye (RS_Panel.FaceViewer uses
@@ -173,106 +179,100 @@ class RS_BBCompose
 	// BB_GLYPH inside the billboard it is given, so this is spacing, not
 	// the letter's own width -- proportional spacing would need per-char
 	// metrics script cannot reach, and a fixed pitch reads fine for the
-	// short all-caps strings these panels use.
-	const GLYPH_PITCH = 0.62;
-
-	// Breathing room at each edge, as a FRACTION of the width a string is
-	// given. Text is clipped to that width minus twice this.
-	const GLYPH_MARGIN = 0.04;
+	// LAST-RESORT WIDTH ESTIMATE ONLY -- not a layout input.
+	//
+	// Used solely when level.MeasureBillboardText returns 0.0, which means
+	// no SDF atlas is loaded. Every real layout decision comes from the
+	// engine measurer; this exists so a font-less load degrades to
+	// roughly-right rather than to zero-width strings stacked on one spot.
+	const GLYPH_PITCH_FALLBACK = 0.62;
 
 	// Parts are created at the origin and moved into place by Place().
 	// Creating them at their final position instead would duplicate the
 	// basis maths in two places and let the two drift.
-	private static RS_Billboard Raw(double w, double h, int payload, int data, Color col)
+	private static RS_Billboard Raw(double w, double h, int payload, int data, Color col,
+		string text = "")
 	{
 		return RS_Billboard.Make((0, 0, 0), w, h, 0, 0, payload, data, col,
-			LevelLocals.BBF_FIXED, 0);
+			LevelLocals.BBF_FIXED, 0, text);
 	}
 
 	// -----------------------------------------------------------------
-	// TEXT. One BB_GLYPH per character.
+	// TEXT. ONE BB_TEXT BILLBOARD FOR THE WHOLE STRING.
 	//
-	// A billboard per letter sounds extravagant and is not: the primitive
-	// exists precisely so hundreds can be built without an actor apiece,
-	// and a letter is the cheapest thing it draws.
+	// Rewritten 2026-08-09. This placed one BB_GLYPH per character and
+	// did its own pen walk, width maths and clipping. All of that is now
+	// deleted rather than adapted, because BB_TEXT OWNS ITS OWN LAYOUT:
+	// EmitBillboardSDFText walks a pen from each glyph's advance in the
+	// atlas metrics and fits the string to whichever axis runs out first.
+	// Two layout engines on one string fight, and theirs is the one the
+	// renderer actually obeys.
+	//
+	// What this buys, beyond looking right:
+	//   * a card drops from ~60 parts to a handful, which is what made
+	//     the per-tic Place() walk expensive and forced card growth into
+	//     12 discrete steps
+	//   * the string stays sharp at any size -- a distance field
+	//     reconstructs the edge instead of resampling a picture of one
+	//   * glow becomes available per part (RS_Billboard.SetGlow)
+	//
+	// GLYPH_PITCH IS GONE and must not come back as a layout input. It
+	// was only ever correct because mksdf.ps1 deliberately writes ONE
+	// reference advance for every glyph, so tabular figures stay aligned
+	// and a ticking number does not jitter its own width. Regenerate the
+	// atlas proportional and a hardcoded pitch silently stops being true.
+	// Measure instead -- see Measure() below.
 	//
 	// align: -1 starts at x, 0 centres on it, +1 ends at it.
+	// maxW: the width this string must fit inside, in world units.
+	//       0 = do not constrain.
 	// -----------------------------------------------------------------
-	// maxW: the width this string must fit inside, IN WORLD UNITS, same
-	// units as x/y/h. 0 = do not clip.
-	//
-	// CORRECTED 2026-08-08, SAME DAY IT WAS BROKEN. The first version of
-	// this clip hardcoded the bounds to +/-0.5, having assumed the composed
-	// panel's local space was normalised to a 1.0-wide card. IT IS NOT --
-	// RS_BBWeaponCard.Build places its plate with Plate(p, 0, 0, w, h) and
-	// its rows at h * 0.43, so local coordinates are WORLD UNITS and a card
-	// is ~30 wide. Clamping those to 0.5 crushed every string into a
-	// one-unit strip at the centre of the card.
-	//
-	// The caller is the only thing that knows the width, so the caller
-	// passes it. Left at 0 this behaves exactly as it did before any clip
-	// existed, which is what every caller that has not been updated wants.
-	static void Text(RS_BBComposedPanel p, double x, double y, string txt,
+	static RS_Billboard Text(RS_BBComposedPanel p, double x, double y, string txt,
 		double h, Color col, int align = -1, double maxW = 0)
 	{
-		if (!p || txt.Length() == 0 || h <= 0) return;
+		if (!p || txt.Length() == 0 || h <= 0) return null;
 
-		double pitch = h * GLYPH_PITCH;
+		double w = Measure(txt, h);
 
-		// =============================================================
-		// TEXT IS CLIPPED TO THE PANEL. Added 2026-08-08.
-		//
-		// This laid out one glyph per character at a fixed pitch and
-		// NEVER checked the result against the panel it was drawing on.
-		// A label wider than the card simply kept going, off the edge and
-		// across the gap onto the NEXT panel -- so the triptych showed
-		// "ACCURA" on one card and "CY 59" on its neighbour, and the tail
-		// of every long word appeared to be the next card's data. Nothing
-		// errored; it just looked like the values were on the wrong card.
-		//
-		// Anything that does not fit is truncated rather than allowed to
-		// escape -- a clipped word is a legibility problem, an escaped one
-		// is a bug that reads as corrupted data.
-		//
-		// THE BOUND COMES FROM THE CALLER (maxW), NOT FROM A CONSTANT. The
-		// first version assumed composed space was normalised to a 1.0-wide
-		// panel and clamped to +/-0.5. Local coordinates here are WORLD
-		// UNITS -- a card is ~30 wide -- so that crushed every string into a
-		// one-unit strip at the middle of the card. maxW = 0 means the
-		// caller has not said, so nothing is clipped.
-		// =============================================================
-		string draw = txt;
-		if (maxW > 0)
+		// Shrink to fit rather than truncate. The old version cut
+		// characters off, which turns a long label into a different and
+		// wrong word ("PROTOTYPE" -> "PROTO"); scaling the height keeps
+		// every character and only costs legibility, which the reader can
+		// at least SEE happening.
+		if (maxW > 0 && w > maxW)
 		{
-			double budget = maxW * (1.0 - GLYPH_MARGIN * 2.0);
-			int maxChars = int(budget / pitch);
-			if (maxChars < 1) maxChars = 1;
-			if (draw.Length() > maxChars)
-				draw = draw.Left(maxChars);
+			double shrink = maxW / w;
+			h *= shrink;
+			w = maxW;
 		}
 
-		double width = pitch * draw.Length();
+		// BB_TEXT is centred on its position like every other payload, so
+		// convert the caller's alignment into a centre point.
+		double cx = x;
+		if (align < 0)      cx = x + w * 0.5;
+		else if (align > 0) cx = x - w * 0.5;
 
-		double start = x;
-		if (align == 0)      start = x - width * 0.5;
-		else if (align > 0)  start = x - width;
+		return p.Add(Raw(w, h, LevelLocals.BB_TEXT, 0, col, txt), cx, y);
+	}
 
-		// Never begin outside the span either -- a right-aligned string that
-		// overflows would otherwise start off the left edge.
-		if (maxW > 0)
-		{
-			double lo = -maxW * 0.5 + maxW * GLYPH_MARGIN;
-			if (start < lo) start = lo;
-		}
-
-		for (int i = 0; i < draw.Length(); i++)
-		{
-			int ch = draw.ByteAt(i);
-			if (ch == 32) continue;		// space: advance, draw nothing
-
-			p.Add(Raw(pitch, h, LevelLocals.BB_GLYPH, ch, col),
-				start + pitch * (i + 0.5), y);
-		}
+	// -----------------------------------------------------------------
+	// HOW WIDE WILL THAT STRING BE, in world units, before placing it.
+	//
+	// The engine's own measurer mirrors EmitBillboardSDFText's maths
+	// rather than re-deriving them, so the two cannot disagree -- and if
+	// they ever do, the renderer is right and the measurer is the bug.
+	//
+	// Returns 0.0 when no SDF atlas is loaded, which means "estimate it
+	// yourself" and NOT "the string is empty" -- a mod is allowed not to
+	// ship a font. The fallback is the old fixed-pitch approximation,
+	// which is what this whole file used to assume unconditionally.
+	// -----------------------------------------------------------------
+	static double Measure(string txt, double h)
+	{
+		double w = level.MeasureBillboardText(txt, h);
+		if (w > 0.0)
+			return w;
+		return h * GLYPH_PITCH_FALLBACK * txt.Length();
 	}
 
 	// A NUMBER. One billboard whatever the magnitude -- the engine fits

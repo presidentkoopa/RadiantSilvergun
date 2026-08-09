@@ -152,8 +152,22 @@ class RS_BBWeaponCard
 		// ground, so the border IS the tier. Cheapest possible "colour the
 		// card by rarity" and it survives being far away, when nothing
 		// else on the card is legible.
-		RS_BBCompose.Plate(p, 0, 0, w * 1.012, h * 1.022, tier);
-		RS_BBCompose.Plate(p, 0, 0, w, h, Color(240, 14, 14, 20));
+		// THE FRAME GLOWS AND THE GROUND GRADES. Added 2026-08-09 on the
+		// sfd lane's SDF work -- both were impossible before it and are
+		// why this card read as flat plates.
+		//
+		// Glow radius/strength are 0..1 and the engine clamps them, so the
+		// spread-clipping artifact warned about in hw_sdffont.h cannot be
+		// reached from script; that was measured in their offline preview
+		// tool, where nothing clamps.
+		let frame = RS_BBCompose.Plate(p, 0, 0, w * 1.012, h * 1.022, tier);
+		if (frame) frame.SetGlow(0.55, 0.7);
+
+		// The ground fades toward the tier colour at one end instead of
+		// being one flat fill. uObjectColor2's ALPHA is the on switch, so
+		// the second colour carries a real alpha deliberately.
+		let ground = RS_BBCompose.Plate(p, 0, 0, w, h, Color(240, 14, 14, 20));
+		if (ground) ground.SetGradient(Color(200, 26, 24, 38));
 
 		if (!wep)
 		{
@@ -174,7 +188,8 @@ class RS_BBWeaponCard
 		// Tier-filled header strip. The one place the tier is a solid fill
 		// rather than an outline, which is what makes it the first thing
 		// the eye lands on.
-		RS_BBCompose.Plate(p, idCx, h * 0.38, idW * 0.94, h * 0.13, tier);
+		let strip = RS_BBCompose.Plate(p, idCx, h * 0.38, idW * 0.94, h * 0.13, tier);
+		if (strip) strip.SetGlow(0.7, 0.85);
 		RS_BBCompose.Text(p, idCx, h * 0.38, "CLASS WEAPON", line * 0.62,
 			Color(255, 10, 10, 14), 0, idW * 0.9);
 
@@ -185,8 +200,9 @@ class RS_BBWeaponCard
 				idW * 0.78, h * 0.26, Color(255, 255, 255, 255));
 		}
 
-		RS_BBCompose.Text(p, idCx, -h * 0.10, wep.GetTag(), line * 1.05,
+		let nameBB = RS_BBCompose.Text(p, idCx, -h * 0.10, wep.GetTag(), line * 1.05,
 			Color(255, 240, 236, 228), 0, idW * 0.9);
+		if (nameBB) nameBB.SetGlow(0.35, 0.5);
 
 		if (rsw)
 		{

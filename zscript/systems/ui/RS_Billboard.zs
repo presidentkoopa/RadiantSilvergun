@@ -122,9 +122,13 @@ class RS_Billboard : Object
 	// -----------------------------------------------------------------
 	// Persistent billboard at a world position.
 	// -----------------------------------------------------------------
+	// `text` is what BB_TEXT draws and is ignored by every other payload.
+	// AddBillboardPersistent takes it as its LAST parameter, after
+	// lifetime -- so lifetime has to be passed explicitly (0 = permanent,
+	// which persistent billboards are anyway) to reach it positionally.
 	static RS_Billboard Make(Vector3 where, double w, double h,
 		double yaw, double tilt, int payload, int data, Color col,
-		int facing = LevelLocals.BBF_FIXED, int flags = 0)
+		int facing = LevelLocals.BBF_FIXED, int flags = 0, string text = "")
 	{
 		let b = new("RS_Billboard");
 		b.mPayload = payload;
@@ -132,7 +136,8 @@ class RS_Billboard : Object
 		b.mColor   = col;
 		b.mW = w; b.mH = h;
 		b.mId = level.AddBillboardPersistent(where, w, h, yaw, tilt,
-			facing, payload, data, col, flags | LevelLocals.BBFL_PERSISTENT);
+			facing, payload, data, col,
+			flags | LevelLocals.BBFL_PERSISTENT, 0, text);
 		return b;
 	}
 
@@ -216,6 +221,42 @@ class RS_Billboard : Object
 	void SetAlpha(double a)
 	{
 		if (mId) level.SetBillboardAlpha(mId, clamp(a, 0.0, 1.0));
+	}
+
+	// -----------------------------------------------------------------
+	// SDF-ERA CAPABILITIES. Added 2026-08-09.
+	//
+	// Separate setters rather than arguments, and that is NOT a style
+	// choice: the sfd lane found that AddBillboard/AddBillboardPersistent/
+	// AttachBillboard CRASH THE ZSCRIPT COMPILER at sixteen arguments --
+	// silently, no error, the log simply ends mid-sentence part way
+	// through LoadActors. Fourteen is fine. Never grow those signatures;
+	// grow this block instead.
+	// -----------------------------------------------------------------
+
+	// Neon falloff around the shape. radius and strength are BOTH 0..1
+	// and the engine clamps them, so the square-clipping artifact warned
+	// about in hw_sdffont.h cannot be reached from here -- that was
+	// measured in their offline preview tool, where nothing clamps.
+	// 1.0 is the maximum and is safe.
+	void SetGlow(double radius, double strength)
+	{
+		if (mId) level.SetBillboardGlow(mId, clamp(radius, 0.0, 1.0),
+			clamp(strength, 0.0, 1.0));
+	}
+
+	// Second colour for a gradient. Rides uObjectColor2, whose ALPHA is
+	// the on switch -- so a col2 with zero alpha means "no gradient",
+	// which is why this takes a full Color rather than an RGB triple.
+	void SetGradient(Color col2)
+	{
+		if (mId) level.SetBillboardGradient(mId, col2);
+	}
+
+	// Change what a BB_TEXT says without rebuilding the panel around it.
+	void SetText(string t)
+	{
+		if (mId) level.SetBillboardText(mId, t);
 	}
 
 	// -----------------------------------------------------------------
