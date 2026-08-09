@@ -1792,10 +1792,21 @@ class RS_Weapon : Weapon abstract
 		let cv = CVar.FindCVar("rs_curse_chance");
 		if (cv) chance = clamp(cv.GetInt(), 0, 100) / 100.0;
 
-		// The Cursed tier is not a flavour label: it is the tier that is
-		// supposed to arrive broken.
-		if (Tier == VRT_Cursed)
-			chance = max(chance, ROLL_CURSE_CHANCE_CURSEDTIER);
+		// THE CURSED-TIER BRANCH IS GONE, because it could never fire.
+		// Removed 2026-08-09.
+		//
+		// It read: if this weapon is Cursed tier, force the curse chance
+		// to 85%. Correct in itself and completely unreachable -- nothing
+		// can drop at Cursed tier. CVARINFO says so in capitals: "THERE IS
+		// NO rs_elite_dropweight_cursed AND THERE MUST NOT BE ONE", and
+		// RS_Imprint's own comment calls such a cvar "one that can never
+		// affect anything". The owner zeroed that tier deliberately.
+		//
+		// Left in place it is worse than dead weight: it reads as live
+		// behaviour, so the next person tuning curse rates budgets around
+		// an 85% case that does not exist. ROLL_CURSE_CHANCE_CURSEDTIER
+		// is kept as a named constant so the intended value survives if
+		// the tier is ever re-enabled.
 
 		RollOneCurse(chance);
 	}

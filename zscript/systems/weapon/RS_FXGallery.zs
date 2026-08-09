@@ -208,7 +208,12 @@ class RS_FXGalleryHandler : EventHandler
 		double pitch = h * 0.62;
 		double startX = -(pitch * text.Length()) * 0.5;
 
-		for (int i = 0; i < text.Length(); i++)
+
+		// int, not the unsigned Length() returns -- comparing a signed
+		// loop counter against it is the "signed and unsigned value"
+		// warning this file was emitting.
+		int n = text.Length();
+		for (int i = 0; i < n; i++)
 		{
 			int ch = text.ByteAt(i);
 			if (ch == 32)
