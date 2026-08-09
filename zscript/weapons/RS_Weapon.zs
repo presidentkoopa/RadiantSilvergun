@@ -842,6 +842,20 @@ class RS_Weapon : Weapon abstract
 		if (fxSound)
 			A_PlaySound(invoker.GetEffectiveFireSound(fxSound), CHAN_WEAPON);
 
+		// LAYERED, NOT PRECEDENCE. Every other axis on this shot follows
+		// the "highest rung wins, replaces everything below" rule stated
+		// two blocks up -- this is deliberately the one exception. Owner,
+		// 2026-08-08: a shotgun firing a caco-themed beat should sound
+		// like a shotgun, PLUS whatever the beat itself is (a fireball
+		// whoosh, a lightning crack, a plasma sizzle), not one silencing
+		// the other. A second A_PlaySound on a DIFFERENT channel from
+		// fxSound's CHAN_WEAPON, so ZDoom's per-channel one-sound-at-a-
+		// time behaviour can't let this steal or be stolen by the gun's
+		// own report -- both are audible together, which is the entire
+		// point.
+		if (p.ExtraFireSound)
+			A_PlaySound(p.ExtraFireSound, CHAN_ITEM);
+
 		Class<Actor> fxSmoke = invoker.AffixMuzzleSmoke;
 		if (!fxSmoke) fxSmoke = p.MuzzleSmoke;
 		if (!fxSmoke) fxSmoke = invoker.GunMuzzleSmoke;

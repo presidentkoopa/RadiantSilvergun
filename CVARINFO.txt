@@ -1407,6 +1407,15 @@ server bool rs_panel_sound = true;
 // weapon state.
 user int rs_grenade_hand = 0;
 
+// PROOF-OF-CONCEPT ONLY, added 2026-08-08. Not a real per-weapon system --
+// exists to demonstrate that swapping a weapon's projectile/trail/puff/
+// spark/muzzle-smoke identity live, without re-equipping, actually works.
+// SMG only. 0 = stock (whatever MakeBullet already resolves to). 1 is the
+// owner's actual request, held open pending the answer. 2 and 3 are any
+// two combinations that are visibly different from each other and from
+// stock, built entirely from classes that already exist -- no new art.
+user int rs_smg_fxtest = 0;
+
 // Bounce (default, the source's behaviour) vs detonate on first contact.
 // Same projectile -- impact mode simply doesn't set the bounce flags.
 server bool rs_grenade_impact = false;

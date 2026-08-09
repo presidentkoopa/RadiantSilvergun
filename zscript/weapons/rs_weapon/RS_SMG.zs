@@ -35,42 +35,42 @@ class VR_SMG : RS_Weapon
 			case VRT_Basic:
 				DamagePerShot = RS_Roll.RollInt(5, 11);
 				Accuracy      = RS_Roll.RollDouble(55, 65);
-				Velocity      = RS_Roll.RollDouble(6500, 8500);
+				Velocity      = RS_Roll.RollDouble(52, 68);
 				CritChance    = RS_Roll.RollDouble(0.01, 0.02);
 				Capacity      = 30;
 				break;
 			case VRT_Common:
 				DamagePerShot = RS_Roll.RollInt(6, 13);
 				Accuracy      = RS_Roll.RollDouble(57, 67);
-				Velocity      = RS_Roll.RollDouble(6500, 8500);
+				Velocity      = RS_Roll.RollDouble(52, 68);
 				CritChance    = RS_Roll.RollDouble(0.012, 0.025);
 				Capacity      = 30;
 				break;
 			case VRT_Uncommon:
 				DamagePerShot = RS_Roll.RollInt(7, 15);
 				Accuracy      = RS_Roll.RollDouble(59, 69);
-				Velocity      = RS_Roll.RollDouble(6500, 8500);
+				Velocity      = RS_Roll.RollDouble(52, 68);
 				CritChance    = RS_Roll.RollDouble(0.014, 0.03);
 				Capacity      = 30;
 				break;
 			case VRT_Advanced:
 				DamagePerShot = RS_Roll.RollInt(9, 17);
 				Accuracy      = RS_Roll.RollDouble(61, 71);
-				Velocity      = RS_Roll.RollDouble(6500, 9000);
+				Velocity      = RS_Roll.RollDouble(52, 72);
 				CritChance    = RS_Roll.RollDouble(0.016, 0.035);
 				Capacity      = 30;
 				break;
 			case VRT_Designer:
 				DamagePerShot = RS_Roll.RollInt(11, 19);
 				Accuracy      = RS_Roll.RollDouble(63, 73);
-				Velocity      = RS_Roll.RollDouble(6500, 9500);
+				Velocity      = RS_Roll.RollDouble(52, 76);
 				CritChance    = RS_Roll.RollDouble(0.018, 0.04);
 				Capacity      = 40;
 				break;
 			case VRT_Prototype:
 				DamagePerShot = RS_Roll.RollInt(13, 21);
 				Accuracy      = RS_Roll.RollDouble(65, 75);
-				Velocity      = RS_Roll.RollDouble(6500, 10000);
+				Velocity      = RS_Roll.RollDouble(52, 80);
 				CritChance    = RS_Roll.RollDouble(0.02, 0.045);
 				Capacity      = 40;
 				break;
@@ -86,13 +86,13 @@ class VR_SMG : RS_Weapon
 					CritChance    = RS_Roll.RollDouble(0.005, 0.015);
 				}
 				Accuracy = RS_Roll.RollDouble(45, 58);
-				Velocity = RS_Roll.RollDouble(6000, 8000);
+				Velocity = RS_Roll.RollDouble(48, 64);
 				Capacity = 30;
 				break;
 			case VRT_Cursed:
 				DamagePerShot = RS_Roll.RollInt(10, 16);
 				Accuracy      = RS_Roll.RollDouble(50, 65);
-				Velocity      = RS_Roll.RollDouble(6500, 9000);
+				Velocity      = RS_Roll.RollDouble(52, 72);
 				CritChance    = RS_Roll.RollDouble(0.03, 0.05);
 				Capacity      = 30;
 				break;
@@ -124,8 +124,81 @@ class VR_SMG : RS_Weapon
 
 	// Full-auto: no cadence-overshoot penalty. RateOfFire IS the cadence
 	// here, hard-gated by AutoCooldownReady(), so there's nothing to outpace.
+	//
+	// ================================================================
+	// FX PROOF-OF-CONCEPT, added 2026-08-08. NOT a real per-family
+	// system -- exists to prove that a weapon's projectile/puff/spark
+	// identity can be swapped LIVE, no re-equip, via rs_smg_fxtest.
+	// SMG only; every other family is untouched.
+	//
+	// 0 = stock (whatever MakeBullet already resolved to before this).
+	// 1 = the owner's actual request. Held equal to stock until he
+	//     names it -- swapping this in is a one-line change once he
+	//     does, everything else here already proves the mechanism works.
+	// 2, 3 = two combinations picked only to be visibly distinct from
+	//     stock and from each other, built entirely from classes that
+	//     already exist and were read end to end before being used
+	//     here -- no new art, and nothing borrowed that carries baked-in
+	//     behaviour that would be wrong on a bullet weapon (RS_ChainsawPuff
+	//     hardcodes its own saw sound/debris regardless of material, so
+	//     it was left out even though it is visually distinct).
+	//
+	//   2: RS_EnhancedBulletPuff (RSU1, the base class's own frames --
+	//      a different sheet from the stock streak puff) + SPARK_XHeavy
+	//      + RS_BallisticType2 (RSB1, currently PS-only, one frame)
+	//   3: PUFF_Vanilla (the engine's own BulletPuff, zero custom code)
+	//      + SPARK_XNoModel + the stock RS_BallisticType1 body, so 2 and
+	//      3 differ from each other on body as well as puff/spark
+	//
+	// Trail and muzzle smoke are not varied: RS_StreakTrail and
+	// RS_SmokeWisp were the only real generic options found when this
+	// was built (see docs/rs_MASTER_FX_CATALOG.txt, which is a header
+	// with the descriptive sections unwritten -- "(pending inventory
+	// pass)" -- so there is nothing else to honestly pick from yet).
+	// ================================================================
+	int mFXTestVariant;
+
+	override void DoEffect()
+	{
+		Super.DoEffect();
+		let cv = CVar.FindCVar("rs_smg_fxtest");
+		int want = cv ? clamp(cv.GetInt(), 0, 3) : 0;
+		if (want == mFXTestVariant)
+			return;
+		mFXTestVariant = want;
+
+		// Mirrors EnsureAttackProfiles()'s own slot-reset exactly, but
+		// deliberately skips its bProfilesBuilt guard (which would make
+		// a second call a no-op -- this IS the second call, on purpose)
+		// and its CaptureGunAxes() (documented there as "immediately
+		// after, and never again": it captures the gun's shipped
+		// identity for curse/imprint bookkeeping, and re-running it on
+		// a debug toggle would corrupt that).
+		PrimarySlot   = RS_AttackSlot(new("RS_AttackSlot"));
+		SecondarySlot = RS_AttackSlot(new("RS_AttackSlot"));
+		BuildAttackProfiles();
+	}
+
 	override void BuildAttackProfiles()
 	{
+		Class<Actor> proj = null, puff = null, spark = null;
+
+		if (mFXTestVariant == 2)
+		{
+			proj  = "RS_BallisticType2";
+			puff  = "RS_EnhancedBulletPuff";
+			spark = RS_Catalog.SPARK_XHeavy();
+		}
+		else if (mFXTestVariant == 3)
+		{
+			puff  = RS_Catalog.PUFF_Vanilla();
+			spark = RS_Catalog.SPARK_XNoModel();
+		}
+		// 0 and 1 both leave proj/puff/spark null, which is exactly
+		// today's stock behaviour -- the four-rung chain in
+		// RS_FireProfileBullet falls through to the same catalog
+		// defaults it always has.
+
 		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
 			fireSnd: RS_Catalog.SND_SMG(),
 			spreadScale: 0.05,
@@ -133,6 +206,9 @@ class VR_SMG : RS_Weapon
 			ammoCost: 1,
 			casing: RS_Catalog.CASING_Small(),
 			bigMuzzle: true,
+			proj: proj,
+			impactPuff: puff,
+			impactSparks: spark,
 			profName: "Auto Burst"));
 	}
 

@@ -183,8 +183,19 @@ class RS_PACKAssembly : Object
 		// scale derivation. Heavy mode would need a SetupStats branch
 		// per monster class, which is precisely the hardcoded is-chain
 		// that just cost this project two whole weapon sets.
+		// CORRECTED 2026-08-08. Axis 5 used to carry the theme's sound
+		// here, which -- being an override axis like every other one --
+		// SILENCED the gun's own fire sound rather than playing under
+		// it, contradicting this file's own line above ("still sound
+		// like it is being fired by [the gun] underneath the new
+		// noise"). A caco-themed shotgun beat sounded like only the
+		// caco. Axis 5 is left blank now, so it falls through to the
+		// gun's own report exactly like every other appearance axis;
+		// the theme's voice moves to ExtraFireSound, which is layered
+		// rather than override and plays on its own channel alongside
+		// it -- both audible, which is what the prose always promised.
 		let p = RS_AttackProfile.MakeBullet(
-			RS_PACKCatalog.DrawFireSound(theme),   // axis 5, themed
+			"",                                    // axis 5: the gun's own now
 			0.05,                                  // spread: the gun's own feel
 			true,                                  // uses cadence like any beat
 			1,                                     // AMMO COST -- never 0, see below
@@ -194,7 +205,8 @@ class RS_PACKAssembly : Object
 			1.0,                                   // damage: the gun's rolled number
 			proj,                                  // axis 1, the monster's
 			"PACK: " .. RS_PACKCatalog.ThemeName(theme),
-			puff);                                 // axis 6, the gun's
+			puff,                                  // axis 6, the gun's
+			extraFireSnd: RS_PACKCatalog.DrawFireSound(theme));  // layered, not axis 5
 
 		// AMMO COST IS EXPLICITLY 1 AND MUST STAY NON-ZERO.
 		// MakeBullet/MakeHeavy/MakeVolley/MakeBurst all default ammoCost

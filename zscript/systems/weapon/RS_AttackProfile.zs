@@ -110,6 +110,24 @@ class RS_AttackProfile : Object
 
 	// --- Presentation ---
 	sound FireSound;
+
+	// LAYERED ON TOP OF FireSound, added 2026-08-08. Not axis 5, and not
+	// a ninth axis in the PACK sense either -- axis 5 keeps its existing
+	// override semantics (an affix or a profile that wants to fully
+	// REPLACE the gun's report, e.g. a suppressor, still can). This is
+	// additive only: if set, it plays as a SECOND, independent sound
+	// alongside whatever axis 5 resolved to, never instead of it.
+	//
+	// Built for exactly one case, named here so the next reader knows
+	// it is not speculative: RS_PACKAssembly's own comment already
+	// promised a themed beat would "still sound like it is being fired
+	// by [the gun] underneath the new noise", but axis 5 there was
+	// pulling the theme's sound through the ordinary override chain --
+	// a shotgun firing a caco-themed beat sounded like ONLY the caco,
+	// the shotgun blast silenced underneath it rather than under it.
+	// ExtraFireSound is where that theme voice goes now; axis 5 stays
+	// the gun's own.
+	sound ExtraFireSound;
 	// String, not Class<Actor> -- RS_HiFiFX.CasingEject's own signature
 	// takes a string. "" = no casing ejected.
 	string CasingClass;
@@ -358,12 +376,20 @@ class RS_AttackProfile : Object
 		Class<Actor> impactPuff = null,
 		Class<Actor> impactSparks = null,
 		Class<Actor> muzzleSmoke = null,
-		Class<Actor> trail = null)
+		Class<Actor> trail = null,
+		sound extraFireSnd = "",
+		Class<Ammo> ammo = null)
 	{
 		let p = RS_AttackProfile(new("RS_AttackProfile"));
 		p.InitDefaults();
 		p.Mode            = RS_ATK_BULLET;
 		p.FireSound       = fireSnd;
+		p.ExtraFireSound  = extraFireSnd;
+		// Null = draw from the weapon's own magazine (AmmoType2), which is
+		// what every magazine-fed family wants. A belt-fed weapon with no
+		// magazine at all -- the chaingun draws straight from AmmoType1 --
+		// has to name its pool, exactly as MakeHitscan already allowed.
+		p.AmmoClass       = ammo;
 		p.SpreadScale     = spreadScale;
 		p.UsesCadence     = usesCadence;
 		p.AmmoCost        = ammoCost;

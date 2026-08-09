@@ -37,42 +37,42 @@ class VR_Chaingun : RS_Weapon
 			case VRT_Basic:
 				DamagePerShot = RS_Roll.RollInt(5, 9);
 				Accuracy      = RS_Roll.RollDouble(50, 62);
-				Velocity      = RS_Roll.RollDouble(7500, 9500);
+				Velocity      = RS_Roll.RollDouble(60, 76);
 				CritChance    = RS_Roll.RollDouble(0.01, 0.02);
 				Capacity      = 40; // reserve pool size reference, no true chamber
 				break;
 			case VRT_Common:
 				DamagePerShot = RS_Roll.RollInt(6, 11);
 				Accuracy      = RS_Roll.RollDouble(52, 64);
-				Velocity      = RS_Roll.RollDouble(7500, 9500);
+				Velocity      = RS_Roll.RollDouble(60, 76);
 				CritChance    = RS_Roll.RollDouble(0.012, 0.025);
 				Capacity      = 40;
 				break;
 			case VRT_Uncommon:
 				DamagePerShot = RS_Roll.RollInt(7, 13);
 				Accuracy      = RS_Roll.RollDouble(54, 66);
-				Velocity      = RS_Roll.RollDouble(7500, 9500);
+				Velocity      = RS_Roll.RollDouble(60, 76);
 				CritChance    = RS_Roll.RollDouble(0.014, 0.03);
 				Capacity      = 40;
 				break;
 			case VRT_Advanced:
 				DamagePerShot = RS_Roll.RollInt(9, 15);
 				Accuracy      = RS_Roll.RollDouble(56, 68);
-				Velocity      = RS_Roll.RollDouble(7500, 10000);
+				Velocity      = RS_Roll.RollDouble(60, 80);
 				CritChance    = RS_Roll.RollDouble(0.016, 0.035);
 				Capacity      = 40;
 				break;
 			case VRT_Designer:
 				DamagePerShot = RS_Roll.RollInt(11, 17);
 				Accuracy      = RS_Roll.RollDouble(58, 70);
-				Velocity      = RS_Roll.RollDouble(7500, 10500);
+				Velocity      = RS_Roll.RollDouble(60, 84);
 				CritChance    = RS_Roll.RollDouble(0.018, 0.04);
 				Capacity      = 60;
 				break;
 			case VRT_Prototype:
 				DamagePerShot = RS_Roll.RollInt(13, 19);
 				Accuracy      = RS_Roll.RollDouble(60, 72);
-				Velocity      = RS_Roll.RollDouble(7500, 11000);
+				Velocity      = RS_Roll.RollDouble(60, 88);
 				CritChance    = RS_Roll.RollDouble(0.02, 0.045);
 				Capacity      = 60;
 				break;
@@ -88,13 +88,13 @@ class VR_Chaingun : RS_Weapon
 					CritChance    = RS_Roll.RollDouble(0.005, 0.015);
 				}
 				Accuracy = RS_Roll.RollDouble(40, 53);
-				Velocity = RS_Roll.RollDouble(7000, 9000);
+				Velocity = RS_Roll.RollDouble(56, 72);
 				Capacity = 40;
 				break;
 			case VRT_Cursed:
 				DamagePerShot = RS_Roll.RollInt(8, 13);
 				Accuracy      = RS_Roll.RollDouble(45, 60);
-				Velocity      = RS_Roll.RollDouble(7500, 10000);
+				Velocity      = RS_Roll.RollDouble(60, 80);
 				CritChance    = RS_Roll.RollDouble(0.03, 0.05);
 				Capacity      = 40;
 				break;
@@ -127,20 +127,38 @@ class VR_Chaingun : RS_Weapon
 	// explicitly rather than falling through to AmmoType2. Full-auto, so
 	// no cadence-overshoot penalty.
 	//
-	// KNOWN GAP (pre-existing, not introduced here): a hitscan trace
-	// spawns no projectile, so nothing carries the master pointer
-	// GunBonsai reads for XP attribution. This fork has no CreditShot
-	// equivalent to call instead -- verified, not assumed.
+	// CONVERTED FROM HITSCAN TO A TRAVELLING ROUND, 2026-08-08, at the
+	// owner's call ("chaingun should not be hitscan"). It was the only
+	// family in the main arsenal firing an instant trace, and that was
+	// wrong on two counts beyond the look:
+	//
+	//   1. The comment that used to sit here flagged it as a KNOWN GAP --
+	//      a hitscan trace spawns no projectile, so nothing carried the
+	//      master pointer GunBonsai reads for XP attribution. Firing a
+	//      real round closes that; the projectile carries the pointer
+	//      exactly like every other family's does.
+	//   2. No projectile means no trail. The arsenal-wide tracer streak
+	//      is emitted from RS_BallisticFired.Tick(), so the chaingun was
+	//      structurally incapable of having it.
+	//
+	// Velocity is already rolled for this weapon (60-76 after the
+	// 2026-08-08 rescale) and was simply going unused by the trace path.
 	override void BuildAttackProfiles()
 	{
-		PrimarySlot.Append(RS_AttackProfile.MakeHitscan(
+		PrimarySlot.Append(RS_AttackProfile.MakeBullet(
 			fireSnd: RS_Catalog.SND_Chaingun(),
 			spreadScale: 0.05,
+			usesCadence: false,
 			ammoCost: 1,
-			ammo: "VR_ChaingunAmmo",
 			casing: RS_Catalog.CASING_Rifle(),
 			bigMuzzle: true,
-			profName: "Belt Fed"));
+			profName: "Belt Fed",
+			// BELT FED: named explicitly, because this weapon has no
+			// magazine and a null pool would send the dispatch to
+			// AmmoType2, which does not exist here. Carried over from the
+			// MakeHitscan call this replaced -- dropping it would have
+			// stopped the gun firing at all.
+			ammo: "VR_ChaingunAmmo"));
 	}
 
 	States
