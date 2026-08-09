@@ -56,6 +56,20 @@ class RS_CardModel : Actor
 		Scale 0.35;
 	}
 
+	// THE LONGEST AXIS OF THIS MODEL, in model units, MEASURED from the
+	// .md3's own header rather than guessed. Every MD3 stores a bounding
+	// box per frame; these are frame 0's, read off disk 2026-08-09.
+	//
+	// This exists because the models are not remotely the same size --
+	// 23 units for the pistol against 117 for the rocket launcher, a 5x
+	// spread. A single shared scale factor cannot fit them all in one
+	// slot, which is exactly what the first attempt tried to do.
+	//
+	// The caller divides the slot size by this to get a scale that FITS,
+	// so changing the card's size changes the model with it and neither
+	// can drift out of the other's box.
+	virtual double LongestAxis() { return 60.0; }
+
 	override void PostBeginPlay()
 	{
 		Super.PostBeginPlay();
@@ -103,17 +117,17 @@ class RS_CardModel : Actor
 // with no binding spawns, turns, and draws NOTHING -- silently. Melee
 // maps to the chainsaw instead, which does have one.
 // ---------------------------------------------------------------------
-class RS_CardModel_Pistol        : RS_CardModel {}
-class RS_CardModel_Revolver      : RS_CardModel {}
-class RS_CardModel_Rifle         : RS_CardModel {}
-class RS_CardModel_SMG           : RS_CardModel {}
-class RS_CardModel_Shotgun       : RS_CardModel {}
-class RS_CardModel_SuperShotgun  : RS_CardModel {}
-class RS_CardModel_Chaingun      : RS_CardModel {}
-class RS_CardModel_PlasmaRifle   : RS_CardModel {}
-class RS_CardModel_RocketLauncher: RS_CardModel {}
-class RS_CardModel_BFG           : RS_CardModel {}
-class RS_CardModel_Chainsaw      : RS_CardModel {}
+class RS_CardModel_Pistol : RS_CardModel { override double LongestAxis() { return 23.4; } }
+class RS_CardModel_Revolver : RS_CardModel { override double LongestAxis() { return 78.7; } }
+class RS_CardModel_Rifle : RS_CardModel { override double LongestAxis() { return 61.9; } }
+class RS_CardModel_SMG : RS_CardModel { override double LongestAxis() { return 56.1; } }
+class RS_CardModel_Shotgun : RS_CardModel { override double LongestAxis() { return 61.9; } }
+class RS_CardModel_SuperShotgun : RS_CardModel { override double LongestAxis() { return 68.2; } }
+class RS_CardModel_Chaingun : RS_CardModel { override double LongestAxis() { return 98.8; } }
+class RS_CardModel_PlasmaRifle : RS_CardModel { override double LongestAxis() { return 68.7; } }
+class RS_CardModel_RocketLauncher : RS_CardModel { override double LongestAxis() { return 117.3; } }
+class RS_CardModel_BFG : RS_CardModel { override double LongestAxis() { return 98.3; } }
+class RS_CardModel_Chainsaw : RS_CardModel { override double LongestAxis() { return 65.6; } }
 
 // ---------------------------------------------------------------------
 // WHICH MODEL FOR WHICH WEAPON.

@@ -1418,21 +1418,28 @@ class RS_PanelDropHandler : EventHandler
 				// Remembered so card scale can multiply it. Reading the
 				// live Scale instead would compound every tic and the
 				// model would grow without bound.
-				// DERIVED FROM THE CARD, NOT A CONSTANT.
+				// FITTED TO THE SLOT, FROM MEASURED MODEL SIZE.
 				//
-				// The class default (0.35) was picked when a card was 30
-				// units wide. The card is 6 now and the constant did not
-				// move, so the model would have been five times too big --
-				// a weapon swallowing the card it sits on.
+				// Not a guess and not a constant. The art slot's size is
+				// known -- this file reserved it -- and every .md3 stores
+				// its own bounding box, so the scale that makes a model
+				// fit is arithmetic:  slot / model.
 				//
-				// Tying it to panel width means the model tracks whatever
-				// the size cvars are set to, instead of silently going
-				// wrong the next time they change. 0.012 reproduces the
-				// old 0.35 at the old 30-wide card, so this is a
-				// re-expression of the same guess rather than a new one --
-				// and it is still a guess until it is looked at.
+				// It has to be per-model because they are nowhere near
+				// the same size: 23 units for the pistol against 117 for
+				// the rocket launcher. One shared factor cannot fit both,
+				// which is what the previous two attempts tried.
+				//
+				// The LONGEST axis is what must fit, because the model
+				// spins -- an object that fits sideways and not lengthways
+				// swings out of its own slot once a second.
 				double cw = RS_PanelController.PanelWidth();
-				mCardModelBaseScale = max(0.005, cw * 0.012);
+				double ch = RS_PanelController.PanelHeight();
+				double slotW = (cw * 0.30) * 0.78;
+				double slotH = ch * 0.26;
+				double fit   = min(slotW, slotH) * 0.9;   // 10% breathing room
+
+				mCardModelBaseScale = fit / max(1.0, mCardModel.LongestAxis());
 				mCardModel.A_SetScale(mCardModelBaseScale, mCardModelBaseScale);
 			}
 		}
