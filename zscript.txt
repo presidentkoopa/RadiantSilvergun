@@ -395,6 +395,10 @@ version "4.14"
 #include "zscript/systems/weapon/RS_AffixIngredients.zs"
 #include "zscript/systems/weapon/RS_AffixGenerator.zs"
 #include "zscript/systems/weapon/RS_AffixInstall.zs"
+// The FX catalog as data, plus the viewer that makes cataloguing possible.
+// Registry first: the gallery queries it.
+#include "zscript/systems/weapon/RS_FXRegistry.zs"
+#include "zscript/systems/weapon/RS_FXGallery.zs"
 
 // --- RS set (original Dual_Class weapons, basically our main focus for the 'game') ---
 #include "zscript/weapons/rs_weapon/RS_Fist.zs"
