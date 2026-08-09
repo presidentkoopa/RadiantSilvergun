@@ -31,7 +31,7 @@ class VR_PlasmaRifle : RS_Weapon
 
 		DamagePerShot = RS_Roll.RollInt(8 + idx * 2, 14 + idx * 3); // tracked, not yet applied -- see file header
 		Accuracy      = RS_Roll.RollDouble(70 + idx * 2, 80 + idx * 2);
-		Velocity      = RS_Roll.RollDouble(7000, 9000);
+		Velocity      = RS_Roll.RollDouble(56, 72);
 		CritChance    = RS_Roll.RollDouble(0.02, 0.04 + idx * 0.01);
 		Capacity      = 40;
 

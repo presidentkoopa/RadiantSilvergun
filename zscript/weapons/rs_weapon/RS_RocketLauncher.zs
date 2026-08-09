@@ -30,7 +30,7 @@ class VR_RocketLauncher : RS_Weapon
 
 		DamagePerShot = RS_Roll.RollInt(80 + idx * 15, 120 + idx * 20); // tracked, not yet applied -- see file header
 		Accuracy      = RS_Roll.RollDouble(85, 95);
-		Velocity      = RS_Roll.RollDouble(3000, 4500);
+		Velocity      = RS_Roll.RollDouble(24, 36);
 		CritChance    = RS_Roll.RollDouble(0.02, 0.05);
 		Capacity      = 1;
 

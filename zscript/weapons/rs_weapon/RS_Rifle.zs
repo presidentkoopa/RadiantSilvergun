@@ -37,42 +37,42 @@ class VR_Rifle : RS_Weapon
 			case VRT_Basic:
 				DamagePerShot = RS_Roll.RollInt(8, 16);
 				Accuracy      = RS_Roll.RollDouble(78, 88);
-				Velocity      = RS_Roll.RollDouble(8500, 11000);
+				Velocity      = RS_Roll.RollDouble(68, 88);
 				CritChance    = RS_Roll.RollDouble(0.03, 0.06);
 				Capacity      = 20;
 				break;
 			case VRT_Common:
 				DamagePerShot = RS_Roll.RollInt(11, 20);
 				Accuracy      = RS_Roll.RollDouble(80, 90);
-				Velocity      = RS_Roll.RollDouble(8500, 11000);
+				Velocity      = RS_Roll.RollDouble(68, 88);
 				CritChance    = RS_Roll.RollDouble(0.035, 0.065);
 				Capacity      = 20;
 				break;
 			case VRT_Uncommon:
 				DamagePerShot = RS_Roll.RollInt(14, 24);
 				Accuracy      = RS_Roll.RollDouble(82, 92);
-				Velocity      = RS_Roll.RollDouble(8500, 11000);
+				Velocity      = RS_Roll.RollDouble(68, 88);
 				CritChance    = RS_Roll.RollDouble(0.04, 0.07);
 				Capacity      = 20;
 				break;
 			case VRT_Advanced:
 				DamagePerShot = RS_Roll.RollInt(18, 28);
 				Accuracy      = RS_Roll.RollDouble(84, 94);
-				Velocity      = RS_Roll.RollDouble(8500, 11500);
+				Velocity      = RS_Roll.RollDouble(68, 92);
 				CritChance    = RS_Roll.RollDouble(0.045, 0.075);
 				Capacity      = 20;
 				break;
 			case VRT_Designer:
 				DamagePerShot = RS_Roll.RollInt(22, 32);
 				Accuracy      = RS_Roll.RollDouble(86, 96);
-				Velocity      = RS_Roll.RollDouble(8500, 12000);
+				Velocity      = RS_Roll.RollDouble(68, 96);
 				CritChance    = RS_Roll.RollDouble(0.05, 0.08);
 				Capacity      = 25;
 				break;
 			case VRT_Prototype:
 				DamagePerShot = RS_Roll.RollInt(26, 36);
 				Accuracy      = RS_Roll.RollDouble(88, 98);
-				Velocity      = RS_Roll.RollDouble(8500, 12500);
+				Velocity      = RS_Roll.RollDouble(68, 100);
 				CritChance    = RS_Roll.RollDouble(0.055, 0.09);
 				Capacity      = 25;
 				break;
@@ -88,13 +88,13 @@ class VR_Rifle : RS_Weapon
 					CritChance    = RS_Roll.RollDouble(0.01, 0.03);
 				}
 				Accuracy = RS_Roll.RollDouble(65, 80);
-				Velocity = RS_Roll.RollDouble(8000, 10500);
+				Velocity = RS_Roll.RollDouble(64, 84);
 				Capacity = 20;
 				break;
 			case VRT_Cursed:
 				DamagePerShot = RS_Roll.RollInt(16, 26);
 				Accuracy      = RS_Roll.RollDouble(75, 90);
-				Velocity      = RS_Roll.RollDouble(8500, 11500);
+				Velocity      = RS_Roll.RollDouble(68, 92);
 				CritChance    = RS_Roll.RollDouble(0.06, 0.09);
 				Capacity      = 20;
 				break;

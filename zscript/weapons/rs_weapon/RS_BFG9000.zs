@@ -32,7 +32,7 @@ class VR_BFG9000 : RS_Weapon
 
 		DamagePerShot = RS_Roll.RollInt(150 + idx * 25, 220 + idx * 30); // tracked, not yet applied -- see file header
 		Accuracy      = RS_Roll.RollDouble(90, 98);
-		Velocity      = RS_Roll.RollDouble(2500, 3500);
+		Velocity      = RS_Roll.RollDouble(20, 28);
 		CritChance    = RS_Roll.RollDouble(0.03, 0.06);
 		Capacity      = 1;
 
