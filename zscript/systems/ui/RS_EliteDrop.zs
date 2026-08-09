@@ -813,6 +813,14 @@ class RS_PanelDropHandler : EventHandler
 	Array<double>   mCardBaseW;
 	Array<double>   mCardBaseH;
 
+	// The weapon, as a turning 3D model, sitting in the card's art slot.
+	// A real actor rather than a billboard because a billboard is a flat
+	// quad and this has to be a MODEL -- which is also why it has to be
+	// spawned, moved and destroyed by hand: it is not part of the panel
+	// assembly and nothing else will clean it up.
+	RS_CardModel    mCardModel;
+	double          mCardModelBaseScale;
+
 	// Which quantised step the card is currently laid out at, or -1 for
 	// "no card / not yet applied". An int and not the raw float on
 	// purpose: this is the thing an equality test is allowed to be exact
@@ -1296,11 +1304,37 @@ class RS_PanelDropHandler : EventHandler
 	// through ResizeBillboard, a direct engine setter -- no ReleaseAll,
 	// no Build, no handle churn. Scale is continuous now, which is what
 	// the owner asked for: "smooth, not x up per player distance".
+	// -----------------------------------------------------------------
+	// PUT THE MODEL WHERE THE ICON IS, at the card's current scale.
+	//
+	// The slot comes from RS_BBWeaponCard.ArtLocalRight/Up rather than
+	// from literals here, so the model and the flat icon cannot drift
+	// apart -- they are the same slot by construction.
+	// -----------------------------------------------------------------
+	void FollowCardModel(double s)
+	{
+		if (!mCardModel || !mCard || !mCard.mAsm) return;
+
+		let p = mCard.mAsm.Get(TRI_CoreDrop);
+		if (!p || !p.mComposed) return;
+
+		double lr = RS_BBWeaponCard.ArtLocalRight(p.mWidth);
+		double lu = RS_BBWeaponCard.ArtLocalUp(p.mHeight);
+
+		mCardModel.PlaceAt(p.mComposed.WorldAt(lr, lu));
+
+		// Scale WITH the card, so the model grows out of the singularity
+		// alongside everything else instead of popping in full-size.
+		double sc = mCardModelBaseScale * s;
+		mCardModel.A_SetScale(sc, sc);
+	}
+
 	void ApplyCardScale(double f)
 	{
 		if (!mCard || !mCard.mAsm) return;
 
 		double s = clamp(f, 0.05, 1.0);
+		FollowCardModel(s);
 
 		for (int i = 0; i < mCard.mAsm.Size() && i < mCardBaseW.Size(); i++)
 		{
@@ -1338,6 +1372,27 @@ class RS_PanelDropHandler : EventHandler
 		mCard = RS_DropTriptych.Build(pawn, d, d.mPayload);
 		if (!mCard) return;
 
+		// THE WEAPON, TURNING, IN THE CARD'S ART SLOT.
+		//
+		// Spawned at the drop rather than at the card: the card has not
+		// been placed yet on this tic, so its transform is not solved and
+		// asking for a world position now would put the model at the
+		// panel origin. FollowCardModel moves it to the right place on
+		// the first update, one tic later, which is invisible.
+		let rsw = RS_Weapon(d.mPayload);
+		Class<Actor> mdl = RS_CardModelFor.ForWeapon(rsw);
+		if (mdl)
+		{
+			mCardModel = RS_CardModel(Actor.Spawn(mdl, d.pos, ALLOW_REPLACE));
+			if (mCardModel)
+			{
+				// Remembered so card scale can multiply it. Reading the
+				// live Scale instead would compound every tic and the
+				// model would grow without bound.
+				mCardModelBaseScale = mCardModel.Scale.X;
+			}
+		}
+
 		// The card belongs to the reader: it holds a comfortable
 		// distance in front of you on the line toward the drop, at eye
 		// level, instead of being pinned to the pickup. Walking up to a
@@ -1357,6 +1412,15 @@ class RS_PanelDropHandler : EventHandler
 		// silently drift the first time the card's shape changed.
 		mCardBaseW.Clear();
 		mCardBaseH.Clear();
+
+		// The model is not in the panel assembly, so DropAssembly above
+		// does not take it. Left alone it would hang in the air after the
+		// card was gone, still turning.
+		if (mCardModel)
+		{
+			mCardModel.Destroy();
+			mCardModel = null;
+		}
 		if (mCard.mAsm)
 		{
 			for (int i = 0; i < mCard.mAsm.Size(); i++)

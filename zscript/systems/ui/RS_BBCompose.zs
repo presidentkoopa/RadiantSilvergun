@@ -159,6 +159,26 @@ class RS_BBComposedPanel : Object
 
 	double Scale() const { return mScale <= 0 ? 1.0 : mScale; }
 
+	// -----------------------------------------------------------------
+	// WHERE IS THIS PANEL-LOCAL POINT, IN THE WORLD?
+	//
+	// Uses the transform Place() last stored, so a caller gets exactly
+	// the point a part at that offset would occupy -- same basis, same
+	// scale, no second derivation to drift out of step with the first.
+	// That matters: the card model has to sit precisely where the icon
+	// slot is, and "roughly there" reads as broken.
+	//
+	// Returns the panel origin unplaced, which is harmless -- a caller
+	// asking before the first Place has nothing better to be told.
+	// -----------------------------------------------------------------
+	Vector3 WorldAt(double localRight, double localUp) const
+	{
+		if (!mPlaced) return mAt;
+		double sc = mScale > 0 ? mScale : 1.0;
+		return mAt + RightOf(mYaw) * (localRight * sc)
+		           + UpOf(mYaw, mTilt) * (localUp * sc);
+	}
+
 	// Move every part to match a new panel transform. Cheap: no
 	// allocation, no handles created or destroyed.
 	void Place(Vector3 at, double yaw, double tilt)

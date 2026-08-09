@@ -124,6 +124,16 @@ class RS_BBWeaponCard
 	}
 
 	// -----------------------------------------------------------------
+	// WHERE THE ART SITS, in panel-local units. Published as functions
+	// rather than repeated as literals so the 3D card model and the flat
+	// icon cannot drift apart -- they are the same slot, and a model half
+	// an inch off the icon it replaces reads as a bug rather than as a
+	// choice.
+	// -----------------------------------------------------------------
+	static double ArtLocalRight(double w) { return -w * 0.5 + (w * 0.30) * 0.5; }
+	static double ArtLocalUp(double h)    { return h * 0.15; }
+
+	// -----------------------------------------------------------------
 	// heading: "MAINHAND", "OFFHAND", "DROP" -- which column this is.
 	// -----------------------------------------------------------------
 	static void Build(RS_BBComposedPanel p, double w, double h,
@@ -196,7 +206,7 @@ class RS_BBWeaponCard
 		TextureID icon = wep.Icon;
 		if (icon.IsValid())
 		{
-			RS_BBCompose.Picture(p, idCx, h * 0.15, icon,
+			RS_BBCompose.Picture(p, ArtLocalRight(w), ArtLocalUp(h), icon,
 				idW * 0.78, h * 0.26, Color(255, 255, 255, 255));
 		}
 
