@@ -42,7 +42,11 @@
 // erase it. Everything here draws back to front, once, in one pass.
 // =====================================================================
 
-class RS_BBWeaponCard
+// `play`, NOT a bare class. A class with no scope qualifier defaults to
+// DATA, and Build() now reaches RS_GunBonsaiBridge.FittedNames -- a play
+// function -- to read what is actually fitted in each socket. Second
+// time today: RS_CardModelFor had the identical fault.
+class RS_BBWeaponCard play
 {
 	// ONE COLOUR PER STAT. Owner's HF_ColorConfig values, verbatim.
 	// Switch, not a static array -- `static const TYPE n[] = {...}` does

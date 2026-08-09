@@ -1418,7 +1418,22 @@ class RS_PanelDropHandler : EventHandler
 				// Remembered so card scale can multiply it. Reading the
 				// live Scale instead would compound every tic and the
 				// model would grow without bound.
-				mCardModelBaseScale = mCardModel.Scale.X;
+				// DERIVED FROM THE CARD, NOT A CONSTANT.
+				//
+				// The class default (0.35) was picked when a card was 30
+				// units wide. The card is 6 now and the constant did not
+				// move, so the model would have been five times too big --
+				// a weapon swallowing the card it sits on.
+				//
+				// Tying it to panel width means the model tracks whatever
+				// the size cvars are set to, instead of silently going
+				// wrong the next time they change. 0.012 reproduces the
+				// old 0.35 at the old 30-wide card, so this is a
+				// re-expression of the same guess rather than a new one --
+				// and it is still a guess until it is looked at.
+				double cw = RS_PanelController.PanelWidth();
+				mCardModelBaseScale = max(0.005, cw * 0.012);
+				mCardModel.A_SetScale(mCardModelBaseScale, mCardModelBaseScale);
 			}
 		}
 
@@ -1437,7 +1452,9 @@ class RS_PanelDropHandler : EventHandler
 		// drop on the floor until the first TrackCard -- which is why
 		// there appeared to be no model on the card at all.
 		TrackCard(pawn, d, (d.pos - pawn.pos).Length(),
-			RS_PanelController.Radius());
+			// CardRadius, not Radius -- I wrote a function name that does
+			// not exist rather than reading the one that does.
+			RS_PanelController.CardRadius());
 
 		// The card belongs to the DROP: it sits above the pickup at every
 		// range and only its size changes. This comment used to say the
