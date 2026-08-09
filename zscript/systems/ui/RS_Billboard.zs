@@ -117,6 +117,12 @@ class RS_Billboard : Object
 	double  mW, mH;
 
 	int Handle() const { return mId; }
+
+	// Current size. Read by RS_BBComposedPanel.Add to capture a part's
+	// UNSCALED dimensions once, so Rescale can work from the original
+	// rather than compounding on the last value.
+	double Width()  const { return mW; }
+	double Height() const { return mH; }
 	bool Alive() const { return mId != 0; }
 
 	// -----------------------------------------------------------------

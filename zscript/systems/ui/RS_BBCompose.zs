@@ -35,6 +35,9 @@ class RS_BBComposedPanel : Object
 	private Array<RS_Billboard> mParts;
 	private Array<double>       mLocalRight;   // parallel to mParts
 	private Array<double>       mLocalUp;
+	private Array<double>       mBaseW;        // ditto -- unscaled size
+	private Array<double>       mBaseH;
+	private double              mScale;        // 0 or 1 = full size
 
 	// Last transform Place() was given, so a caller can skip a no-op.
 	private Vector3 mAt;
@@ -112,8 +115,49 @@ class RS_BBComposedPanel : Object
 		mParts.Push(b);
 		mLocalRight.Push(localRight);
 		mLocalUp.Push(localUp);
+		// Base size and offset, kept so Rescale can be ABSOLUTE rather
+		// than cumulative. Scaling from the current value would compound
+		// every call and drift the card away from any size you asked for.
+		mBaseW.Push(b.Width());
+		mBaseH.Push(b.Height());
 		return b;
 	}
+
+	// -----------------------------------------------------------------
+	// SMOOTH SCALE, NO REBUILD. Added 2026-08-09.
+	//
+	// The card used to scale in 12 discrete steps, and the reason was
+	// real at the time: changing size marked the panel mContentDirty,
+	// which is ReleaseAll() plus a full Build() -- every billboard
+	// destroyed and recreated. Doing that 35 times a second for someone
+	// merely walking was untenable, so the ramp was quantised instead.
+	//
+	// Two things removed that constraint. BB_TEXT collapsed the card from
+	// ~60 parts to a handful, and ResizeBillboard is a direct engine
+	// setter -- the sfd lane confirmed both. So a rescale is now N cheap
+	// setter calls with no allocation and no handle churn, which is what
+	// Place() already was.
+	//
+	// The offsets scale too, not just the parts. Scaling only the parts
+	// would shrink each element in place and leave a full-size card with
+	// tiny contents rattling around inside it.
+	// -----------------------------------------------------------------
+	void Rescale(double f)
+	{
+		if (f <= 0 || f == mScale) return;
+		mScale = f;
+
+		for (int i = 0; i < mParts.Size() && i < mBaseW.Size(); i++)
+			if (mParts[i])
+				mParts[i].Resize(mBaseW[i] * f, mBaseH[i] * f);
+
+		// Force the next Place() through: the early-out compares the
+		// transform only, and the transform has not changed -- but every
+		// offset just did.
+		mPlaced = false;
+	}
+
+	double Scale() const { return mScale <= 0 ? 1.0 : mScale; }
 
 	// Move every part to match a new panel transform. Cheap: no
 	// allocation, no handles created or destroyed.
@@ -127,7 +171,8 @@ class RS_BBComposedPanel : Object
 		for (int i = 0; i < mParts.Size(); i++)
 		{
 			if (!mParts[i]) continue;
-			mParts[i].MoveTo(at + r * mLocalRight[i] + u * mLocalUp[i]);
+			double sc = mScale > 0 ? mScale : 1.0;
+			mParts[i].MoveTo(at + r * (mLocalRight[i] * sc) + u * (mLocalUp[i] * sc));
 			mParts[i].Orient(yaw, tilt, LevelLocals.BBF_FIXED);
 		}
 

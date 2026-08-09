@@ -816,8 +816,6 @@ class RS_PanelDropHandler : EventHandler
 	// Which quantised step the card is currently laid out at, or -1 for
 	// "no card / not yet applied". An int and not the raw float on
 	// purpose: this is the thing an equality test is allowed to be exact
-	// about, and it is what stops a composed card rebuilding every tic.
-	int             mCardScaleStep;
 
 	// PLAY, and it must stay play: PaintBeamTexture writes it, and that
 	// painter is called from WorldThingDied (play), not from RenderOverlay.
@@ -1288,18 +1286,21 @@ class RS_PanelDropHandler : EventHandler
 	// steps between 0.30 and 1.0 is under 6% per step: below what reads
 	// as a jump on something you are walking toward.
 	// -----------------------------------------------------------------
-	const CARD_SCALE_STEPS = 12;
-
+	// QUANTISATION REMOVED 2026-08-09. The comment above is kept because
+	// its reasoning was correct WHEN WRITTEN and explains why the ramp
+	// looked stepped for so long -- a composed card had to be rebuilt to
+	// change size, so twelve rebuilds per approach was the cheap option.
+	//
+	// Two things ended that. BB_TEXT collapsed a card from ~60 parts to a
+	// handful, and RS_BBComposedPanel.Rescale now resizes parts in place
+	// through ResizeBillboard, a direct engine setter -- no ReleaseAll,
+	// no Build, no handle churn. Scale is continuous now, which is what
+	// the owner asked for: "smooth, not x up per player distance".
 	void ApplyCardScale(double f)
 	{
 		if (!mCard || !mCard.mAsm) return;
 
-		int step = int(clamp(f, 0.05, 1.0) * CARD_SCALE_STEPS + 0.5);
-		if (step < 1) step = 1;
-		if (step == mCardScaleStep) return;
-		mCardScaleStep = step;
-
-		double s = double(step) / CARD_SCALE_STEPS;
+		double s = clamp(f, 0.05, 1.0);
 
 		for (int i = 0; i < mCard.mAsm.Size() && i < mCardBaseW.Size(); i++)
 		{
@@ -1311,8 +1312,21 @@ class RS_PanelDropHandler : EventHandler
 
 			// The hinge solver reads live widths, so the wings re-meet the
 			// centre exactly at every scale with nothing else to update.
-			if (p.mBackend == RSPB_Composed) p.mContentDirty = true;
-			else                             p.BindCanvas();
+			//
+			// COMPOSED PANELS RESCALE, THEY DO NOT REBUILD. mContentDirty
+			// here was the whole cost the quantisation existed to bound --
+			// it is ReleaseAll() plus a full Build(), every handle
+			// destroyed and remade. Rescale() walks the existing parts and
+			// resizes them through a direct engine setter instead, so this
+			// is now as cheap as Place() and can run every tic.
+			if (p.mBackend == RSPB_Composed)
+			{
+				if (p.mComposed) p.mComposed.Rescale(s);
+			}
+			else
+			{
+				p.BindCanvas();
+			}
 		}
 	}
 
@@ -1352,7 +1366,6 @@ class RS_PanelDropHandler : EventHandler
 				mCardBaseH.Push(p ? p.mHeight : 0.0);
 			}
 		}
-		mCardScaleStep = -1;
 
 		mCardOwner = d;
 		d.mCardUp  = true;
@@ -1382,7 +1395,6 @@ class RS_PanelDropHandler : EventHandler
 
 		mCardBaseW.Clear();
 		mCardBaseH.Clear();
-		mCardScaleStep = -1;
 
 		// Otherwise the next card that comes up on the same row index
 		// starts already-hovered and never chirps.
