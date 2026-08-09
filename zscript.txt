@@ -322,6 +322,23 @@ version "4.14"
 // whose group type it fills.
 #include "zscript/systems/ui/RS_BBCompose.zs"
 #include "zscript/systems/ui/RS_BBWeaponCard.zs"
+// The IMPRINT offer card. Its own file rather than a branch inside
+// RS_BBWeaponCard because the two show different things for a reason: a
+// class weapon replaces nothing, so that card has no comparison, while an
+// imprint lands on ONE hand and the mainhand-vs-offhand comparison IS the
+// decision. Two layouts inside it, picked by rs_imprintcard_style.
+//
+// A .zs file that is not in this list SILENTLY DOES NOT EXIST -- no error,
+// no warning, the classes are just absent. Forgotten twice in this project.
+#include "zscript/systems/ui/RS_BBImprintCard.zs"
+// The weapon level-up offer (zscript/LevelUpTemplate.txt), composed the
+// same way: one panel per card, two arrangements behind
+// rs_levelupcard_style. Card COUNT is RS_AffixInstall.CardsForWeapon --
+// 1 to 8, not 3 -- and both layouts are solved across that whole range.
+// Forward-references RS_AffixInstall (included further down); that is
+// fine and is the same shape as RS_BBWeaponCard reaching
+// RS_GunBonsaiBridge from here.
+#include "zscript/systems/ui/RS_BBLevelUpCard.zs"
 
 #include "zscript/systems/ui/RS_Panel.zs"
 #include "zscript/systems/ui/RS_PanelCard.zs"

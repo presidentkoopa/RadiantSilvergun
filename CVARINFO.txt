@@ -1233,6 +1233,42 @@ server int rs_panel_rowpitch = 18;
 // should not push the card into your face.
 server float rs_panel_comfort = 46.0;
 
+// =====================================================================
+// THE WEAPON LEVEL-UP CARDS (RS_BBLevelUpCard.zs).
+//
+// How the offer is dealt. The card FACE is identical either way -- only
+// the arrangement changes, which is why this is a switch and not a
+// fork.
+//
+//   0  FAN   cards on a yaw arc centred on you, the way a hand of cards
+//            is held. Scales to eight by widening the arc: 12 degrees
+//            between cards until the total spread hits 72, after which
+//            the cards narrow instead so the gap between them never
+//            closes. Theatrical; at eight cards the outer pair sits 40
+//            degrees off centre and wants a head turn.
+//   1  GRID  one flat coplanar block. Scales to eight as 4x2, NOT 8x1,
+//            so the whole offer stays inside a 41 x 28 degree box you
+//            can read without moving. Compact; less of an event.
+//
+// Both hold 1 through 8 cards -- the count is base 3 plus one per
+// promotion (RS_AffixInstall.CardsForWeapon), not a fixed three. At one
+// card the two are deliberately identical: there is nothing to arrange.
+server int rs_levelupcard_style = 0;
+
+// How far in front of your eyes the offer hangs, in MAP UNITS (34 = 1
+// metre). 26 is 0.76 m -- arm's length, on purpose: it is close enough
+// that you can put a hand ON the card you want, which is what makes the
+// existing poke test (rs_panel_poke) work on this screen with no new
+// machinery. Push it out to rs_panel_comfort and touch stops being
+// possible; pull it much closer and you go cross-eyed reading it.
+//
+// Player-facing for the same reason rs_panel_pitchbias is: reading
+// distance in a headset is personal, and a wrong default should be a
+// five-second fix in the game rather than a rebuild. Every other length
+// on the screen is derived from this one, so the whole card set scales
+// with it and the layout proofs hold at any value.
+server float rs_levelupcard_reach = 26.0;
+
 // The drop marker: a thin vertical glow rising from the pickup and
 // tapering out around eye level, so a drop reads from across a room
 // without a HUD marker.
@@ -1537,6 +1573,25 @@ server int rs_imprint_mode = 0;
 // "randomly familied"). Keep-better is what makes the random reading
 // safe -- a mismatched family can lift a stat or do nothing, never cost.
 server bool rs_imprint_randomfamily = true;
+
+// WHICH IMPRINT OFFER CARD IS DRAWN.
+// (zscript/systems/ui/RS_BBImprintCard.zs)
+//
+//   0  DISC -- a round identity disc fused to the LEFT EDGE of the card,
+//      half in and half out, carrying the word IMPRINT, the tier, and a
+//      row of pips for the sockets it grants. SHAPE IS THE FIRST READ:
+//      round means imprint, rectangular means class weapon, and that
+//      lands across a room, before a single word is legible. The disc
+//      costs about a quarter of each hand block's width.
+//   1  FLAT -- a plain rectangle. No disc, every pixel spent on data,
+//      hand blocks 36% wider. Identity moves to a tier-filled strip
+//      across the top.
+//
+// Both layouts carry exactly the same content and the same nine rows per
+// hand; this is a presentation choice, not a detail level. Two styles
+// rather than one because the trade -- silhouette against data width --
+// is the owner's to make in the headset, not one to guess at here.
+server int rs_imprintcard_style = 0;
 
 // --- THE EIGHT TIER WEIGHTS (owner's R2) -----------------------------
 // Relative weights, not percentages -- but the defaults sum to 100, so

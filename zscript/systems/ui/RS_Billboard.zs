@@ -265,6 +265,21 @@ class RS_Billboard : Object
 		if (mId) level.SetBillboardText(mId, t);
 	}
 
+	// HOW FAR OPEN a payload that opens is, 0..1.
+	//
+	// BB_SEAM is a slit whose width this drives. BB_SEGMENT draws a bare
+	// plate below about 0.55 and its characters above -- so animating
+	// this makes a readout switch on like a display waking rather than
+	// simply appearing, which is what a level-up reveal wants.
+	//
+	// Deliberately has NO easing of its own: the shader carries no
+	// progress curve, so the ramp, the hold and the reverse all belong to
+	// the caller. Both card sessions asked for this wrapper independently.
+	void SetProgress(double t)
+	{
+		if (mId) level.SetBillboardProgress(mId, clamp(t, 0.0, 1.0));
+	}
+
 	// -----------------------------------------------------------------
 	// RELEASE. Call it. Every path that drops one of these must call it.
 	//
