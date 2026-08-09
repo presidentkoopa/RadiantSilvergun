@@ -110,19 +110,8 @@ defaultbind K rs_bb_close
 addmenukey "Throw Grenade (hold to charge)" +user4
 defaultbind G +user4
 
-// ---------------------------------------------------------------------
-// RS_Hook -- the grappling hook. Always available, not a pickup.
-//
-// BT_USER1, read out of original_cmd in PlayerThink (RS_HookThrower),
-// same as the grenade and for the same reason: PlayerThink runs before
-// the weapon thinks, so the read cannot fight your gun.
-//
-// H is unbound in both defbinds.txt and commonbinds.txt, so this bind
-// actually takes -- see the MOUSE3 note above for what happens when it
-// does not.
-// ---------------------------------------------------------------------
-addmenukey "Fire Grappling Hook" +user1
-defaultbind H +user1
+// RS_Hook -- REMOVED 2026-08-07, owner's order. H and BT_USER1 are both
+// free again.
 
 // Curse ledger -- what you carry, what it costs, how close to Divine.
 addmenukey "Curses: List / Spend" rs_curse_list

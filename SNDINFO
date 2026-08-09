@@ -1791,16 +1791,8 @@ $rolloff rs_gren/farexpl 3200 5400
 $volume  rs_gren/farexpl 0.5
 $volume  rs_gren/bounce  0.8
 
-// =====================================================================
-// RS_Hook -- the grappling hook (zscript/weapons/rs_weapon/RS_Hook.zs).
-// Five lumps, Sounds/rs_hook/, extensionless DMX like the rest of the
-// imported audio in this file.
-// =====================================================================
-rs_hook/fire         Sounds/rs_hook/RSHKFIRE
-rs_hook/swish        Sounds/rs_hook/RSHKSWSH
-rs_hook/loop         Sounds/rs_hook/RSHKLOOP
-rs_hook/hit/terrain  Sounds/rs_hook/RSHKHITW
-rs_hook/hit/flesh    Sounds/rs_hook/RSHKHITF
+// RS_Hook -- REMOVED 2026-08-07, owner's order. Lumps deleted from
+// Sounds/rs_hook/ along with it.
 
 // =====================================================================
 // `loud` -- the tinnitus ring (RS_Curses.zs).

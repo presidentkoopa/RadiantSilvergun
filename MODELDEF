@@ -2599,6 +2599,26 @@ Model VR_SuperShotgun
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
 
+	// THE SPAWN FRAME, WHICH IS WHY A DROPPED SSG WAS INVISIBLE ON
+	// ULTIMATE DOOM. Added 2026-08-08.
+	//
+	// VR_SuperShotgun spawns in the world as SGN2 A (RS_Shotgun-style
+	// Spawn state, RS_SuperShotgun.zs), and SGN2A0 is a DOOM 2 lump --
+	// verified absent from doom.wad and present in doom2.wad. The repo
+	// ships no SGN2 of its own and this block had no FrameIndex for it,
+	// so on doom.wad an SSG elite drop or pedestal fill had NO SPRITE
+	// AND NO MODEL: an actor that ticks, is reachable and renders
+	// nothing. Exactly the PSP1/BFP1/PLP1/RLP1 defect fixed earlier the
+	// same day, in the one family that pass did not cover because its
+	// spawn sprite EXISTS -- just not in every IWAD.
+	//
+	// Mapping it to the model rather than extracting SGN2 from the IWAD:
+	// the other five sprite-backed families already render their own
+	// mesh in the world (SHTG A, CHGG A, REVO A, RIFK A, SAWG A all have
+	// FrameIndex entries), so this makes the SSG consistent with them
+	// instead of alone in showing a vanilla pickup graphic, and it costs
+	// no IWAD art at all.
+	FrameIndex SGN2 A 0 0   FrameIndex SGN2 A 1 0
 	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
 	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
 	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
@@ -2648,6 +2668,26 @@ Model VR_SuperShotgun2
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
 
+	// THE SPAWN FRAME, WHICH IS WHY A DROPPED SSG WAS INVISIBLE ON
+	// ULTIMATE DOOM. Added 2026-08-08.
+	//
+	// VR_SuperShotgun spawns in the world as SGN2 A (RS_Shotgun-style
+	// Spawn state, RS_SuperShotgun.zs), and SGN2A0 is a DOOM 2 lump --
+	// verified absent from doom.wad and present in doom2.wad. The repo
+	// ships no SGN2 of its own and this block had no FrameIndex for it,
+	// so on doom.wad an SSG elite drop or pedestal fill had NO SPRITE
+	// AND NO MODEL: an actor that ticks, is reachable and renders
+	// nothing. Exactly the PSP1/BFP1/PLP1/RLP1 defect fixed earlier the
+	// same day, in the one family that pass did not cover because its
+	// spawn sprite EXISTS -- just not in every IWAD.
+	//
+	// Mapping it to the model rather than extracting SGN2 from the IWAD:
+	// the other five sprite-backed families already render their own
+	// mesh in the world (SHTG A, CHGG A, REVO A, RIFK A, SAWG A all have
+	// FrameIndex entries), so this makes the SSG consistent with them
+	// instead of alone in showing a vanilla pickup graphic, and it costs
+	// no IWAD art at all.
+	FrameIndex SGN2 A 0 0   FrameIndex SGN2 A 1 0
 	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
 	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
 	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
@@ -2697,6 +2737,26 @@ Model VR_SuperShotgun3
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
 
+	// THE SPAWN FRAME, WHICH IS WHY A DROPPED SSG WAS INVISIBLE ON
+	// ULTIMATE DOOM. Added 2026-08-08.
+	//
+	// VR_SuperShotgun spawns in the world as SGN2 A (RS_Shotgun-style
+	// Spawn state, RS_SuperShotgun.zs), and SGN2A0 is a DOOM 2 lump --
+	// verified absent from doom.wad and present in doom2.wad. The repo
+	// ships no SGN2 of its own and this block had no FrameIndex for it,
+	// so on doom.wad an SSG elite drop or pedestal fill had NO SPRITE
+	// AND NO MODEL: an actor that ticks, is reachable and renders
+	// nothing. Exactly the PSP1/BFP1/PLP1/RLP1 defect fixed earlier the
+	// same day, in the one family that pass did not cover because its
+	// spawn sprite EXISTS -- just not in every IWAD.
+	//
+	// Mapping it to the model rather than extracting SGN2 from the IWAD:
+	// the other five sprite-backed families already render their own
+	// mesh in the world (SHTG A, CHGG A, REVO A, RIFK A, SAWG A all have
+	// FrameIndex entries), so this makes the SSG consistent with them
+	// instead of alone in showing a vanilla pickup graphic, and it costs
+	// no IWAD art at all.
+	FrameIndex SGN2 A 0 0   FrameIndex SGN2 A 1 0
 	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
 	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
 	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
@@ -2746,6 +2806,26 @@ Model VR_SuperShotgun4
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
 
+	// THE SPAWN FRAME, WHICH IS WHY A DROPPED SSG WAS INVISIBLE ON
+	// ULTIMATE DOOM. Added 2026-08-08.
+	//
+	// VR_SuperShotgun spawns in the world as SGN2 A (RS_Shotgun-style
+	// Spawn state, RS_SuperShotgun.zs), and SGN2A0 is a DOOM 2 lump --
+	// verified absent from doom.wad and present in doom2.wad. The repo
+	// ships no SGN2 of its own and this block had no FrameIndex for it,
+	// so on doom.wad an SSG elite drop or pedestal fill had NO SPRITE
+	// AND NO MODEL: an actor that ticks, is reachable and renders
+	// nothing. Exactly the PSP1/BFP1/PLP1/RLP1 defect fixed earlier the
+	// same day, in the one family that pass did not cover because its
+	// spawn sprite EXISTS -- just not in every IWAD.
+	//
+	// Mapping it to the model rather than extracting SGN2 from the IWAD:
+	// the other five sprite-backed families already render their own
+	// mesh in the world (SHTG A, CHGG A, REVO A, RIFK A, SAWG A all have
+	// FrameIndex entries), so this makes the SSG consistent with them
+	// instead of alone in showing a vanilla pickup graphic, and it costs
+	// no IWAD art at all.
+	FrameIndex SGN2 A 0 0   FrameIndex SGN2 A 1 0
 	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
 	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
 	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
@@ -2795,6 +2875,26 @@ Model VR_SuperShotgun5
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
 
+	// THE SPAWN FRAME, WHICH IS WHY A DROPPED SSG WAS INVISIBLE ON
+	// ULTIMATE DOOM. Added 2026-08-08.
+	//
+	// VR_SuperShotgun spawns in the world as SGN2 A (RS_Shotgun-style
+	// Spawn state, RS_SuperShotgun.zs), and SGN2A0 is a DOOM 2 lump --
+	// verified absent from doom.wad and present in doom2.wad. The repo
+	// ships no SGN2 of its own and this block had no FrameIndex for it,
+	// so on doom.wad an SSG elite drop or pedestal fill had NO SPRITE
+	// AND NO MODEL: an actor that ticks, is reachable and renders
+	// nothing. Exactly the PSP1/BFP1/PLP1/RLP1 defect fixed earlier the
+	// same day, in the one family that pass did not cover because its
+	// spawn sprite EXISTS -- just not in every IWAD.
+	//
+	// Mapping it to the model rather than extracting SGN2 from the IWAD:
+	// the other five sprite-backed families already render their own
+	// mesh in the world (SHTG A, CHGG A, REVO A, RIFK A, SAWG A all have
+	// FrameIndex entries), so this makes the SSG consistent with them
+	// instead of alone in showing a vanilla pickup graphic, and it costs
+	// no IWAD art at all.
+	FrameIndex SGN2 A 0 0   FrameIndex SGN2 A 1 0
 	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
 	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
 	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
@@ -2844,6 +2944,26 @@ Model VR_SuperShotgun6
 	Skin 0 "WPN-SSHTGUN.png"
 	Scale 1.35 1.35 1.35
 
+	// THE SPAWN FRAME, WHICH IS WHY A DROPPED SSG WAS INVISIBLE ON
+	// ULTIMATE DOOM. Added 2026-08-08.
+	//
+	// VR_SuperShotgun spawns in the world as SGN2 A (RS_Shotgun-style
+	// Spawn state, RS_SuperShotgun.zs), and SGN2A0 is a DOOM 2 lump --
+	// verified absent from doom.wad and present in doom2.wad. The repo
+	// ships no SGN2 of its own and this block had no FrameIndex for it,
+	// so on doom.wad an SSG elite drop or pedestal fill had NO SPRITE
+	// AND NO MODEL: an actor that ticks, is reachable and renders
+	// nothing. Exactly the PSP1/BFP1/PLP1/RLP1 defect fixed earlier the
+	// same day, in the one family that pass did not cover because its
+	// spawn sprite EXISTS -- just not in every IWAD.
+	//
+	// Mapping it to the model rather than extracting SGN2 from the IWAD:
+	// the other five sprite-backed families already render their own
+	// mesh in the world (SHTG A, CHGG A, REVO A, RIFK A, SAWG A all have
+	// FrameIndex entries), so this makes the SSG consistent with them
+	// instead of alone in showing a vanilla pickup graphic, and it costs
+	// no IWAD art at all.
+	FrameIndex SGN2 A 0 0   FrameIndex SGN2 A 1 0
 	FrameIndex SHT2 A 0 0   FrameIndex SHT2 A 1 0
 	FrameIndex SHT2 B 0 1   FrameIndex SHT2 B 1 1
 	FrameIndex SHT2 C 0 2   FrameIndex SHT2 C 1 2
@@ -7090,6 +7210,233 @@ Model VR_PlasmaRifle
 }
 
 Model VR_RocketLauncher
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
+	Model 0 "W-RocketLauncher.md3"
+	Skin 0 "RPG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RLP1 A 0 0
+}
+// ---------------------------------------------------------------------
+// THE SAME BLOCKS AGAIN FOR THE NUMBERED IDENTITIES -- AND THEY ARE NOT
+// REDUNDANT. Added 2026-08-08.
+//
+// MODELDEF MODEL FRAMES ARE NOT INHERITED. FindModelFrameRaw matches on
+// `smff->type == ti` -- an exact class-POINTER compare with no walk up
+// the hierarchy (engine source, src/r_data/models.cpp:1165). So the four
+// base-class blocks above cover VR_Pistol and nothing else: VR_Pistol2
+// through VR_Pistol6 get no model at all.
+//
+// Those five have no sprite either -- PSP1/BFP1/PLP1/RLP1 have no lumps
+// anywhere in sprites/, which is the whole reason the block above exists.
+// No sprite AND no model is an actor that renders NOTHING while staying
+// solid, touchable and pickup-able. That is exactly the reported symptom:
+// a weapon on the floor you cannot see and can still walk into.
+//
+// It matters more than it looks, because the numbered identities are the
+// ONLY thing the world ever spawns for these families. An elite drop
+// builds its class as GetMainhandClass() .. "2".."6"
+// (RS_EliteDrop.zs:429) and the pedestal gap-fill does the same
+// (RS_ClassGating.zs:370) -- the bare base class is spawned by the dev
+// harness and by almost nothing else. So a VR_Dual_Pistol player saw
+// every floor weapon as thin air while `netevent rs-panel-test` showed a
+// perfectly visible one, which is about as misleading as a repro gets.
+//
+// If a seventh identity is ever added, it needs a block here too.
+// ---------------------------------------------------------------------
+
+Model VR_Pistol2
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm2.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PSP1 A 0 0
+}
+
+Model VR_Pistol3
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm3.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PSP1 A 0 0
+}
+
+Model VR_Pistol4
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm4.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PSP1 A 0 0
+}
+
+Model VR_Pistol5
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm5.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PSP1 A 0 0
+}
+
+Model VR_Pistol6
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
+	Model 0 "pistolet.md3"
+	Skin 0 "WPN-9mm6.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PSP1 A 0 0
+}
+
+Model VR_BFG90002
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
+	Model 0 "W-BFG.md3"
+	Skin 0 "BFG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex BFP1 A 0 0
+}
+
+Model VR_BFG90003
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
+	Model 0 "W-BFG.md3"
+	Skin 0 "BFG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex BFP1 A 0 0
+}
+
+Model VR_BFG90004
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
+	Model 0 "W-BFG.md3"
+	Skin 0 "BFG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex BFP1 A 0 0
+}
+
+Model VR_BFG90005
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
+	Model 0 "W-BFG.md3"
+	Skin 0 "BFG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex BFP1 A 0 0
+}
+
+Model VR_BFG90006
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
+	Model 0 "W-BFG.md3"
+	Skin 0 "BFG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex BFP1 A 0 0
+}
+
+Model VR_PlasmaRifle2
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
+	Model 0 "W-PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PLP1 A 0 0
+}
+
+Model VR_PlasmaRifle3
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
+	Model 0 "W-PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PLP1 A 0 0
+}
+
+Model VR_PlasmaRifle4
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
+	Model 0 "W-PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PLP1 A 0 0
+}
+
+Model VR_PlasmaRifle5
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
+	Model 0 "W-PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PLP1 A 0 0
+}
+
+Model VR_PlasmaRifle6
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
+	Model 0 "W-PlasmaRifle.md3"
+	Skin 0 "PlasmaRifle.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex PLP1 A 0 0
+}
+
+Model VR_RocketLauncher2
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
+	Model 0 "W-RocketLauncher.md3"
+	Skin 0 "RPG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RLP1 A 0 0
+}
+
+Model VR_RocketLauncher3
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
+	Model 0 "W-RocketLauncher.md3"
+	Skin 0 "RPG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RLP1 A 0 0
+}
+
+Model VR_RocketLauncher4
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
+	Model 0 "W-RocketLauncher.md3"
+	Skin 0 "RPG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RLP1 A 0 0
+}
+
+Model VR_RocketLauncher5
+{
+	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
+	Model 0 "W-RocketLauncher.md3"
+	Skin 0 "RPG.png"
+	Scale 1.35 1.35 1.35
+
+	FrameIndex RLP1 A 0 0
+}
+
+Model VR_RocketLauncher6
 {
 	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
 	Model 0 "W-RocketLauncher.md3"

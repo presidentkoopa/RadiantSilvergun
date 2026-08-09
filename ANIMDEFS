@@ -43,4 +43,17 @@ canvastexture "RSPNL09" 320 640
 // map full of drops costs one canvas, not one per drop.
 // 32 wide is deliberate: the beam is thin in the world and stretching
 // a narrow texture across it wastes nothing.
+// *** NOTHING DRAWS THIS ANY MORE, AND THAT IS A FINDING, NOT A TIDY-UP.
+// Verified in the running game 2026-08-08: a canvas texture on an
+// RS_Panel (picnum + RF_FLATSPRITE) RENDERS NOTHING. A probe spawned two
+// panels in the same tic at the same spot, one on RSPNLBM and one on the
+// wall texture BROWN1; the wall texture drew and the canvas did not,
+// with a valid picnum, alpha 1, bInvisible false and the right scaled
+// size all printed from the spawn. So the drop pillar has never been
+// visible since it was written, and it is now three ordinary sprites in
+// sprites/rs_dropfx/ instead (see RS_DropGlyph).
+//
+// The declaration stays because the CARD path still uses canvases and
+// this is the evidence for whoever fixes it -- deleting it would delete
+// the repro.
 canvastexture "RSPNLBM" 32 256

@@ -27,7 +27,6 @@ OptionMenu "RS_MainOptions"
 
 	Submenu "Weapon Options", "RS_WeaponOptions"
 	Submenu "Grenade Options", "RS_GrenadeOptions"
-	Submenu "Grappling Hook", "RS_HookOptions"
 	Submenu "Monster Control Center", "RS_MonsterControl"
 	Submenu "RS Score Options", "RS_ScoreOptions"
 	// Both new pages are one hop from here as well as living under the
@@ -107,9 +106,67 @@ OptionMenu "RS_UIOptions"
 {
 	Title "UI Options"
 	StaticText " "
+	Submenu "The Panel (offer / status)", "RS_SlateOptions"
 	Submenu "In-World Panels", "RS_PanelOptions"
 	Submenu "UI Debug", "RS_UIDebug"
 	Submenu "Billboard / In-World Display", "RS_BillboardOptions"
+}
+
+// ---------------------------------------------------------------------
+// THE PANEL. One in-world screen for the whole mod -- the offer, the
+// weapon status sheet, and everything that follows them.
+//
+// Listed ABOVE the older In-World Panels page on purpose: that page
+// still drives the three-panel drop card, and while both exist a player
+// needs to be able to tell which one they are tuning.
+// ---------------------------------------------------------------------
+OptionMenu "RS_SlateOptions"
+{
+	Title "The Panel"
+	StaticText " "
+	Option "Enable the panel", "rs_slate_enabled", "OnOff"
+	StaticText "Shape says what is being offered -- a SQUARE card is a", "DarkGray"
+	StaticText "class weapon, a ROUND one is an imprint. Colour is the", "DarkGray"
+	StaticText "tier, and it drives the frame, the glow, the meters and", "DarkGray"
+	StaticText "the buttons rather than a word in a corner.", "DarkGray"
+	StaticText " "
+	StaticText "Size", 1
+	Slider "Panel width (map units)",  "rs_slate_width",  10, 80, 2, 0
+	Slider "Panel height (map units)", "rs_slate_height", 12, 120, 2, 0
+	StaticText "A round panel is square, and uses the WIDTH for both.", "DarkGray"
+	StaticText " "
+	StaticText "Presence", 1
+	StaticText "The card grows as you approach. Size follows distance to", "DarkGray"
+	StaticText "the DROP, not to the card -- the card itself always holds", "DarkGray"
+	StaticText "the same comfortable reading distance from your eyes.", "DarkGray"
+	Slider "Full size at (map units)", "rs_slate_near", 32, 512, 16, 0
+	Slider "Gone beyond (map units)",  "rs_slate_far",  128, 2048, 64, 0
+	Slider "Smallest size",            "rs_slate_minscale", 0.05, 1.0, 0.05, 2
+	StaticText "Buttons only answer near full size. A card too small to", "DarkGray"
+	StaticText "read is a card whose actions you did not mean to press.", "DarkGray"
+	Option "Tier glow behind the card", "rs_slate_glow", "OnOff"
+	StaticText " "
+	StaticText "Refusing an offer", 1
+	Slider "Recycle gold per tier step", "rs_slate_recycle", 0, 50, 1, 0
+	StaticText "RECYCLE turns the offer into gold and pays more the", "DarkGray"
+	StaticText "higher the tier you turned down. DENY removes it from", "DarkGray"
+	StaticText "the world entirely -- nothing is left on the floor.", "DarkGray"
+	StaticText " "
+	StaticText "Switching over from the old drop card", 1
+	Option "Panel raises itself at drops", "rs_slate_offer", "OnOff"
+	StaticText "This REFUSES to arm while 'Enable in-world panels' on", "DarkGray"
+	StaticText "the In-World Panels page is still on. Both watch the same", "DarkGray"
+	StaticText "drops, so with both armed you would get two cards at", "DarkGray"
+	StaticText "once and each would think it owned the take. Turn that", "DarkGray"
+	StaticText "one OFF and this one ON to switch over.", "DarkGray"
+	StaticText "Nothing is lost: touching the panel is its own route, and", "DarkGray"
+	StaticText "the Select Row keybind still reaches it.", "DarkGray"
+	StaticText " "
+	Control "Select row (keybind)", "rs_panel_use"
+	Slider "Touch (poke) depth", "rs_panel_poke", 0, 24, 1, 0
+	Slider "Reading distance", "rs_panel_comfort", 32, 200, 4, 0
+	Option "Panel sounds", "rs_panel_sound", "OnOff"
+	StaticText "These four are shared with the older panel stack.", "DarkGray"
 }
 
 // ---------------------------------------------------------------------
@@ -130,6 +187,16 @@ OptionValue "RS_PanelDensity"
 	1, "Stacked -- three hinged blocks per weapon"
 }
 
+// The dynamic light on an elite drop. "Soft" is LF_ATTENUATE --
+// inverse-square falloff, which reads as a glow AROUND the object;
+// "Plain" is the linear one, which ends in a visible disc on the floor.
+OptionValue "RS_DropLightDetail"
+{
+	0, "Off"
+	1, "Plain"
+	2, "Soft (attenuated)"
+}
+
 OptionValue "RS_PanelFont"
 {
 	0, "SmallFont"
@@ -140,9 +207,9 @@ OptionValue "RS_PanelFont"
 
 OptionValue "RS_PanelConfirm"
 {
-	0, "Keybind only"
-	1, "Trigger -- tracked hands only"
-	2, "Trigger -- always (incl. flat)"
+	0, "Off -- never touch the trigger"
+	1, "On -- tracked hands only"
+	2, "On -- always (incl. flat play)"
 }
 
 OptionMenu "RS_PanelOptions"
@@ -158,16 +225,32 @@ OptionMenu "RS_PanelOptions"
 	StaticText "be on screen but suits artwork better.", "DarkGray"
 	StaticText " "
 	StaticText "Taking a drop", 1
+	StaticText "Four ways, and they all do the same thing: touch the", "DarkGray"
+	StaticText "card, shoot it, hold USE, or tap USE. Whichever HAND", "DarkGray"
+	StaticText "does it is the hand the weapon lands in.", "DarkGray"
 	Control "Select row (keybind)", "rs_panel_use"
 	Control "Dismiss card", "rs_panel_dismiss"
-	Option "Confirm with weapon trigger", "rs_panel_confirm", "RS_PanelConfirm"
-	StaticText "Point a hand at a live row and pull that hand's", "DarkGray"
-	StaticText "trigger. The press is taken before the gun fires.", "DarkGray"
+	Option "Shoot the card to take it", "rs_panel_confirm", "RS_PanelConfirm"
+	StaticText "Point a gun at a live row and pull the trigger. The", "DarkGray"
+	StaticText "press is taken before the gun fires, so it costs no", "DarkGray"
+	StaticText "ammo. Only rows that DO something capture it --", "DarkGray"
+	StaticText "reading the card never disarms you.", "DarkGray"
+	Slider "Shot reach (map units)", "rs_panel_shootrange", 32, 512, 16, 0
+	StaticText "Beyond this the trigger is left alone and the gun", "DarkGray"
+	StaticText "fires normally.", "DarkGray"
+	Option "Touching a row presses it", "rs_panel_touchpress", "OnOff"
+	StaticText "On: reach out and put your hand on a button and it", "DarkGray"
+	StaticText "presses, once, when your hand arrives. Off: touching", "DarkGray"
+	StaticText "only highlights, and you press with a punch or a key.", "DarkGray"
 	Slider "Touch (poke) depth", "rs_panel_poke", 0, 24, 1, 0
 	StaticText "Reaching into a panel beats pointing at it. 0 = off.", "DarkGray"
+	Slider "Release band (x touch depth)", "rs_panel_pokerelease", 1, 6, 0.25, 2
+	StaticText "How far your hand must come back OUT before that row", "DarkGray"
+	StaticText "can be pressed again. Raise it if a resting hand", "DarkGray"
+	StaticText "double-presses.", "DarkGray"
 	Slider "Punch strength to activate", "rs_panel_punch", 0, 8, 0.25, 2
-	StaticText "How hard a hand must drive into a row. 0 = off,", "DarkGray"
-	StaticText "touch only highlights and you confirm with a button.", "DarkGray"
+	StaticText "A jab presses a row again without withdrawing your", "DarkGray"
+	StaticText "hand first. 0 = off.", "DarkGray"
 	Option "Panel sounds", "rs_panel_sound", "OnOff"
 	StaticText " "
 	StaticText "Geometry", 1
@@ -185,13 +268,64 @@ OptionMenu "RS_PanelOptions"
 	StaticText " "
 	StaticText "Presence", 1
 	Slider "Card distance from you",   "rs_panel_comfort", 32, 200, 4, 0
-	Slider "Card radius",              "rs_panel_radius",  64, 1024, 32, 0
 	Slider "Max live assemblies",      "rs_panel_maxlive",  1,   32,  1, 0
 	StaticText " "
-	StaticText "Drop marker", 1
+
+	// -----------------------------------------------------------------
+	// ELITE DROP VISUALS -- the three ranges.
+	//
+	// Colours are absent from this page ON PURPOSE and must stay absent:
+	// tier colour IS the rarity read, and a player who could recolour
+	// Prototype would have broken the only channel the drop system
+	// communicates on. Everything here is size, distance and detail.
+	// -----------------------------------------------------------------
+	StaticText "Elite drop visuals", "Gold"
+	StaticText "FAR: a pillar of light in the weapon's tier colour, with", "DarkGray"
+	StaticText "a shape on top -- DIAMOND for a class weapon, CIRCLE for", "DarkGray"
+	StaticText "an imprint. MID: the card replaces the shape and grows as", "DarkGray"
+	StaticText "you approach. NEAR: full size and touchable.", "DarkGray"
+	StaticText " "
+	StaticText "  The pillar", 1
 	Option "Vertical glow beam", "rs_drop_beam", "OnOff"
 	Slider "Beam width",  "rs_drop_beamwidth",    2, 24, 1, 0
+	Slider "Beam height", "rs_drop_beamheight",   8, 128, 4, 0
+	StaticText "How far the beam rises out of the pickup before it fades.", "DarkGray"
+	StaticText "It should die at about your eye level -- which in VR is", "DarkGray"
+	StaticText "your real standing height, so this is worth setting.", "DarkGray"
+	Slider "Long-range growth", "rs_drop_beamgrow", 1, 6, 0.25, 2
+	StaticText "How much the pillar is allowed to grow with distance so it", "DarkGray"
+	StaticText "stays visible across a big map. It is never bigger than", "DarkGray"
+	StaticText "normal inside the card radius. 1.00 = fixed world size.", "DarkGray"
+	StaticText " "
+	StaticText "  The marker on top", 1
+	Option "Kind marker", "rs_drop_marker", "OnOff"
+	Slider "Marker size", "rs_drop_markersize", 4, 32, 1, 0
+	StaticText "Shape says WHAT the drop is; colour says how good it is.", "DarkGray"
+	StaticText " "
+	StaticText "  The card's approach", 1
+	Slider "Card appears at",   "rs_panel_radius",       64, 1024, 32, 0
+	Slider "Card full size at", "rs_drop_cardnear",      16,  512, 8,  0
+	Slider "Card size when far", "rs_drop_cardminscale", 0.05, 1.0, 0.05, 2
+	StaticText "Between the two distances the card grows continuously and", "DarkGray"
+	StaticText "walks in from the pillar to your reading distance. Set the", "DarkGray"
+	StaticText "far size near 1.00 to get the old instant, fixed-size card.", "DarkGray"
+	StaticText " "
+	StaticText "  On the drop itself", 1
+	Slider "Weapon size on the floor", "rs_drop_spritescale", 0.05, 2.0, 0.02, 2
+	StaticText "Most class weapons show their first-person model in the", "DarkGray"
+	StaticText "world, which at full size is roughly car-shaped. This is", "DarkGray"
+	StaticText "what makes a drop pickup-sized. It never affects the gun", "DarkGray"
+	StaticText "in your hands.", "DarkGray"
+	Slider "Glow size",     "rs_drop_glowsize",  1.0, 2.0, 0.02, 2
+	Slider "Glow strength", "rs_drop_glowalpha", 0.0, 1.0, 0.05, 2
+	StaticText "The tier-coloured halo worn by the weapon's own sprite.", "DarkGray"
+	StaticText "Size 1.00 puts it directly under the silhouette, so it", "DarkGray"
+	StaticText "brightens the gun without outlining it.", "DarkGray"
+	Option "Light detail",  "rs_drop_lightdetail", "RS_DropLightDetail"
 	Slider "Light radius", "rs_drop_lightradius", 0, 256, 8, 0
+	StaticText "Soft is inverse-square falloff -- a glow around the object.", "DarkGray"
+	StaticText "Plain falls off in a straight line and leaves a visible", "DarkGray"
+	StaticText "disc on the floor. Radius 0 also turns the light off.", "DarkGray"
 	StaticText " "
 	StaticText "Orientation bias -- turn these first if panels", 1
 	StaticText "render flat, edge-on or upside down.", 1
@@ -200,6 +334,22 @@ OptionMenu "RS_PanelOptions"
 	StaticText " "
 	StaticText "Elite drops", 1
 	Option "Elites drop class weapons", "rs_elitedrop_enabled", "OnOff"
+	Slider "Drop chance (%)",           "rs_elitedrop_chance", 0, 100, 5, 0
+	StaticText "Rolled per REVEALED elite, for weapons and imprints", "DarkGray"
+	StaticText "alike. One killed before it reveals never pays, whatever", "DarkGray"
+	StaticText "this says. 100% is every one, which on a busy map is a", "DarkGray"
+	StaticText "lot of drops.", "DarkGray"
+	StaticText " "
+	Submenu "Imprints (after the set is complete)", "RS_ImprintOptions"
+	StaticText "Once you own all six of your class weapons an elite has", "DarkGray"
+	StaticText "no weapon left to give you, so it drops a stat package", "DarkGray"
+	StaticText "for a gun you already carry instead.", "DarkGray"
+	StaticText " "
+	Option "Elites drop food",          "rs_elite_food",       "OnOff"
+	Slider "Food amount (%)",           "rs_elite_food_mult",  0, 400, 25, 0
+	StaticText "Food is global, not per-class -- every class gets it,", "DarkGray"
+	StaticText "including any future Dual_ class. 100% is the source's", "DarkGray"
+	StaticText "own count.", "DarkGray"
 	StaticText " "
 	StaticText "Monster drops", 1
 	Option "Monsters drop items", "rs_monsterdrops", "OnOff"
@@ -208,12 +358,75 @@ OptionMenu "RS_PanelOptions"
 	StaticText "weapon drops. Takes effect on the next kill.", "DarkGray"
 
 	StaticText " "
-	StaticText "Taking a drop", "Gold"
-	Option "Hold USE to take",      "rs_panel_usetake",     "OnOff"
-	StaticText "  The card's own text promises this. Off leaves point +", "DarkGray"
-	StaticText "  trigger, MOUSE3 and the punch as the only ways to take.", "DarkGray"
-	Slider "USE hold time (tics)",  "rs_panel_useholdtics", 5, 105, 2, 0
-	StaticText "  A tap opens doors -- a drop in a doorway must not eat it.", "DarkGray"
+	StaticText "The USE key", "Gold"
+	Option "USE takes the drop",    "rs_panel_usetake",     "OnOff"
+	StaticText "  TAP USE sends it to your mainhand, HOLD USE to your", "DarkGray"
+	StaticText "  offhand -- what the card's own wings have always said.", "DarkGray"
+	StaticText "  The key is only taken from you while a card is up, a", "DarkGray"
+	StaticText "  hand can take the drop, and the drop is in front of", "DarkGray"
+	StaticText "  you. Turn away and it opens doors again.", "DarkGray"
+	Slider "Tap/hold cutoff (tics)", "rs_panel_useholdtics", 5, 105, 2, 0
+	StaticText "  Shorter than this is a tap, longer is a hold. 21 is", "DarkGray"
+	StaticText "  about 0.6 seconds.", "DarkGray"
+}
+
+// ---------------------------------------------------------------------
+// IMPRINTS -- the late-game elite payout.
+//
+// THE SLIDERS ARE RELATIVE WEIGHTS, NOT PERCENTAGES. The defaults happen
+// to sum to 100, so at stock settings each one reads as a percent; move
+// one and they all shift, because what is rolled is a position in the
+// total.
+//
+// THERE IS NO "CURSED" ROW AND THERE SHOULD NOT BE ONE. Cursed stopped
+// being a tier -- it is an effect, from Promotion and from death -- and
+// the roll floors at Trash in code. A slider that could never put
+// anything on the floor is worse than no slider.
+// ---------------------------------------------------------------------
+OptionMenu "RS_ImprintOptions"
+{
+	Title "Imprints"
+	StaticText " "
+	StaticText "An imprint is a rolled stat package for a weapon you", "DarkGray"
+	StaticText "already own -- what an elite pays once you have all six", "DarkGray"
+	StaticText "class weapons and there is no gun left to give you.", "DarkGray"
+	StaticText " "
+	Option "Elites drop imprints", "rs_imprint_enabled", "OnOff"
+	Option "How it applies",       "rs_imprint_mode",   "RS_ImprintMode"
+	StaticText "Keep better: each stat takes whichever value is higher,", "DarkGray"
+	StaticText "so an imprint can never make a weapon worse. Straight", "DarkGray"
+	StaticText "re-roll takes every rolled value, up or down.", "DarkGray"
+	StaticText " "
+	StaticText "Neither setting touches pellet count, promotions,", "DarkGray"
+	StaticText "condition, rate of fire, your curses, or GunBonsai", "DarkGray"
+	StaticText "levels. Those belong to other systems.", "DarkGray"
+	StaticText " "
+	Option "Random family", "rs_imprint_randomfamily", "OnOff"
+	StaticText "On: the package is rolled from a random one of the six", "DarkGray"
+	StaticText "class weapons, so a shotgun's numbers can land on your", "DarkGray"
+	StaticText "revolver. Off: it rolls your own weapon's ranges.", "DarkGray"
+	StaticText " "
+	StaticText "Tier weights", 1
+	StaticText "Relative, not percentages -- the defaults just sum to 100.", "DarkGray"
+	Slider "Trash",     "rs_elite_dropweight_trash",     0, 100, 1, 0
+	Slider "Basic",     "rs_elite_dropweight_basic",     0, 100, 1, 0
+	Slider "Common",    "rs_elite_dropweight_common",    0, 100, 1, 0
+	Slider "Uncommon",  "rs_elite_dropweight_uncommon",  0, 100, 1, 0
+	Slider "Advanced",  "rs_elite_dropweight_advanced",  0, 100, 1, 0
+	Slider "Designer",  "rs_elite_dropweight_designer",  0, 100, 1, 0
+	Slider "Prototype", "rs_elite_dropweight_prototype", 0, 100, 1, 0
+	StaticText "All zero falls back to Trash, so the mechanism still", "DarkGray"
+	StaticText "shows itself rather than going silently dead.", "DarkGray"
+	StaticText " "
+	Slider "Tier bonus (+tiers)", "rs_elite_imprint_tierbonus", 0, 2, 1, 0
+	StaticText "Added AFTER the roll and capped at Prototype -- it lifts", "DarkGray"
+	StaticText "the whole table by a step rather than favouring one tier.", "DarkGray"
+}
+
+OptionValue "RS_ImprintMode"
+{
+	0, "Re-roll, keep better"
+	1, "Straight re-roll"
 }
 
 // ---------------------------------------------------------------------
@@ -228,6 +441,11 @@ OptionMenu "RS_WeaponOptions"
 	StaticText "Firing before a weapon's action fully cycles widens", "DarkGray"
 	StaticText "the cone. Waiting it out tightens it by this much.", "DarkGray"
 	Slider "Patience Accuracy Bonus (%)", "rs_cadence_patience", 0, 90, 5, 0
+	Option "Ready-To-Fire Beep", "rs_allclear_enable", "OnOff"
+	StaticText "A short tone the moment a weapon's firing cycle reopens,", "DarkGray"
+	StaticText "pitched per weapon type. Shotguns, super shotguns and", "DarkGray"
+	StaticText "melee are silent by design, and a held trigger stays", "DarkGray"
+	StaticText "silent -- the tell is for a waiting finger.", "DarkGray"
 	StaticText " "
 	StaticText "Weapon wear.", "DarkGray"
 	Option "Weapons Degrade", "rs_condition_degrade", "OnOff"
@@ -344,6 +562,21 @@ OptionMenu "RS_DropDebug"
 	Command "Advanced",   "netevent rs-panel-test 5"
 	Command "Designer",   "netevent rs-panel-test 6"
 	Command "Prototype",  "netevent rs-panel-test 7"
+	StaticText " "
+	StaticText "Imprints -- the AFTER-COMPLETION drop", 1
+	StaticText "Normally these only appear once you own all six class", "DarkGray"
+	StaticText "weapons, which is hours away. These force one now.", "DarkGray"
+	Command "Imprint -- RANDOM tier (weighted)", "netevent rs-imprint-test 99"
+	Command "Imprint -- Trash",     "netevent rs-imprint-test 1"
+	Command "Imprint -- Basic",     "netevent rs-imprint-test 2"
+	Command "Imprint -- Common",    "netevent rs-imprint-test 3"
+	Command "Imprint -- Uncommon",  "netevent rs-imprint-test 4"
+	Command "Imprint -- Advanced",  "netevent rs-imprint-test 5"
+	Command "Imprint -- Designer",  "netevent rs-imprint-test 6"
+	Command "Imprint -- Prototype", "netevent rs-imprint-test 7"
+	StaticText "Point at a wing and take it: the package is applied to", "DarkGray"
+	StaticText "the weapon already in that hand. An empty hand or a", "DarkGray"
+	StaticText "fist refuses -- an imprint needs a chassis.", "DarkGray"
 	StaticText " "
 	Command "Dismiss the card", "netevent rs-panel-dismiss"
 	StaticText " "
@@ -477,6 +710,13 @@ OptionMenu "RS_BitsSettings"
 	Option "Drop Mode", "rs_bits_mode", "RS_BitsDropMode"
 	Slider "Chance Per Bit (%)", "rs_bits_dropchance", 0, 100, 1, 0
 	Slider "Boss Multiplier", "rs_bits_boss_mult", 0, 25, 1, 0
+	// Same row as the one on the Arcade Score page -- one cvar, one
+	// gate (RS_SummonMarker.PaysRewards), asked by both RS_Bits and
+	// RS_Score. Repeated so neither system's page hides it.
+	Option "Summoned Monsters Pay Out", "rs_summons_pay", "OnOff"
+	StaticText "Off: anything spawned mid-map -- a Pain Elemental's Lost", "DarkGray"
+	StaticText "Souls, a resurrected corpse, a reserve squad -- drops no", "DarkGray"
+	StaticText "bits and scores no points. On makes them farmable again.", "DarkGray"
 	StaticText " "
 
 	StaticText "Bit Lifetime (0 = never expires)"
@@ -497,9 +737,17 @@ OptionMenu "RS_BitsSettings"
 	StaticText " "
 
 	StaticText "Bit Type Weighting"
+	StaticText "Relative weights in one roll, not percentages -- a type at", "DarkGray"
+	StaticText "8 is eight times as likely as one at 1, and 0 removes it.", "DarkGray"
 	Slider "Health Bit Weight", "rs_bits_ratio_health", 0, 256, 1, 0
 	Slider "Armor Bit Weight", "rs_bits_ratio_armor", 0, 256, 1, 0
 	Slider "Ammo Bit Weight", "rs_bits_ratio_ammo", 0, 256, 1, 0
+	Slider "Repair (Grey) Bit Weight", "rs_bits_ratio_grey", 0, 256, 1, 0
+	StaticText "Grey Bits repair weapon Condition.", "DarkGray"
+	Slider "Gold Bit Weight", "rs_bits_ratio_gold", 0, 256, 1, 0
+	StaticText "Gold Bits pay for card-picker rerolls and extra cards.", "DarkGray"
+	StaticText "Curse Bits are NOT in this pool -- they have their own", "DarkGray"
+	StaticText "independent per-kill roll on the Curses pages.", "DarkGray"
 	StaticText " "
 
 	StaticText "Ammo Bit Settings"
@@ -581,6 +829,16 @@ OptionMenu "GunBonsaiOptions"
   TFLV_Tooltip ""
   Option "$TFLV_OPT_NAME_LEVELUP_SOUND_MODE", "bonsai_levelup_sound_mode", "GunBonsaiLevelUpSoundOption"
   TFLV_Tooltip "$TFLV_OPT_TT_LEVELUP_SOUND_MODE"
+  // The other half of the row above. The mode list's "custom" entry is
+  // -1, and settings.zsc:241 is the ONLY reader of bonsai_levelup_sound
+  // -- it returns this string when the mode is below 0 and ignores it
+  // otherwise. A free-text SNDINFO name, so a TextField and not a list.
+  // Added BELOW `DefaultSelection 4` for the same reason the ammoless
+  // row was removed from down here: that directive counts rows, so
+  // inserting above index 4 would move where the cursor lands.
+  TextField "Custom Level-Up Sound", "bonsai_levelup_sound"
+  StaticText "A SNDINFO sound name. Used only when the row above is", "DarkGray"
+  StaticText "set to custom; blank or unknown plays nothing.", "DarkGray"
 
   StaticText ""
   StaticText "$TFLV_OPT_HEADER_COMPATIBILITY", WHITE
@@ -654,6 +912,15 @@ OptionMenu "GunBonsaiOptions"
   StaticText ""
   StaticText "Radiant Silvergun", CYAN
   Option "Classic Upgrade Pool", "rs_gb_legacy_affixes", "OnOff"
+  // Overrides the two "choices per level" sliders above for RS weapons
+  // only (Registry.zsc:159-172). Left at 0 the count comes from the
+  // gun's own rarity tier -- 2 at Cursed/Trash/Basic, 4 Uncommon, 5
+  // Designer, 6 above -- which is the shipped behaviour. ScaleSlider so
+  // 0 reads as a word rather than as an offer of no cards.
+  ScaleSlider "Cards Offered Per Level", "rs_ui_offer_override", 0, 8, 1, "Automatic (by weapon tier)"
+  StaticText "Forces every weapon level-up to offer this many cards", "DarkGray"
+  StaticText "instead of letting the weapon's tier decide. For tuning.", "DarkGray"
+  StaticText "Cards bought with Gold are added on top either way.", "DarkGray"
 }
 
 // ---------------------------------------------------------------------
@@ -852,6 +1119,14 @@ OptionMenu "RS_ScoreOptions"
 
 	StaticText "Scoring Rules"
 	Option "Carry Score Between Maps", "rs_score_startmode", "RS_ScoreStartMode"
+	// One cvar, one gate -- RS_SummonMarker.PaysRewards, asked by
+	// RS_Score.zs:512 and RS_Bits.zs:128 alike. The same row is on the
+	// Kill Rewards page, because it decides both payouts and a player
+	// who finds it on one page should not have to guess about the other.
+	Option "Summoned Monsters Pay Out", "rs_summons_pay", "OnOff"
+	StaticText "Off: anything that arrived after the map started -- Lost", "DarkGray"
+	StaticText "Souls, resurrected corpses, reserve squads -- scores", "DarkGray"
+	StaticText "nothing and drops no bits. On makes them farmable again.", "DarkGray"
 	// "Monster Tier Bonus" (rs_score_tierweight) was here and is gone --
 	// 2026-08-07. Tier weighting came out of RS_Score.BasePointsFor();
 	// the only hits left in the tree are the cvar declaration and some
@@ -901,6 +1176,12 @@ OptionMenu "RS_ScoreBonusOptions"
 	Slider "  Value", "rs_score_m_untouchable", 0.0, 2.0, 0.05, 2
 	Slider "  Kills To Arm", "rs_score_ut_kills", 1, 100, 1, 0
 	Slider "  Or Points Killed", "rs_score_ut_damage", 100, 20000, 100, 0
+	Slider "  Points Per Extra Stack", "rs_score_ut_hpdiv", 50, 2000, 50, 0
+	Slider "  Stacks For Full Value", "rs_score_ut_maxstacks", 1, 100, 1, 0
+	StaticText "  Once armed, each clean kill adds one stack plus one more", "DarkGray"
+	StaticText "  per that many base points, and the bonus pays its Value", "DarkGray"
+	StaticText "  scaled by stacks held out of the number needed for full.", "DarkGray"
+	StaticText "  So a lower divisor and fewer stacks both ramp it faster.", "DarkGray"
 	Option "Infighter", "rs_score_b_infighter", "OnOff"
 	Slider "  Value", "rs_score_m_infighter", 0.0, 2.0, 0.05, 2
 	StaticText " "
@@ -1130,6 +1411,9 @@ OptionMenu "RS_ScoreHUDLayout"
 	Slider "$RS_OPT_NAME_HUD_OFF_X", "rs_score_hud_lives_x", -320, 320, 2, 0
 	Slider "$RS_OPT_NAME_HUD_OFF_Y", "rs_score_hud_lives_y", -240, 240, 1, 0
 	Slider "$RS_OPT_NAME_HUD_G_SCALE", "rs_score_hud_lives_scale", 25, 400, 5, 0
+	Slider "Pip Animation -- Tics Per Frame", "rs_score_hud_lives_rate", 1, 20, 1, 0
+	StaticText "The pips cycle through four frames so the row shimmers.", "DarkGray"
+	StaticText "Lower is faster; the reader floors this at 1.", "DarkGray"
 	StaticText " "
 
 	StaticText "$RS_OPT_HEADER_HUD_G_SPREE", "Cyan"
@@ -1274,9 +1558,11 @@ OptionValue "RS_ScoreBarStyle"
 // only decides how they are shown. That separation is deliberate -- a
 // player quieting the readout should not be quietly nerfing their run.
 //
-// There is deliberately NO per-flavour show/hide here. Three cvars for
-// that are declared in CVARINFO.txt and nothing reads them yet; the rows
-// go in when the reader does, and not one build earlier.
+// THE PER-FLAVOUR SHOW/HIDE ROWS ARE NOW LIVE. This comment used to say
+// there were deliberately none, because the three cvars were declared
+// and unread; the reader landed as RS_ScoreHUD.FlavorVisible() and the
+// combo loop calls it at RS_ScoreHUD.zs:1115, so the rows went in. They
+// hide LINES, not points -- a hidden flavour still scores.
 // ---------------------------------------------------------------------
 OptionMenu "RS_ScoreHUDBonus"
 {
@@ -1289,6 +1575,17 @@ OptionMenu "RS_ScoreHUDBonus"
 
 	Option "$RS_OPT_NAME_HUD_SHOWBONUSES", "rs_score_hud_showbonuses", "OnOff"
 	Option "$RS_OPT_NAME_HUD_SHOWBASE", "rs_score_hud_showbase", "OnOff"
+	StaticText " "
+
+	StaticText "Which Flavours Show", "Cyan"
+	StaticText "These hide LINES, not points. A hidden flavour still", "DarkGray"
+	StaticText "earns exactly as much -- to stop one paying, switch the", "DarkGray"
+	StaticText "bonus itself off on the Style Bonuses page.", "DarkGray"
+	Option "Efficiency Lines", "rs_score_hud_showflavor_efficiency", "OnOff"
+	Option "Style Lines", "rs_score_hud_showflavor_style", "OnOff"
+	Option "Daring Lines", "rs_score_hud_showflavor_daring", "OnOff"
+	StaticText "The Base line is not here -- it has its own switch above,", "DarkGray"
+	StaticText "and gating it twice would make one of the two look broken.", "DarkGray"
 	StaticText " "
 
 	StaticText "$RS_OPT_HEADER_BONUS_SHAPE", "Cyan"
@@ -1627,6 +1924,18 @@ OptionMenu "RS_EliteOptions"
 	StaticText "Bosses are tuned separately -- they start strong.", "DarkGray"
 	Slider "Boss Health (%)", "rs_elite_healthmult_boss", 100, 1000, 25, 0
 	Slider "Boss Damage (x)", "rs_elite_damagemult_boss", 1.0, 5.0, 0.1, 1
+	StaticText " "
+
+	StaticText "How Aggressive", "Cyan"
+	// LOWER IS MORE AGGRESSIVE -- it multiplies the chance the monster
+	// HOLDS fire. Clamped 0.05..1.0 by the reader (RS_Elite.zs:436), and
+	// the slider matches that: below 0.05 an elite passes its fire check
+	// on nearly every chase decision, never takes a step, and turrets on
+	// the spot. That is what 0.0625 used to do here.
+	Slider "Hold-Fire Multiplier", "rs_elite_missilechance", 0.05, 1.0, 0.05, 2
+	StaticText "LOWER IS MORE AGGRESSIVE. 1.0 fires like an ordinary", "DarkGray"
+	StaticText "monster; 0.5 is noticeably pushier and still walks.", "DarkGray"
+	StaticText "Very low values plant the elite and make it turret.", "DarkGray"
 	StaticText " "
 
 	StaticText "Reveal", "Cyan"
@@ -2338,53 +2647,8 @@ OptionValue "RS_GrenadeHandVals"
 	1, "Mainhand"
 }
 
-// =====================================================================
-// RS_HookOptions -- the grappling hook.
-//
-// Always available; there is no pickup and nothing grants it, so this
-// page is the only place its behaviour is explained.
-// =====================================================================
-OptionMenu "RS_HookOptions"
-{
-	Title "Grappling Hook"
-	StaticText " "
-
-	StaticText "Key", "Gold"
-	Control "Fire grappling hook",     "+user1"
-	StaticText "  Hit a wall and YOU are pulled to it. Hit a monster and", "DarkGray"
-	StaticText "  IT is pulled to you. Your weapon is never put away.", "DarkGray"
-
-	StaticText " "
-	StaticText "Deployment", "Gold"
-	Option  "Enable Hook",             "rs_hook_enable",     "OnOff"
-	Option  "Fires From Hand",         "rs_hook_hand",       "RS_HookHandVals"
-	Slider  "Hand Offset",             "rs_hook_hand_offset", 0, 24, 1, 0
-	Slider  "Cooldown (tics)",         "rs_hook_cooldown",   1, 105, 1, 0
-
-	StaticText " "
-	StaticText "Pull Strength", "Gold"
-	StaticText "  LOWER IS STRONGER -- these divide the distance.", "DarkGray"
-	Slider  "Horizontal Divisor",      "rs_hook_pull_divisor",  2, 40, 1, 0
-	Slider  "Vertical Divisor",        "rs_hook_pull_zdivisor", 1, 20, 1, 0
-	StaticText "  Vertical is separate on purpose: one divisor that feels", "DarkGray"
-	StaticText "  right flat will launch you clean over any ledge.", "DarkGray"
-
-	StaticText " "
-	StaticText "Bit Sweep", "Gold"
-	StaticText "  Where the hook LANDS, it grabs loose bits nearby and", "DarkGray"
-	StaticText "  drags them back to you. Aim it at the pile you cannot", "DarkGray"
-	StaticText "  reach. Works the same cursed or not.", "DarkGray"
-	Slider  "Sweep Radius",            "rs_hook_bit_radius", 0, 768, 32, 0
-	Slider  "Sweep Force",             "rs_hook_bit_force",  0, 40, 1, 0
-	StaticText "  Radius is measured from the impact point, not from you.", "DarkGray"
-	StaticText "  Set it to 0 to switch the sweep off entirely.", "DarkGray"
-}
-
-OptionValue "RS_HookHandVals"
-{
-	0, "Mainhand"
-	1, "Offhand"
-}
+// RS_HookOptions -- REMOVED 2026-08-07, owner's order, with the hook
+// itself. See zscript.txt for why.
 
 // =====================================================================
 // RS_CurseOptions -- the curse system.
@@ -2465,8 +2729,8 @@ OptionMenu "RS_CurseFlawOptions"
 	StaticText "separate curses with separate prices.", "DarkGray"
 	StaticText " "
 	Option "Bit-Repellent",  "rs_curse_flaw_bitrepel",  "OnOff"
-	StaticText "  Bits are pushed away from you. Fire the hook to reel", "DarkGray"
-	StaticText "  them back -- the hook always sweeps, cursed or not.", "DarkGray"
+	StaticText "  Bits are pushed away from you. No counter to it right", "DarkGray"
+	StaticText "  now -- the hook that used to answer this is gone.", "DarkGray"
 	Option "Gold-Drain",     "rs_curse_flaw_golddrain", "OnOff"
 	StaticText "  Kills with that hand yield no Gold.", "DarkGray"
 	Option "Jam-Prone",      "rs_curse_flaw_jamprone",  "OnOff"

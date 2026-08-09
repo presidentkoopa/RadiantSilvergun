@@ -301,8 +301,8 @@ class RS_GrenadeAmmo : Ammo
 // WorldTick runs AFTER the player has already thought -- the exact
 // ordering mistake that made RS_WheelPoC's input capture a no-op.
 // =====================================================================
-// `play`, for the same reason RS_HookThrower and RS_PanelAssembly are:
-// an unscoped Object subclass is DATA scope, and Actor.Spawn,
+// `play`, for the same reason RS_PanelAssembly is: an unscoped
+// Object subclass is DATA scope, and Actor.Spawn,
 // TakeInventory and RS_GrenadeThrown.FuseLen are all play functions.
 // Without it every one of them is "Can't call play function X from
 // data context", and the `let g = ...` that follows cascades into
@@ -402,17 +402,50 @@ class RS_GrenadeThrower : Object play
 	}
 	bool Active() const { return mCharge > 0; }
 
+	// -----------------------------------------------------------------
 	// Which hand it leaves from. Default offhand -- that is the one more
 	// likely to be holding a fist. Your deployed gun is never touched
 	// either way.
+	//
+	// *** THIS WAS THE GRENADE-DROPS-AT-YOUR-FEET BUG. FIXED 2026-08-07. ***
+	//
+	// It read pawn.OffhandPos unconditionally, gated only on
+	// `!= (0,0,0)`. That guard is wrong, and checking the engine source
+	// is what proved it: OffhandPos is written ONLY inside VR's tracked-
+	// controller branch (p_user.cpp:145-153, `if
+	// (vrMode->GetWeaponTransform(...))`). Outside a real headset it is
+	// simply never touched, and P_SpawnPlayerMissile's own native
+	// fallback for exactly this situation is `t1->Pos()`
+	// (p_map.cpp:4663) -- the player's own actor origin, at the FLOOR,
+	// not eye or hand height. So on a flat/desktop test the grenade
+	// spawned already standing on the ground at the player's feet, with
+	// no meaningful angle either, and the physics read as an instant
+	// drop-and-detonate.
+	//
+	// The correct test is OverrideAttackPosDir, not a zero-vector guess
+	// -- it is what the engine itself checks before trusting these
+	// fields (p_map.cpp:4666, and every other native caller), and this
+	// codebase already has the flat-play fallback done right two files
+	// over: RS_PanelController.SolveAim. This copies that shape rather
+	// than inventing a second one.
+	// -----------------------------------------------------------------
 	static Vector3, double, double HandPose(PlayerPawn pawn)
 	{
 		let cv = CVar.FindCVar("rs_grenade_hand");
 		bool useOff = !cv || cv.GetInt() != 1;   // 1 = mainhand
 
-		if (useOff && pawn.OffhandPos != (0, 0, 0))
-			return pawn.OffhandPos, pawn.OffhandAngle, pawn.OffhandPitch;
-		return pawn.AttackPos, pawn.AttackAngle, pawn.AttackPitch;
+		if (pawn.OverrideAttackPosDir)
+		{
+			if (useOff)
+				return pawn.OffhandPos, pawn.OffhandAngle, pawn.OffhandPitch;
+			return pawn.AttackPos, pawn.AttackAngle, pawn.AttackPitch;
+		}
+
+		// FLAT PLAY. No tracked hand exists to leave from, so throw from
+		// the eye: view height, view angle, view pitch -- same fallback
+		// RS_PanelController uses for its own aim ray.
+		double viewz = pawn.player ? pawn.player.viewz : pawn.pos.z + 41;
+		return (pawn.pos.x, pawn.pos.y, viewz), pawn.angle, pawn.pitch;
 	}
 
 	void Throw(PlayerPawn pawn, double charge, int cooked)
