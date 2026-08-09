@@ -72,6 +72,37 @@ class RS_GunBonsaiBridge : Object play
 		return n;
 	}
 
+	// WHAT IS ACTUALLY FITTED, by name, for the offer card's socket rows.
+	//
+	// The card used to draw anonymous pips: you could count your sockets
+	// but not read what was in them. The mockup lists each fitting by
+	// name, which is the thing that teaches a first-time player what a
+	// socket does.
+	//
+	// Names come from the upgrade's own GetName(), so a renamed or newly
+	// added affix needs no entry here.
+	static void FittedNames(RS_Weapon wep, out Array<string> outv)
+	{
+		outv.Clear();
+		if (!wep || !wep.Owner)
+			return;
+
+		let stats = TFLV_PerPlayerStats.GetStatsFor(wep.Owner);
+		if (!stats)
+			return;
+
+		let info = stats.GetInfoFor(wep);
+		if (!info)
+			return;
+
+		for (int i = 0; i < info.upgrades.upgrades.Size(); i++)
+		{
+			let upg = info.upgrades.upgrades[i];
+			if (upg && upg.level > 0)
+				outv.Push(upg.GetName());
+		}
+	}
+
 	// Read a weapon's Condition for UI (the GunBonsai HUD's CND readout).
 	// Takes a plain Weapon so callers never name RS types -- the cast
 	// lives here, the one sanctioned coupling point. -1 = not an RS

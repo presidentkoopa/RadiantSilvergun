@@ -164,7 +164,12 @@ class RS_BBWeaponCard
 		// through the engine and SHRINKS a string that will not fit, so an
 		// over-large line degrades to "slightly smaller label" rather than
 		// to a clipped word.
-		double line = min(w, h) * 0.085;
+		// 0.062 of the SHORT side. Solved, not chosen: the right column
+		// has to stack ten rows (a heading, three stat rows, a sockets
+		// heading, five socket rows) plus an action strip inside the card
+		// height, which gives a 0.078h step -- and a glyph taller than
+		// ~0.82 of its step collides with the row above it.
+		double line = min(w, h) * 0.062;
 
 		// --- ground, then frame, then regions -------------------------
 		// The frame is a tier-coloured plate one step larger than the
@@ -252,7 +257,7 @@ class RS_BBWeaponCard
 		double gx0 = -w * 0.5 + idW;          // left edge of the grid area
 		double gw  = w - idW;
 		double cw  = gw / 4.0;
-		double rowH = line * 1.62;
+		double rowH = h * 0.078;
 		// LAYOUT USES THE WHOLE CARD NOW. Fixed 2026-08-09.
 		//
 		// Measured before changing: content ran from +6.80 down to -3.71
@@ -262,10 +267,10 @@ class RS_BBWeaponCard
 		//
 		// Fractions of h rather than absolutes so it holds at any card
 		// size the cvars produce.
-		double gyTop = h * 0.30;
+		double gyTop = h * 0.382;
 
 		Color faint = Color(255, 96, 92, 108);
-		RS_BBCompose.Text(p, gx0 + gw * 0.03, h * 0.43, "STATS", line * 0.62,
+		RS_BBCompose.Text(p, gx0 + gw * 0.03, h * 0.46, "STATS", line * 0.62,
 			faint, -1, gw * 0.5);
 
 		// Column 1 -- DMG ROF DPS. DPS last because it is the product of
@@ -313,29 +318,90 @@ class RS_BBWeaponCard
 		// --- sockets --------------------------------------------------
 		// A sub-plate behind the list, so the sockets read as a separate
 		// region from the numbers above them.
-		double sy = -h * 0.17;
+		double sy = h * 0.148;
 		int socks = max(rsw.GunBonaiSockets, SocketsForTier(rsw.Tier));
 
-		RS_BBCompose.Plate(p, gx0 + gw * 0.5, sy - h * 0.12, gw * 0.94, h * 0.34,
+		RS_BBCompose.Plate(p, gx0 + gw * 0.5, sy - h * 0.16, gw * 0.94, h * 0.40,
 			Color(255, 22, 22, 30));
 		RS_BBCompose.Text(p, gx0 + gw * 0.03, sy, "SOCKETS", line * 0.62,
 			faint, -1, gw * 0.4);
 		RS_BBCompose.Number(p, gx0 + gw * 0.94, sy, socks,
 			gw * 0.10, line * 0.7, tier);
 
-		// One pip per socket, in a row. Empty ones are drawn, not omitted:
-		// seeing four slots with two filled is the whole point.
-		double pipW = gw * 0.055;
-		double pipY = sy - h * 0.10;
+		// NAMED ROWS, NOT ANONYMOUS PIPS. Rebuilt 2026-08-09 toward the
+		// mockup: the card used to draw coloured dots, so you could count
+		// your sockets but never read what was in them. A name is what
+		// teaches a first-time player what a socket actually does -- the
+		// owner picked this out of the mock specifically.
+		//
+		// Names come from the upgrade's own GetName() via the bridge, so
+		// a renamed or newly added affix needs no entry anywhere here.
+		Array<string> fitted;
+		RS_GunBonsaiBridge.FittedNames(rsw, fitted);
+
+		double rowY  = sy - h * 0.078;
+		double rowH2 = h * 0.078;
+		double pipW  = gw * 0.030;
+
 		for (int i = 0; i < socks && i < 5; i++)
 		{
-			double px = gx0 + gw * 0.06 + (pipW * 1.7) * i;
-			RS_BBCompose.Plate(p, px, pipY, pipW, pipW,
-				i < rsw.GunBonaiSockets ? tier : Color(255, 60, 58, 72));
+			double y = rowY - rowH2 * i;
+			bool   filled = i < fitted.Size();
+
+			// The pip stays -- it is the fastest read of "how many do I
+			// have left" -- but it is now a bullet in front of a name
+			// rather than the whole story.
+			RS_BBCompose.Plate(p, gx0 + gw * 0.05, y, pipW, pipW,
+				filled ? tier : Color(255, 60, 58, 72));
+
+			RS_BBCompose.Text(p, gx0 + gw * 0.10, y,
+				filled ? fitted[i] : "EMPTY",
+				line * 0.72,
+				filled ? tier : Color(255, 96, 92, 108),
+				-1, gw * 0.84);
 		}
 
+		// --- THE ACTION STRIP -------------------------------------------
+		// Three exits, as the mockup has them and as the owner ruled:
+		// Take, Reroll for gold, Deny. There is deliberately NO Recycle --
+		// owner, 2026-08-08: "recycle is broken as a mechanic". It was a
+		// third exit that PAID OUT, which made denying strictly worse than
+		// destroying and turned every offer into an accounting question.
+		//
+		// Drawn, not yet clickable. The hit test exists -- AimBillboard
+		// returns a hit id AND the UV across the face -- so wiring these
+		// is a UV-to-region map rather than new machinery. Drawing them
+		// first is deliberate: a button you can see and not press is
+		// honest, a button that silently does nothing is not.
+		double btnY = -h * 0.405;
+		double btnH = h * 0.11;
+		double btnW = gw * 0.29;
+		double btnGap = gw * 0.045;
+		double btnX0 = gx0 + gw * 0.06;
+
+		Color goldC = Color(255, 255, 205, 40);
+		Color denyC = Color(255, 200, 120, 108);
+
+		RS_BBCompose.Plate(p, btnX0 + btnW * 0.5, btnY, btnW, btnH,
+			Color(210, 26, 30, 26));
+		RS_BBCompose.Text(p, btnX0 + btnW * 0.5, btnY, "TAKE", line * 0.66,
+			tier, 0, btnW * 0.9);
+
+		double bx2 = btnX0 + btnW + btnGap;
+		RS_BBCompose.Plate(p, bx2 + btnW * 0.5, btnY, btnW, btnH,
+			Color(210, 34, 30, 14));
+		RS_BBCompose.Text(p, bx2 + btnW * 0.5, btnY,
+			"REROLL " .. (20 + int(rsw.Tier) * 15) .. "g", line * 0.62,
+			goldC, 0, btnW * 0.92);
+
+		double bx3 = bx2 + btnW + btnGap;
+		RS_BBCompose.Plate(p, bx3 + btnW * 0.5, btnY, btnW, btnH,
+			Color(210, 34, 20, 20));
+		RS_BBCompose.Text(p, bx3 + btnW * 0.5, btnY, "DENY", line * 0.66,
+			denyC, 0, btnW * 0.9);
+
 		// --- condition, the one stat with a live warning colour --------
-		RS_BBCompose.Text(p, gx0 + gw * 0.94, -h * 0.40,
+		RS_BBCompose.Text(p, gx0 + gw * 0.94, h * 0.46,
 			rsw.Condition >= 80 ? "SOUND" : (rsw.Condition >= 40 ? "WORN" : "FAILING"),
 			line * 0.62, ConditionRGB(rsw.Condition), 1, gw * 0.4);
 	}
