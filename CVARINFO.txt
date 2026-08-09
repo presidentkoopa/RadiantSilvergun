@@ -1145,8 +1145,14 @@ server bool rs_panel_solo = true;
 // horizontal room, not vertical. 18x24 was portrait and forced long
 // labels to overflow (see RS_BBCompose.Text's clip note). Owner,
 // 2026-08-08: "squish the cards down, make them wider".
-server float rs_panel_width = 30.0;
-server float rs_panel_height = 17.0;
+// SIZED FOR THE DISTANCE IT IS READ AT, not for the map. At 0.3m a 90
+// degree view spans about 20 map units across, so a 30-unit card was
+// 147% of the screen -- which is why it read as a wall rather than a
+// card. 6 units is ~30% of the view, which is what the owner asked for.
+//
+// Aspect is the mockup's 3.5:1, hence 6.0 x 1.7.
+server float rs_panel_width = 6.0;
+server float rs_panel_height = 1.7;
 
 // How far the wings cant inward, in degrees. Canted, all three faces
 // are legible from one standing position; flat, they are not.
@@ -1276,7 +1282,9 @@ server float rs_drop_markersize = 11.0;
 // card; at rs_panel_radius it appears at rs_drop_cardminscale standing
 // on the pillar; at this distance it is full size and holding station
 // at rs_panel_comfort. Everything in between is interpolated.
-server float rs_drop_cardnear = 88.0;
+// 10 units = 0.30m at the engine's own 34 units/metre
+// (vr_vunits_per_meter). Owner, 2026-08-09: full size at 0.3m.
+server float rs_drop_cardnear = 10.0;
 
 // The card's size at the OUTER radius, as a fraction of full size.
 // Chosen to land near rs_drop_markersize in world terms, so the marker
@@ -1293,7 +1301,10 @@ server float rs_drop_cardminscale = 0.02;
 // units -- so the card inflated across a whole room and was already most
 // of its size before it could be read. Short and fast instead: nothing,
 // then a bloom on arrival.
-server float rs_drop_cardramp = 96.0;
+// 24 units, so growth STARTS at 34 units = 1.0m and completes at 0.3m.
+// Owner: "at 1 meter the card begins to grow out of the diamond, at
+// 0.3 meters it is full size".
+server float rs_drop_cardramp = 24.0;
 
 // How big the dropped weapon itself is on the floor, as a multiplier on
 // its own default scale.
