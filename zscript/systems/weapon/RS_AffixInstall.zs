@@ -257,7 +257,10 @@ class RS_AffixInstall : Object play
 	// -----------------------------------------------------------------
 	static string StripLevel(string v)
 	{
-		if (v.Length() > 6 && v.Right(6) == "master")
+		// Mid(), not Right(): ZScript's String has Left/Mid/ByteAt and NO
+		// Right() -- verified against the engine's own StringStruct in
+		// wadsrc/static/zscript/engine/base.zs rather than assumed.
+		if (v.Length() > 6 && v.Mid(v.Length() - 6) == "master")
 			return v.Left(v.Length() - 6);
 
 		int end = v.Length();
