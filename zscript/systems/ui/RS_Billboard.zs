@@ -251,6 +251,22 @@ class RS_Billboard : Object
 			clamp(strength, 0.0, 1.0));
 	}
 
+	// Which typeface, for the distance-field payloads. Slot 0 is the
+	// default face; 1..level.BillboardFontCount() index the roster.
+	//
+	// THE ROSTER IS RESHUFFLED EVERY GAME. Ask for a slot because you want
+	// a ROLE -- "the display face", "the numeric face" -- never because you
+	// want a named font. Nothing may depend on slot 3 being any particular
+	// typeface, because next run it will not be.
+	//
+	// Not clamped here: the engine resolves anything out of range to the
+	// default face on purpose, so a load that shipped fewer fonts than a
+	// layout asked for draws in the wrong typeface rather than vanishing.
+	void SetFont(int slot)
+	{
+		if (mId) level.SetBillboardFont(mId, slot);
+	}
+
 	// Second colour for a gradient. Rides uObjectColor2, whose ALPHA is
 	// the on switch -- so a col2 with zero alpha means "no gradient",
 	// which is why this takes a full Color rather than an RGB triple.

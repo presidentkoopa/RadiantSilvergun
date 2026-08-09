@@ -1433,10 +1433,16 @@ class RS_PanelDropHandler : EventHandler
 				// The LONGEST axis is what must fit, because the model
 				// spins -- an object that fits sideways and not lengthways
 				// swings out of its own slot once a second.
+				// ASK THE CARD FOR ITS SLOT, do not re-derive it. These two
+				// used to spell out (cw * 0.30) * 0.78 and ch * 0.26 -- a
+				// second copy of the card's own art geometry, which went
+				// stale the moment the card went portrait on 2026-08-09 and
+				// would have parked the model where the old left-hand column
+				// used to be.
 				double cw = RS_PanelController.PanelWidth();
 				double ch = RS_PanelController.PanelHeight();
-				double slotW = (cw * 0.30) * 0.78;
-				double slotH = ch * 0.26;
+				double slotW = RS_BBWeaponCard.ArtLocalWidth(cw);
+				double slotH = RS_BBWeaponCard.ArtLocalHeight(ch);
 				double fit   = min(slotW, slotH) * 0.9;   // 10% breathing room
 
 				mCardModelBaseScale = fit / max(1.0, mCardModel.LongestAxis());

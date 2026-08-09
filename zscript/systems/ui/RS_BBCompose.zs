@@ -252,6 +252,36 @@ class RS_BBCompose
 	// roughly-right rather than to zero-width strings stacked on one spot.
 	const GLYPH_PITCH_FALLBACK = 0.62;
 
+	// Baseline-to-baseline spacing in em boxes, mirroring the engine's
+	// SDFTEXT_LINE_PITCH. Same standing as the pitch above: consulted ONLY
+	// when no atlas is loaded and the engine cannot report the real block
+	// size. If these two ever disagree the engine is right -- this is a
+	// degradation path, not a second opinion.
+	const LINE_PITCH_FALLBACK = 1.30;
+
+	// -----------------------------------------------------------------
+	// FONT SLOTS ARE ROLES, NOT TYPEFACES.
+	//
+	// The engine ships 42 faces and RESHUFFLES THEM EVERY GAME, at the
+	// owner's direction -- a run should not look like the last one. So a
+	// slot number means "the face this kind of text uses", and which
+	// typeface answers to it is different next run.
+	//
+	// Named here, once, so no card carries a bare 1 or 2 that a reader
+	// would have to guess the meaning of, and so changing what a role maps
+	// to is one edit rather than a search.
+	//
+	// FONT_BODY is deliberately slot 0 -- the DEFAULT face, never rolled.
+	// Anything a player must read accurately (stat labels, numbers, socket
+	// names) stays on a face we chose on purpose. Only the decorative
+	// register gets a random one, because a rolled face could be a dotted
+	// or outline display font that is beautiful on a title and unreadable
+	// on a value.
+	// -----------------------------------------------------------------
+	const FONT_BODY    = 0;   // the chosen face; readable, never rolled
+	const FONT_DISPLAY = 1;   // weapon names, headings -- rolled
+	const FONT_ACCENT  = 2;   // secondary flourish -- rolled
+
 	// Parts are created at the origin and moved into place by Place().
 	// Creating them at their final position instead would duplicate the
 	// basis maths in two places and let the two drift.
@@ -293,11 +323,11 @@ class RS_BBCompose
 	//       0 = do not constrain.
 	// -----------------------------------------------------------------
 	static RS_Billboard Text(RS_BBComposedPanel p, double x, double y, string txt,
-		double h, Color col, int align = -1, double maxW = 0)
+		double h, Color col, int align = -1, double maxW = 0, int font = 0)
 	{
 		if (!p || txt.Length() == 0 || h <= 0) return null;
 
-		double w = Measure(txt, h);
+		double w = Measure(txt, h, font);
 
 		// Shrink to fit rather than truncate. The old version cut
 		// characters off, which turns a long label into a different and
@@ -317,7 +347,13 @@ class RS_BBCompose
 		if (align < 0)      cx = x + w * 0.5;
 		else if (align > 0) cx = x - w * 0.5;
 
-		return p.Add(Raw(w, h, LevelLocals.BB_TEXT, 0, col, txt), cx, y);
+		let bb = p.Add(Raw(w, h, LevelLocals.BB_TEXT, 0, col, txt), cx, y);
+		// After creation, not as an argument: AddBillboardPersistent takes
+		// fourteen natively and the script compiler crashes -- silently --
+		// on a native call with sixteen. The engine's own gradient setter
+		// exists for exactly this reason.
+		if (bb && font != 0) bb.SetFont(font);
+		return bb;
 	}
 
 	// -----------------------------------------------------------------
@@ -332,12 +368,106 @@ class RS_BBCompose
 	// ship a font. The fallback is the old fixed-pitch approximation,
 	// which is what this whole file used to assume unconditionally.
 	// -----------------------------------------------------------------
-	static double Measure(string txt, double h)
+	// `font` MUST be the slot the text will draw in. Faces have different
+	// advances, so measuring in one and drawing in another is a layout that
+	// is wrong by however much they disagree -- and because the roster is
+	// reshuffled every game, it would be wrong by a DIFFERENT amount each
+	// run, which is the hardest possible version of this bug to recognise.
+	static double Measure(string txt, double h, int font = 0)
 	{
-		double w = level.MeasureBillboardText(txt, h);
+		double w = level.MeasureBillboardText(txt, h, font);
 		if (w > 0.0)
 			return w;
 		return h * GLYPH_PITCH_FALLBACK * txt.Length();
+	}
+
+	// -----------------------------------------------------------------
+	// A WHOLE COLUMN IN ONE BILLBOARD.
+	//
+	// Added 2026-08-09, together with the engine change that made BB_TEXT
+	// understand '\n'. Until then one pen walked left to right and a
+	// newline resolved to no glyph at all -- skipped silently while the
+	// pen carried on, so two lines ran together on one row.
+	//
+	// WHY IT MATTERS HERE: a stat table is two columns of the same thing
+	// repeated. Drawn a row at a time it costs two billboards per row --
+	// twenty for a ten-row card. Drawn as two strings it costs TWO, and
+	// every row lines up by construction rather than because two separate
+	// y-cursors were kept in step by hand.
+	//
+	// h is the height of ONE LINE, not of the block. The engine reports
+	// the block's real extents back, so the panel is sized from what the
+	// renderer will actually do rather than from a pitch guessed here.
+	//
+	// align applies to the block as a whole; lines are centred within it
+	// by the renderer, which is its rule to make and not ours.
+	// -----------------------------------------------------------------
+	static RS_Billboard TextBlock(RS_BBComposedPanel p, double x, double y, string txt,
+		double h, Color col, int align = -1, double maxW = 0, int font = 0)
+	{
+		if (!p || txt.Length() == 0 || h <= 0) return null;
+
+		Vector2 box = MeasureBlock(txt, h, font);
+		if (box.x <= 0) return null;
+
+		// Shrink the whole block, both axes together, so the lines keep
+		// their proportions. Same reasoning as Text(): scale rather than
+		// truncate, because a reader can see text that got smaller and
+		// cannot see text that got cut.
+		if (maxW > 0 && box.x > maxW)
+		{
+			double shrink = maxW / box.x;
+			h *= shrink;
+			box = (maxW, box.y * shrink);
+		}
+
+		double cx = x;
+		if (align < 0)      cx = x + box.x * 0.5;
+		else if (align > 0) cx = x - box.x * 0.5;
+
+		// The billboard is the BLOCK's size -- height is every line plus
+		// the leading between them, which is why this asks the engine
+		// instead of multiplying h by a line count of its own.
+		let bb = p.Add(Raw(box.x, box.y, LevelLocals.BB_TEXT, 0, col, txt), cx, y);
+		if (bb && font != 0) bb.SetFont(font);
+		return bb;
+	}
+
+	// Width and total height of a multi-line string, for a given per-line
+	// height. Falls back to the fixed-pitch estimate on the widest line and
+	// this file's own copy of the pitch ONLY when no atlas is loaded --
+	// which is the one case where the engine cannot answer and something
+	// visible is better than nothing.
+	static Vector2 MeasureBlock(string txt, double h, int font = 0)
+	{
+		Vector2 box = level.MeasureBillboardTextBlock(txt, h, font);
+		if (box.x > 0.0)
+			return box;
+
+		// No atlas: measure the widest line ourselves. LINE_PITCH_FALLBACK
+		// duplicates the engine's SDFTEXT_LINE_PITCH deliberately and is
+		// used only on this dead path -- when the engine can answer, its
+		// number wins and this one is never consulted.
+		// int, not the unsigned Length() returns -- comparing a signed loop
+		// counter against it is a warning this tree has already cleaned up
+		// once, in RS_FXGallery.
+		int lines = 1, widest = 0, cur = 0;
+		int n = txt.Length();
+		for (int i = 0; i < n; i++)
+		{
+			if (txt.ByteAt(i) == 10)   // '\n'
+			{
+				if (cur > widest) widest = cur;
+				cur = 0;
+				lines++;
+				continue;
+			}
+			cur++;
+		}
+		if (cur > widest) widest = cur;
+
+		return (h * GLYPH_PITCH_FALLBACK * widest,
+		        h * (1.0 + (lines - 1) * LINE_PITCH_FALLBACK));
 	}
 
 	// A NUMBER AS A SEGMENT READOUT -- the arcade display look.

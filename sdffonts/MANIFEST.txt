@@ -1,0 +1,42 @@
+﻿sdf00  akaArcade.ttf  built: akaArcade | 1536x576 | 95 glyphs
+sdf01  Altrobyte.ttf  built: Altrobyte | 1536x576 | 95 glyphs
+sdf02  ARCADECLASSIC.TTF  built: ArcadeClassic | 1536x576 | 95 glyphs
+sdf03  Bitova-Regular.ttf  built: Bitova | 1536x576 | 95 glyphs
+sdf04  Cairopixel.ttf  built: Cairopixel | 1536x576 | 95 glyphs
+sdf05  Delicatus.ttf  built: Delicatus | 1536x576 | 95 glyphs
+sdf06  DeltaBlock-Italic.ttf  built: Delta Block | 1536x576 | 95 glyphs
+sdf07  DeltaBlock-Regular.ttf  built: Delta Block | 1536x576 | 95 glyphs
+sdf08  Easy Pixel.ttf  built: Easy Pixel | 1536x576 | 95 glyphs
+sdf09  ETArtilux-Dots.ttf  built: ET Artilux Dots | 1536x576 | 95 glyphs
+sdf10  ETArtilux-Horizontal.ttf  built: ET Artilux Horizontal | 1536x576 | 95 glyphs
+sdf11  ETArtilux-Ink.ttf  built: ET Artilux Ink | 1536x576 | 95 glyphs
+sdf12  ETArtilux-Regular.ttf  built: ET Artilux Regular | 1536x576 | 95 glyphs
+sdf13  ETArtilux-Rounded.ttf  built: ET Artilux Rounded | 1536x576 | 95 glyphs
+sdf14  ETArtilux-Text.ttf  built: ET Artilux Text | 1536x576 | 95 glyphs
+sdf15  ETArtilux-Vertical.ttf  built: ET Artilux Vertical | 1536x576 | 95 glyphs
+sdf16  GlyphGalaxy.ttf  built: GlyphGalaxy | 1536x576 | 95 glyphs
+sdf17  GothicByte.ttf  built: GothicByte | 1536x576 | 95 glyphs
+sdf18  JungleAdventurer.ttf  built: Jungle Adventurer | 1536x576 | 95 glyphs
+sdf19  ka1.ttf  built: Karmatic Arcade | 1536x576 | 95 glyphs
+sdf20  Lazarus.ttf  built: Lazarus | 1536x576 | 95 glyphs
+sdf21  MatrixType-Bold.ttf  built: MatrixType | 1536x576 | 95 glyphs
+sdf22  MatrixTypeDisplay-Bold.ttf  built: MatrixType Display | 1536x576 | 95 glyphs
+sdf23  MatrixTypeDisplay-Regular.ttf  built: MatrixType Display | 1536x576 | 95 glyphs
+sdf24  MatrixType-Regular.ttf  built: MatrixType | 1536x576 | 95 glyphs
+sdf25  Nexmod-Outline.ttf  built: Nexmod Outline | 1536x576 | 95 glyphs
+sdf26  Nexmod-Regular.ttf  built: Nexmod | 1536x576 | 95 glyphs
+sdf27  NoiseBlock.ttf  built: Noise Block | 1536x576 | 95 glyphs
+sdf28  NoiseBlock-Outline.ttf  built: Noise Block Outline | 1536x576 | 95 glyphs
+sdf29  Pixelitta-Regular.ttf  built: Pixelitta | 1536x576 | 95 glyphs
+sdf30  PixeloidMono.ttf  built: Pixeloid Mono | 1536x576 | 95 glyphs
+sdf31  PixeloidSans.ttf  built: Pixeloid Sans | 1536x576 | 95 glyphs
+sdf32  PixeloidSans-Bold.ttf  built: Pixeloid Sans | 1536x576 | 95 glyphs
+sdf33  Pixtile.ttf  built: Pixtile | 1536x576 | 95 glyphs
+sdf34  Rasteron-Pixelated.ttf  built: Rasteron | 1536x576 | 95 glyphs
+sdf35  Ryga.ttf  built: Ryga | 1536x576 | 95 glyphs
+sdf36  Script Screen.ttf  built: Script Screen | 1536x576 | 95 glyphs
+sdf37  StartSignal.ttf  built: StartSignal | 1536x576 | 95 glyphs
+sdf38  Steve.ttf  built: Steve | 1536x576 | 95 glyphs
+sdf39  Steven.ttf  built: Steven | 1536x576 | 95 glyphs
+sdf40  Westerngames Outline Regular.ttf  built: Westerngames Outline | 1536x576 | 95 glyphs
+sdf41  Westerngames Regular.ttf  built: Westerngames | 1536x576 | 95 glyphs

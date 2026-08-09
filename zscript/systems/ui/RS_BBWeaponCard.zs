@@ -144,8 +144,28 @@ class RS_BBWeaponCard play
 	// an inch off the icon it replaces reads as a bug rather than as a
 	// choice.
 	// -----------------------------------------------------------------
+	// The action strip's centre line. A function rather than a constant
+	// because the socket list has to know where it is in order to stop
+	// before reaching it -- and a second copy of this number is exactly how
+	// the two would drift apart.
+	static double BTN_Y(double h) { return -h * 0.405; }
+
+	// WHERE THE ART SITS. Read by RS_EliteDrop to place the spinning 3D
+	// model, so these two are the ONE definition of that slot -- moving the
+	// art means editing here and nowhere else, and the model follows.
+	//
+	// In the identity column, as the mockup has it. Briefly centred on
+	// 2026-08-09 for a portrait card that turned out to be a misreading of
+	// the mock -- reverted the same day.
 	static double ArtLocalRight(double w) { return -w * 0.5 + (w * 0.30) * 0.5; }
 	static double ArtLocalUp(double h)    { return h * 0.16; }
+
+	// The slot's size, so the model and the icon agree without either one
+	// guessing. RS_EliteDrop fits the model to this rather than re-deriving
+	// it -- it used to spell out (w*0.30)*0.78 itself, a second copy that
+	// would silently disagree the moment this moved.
+	static double ArtLocalWidth(double w)  { return (w * 0.30) * 0.78; }
+	static double ArtLocalHeight(double h) { return h * 0.26; }
 
 	// -----------------------------------------------------------------
 	// heading: "MAINHAND", "OFFHAND", "DROP" -- which column this is.
@@ -215,6 +235,9 @@ class RS_BBWeaponCard play
 		}
 
 		// --- identity column ------------------------------------------
+		// The mockup's 150px-of-520 column, which is where w*0.30 comes
+		// from. Do not "improve" this into a top band -- that was tried on
+		// 2026-08-09 and it was a misreading of the mock.
 		double idW  = w * 0.30;
 		double idCx = -w * 0.5 + idW * 0.5;
 
@@ -226,25 +249,34 @@ class RS_BBWeaponCard play
 		// Tier-filled header strip. The one place the tier is a solid fill
 		// rather than an outline, which is what makes it the first thing
 		// the eye lands on.
-		let strip = RS_BBCompose.Plate(p, idCx, h * 0.42, idW * 0.94, h * 0.13, tier);
+		//
+		// PULLED IN TO SIT INSIDE ITS OWN PLATE. It was at h*0.42 with
+		// height h*0.13, so its top edge landed at h*0.485 against a plate
+		// that stops at h*0.45 -- the strip overhung the block it belongs
+		// to. h*0.405 +/- h*0.045 sits wholly within it.
+		let strip = RS_BBCompose.Plate(p, idCx, h * 0.405, idW * 0.94, h * 0.09, tier);
 		if (strip) strip.SetGlow(0.7, 0.85);
 		// HEADING, NOT A HARDCODED STRING. This read "CLASS WEAPON" on
 		// every card, so the drop, the mainhand and the offhand were
 		// indistinguishable -- three identical cards side by side, which
 		// is exactly what the owner reported. `heading` has been a
 		// parameter the whole time and was only used in the EMPTY case.
-		RS_BBCompose.Text(p, idCx, h * 0.42, heading, line * 0.62,
+		RS_BBCompose.Text(p, idCx, h * 0.405, heading, line * 0.62,
 			Color(255, 10, 10, 14), 0, idW * 0.9);
 
 		TextureID icon = wep.Icon;
 		if (icon.IsValid())
 		{
 			RS_BBCompose.Picture(p, ArtLocalRight(w), ArtLocalUp(h), icon,
-				idW * 0.78, h * 0.26, Color(255, 255, 255, 255));
+				ArtLocalWidth(w), ArtLocalHeight(h), Color(255, 255, 255, 255));
 		}
 
+		// The weapon's name is the one line on this card that is allowed a
+		// rolled face. Everything below it -- labels, numbers, socket names
+		// -- stays on FONT_BODY, because a player reads those for accuracy
+		// and a rolled face may be dotted, outlined or otherwise decorative.
 		let nameBB = RS_BBCompose.Text(p, idCx, -h * 0.14, wep.GetTag(), line * 1.05,
-			Color(255, 240, 236, 228), 0, idW * 0.9);
+			Color(255, 240, 236, 228), 0, idW * 0.9, RS_BBCompose.FONT_DISPLAY);
 		if (nameBB) nameBB.SetGlow(0.35, 0.5);
 
 		if (rsw)
@@ -268,6 +300,14 @@ class RS_BBWeaponCard play
 		}
 
 		// --- stat grid: 4 wide, 3 tall --------------------------------
+		// THE MOCKUP'S GRID. Briefly replaced on 2026-08-09 by a column of
+		// full-width rows from RS_CardContent, on the theory that twelve
+		// numbers could not be made readable. Owner: "what happened to the
+		// template? 4 x 3 and we had room for shit."
+		//
+		// He was right. The grid was never the problem -- the card being
+		// 1.7 units tall was, and raising it to 2.7 buys the glyph height
+		// without touching the layout. Restored verbatim.
 		double gx0 = -w * 0.5 + idW;          // left edge of the grid area
 		double gw  = w - idW;
 		double cw  = gw / 4.0;
@@ -335,8 +375,28 @@ class RS_BBWeaponCard play
 		double sy = h * 0.148;
 		int socks = max(rsw.GunBonaiSockets, SocketsForTier(rsw.Tier));
 
-		RS_BBCompose.Plate(p, gx0 + gw * 0.5, sy - h * 0.16, gw * 0.94, h * 0.40,
-			Color(255, 22, 22, 30));
+		// How many socket rows there is actually room for, decided BEFORE the
+		// plate is drawn so the plate can be sized to hold them. The old
+		// order did the opposite -- a fixed h*0.40 plate and then up to five
+		// rows poured into it -- and the fifth row fell straight through the
+		// bottom onto bare card. Only ever visible on a Prototype, which is
+		// the one time the card matters most.
+		double rowY  = sy - h * 0.078;
+		double rowH2 = h * 0.078;
+		int sockRows = int((rowY - (BTN_Y(h) + h * 0.090)) / rowH2) + 1;
+		sockRows = clamp(sockRows, 0, 5);
+
+		int sockShown = min(socks, sockRows);
+
+		// The plate WRAPS its content: from just above the header down to
+		// just below the last row it will actually draw. A weapon with two
+		// sockets gets a short plate rather than a tall one with a hole in
+		// the bottom of it.
+		double plTop = sy + h * 0.055;
+		double plBot = rowY - rowH2 * max(0, sockShown - 1) - h * 0.045;
+		RS_BBCompose.Plate(p, gx0 + gw * 0.5, (plTop + plBot) * 0.5,
+			gw * 0.94, max(h * 0.10, plTop - plBot), Color(255, 22, 22, 30));
+
 		RS_BBCompose.Text(p, gx0 + gw * 0.03, sy, "SOCKETS", line * 0.62,
 			faint, -1, gw * 0.4);
 		RS_BBCompose.Segment(p, gx0 + gw * 0.94, sy, "" .. socks,
@@ -353,11 +413,9 @@ class RS_BBWeaponCard play
 		Array<string> fitted;
 		RS_GunBonsaiBridge.FittedNames(rsw, fitted);
 
-		double rowY  = sy - h * 0.078;
-		double rowH2 = h * 0.078;
 		double pipW  = gw * 0.030;
 
-		for (int i = 0; i < socks && i < 5; i++)
+		for (int i = 0; i < sockShown; i++)
 		{
 			double y = rowY - rowH2 * i;
 			bool   filled = i < fitted.Size();
@@ -387,7 +445,7 @@ class RS_BBWeaponCard play
 		// is a UV-to-region map rather than new machinery. Drawing them
 		// first is deliberate: a button you can see and not press is
 		// honest, a button that silently does nothing is not.
-		double btnY = -h * 0.405;
+		double btnY = BTN_Y(h);
 		double btnH = h * 0.11;
 		double btnW = gw * 0.29;
 		double btnGap = gw * 0.045;

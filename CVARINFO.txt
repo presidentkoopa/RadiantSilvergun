@@ -1150,9 +1150,26 @@ server bool rs_panel_solo = true;
 // 147% of the screen -- which is why it read as a wall rather than a
 // card. 6 units is ~30% of the view, which is what the owner asked for.
 //
-// Aspect is the mockup's 3.5:1, hence 6.0 x 1.7.
+// TALLER, NOT NARROWER. Changed 2026-08-09: owner, "font larger... can't
+// read anything, all that negative space", then "what happened to the
+// template? 4 x 3 and we had room for shit. the mockup?!"
+//
+// He was right and the first attempt at this was wrong. It went portrait
+// (3.4 x 4.6) on the theory that the WIDTH was the fault. It was not: the
+// approved mockup is a 520px card with a 150px identity column, which is
+// 28.8% -- the w*0.30 the card already used. The template was faithful.
+//
+// The fault was the HEIGHT. Glyph height is min(w,h)*0.062, so at 1.7 the
+// text was pinned by the short axis, and fourteen bands were stacked into
+// that same 1.7 -- meaning the font could not be raised without the rows
+// colliding. Both symptoms, one cause, and neither was the width.
+//
+// 2.7 keeps the mockup's layout intact and lifts min(w,h) by 59%, which
+// buys the glyph height AND the row pitch at once. Do not "fix" a small
+// font here by narrowing the card -- that was tried and it deleted the
+// four-wide stat grid to no purpose.
 server float rs_panel_width = 6.0;
-server float rs_panel_height = 1.7;
+server float rs_panel_height = 2.7;
 
 // How far the wings cant inward, in degrees. Canted, all three faces
 // are legible from one standing position; flat, they are not.

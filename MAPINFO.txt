@@ -22,7 +22,7 @@ GameInfo
 	// RS_WeaponDiag removed 2026-08-07 -- a disposable raise/lower
 	// diagnostic that was printing to the console at the start of every
 	// map. Its include went in the same change.
-	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating", "RS_EliteHandler", "RS_MonsterDebugHandler", "RS_ConditionHandler", "RS_ReserveSquads", "RS_PanelHandler", "RS_PanelDropHandler", "RS_NoMonsterDrops", "RS_SummonMarker", "RS_BBUIHandler", "RS_LivesHandler", "RS_GrenadeHUD", "RS_CurseHandler", "RS_SlateHandler", "RS_FXGalleryHandler"
+	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating", "RS_EliteHandler", "RS_MonsterDebugHandler", "RS_ConditionHandler", "RS_ReserveSquads", "RS_PanelHandler", "RS_PanelDropHandler", "RS_NoMonsterDrops", "RS_SummonMarker", "RS_BBUIHandler", "RS_LivesHandler", "RS_GrenadeHUD", "RS_CurseHandler", "RS_SlateHandler", "RS_FXGalleryHandler", "RS_CardDumpHandler", "RS_DropTestHandler"
 }
 
 // C05's creep and poison kill under this type -- without the block the

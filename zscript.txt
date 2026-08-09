@@ -321,6 +321,16 @@ version "4.14"
 // ceiling on how many cards can be on screen at once. After RS_Billboard,
 // whose group type it fills.
 #include "zscript/systems/ui/RS_BBCompose.zs"
+// WHAT AN OFFER CARD SAYS, as plain data -- one list of lines, chosen
+// per weapon, each carrying a coloured delta against the gun in hand.
+// Rows that cannot differ for a given weapon are not emitted at all,
+// which is the whole difference from the fixed 4x3 grid below.
+//
+// BEFORE RS_BBWeaponCard because it reads StatRGB from it, and after
+// nothing in particular -- ZScript compiles as one unit, so this order
+// is for the reader. It does need to BE here: a .zs file missing from
+// this list SILENTLY does not exist.
+#include "zscript/systems/ui/RS_CardContent.zs"
 #include "zscript/systems/ui/RS_BBWeaponCard.zs"
 // The IMPRINT offer card. Its own file rather than a branch inside
 // RS_BBWeaponCard because the two show different things for a reason: a
@@ -339,6 +349,25 @@ version "4.14"
 // fine and is the same shape as RS_BBWeaponCard reaching
 // RS_GunBonsaiBridge from here.
 #include "zscript/systems/ui/RS_BBLevelUpCard.zs"
+// The GunBonsai STATUS screen, in the world -- what the flat
+// TFLV_Menu_StatusDisplay / TFLV_Menu_UnifiedStatusDisplay pair shows in
+// one scrolling column, dealt as a deck instead: a card per SUBJECT
+// (player, mainhand, offhand), a card per PAGE of each subject's upgrade
+// bag, and the mainhand's Legendoom effects when it has any.
+//
+// It does NOT carry a third layout engine: RS_BBStatusScreen subclasses
+// RS_BBLevelUpScreen and reuses its fan/grid solver, its per-tic Place
+// and its Close, so both decks arrange the same way and there is one
+// piece of arithmetic to get right rather than two. After
+// RS_BBLevelUpCard for that reason, and it also reaches
+// RS_BBImprintCard's greys and RS_BBLevelUpCard.SegmentSafe -- all
+// forward/backward references that ZScript resolves as one unit, the
+// same shape as RS_BBWeaponCard reaching RS_GunBonsaiBridge from here.
+//
+// Nothing calls it yet. The hookup (RS_UIHandler.CycleSheets, one
+// branch) is written up at the bottom of the file and is the owner's
+// call, not this file's.
+#include "zscript/systems/ui/RS_BBStatusCards.zs"
 
 #include "zscript/systems/ui/RS_Panel.zs"
 #include "zscript/systems/ui/RS_PanelCard.zs"
@@ -351,6 +380,10 @@ version "4.14"
 // The payout the elite system never had. RS_Elite.zs's own header calls
 // the drop "a later step"; this is it.
 #include "zscript/systems/ui/RS_EliteDrop.zs"
+// Spawns a populated drop on demand. RS_WeaponDrop.Create is otherwise
+// reachable only from the elite death path, so there was no way to look at
+// a card without hunting an elite first.
+#include "zscript/systems/ui/RS_DropTest.zs"
 #include "zscript/systems/ui/RS_ElitePackage.zs"
 
 // RS_Slate -- THE PANEL. One in-world screen class: five regions, six
