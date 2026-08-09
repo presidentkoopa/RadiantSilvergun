@@ -131,7 +131,7 @@ class RS_BBWeaponCard
 	// choice.
 	// -----------------------------------------------------------------
 	static double ArtLocalRight(double w) { return -w * 0.5 + (w * 0.30) * 0.5; }
-	static double ArtLocalUp(double h)    { return h * 0.15; }
+	static double ArtLocalUp(double h)    { return h * 0.16; }
 
 	// -----------------------------------------------------------------
 	// heading: "MAINHAND", "OFFHAND", "DROP" -- which column this is.
@@ -155,7 +155,16 @@ class RS_BBWeaponCard
 		//
 		// Tying it to min(w, h) makes the card degrade legibly instead:
 		// wrong proportions look wrong, they do not look broken.
-		double line = min(w, h) * 0.062;
+		// 0.085, was 0.062. Text was small for the card it sat on -- the
+		// old value was chosen while the grid was crammed into the middle
+		// third and there was no room for anything bigger. Now that the
+		// layout uses the full height, it can be.
+		//
+		// Safe to raise because Text() no longer approximates: it measures
+		// through the engine and SHRINKS a string that will not fit, so an
+		// over-large line degrades to "slightly smaller label" rather than
+		// to a clipped word.
+		double line = min(w, h) * 0.085;
 
 		// --- ground, then frame, then regions -------------------------
 		// The frame is a tier-coloured plate one step larger than the
@@ -198,9 +207,9 @@ class RS_BBWeaponCard
 		// Tier-filled header strip. The one place the tier is a solid fill
 		// rather than an outline, which is what makes it the first thing
 		// the eye lands on.
-		let strip = RS_BBCompose.Plate(p, idCx, h * 0.38, idW * 0.94, h * 0.13, tier);
+		let strip = RS_BBCompose.Plate(p, idCx, h * 0.42, idW * 0.94, h * 0.13, tier);
 		if (strip) strip.SetGlow(0.7, 0.85);
-		RS_BBCompose.Text(p, idCx, h * 0.38, "CLASS WEAPON", line * 0.62,
+		RS_BBCompose.Text(p, idCx, h * 0.42, "CLASS WEAPON", line * 0.62,
 			Color(255, 10, 10, 14), 0, idW * 0.9);
 
 		TextureID icon = wep.Icon;
@@ -210,18 +219,18 @@ class RS_BBWeaponCard
 				idW * 0.78, h * 0.26, Color(255, 255, 255, 255));
 		}
 
-		let nameBB = RS_BBCompose.Text(p, idCx, -h * 0.10, wep.GetTag(), line * 1.05,
+		let nameBB = RS_BBCompose.Text(p, idCx, -h * 0.14, wep.GetTag(), line * 1.05,
 			Color(255, 240, 236, 228), 0, idW * 0.9);
 		if (nameBB) nameBB.SetGlow(0.35, 0.5);
 
 		if (rsw)
 		{
-			RS_BBCompose.Text(p, idCx, -h * 0.21, RS_UIStyle.TierName(rsw.Tier),
+			RS_BBCompose.Text(p, idCx, -h * 0.27, RS_UIStyle.TierName(rsw.Tier),
 				line * 0.72, tier, 0, idW * 0.9);
 
 			// Level bar. Grows from the left, so only its right end moves.
-			RS_BBCompose.Bar(p, idCx, -h * 0.32, 64,
-				idW * 0.82, h * 0.045, tier);
+			RS_BBCompose.Bar(p, idCx, -h * 0.40, 64,
+				idW * 0.82, h * 0.055, tier);
 		}
 
 		if (!rsw)
@@ -238,11 +247,20 @@ class RS_BBWeaponCard
 		double gx0 = -w * 0.5 + idW;          // left edge of the grid area
 		double gw  = w - idW;
 		double cw  = gw / 4.0;
-		double rowH = line * 1.42;
-		double gyTop = h * 0.26;
+		double rowH = line * 1.62;
+		// LAYOUT USES THE WHOLE CARD NOW. Fixed 2026-08-09.
+		//
+		// Measured before changing: content ran from +6.80 down to -3.71
+		// on a card spanning -8.5..+8.5 -- 62% of the height, with the
+		// bottom 4.8 units simply empty. That is what read as "needs
+		// better use of space".
+		//
+		// Fractions of h rather than absolutes so it holds at any card
+		// size the cvars produce.
+		double gyTop = h * 0.30;
 
 		Color faint = Color(255, 96, 92, 108);
-		RS_BBCompose.Text(p, gx0 + gw * 0.03, h * 0.40, "STATS", line * 0.62,
+		RS_BBCompose.Text(p, gx0 + gw * 0.03, h * 0.43, "STATS", line * 0.62,
 			faint, -1, gw * 0.5);
 
 		// Column 1 -- DMG ROF DPS. DPS last because it is the product of
@@ -290,10 +308,10 @@ class RS_BBWeaponCard
 		// --- sockets --------------------------------------------------
 		// A sub-plate behind the list, so the sockets read as a separate
 		// region from the numbers above them.
-		double sy = gyTop - rowH * 3.6;
+		double sy = -h * 0.17;
 		int socks = max(rsw.GunBonaiSockets, SocketsForTier(rsw.Tier));
 
-		RS_BBCompose.Plate(p, gx0 + gw * 0.5, sy - h * 0.06, gw * 0.94, h * 0.24,
+		RS_BBCompose.Plate(p, gx0 + gw * 0.5, sy - h * 0.12, gw * 0.94, h * 0.34,
 			Color(255, 22, 22, 30));
 		RS_BBCompose.Text(p, gx0 + gw * 0.03, sy, "SOCKETS", line * 0.62,
 			faint, -1, gw * 0.4);
@@ -303,7 +321,7 @@ class RS_BBWeaponCard
 		// One pip per socket, in a row. Empty ones are drawn, not omitted:
 		// seeing four slots with two filled is the whole point.
 		double pipW = gw * 0.055;
-		double pipY = sy - line * 1.25;
+		double pipY = sy - h * 0.10;
 		for (int i = 0; i < socks && i < 5; i++)
 		{
 			double px = gx0 + gw * 0.06 + (pipW * 1.7) * i;
@@ -312,7 +330,7 @@ class RS_BBWeaponCard
 		}
 
 		// --- condition, the one stat with a live warning colour --------
-		RS_BBCompose.Text(p, gx0 + gw * 0.94, sy - line * 2.6,
+		RS_BBCompose.Text(p, gx0 + gw * 0.94, -h * 0.40,
 			rsw.Condition >= 80 ? "SOUND" : (rsw.Condition >= 40 ? "WORN" : "FAILING"),
 			line * 0.62, ConditionRGB(rsw.Condition), 1, gw * 0.4);
 	}
