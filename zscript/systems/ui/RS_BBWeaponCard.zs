@@ -209,7 +209,12 @@ class RS_BBWeaponCard
 		// the eye lands on.
 		let strip = RS_BBCompose.Plate(p, idCx, h * 0.42, idW * 0.94, h * 0.13, tier);
 		if (strip) strip.SetGlow(0.7, 0.85);
-		RS_BBCompose.Text(p, idCx, h * 0.42, "CLASS WEAPON", line * 0.62,
+		// HEADING, NOT A HARDCODED STRING. This read "CLASS WEAPON" on
+		// every card, so the drop, the mainhand and the offhand were
+		// indistinguishable -- three identical cards side by side, which
+		// is exactly what the owner reported. `heading` has been a
+		// parameter the whole time and was only used in the EMPTY case.
+		RS_BBCompose.Text(p, idCx, h * 0.42, heading, line * 0.62,
 			Color(255, 10, 10, 14), 0, idW * 0.9);
 
 		TextureID icon = wep.Icon;

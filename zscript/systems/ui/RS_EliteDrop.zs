@@ -1422,6 +1422,23 @@ class RS_PanelDropHandler : EventHandler
 			}
 		}
 
+		// BORN AT ZERO, NOT AT FULL SIZE.
+		//
+		// The card was built at its authored size and only shrank on the
+		// NEXT tic, when TrackCard ran -- so every card popped into
+		// existence full-size for one frame before collapsing to a speck,
+		// and if the player was already inside the ramp it simply stayed
+		// large. That is why they read as "always on" instead of growing
+		// into existence.
+		//
+		// Scaling here, before the first draw, means the first thing ever
+		// rendered is the speck. TrackCard takes over on the following
+		// tic. This also places the 3D model, which otherwise sat at the
+		// drop on the floor until the first TrackCard -- which is why
+		// there appeared to be no model on the card at all.
+		TrackCard(pawn, d, (d.pos - pawn.pos).Length(),
+			RS_PanelController.Radius());
+
 		// The card belongs to the DROP: it sits above the pickup at every
 		// range and only its size changes. This comment used to say the
 		// opposite -- that the card held a comfortable distance in front

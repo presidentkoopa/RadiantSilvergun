@@ -1129,6 +1129,11 @@ server bool rs_panel_enabled = true;
 // built; this picks which one a triptych assembles.
 server int rs_panel_density = 0;
 
+// ONE CARD, NOT THREE. The triptych's offhand and mainhand wings are a
+// comparison view; the designed card is a single panel describing what
+// is on offer. Off restores all three.
+server bool rs_panel_solo = true;
+
 // Panel size in MAP UNITS, FULL EXTENT (not half-extent). Full extent
 // is written down here because for a hinge it decides whether the wings
 // meet the centre panel exactly, overlap it, or leave a seam.

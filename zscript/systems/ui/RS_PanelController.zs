@@ -203,6 +203,17 @@ class RS_PanelController
 	//
 	// 96 is about two body-widths: close enough to read as "on arrival",
 	// long enough that the bloom is a movement rather than a pop.
+	// ONE CARD, NOT THREE. Default ON.
+	//
+	// The triptych's offhand/mainhand wings are a comparison view. The
+	// mockup is a single card describing what is on offer, and three
+	// near-identical slabs is what the owner actually saw in game.
+	static bool SoloCard()
+	{
+		let cv = CVar.FindCVar("rs_panel_solo");
+		return cv ? cv.GetBool() : true;
+	}
+
 	static double CardRamp()
 	{
 		let cv = CVar.FindCVar("rs_drop_cardramp");

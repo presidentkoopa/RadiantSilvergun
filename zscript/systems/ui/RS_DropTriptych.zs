@@ -463,10 +463,31 @@ class RS_DropTriptych play
 		let core = t.mAsm.AddRoot("RSPNL01", w, coreH);
 		if (!core) return null;
 
+		// SOLO: ONE CARD, THE DROP, AND NOTHING ELSE.
+		//
+		// rs_panel_solo, default ON. Owner, 2026-08-09: "I WANT THE CARD
+		// YOU HAVE IN THE MOCKUP, I DO NOT CARE ABOUT THIS TRIPTYCH."
+		// The mockup is a single card describing the thing on offer; the
+		// offhand and mainhand wings are a comparison view that was never
+		// asked for and that makes three near-identical slabs.
+		//
+		// The wings are simply not built rather than hidden, so they cost
+		// nothing and the hinge solver has nothing to solve. Everything
+		// downstream already tolerates this: mCards[] is still nine
+		// entries and Header/AddRow on an unplaced card is a no-op, and
+		// RS_EliteDrop only ever reads TRI_CoreDrop.
+		bool solo = RS_PanelController.SoloCard();
+
+		RS_Panel wingOff  = null;
+		RS_Panel wingMain = null;
+
 		// Wings hinge at the centre's vertical edges. Negative on the
 		// right and positive on the left folds both toward the reader.
-		let wingOff  = t.mAsm.AddHinged(core, RSPE_Left,  RSPE_Right,  hg, "RSPNL02", w, coreH);
-		let wingMain = t.mAsm.AddHinged(core, RSPE_Right, RSPE_Left,  -hg, "RSPNL03", w, coreH);
+		if (!solo)
+		{
+			wingOff  = t.mAsm.AddHinged(core, RSPE_Left,  RSPE_Right,  hg, "RSPNL02", w, coreH);
+			wingMain = t.mAsm.AddHinged(core, RSPE_Right, RSPE_Left,  -hg, "RSPNL03", w, coreH);
+		}
 
 		if (t.mStacked)
 		{
