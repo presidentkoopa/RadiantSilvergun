@@ -124,7 +124,12 @@ class RS_CardModel_Chainsaw      : RS_CardModel {}
 // a null is a legitimate answer -- the card simply shows no model rather
 // than a wrong one.
 // ---------------------------------------------------------------------
-class RS_CardModelFor
+// `play`, NOT a bare class. A class with no scope qualifier defaults to
+// DATA context, and GetPaletteArchetype is a play function -- so the
+// lookup could not read the weapon it was handed. The eleven "Unknown
+// identifier 'a'" errors that followed were fallout: the declaration
+// failed, so the variable never existed.
+class RS_CardModelFor play
 {
 	static Class<Actor> ForWeapon(RS_Weapon w)
 	{
