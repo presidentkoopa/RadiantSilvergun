@@ -185,25 +185,12 @@ class VR_DualClassBase : DoomPlayer abstract
 	// picks up a grenade never allocates it.
 	RS_GrenadeThrower mGrenade;
 
-	// The grappling hook rides here for exactly the same reason: it reads
-	// BT_USER1 out of original_cmd, and that read has to happen before
-	// CheckWeaponFire looks at the button, or firing the hook could also
-	// discharge whatever is in your hands.
-	//
-	// Unlike the grenade this is NOT lazy-on-pickup -- the hook is a
-	// default mechanic with no pickup at all, so every player has one
-	// from their first tic.
-	RS_HookThrower mHook;
-
 	override void PlayerThink()
 	{
 		RS_PanelInput.Capture(self);
 
 		if (!mGrenade) mGrenade = new("RS_GrenadeThrower");
 		mGrenade.Update(self);
-
-		if (!mHook) mHook = new("RS_HookThrower");
-		mHook.Update(self);
 
 		Super.PlayerThink();
 	}

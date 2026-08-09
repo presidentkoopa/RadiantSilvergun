@@ -21,3 +21,6 @@
 |   [ DOUBLE-TAP USE TO ]    |                                  |      [ HOLD USE TO ]       |
 |    [ APPLY TO OFFHAND ]    |                                  |    [ APPLY TO MAINHAND ]   |
 +----------------------------+                                  +----------------------------+
+
+
+ASK FIR FURTHERE EXPLANATION ON THIS

@@ -1555,6 +1555,33 @@ class RS_Weapon : Weapon abstract
 		return int(newTier) <= int(Tier);
 	}
 
+	// =================================================================
+	// *** THIS IS NOT THE IMPRINT APPLY PATH. DO NOT WIRE IT UP AS ONE.
+	//
+	// Added 2026-08-08, when imprints were built, because the name reads
+	// like the obvious hook and taking it would be three silent
+	// regressions in one call:
+	//
+	//   1. RollStats() is a DESTRUCTIVE WHOLE-WEAPON RE-ROLL. It assigns
+	//      PelletCount (`PelletCount = 1` on the Revolver), so every
+	//      Promotion the player has ever paid for is erased -- and
+	//      Promotion is the mechanic that OWNS permanent pellet growth.
+	//   2. It clears every Locked* flag while leaving the CurseStack*
+	//      counters non-zero: a free curse-wipe AND a desync.
+	//   3. The Prototype -> Basic branch below means a BASIC imprint
+	//      landing on a PROTOTYPE weapon would PROMOTE it -- cutting all
+	//      five stats 20% and dropping it to Basic -- without the player
+	//      ever choosing to. Promotion is a decision, not something a
+	//      loot drop does to you.
+	//
+	// This function is the PROMOTION-CARD path: a tier handed to a
+	// weapon, nothing else. Nothing calls it today.
+	//
+	// An imprint is a PACKAGE (rolled values), not a tier, and it is
+	// applied field by field with an explicit keep-list --
+	// RS_Imprint.ApplyTo, zscript/systems/weapon/RS_Imprint.zs. That is
+	// also the first and only caller CanAcceptImprint() has ever had.
+	// =================================================================
 	virtual void ApplyUpgradeCard(EVR_Tier newTier)
 	{
 		if (!CanAcceptImprint(newTier))

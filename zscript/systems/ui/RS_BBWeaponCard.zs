@@ -94,7 +94,10 @@ class RS_BBWeaponCard
 		double cw, double lineH, string key, int value)
 	{
 		double half = cw * 0.5;
-		RS_BBCompose.Text(p, cx - half, cy, key, lineH, StatRGB(key), -1, cw * 0.58);
+		// 0.60 of the cell to the label, the rest to the value. Enough for
+		// four characters (CRIT, CMUL) at the intended card proportions,
+		// which is the widest key in the set.
+		RS_BBCompose.Text(p, cx - half, cy, key, lineH, StatRGB(key), -1, cw * 0.60);
 		RS_BBCompose.Number(p, cx + half * 0.94, cy, value,
 			cw * 0.34, lineH, Color(255, 245, 245, 240));
 	}
@@ -109,7 +112,19 @@ class RS_BBWeaponCard
 
 		let rsw = wep ? RS_Weapon(wep) : null;
 		Color tier = rsw ? TierRGB(rsw.Tier) : Color(255, 200, 200, 200);
-		double line = h * 0.075;
+		// TEXT SIZE IS DERIVED FROM THE SHORTER SIDE, NOT FROM HEIGHT.
+		//
+		// This was h * 0.075, and h is the one dimension that changes most
+		// between a correct card and a misconfigured one. On a portrait
+		// panel (an old ini holding 40x80) that produced enormous glyphs on
+		// a narrow card, and since a label is clipped to its own cell, the
+		// budget collapsed to ONE CHARACTER per label -- the grid rendered
+		// as "A / M / R" down a column and read as garbage rather than as
+		// a layout that needed a cvar.
+		//
+		// Tying it to min(w, h) makes the card degrade legibly instead:
+		// wrong proportions look wrong, they do not look broken.
+		double line = min(w, h) * 0.062;
 
 		// --- ground, then frame, then regions -------------------------
 		// The frame is a tier-coloured plate one step larger than the

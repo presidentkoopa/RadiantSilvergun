@@ -223,26 +223,75 @@ class RS_ClassGating : EventHandler
 		if (!wep || wep.owner || wep.bMeleeWeapon)
 			return;
 
-		// A MONSTER'S OWN DROP IS NOT A PEDESTAL. Added 2026-08-07.
+		// =============================================================
+		// A MONSTER'S OWN DROP IS NOT A PEDESTAL.
 		//
-		// This handler is for things the MAP placed. A weapon a monster
-		// dropped arrives through the same event, and without this check
-		// it was converted into the player's next missing class-weapon
-		// identity -- so killing one shotgunguy handed you a permanent
-		// arsenal slot, and the six-weapon set completed itself in the
-		// first map off hitscanner corpses.
+		// THE CHECK IS DEFERRED A TIC, AND IT HAS TO BE. Corrected
+		// 2026-08-07 after this shipped broken.
 		//
-		// Worse, it defeated RS_NoMonsterDrops entirely: that handler
-		// suppresses the DROPPED item a tic later, but by then this code
-		// had already destroyed it and spawned a replacement with
-		// Actor.Spawn -- which carries no bTossed, so the replacement
-		// sailed straight through the suppressor.
+		// The first version read `if (wep.bTossed) return;` RIGHT HERE,
+		// inside WorldThingSpawned. That is a silent no-op, every single
+		// time, because the engine has not set the flag yet:
 		//
-		// bTossed is set in exactly one place in the engine
-		// (Actor.A_DropItem), which makes it the honest test for "a
-		// monster dropped this". Owner ruling: only elites drop weapons.
-		if (wep.bTossed)
-			return;
+		//   inventory_util.zs:656   mo = Spawn(...)      <- event fires HERE
+		//   inventory_util.zs:668   inv.bTossed = true;  <- flag set 12 lines later
+		//
+		// So bTossed is ALWAYS false when this event runs, the guard
+		// always passed, and every weapon a monster dropped was converted
+		// into the player's next missing class identity. Killing one
+		// shotgunner handed over a permanent arsenal slot and the
+		// six-weapon set completed itself off hitscanner corpses in the
+		// first map -- which then made elites pay nothing, because
+		// NextMissingIdentity had nothing left to return.
+		//
+		// It also defeated RS_NoMonsterDrops: that handler suppresses the
+		// dropped item a tic later, but this code had already destroyed
+		// it and spawned a replacement via Actor.Spawn, which carries no
+		// bTossed, so the replacement sailed straight through.
+		//
+		// RS_NoMonsterDrops documents this exact engine ordering in its
+		// own header and defers a tic BECAUSE of it. This now does the
+		// same thing rather than repeating the mistake next door to the
+		// file that explains it.
+		// =============================================================
+		mPendingFill.Push(wep);
+		return;
+	}
+
+	// Weapons seen this tic, judged on the next one -- see the long note
+	// above. Anything still here and NOT bTossed was placed by the map (or
+	// by another mod) and is a legitimate fill candidate; anything bTossed
+	// was dropped by a monster and is left alone for RS_NoMonsterDrops.
+	private Array<Weapon> mPendingFill;
+
+	override void WorldTick()
+	{
+		super.WorldTick();
+		if (mPendingFill.Size() == 0) return;
+
+		for (int i = 0; i < mPendingFill.Size(); i++)
+		{
+			let wep = mPendingFill[i];
+
+			// May have been picked up, suppressed or destroyed inside its
+			// own first tic.
+			if (!wep || wep.bDestroyed) continue;
+
+			// NOW the flag is real.
+			if (wep.bTossed) continue;
+
+			// Re-check the conditions that could have changed in a tic.
+			if (wep.owner) continue;
+
+			ResolveFill(wep);
+		}
+		mPendingFill.Clear();
+	}
+
+	// The fill itself, moved out of WorldThingSpawned unchanged apart from
+	// taking its weapon as an argument.
+	private void ResolveFill(Weapon wep)
+	{
 
 		// consoleplayer is deliberate, not a multiplayer oversight -- this
 		// project is singleplayer/VR-only, confirmed with the dev.
@@ -261,31 +310,18 @@ class RS_ClassGating : EventHandler
 			return;
 
 		// -------------------------------------------------------------
-		// HEAVY ORDNANCE CARVE-OUT. Rocket/Plasma/BFG (vanilla or this
-		// mod's own VR_ versions) aren't one of the 7 class families and
-		// have no per-class identity ladder of their own -- they're
-		// governed by the SAME cvar VR_DualClassBase.PostBeginPlay
-		// already uses to grant them universally at spawn:
+		// THE HEAVY ORDNANCE CARVE-OUT IS GONE. Removed 2026-08-08 at
+		// the owner's order ("remove 'allowbigguns'").
 		//
-		//   true  -- every class already gets these for free, so a
-		//            pedestal stays a universal weapon too. Only
-		//            normalised to the VR_ version if it was the
-		//            vanilla one, so it carries this mod's stats
-		//            instead of stock Doom damage.
-		//   false (default) -- the player has no other way to get them,
-		//            so they're funnelled into the SAME class-weapon
-		//            copy pool as everything else below.
+		// Rocket launcher, plasma rifle and BFG used to be handed to
+		// every class for free and skip the fill entirely. That is
+		// incompatible with the tier ladder below, which reads the map
+		// weapon you replaced to decide how good your class weapon is --
+		// those three ARE the top three rungs, so exempting them made
+		// Advanced, Designer and Prototype unreachable from map pickups.
+		//
+		// They now go through the same path as everything else.
 		// -------------------------------------------------------------
-		if (IsHeavyOrdnance(wep.GetClassName()))
-		{
-			if (AllowBigGuns())
-			{
-				NormalizeHeavyOrdnance(wep, self);
-				return;
-			}
-			// else fall through -- treated exactly like any other
-			// non-owned pickup from here down.
-		}
 
 		// -------------------------------------------------------------
 		// THE FILL. Extra mainhand copies (2, 3) before extra offhand
@@ -315,6 +351,10 @@ class RS_ClassGating : EventHandler
 		 || here == mainhand .. "6")
 			return;
 
+		// THE TIER COMES FROM WHAT THE MAP PUT THERE. Read it BEFORE the
+		// original is destroyed below -- see TierForMapWeapon.
+		int mapTier = TierForMapWeapon(here);
+
 		string gap = NextMissingIdentity(pawn, mainhand);
 		if (gap != "")
 		{
@@ -325,6 +365,20 @@ class RS_ClassGating : EventHandler
 			NoteOurSpawn(repl);
 			if (repl)
 				repl.angle = wep.angle;
+
+			// Roll it at the tier the map earned. PostBeginPlay has
+			// already rolled this weapon at Basic and captured THAT as
+			// its promotion baseline, so the baseline has to be reset
+			// and retaken or the ceiling stays anchored to a number the
+			// player never sees -- the same trap RS_EliteDrop documents
+			// at its own RollStats call.
+			let rsw = RS_Weapon(repl);
+			if (rsw)
+			{
+				rsw.ResetDamageBaseline();
+				rsw.RollStats(mapTier);
+				rsw.CaptureInitialDamageBaseline();
+			}
 			// Only consume the pedestal if we actually produced something
 			// to stand in its place. Spawn() returns null for an abstract
 			// class and prints one console line; destroying regardless
@@ -346,52 +400,96 @@ class RS_ClassGating : EventHandler
 		wep.Destroy();
 	}
 
-	static bool AllowBigGuns()
-	{
-		let cv = CVar.GetCVar("rs_dualclass_allowbigguns", null);
-		return cv && cv.GetBool();
-	}
-
-	// Switch, not an array -- see the CLAUDE.md caveat quoted above.
-	static bool IsHeavyOrdnance(Name cls)
+	// =================================================================
+	// THE MAP DECIDES HOW GOOD YOUR CLASS WEAPON IS.
+	//
+	// Owner's design, 2026-08-08. When a map-placed weapon is converted
+	// into one of your six, the tier it rolls at comes from WHAT IT WAS:
+	//
+	//     pistol, shotgun        ->  Common
+	//     SSG, chaingun          ->  Uncommon
+	//     rocket launcher        ->  Advanced
+	//     plasma rifle           ->  Designer
+	//     BFG                    ->  Prototype
+	//
+	// WHY THIS IS BETTER THAN ANY SLIDER WE COULD WRITE. Every Doom map
+	// already escalates its weapons on purpose: pistols and shotguns
+	// early and everywhere, SSG and chaingun as the mid-game step,
+	// rockets when the fights get big, plasma usually behind something,
+	// BFG late or hidden or earned. That ordering is a hand-authored
+	// difficulty curve, present in every wad ever made and tested for
+	// thirty years.
+	//
+	// Reading tier off it means the mod inherits the level designer's
+	// pacing for free: a megawad that gates the BFG until MAP25 gates
+	// your Prototype until MAP25, and a map that hands you plasma in the
+	// first room hands you a Designer in the first room. No level
+	// scaling, no per-wad tuning, and secrets start paying out in gear
+	// rather than just ammo.
+	//
+	// Before this every map fill spawned at Basic -- flat, no variation,
+	// nothing to find. This is the curve, not a rebalance of one.
+	//
+	// The six identities are NOT a ladder: VR_Rifle2 differs from
+	// VR_Rifle only by name, slot and magazine. Which of the six you get
+	// is just whichever gap is next. ALL the power is in this tier.
+	//
+	// Unknown weapon (another mod's, or something we do not recognise)
+	// falls back to Common rather than to nothing -- an unrecognised
+	// pickup should still be worth taking.
+	// =================================================================
+	static int TierForMapWeapon(Name cls)
 	{
 		switch (cls)
 		{
-			case 'RocketLauncher':
-			case 'PlasmaRifle':
+			// --- Prototype: the map's best prize -------------------
 			case 'BFG9000':
-			case 'VR_RocketLauncher':
-			case 'VR_PlasmaRifle':
 			case 'VR_BFG9000':
-				return true;
-			default:
-				return false;
+			case 'RS_GH_BFG9000':
+			case 'RS_GH_BFG10k':
+				return VRT_Prototype;
+
+			// --- Designer -----------------------------------------
+			case 'PlasmaRifle':
+			case 'VR_PlasmaRifle':
+			case 'RS_GH_Plasma':
+			case 'RS_GH_Railgun':
+				return VRT_Designer;
+
+			// --- Advanced -----------------------------------------
+			case 'RocketLauncher':
+			case 'VR_RocketLauncher':
+			case 'RS_GH_RocketLauncher':
+			case 'RS_GH_GrenadeLauncher':
+				return VRT_Advanced;
+
+			// --- Uncommon: the mid-game step up -------------------
+			case 'SuperShotgun':
+			case 'VR_SuperShotgun':
+			case 'RS_GH_SSG':
+			case 'RS_GH_AssaultShotgun':
+			case 'Chaingun':
+			case 'VR_Chaingun':
+			case 'RS_GH_Chaingun':
+			case 'RS_GH_Minigun':
+				return VRT_Uncommon;
+
+			// --- Common: the starting weapons ---------------------
+			case 'Pistol':
+			case 'VR_Pistol':
+			case 'RS_GH_Pistol':
+			case 'Shotgun':
+			case 'VR_Shotgun':
+			case 'RS_GH_PumpShotgun':
+				return VRT_Common;
 		}
+		return VRT_Common;
 	}
 
-	// Vanilla Rocket/Plasma/BFG become this mod's own VR_ version, which
-	// carries this mod's stats instead of stock Doom damage. Already a
-	// VR_ pickup is left alone -- nothing to normalise.
-	// Takes the handler so the replacement can be registered against its
-	// own deferred WorldThingSpawned -- see mOurSpawns.
-	static void NormalizeHeavyOrdnance(Weapon wep, RS_ClassGating h)
-	{
-		string vrName;
-		switch (wep.GetClassName())
-		{
-			case 'RocketLauncher': vrName = "VR_RocketLauncher"; break;
-			case 'PlasmaRifle':    vrName = "VR_PlasmaRifle";    break;
-			case 'BFG9000':        vrName = "VR_BFG9000";        break;
-			default: return;
-		}
-		let repl = Actor.Spawn(vrName, wep.pos);
-		if (h) h.NoteOurSpawn(repl);
-		if (repl)
-		{
-			repl.angle = wep.angle;
-			wep.Destroy();
-		}
-	}
+	// IsHeavyOrdnance / NormalizeHeavyOrdnance REMOVED 2026-08-08 with
+	// the AllowBigGuns carve-out they served. Rocket/plasma/BFG are no
+	// longer special: they go through the fill like every other map
+	// weapon and are the top three rungs of TierForMapWeapon above.
 
 	// Which class-weapon identity this player is missing, in fill order.
 	// "" if all six (2, 3, 5, 6 -- 1 and 4 are the spawn grant) are

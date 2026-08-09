@@ -153,11 +153,68 @@ class RS_NoMonsterDrops : EventHandler
 			// a can be null already: the item may have been picked up or
 			// destroyed inside its own first tic.
 			let inv = Inventory(a);
-			if (!allow && inv && inv.bTossed && inv.bDropped
-			    && !inv.owner && inv.bSpecial)
+			if (!allow && inv && ShouldSuppress(inv))
 				inv.Destroy();
 		}
 		mPending.Clear();
+	}
+
+	// =================================================================
+	// TWO DROP MECHANISMS, AND THE FIRST VERSION ONLY CAUGHT ONE.
+	// Corrected 2026-08-08.
+	//
+	// The bTossed test above was right about DropItem and blind to the
+	// other half of the problem. The monster roster drops loot two
+	// completely different ways:
+	//
+	//   1. `DropItem` in the Default block -- 2314 uses. Goes through
+	//      Actor.A_DropItem, which sets bTossed (inventory_util.zs:669).
+	//      Caught.
+	//   2. `A_SpawnItemEx(...)` inside a Death state -- ~130 uses, 56 of
+	//      them HealthBonus and 40 ArmorBonus, plus shells, cells, clips
+	//      and medikits. This is a PLAIN SPAWN. It sets no bTossed, no
+	//      bDropped, nothing that marks it as loot. Not caught, so every
+	//      one of them landed on the floor with the suppressor running
+	//      and reporting success.
+	//
+	// Owner, 2026-08-08: "my Monsters drop all sorts of shit, weapons,
+	// health bonuses, armor shards... the ONLY drops are kill rewards and
+	// classweapons / imprints."
+	//
+	// WHY THIS IS NOT JUST "DROP THE bTossed CHECK". Without it the test
+	// becomes "any pickable Inventory on the floor", which eats the map's
+	// own placed items, elite pedestals, and the player's kit. Each of
+	// those is excluded here explicitly and for a stated reason, because
+	// a silent over-catch here is exactly the bug that once deleted the
+	// player's entire inventory (see the note above).
+	// =================================================================
+	bool ShouldSuppress(Inventory inv)
+	{
+		// Must be loose on the floor and pickable. BecomeItem clears
+		// bSpecial the moment something enters an inventory, so this alone
+		// separates a floor pickup from carried gear.
+		if (inv.owner || !inv.bSpecial) return false;
+
+		// MAP-PLACED ITEMS ARE NOT MONSTER LOOT. AActor::LevelSpawned
+		// (p_mobj.cpp:5043) clears bDropped for things P_SpawnMapThing
+		// placed, and for nothing else -- so bDropped true means "spawned
+		// during play", which covers both mechanisms above and excludes
+		// the map's own ammo and armour.
+		if (!inv.bDropped) return false;
+
+		// OUR OWN PAYOUTS SURVIVE. Kill-reward Bits are spawned by
+		// RS_Bits and are the one thing that is supposed to drop.
+		if (RS_BitUtil.IsBit(inv)) return false;
+
+		// ELITE DROPS SURVIVE. RS_WeaponDrop's payload is marked
+		// non-interactive before the deferred event can fire, and nothing
+		// else on a floor ever is -- the same signature RS_ClassGating
+		// uses to grant it an exemption.
+		if (inv.bNoInteraction) return false;
+
+		// Anything still here was put on the floor by a monster dying,
+		// whichever way it was spawned.
+		return true;
 	}
 
 	// A pending list must not survive a level change -- the actors in it
