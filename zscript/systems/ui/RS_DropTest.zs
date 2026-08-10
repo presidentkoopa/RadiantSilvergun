@@ -167,8 +167,14 @@ class RS_DropTestHandler : EventHandler
 				return;
 			}
 			// Off the floor and out of the way -- it exists only to be read.
-			wep.bNOSECTOR = true;
-			wep.bNOBLOCKMAP = true;
+			//
+			// bNOSECTOR/bNOBLOCKMAP are READ-ONLY: they decide which world
+			// lists the actor is linked into, so assigning them would leave
+			// it in a list the flag says it is not in. The engine's supported
+			// route is A_ChangeLinkFlags(blockmap, sector), which unlinks,
+			// flips the flags and relinks -- the same call Inventory uses to
+			// hide a picked-up item (inventory.zs:372).
+			wep.A_ChangeLinkFlags(1, 1);
 			wep.bINVISIBLE = true;
 			let rsw = RS_Weapon(wep);
 			if (rsw) rsw.RollStats(tier);

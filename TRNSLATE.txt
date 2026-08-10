@@ -326,3 +326,17 @@ rs_wpn_uncommon  = "0:255=%[0.00,0.06,0.02]:[0.25,0.88,0.35]"  // 0,16,4    -> 6
 rs_wpn_advanced  = "0:255=%[0.00,0.03,0.09]:[0.38,0.66,1.00]"  // 0,8,24    -> 96,168,255
 rs_wpn_designer  = "0:255=%[0.05,0.00,0.08]:[0.72,0.38,1.00]"  // 12,0,20   -> 184,96,255
 rs_wpn_prototype = "0:255=%[0.09,0.06,0.00]:[1.00,0.82,0.25]"  // 24,16,0   -> 255,208,64
+
+// --- Crit marking ----------------------------------------------------
+// A round that rolled a crit wears this in flight, so a crit is
+// something you SEE COMING rather than something you work out afterward
+// from a damage number. Teal on purpose: Doom's palette is overwhelmingly
+// warm -- browns, reds, oranges, fleshtones -- so a cold cyan-green is
+// the one hue that can never be mistaken for ordinary muzzle fire,
+// blood, or an explosion, at any brightness.
+//
+// The `#` prefix is GZDoom's DESATURATED colourisation. It keeps the
+// sprite's own shading and lighting and only shifts the hue, so a marked
+// round still reads as the same projectile rather than a flat silhouette
+// -- which is what a plain `0:255=[r,g,b]` (no hash) would give.
+rs_crit_teal = "0:255=#[38,208,206]"

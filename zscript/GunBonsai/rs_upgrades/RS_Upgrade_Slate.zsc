@@ -379,7 +379,14 @@ class TFLV_Upgrade_RS_Cacospit : TFLV_Upgrade_RS_SlateBase
 		wpn.AffixProjectile = (WardrobeRoll == 0)
 			? (Class<Actor>)("RS_AffixCacoBall")
 			: (Class<Actor>)("RS_AffixFireWisp");
-		wpn.AffixFireSound = "caco/attack";
+		// AffixExtraFireSound, NOT AffixFireSound. Converted 2026-08-08:
+		// axis 5 is an OVERRIDE, so setting it here silenced the weapon's
+		// own report and a caco-round shotgun sounded like ONLY a caco.
+		// The owner's rule is that the gun's report is an identity anchor
+		// -- it should sound like a shotgun firing something strange, not
+		// like the strange thing alone. This field layers on its own
+		// channel instead. Same applies to every themed voice below.
+		wpn.AffixExtraFireSound = "caco/attack";
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
@@ -392,8 +399,8 @@ class TFLV_Upgrade_RS_Cacospit : TFLV_Upgrade_RS_SlateBase
 		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixCacoBall")
 			|| wpn.AffixProjectile == (Class<Actor>)("RS_AffixFireWisp"))
 			wpn.AffixProjectile = null;
-		if (wpn.AffixFireSound == "caco/attack")
-			wpn.AffixFireSound = "";
+		if (wpn.AffixExtraFireSound == "caco/attack")
+			wpn.AffixExtraFireSound = "";
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -448,15 +455,15 @@ class TFLV_Upgrade_RS_Bonecaller : TFLV_Upgrade_RS_SlateBase
 	override void ExtraActivate(RS_Weapon wpn)
 	{
 		wpn.AffixProjectile = "RS_AffixBoneTracer";
-		wpn.AffixFireSound = "skeleton/attack";
+		wpn.AffixExtraFireSound = "skeleton/attack";
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
 	{
 		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixBoneTracer"))
 			wpn.AffixProjectile = null;
-		if (wpn.AffixFireSound == "skeleton/attack")
-			wpn.AffixFireSound = "";
+		if (wpn.AffixExtraFireSound == "skeleton/attack")
+			wpn.AffixExtraFireSound = "";
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -506,7 +513,7 @@ class TFLV_Upgrade_RS_PainOrb : TFLV_Upgrade_RS_SlateBase
 		wpn.AffixProjectile = (level >= 6)
 			? (Class<Actor>)("RS_AffixPainOrbMaster")
 			: (Class<Actor>)("RS_AffixIceOrb");
-		wpn.AffixFireSound = "rs_fx_ice_cast";
+		wpn.AffixExtraFireSound = "rs_fx_ice_cast";
 
 		// The price: heavier rounds, fewer chambered. Restore-then-apply
 		// keeps this exact across re-activations and level-ups.
@@ -521,8 +528,8 @@ class TFLV_Upgrade_RS_PainOrb : TFLV_Upgrade_RS_SlateBase
 		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixIceOrb")
 			|| wpn.AffixProjectile == (Class<Actor>)("RS_AffixPainOrbMaster"))
 			wpn.AffixProjectile = null;
-		if (wpn.AffixFireSound == "rs_fx_ice_cast")
-			wpn.AffixFireSound = "";
+		if (wpn.AffixExtraFireSound == "rs_fx_ice_cast")
+			wpn.AffixExtraFireSound = "";
 		wpn.Capacity += AppliedCapCut;
 		AppliedCapCut = 0;
 	}
@@ -657,15 +664,15 @@ class TFLV_Upgrade_RS_ArachPlasma : TFLV_Upgrade_RS_SignatureBase
 	override void ExtraActivate(RS_Weapon wpn)
 	{
 		wpn.AffixProjectile = "RS_AffixArachPlasma";
-		wpn.AffixFireSound = "baby/attack";
+		wpn.AffixExtraFireSound = "baby/attack";
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
 	{
 		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixArachPlasma"))
 			wpn.AffixProjectile = null;
-		if (wpn.AffixFireSound == "baby/attack")
-			wpn.AffixFireSound = "";
+		if (wpn.AffixExtraFireSound == "baby/attack")
+			wpn.AffixExtraFireSound = "";
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -701,15 +708,15 @@ class TFLV_Upgrade_RS_Swarm : TFLV_Upgrade_RS_SignatureBase
 	override void ExtraActivate(RS_Weapon wpn)
 	{
 		wpn.AffixProjectile = "RS_AffixSwarmCarrier";
-		wpn.AffixFireSound = "rs_fx_impact_bullet";
+		wpn.AffixExtraFireSound = "rs_fx_impact_bullet";
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
 	{
 		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixSwarmCarrier"))
 			wpn.AffixProjectile = null;
-		if (wpn.AffixFireSound == "rs_fx_impact_bullet")
-			wpn.AffixFireSound = "";
+		if (wpn.AffixExtraFireSound == "rs_fx_impact_bullet")
+			wpn.AffixExtraFireSound = "";
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -749,15 +756,15 @@ class TFLV_Upgrade_RS_Nova : TFLV_Upgrade_RS_SignatureBase
 	override void ExtraActivate(RS_Weapon wpn)
 	{
 		wpn.AffixProjectile = "RS_AffixNovaShell";
-		wpn.AffixFireSound = "weapons/bfgf";
+		wpn.AffixExtraFireSound = "weapons/bfgf";
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
 	{
 		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixNovaShell"))
 			wpn.AffixProjectile = null;
-		if (wpn.AffixFireSound == "weapons/bfgf")
-			wpn.AffixFireSound = "";
+		if (wpn.AffixExtraFireSound == "weapons/bfgf")
+			wpn.AffixExtraFireSound = "";
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)

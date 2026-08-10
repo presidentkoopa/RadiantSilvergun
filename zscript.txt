@@ -97,6 +97,15 @@ version "4.14"
 // but readers go support -> monsters.
 #include "zscript/monsters/zombieman/RS_ZombiemanFX.zs"
 #include "zscript/monsters/zombieman/RS_Zombieman.zs"
+// Starting roster cap, per family. Reads each dial's own weights at
+// runtime; see the file header for why it carries no table of its own.
+#include "zscript/systems/roster/RS_Roster.zs"
+// RS_MG monster set -- rebuilt native from MeatGrinder V2C. Gore first:
+// the monsters name these classes by string. NOTHING here uses `replaces`,
+// so the CH coloursets keep their slots; spawn by name to test.
+#include "zscript/rs_mg/RS_MG_Gore.zs"
+#include "zscript/rs_mg/RS_MG_Zombieman.zs"
+#include "zscript/rs_mg/RS_MG_Shotgunner.zs"
 // CH Shotgunner family, rebuilt native 2026-08-05, same rules
 // (Shotgunners.txt read whole, 3102 lines). Depends on the zombieman
 // support classes above (RS_Zom, icons, tokens, bundles, shared FX).
@@ -450,6 +459,38 @@ version "4.14"
 // Registry first: the gallery queries it.
 #include "zscript/systems/weapon/RS_FXRegistry.zs"
 #include "zscript/systems/weapon/RS_FXGallery.zs"
+
+// Universal hit-location scoring. No monster table -- the head box is
+// measured off the sprite actually being drawn. Paired with
+// RS_HeadshotHandler in MAPINFO.txt's AddEventHandlers.
+#include "zscript/systems/weapon/RS_Headshot.zs"
+
+// Crit VISIBILITY (tints a rolled crit round in flight) plus the
+// monster-crits-on-player half, which ships OFF. The crit ROLL itself
+// lives on RS_Weapon and is not touched. RS_CritHandler must ALSO be in
+// MAPINFO.txt's AddEventHandlers.
+#include "zscript/systems/weapon/RS_Crits.zs"
+
+// DAMAGE NUMBERS. Listed HERE, next to its only two producers, rather
+// than up in the systems/ui block where its path would put it -- the
+// file draws a number but everything that decides what the number SAYS
+// (headshot quality, the crit flag, significance) is resolved in
+// RS_Headshot.zs's ModifyDamage, which is the single emit site. See
+// docs/rs_damage_numbers_spec.md.
+//
+// A .zs FILE THAT IS NOT IN THIS LIST SILENTLY DOES NOT EXIST -- no
+// error, no warning, the classes simply are not there. Forgotten twice
+// in this repo already; this line is the whole reason the feature is
+// reachable at all.
+//
+// IF RS_DamageNumber.zs DECLARES AN EventHandler (the spec's live-count
+// cap keeper is one), ITS NAME MUST ALSO GO IN MAPINFO.txt's
+// AddEventHandlers -- a handler class not named there compiles fine and
+// silently never runs. Nothing is registered for it there yet, on
+// purpose: a name listed with no matching class is a HARD CRASH at map
+// load, and at the time this include was added the file did not exist
+// to read a class name out of.
+#include "zscript/systems/ui/RS_DamageNumber.zs"
 
 // --- RS set (original Dual_Class weapons, basically our main focus for the 'game') ---
 #include "zscript/weapons/rs_weapon/RS_Fist.zs"

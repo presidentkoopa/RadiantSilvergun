@@ -1809,3 +1809,28 @@ $volume  rs_gren/bounce  0.8
 // re-firing before the ring fades is what extends it.
 // =====================================================================
 rs_curse/tinnitus  Sounds/rs_curse/RSTINNIT.wav
+
+// =====================================================================
+// RS_MG monster set -- zscript/rs_mg/. Lumps in sounds/rs_mg/.
+//
+// PATH FORM MUST BEGIN "Sounds/". This file already carries 48 lines that
+// omit it and are therefore inaudible with no error; do not add a 49th.
+//
+// mgun2 and enemysg are ALIASES in the source SNDINFO, not lumps --
+// mgun2 -> MGFIRE, enemysg -> SGFIRE. Kept as the same indirection so the
+// monster states read verbatim against the original.
+// Rolloff/volume/limit values are the source's own tuning.
+// =====================================================================
+enemygun   Sounds/rs_mg/ENEMYGUN.ogg
+mgun2      Sounds/rs_mg/MGFIRE.ogg
+enemysg    Sounds/rs_mg/SGFIRE.ogg
+stgpump    Sounds/rs_mg/STGPUMP.lmp
+
+$rolloff enemygun 800 3000
+$rolloff mgun2 200 3000
+$rolloff enemysg 800 3000
+$volume enemygun 0.7
+$volume mgun2 0.5
+$volume enemysg 0.7
+$limit enemygun 4
+$limit enemysg 4

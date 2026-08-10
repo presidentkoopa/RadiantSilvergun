@@ -25,7 +25,7 @@ OptionMenu "RS_MainOptions"
 
 	StaticText " "
 
-	Submenu "Weapon Options", "RS_WeaponOptions"
+	Submenu "Combat Options", "RS_CombatOptions"
 	Submenu "Grenade Options", "RS_GrenadeOptions"
 	Submenu "Monster Control Center", "RS_MonsterControl"
 	Submenu "RS Score Options", "RS_ScoreOptions"
@@ -434,6 +434,127 @@ OptionValue "RS_ImprintMode"
 // menu is look/feel; this is rules). Grows as more weapon-behavior
 // knobs land: cadence, condition, reload.
 // ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// COMBAT OPTIONS -- the container for how fighting WORKS, as opposed to
+// how a weapon set behaves or how the mod presents itself.
+//
+// Weapon Options lives under here rather than at the top level (owner
+// ruling 2026-08-09). Vanilla+ Options is deliberately NOT in here: that
+// page is settings for one specific weapon set, which is a different
+// concern from combat rules that apply to everything.
+//
+// Headshots and the crit stagger land on this page when their systems
+// are built -- they are combat rules, not weapon-set settings, and this
+// page is why they have somewhere to go.
+// ---------------------------------------------------------------------
+OptionMenu "RS_CombatOptions"
+{
+	Title "Combat Options"
+	StaticText " "
+	Submenu "Weapon Options", "RS_WeaponOptions"
+	Submenu "Crits", "RS_CritOptions"
+	Submenu "Damage Numbers", "RS_DamageNumberOptions"
+
+	StaticText " "
+	StaticText "Headshots", 1
+	StaticText "The head box is measured off the sprite actually being", "DarkGray"
+	StaticText "drawn, so it follows the pose, the rotation and the size", "DarkGray"
+	StaticText "of every monster automatically. Nothing is per-monster.", "DarkGray"
+	Option "Headshots", "rs_headshot_enable", "OnOff"
+	Slider "Head Size (fraction of sprite)", "rs_headshot_headfrac", 0.05, 0.5, 0.01, 2
+	StaticText " "
+	StaticText "A headshot is scored on how near the centre it landed.", "DarkGray"
+	Slider "Graze Multiplier", "rs_headshot_mult_graze", 1.0, 5.0, 0.25, 2
+	Slider "Centre Multiplier", "rs_headshot_mult_centre", 1.0, 10.0, 0.25, 2
+	Slider "Minimum Quality To Count", "rs_headshot_min_quality", 0.0, 0.9, 0.05, 2
+	StaticText "Raise the minimum to shrink the effective head without", "DarkGray"
+	StaticText "moving the box -- a near miss stops paying entirely.", "DarkGray"
+	StaticText " "
+	Option "Headshot Effect", "rs_headshot_fx", "OnOff"
+	Option "Headshot Sound", "rs_headshot_sound", "OnOff"
+	Slider "Headshot Volume", "rs_headshot_vol", 0.0, 1.0, 0.05, 2
+	StaticText " "
+	Option "Debug Readout (console)", "rs_headshot_debug", "OnOff"
+	StaticText "Prints a line for every hit, including misses, so a", "DarkGray"
+	StaticText "head box in the wrong place can be told from one that", "DarkGray"
+	StaticText "is never reached at all.", "DarkGray"
+}
+
+// ---------------------------------------------------------------------
+// CRITS. Deliberately short.
+//
+// The crit CHANCE and MULTIPLIER are not here and must not be added:
+// they are rolled WEAPON STATS that vary per gun, so they belong on the
+// weapon sheet. A global slider for them would silently override the
+// loot system.
+// ---------------------------------------------------------------------
+OptionMenu "RS_CritOptions"
+{
+	Title "Crits"
+	StaticText " "
+	StaticText "Your crit chance and multiplier are rolled stats on each", "DarkGray"
+	StaticText "weapon -- check the weapon sheet, not this page.", "DarkGray"
+	StaticText " "
+	Option "Mark Crit Shots In Flight", "rs_crit_mark", "OnOff"
+	StaticText "A round that rolled a crit flies tinted teal, so you see", "DarkGray"
+	StaticText "it coming instead of working it out from the damage.", "DarkGray"
+
+	StaticText " "
+	StaticText "Monsters Critting You", 1
+	Option "Monster Crits", "rs_crit_monster_enable", "OnOff"
+	Slider "Monster Crit Chance", "rs_crit_monster_chance", 0.0, 0.5, 0.01, 2
+	Slider "Monster Crit Multiplier", "rs_crit_monster_mult", 1.0, 5.0, 0.25, 2
+	Option "Crit Taken Sound", "rs_crit_monster_sound", "OnOff"
+	StaticText "Off by default. Monster shots are not tinted -- the mark", "DarkGray"
+	StaticText "belongs to your own rounds -- so sound is the only tell.", "DarkGray"
+}
+
+// ---------------------------------------------------------------------
+// DAMAGE NUMBERS. Deliberately short, and the SHAPE is an owner ruling
+// (2026-08-10): the plain behaviour is on -- a number pops off and flies
+// away -- and every clever extra below it is a separate toggle shipped
+// OFF, so they can be switched on one at a time and judged one at a
+// time. Do not "helpfully" default any of them on, and do not fold them
+// into a single quality preset; being able to turn exactly one of them
+// on is the point of the page.
+//
+// Nothing here sets a colour, a font or a per-monster anything. Colour
+// comes from what KIND of hit it was, which RS already measures, and
+// that is one switch, not a table.
+// ---------------------------------------------------------------------
+OptionMenu "RS_DamageNumberOptions"
+{
+	Title "Damage Numbers"
+	StaticText " "
+	Option "Damage Numbers", "rs_dn_enable", "OnOff"
+	StaticText "Every hit throws its own number, and they scatter. The", "DarkGray"
+	StaticText "shower is the feature, not a fallback.", "DarkGray"
+
+	StaticText " "
+	Option "Size By Significance", "rs_dn_significance", "OnOff"
+	StaticText "Sizes by the damage as a fraction of that monster's", "DarkGray"
+	StaticText "health, not by its raw value -- so chip damage on a", "DarkGray"
+	StaticText "boss stays quiet and a third of a health bar towers.", "DarkGray"
+	Option "Colour By Hit Type", "rs_dn_colour", "OnOff"
+	Option "Crit/Headshot Motion", "rs_dn_motion", "OnOff"
+	StaticText "The number inherits the velocity of the round that", "DarkGray"
+	StaticText "caused it. Force scatters; precision holds still.", "DarkGray"
+	Option "Glow", "rs_dn_glow", "OnOff"
+	Option "Show Overkill", "rs_dn_overkill", "OnOff"
+	Option "Per-Hand Tint", "rs_dn_perhand", "OnOff"
+	StaticText "Which hand landed it -- only means anything dual wielding.", "DarkGray"
+	Option "Distance Scaling", "rs_dn_distance", "OnOff"
+
+	StaticText " "
+	Slider "Size", "rs_dn_scale", 0.25, 3.0, 0.05, 2
+	Slider "Lifetime (tics)", "rs_dn_lifetime", 10, 105, 5, 0
+	Slider "Damage Floor (0 = show all)", "rs_dn_minimum", 0, 50, 1, 0
+	Slider "Maximum On Screen", "rs_dn_max", 8, 256, 8, 0
+	StaticText "The ceiling exists for the headset, not the framerate --", "DarkGray"
+	StaticText "a wall of numbers in stereo is nauseating in a way it", "DarkGray"
+	StaticText "is not on a monitor.", "DarkGray"
+}
+
 OptionMenu "RS_WeaponOptions"
 {
 	Title "Weapon Options"
@@ -1863,6 +1984,9 @@ OptionMenu "RS_MonsterControl"
 	StaticText " "
 
 	StaticText "Systems", "Cyan"
+	Submenu "Starting Roster...", "RS_RosterOptions"
+	StaticText "Caps each family's tier ladder. Defaults to Common only,", "DarkGray"
+	StaticText "so a new game opens at roughly vanilla footing.", "DarkGray"
 	Submenu "Monster Tiers...", "RS_CHMonsterOptions"
 	StaticText "Which of the thirteen tiers may appear, how their bosses", "DarkGray"
 	StaticText "behave, and what they leave behind.", "DarkGray"
@@ -2175,6 +2299,66 @@ OptionValue "RS_HPBarFrameModes"
 // The tier icon sprites are TI3R A..M, one per tier in that same order
 // (RS_ColorTierIconCH .. RS_ColorTierIconCH13).
 // =====================================================================
+// ---------------------------------------------------------------------
+// Starting Roster -- zscript/systems/roster/RS_Roster.zs. One cap per
+// family; the gate reads the family's own dial for weights, so raising a
+// cap restores CH's real proportions rather than a flat spread.
+//
+// 13 is not merely "everything" -- at 13 the family is handed straight
+// back to its dial untouched, which is why it reads "Full roster".
+// ---------------------------------------------------------------------
+OptionMenu "RS_RosterOptions"
+{
+	Title "Starting Roster"
+	StaticText " "
+	StaticText "Every family spawns across thirteen colour tiers. This caps", "DarkGray"
+	StaticText "how far up that ladder each one may roll.", "DarkGray"
+	StaticText "1 is Common only -- close to vanilla. 13 is the full set.", "DarkGray"
+	StaticText " "
+
+	Option "Enable Roster Caps", "rs_roster_enable", "OnOff"
+	StaticText "Off hands every family back to its own dial.", "DarkGray"
+	StaticText " "
+
+	StaticText "Which Roster", "Cyan"
+	Option "Monster Pack", "rs_roster_pack", "RS_RosterSet"
+	StaticText "Vanilla: stock Doom, every replacement cancelled.", "DarkGray"
+	StaticText "RS_MG:   gory dismemberment deaths. Covers Zombieman and", "DarkGray"
+	StaticText "         Shotgunner so far; the rest fall to RS_Mon.", "DarkGray"
+	StaticText "RS_Mon:  the thirteen colour tiers, capped per family below.", "DarkGray"
+	StaticText "Takes effect on the next map.", "DarkGray"
+	StaticText " "
+
+	StaticText "Ladder", "Cyan"
+	StaticText "1 Common  2 Green  3 Blue  4 Purple  5 Yellow  6 Red", "DarkGray"
+	StaticText "7 FireBlu  8 Gray  9 Abyss  10 Black  11 White", "DarkGray"
+	StaticText "12 Cyan  13 Brown", "DarkGray"
+	StaticText " "
+
+	StaticText "Per Family", "Cyan"
+	Slider "Zombieman",       "rs_roster_zombieman",     1, 13, 1, 0
+	Slider "Shotgunner",      "rs_roster_shotgunner",    1, 13, 1, 0
+	Slider "Chaingunner",     "rs_roster_chaingunner",   1, 13, 1, 0
+	Slider "Imp",             "rs_roster_imp",           1, 13, 1, 0
+	Slider "Demon",           "rs_roster_demon",         1, 13, 1, 0
+	Slider "Spectre",         "rs_roster_spectre",       1, 13, 1, 0
+	Slider "Cacodemon",       "rs_roster_cacodemon",     1, 13, 1, 0
+	Slider "Lost Soul",       "rs_roster_lostsoul",      1, 13, 1, 0
+	Slider "Pain Elemental",  "rs_roster_painelemental", 1, 13, 1, 0
+	Slider "Hell Knight",     "rs_roster_hellknight",    1, 13, 1, 0
+	Slider "Baron of Hell",   "rs_roster_baron",         1, 13, 1, 0
+	Slider "Revenant",        "rs_roster_revenant",      1, 13, 1, 0
+	Slider "Mancubus",        "rs_roster_fatso",         1, 13, 1, 0
+	Slider "Arachnotron",     "rs_roster_arachnotron",   1, 13, 1, 0
+	Slider "Arch-Vile",       "rs_roster_archvile",      1, 13, 1, 0
+	Slider "Cyberdemon",      "rs_roster_cyberdemon",    1, 13, 1, 0
+	Slider "Spider Mastermind","rs_roster_mastermind",   1, 13, 1, 0
+	StaticText " "
+
+	StaticText "Applies to monsters that have not spawned yet.", "DarkGray"
+	StaticText "Start a new map to see a change take effect.", "DarkGray"
+}
+
 OptionMenu "RS_CHMonsterOptions"
 {
 	Title "Monster Tiers"
@@ -2254,6 +2438,17 @@ OptionMenu "RS_CHTierOptions"
 
 	StaticText "Applies to monsters that have not spawned yet.", "DarkGray"
 	StaticText "Start a new map to see a change take effect.", "DarkGray"
+}
+
+// OptionString, NOT OptionValue: rs_roster_pack is a STRING cvar and
+// OptionValue parses its keys as numbers -- "Bad numeric constant".
+// The engine's own menudef.txt uses OptionString the same way (Cursors,
+// MapMarkFont).
+OptionString "RS_RosterSet"
+{
+	"VANILLA", "Vanilla Doom"
+	"RSMG",    "RS_MG  -- gore set"
+	"RSMON",   "RS_Mon -- colour tiers"
 }
 
 OptionValue "RS_CH_TierGate"

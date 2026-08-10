@@ -258,6 +258,23 @@ class RS_Weapon : Weapon abstract
 	// its own streak.
 	int RS_CritStreak;
 
+	// Did THIS pull of the trigger crit? Set by the dispatch below, read
+	// by both fire paths so the rounds they spawn can be marked in
+	// flight (see RS_CritMark in zscript/systems/weapon/RS_Crits.zs).
+	//
+	// A FIELD RATHER THAN A PARAMETER, deliberately. The crit is rolled
+	// once in the dispatch and the result is already folded into `dmg`
+	// before either RS_FireProfile* is called -- so by the time a
+	// projectile is spawned, nothing downstream can tell a critical shot
+	// from an ordinary one that happened to roll high damage. Threading a
+	// bool through both signatures would touch every call site and every
+	// override; both functions are methods on this class and can simply
+	// read it.
+	//
+	// Lives on the WEAPON, so each hand keeps its own answer -- same
+	// reason RS_CritStreak does.
+	bool RS_ShotWasCrit;
+
 	// -----------------------------------------------------------------
 	// ALLCLEAR (rs_11) -- the ready-to-fire beep. ONE imported sound
 	// (rs_allclear_ready, the li-gnrcwpn plasma beep -- the owner's own
@@ -754,9 +771,16 @@ class RS_Weapon : Weapon abstract
 		{
 			dmg *= invoker.CritMult > 0 ? invoker.CritMult : 2.0;
 			invoker.RS_CritStreak++;
+			invoker.RS_ShotWasCrit = true;
 		}
 		else
+		{
 			invoker.RS_CritStreak = 0;
+			// Must be cleared, not just set -- it is a field, so a crit
+			// left standing would mark every subsequent round until the
+			// next crit happened to reset it.
+			invoker.RS_ShotWasCrit = false;
+		}
 
 		int pellets = (p.PelletOverride > 0) ? p.PelletOverride : invoker.PelletCount;
 		pellets = max(1, int(pellets * pelletMult));
@@ -932,6 +956,63 @@ class RS_Weapon : Weapon abstract
 			led.Deafen();
 	}
 
+	// -----------------------------------------------------------------
+	// WHICH GUN LANDED THIS HIT -- answered at the moment of IMPACT, not
+	// at the moment of firing.
+	//
+	// Damage numbers need two things this file already owns and nothing
+	// downstream of the trigger can otherwise see: whether the pull
+	// critted (RS_ShotWasCrit) and which hand it came from
+	// (bOffhandWeapon). Both live on the weapon, so the whole problem is
+	// getting from an inflictor back to the gun.
+	//
+	// `master` is that route and it is exact: every spawn site in this
+	// file stamps `proj.master = self`, it is per round rather than per
+	// pull, and it survives however long the round is in the air. It is
+	// already documented above as the sacred pointer because GunBonsai
+	// attributes XP through it -- this reads it and changes nothing.
+	//
+	// HITSCAN PUFFS AND MELEE CARRY NO MASTER (the engine spawns them,
+	// not us), so those fall back to whichever of the two held weapons
+	// fired most recently. RS_LastShotTic is stamped by A_RS_FireSlot on
+	// both hands, so the comparison is real rather than a guess at which
+	// hand is "the" hand.
+	//
+	// Returns null when nothing here fired it -- monster damage, floor
+	// damage, crushers. Callers must expect that.
+	//
+	// KNOWN AND ACCEPTED IMPRECISION: RS_ShotWasCrit is the state of the
+	// LAST pull from that gun, not a record carried by this individual
+	// round. For a bullet that is the same thing -- these are
+	// FastProjectiles, they cross a room in a tic or two, and no weapon
+	// can fire again in that window. For a slow round (a lobbed grenade,
+	// a rocket at low velocity) a second pull can land between the shot
+	// and its impact and flip the answer. Fixing it properly means a
+	// bool on the projectile, which is a field on a class this file does
+	// not own; it is worth doing when that file is next opened for
+	// another reason, and it is not worth opening it for this alone.
+	// -----------------------------------------------------------------
+	static RS_Weapon FiringWeaponOf(Actor inflictor, Actor source)
+	{
+		if (inflictor)
+		{
+			let w = RS_Weapon(inflictor.master);
+			if (w)
+				return w;
+		}
+
+		if (!source || !source.player)
+			return null;
+
+		let mainW = RS_Weapon(source.player.ReadyWeapon);
+		let offW  = RS_Weapon(source.player.OffhandWeapon);
+		if (!offW)
+			return mainW;
+		if (!mainW)
+			return offW;
+		return (offW.RS_LastShotTic > mainW.RS_LastShotTic) ? offW : mainW;
+	}
+
 	// Condition backfire -- was an identical copy on all 11 weapons.
 	// Same DamagePerShot + crit roll a normal shot gets.
 	action void A_RS_Backfire()
@@ -1047,6 +1128,11 @@ class RS_Weapon : Weapon abstract
 				proj.SetupStats(int(dmg), vel, crit);
 				proj.SetupFeedback(fxPuff, fxSpark, fxTrail);
 				RS_Catalog.ApplyProjectileScale(proj, projScale);
+				// Mark it if this pull critted, so the round is visibly
+				// a crit while it is still in the air. Every pellet of a
+				// volley is marked -- the crit was rolled for the shot,
+				// not per pellet, so marking only some would misreport it.
+				if (RS_ShotWasCrit) RS_CritMark.Apply(proj);
 				if (mods)
 				{
 					proj.Homing = mods.Homing;
@@ -1181,6 +1267,9 @@ class RS_Weapon : Weapon abstract
 		}
 			if (!proj)
 				continue;
+			// Same marking as the bullet path -- a critical rocket should
+			// be as readable in flight as a critical bullet.
+			if (RS_ShotWasCrit) RS_CritMark.Apply(proj);
 			proj.master = self;   // see RS_FireProfileBullet
 
 			// Blast-look precedence: affix > this beat's authored visual >
