@@ -216,6 +216,27 @@ class RS_BBComposedPanel : Object
 		mParts.Clear();
 		mLocalRight.Clear();
 		mLocalUp.Clear();
+
+		// THE BASE SIZES AND THE SCALE GO TOO. Fixed 2026-08-10.
+		//
+		// These were left behind, and both halves of that were fatal to a
+		// rebuild:
+		//
+		//   mBaseW/mBaseH kept the OLD parts' sizes, and Rescale's loop is
+		//   bounded by `i < mBaseW.Size()` -- so a rebuilt card was resized
+		//   against a stale table, part 0 taking part 0's old size.
+		//
+		//   mScale kept the old factor, so Rescale's `f == mScale` early-out
+		//   fired on the very first call after a rebuild and the new parts
+		//   were never scaled AT ALL -- they stayed at the full size Build
+		//   made them, no matter where the player was standing.
+		//
+		// A released panel is an empty one. It must not remember anything
+		// about the parts it no longer has.
+		mBaseW.Clear();
+		mBaseH.Clear();
+		mScale = 0;
+
 		mPlaced = false;
 	}
 
