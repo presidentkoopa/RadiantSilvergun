@@ -2167,3 +2167,16 @@ server int rs_dn_font = 0;
 server bool rs_dn_dynlight = false;
 // Live ceiling. Counted with a plain counter, not a per-spawn scan.
 server int rs_dn_dynlightmax = 8;
+
+// Narrates the drop-card chain, one line per stage. On until a card is
+// confirmed on screen; the trace calls come out with it.
+server bool rs_card_trace = true;
+
+// Imported damage-number cvars, verbatim from the source mod.
+server bool   dam_enabled = true;
+server bool   dam_shootable = false;
+server int    dam_spray = 0;
+user   string dam_fontclass = "DamNumFontGameDefault";
+user   string dam_translation = "DamDefault";
+user   int    dam_physics = 0;
+user   bool   dam_usetypes = true;

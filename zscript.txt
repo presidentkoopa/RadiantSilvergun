@@ -103,9 +103,9 @@ version "4.14"
 // RS_MG monster set -- rebuilt native from MeatGrinder V2C. Gore first:
 // the monsters name these classes by string. NOTHING here uses `replaces`,
 // so the CH coloursets keep their slots; spawn by name to test.
-#include "zscript/rs_mg/RS_MG_Gore.zs"
-#include "zscript/rs_mg/RS_MG_Zombieman.zs"
-#include "zscript/rs_mg/RS_MG_Shotgunner.zs"
+//#include "zscript/rs_mg/RS_MG_Gore.zs"
+//#include "zscript/rs_mg/RS_MG_Zombieman.zs"
+//#include "zscript/rs_mg/RS_MG_Shotgunner.zs"
 // CH Shotgunner family, rebuilt native 2026-08-05, same rules
 // (Shotgunners.txt read whole, 3102 lines). Depends on the zombieman
 // support classes above (RS_Zom, icons, tokens, bundles, shared FX).
@@ -674,3 +674,36 @@ version "4.14"
 // Files deleted, MAPINFO names removed in the same change (a name there
 // with no class is a hard crash at map load), and their V / J / K
 // default binds freed in KEYCONF.
+
+// =====================================================================
+// DAMAGE NUMBERS -- imported whole, 2026-08-10, at the owner's direction.
+// Code, sprites, cvars, menu, language and handler all came in together;
+// importing the actor text and stopping is the failure this project has
+// paid for eight times.
+//
+// Its own zscript.txt declared `version "2.4"`. That line is NOT carried
+// over -- this tree is 4.14 and a second version directive in one
+// compilation unit is a conflict. The includes below are its list verbatim.
+//
+// OVERLAPS RS_DamageNumber.zs. Both spawn a number per hit, so with both
+// enabled a hit produces TWO. dam_enabled and rs_dn_enable are the
+// switches; pick one.
+// =====================================================================
+#include "zscript/damnums/constants.txt"
+#include "zscript/damnums/damnum.txt"
+#include "zscript/damnums/events.txt"
+#include "zscript/damnums/fonts/base.txt"
+#include "zscript/damnums/fonts/doomclassic.txt"
+#include "zscript/damnums/fonts/doomsmall.txt"
+#include "zscript/damnums/fonts/doommodern.txt"
+#include "zscript/damnums/fonts/ravenbig.txt"
+#include "zscript/damnums/fonts/ravensmall.txt"
+#include "zscript/damnums/fonts/raventory.txt"
+#include "zscript/damnums/fonts/strife.txt"
+#include "zscript/damnums/fonts/chex.txt"
+#include "zscript/damnums/fonts/hacx.txt"
+#include "zscript/damnums/fonts/harmony.txt"
+#include "zscript/damnums/fonts/square.txt"
+#include "zscript/damnums/fonts/urbanbrawl.txt"
+#include "zscript/damnums/fonts/borderlands.txt"
+#include "zscript/damnums/fonts/gamedefaults.txt"
