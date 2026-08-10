@@ -1215,13 +1215,31 @@ class RS_PanelDropHandler : EventHandler
 	// -----------------------------------------------------------------
 	void ConsiderDrop(RS_WeaponDrop d)
 	{
-		if (!RS_PanelController.Enabled()) return;
+		if (!RS_PanelController.Enabled())
+		{
+			// Once a second, not every tic -- but it must be SAID. A
+			// disabled panel system is a silent, total explanation for
+			// "no cards" and nothing else in the log would hint at it.
+			if ((level.maptime % 35) == 0)
+				RS_CardTrace.Fail("rs_panel_enabled is FALSE -- no card can ever appear.");
+			return;
+		}
 
 		PlayerPawn pawn = players[consoleplayer].mo;
 		if (!pawn) return;
 
 		double dist  = (d.pos - pawn.pos).Length();
 		double outer = RS_PanelController.CardRadius();
+
+		// Proof the drop is being considered at all, and at what range.
+		// If this never prints, RS_WeaponDrop.Tick is not running and the
+		// card is not the problem.
+		if ((level.maptime % 35) == 0)
+			RS_CardTrace.Say(String.Format(
+				"considering drop: dist %.0f  radius %.0f  %s  owner=%s",
+				dist, outer,
+				dist <= outer ? "IN RANGE" : "out of range",
+				mCardOwner == d ? "this drop" : (mCardOwner ? "another drop" : "none")));
 
 		if (dist <= outer && mCardOwner != d)
 		{
@@ -1269,6 +1287,38 @@ class RS_PanelDropHandler : EventHandler
 
 		double minS = RS_PanelController.CardMinScale();
 		ApplyCardScale(1.0 - t * (1.0 - minS));
+
+		// -----------------------------------------------------------------
+		// TEMPORARY. Prints what the card actually IS, once a second, while
+		// a card is up. Added 2026-08-10 because six guesses from
+		// screenshots were six wrong answers, and the owner should not have
+		// to run a console command to get an answer the game already knows.
+		//
+		// Delete this block once the card is confirmed working.
+		//
+		// Reading, in order: how far away, the scale the ramp asked for,
+		// the panel's live size, and WHERE IT ACTUALLY IS in the world
+		// against where the drop is. If those two positions disagree the
+		// card is being drawn somewhere you are not standing.
+		// -----------------------------------------------------------------
+		if (mCard.mAsm && (level.maptime % 35) == 0)
+		{
+			let p0 = mCard.mAsm.Get(0);
+			if (p0)
+			{
+				Console.Printf("\c[GOLD][CARD]\c- dist %.0f  t %.2f  scale %.3f  "
+					.. "panel %.2fx%.2f  cardpos (%.0f,%.0f,%.0f)  droppos (%.0f,%.0f,%.0f)",
+					dist, t, 1.0 - t * (1.0 - minS),
+					p0.mWidth, p0.mHeight,
+					p0.pos.x, p0.pos.y, p0.pos.z,
+					d.pos.x, d.pos.y, d.pos.z);
+			}
+			else
+			{
+				Console.Printf("\c[RED][CARD]\c- assembly has NO panel 0 -- "
+					.. "the card was never built.");
+			}
+		}
 
 		// PINNED ABOVE THE DROP. ALWAYS. Owner, 2026-08-09: the card
 		// "doesn't even have to cover a distance, just has to get larger
@@ -1396,10 +1446,24 @@ class RS_PanelDropHandler : EventHandler
 	void RaiseCard(PlayerPawn pawn, RS_WeaponDrop d)
 	{
 		DropCard();
-		if (!d || !d.mPayload) return;
+		if (!d || !d.mPayload)
+		{
+			RS_CardTrace.Fail("RaiseCard: no drop or no payload -- nothing to describe.");
+			return;
+		}
+
+		RS_CardTrace.Say("RaiseCard: building for " .. d.mPayload.GetClassName());
 
 		mCard = RS_DropTriptych.Build(pawn, d, d.mPayload);
-		if (!mCard) return;
+		if (!mCard)
+		{
+			RS_CardTrace.Fail("Build returned NULL -- the assembly or its root panel "
+				.. "could not be created. Card never existed.");
+			return;
+		}
+
+		RS_CardTrace.Say(String.Format("Build OK: %d panel(s) in the assembly",
+			mCard.mAsm ? mCard.mAsm.Size() : -1));
 
 		// THE WEAPON, TURNING, IN THE CARD'S ART SLOT.
 		//
@@ -1517,7 +1581,21 @@ class RS_PanelDropHandler : EventHandler
 		d.mCardUp  = true;
 
 		let ph = RS_PanelHandler(EventHandler.Find("RS_PanelHandler"));
-		if (ph && mCard.mAsm) ph.RegisterAssembly(mCard.mAsm);
+		if (!ph)
+		{
+			RS_CardTrace.Fail("RS_PanelHandler NOT FOUND -- the assembly cannot "
+				.. "register, so nothing will ever POSITION the card and it stays "
+				.. "at the world origin.");
+		}
+		else if (!mCard.mAsm)
+		{
+			RS_CardTrace.Fail("card has no assembly to register.");
+		}
+		else
+		{
+			int slot = ph.RegisterAssembly(mCard.mAsm);
+			RS_CardTrace.Say(String.Format("registered for solving, slot %d", slot));
+		}
 
 		// Start at the size the ramp says, not at full. Otherwise the
 		// card is born full-size for exactly one tic before TrackCard

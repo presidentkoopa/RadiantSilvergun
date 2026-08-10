@@ -173,7 +173,17 @@ class RS_BBWeaponCard play
 	static void Build(RS_BBComposedPanel p, double w, double h,
 		Weapon wep, string heading)
 	{
-		if (!p || w <= 0 || h <= 0) return;
+		// A zero or negative size here draws NOTHING and returns silently,
+		// which is indistinguishable from "the card never got called". Say
+		// which it was.
+		if (!p || w <= 0 || h <= 0)
+		{
+			RS_CardTrace.Fail(String.Format(
+				"card Build refused: panel=%s w=%.3f h=%.3f "
+				.. "(a size of zero means the panel was collapsed before layout)",
+				p ? "ok" : "NULL", w, h));
+			return;
+		}
 
 		let rsw = wep ? RS_Weapon(wep) : null;
 		Color tier = rsw ? TierRGB(rsw.Tier) : Color(255, 200, 200, 200);

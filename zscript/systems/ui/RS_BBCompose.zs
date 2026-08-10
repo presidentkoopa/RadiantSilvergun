@@ -209,6 +209,14 @@ class RS_BBComposedPanel : Object
 	// issued, and dropping it without RemoveBillboard leaks a quad that
 	// lives until the level ends. Every leak this project has found has
 	// been exactly that shape, so this is the one place parts die.
+	// How many billboards this panel is currently made of. Zero after a
+	// release, and zero after a Build that drew nothing -- which are very
+	// different situations that look identical from outside.
+	int PartCount() const
+	{
+		return mParts.Size();
+	}
+
 	void ReleaseAll()
 	{
 		for (int i = 0; i < mParts.Size(); i++)

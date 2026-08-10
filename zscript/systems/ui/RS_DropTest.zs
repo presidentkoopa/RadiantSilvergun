@@ -26,6 +26,44 @@
 // Bind it if you are iterating:  bind p "netevent rs_drop,7"
 // =====================================================================
 
+// =====================================================================
+// RS_CardTrace -- say what just happened, at every step of the chain.
+// ---------------------------------------------------------------------
+// Added 2026-08-10. Six diagnoses were made from screenshots this
+// session and all six were wrong: the marker was mistaken for card
+// fragments, the spawn distance for a scaling bug, a registered
+// assembly for an unregistered one. Every one of those would have been
+// answered instantly by the game saying what it did.
+//
+// So the chain now narrates itself. One line per stage, in the order a
+// card comes into being, each naming the ONE fact that decides whether
+// the next stage can happen. Wherever the output stops is where the
+// card dies.
+//
+// `rs_card_trace 0` silences it. On by default until a card is
+// confirmed on screen, then this whole file's trace calls come out.
+// =====================================================================
+class RS_CardTrace
+{
+	static bool On()
+	{
+		let cv = CVar.FindCVar("rs_card_trace");
+		return cv ? cv.GetBool() : true;
+	}
+
+	static void Say(string s)
+	{
+		if (On()) Console.Printf("\c[CYAN][TRACE]\c- %s", s);
+	}
+
+	// A step that FAILED -- red, because these are the lines that matter
+	// and they must not scroll past looking like the others.
+	static void Fail(string s)
+	{
+		if (On()) Console.Printf("\c[RED][TRACE FAIL]\c- %s", s);
+	}
+}
+
 class RS_DropTestHandler : EventHandler
 {
 	// The card rs_card is currently showing, so a second call can take it

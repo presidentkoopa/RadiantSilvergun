@@ -508,6 +508,11 @@ class RS_Panel : Actor
 				RS_BBWeaponCard.Build(mComposed, mBaseW, mBaseH,
 					mContentWeapon, mContentHeading);
 				mContentDirty = false;
+
+				RS_CardTrace.Say(String.Format(
+					"laid out '%s' at %.2fx%.2f -> %d billboard part(s)%s",
+					mContentHeading, mBaseW, mBaseH, mComposed.PartCount(),
+					mComposed.PartCount() == 0 ? "  <-- NOTHING WAS DRAWN" : ""));
 			}
 
 			// Then take it down to whatever the ramp currently wants. The
@@ -519,6 +524,16 @@ class RS_Panel : Actor
 			// Moving is the cheap path: no allocation, no handles touched,
 			// just every part repositioned from the offset it remembers.
 			mComposed.Place(pos, mYaw, mTilt);
+
+			// THE LAST STEP BEFORE PIXELS. If this prints a sane world
+			// position and a sane size and there is still nothing on
+			// screen, the fault is in the renderer, not in this chain.
+			// Once a second, so it does not flood.
+			if ((level.maptime % 35) == 0)
+				RS_CardTrace.Say(String.Format(
+					"placed at (%.0f,%.0f,%.0f) yaw %.0f  drawn size %.2fx%.2f  scale %.3f",
+					pos.x, pos.y, pos.z, mYaw, mWidth, mHeight,
+					mBaseW > 0 ? mWidth / mBaseW : -1.0));
 			return;
 		}
 
