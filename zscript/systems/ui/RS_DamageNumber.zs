@@ -200,6 +200,24 @@ class RS_DamageNumberHandler : EventHandler
 
 	int RS_LiveCount() { return rsLive.Size(); }
 
+	// -----------------------------------------------------------------
+	// LIVE DYNAMIC LIGHTS. Lives here rather than on RS_DNLight because
+	// ZSCRIPT DOES NOT ALLOW STATIC MEMBER VARIABLES ON A CLASS -- the
+	// first attempt declared `private static int rsLive;` on the light
+	// and the compiler rejected it outright:
+	//
+	//   Invalid qualifiers for rsLive (static not allowed)
+	//
+	// An EventHandler is the natural home anyway: there is exactly one of
+	// it, it already owns the number registry directly above, and it
+	// outlives every actor it counts.
+	//
+	// Deliberately NOT named rsLive -- that name is taken by the array
+	// above, and ZScript has no shadowing, so reusing it would be a
+	// redefinition rather than a separate field.
+	// -----------------------------------------------------------------
+	int rsLightCount;
+
 	// Make room for one more. Called before the new number is spawned, so
 	// the ceiling is a ceiling rather than a ceiling-plus-one.
 	//
@@ -366,6 +384,20 @@ class RS_DNGlyph : Actor
 		Scale.X = s * stretchX;
 		Scale.Y = s * stretchY;
 	}
+
+	// Point this glyph at one of the thirteen sets. `digit` is 0-9 and
+	// maps to frames A-J. Called once at build time, never per tic.
+	void RS_SetFont(int fontIdx, int digit, bool isHalo)
+	{
+		String p = RS_DNFont.Prefix(fontIdx);
+		if (isHalo)
+			p = "DH" .. p.Mid(2);
+		int spr = GetSpriteIndex(p);
+		if (spr > 0)
+			Sprite = spr;
+		Frame = clamp(digit, 0, 9);
+	}
+
 }
 
 // The digits. RSDN frame A = 0 ... frame J = 9, so the frame index IS
@@ -376,6 +408,47 @@ class RS_DNGlyph : Actor
 // honoured so it can fade out. See this file's header for the source
 // lines; do not "correct" it to the STYLE_Stencil enum, which forces
 // alpha to 1 and would make the fade a hard pop.
+// -------------------------------------------------------------------
+// THE DIGIT SETS.
+//
+// Thirteen of them, all real pixel art at their own native sizes. They
+// are NOT scaled to match each other and must not be -- the actor sizes
+// every number off the art's measured height at runtime, so a set stays
+// whatever it was drawn as and the world scale does the rest.
+//
+// Returned as a prefix rather than a sprite index because the halo set
+// is the same name with DH for DN, so one lookup answers both.
+//
+// A switch, NOT a `static const String[]`. Array literals of that shape
+// do not reliably resolve on this engine build -- found and fixed three
+// separate times in this tree, symptom is a bogus "Unknown identifier".
+// -------------------------------------------------------------------
+class RS_DNFont
+{
+	static String Prefix(int idx)
+	{
+		switch (idx)
+		{
+		case 1:  return "DN02";
+		case 2:  return "DN03";
+		case 3:  return "DN04";
+		case 4:  return "DN05";
+		case 5:  return "DN06";
+		case 6:  return "DN07";
+		case 7:  return "DN08";
+		case 8:  return "DN09";
+		case 9:  return "DN10";
+		case 10: return "DN11";
+		case 11: return "DN12";
+		case 12: return "DN13";
+		}
+		// 0 and anything out of range land on the default set. DN01 is
+		// the same art as RSDN; the duplicate exists so the picker can
+		// index every set uniformly.
+		return "DN01";
+	}
+}
+
 class RS_DNDigit : RS_DNGlyph
 {
 	Default
@@ -383,10 +456,44 @@ class RS_DNDigit : RS_DNGlyph
 		RenderStyle "Stencil";
 	}
 
+	// The state below names RSDN so the sprite is REGISTERED -- GZDoom
+	// only enters a name into the sprite table if some actor state
+	// references it, and a name that never appears in a state resolves
+	// to nothing at runtime. Every alternate set is reached through
+	// RS_SetFont instead, which is why RS_DNFontRegistry exists further
+	// down: without it, twelve of the thirteen sets would silently draw
+	// blank. Same trick RS_HealthBars uses for its bar frames.
 	States
 	{
 	Spawn:
 		RSDN A -1;
+		Stop;
+	}
+
+}
+
+// -------------------------------------------------------------------
+// SPRITE REGISTRATION -- DO NOT DELETE. Never spawned, no behaviour.
+//
+// GZDoom only enters a sprite name into its table if an actor STATE
+// references it. These sets are chosen at runtime by name, so without a
+// state block naming every one of them, GetSpriteIndex returns nothing
+// and the digits render BLANK -- with no error, no warning and no log
+// line, which is this project's most expensive failure mode.
+//
+// If a digit set is added, add both its DN and DH prefix here too.
+// -------------------------------------------------------------------
+class RS_DNFontRegistry : Actor
+{
+	States
+	{
+	Spawn:
+		DN01 A 1; DN02 A 1; DN03 A 1; DN04 A 1; DN05 A 1; DN06 A 1;
+		DN07 A 1; DN08 A 1; DN09 A 1; DN10 A 1; DN11 A 1; DN12 A 1;
+		DN13 A 1;
+		DH01 A 1; DH02 A 1; DH03 A 1; DH04 A 1; DH05 A 1; DH06 A 1;
+		DH07 A 1; DH08 A 1; DH09 A 1; DH10 A 1; DH11 A 1; DH12 A 1;
+		DH13 A 1;
 		Stop;
 	}
 }
@@ -544,6 +651,10 @@ class RS_DamageNumber : Actor
 	private double dnSettle;       // resting scale
 	private double dnStretchGain;
 	private double dnHaloAlpha;
+	// Which digit set this number wears. Fixed at birth, never per
+	// tic -- changing the picker mid-flight would make one number
+	// change typeface halfway through its own life.
+	private int dnFont;
 
 	private double dnGlyphW, dnGlyphH;   // measured from the first digit
 	private bool   dnMotion;
@@ -733,6 +844,11 @@ class RS_DamageNumber : Actor
 		dnOvershoot = frandom(1.30, 1.50);
 		dnSettle    = frandom(0.92, 1.08);
 		dnHaloAlpha = frandom(RS_DN_HALO_A_LO, RS_DN_HALO_A_HI);
+		// Read once, here. RS_DNFont.Prefix clamps anything unexpected
+		// back to the default set, so a bad cvar value cannot produce
+		// an unregistered sprite name and blank digits.
+		let fcv = CVar.FindCVar("rs_dn_font");
+		dnFont = fcv ? fcv.GetInt() : 0;
 
 		// ---- trajectory ---------------------------------------------
 		dnPath = RS_DNP_BALLISTIC;
@@ -912,7 +1028,7 @@ class RS_DamageNumber : Actor
 			let hg = RS_DNHalo(Spawn("RS_DNHalo", Pos, NO_REPLACE));
 			if (hg)
 			{
-				hg.Frame      = digit;
+				hg.RS_SetFont(dnFont, digit, true);
 				hg.dnOffsetEm = offsetEm;
 				hg.dnSizeMul  = sizeMul;
 				hg.dnAlphaMul = alphaMul * dnHaloAlpha;
@@ -925,7 +1041,7 @@ class RS_DamageNumber : Actor
 		if (!g)
 			return;
 
-		g.Frame      = digit;
+		g.RS_SetFont(dnFont, digit, false);
 		g.dnOffsetEm = offsetEm;
 		g.dnSizeMul  = sizeMul;
 		g.dnAlphaMul = alphaMul;
@@ -1332,5 +1448,102 @@ class RS_DamageNumber : Actor
 			dnHandler.RS_Release(self);
 
 		Super.OnDestroy();
+	}
+}
+
+// =====================================================================
+// THE BIG-HIT LIGHT -- the expensive tier, and the only dynamic light
+// this feature ever creates.
+//
+// A number is UI floating in the world, not an object in it, so a shower
+// of them lighting up the level would read as a bug rather than as
+// atmosphere. The glow that makes them look emissive is the additive
+// halo, and that costs nothing.
+//
+// So this exists ONLY for the rare hit worth marking -- a killing blow,
+// or a crit and a headshot landing together. Those are infrequent by
+// definition, which is what makes a brief light affordable AND what
+// makes it mean something when the room flashes.
+//
+// TWO THINGS KEEP IT CHEAP, and the second is the one that matters:
+//
+//   1. It is gated on hit type, so ordinary hits never reach it.
+//   2. THE LIVE COUNT IS A COUNTER, NOT A SCAN. RS_HiFiFX.SpawnMuzzleLight
+//      solves the same problem by walking a ThinkerIterator on every
+//      spawn to count what is already out there. That is correct at a
+//      few muzzle flashes a second and wrong here -- damage numbers
+//      spawn far more often, and the scan would cost more than the
+//      lights it is protecting. A field incremented on spawn and
+//      decremented in OnDestroy answers the same question in constant
+//      time.
+// =====================================================================
+class RS_DNLight : PointLight
+{
+	Default
+	{
+		+NOBLOCKMAP
+		+NOGRAVITY
+		+DONTSPLASH
+		+THRUACTORS
+		+NOTELEPORT
+		Args 255, 200, 120, 64;
+	}
+
+	// Returns null when at the ceiling -- the caller simply gets no
+	// light, which is the correct degradation. A missed light on one hit
+	// in a firefight is invisible; a framerate drop is not.
+	static RS_DNLight RS_Make(Vector3 pos, Color c, int radius)
+	{
+		let cv = CVar.FindCVar("rs_dn_dynlight");
+		if (!cv || !cv.GetInt())
+			return null;
+
+		// The live count lives on RS_DamageNumberHandler -- ZScript does
+		// not permit a static member variable on a class, so there is no
+		// per-class counter to keep. See rsLightCount there.
+		let h = RS_DamageNumberHandler.RS_Get();
+		if (!h)
+			return null;   // unregistered handler means no ceiling, so no light
+
+		let capcv = CVar.FindCVar("rs_dn_dynlightmax");
+		int cap = capcv ? capcv.GetInt() : 8;
+		if (cap <= 0 || h.rsLightCount >= cap)
+			return null;
+
+		let l = RS_DNLight(Actor.Spawn("RS_DNLight", pos, NO_REPLACE));
+		if (!l)
+			return null;
+
+		l.args[0] = c.r;
+		l.args[1] = c.g;
+		l.args[2] = c.b;
+		l.args[3] = radius;
+		return l;
+	}
+
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		let h = RS_DamageNumberHandler.RS_Get();
+		if (h) h.rsLightCount++;
+	}
+
+	override void OnDestroy()
+	{
+		// Decremented HERE and not on a timer, so the count can never
+		// drift away from reality -- every path that removes this actor,
+		// including a level change, comes through OnDestroy.
+		let h = RS_DamageNumberHandler.RS_Get();
+		if (h) h.rsLightCount--;
+		Super.OnDestroy();
+	}
+
+	States
+	{
+	Spawn:
+		TNT1 A 2 Bright;
+		TNT1 A 2 Bright;
+		TNT1 A 2 Bright;
+		Stop;
 	}
 }

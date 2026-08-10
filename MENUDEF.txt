@@ -522,11 +522,32 @@ OptionMenu "RS_CritOptions"
 // comes from what KIND of hit it was, which RS already measures, and
 // that is one switch, not a table.
 // ---------------------------------------------------------------------
+// Digit sets. Real pixel art at their native sizes -- the actor scales
+// them in the world, so the bounce does the work and the player's own
+// texture filter decides how soft they land.
+OptionValue "RS_DNFontOption"
+{
+	0.0, "Doom"
+	1.0, "Doom Modern"
+	2.0, "Doom Small"
+	3.0, "Raven Big"
+	4.0, "Raven Small"
+	5.0, "Raven Inventory"
+	6.0, "Strife"
+	7.0, "Square"
+	8.0, "Harmony"
+	9.0, "Hacx"
+	10.0, "Chex"
+	11.0, "Urban"
+	12.0, "Big Bold"
+}
+
 OptionMenu "RS_DamageNumberOptions"
 {
 	Title "Damage Numbers"
 	StaticText " "
 	Option "Damage Numbers", "rs_dn_enable", "OnOff"
+	Option "Digit Set", "rs_dn_font", "RS_DNFontOption"
 	StaticText "Every hit throws its own number, and they scatter. The", "DarkGray"
 	StaticText "shower is the feature, not a fallback.", "DarkGray"
 
@@ -540,6 +561,12 @@ OptionMenu "RS_DamageNumberOptions"
 	StaticText "The number inherits the velocity of the round that", "DarkGray"
 	StaticText "caused it. Force scatters; precision holds still.", "DarkGray"
 	Option "Glow", "rs_dn_glow", "OnOff"
+	StaticText " "
+	Option "Big-Hit Light", "rs_dn_dynlight", "OnOff"
+	Slider "Max Lights At Once", "rs_dn_dynlightmax", 1, 32, 1, 0
+	StaticText "A real light, only on a killing blow or a crit that", "DarkGray"
+	StaticText "was also a headshot. Ordinary hits never make one --", "DarkGray"
+	StaticText "their glow is the halo above, which is free.", "DarkGray"
 	Option "Show Overkill", "rs_dn_overkill", "OnOff"
 	Option "Per-Hand Tint", "rs_dn_perhand", "OnOff"
 	StaticText "Which hand landed it -- only means anything dual wielding.", "DarkGray"

@@ -2152,3 +2152,18 @@ server bool rs_dn_distance = false;
 // 0 = no floor, which is the default, because the floor is one of the
 // clever extras and those ship off.
 server int rs_dn_minimum = 0;
+
+// Typeface. Thirteen digit sets, all real pixel art rather than anything
+// derived from the SDF atlases -- those are a lossy encoding of a pixel
+// font and could not hold a square corner, which is why they were tried
+// and dropped.
+server int rs_dn_font = 0;
+
+// The big-hit light. This is the ONE dynamic light the feature creates,
+// and it fires only on a killing blow or a crit+headshot. A number is UI
+// floating in the world, not an object in it, so a shower of them
+// lighting the level would read as a bug -- the ordinary "glow" is the
+// additive halo, which costs nothing.
+server bool rs_dn_dynlight = false;
+// Live ceiling. Counted with a plain counter, not a per-spawn scan.
+server int rs_dn_dynlightmax = 8;
