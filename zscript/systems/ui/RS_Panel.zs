@@ -86,6 +86,13 @@ class RS_Panel : Actor
 	// it or leave a seam.
 	double   mWidth, mHeight;
 
+	// The unscaled size, set once at Create and never touched by the
+	// approach ramp. mWidth is the DRAWN size and changes every tic; this
+	// is the size the card's layout is solved at. Keeping them apart is
+	// what lets a card be born collapsed inside the drop's glow and still
+	// know how big it is meant to become.
+	double   mBaseW, mBaseH;
+
 	// --- orientation, DESIGN SPACE --------------------------------
 	double   mYaw;           // which way the face points
 	double   mTilt;          // 0 = vertical; + leans the top toward the viewer
@@ -157,6 +164,11 @@ class RS_Panel : Actor
 		p.mCanvas = canvasName;
 		p.mWidth  = w;
 		p.mHeight = h;
+		// THE SIZE THE CARD IS LAID OUT AT, kept apart from the size it is
+		// currently DRAWN at. mWidth is scaled every tic by the drop's
+		// approach ramp; this is not.
+		p.mBaseW  = w;
+		p.mBaseH  = h;
 		p.mSlot   = slot;
 		p.mFacing = RSPF_Fixed;
 		p.mYaw    = 0;
@@ -478,11 +490,31 @@ class RS_Panel : Actor
 			// billboards per tic for a player who is merely walking.
 			if (mContentDirty)
 			{
+				// BUILD AT FULL SIZE, ALWAYS. Fixed 2026-08-10.
+				//
+				// This used to build at mWidth/mHeight, and that is why an
+				// elite drop's card never grew. The approach ramp shrinks
+				// mWidth to rs_drop_cardminscale BEFORE the first
+				// SyncBackend runs, so the compositor captured a 2%-size
+				// card as its BASE -- and RS_BBComposedPanel.Rescale scales
+				// from that base, so Rescale(1.0) standing on top of the
+				// drop returned 100% OF 2%. The card was built collapsed
+				// and could never expand out of the point it started in.
+				//
+				// It presents as "the cards don't appear", not as a scaling
+				// bug, because 2% of a six-unit card is smaller than a
+				// pixel at any range you could read it from.
 				mComposed.ReleaseAll();
-				RS_BBWeaponCard.Build(mComposed, mWidth, mHeight,
+				RS_BBWeaponCard.Build(mComposed, mBaseW, mBaseH,
 					mContentWeapon, mContentHeading);
 				mContentDirty = false;
 			}
+
+			// Then take it down to whatever the ramp currently wants. The
+			// ratio is the single source of the card's scale -- nothing
+			// else may set it, or the base drifts again.
+			if (mBaseW > 0)
+				mComposed.Rescale(mWidth / mBaseW);
 
 			// Moving is the cheap path: no allocation, no handles touched,
 			// just every part repositioned from the offset it remembers.

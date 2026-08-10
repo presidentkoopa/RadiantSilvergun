@@ -28,9 +28,171 @@
 
 class RS_DropTestHandler : EventHandler
 {
+	// The card rs_card is currently showing, so a second call can take it
+	// away. Held on the handler and not on an actor: this card has no
+	// pedestal to die with, which is exactly what makes it useful.
+	RS_BBComposedPanel mShown;
+
 	override void NetworkProcess(ConsoleEvent e)
 	{
 		Super.NetworkProcess(e);
+
+		// -----------------------------------------------------------------
+		// WHY IS THERE NO CARD. Prints the whole chain in one go, because
+		// every guess so far has been made from a screenshot and every one
+		// has been wrong. Each line answers exactly one question, in the
+		// order the card actually comes into being.
+		// -----------------------------------------------------------------
+		if (e.Name == "rs_drop_diag")
+		{
+			let pawn = players[e.Player].mo;
+			if (!pawn) return;
+
+			Console.Printf("\c[GOLD]===== RS DROP DIAG =====");
+
+			// 1. Is there a drop in the world at all, and how far away?
+			int drops = 0;
+			double nearest = 1e9;
+			ThinkerIterator it = ThinkerIterator.Create("RS_WeaponDrop", Thinker.STAT_DEFAULT);
+			Actor a;
+			while (a = Actor(it.Next()))
+			{
+				drops++;
+				double dd = (a.pos - pawn.pos).Length();
+				if (dd < nearest) nearest = dd;
+				Console.Printf("  drop #%d  dist %.1f  pos (%.0f,%.0f,%.0f)",
+					drops, dd, a.pos.x, a.pos.y, a.pos.z);
+			}
+			Console.Printf("  drops in level: %d", drops);
+
+			// 2. The distances that decide the bloom.
+			Console.Printf("  radius %.1f  near %.1f  ramp %.1f  minscale %.3f",
+				RS_PanelController.CardRadius(),
+				RS_PanelController.CardNear(),
+				RS_PanelController.CardRamp(),
+				RS_PanelController.CardMinScale());
+
+			// The three switches that can silently mean "no card ever".
+			// enabled=false stops ConsiderDrop dead; composed=false sends
+			// the card down the painted-canvas path instead of the
+			// billboard one; solo changes how many panels exist.
+			// int(), not the bare bool: %d with a bool is not a documented
+			// Printf conversion here, and the failure would be a garbage
+			// number in the one line that is supposed to settle an argument.
+			Console.Printf("  enabled=%d  composed=%d  solo=%d",
+				RS_PanelController.Enabled() ? 1 : 0,
+				RS_PanelController.Composed() ? 1 : 0,
+				RS_PanelController.SoloCard() ? 1 : 0);
+
+			// What the ramp would compute RIGHT NOW for the nearest drop --
+			// the actual number that decides whether you can see anything.
+			if (drops > 0)
+			{
+				double outer = RS_PanelController.CardRadius();
+				double inner = clamp(RS_PanelController.CardNear(), 1.0, outer - 1.0);
+				double ramp  = min(RS_PanelController.CardRamp(), outer - inner);
+				double fardist = inner + max(1.0, ramp);
+				double t = clamp((nearest - inner) / (fardist - inner), 0.0, 1.0);
+				double s = 1.0 - t * (1.0 - RS_PanelController.CardMinScale());
+				Console.Printf("\c[GOLD]  nearest %.1f -> t %.2f -> SCALE %.3f  (1.0 = full size)",
+					nearest, t, s);
+			}
+
+			// 3. Did a card ever get BUILT, and does it still exist?
+			let ph = RS_PanelDropHandler(EventHandler.Find("RS_PanelDropHandler"));
+			if (!ph)
+			{
+				Console.Printf("\c[RED]  RS_PanelDropHandler NOT FOUND -- nothing can build a card.");
+				return;
+			}
+
+			Console.Printf("  card=%s  owner=%s",
+				ph.mCard ? "YES" : "\c[RED]NULL\c-",
+				ph.mCardOwner ? "YES" : "\c[RED]NULL\c-");
+
+			// 4. If it exists, how big is it RIGHT NOW and where.
+			if (ph.mCard && ph.mCard.mAsm)
+			{
+				Console.Printf("  panels: %d   baseW recorded: %d",
+					ph.mCard.mAsm.Size(), ph.mCardBaseW.Size());
+
+				for (int i = 0; i < ph.mCard.mAsm.Size(); i++)
+				{
+					let p = ph.mCard.mAsm.Get(i);
+					if (!p) { Console.Printf("   [%d] null", i); continue; }
+					Console.Printf("   [%d] %.3f x %.3f  backend %d  composed=%s",
+						i, p.mWidth, p.mHeight, p.mBackend,
+						p.mComposed ? "yes" : "NO");
+				}
+			}
+			Console.Printf("\c[GOLD]========================");
+			return;
+		}
+
+		// -----------------------------------------------------------------
+		// THE CARD, IN YOUR FACE, NOW.  netevent rs_card [tier]
+		//
+		// Builds RS_BBWeaponCard straight into the world at FULL SCALE and
+		// places it in front of the player. No drop, no pedestal, no
+		// triptych, no distance ramp -- every one of which is a place the
+		// card can fail to appear for reasons that have nothing to do with
+		// how the card LOOKS.
+		//
+		// That separation is the whole point: if this shows a card and
+		// `rs_drop` does not, the card is fine and the delivery chain is
+		// broken. If this shows nothing either, the card itself is broken.
+		// One command, and the two halves stop being confused.
+		// -----------------------------------------------------------------
+		if (e.Name == "rs_card")
+		{
+			let pawn = players[e.Player].mo;
+			if (!pawn) return;
+
+			if (mShown)
+			{
+				mShown.ReleaseAll();
+				mShown = null;
+				Console.Printf("\c[GOLD][RS CARD]\c- cleared.");
+				return;
+			}
+
+			int tier = clamp(e.Args[0], VRT_Cursed, VRT_Prototype);
+
+			// A real weapon so the card has real numbers to draw.
+			class<Weapon> what = PickWeapon();
+			let wep = Weapon(Actor.Spawn(what, pawn.pos));
+			if (!wep)
+			{
+				Console.Printf("\c[RED][RS CARD]\c- could not spawn a weapon.");
+				return;
+			}
+			// Off the floor and out of the way -- it exists only to be read.
+			wep.bNOSECTOR = true;
+			wep.bNOBLOCKMAP = true;
+			wep.bINVISIBLE = true;
+			let rsw = RS_Weapon(wep);
+			if (rsw) rsw.RollStats(tier);
+
+			double w = RS_PanelController.PanelWidth();
+			double h = RS_PanelController.PanelHeight();
+
+			mShown = new("RS_BBComposedPanel");
+			RS_BBWeaponCard.Build(mShown, w, h, wep, "DROP");
+
+			// Eye height, one card-width out, facing back at the player.
+			double yaw = pawn.angle;
+			Vector3 fwd = (cos(yaw), sin(yaw), 0);
+			// viewz is absolute world Z, not an offset -- the drop path uses
+			// it that way at RS_EliteDrop.zs:1299.
+			Vector3 at  = (pawn.pos.x, pawn.pos.y, pawn.player.viewz) + fwd * 40.0;
+
+			mShown.Place(at, yaw + 180, 0);
+
+			Console.Printf("\c[GOLD][RS CARD]\c- %s tier %d, %.1f x %.1f at (%.0f,%.0f,%.0f). "
+				.. "'netevent rs_card' again to clear.",
+				what.GetClassName(), tier, w, h, at.x, at.y, at.z);
+			return;
+		}
 
 		if (e.Name != "rs_drop")
 			return;
@@ -58,8 +220,19 @@ class RS_DropTestHandler : EventHandler
 
 		for (int i = 0; i < count; i++)
 		{
-			double side = (i - (count - 1) * 0.5) * 56.0;
-			Vector3 at = pawn.pos + fwd * 96.0 + rgt * side;
+			// JUST OUTSIDE THE BLOOM, NOT ACROSS THE ROOM.
+			//
+			// This was 96 and that made the command useless: the card only
+			// starts growing at rs_drop_cardnear + rs_drop_cardramp, which
+			// ships as 10 + 24 = 34 units, and below that it sits at
+			// rs_drop_cardminscale = 0.02. At 96 units the card was a 2%
+			// speck -- correct behaviour, invisible result, and it read as
+			// "the cards don't spawn".
+			//
+			// 44 puts the drop a step outside the bloom, so walking toward
+			// it is the whole test. Spaced tighter for the same reason.
+			double side = (i - (count - 1) * 0.5) * 34.0;
+			Vector3 at = pawn.pos + fwd * 44.0 + rgt * side;
 
 			int useTier = roll ? random(VRT_Cursed, VRT_Prototype) : tier;
 
@@ -86,15 +259,15 @@ class RS_DropTestHandler : EventHandler
 	//
 	// Walked rather than hardcoded: a hardcoded name is a second list of
 	// what weapons exist, and this project's own rules are explicit that a
-	// second definition is the thing that goes stale. AllClasses is walked
+	// second definition is the thing that goes stale. AllActorClasses is walked
 	// once per call, which is fine for a debug command fired by hand.
 	private class<Weapon> PickWeapon()
 	{
 		Array<class<Weapon> > pool;
 
-		for (int i = 0; i < AllClasses.Size(); i++)
+		for (int i = 0; i < AllActorClasses.Size(); i++)
 		{
-			let c = (class<RS_Weapon>)(AllClasses[i]);
+			let c = (class<RS_Weapon>)(AllActorClasses[i]);
 			if (!c)
 				continue;
 

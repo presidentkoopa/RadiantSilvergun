@@ -622,8 +622,11 @@ class RS_CardContent play
 
 	private static string Pad(string s, int w)
 	{
+		// int(), not the unsigned Length() returns -- comparing it against a
+		// signed width is the "signed and unsigned value" warning this tree
+		// has already cleaned up twice, in RS_FXGallery and RS_BBCompose.
 		string o = s;
-		while (o.Length() < w) o = o .. " ";
+		while (int(o.Length()) < w) o = o .. " ";
 		return o;
 	}
 
