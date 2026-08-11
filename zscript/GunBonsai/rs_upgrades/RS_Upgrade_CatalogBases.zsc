@@ -1,0 +1,361 @@
+// =====================================================================
+// CATALOG CARD BASES.
+//
+// The catalogs describe 143 monsters across 13 families, 177 FX actors
+// across 9 axes, 5 roles and 8 themes. Three affixes reading that was
+// not a card set, it was a demo.
+//
+// This file holds nine parameterized bases. Every actual card is a
+// four-line subclass in RS_Upgrade_CatalogCards.zsc that names its
+// family, its theme or its axis and nothing else -- the behaviour lives
+// here, once, and a bug is fixed in one place rather than a hundred.
+//
+//   FAMILY cards (x13, one per bestiary family)
+//     Conscript  raise one good body of that family on a kill
+//     Swarm      raise several cheap ones instead
+//     Hunter     kill that family faster
+//     Trophy     that family pays out when it dies
+//
+//   THEME cards (x8, one per registry theme)
+//     Brand      hits plant that theme's payload
+//     Lock       the gun's PACK beat draws only that theme
+//     Surge      kills burst that theme's headline FX
+//
+//   AXIS cards (x9, one per PACK axis)
+//     Flourish   that axis draws its HEADLINE entries on impact
+//     Echo       that axis fires a second time, off the kill
+//
+// 13*4 + 8*3 + 9*2 = 94. The point is not the number: it is that adding
+// a monster to RS_MinionCatalog or an FX actor to RS_FXRegistry makes
+// every card of the matching family/theme/axis richer with no edit here
+// and no new card written.
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// Shared: family cards. Subclass overrides Family() only.
+// ---------------------------------------------------------------------
+class RS_CatCard_FamilyBase : TFLV_Upgrade_RS_SlateBase abstract
+{
+	virtual string Family() { return ""; }
+
+	override string KeyAxis() { return "behavior"; }
+	override string ValueForLevel(int lvl) { return ""; }
+
+	// The gun that gets credited. OnKill carries no WeaponInfo, and
+	// ReadyWeapon is correct at the instant of the kill -- once the
+	// minion token is stamped it keeps paying that weapon for life.
+	Weapon Payee(PlayerPawn p)
+	{
+		return p && p.player ? p.player.ReadyWeapon : null;
+	}
+
+	// Every family card gates the same way, so the suitability check is
+	// written once. Subclasses supply their own class name because
+	// GetClassName() on the upgrade is what CanTake compares against.
+	bool CardTakeable(TFLV_WeaponInfo info, string myName)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return CanTake(wpn, info, myName)
+			&& info.upgrades.Level(myName) < 6;
+	}
+}
+
+// CONSCRIPT -- one good body of the family, budget climbing with level.
+class RS_CatCard_ConscriptBase : RS_CatCard_FamilyBase abstract
+{
+	override void OnKill(PlayerPawn player, Actor shot, Actor target)
+	{
+		if (!player || !target || level <= 0) return;
+		if (RS_Minion.IsMinion(target)) return;          // no compounding
+		if (random(1, 100) > min(55, 9 * int(level))) return;
+
+		let src = Payee(player);
+		if (!src) return;
+
+		int budget = 6 + 6 * int(level);                 // 12..36, mastery 42
+		string what = RS_MinionCatalog.BestFor(budget, Family());
+		if (what == "")
+		{
+			// Budget does not reach this family yet -- take its floor, so
+			// the card is never dead, just modest.
+			what = RS_MinionCatalog.CheapestIn(Family());
+			if (what == "" || RS_MinionCatalog.CostOf(what) > budget) return;
+		}
+
+		Class<Actor> cls = what;
+		if (cls) RS_Minion.Summon(player, src, cls, target.pos, target.angle);
+	}
+}
+
+// SWARM -- several cheap ones of the family rather than one good one.
+class RS_CatCard_SwarmBase : RS_CatCard_FamilyBase abstract
+{
+	override void OnKill(PlayerPawn player, Actor shot, Actor target)
+	{
+		if (!player || !target || level <= 0) return;
+		if (RS_Minion.IsMinion(target)) return;
+		if (random(1, 100) > min(45, 7 * int(level))) return;
+
+		let src = Payee(player);
+		if (!src) return;
+
+		int n      = 2 + (int(level) / 2);               // 2,2,3,3,4, mastery 5
+		int budget = 8 + 5 * int(level);
+		string what = RS_MinionCatalog.BundleOf(budget, n, Family());
+		if (what == "")
+		{
+			what = RS_MinionCatalog.CheapestIn(Family());
+			if (what == "") return;
+			int c = RS_MinionCatalog.CostOf(what);
+			if (c <= 0) return;
+			n = budget / c;
+			if (n < 1) return;
+		}
+
+		Class<Actor> cls = what;
+		if (!cls) return;
+
+		for (int i = 0; i < n; i++)
+		{
+			double a = 360.0 * i / n;
+			Vector3 at = target.pos + (cos(a) * 28, sin(a) * 28, 0);
+			RS_Minion.Summon(player, src, cls, at, a);
+		}
+	}
+}
+
+// HUNTER -- this family dies faster to you.
+class RS_CatCard_HunterBase : RS_CatCard_FamilyBase abstract
+{
+	override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage)
+	{
+		if (!target || level <= 0 || damage <= 0) return;
+		if (target.bFRIENDLY) return;
+		if (RS_MinionCatalog.FamilyOf(target) != Family()) return;
+
+		// Percentage bonus applied as a second, separate hit so it reads
+		// on the damage feed and cannot be swallowed by the first hit's
+		// resistances.
+		int bonus = max(1, damage * (8 * int(level)) / 100);
+		target.DamageMobj(shot, pawn, bonus, "Normal", DMG_THRUSTLESS);
+	}
+}
+
+// TROPHY -- this family pays out when it dies.
+class RS_CatCard_TrophyBase : RS_CatCard_FamilyBase abstract
+{
+	override void OnKill(PlayerPawn player, Actor shot, Actor target)
+	{
+		if (!player || !target || level <= 0) return;
+		if (RS_MinionCatalog.FamilyOf(target) != Family()) return;
+
+		// Scales with how dangerous the family is, so a baron trophy is
+		// worth more than a zombieman one without a per-family table.
+		int worth = RS_MinionCatalog.CostOf(target.GetClassName());
+		if (worth <= 0) worth = 2;
+
+		int heal = max(1, worth * int(level) / 6);
+		player.GiveBody(heal, player.GetMaxHealth() + 50);
+
+		if (level >= 6)
+			player.A_GiveInventory("Clip", worth);
+	}
+}
+
+// CULL -- this family does not get to limp away.
+class RS_CatCard_CullBase : RS_CatCard_FamilyBase abstract
+{
+	override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage)
+	{
+		if (!target || level <= 0 || target.health <= 0) return;
+		if (target.bFRIENDLY) return;
+		if (RS_MinionCatalog.FamilyOf(target) != Family()) return;
+
+		// Threshold is a share of the thing's OWN max health, so this is
+		// as meaningful against a baron as against a zombie rather than
+		// being a flat number that trivializes one and never fires on
+		// the other.
+		int maxhp = target.GetMaxHealth(true);
+		if (maxhp <= 0) maxhp = target.SpawnHealth();
+		int cut = maxhp * (4 * int(level)) / 100;        // 4%..20%, mastery 24%
+		if (target.health > cut) return;
+
+		target.DamageMobj(shot, pawn, target.health + 1, "Normal", DMG_THRUSTLESS);
+	}
+}
+
+// ---------------------------------------------------------------------
+// Shared: theme cards. Subclass overrides Theme() only.
+// ---------------------------------------------------------------------
+class RS_CatCard_ThemeBase : TFLV_Upgrade_RS_SlateBase abstract
+{
+	virtual int Theme() { return -1; }
+
+	override string KeyAxis() { return "behavior"; }
+	override string ValueForLevel(int lvl) { return ""; }
+
+	bool CardTakeable(TFLV_WeaponInfo info, string myName)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return CanTake(wpn, info, myName)
+			&& info.upgrades.Level(myName) < 6;
+	}
+}
+
+// BRAND -- hits plant this theme's payload at the impact.
+class RS_CatCard_BrandBase : RS_CatCard_ThemeBase abstract
+{
+	override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage)
+	{
+		if (!target || level <= 0 || damage <= 0) return;
+		if (target.bFRIENDLY) return;
+		if (random(1, 100) > min(50, 8 * int(level))) return;
+
+		// The whole point: what a brand plants is whatever the registry
+		// holds for this theme. Import a fire weapon set, tag its parts
+		// fire, and every fire brand gets deeper with no edit.
+		Class<Actor> cls = RS_FXRegistry.Draw(
+			RS_FXRegistry.RS_FXAXIS_PAYLOAD, Theme(),
+			(level >= 6) ? RS_FXRegistry.RS_FXROLE_HEADLINE
+			             : RS_FXRegistry.RS_FXROLE_BODY,
+			false, false);
+		if (!cls)
+			cls = RS_FXRegistry.Draw(RS_FXRegistry.RS_FXAXIS_PAYLOAD, Theme());
+		if (!cls) return;
+
+		let mo = Actor.Spawn(cls, target.pos, ALLOW_REPLACE);
+		if (mo)
+		{
+			mo.target = pawn;                 // never turns on the player
+			mo.master = pawn;
+			if (mo.bMISSILE) mo.vel = (0, 0, 0);
+		}
+	}
+}
+
+// LOCK -- the gun's PACK beat draws only from this theme.
+class RS_CatCard_LockBase : RS_CatCard_ThemeBase abstract
+{
+	void Reinstall(RS_Weapon wpn)
+	{
+		if (!wpn) return;
+		RS_PACKAssembly.UninstallAll(wpn);
+
+		// Rotation tightens with level: every 5th shot down to every 2nd.
+		int rot = max(2, 6 - int(level));
+		let p = RS_PACKAssembly.Build(wpn, Theme());
+		if (!p) return;
+		wpn.PadSlotTo(0, rot);
+		wpn.AppendProfile(0, p);
+
+		// Mastery: a second, independently rolled beat of the same theme
+		// joins the cycle rather than lengthening it.
+		if (level >= 6)
+		{
+			let q = RS_PACKAssembly.Build(wpn, Theme());
+			if (q) wpn.AppendProfile(0, q);
+		}
+	}
+
+	override void ExtraActivate(RS_Weapon wpn)   { Reinstall(wpn); }
+
+	// MANDATORY -- an appended profile with no card behind it fires
+	// forever. Salvage learned this the hard way.
+	override void ExtraDeactivate(RS_Weapon wpn) { RS_PACKAssembly.UninstallAll(wpn); }
+}
+
+// SURGE -- kills burst this theme's headline FX.
+class RS_CatCard_SurgeBase : RS_CatCard_ThemeBase abstract
+{
+	override void OnKill(PlayerPawn player, Actor shot, Actor target)
+	{
+		if (!player || !target || level <= 0) return;
+		if (RS_Minion.IsMinion(target)) return;
+		if (random(1, 100) > min(60, 10 * int(level))) return;
+
+		Class<Actor> cls = RS_FXRegistry.Draw(
+			RS_FXRegistry.RS_FXAXIS_PAYLOAD, Theme(),
+			RS_FXRegistry.RS_FXROLE_HEADLINE, false, false);
+		if (!cls)
+			cls = RS_FXRegistry.Draw(
+				RS_FXRegistry.RS_FXAXIS_SPARKS, Theme(),
+				RS_FXRegistry.RS_FXROLE_HEADLINE, false, false);
+		if (!cls) return;
+
+		int n = (level >= 6) ? 3 : 1;
+		for (int i = 0; i < n; i++)
+		{
+			double a = 360.0 * i / n;
+			Vector3 at = target.pos + (cos(a) * 16 * i, sin(a) * 16 * i, 8);
+			let mo = Actor.Spawn(cls, at, ALLOW_REPLACE);
+			if (mo) { mo.target = player; mo.master = player; }
+		}
+	}
+}
+
+// ---------------------------------------------------------------------
+// Shared: axis cards. Subclass overrides Axis() only.
+// ---------------------------------------------------------------------
+class RS_CatCard_AxisBase : TFLV_Upgrade_RS_SlateBase abstract
+{
+	virtual int Axis() { return -1; }
+
+	override string KeyAxis() { return "behavior"; }
+	override string ValueForLevel(int lvl) { return ""; }
+
+	bool CardTakeable(TFLV_WeaponInfo info, string myName)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return CanTake(wpn, info, myName)
+			&& info.upgrades.Level(myName) < 6;
+	}
+}
+
+// FLOURISH -- this axis draws its biggest entries on impact.
+class RS_CatCard_FlourishBase : RS_CatCard_AxisBase abstract
+{
+	override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage)
+	{
+		if (!target || level <= 0 || damage <= 0) return;
+		if (random(1, 100) > min(70, 12 * int(level))) return;
+
+		// HEADLINE first -- the whole card is "show me the big version of
+		// this axis". BODY is the honest fallback for axes that have no
+		// headline entry tagged yet.
+		Class<Actor> cls = RS_FXRegistry.Draw(
+			Axis(), -1, RS_FXRegistry.RS_FXROLE_HEADLINE, true, level < 6);
+		if (!cls)
+			cls = RS_FXRegistry.Draw(
+				Axis(), -1, RS_FXRegistry.RS_FXROLE_BODY, true, true);
+		if (!cls) return;
+
+		let mo = Actor.Spawn(cls, target.pos + (0, 0, target.height * 0.5),
+			ALLOW_REPLACE);
+		if (mo) { mo.target = pawn; mo.master = pawn; }
+	}
+}
+
+// ECHO -- the axis fires again, off the kill.
+class RS_CatCard_EchoBase : RS_CatCard_AxisBase abstract
+{
+	override void OnKill(PlayerPawn player, Actor shot, Actor target)
+	{
+		if (!player || !target || level <= 0) return;
+		if (RS_Minion.IsMinion(target)) return;
+
+		int n = min(4, 1 + int(level) / 2);
+		for (int i = 0; i < n; i++)
+		{
+			if (random(1, 100) > min(75, 14 * int(level))) continue;
+
+			Class<Actor> cls = RS_FXRegistry.Draw(Axis(), -1, -1, true, level < 6);
+			if (!cls) return;
+
+			double a = frandom(0, 360);
+			double d = frandom(0, 40);
+			Vector3 at = target.pos + (cos(a) * d, sin(a) * d, frandom(0, 24));
+			let mo = Actor.Spawn(cls, at, ALLOW_REPLACE);
+			if (mo) { mo.target = player; mo.master = player; }
+		}
+	}
+}

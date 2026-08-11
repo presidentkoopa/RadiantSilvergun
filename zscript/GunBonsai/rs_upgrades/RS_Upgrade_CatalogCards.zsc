@@ -1,0 +1,765 @@
+// =====================================================================
+// THE CATALOG CARD SET -- 105 cards, none of whose content is written
+// here.
+//
+// Every class in this file is four lines: it names a bestiary family, a
+// registry theme, or a PACK axis, and inherits everything else from
+// RS_Upgrade_CatalogBases.zsc. That is deliberate. The behaviour of a
+// Levy card is one implementation shared by thirteen cards; the thing
+// that makes LevyRevenant different from LevyImp is a single string
+// that RS_MinionCatalog resolves at runtime.
+//
+// Which means the card set grows when the CATALOGS grow, not when this
+// file is edited. Add a monster to RS_MinionCatalog and five cards get
+// deeper. Tag an FX actor in RS_FXRegistry and up to five more do.
+//
+//   FAMILY x13  Levy / Horde / Bane / Tithe / Cull      = 65
+//   THEME  x8   Brand / Attune / Surge                  = 24
+//   AXIS   x8   Flourish / Echo                         = 16
+//                                                        ---
+//                                                        105
+//
+// SOUND is the ninth PACK axis and has no cards, because RS_FXRegistry
+// currently holds zero entries on that axis -- a sound card would draw
+// null every time. It comes back the moment sounds are registered.
+//
+// GENERATED SHAPE, HAND-OWNED CONTENT: the classes below are uniform on
+// purpose so that a bug is fixed once in the base. Do not add per-card
+// behaviour here; add it to the base and let all thirteen inherit it.
+// =====================================================================
+
+class TFLV_Upgrade_RS_LevyPinky : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "demon"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyPinky"); }
+}
+
+class TFLV_Upgrade_RS_HordePinky : RS_CatCard_SwarmBase
+{
+	override string Family() { return "demon"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordePinky"); }
+}
+
+class TFLV_Upgrade_RS_BanePinky : RS_CatCard_HunterBase
+{
+	override string Family() { return "demon"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BanePinky"); }
+}
+
+class TFLV_Upgrade_RS_TithePinky : RS_CatCard_TrophyBase
+{
+	override string Family() { return "demon"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TithePinky"); }
+}
+
+class TFLV_Upgrade_RS_CullPinky : RS_CatCard_CullBase
+{
+	override string Family() { return "demon"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullPinky"); }
+}
+
+class TFLV_Upgrade_RS_LevyChaingunner : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "chaingunner"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyChaingunner"); }
+}
+
+class TFLV_Upgrade_RS_HordeChaingunner : RS_CatCard_SwarmBase
+{
+	override string Family() { return "chaingunner"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeChaingunner"); }
+}
+
+class TFLV_Upgrade_RS_BaneChaingunner : RS_CatCard_HunterBase
+{
+	override string Family() { return "chaingunner"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneChaingunner"); }
+}
+
+class TFLV_Upgrade_RS_TitheChaingunner : RS_CatCard_TrophyBase
+{
+	override string Family() { return "chaingunner"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheChaingunner"); }
+}
+
+class TFLV_Upgrade_RS_CullChaingunner : RS_CatCard_CullBase
+{
+	override string Family() { return "chaingunner"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullChaingunner"); }
+}
+
+class TFLV_Upgrade_RS_LevyShotgunner : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "shotgunner"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyShotgunner"); }
+}
+
+class TFLV_Upgrade_RS_HordeShotgunner : RS_CatCard_SwarmBase
+{
+	override string Family() { return "shotgunner"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeShotgunner"); }
+}
+
+class TFLV_Upgrade_RS_BaneShotgunner : RS_CatCard_HunterBase
+{
+	override string Family() { return "shotgunner"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneShotgunner"); }
+}
+
+class TFLV_Upgrade_RS_TitheShotgunner : RS_CatCard_TrophyBase
+{
+	override string Family() { return "shotgunner"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheShotgunner"); }
+}
+
+class TFLV_Upgrade_RS_CullShotgunner : RS_CatCard_CullBase
+{
+	override string Family() { return "shotgunner"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullShotgunner"); }
+}
+
+class TFLV_Upgrade_RS_LevySpectre : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "spectre"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevySpectre"); }
+}
+
+class TFLV_Upgrade_RS_HordeSpectre : RS_CatCard_SwarmBase
+{
+	override string Family() { return "spectre"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeSpectre"); }
+}
+
+class TFLV_Upgrade_RS_BaneSpectre : RS_CatCard_HunterBase
+{
+	override string Family() { return "spectre"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneSpectre"); }
+}
+
+class TFLV_Upgrade_RS_TitheSpectre : RS_CatCard_TrophyBase
+{
+	override string Family() { return "spectre"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheSpectre"); }
+}
+
+class TFLV_Upgrade_RS_CullSpectre : RS_CatCard_CullBase
+{
+	override string Family() { return "spectre"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullSpectre"); }
+}
+
+class TFLV_Upgrade_RS_LevyImp : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "imp"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyImp"); }
+}
+
+class TFLV_Upgrade_RS_HordeImp : RS_CatCard_SwarmBase
+{
+	override string Family() { return "imp"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeImp"); }
+}
+
+class TFLV_Upgrade_RS_BaneImp : RS_CatCard_HunterBase
+{
+	override string Family() { return "imp"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneImp"); }
+}
+
+class TFLV_Upgrade_RS_TitheImp : RS_CatCard_TrophyBase
+{
+	override string Family() { return "imp"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheImp"); }
+}
+
+class TFLV_Upgrade_RS_CullImp : RS_CatCard_CullBase
+{
+	override string Family() { return "imp"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullImp"); }
+}
+
+class TFLV_Upgrade_RS_LevyMancubus : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "fatso"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyMancubus"); }
+}
+
+class TFLV_Upgrade_RS_HordeMancubus : RS_CatCard_SwarmBase
+{
+	override string Family() { return "fatso"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeMancubus"); }
+}
+
+class TFLV_Upgrade_RS_BaneMancubus : RS_CatCard_HunterBase
+{
+	override string Family() { return "fatso"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneMancubus"); }
+}
+
+class TFLV_Upgrade_RS_TitheMancubus : RS_CatCard_TrophyBase
+{
+	override string Family() { return "fatso"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheMancubus"); }
+}
+
+class TFLV_Upgrade_RS_CullMancubus : RS_CatCard_CullBase
+{
+	override string Family() { return "fatso"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullMancubus"); }
+}
+
+class TFLV_Upgrade_RS_LevyCacodemon : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "cacodemon"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyCacodemon"); }
+}
+
+class TFLV_Upgrade_RS_HordeCacodemon : RS_CatCard_SwarmBase
+{
+	override string Family() { return "cacodemon"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeCacodemon"); }
+}
+
+class TFLV_Upgrade_RS_BaneCacodemon : RS_CatCard_HunterBase
+{
+	override string Family() { return "cacodemon"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneCacodemon"); }
+}
+
+class TFLV_Upgrade_RS_TitheCacodemon : RS_CatCard_TrophyBase
+{
+	override string Family() { return "cacodemon"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheCacodemon"); }
+}
+
+class TFLV_Upgrade_RS_CullCacodemon : RS_CatCard_CullBase
+{
+	override string Family() { return "cacodemon"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullCacodemon"); }
+}
+
+class TFLV_Upgrade_RS_LevyBaron : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "baron"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyBaron"); }
+}
+
+class TFLV_Upgrade_RS_HordeBaron : RS_CatCard_SwarmBase
+{
+	override string Family() { return "baron"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeBaron"); }
+}
+
+class TFLV_Upgrade_RS_BaneBaron : RS_CatCard_HunterBase
+{
+	override string Family() { return "baron"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneBaron"); }
+}
+
+class TFLV_Upgrade_RS_TitheBaron : RS_CatCard_TrophyBase
+{
+	override string Family() { return "baron"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheBaron"); }
+}
+
+class TFLV_Upgrade_RS_CullBaron : RS_CatCard_CullBase
+{
+	override string Family() { return "baron"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullBaron"); }
+}
+
+class TFLV_Upgrade_RS_LevyZombieman : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "zombieman"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyZombieman"); }
+}
+
+class TFLV_Upgrade_RS_HordeZombieman : RS_CatCard_SwarmBase
+{
+	override string Family() { return "zombieman"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeZombieman"); }
+}
+
+class TFLV_Upgrade_RS_BaneZombieman : RS_CatCard_HunterBase
+{
+	override string Family() { return "zombieman"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneZombieman"); }
+}
+
+class TFLV_Upgrade_RS_TitheZombieman : RS_CatCard_TrophyBase
+{
+	override string Family() { return "zombieman"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheZombieman"); }
+}
+
+class TFLV_Upgrade_RS_CullZombieman : RS_CatCard_CullBase
+{
+	override string Family() { return "zombieman"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullZombieman"); }
+}
+
+class TFLV_Upgrade_RS_LevyArachnotron : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "spider"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyArachnotron"); }
+}
+
+class TFLV_Upgrade_RS_HordeArachnotron : RS_CatCard_SwarmBase
+{
+	override string Family() { return "spider"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeArachnotron"); }
+}
+
+class TFLV_Upgrade_RS_BaneArachnotron : RS_CatCard_HunterBase
+{
+	override string Family() { return "spider"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneArachnotron"); }
+}
+
+class TFLV_Upgrade_RS_TitheArachnotron : RS_CatCard_TrophyBase
+{
+	override string Family() { return "spider"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheArachnotron"); }
+}
+
+class TFLV_Upgrade_RS_CullArachnotron : RS_CatCard_CullBase
+{
+	override string Family() { return "spider"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullArachnotron"); }
+}
+
+class TFLV_Upgrade_RS_LevyRevenant : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "revenant"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyRevenant"); }
+}
+
+class TFLV_Upgrade_RS_HordeRevenant : RS_CatCard_SwarmBase
+{
+	override string Family() { return "revenant"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeRevenant"); }
+}
+
+class TFLV_Upgrade_RS_BaneRevenant : RS_CatCard_HunterBase
+{
+	override string Family() { return "revenant"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneRevenant"); }
+}
+
+class TFLV_Upgrade_RS_TitheRevenant : RS_CatCard_TrophyBase
+{
+	override string Family() { return "revenant"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheRevenant"); }
+}
+
+class TFLV_Upgrade_RS_CullRevenant : RS_CatCard_CullBase
+{
+	override string Family() { return "revenant"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullRevenant"); }
+}
+
+class TFLV_Upgrade_RS_LevyLostSoul : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "lostsoul"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyLostSoul"); }
+}
+
+class TFLV_Upgrade_RS_HordeLostSoul : RS_CatCard_SwarmBase
+{
+	override string Family() { return "lostsoul"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeLostSoul"); }
+}
+
+class TFLV_Upgrade_RS_BaneLostSoul : RS_CatCard_HunterBase
+{
+	override string Family() { return "lostsoul"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneLostSoul"); }
+}
+
+class TFLV_Upgrade_RS_TitheLostSoul : RS_CatCard_TrophyBase
+{
+	override string Family() { return "lostsoul"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheLostSoul"); }
+}
+
+class TFLV_Upgrade_RS_CullLostSoul : RS_CatCard_CullBase
+{
+	override string Family() { return "lostsoul"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullLostSoul"); }
+}
+
+class TFLV_Upgrade_RS_LevyHellKnight : RS_CatCard_ConscriptBase
+{
+	override string Family() { return "hellknight"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_LevyHellKnight"); }
+}
+
+class TFLV_Upgrade_RS_HordeHellKnight : RS_CatCard_SwarmBase
+{
+	override string Family() { return "hellknight"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_HordeHellKnight"); }
+}
+
+class TFLV_Upgrade_RS_BaneHellKnight : RS_CatCard_HunterBase
+{
+	override string Family() { return "hellknight"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BaneHellKnight"); }
+}
+
+class TFLV_Upgrade_RS_TitheHellKnight : RS_CatCard_TrophyBase
+{
+	override string Family() { return "hellknight"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_TitheHellKnight"); }
+}
+
+class TFLV_Upgrade_RS_CullHellKnight : RS_CatCard_CullBase
+{
+	override string Family() { return "hellknight"; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_CullHellKnight"); }
+}
+
+class TFLV_Upgrade_RS_BrandFire : RS_CatCard_BrandBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_FIRE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BrandFire"); }
+}
+
+class TFLV_Upgrade_RS_AttuneFire : RS_CatCard_LockBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_FIRE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_AttuneFire"); }
+}
+
+class TFLV_Upgrade_RS_SurgeFire : RS_CatCard_SurgeBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_FIRE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_SurgeFire"); }
+}
+
+class TFLV_Upgrade_RS_BrandIce : RS_CatCard_BrandBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_ICE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BrandIce"); }
+}
+
+class TFLV_Upgrade_RS_AttuneIce : RS_CatCard_LockBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_ICE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_AttuneIce"); }
+}
+
+class TFLV_Upgrade_RS_SurgeIce : RS_CatCard_SurgeBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_ICE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_SurgeIce"); }
+}
+
+class TFLV_Upgrade_RS_BrandPlasma : RS_CatCard_BrandBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_PLASMA; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BrandPlasma"); }
+}
+
+class TFLV_Upgrade_RS_AttunePlasma : RS_CatCard_LockBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_PLASMA; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_AttunePlasma"); }
+}
+
+class TFLV_Upgrade_RS_SurgePlasma : RS_CatCard_SurgeBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_PLASMA; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_SurgePlasma"); }
+}
+
+class TFLV_Upgrade_RS_BrandPoison : RS_CatCard_BrandBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_POISON; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BrandPoison"); }
+}
+
+class TFLV_Upgrade_RS_AttunePoison : RS_CatCard_LockBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_POISON; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_AttunePoison"); }
+}
+
+class TFLV_Upgrade_RS_SurgePoison : RS_CatCard_SurgeBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_POISON; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_SurgePoison"); }
+}
+
+class TFLV_Upgrade_RS_BrandLightning : RS_CatCard_BrandBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_LIGHTNING; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BrandLightning"); }
+}
+
+class TFLV_Upgrade_RS_AttuneLightning : RS_CatCard_LockBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_LIGHTNING; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_AttuneLightning"); }
+}
+
+class TFLV_Upgrade_RS_SurgeLightning : RS_CatCard_SurgeBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_LIGHTNING; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_SurgeLightning"); }
+}
+
+class TFLV_Upgrade_RS_BrandPsychic : RS_CatCard_BrandBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_PSYCHIC; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BrandPsychic"); }
+}
+
+class TFLV_Upgrade_RS_AttunePsychic : RS_CatCard_LockBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_PSYCHIC; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_AttunePsychic"); }
+}
+
+class TFLV_Upgrade_RS_SurgePsychic : RS_CatCard_SurgeBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_PSYCHIC; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_SurgePsychic"); }
+}
+
+class TFLV_Upgrade_RS_BrandVoid : RS_CatCard_BrandBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_VOID; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BrandVoid"); }
+}
+
+class TFLV_Upgrade_RS_AttuneVoid : RS_CatCard_LockBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_VOID; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_AttuneVoid"); }
+}
+
+class TFLV_Upgrade_RS_SurgeVoid : RS_CatCard_SurgeBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_VOID; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_SurgeVoid"); }
+}
+
+class TFLV_Upgrade_RS_BrandImpact : RS_CatCard_BrandBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_IMPACT; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_BrandImpact"); }
+}
+
+class TFLV_Upgrade_RS_AttuneImpact : RS_CatCard_LockBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_IMPACT; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_AttuneImpact"); }
+}
+
+class TFLV_Upgrade_RS_SurgeImpact : RS_CatCard_SurgeBase
+{
+	override int Theme() { return RS_PACKCatalog.MTHEME_IMPACT; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_SurgeImpact"); }
+}
+
+class TFLV_Upgrade_RS_FlourishProjectile : RS_CatCard_FlourishBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_PROJECTILE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_FlourishProjectile"); }
+}
+
+class TFLV_Upgrade_RS_EchoProjectile : RS_CatCard_EchoBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_PROJECTILE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_EchoProjectile"); }
+}
+
+class TFLV_Upgrade_RS_FlourishCasing : RS_CatCard_FlourishBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_CASING; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_FlourishCasing"); }
+}
+
+class TFLV_Upgrade_RS_EchoCasing : RS_CatCard_EchoBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_CASING; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_EchoCasing"); }
+}
+
+class TFLV_Upgrade_RS_FlourishMuzzle : RS_CatCard_FlourishBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_MUZZLE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_FlourishMuzzle"); }
+}
+
+class TFLV_Upgrade_RS_EchoMuzzle : RS_CatCard_EchoBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_MUZZLE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_EchoMuzzle"); }
+}
+
+class TFLV_Upgrade_RS_FlourishSmoke : RS_CatCard_FlourishBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_SMOKE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_FlourishSmoke"); }
+}
+
+class TFLV_Upgrade_RS_EchoSmoke : RS_CatCard_EchoBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_SMOKE; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_EchoSmoke"); }
+}
+
+class TFLV_Upgrade_RS_FlourishPuff : RS_CatCard_FlourishBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_PUFF; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_FlourishPuff"); }
+}
+
+class TFLV_Upgrade_RS_EchoPuff : RS_CatCard_EchoBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_PUFF; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_EchoPuff"); }
+}
+
+class TFLV_Upgrade_RS_FlourishSparks : RS_CatCard_FlourishBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_SPARKS; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_FlourishSparks"); }
+}
+
+class TFLV_Upgrade_RS_EchoSparks : RS_CatCard_EchoBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_SPARKS; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_EchoSparks"); }
+}
+
+class TFLV_Upgrade_RS_FlourishTrail : RS_CatCard_FlourishBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_TRAIL; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_FlourishTrail"); }
+}
+
+class TFLV_Upgrade_RS_EchoTrail : RS_CatCard_EchoBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_TRAIL; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_EchoTrail"); }
+}
+
+class TFLV_Upgrade_RS_FlourishPayload : RS_CatCard_FlourishBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_PAYLOAD; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_FlourishPayload"); }
+}
+
+class TFLV_Upgrade_RS_EchoPayload : RS_CatCard_EchoBase
+{
+	override int Axis() { return RS_FXRegistry.RS_FXAXIS_PAYLOAD; }
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{ return CardTakeable(info, "TFLV_Upgrade_RS_EchoPayload"); }
+}
+

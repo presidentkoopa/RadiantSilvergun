@@ -163,3 +163,427 @@ TFLV_Upgrade_RS_Smokescreen_TT = "A killed body vents a cloud of smoke. Monsters
 TFLV_Upgrade_RS_Turncoat_Name = "Turncoat";
 TFLV_Upgrade_RS_Turncoat_Desc = "kills turn an enemy effect loose on your behalf";
 TFLV_Upgrade_RS_Turncoat_TT = "The FX registry marks certain effects as enemy-side -- the ones that hurt or raise monsters, which every other system in the mod deliberately keeps out of your gun. Turncoat is the exception: on a kill it pulls one of those and spawns it under your flag, hostile to them, harmless to you, credited to the weapon that made the kill. What can appear depends entirely on what the registry has tagged, so it grows as the mod grows. Mastery: it also draws the effects that spawn further effects, which is how one kill becomes a small riot.";
+
+// --- THE CATALOG CARD SET (105). Behaviour lives in
+// --- RS_Upgrade_CatalogBases.zsc; each card names only a bestiary
+// --- family, a registry theme, or a PACK axis.
+TFLV_Upgrade_RS_LevyPinky_Name = "Levy: pinkies";
+TFLV_Upgrade_RS_LevyPinky_Desc = "kills raise a pinkies to fight for you";
+TFLV_Upgrade_RS_LevyPinky_TT = "A chance on every kill to raise one good pinkies on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordePinky_Name = "Horde: pinkies";
+TFLV_Upgrade_RS_HordePinky_Desc = "kills raise several cheap pinkies at once";
+TFLV_Upgrade_RS_HordePinky_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BanePinky_Name = "Bane: pinkies";
+TFLV_Upgrade_RS_BanePinky_Desc = "you hit pinkies noticeably harder";
+TFLV_Upgrade_RS_BanePinky_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TithePinky_Name = "Tithe: pinkies";
+TFLV_Upgrade_RS_TithePinky_Desc = "killing pinkies puts you back together";
+TFLV_Upgrade_RS_TithePinky_TT = "Every pinkies you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullPinky_Name = "Cull: pinkies";
+TFLV_Upgrade_RS_CullPinky_Desc = "wounded pinkies do not get to limp away";
+TFLV_Upgrade_RS_CullPinky_TT = "Once a pinkies drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyChaingunner_Name = "Levy: chaingunners";
+TFLV_Upgrade_RS_LevyChaingunner_Desc = "kills raise a chaingunners to fight for you";
+TFLV_Upgrade_RS_LevyChaingunner_TT = "A chance on every kill to raise one good chaingunners on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeChaingunner_Name = "Horde: chaingunners";
+TFLV_Upgrade_RS_HordeChaingunner_Desc = "kills raise several cheap chaingunners at once";
+TFLV_Upgrade_RS_HordeChaingunner_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneChaingunner_Name = "Bane: chaingunners";
+TFLV_Upgrade_RS_BaneChaingunner_Desc = "you hit chaingunners noticeably harder";
+TFLV_Upgrade_RS_BaneChaingunner_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheChaingunner_Name = "Tithe: chaingunners";
+TFLV_Upgrade_RS_TitheChaingunner_Desc = "killing chaingunners puts you back together";
+TFLV_Upgrade_RS_TitheChaingunner_TT = "Every chaingunners you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullChaingunner_Name = "Cull: chaingunners";
+TFLV_Upgrade_RS_CullChaingunner_Desc = "wounded chaingunners do not get to limp away";
+TFLV_Upgrade_RS_CullChaingunner_TT = "Once a chaingunners drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyShotgunner_Name = "Levy: shotgunners";
+TFLV_Upgrade_RS_LevyShotgunner_Desc = "kills raise a shotgunners to fight for you";
+TFLV_Upgrade_RS_LevyShotgunner_TT = "A chance on every kill to raise one good shotgunners on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeShotgunner_Name = "Horde: shotgunners";
+TFLV_Upgrade_RS_HordeShotgunner_Desc = "kills raise several cheap shotgunners at once";
+TFLV_Upgrade_RS_HordeShotgunner_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneShotgunner_Name = "Bane: shotgunners";
+TFLV_Upgrade_RS_BaneShotgunner_Desc = "you hit shotgunners noticeably harder";
+TFLV_Upgrade_RS_BaneShotgunner_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheShotgunner_Name = "Tithe: shotgunners";
+TFLV_Upgrade_RS_TitheShotgunner_Desc = "killing shotgunners puts you back together";
+TFLV_Upgrade_RS_TitheShotgunner_TT = "Every shotgunners you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullShotgunner_Name = "Cull: shotgunners";
+TFLV_Upgrade_RS_CullShotgunner_Desc = "wounded shotgunners do not get to limp away";
+TFLV_Upgrade_RS_CullShotgunner_TT = "Once a shotgunners drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevySpectre_Name = "Levy: spectres";
+TFLV_Upgrade_RS_LevySpectre_Desc = "kills raise a spectres to fight for you";
+TFLV_Upgrade_RS_LevySpectre_TT = "A chance on every kill to raise one good spectres on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeSpectre_Name = "Horde: spectres";
+TFLV_Upgrade_RS_HordeSpectre_Desc = "kills raise several cheap spectres at once";
+TFLV_Upgrade_RS_HordeSpectre_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneSpectre_Name = "Bane: spectres";
+TFLV_Upgrade_RS_BaneSpectre_Desc = "you hit spectres noticeably harder";
+TFLV_Upgrade_RS_BaneSpectre_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheSpectre_Name = "Tithe: spectres";
+TFLV_Upgrade_RS_TitheSpectre_Desc = "killing spectres puts you back together";
+TFLV_Upgrade_RS_TitheSpectre_TT = "Every spectres you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullSpectre_Name = "Cull: spectres";
+TFLV_Upgrade_RS_CullSpectre_Desc = "wounded spectres do not get to limp away";
+TFLV_Upgrade_RS_CullSpectre_TT = "Once a spectres drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyImp_Name = "Levy: imps";
+TFLV_Upgrade_RS_LevyImp_Desc = "kills raise a imps to fight for you";
+TFLV_Upgrade_RS_LevyImp_TT = "A chance on every kill to raise one good imps on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeImp_Name = "Horde: imps";
+TFLV_Upgrade_RS_HordeImp_Desc = "kills raise several cheap imps at once";
+TFLV_Upgrade_RS_HordeImp_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneImp_Name = "Bane: imps";
+TFLV_Upgrade_RS_BaneImp_Desc = "you hit imps noticeably harder";
+TFLV_Upgrade_RS_BaneImp_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheImp_Name = "Tithe: imps";
+TFLV_Upgrade_RS_TitheImp_Desc = "killing imps puts you back together";
+TFLV_Upgrade_RS_TitheImp_TT = "Every imps you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullImp_Name = "Cull: imps";
+TFLV_Upgrade_RS_CullImp_Desc = "wounded imps do not get to limp away";
+TFLV_Upgrade_RS_CullImp_TT = "Once a imps drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyMancubus_Name = "Levy: mancubi";
+TFLV_Upgrade_RS_LevyMancubus_Desc = "kills raise a mancubi to fight for you";
+TFLV_Upgrade_RS_LevyMancubus_TT = "A chance on every kill to raise one good mancubi on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeMancubus_Name = "Horde: mancubi";
+TFLV_Upgrade_RS_HordeMancubus_Desc = "kills raise several cheap mancubi at once";
+TFLV_Upgrade_RS_HordeMancubus_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneMancubus_Name = "Bane: mancubi";
+TFLV_Upgrade_RS_BaneMancubus_Desc = "you hit mancubi noticeably harder";
+TFLV_Upgrade_RS_BaneMancubus_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheMancubus_Name = "Tithe: mancubi";
+TFLV_Upgrade_RS_TitheMancubus_Desc = "killing mancubi puts you back together";
+TFLV_Upgrade_RS_TitheMancubus_TT = "Every mancubi you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullMancubus_Name = "Cull: mancubi";
+TFLV_Upgrade_RS_CullMancubus_Desc = "wounded mancubi do not get to limp away";
+TFLV_Upgrade_RS_CullMancubus_TT = "Once a mancubi drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyCacodemon_Name = "Levy: cacodemons";
+TFLV_Upgrade_RS_LevyCacodemon_Desc = "kills raise a cacodemons to fight for you";
+TFLV_Upgrade_RS_LevyCacodemon_TT = "A chance on every kill to raise one good cacodemons on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeCacodemon_Name = "Horde: cacodemons";
+TFLV_Upgrade_RS_HordeCacodemon_Desc = "kills raise several cheap cacodemons at once";
+TFLV_Upgrade_RS_HordeCacodemon_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneCacodemon_Name = "Bane: cacodemons";
+TFLV_Upgrade_RS_BaneCacodemon_Desc = "you hit cacodemons noticeably harder";
+TFLV_Upgrade_RS_BaneCacodemon_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheCacodemon_Name = "Tithe: cacodemons";
+TFLV_Upgrade_RS_TitheCacodemon_Desc = "killing cacodemons puts you back together";
+TFLV_Upgrade_RS_TitheCacodemon_TT = "Every cacodemons you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullCacodemon_Name = "Cull: cacodemons";
+TFLV_Upgrade_RS_CullCacodemon_Desc = "wounded cacodemons do not get to limp away";
+TFLV_Upgrade_RS_CullCacodemon_TT = "Once a cacodemons drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyBaron_Name = "Levy: barons";
+TFLV_Upgrade_RS_LevyBaron_Desc = "kills raise a barons to fight for you";
+TFLV_Upgrade_RS_LevyBaron_TT = "A chance on every kill to raise one good barons on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeBaron_Name = "Horde: barons";
+TFLV_Upgrade_RS_HordeBaron_Desc = "kills raise several cheap barons at once";
+TFLV_Upgrade_RS_HordeBaron_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneBaron_Name = "Bane: barons";
+TFLV_Upgrade_RS_BaneBaron_Desc = "you hit barons noticeably harder";
+TFLV_Upgrade_RS_BaneBaron_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheBaron_Name = "Tithe: barons";
+TFLV_Upgrade_RS_TitheBaron_Desc = "killing barons puts you back together";
+TFLV_Upgrade_RS_TitheBaron_TT = "Every barons you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullBaron_Name = "Cull: barons";
+TFLV_Upgrade_RS_CullBaron_Desc = "wounded barons do not get to limp away";
+TFLV_Upgrade_RS_CullBaron_TT = "Once a barons drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyZombieman_Name = "Levy: zombiemen";
+TFLV_Upgrade_RS_LevyZombieman_Desc = "kills raise a zombiemen to fight for you";
+TFLV_Upgrade_RS_LevyZombieman_TT = "A chance on every kill to raise one good zombiemen on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeZombieman_Name = "Horde: zombiemen";
+TFLV_Upgrade_RS_HordeZombieman_Desc = "kills raise several cheap zombiemen at once";
+TFLV_Upgrade_RS_HordeZombieman_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneZombieman_Name = "Bane: zombiemen";
+TFLV_Upgrade_RS_BaneZombieman_Desc = "you hit zombiemen noticeably harder";
+TFLV_Upgrade_RS_BaneZombieman_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheZombieman_Name = "Tithe: zombiemen";
+TFLV_Upgrade_RS_TitheZombieman_Desc = "killing zombiemen puts you back together";
+TFLV_Upgrade_RS_TitheZombieman_TT = "Every zombiemen you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullZombieman_Name = "Cull: zombiemen";
+TFLV_Upgrade_RS_CullZombieman_Desc = "wounded zombiemen do not get to limp away";
+TFLV_Upgrade_RS_CullZombieman_TT = "Once a zombiemen drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyArachnotron_Name = "Levy: arachnotrons";
+TFLV_Upgrade_RS_LevyArachnotron_Desc = "kills raise a arachnotrons to fight for you";
+TFLV_Upgrade_RS_LevyArachnotron_TT = "A chance on every kill to raise one good arachnotrons on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeArachnotron_Name = "Horde: arachnotrons";
+TFLV_Upgrade_RS_HordeArachnotron_Desc = "kills raise several cheap arachnotrons at once";
+TFLV_Upgrade_RS_HordeArachnotron_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneArachnotron_Name = "Bane: arachnotrons";
+TFLV_Upgrade_RS_BaneArachnotron_Desc = "you hit arachnotrons noticeably harder";
+TFLV_Upgrade_RS_BaneArachnotron_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheArachnotron_Name = "Tithe: arachnotrons";
+TFLV_Upgrade_RS_TitheArachnotron_Desc = "killing arachnotrons puts you back together";
+TFLV_Upgrade_RS_TitheArachnotron_TT = "Every arachnotrons you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullArachnotron_Name = "Cull: arachnotrons";
+TFLV_Upgrade_RS_CullArachnotron_Desc = "wounded arachnotrons do not get to limp away";
+TFLV_Upgrade_RS_CullArachnotron_TT = "Once a arachnotrons drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyRevenant_Name = "Levy: revenants";
+TFLV_Upgrade_RS_LevyRevenant_Desc = "kills raise a revenants to fight for you";
+TFLV_Upgrade_RS_LevyRevenant_TT = "A chance on every kill to raise one good revenants on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeRevenant_Name = "Horde: revenants";
+TFLV_Upgrade_RS_HordeRevenant_Desc = "kills raise several cheap revenants at once";
+TFLV_Upgrade_RS_HordeRevenant_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneRevenant_Name = "Bane: revenants";
+TFLV_Upgrade_RS_BaneRevenant_Desc = "you hit revenants noticeably harder";
+TFLV_Upgrade_RS_BaneRevenant_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheRevenant_Name = "Tithe: revenants";
+TFLV_Upgrade_RS_TitheRevenant_Desc = "killing revenants puts you back together";
+TFLV_Upgrade_RS_TitheRevenant_TT = "Every revenants you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullRevenant_Name = "Cull: revenants";
+TFLV_Upgrade_RS_CullRevenant_Desc = "wounded revenants do not get to limp away";
+TFLV_Upgrade_RS_CullRevenant_TT = "Once a revenants drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyLostSoul_Name = "Levy: lost souls";
+TFLV_Upgrade_RS_LevyLostSoul_Desc = "kills raise a lost souls to fight for you";
+TFLV_Upgrade_RS_LevyLostSoul_TT = "A chance on every kill to raise one good lost souls on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeLostSoul_Name = "Horde: lost souls";
+TFLV_Upgrade_RS_HordeLostSoul_Desc = "kills raise several cheap lost souls at once";
+TFLV_Upgrade_RS_HordeLostSoul_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneLostSoul_Name = "Bane: lost souls";
+TFLV_Upgrade_RS_BaneLostSoul_Desc = "you hit lost souls noticeably harder";
+TFLV_Upgrade_RS_BaneLostSoul_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheLostSoul_Name = "Tithe: lost souls";
+TFLV_Upgrade_RS_TitheLostSoul_Desc = "killing lost souls puts you back together";
+TFLV_Upgrade_RS_TitheLostSoul_TT = "Every lost souls you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullLostSoul_Name = "Cull: lost souls";
+TFLV_Upgrade_RS_CullLostSoul_Desc = "wounded lost souls do not get to limp away";
+TFLV_Upgrade_RS_CullLostSoul_TT = "Once a lost souls drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_LevyHellKnight_Name = "Levy: hell knights";
+TFLV_Upgrade_RS_LevyHellKnight_Desc = "kills raise a hell knights to fight for you";
+TFLV_Upgrade_RS_LevyHellKnight_TT = "A chance on every kill to raise one good hell knights on your side, whatever you actually killed. The budget climbs with level and buys further up that family's own roster, so late levels field the dangerous members rather than more of the cheap ones. Yours are friendly to you and hostile to everything else, and every point of damage they deal feeds the gun that raised them for as long as they live -- including after you have switched weapons. Mastery: the budget reaches the top of the family.";
+
+TFLV_Upgrade_RS_HordeHellKnight_Name = "Horde: hell knights";
+TFLV_Upgrade_RS_HordeHellKnight_Desc = "kills raise several cheap hell knights at once";
+TFLV_Upgrade_RS_HordeHellKnight_TT = "The other way to spend a kill: instead of one good body, a ring of cheap ones. Levels buy more of them rather than better ones, and they come up spread around the corpse so they do not crowd each other out. Same rules as any minion -- friendly to you, hostile to everything else, and paying XP to the gun that raised them for life. Mastery: five at a time.";
+
+TFLV_Upgrade_RS_BaneHellKnight_Name = "Bane: hell knights";
+TFLV_Upgrade_RS_BaneHellKnight_Desc = "you hit hell knights noticeably harder";
+TFLV_Upgrade_RS_BaneHellKnight_TT = "A flat percentage bonus against that family, landing as a separate second hit so it shows on the feed and cannot be eaten by the first hit's resistances. It reads the same bestiary the Levy cards do, so it recognizes every colour variant of the family and not just the base monster. Stacks with everything.";
+
+TFLV_Upgrade_RS_TitheHellKnight_Name = "Tithe: hell knights";
+TFLV_Upgrade_RS_TitheHellKnight_Desc = "killing hell knights puts you back together";
+TFLV_Upgrade_RS_TitheHellKnight_TT = "Every hell knights you kill heals you, scaled to how dangerous the bestiary rates that particular one -- so the big members of the family are worth more than the chaff without a hand-written table saying so. It can carry you above your normal maximum. Mastery: they drop ammunition as well.";
+
+TFLV_Upgrade_RS_CullHellKnight_Name = "Cull: hell knights";
+TFLV_Upgrade_RS_CullHellKnight_Desc = "wounded hell knights do not get to limp away";
+TFLV_Upgrade_RS_CullHellKnight_TT = "Once a hell knights drops below a share of its own maximum health, your next hit finishes it outright. Because the threshold is a share rather than a flat number, it is worth the same against the biggest member of the family as the smallest. Levels raise the threshold.";
+
+TFLV_Upgrade_RS_BrandFire_Name = "Brand: Fire";
+TFLV_Upgrade_RS_BrandFire_Desc = "your hits plant fire where they land";
+TFLV_Upgrade_RS_BrandFire_TT = "Hits have a growing chance to leave a fire payload at the impact. What actually gets planted is drawn live from the FX registry, so it is never quite the same twice and it grows on its own as fire effects are added to the mod -- import a weapon set, tag its parts, and every Fire card gets deeper without a line of code. Mastery: it plants the headline version, the big one.";
+
+TFLV_Upgrade_RS_AttuneFire_Name = "Attune: Fire";
+TFLV_Upgrade_RS_AttuneFire_Desc = "your gun works a fire beat into its firing cycle";
+TFLV_Upgrade_RS_AttuneFire_TT = "Locks an extra beat into the weapon's firing rotation built entirely from fire parts -- projectile, muzzle, smoke, sparks, trail and impact all drawn from that theme together, so it arrives as a coherent shot rather than a recolour. Levels tighten the rotation from every fifth shot down to every second. Mastery: a second, independently rolled fire beat joins the same cycle, so the theme shows up two different ways.";
+
+TFLV_Upgrade_RS_SurgeFire_Name = "Surge: Fire";
+TFLV_Upgrade_RS_SurgeFire_Desc = "kills burst into fire";
+TFLV_Upgrade_RS_SurgeFire_TT = "A kill has a chance to throw the biggest fire effect the registry holds. Purely on death, so it never interferes with your shot, and it scales with whatever fire content the mod has loaded. Mastery: three at once, thrown apart.";
+
+TFLV_Upgrade_RS_BrandIce_Name = "Brand: Ice";
+TFLV_Upgrade_RS_BrandIce_Desc = "your hits plant ice where they land";
+TFLV_Upgrade_RS_BrandIce_TT = "Hits have a growing chance to leave a ice payload at the impact. What actually gets planted is drawn live from the FX registry, so it is never quite the same twice and it grows on its own as ice effects are added to the mod -- import a weapon set, tag its parts, and every Ice card gets deeper without a line of code. Mastery: it plants the headline version, the big one.";
+
+TFLV_Upgrade_RS_AttuneIce_Name = "Attune: Ice";
+TFLV_Upgrade_RS_AttuneIce_Desc = "your gun works a ice beat into its firing cycle";
+TFLV_Upgrade_RS_AttuneIce_TT = "Locks an extra beat into the weapon's firing rotation built entirely from ice parts -- projectile, muzzle, smoke, sparks, trail and impact all drawn from that theme together, so it arrives as a coherent shot rather than a recolour. Levels tighten the rotation from every fifth shot down to every second. Mastery: a second, independently rolled ice beat joins the same cycle, so the theme shows up two different ways.";
+
+TFLV_Upgrade_RS_SurgeIce_Name = "Surge: Ice";
+TFLV_Upgrade_RS_SurgeIce_Desc = "kills burst into ice";
+TFLV_Upgrade_RS_SurgeIce_TT = "A kill has a chance to throw the biggest ice effect the registry holds. Purely on death, so it never interferes with your shot, and it scales with whatever ice content the mod has loaded. Mastery: three at once, thrown apart.";
+
+TFLV_Upgrade_RS_BrandPlasma_Name = "Brand: Plasma";
+TFLV_Upgrade_RS_BrandPlasma_Desc = "your hits plant plasma where they land";
+TFLV_Upgrade_RS_BrandPlasma_TT = "Hits have a growing chance to leave a plasma payload at the impact. What actually gets planted is drawn live from the FX registry, so it is never quite the same twice and it grows on its own as plasma effects are added to the mod -- import a weapon set, tag its parts, and every Plasma card gets deeper without a line of code. Mastery: it plants the headline version, the big one.";
+
+TFLV_Upgrade_RS_AttunePlasma_Name = "Attune: Plasma";
+TFLV_Upgrade_RS_AttunePlasma_Desc = "your gun works a plasma beat into its firing cycle";
+TFLV_Upgrade_RS_AttunePlasma_TT = "Locks an extra beat into the weapon's firing rotation built entirely from plasma parts -- projectile, muzzle, smoke, sparks, trail and impact all drawn from that theme together, so it arrives as a coherent shot rather than a recolour. Levels tighten the rotation from every fifth shot down to every second. Mastery: a second, independently rolled plasma beat joins the same cycle, so the theme shows up two different ways.";
+
+TFLV_Upgrade_RS_SurgePlasma_Name = "Surge: Plasma";
+TFLV_Upgrade_RS_SurgePlasma_Desc = "kills burst into plasma";
+TFLV_Upgrade_RS_SurgePlasma_TT = "A kill has a chance to throw the biggest plasma effect the registry holds. Purely on death, so it never interferes with your shot, and it scales with whatever plasma content the mod has loaded. Mastery: three at once, thrown apart.";
+
+TFLV_Upgrade_RS_BrandPoison_Name = "Brand: Poison";
+TFLV_Upgrade_RS_BrandPoison_Desc = "your hits plant poison where they land";
+TFLV_Upgrade_RS_BrandPoison_TT = "Hits have a growing chance to leave a poison payload at the impact. What actually gets planted is drawn live from the FX registry, so it is never quite the same twice and it grows on its own as poison effects are added to the mod -- import a weapon set, tag its parts, and every Poison card gets deeper without a line of code. Mastery: it plants the headline version, the big one.";
+
+TFLV_Upgrade_RS_AttunePoison_Name = "Attune: Poison";
+TFLV_Upgrade_RS_AttunePoison_Desc = "your gun works a poison beat into its firing cycle";
+TFLV_Upgrade_RS_AttunePoison_TT = "Locks an extra beat into the weapon's firing rotation built entirely from poison parts -- projectile, muzzle, smoke, sparks, trail and impact all drawn from that theme together, so it arrives as a coherent shot rather than a recolour. Levels tighten the rotation from every fifth shot down to every second. Mastery: a second, independently rolled poison beat joins the same cycle, so the theme shows up two different ways.";
+
+TFLV_Upgrade_RS_SurgePoison_Name = "Surge: Poison";
+TFLV_Upgrade_RS_SurgePoison_Desc = "kills burst into poison";
+TFLV_Upgrade_RS_SurgePoison_TT = "A kill has a chance to throw the biggest poison effect the registry holds. Purely on death, so it never interferes with your shot, and it scales with whatever poison content the mod has loaded. Mastery: three at once, thrown apart.";
+
+TFLV_Upgrade_RS_BrandLightning_Name = "Brand: Lightning";
+TFLV_Upgrade_RS_BrandLightning_Desc = "your hits plant lightning where they land";
+TFLV_Upgrade_RS_BrandLightning_TT = "Hits have a growing chance to leave a lightning payload at the impact. What actually gets planted is drawn live from the FX registry, so it is never quite the same twice and it grows on its own as lightning effects are added to the mod -- import a weapon set, tag its parts, and every Lightning card gets deeper without a line of code. Mastery: it plants the headline version, the big one.";
+
+TFLV_Upgrade_RS_AttuneLightning_Name = "Attune: Lightning";
+TFLV_Upgrade_RS_AttuneLightning_Desc = "your gun works a lightning beat into its firing cycle";
+TFLV_Upgrade_RS_AttuneLightning_TT = "Locks an extra beat into the weapon's firing rotation built entirely from lightning parts -- projectile, muzzle, smoke, sparks, trail and impact all drawn from that theme together, so it arrives as a coherent shot rather than a recolour. Levels tighten the rotation from every fifth shot down to every second. Mastery: a second, independently rolled lightning beat joins the same cycle, so the theme shows up two different ways.";
+
+TFLV_Upgrade_RS_SurgeLightning_Name = "Surge: Lightning";
+TFLV_Upgrade_RS_SurgeLightning_Desc = "kills burst into lightning";
+TFLV_Upgrade_RS_SurgeLightning_TT = "A kill has a chance to throw the biggest lightning effect the registry holds. Purely on death, so it never interferes with your shot, and it scales with whatever lightning content the mod has loaded. Mastery: three at once, thrown apart.";
+
+TFLV_Upgrade_RS_BrandPsychic_Name = "Brand: Psychic";
+TFLV_Upgrade_RS_BrandPsychic_Desc = "your hits plant psychic where they land";
+TFLV_Upgrade_RS_BrandPsychic_TT = "Hits have a growing chance to leave a psychic payload at the impact. What actually gets planted is drawn live from the FX registry, so it is never quite the same twice and it grows on its own as psychic effects are added to the mod -- import a weapon set, tag its parts, and every Psychic card gets deeper without a line of code. Mastery: it plants the headline version, the big one.";
+
+TFLV_Upgrade_RS_AttunePsychic_Name = "Attune: Psychic";
+TFLV_Upgrade_RS_AttunePsychic_Desc = "your gun works a psychic beat into its firing cycle";
+TFLV_Upgrade_RS_AttunePsychic_TT = "Locks an extra beat into the weapon's firing rotation built entirely from psychic parts -- projectile, muzzle, smoke, sparks, trail and impact all drawn from that theme together, so it arrives as a coherent shot rather than a recolour. Levels tighten the rotation from every fifth shot down to every second. Mastery: a second, independently rolled psychic beat joins the same cycle, so the theme shows up two different ways.";
+
+TFLV_Upgrade_RS_SurgePsychic_Name = "Surge: Psychic";
+TFLV_Upgrade_RS_SurgePsychic_Desc = "kills burst into psychic";
+TFLV_Upgrade_RS_SurgePsychic_TT = "A kill has a chance to throw the biggest psychic effect the registry holds. Purely on death, so it never interferes with your shot, and it scales with whatever psychic content the mod has loaded. Mastery: three at once, thrown apart.";
+
+TFLV_Upgrade_RS_BrandVoid_Name = "Brand: Void";
+TFLV_Upgrade_RS_BrandVoid_Desc = "your hits plant void where they land";
+TFLV_Upgrade_RS_BrandVoid_TT = "Hits have a growing chance to leave a void payload at the impact. What actually gets planted is drawn live from the FX registry, so it is never quite the same twice and it grows on its own as void effects are added to the mod -- import a weapon set, tag its parts, and every Void card gets deeper without a line of code. Mastery: it plants the headline version, the big one.";
+
+TFLV_Upgrade_RS_AttuneVoid_Name = "Attune: Void";
+TFLV_Upgrade_RS_AttuneVoid_Desc = "your gun works a void beat into its firing cycle";
+TFLV_Upgrade_RS_AttuneVoid_TT = "Locks an extra beat into the weapon's firing rotation built entirely from void parts -- projectile, muzzle, smoke, sparks, trail and impact all drawn from that theme together, so it arrives as a coherent shot rather than a recolour. Levels tighten the rotation from every fifth shot down to every second. Mastery: a second, independently rolled void beat joins the same cycle, so the theme shows up two different ways.";
+
+TFLV_Upgrade_RS_SurgeVoid_Name = "Surge: Void";
+TFLV_Upgrade_RS_SurgeVoid_Desc = "kills burst into void";
+TFLV_Upgrade_RS_SurgeVoid_TT = "A kill has a chance to throw the biggest void effect the registry holds. Purely on death, so it never interferes with your shot, and it scales with whatever void content the mod has loaded. Mastery: three at once, thrown apart.";
+
+TFLV_Upgrade_RS_BrandImpact_Name = "Brand: Impact";
+TFLV_Upgrade_RS_BrandImpact_Desc = "your hits plant impact where they land";
+TFLV_Upgrade_RS_BrandImpact_TT = "Hits have a growing chance to leave a impact payload at the impact. What actually gets planted is drawn live from the FX registry, so it is never quite the same twice and it grows on its own as impact effects are added to the mod -- import a weapon set, tag its parts, and every Impact card gets deeper without a line of code. Mastery: it plants the headline version, the big one.";
+
+TFLV_Upgrade_RS_AttuneImpact_Name = "Attune: Impact";
+TFLV_Upgrade_RS_AttuneImpact_Desc = "your gun works a impact beat into its firing cycle";
+TFLV_Upgrade_RS_AttuneImpact_TT = "Locks an extra beat into the weapon's firing rotation built entirely from impact parts -- projectile, muzzle, smoke, sparks, trail and impact all drawn from that theme together, so it arrives as a coherent shot rather than a recolour. Levels tighten the rotation from every fifth shot down to every second. Mastery: a second, independently rolled impact beat joins the same cycle, so the theme shows up two different ways.";
+
+TFLV_Upgrade_RS_SurgeImpact_Name = "Surge: Impact";
+TFLV_Upgrade_RS_SurgeImpact_Desc = "kills burst into impact";
+TFLV_Upgrade_RS_SurgeImpact_TT = "A kill has a chance to throw the biggest impact effect the registry holds. Purely on death, so it never interferes with your shot, and it scales with whatever impact content the mod has loaded. Mastery: three at once, thrown apart.";
+
+TFLV_Upgrade_RS_FlourishProjectile_Name = "Flourish: Projectile";
+TFLV_Upgrade_RS_FlourishProjectile_Desc = "your projectile goes big on impact";
+TFLV_Upgrade_RS_FlourishProjectile_TT = "Every hit has a chance to draw the headline entry from the projectile axis -- the oversized version, the one meant to read as an event rather than a detail. It pulls from the registry, so it covers every projectile actor the mod has and picks up new ones automatically. Mastery: it will also draw the entries that spawn further effects.";
+
+TFLV_Upgrade_RS_EchoProjectile_Name = "Echo: Projectile";
+TFLV_Upgrade_RS_EchoProjectile_Desc = "kills repeat your projectile, scattered";
+TFLV_Upgrade_RS_EchoProjectile_TT = "A kill throws extra projectile around the corpse, up to four at higher levels, scattered rather than stacked. Drawn from the whole projectile axis rather than a fixed choice, so the same card looks different on every weapon and every theme. Mastery: it stops filtering out the effects that spawn more effects.";
+
+TFLV_Upgrade_RS_FlourishCasing_Name = "Flourish: Casing";
+TFLV_Upgrade_RS_FlourishCasing_Desc = "your brass goes big on impact";
+TFLV_Upgrade_RS_FlourishCasing_TT = "Every hit has a chance to draw the headline entry from the brass axis -- the oversized version, the one meant to read as an event rather than a detail. It pulls from the registry, so it covers every brass actor the mod has and picks up new ones automatically. Mastery: it will also draw the entries that spawn further effects.";
+
+TFLV_Upgrade_RS_EchoCasing_Name = "Echo: Casing";
+TFLV_Upgrade_RS_EchoCasing_Desc = "kills repeat your brass, scattered";
+TFLV_Upgrade_RS_EchoCasing_TT = "A kill throws extra brass around the corpse, up to four at higher levels, scattered rather than stacked. Drawn from the whole brass axis rather than a fixed choice, so the same card looks different on every weapon and every theme. Mastery: it stops filtering out the effects that spawn more effects.";
+
+TFLV_Upgrade_RS_FlourishMuzzle_Name = "Flourish: Muzzle";
+TFLV_Upgrade_RS_FlourishMuzzle_Desc = "your muzzle flash goes big on impact";
+TFLV_Upgrade_RS_FlourishMuzzle_TT = "Every hit has a chance to draw the headline entry from the muzzle flash axis -- the oversized version, the one meant to read as an event rather than a detail. It pulls from the registry, so it covers every muzzle flash actor the mod has and picks up new ones automatically. Mastery: it will also draw the entries that spawn further effects.";
+
+TFLV_Upgrade_RS_EchoMuzzle_Name = "Echo: Muzzle";
+TFLV_Upgrade_RS_EchoMuzzle_Desc = "kills repeat your muzzle flash, scattered";
+TFLV_Upgrade_RS_EchoMuzzle_TT = "A kill throws extra muzzle flash around the corpse, up to four at higher levels, scattered rather than stacked. Drawn from the whole muzzle flash axis rather than a fixed choice, so the same card looks different on every weapon and every theme. Mastery: it stops filtering out the effects that spawn more effects.";
+
+TFLV_Upgrade_RS_FlourishSmoke_Name = "Flourish: Smoke";
+TFLV_Upgrade_RS_FlourishSmoke_Desc = "your smoke goes big on impact";
+TFLV_Upgrade_RS_FlourishSmoke_TT = "Every hit has a chance to draw the headline entry from the smoke axis -- the oversized version, the one meant to read as an event rather than a detail. It pulls from the registry, so it covers every smoke actor the mod has and picks up new ones automatically. Mastery: it will also draw the entries that spawn further effects.";
+
+TFLV_Upgrade_RS_EchoSmoke_Name = "Echo: Smoke";
+TFLV_Upgrade_RS_EchoSmoke_Desc = "kills repeat your smoke, scattered";
+TFLV_Upgrade_RS_EchoSmoke_TT = "A kill throws extra smoke around the corpse, up to four at higher levels, scattered rather than stacked. Drawn from the whole smoke axis rather than a fixed choice, so the same card looks different on every weapon and every theme. Mastery: it stops filtering out the effects that spawn more effects.";
+
+TFLV_Upgrade_RS_FlourishPuff_Name = "Flourish: Puff";
+TFLV_Upgrade_RS_FlourishPuff_Desc = "your impact puff goes big on impact";
+TFLV_Upgrade_RS_FlourishPuff_TT = "Every hit has a chance to draw the headline entry from the impact puff axis -- the oversized version, the one meant to read as an event rather than a detail. It pulls from the registry, so it covers every impact puff actor the mod has and picks up new ones automatically. Mastery: it will also draw the entries that spawn further effects.";
+
+TFLV_Upgrade_RS_EchoPuff_Name = "Echo: Puff";
+TFLV_Upgrade_RS_EchoPuff_Desc = "kills repeat your impact puff, scattered";
+TFLV_Upgrade_RS_EchoPuff_TT = "A kill throws extra impact puff around the corpse, up to four at higher levels, scattered rather than stacked. Drawn from the whole impact puff axis rather than a fixed choice, so the same card looks different on every weapon and every theme. Mastery: it stops filtering out the effects that spawn more effects.";
+
+TFLV_Upgrade_RS_FlourishSparks_Name = "Flourish: Sparks";
+TFLV_Upgrade_RS_FlourishSparks_Desc = "your sparks goes big on impact";
+TFLV_Upgrade_RS_FlourishSparks_TT = "Every hit has a chance to draw the headline entry from the sparks axis -- the oversized version, the one meant to read as an event rather than a detail. It pulls from the registry, so it covers every sparks actor the mod has and picks up new ones automatically. Mastery: it will also draw the entries that spawn further effects.";
+
+TFLV_Upgrade_RS_EchoSparks_Name = "Echo: Sparks";
+TFLV_Upgrade_RS_EchoSparks_Desc = "kills repeat your sparks, scattered";
+TFLV_Upgrade_RS_EchoSparks_TT = "A kill throws extra sparks around the corpse, up to four at higher levels, scattered rather than stacked. Drawn from the whole sparks axis rather than a fixed choice, so the same card looks different on every weapon and every theme. Mastery: it stops filtering out the effects that spawn more effects.";
+
+TFLV_Upgrade_RS_FlourishTrail_Name = "Flourish: Trail";
+TFLV_Upgrade_RS_FlourishTrail_Desc = "your trail goes big on impact";
+TFLV_Upgrade_RS_FlourishTrail_TT = "Every hit has a chance to draw the headline entry from the trail axis -- the oversized version, the one meant to read as an event rather than a detail. It pulls from the registry, so it covers every trail actor the mod has and picks up new ones automatically. Mastery: it will also draw the entries that spawn further effects.";
+
+TFLV_Upgrade_RS_EchoTrail_Name = "Echo: Trail";
+TFLV_Upgrade_RS_EchoTrail_Desc = "kills repeat your trail, scattered";
+TFLV_Upgrade_RS_EchoTrail_TT = "A kill throws extra trail around the corpse, up to four at higher levels, scattered rather than stacked. Drawn from the whole trail axis rather than a fixed choice, so the same card looks different on every weapon and every theme. Mastery: it stops filtering out the effects that spawn more effects.";
+
+TFLV_Upgrade_RS_FlourishPayload_Name = "Flourish: Payload";
+TFLV_Upgrade_RS_FlourishPayload_Desc = "your payload goes big on impact";
+TFLV_Upgrade_RS_FlourishPayload_TT = "Every hit has a chance to draw the headline entry from the payload axis -- the oversized version, the one meant to read as an event rather than a detail. It pulls from the registry, so it covers every payload actor the mod has and picks up new ones automatically. Mastery: it will also draw the entries that spawn further effects.";
+
+TFLV_Upgrade_RS_EchoPayload_Name = "Echo: Payload";
+TFLV_Upgrade_RS_EchoPayload_Desc = "kills repeat your payload, scattered";
+TFLV_Upgrade_RS_EchoPayload_TT = "A kill throws extra payload around the corpse, up to four at higher levels, scattered rather than stacked. Drawn from the whole payload axis rather than a fixed choice, so the same card looks different on every weapon and every theme. Mastery: it stops filtering out the effects that spawn more effects.";
+
