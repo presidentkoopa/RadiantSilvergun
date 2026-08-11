@@ -48,6 +48,11 @@ version "4.14"
 
 // Projectile / sound / effect database -- see docs/catalog_notes.txt.
 // Weapons reference entries here instead of hardcoding their attacks.
+// Friendly minions summoned BY A WEAPON, plus the XP lane that follows
+// them for the rest of the run. Owner ruling: a minion feeds the gun that
+// spawned it regardless of what is held, and several lanes at once is the
+// intended build. Grafted into GunBonsai at EventHandler.zsc WorldThingDamaged.
+#include "zscript/systems/weapon/RS_Minion.zs"
 #include "zscript/systems/weapon/RS_Catalog.zs"
 // RS_PACKCatalog -- THE single source for PACK ingredients, all 8 axes.
 // 409 monster projectiles on axis 1 and the themed fire sounds on axis 5,
