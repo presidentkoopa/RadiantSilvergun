@@ -53,6 +53,10 @@ version "4.14"
 // spawned it regardless of what is held, and several lanes at once is the
 // intended build. Grafted into GunBonsai at EventHandler.zsc WorldThingDamaged.
 #include "zscript/systems/weapon/RS_Minion.zs"
+// The costed roster RS_Minion.Summon draws from -- 143 summon-safe classes,
+// generated from the family census. Bosses, pain elementals and archviles are
+// deliberately absent; docs/rs_payload_bestiary.md says why.
+#include "zscript/systems/weapon/RS_MinionCatalog.zs"
 #include "zscript/systems/weapon/RS_Catalog.zs"
 // RS_PACKCatalog -- THE single source for PACK ingredients, all 8 axes.
 // 409 monster projectiles on axis 1 and the themed fire sounds on axis 5,
