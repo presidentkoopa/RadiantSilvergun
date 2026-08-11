@@ -277,16 +277,33 @@ class RS_UIHandler : EventHandler
 		AddRow("DPS", rsw.LockedDamage ? "???" : string.format("%d", dps),
 			rsw.LockedDamage ? Font.CR_DARKRED : Font.CR_TAN, "", 0,
 			"Damage x pellets x rate of fire. Derived, not rolled.");
-		AddRow("RATE OF FIRE", string.format("%d/s", rsw.RateOfFire), Font.CR_TAN);
+		// BARS. Every row below carries barFrac so the sheet reads at a
+		// glance instead of being a wall of right-aligned numbers -- the
+		// bar renderer in RS_UIMenus has existed since the sheet was
+		// built and not one of the 75 rows was using it. A cursed stat
+		// passes -1 deliberately: no bar, because a bar IS the number and
+		// drawing one would leak exactly what the curse hides.
+		AddRow("RATE OF FIRE", string.format("%d/s", rsw.RateOfFire), Font.CR_TAN,
+			"", 0, "Trigger pulls per second. Never cursed.",
+			clamp(rsw.RateOfFire / 20.0, 0.0, 1.0), rsw.Tier);
 		AddRow("ACCURACY",
 			rsw.LockedAccuracy ? "???   (cursed)" : string.format("%d", int(rsw.Accuracy)),
-			rsw.LockedAccuracy ? Font.CR_DARKRED : Font.CR_TAN);
+			rsw.LockedAccuracy ? Font.CR_DARKRED : Font.CR_TAN,
+			"", 0, "Tighter cone, straighter shot.",
+			rsw.LockedAccuracy ? -1.0 : clamp(rsw.Accuracy / 100.0, 0.0, 1.0),
+			rsw.Tier);
 		AddRow("CRIT",
 			rsw.LockedCritChance ? "???   (cursed)" : string.format("%.1f%%", rsw.CritChance * 100.0),
-			rsw.LockedCritChance ? Font.CR_DARKRED : Font.CR_TAN);
+			rsw.LockedCritChance ? Font.CR_DARKRED : Font.CR_TAN,
+			"", 0, "Chance any single pellet lands doubled.",
+			rsw.LockedCritChance ? -1.0 : clamp(rsw.CritChance * 4.0, 0.0, 1.0),
+			rsw.Tier);
 		AddRow("VELOCITY",
 			rsw.LockedVelocity ? "???   (cursed)" : string.format("%d", int(rsw.Velocity)),
-			rsw.LockedVelocity ? Font.CR_DARKRED : Font.CR_TAN);
+			rsw.LockedVelocity ? Font.CR_DARKRED : Font.CR_TAN,
+			"", 0, "How fast the round travels. Matters for leading.",
+			rsw.LockedVelocity ? -1.0 : clamp(rsw.Velocity / 60.0, 0.0, 1.0),
+			rsw.Tier);
 		int magNow = wep.AmmoType2 ? pawn.CountInv(wep.AmmoType2) : 0;
 		// The loaded count is honest either way; only CAPACITY is cursed.
 		AddRow("MAGAZINE",
@@ -298,9 +315,12 @@ class RS_UIHandler : EventHandler
 		if (rsw.Choke > 0)
 			AddRow("CHOKE", string.format("%.2f", rsw.Choke), Font.CR_TAN,
 				"", 0, "Tightens the pellet cone. Shotgun-family exclusive.");
+		// Informational. Repair is passive -- there is nothing to confirm
+		// here, and the menu this used to open did nothing worth opening.
 		AddRow("CONDITION", string.format("%d%%", int(rsw.Condition)),
-			RS_UIStyle.ConditionColor(rsw.Condition), "rs-ui-repair-menu", hand,
-			"Confirm to open repair. Below 50, worn guns roll hot --\nmore damage, backfire risk.");
+			RS_UIStyle.ConditionColor(rsw.Condition), "", 0,
+			"Below 50, worn guns roll hot -- more damage, backfire risk.\nRepairs itself over time.",
+			clamp(rsw.Condition / 100.0, 0.0, 1.0), rsw.Tier);
 		AddRule();
 
 		// --- Affixes ---
@@ -321,19 +341,83 @@ class RS_UIHandler : EventHandler
 				bool mastered = upg.level >= 6;
 				bool masteryNext = upg.level == 5;
 				string tag = mastered ? "MASTERED" : (masteryNext ? "MASTERY NEXT" : "");
+				// The affix's own description, as the row tooltip. GetDesc
+				// has existed on every upgrade since GunBonsai shipped and
+				// this sheet never asked for it -- so a held affix showed a
+				// name and a level and nothing about what it actually does.
+				string blurb = upg.GetDesc();
+				string tip = upg.GetTooltip(upg.level);
+				if (tip != "") blurb = blurb .. "\n\n" .. tip;
 				AddRow("  " .. upg.GetName(),
 					string.format("Lv %d   %s", upg.level, tag),
-					(mastered || masteryNext) ? Font.CR_ORANGE : Font.CR_WHITE);
+					(mastered || masteryNext) ? Font.CR_ORANGE : Font.CR_WHITE,
+					"", 0, blurb,
+					// Six takes is the ladder; the bar is progress to
+					// Mastery, tinted with the weapon's tier.
+					clamp(upg.level / 6.0, 0.0, 1.0), rsw.Tier);
 			}
 			if (held == 0)
 				AddRow("  (none yet)", "", Font.CR_DARKGRAY);
 		}
 
-		// --- Rotation, only when someone (Echo) made it real ---
-		let slot = rsw.GetSlot(0);
-		if (slot && slot.Count() > 1)
-			AddRow("ROTATION", string.format("%d beats", slot.Count()), Font.CR_LIGHTBLUE,
-				"", 0, "The trigger cycles these beats in order, every pull.");
+		// --- The four attack inputs ---
+		// One row per input that actually has content, so a normal gun
+		// shows one line and a fully built one shows four. Rotation is
+		// reported per slot, because "every 3rd shot" and "every 3rd
+		// alt-fire" are now different statements.
+		AddRule();
+		AddRow("ATTACK SLOTS", "", Font.CR_LIGHTBLUE);
+		string slotNames[4];
+		slotNames[0] = "  FIRE";
+		slotNames[1] = "  ALT-FIRE";
+		slotNames[2] = "  MOD + FIRE";
+		slotNames[3] = "  MOD + ALT";
+		bool anySlot = false;
+		for (int s = 0; s < RS_Weapon.RS_SLOT_COUNT; s++)
+		{
+			let sl = rsw.GetSlot(s);
+			if (!sl || sl.IsEmpty()) continue;
+			anySlot = true;
+			int n = sl.Count();
+			AddRow(slotNames[s],
+				n > 1 ? string.format("%d beats, cycling", n) : "1 beat",
+				n > 1 ? Font.CR_ORANGE : Font.CR_TAN, "", 0,
+				n > 1
+					? "This input cycles these beats in order, one per pull.\nAn affix beat lands every Nth time you use THIS input."
+					: "One profile. Every pull of this input is the same shot.",
+				clamp(n / 4.0, 0.0, 1.0), rsw.Tier);
+		}
+		if (!anySlot)
+			AddRow("  (no profiles built)", "", Font.CR_DARKGRAY);
+		AddRule();
+
+		// --- Curses on this hand ---
+		// The stat rows above already hide cursed NUMBERS, but the eight
+		// player flaws never appeared on any sheet at all -- you could be
+		// jam-prone and hungry on this hand with nothing anywhere saying
+		// so. Listed only when carried, so a clean hand costs one line.
+		{
+			int flaws = 0;
+			for (int f = 0; f < RS_Curse.FLAW_COUNT; f++)
+				if (RS_CurseLedger.Has(pawn, f, hand)) flaws++;
+
+			AddRow(string.format("CURSES  (%d on this hand)", flaws), "",
+				flaws > 0 ? Font.CR_DARKRED : Font.CR_LIGHTBLUE);
+
+			if (flaws == 0)
+				AddRow("  (clean)", "", Font.CR_DARKGRAY);
+			else
+				for (int f = 0; f < RS_Curse.FLAW_COUNT; f++)
+				{
+					if (!RS_CurseLedger.Has(pawn, f, hand)) continue;
+					// Informational, not a route. Repair is passive and
+					// there is no curse menu worth sending anyone to --
+					// this row exists so you can SEE what you are
+					// carrying, which nothing anywhere did before.
+					AddRow("  " .. RS_Curse.FlawName(f), "ACTIVE", Font.CR_DARKRED,
+						"", 0, RS_Curse.FlawBlurb(f, hand));
+				}
+		}
 		AddRule();
 
 		// --- Promotion ---

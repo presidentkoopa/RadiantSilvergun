@@ -322,6 +322,8 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 
 		gGrid = false;
 		gSel = 0;
+		gAnimFrom  = -1;
+		gAnimStart = MSTime() - 10000;   // already settled
 		gCards = 0;
 
 		let stats = TFLV_EventHandler.GetConsolePlayerStats();
@@ -430,6 +432,8 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 		if (gGrid)
 		{
 			gSel = 0;
+		gAnimFrom  = -1;
+		gAnimStart = MSTime() - 10000;   // already settled
 			mDesc.mSelectedItem = gItem[0];
 		}
 	}
@@ -603,6 +607,9 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 
 		int idx = (row < cardRows) ? row * 4 + col : gCards + col;
 		if (idx == gSel) return;
+		// Hand the outgoing plate to the animator BEFORE moving, so it
+		// has something to ease back down from.
+		NoteSelectionMoved(gSel);
 		gSel = idx;
 		Menu.MenuSound("menu/cursor");
 		mDesc.mSelectedItem = gItem[gSel] >= 0 ? gItem[gSel] : -1;
@@ -709,8 +716,57 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 	}
 
 	// One plate's two rects: kind-coloured border, darker body.
+	// =================================================================
+	// ANIMATION.
+	//
+	// Everything here is driven off MSTime() rather than a tick counter,
+	// because a menu does not tick reliably while the game is paused and
+	// a selection that only moves on tics reads as a snap. Nothing is
+	// stored per-frame; the clock IS the state.
+	// =================================================================
+
+	const SEL_ANIM_MS = 130.0;   // how long the grow/glide takes
+	const PULSE_MS    = 1400.0;  // border breathe period
+	const MARCH_MS    = 900.0;   // travelling highlight period
+
+	int    gAnimFrom;      // cell the selection is travelling FROM
+	int    gAnimStart;     // MSTime() when the move began
+
+	// 0 at the instant of a move, 1 when it has settled. Eased so it
+	// leaves fast and arrives slow -- a linear glide reads mechanical.
+	double SelEase() const
+	{
+		double t = (MSTime() - gAnimStart) / SEL_ANIM_MS;
+		if (t >= 1.0) return 1.0;
+		if (t <= 0.0) return 0.0;
+		double inv = 1.0 - t;
+		return 1.0 - inv * inv * inv;          // cubic ease-out
+	}
+
+	// Call whenever gSel changes so the glide has somewhere to come from.
+	void NoteSelectionMoved(int from)
+	{
+		gAnimFrom  = from;
+		gAnimStart = MSTime();
+	}
+
+	// A slow breathe, 0..1, for the selected border's alpha.
+	double Pulse() const
+	{
+		return 0.5 + 0.5 * sin((MSTime() % int(PULSE_MS)) / PULSE_MS * 360.0);
+	}
+
 	private void PlateRects(double x, double y, double w, double h,
 		Color border, double borderA, double vw, double vh)
+	{
+		PlateRectsAnim(x, y, w, h, border, borderA, vw, vh, false);
+	}
+
+	// The plate frame. When sel is true the border breathes and a bright
+	// band marches around the perimeter, which is what makes the choice
+	// feel live instead of merely highlighted.
+	private void PlateRectsAnim(double x, double y, double w, double h,
+		Color border, double borderA, double vw, double vh, bool sel)
 	{
 		double sx = Screen.GetWidth() / vw;
 		double sy = Screen.GetHeight() / vh;
@@ -718,8 +774,38 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 		int ry = int(y * sy);
 		int rw = int(w * sx);
 		int rh = int(h * sy);
-		int bt = max(1, int(1.5 * sx));
-		Screen.Dim(border, borderA, rx, ry, rw, rh);
+		int bt = max(1, int((sel ? 2.5 : 1.5) * sx));
+
+		double a = borderA;
+		if (sel) a = clamp(borderA * (0.72 + 0.28 * Pulse()), 0.0, 1.0);
+
+		Screen.Dim(border, a, rx, ry, rw, rh);
+
+		if (sel)
+		{
+			// A short bright segment running clockwise around the frame.
+			// Perimeter is walked as one length so the band turns corners
+			// at a constant speed instead of pausing on the short sides.
+			double per  = 2.0 * (rw + rh);
+			double head = ((MSTime() % int(MARCH_MS)) / MARCH_MS) * per;
+			double seg  = max(14.0, per * 0.14);
+			Color hot = Color(255, 255, 255, 255);
+
+			for (double o = 0; o < seg; o += 4.0)
+			{
+				double d = head + o;
+				if (d >= per) d -= per;
+				// Fade the band out toward its tail.
+				double ha = 0.55 * (1.0 - o / seg);
+				int px, py;
+				if (d < rw)                  { px = rx + int(d);            py = ry; }
+				else if (d < rw + rh)        { px = rx + rw - bt;           py = ry + int(d - rw); }
+				else if (d < 2 * rw + rh)    { px = rx + rw - int(d - rw - rh); py = ry + rh - bt; }
+				else                         { px = rx;                     py = ry + rh - int(d - 2 * rw - rh); }
+				Screen.Dim(hot, ha, px, py, bt * 2, bt * 2);
+			}
+		}
+
 		Screen.Dim(Color(255, 12, 12, 16), 0.85, rx + bt, ry + bt,
 			rw - 2 * bt, rh - 2 * bt);
 	}
@@ -743,13 +829,29 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 	private void DrawCardPlate(int i, double x, double y, double w, double h,
 		bool sel, double vw, double vh, Font fnt)
 	{
-		double f = sel ? SEL_SCALE : 1.0;
+		// The grow EASES in rather than snapping, and the plate being
+		// left behind eases back out over the same window -- so moving
+		// across the grid reads as one continuous motion instead of two
+		// instant redraws.
+		double e = SelEase();
+		double f = 1.0;
 		if (sel)
+			f = 1.0 + (SEL_SCALE - 1.0) * e;
+		else if (i == gAnimFrom && e < 1.0)
+			f = 1.0 + (SEL_SCALE - 1.0) * (1.0 - e);
+
+		if (f > 1.0)
 		{
 			x -= w * (f - 1.0) / 2;
 			y -= h * (f - 1.0) / 2;
 		}
-		PlateRects(x, y, w * f, h * f, gRGB[i], sel ? 0.95 : 0.55, vw, vh);
+
+		// Selected alpha rides in on the same curve, so the plate
+		// brightens as it grows.
+		double alpha = sel ? (0.55 + 0.40 * e)
+		                   : (i == gAnimFrom && e < 1.0 ? 0.55 + 0.40 * (1.0 - e) : 0.55);
+
+		PlateRectsAnim(x, y, w * f, h * f, gRGB[i], alpha, vw, vh, sel);
 
 		double lh = fnt.GetHeight();
 		double pad = 4 * f;
@@ -775,14 +877,28 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 	private void DrawStripPlate(int i, double x, double y, double w, double h,
 		bool sel, double vw, double vh, Font fnt)
 	{
-		double f = sel ? SEL_SCALE : 1.0;
+		// Same eased grow and marching border as the card plates -- the
+		// strip is part of the same selection, so it must not move by a
+		// different rule.
+		double e = SelEase();
+		double f = 1.0;
 		if (sel)
+			f = 1.0 + (SEL_SCALE - 1.0) * e;
+		else if (i == gAnimFrom && e < 1.0)
+			f = 1.0 + (SEL_SCALE - 1.0) * (1.0 - e);
+
+		if (f > 1.0)
 		{
 			x -= w * (f - 1.0) / 2;
 			y -= h * (f - 1.0) / 2;
 		}
-		PlateRects(x, y, w * f, h * f, gRGB[i],
-			sel ? 0.95 : (gHot[i] ? 0.55 : 0.35), vw, vh);
+
+		double rest = gHot[i] ? 0.55 : 0.35;
+		double alpha = sel ? (rest + (0.95 - rest) * e)
+		                   : (i == gAnimFrom && e < 1.0
+		                      ? rest + (0.95 - rest) * (1.0 - e) : rest);
+
+		PlateRectsAnim(x, y, w * f, h * f, gRGB[i], alpha, vw, vh, sel);
 
 		double lh = fnt.GetHeight();
 		double cx = x + w * f / 2;
