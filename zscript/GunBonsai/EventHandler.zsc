@@ -409,6 +409,55 @@ class TFLV_EventHandler : StaticEventHandler {
     if (source) {
       let stats = TFLV_PerPlayerStats.GetStatsFor(PlayerPawn(source));
 
+      // RS GRAFT: SUMMONED MINION XP, 2026-08-11.
+      //
+      // A friendly minion's damage already reaches here -- GetPlayerDamageSource
+      // above resolves it to the player via FriendPlayer (:357). But without
+      // this branch the weapon-level split falls through to mainhand, and
+      // mainhand XP goes to stats.infoForCurrentWeapon: WHATEVER IS IN THE
+      // PLAYER'S HANDS RIGHT NOW. Summon with the shotgun, switch to the
+      // plasma rifle, and the shotgun's skeleton levels the plasma rifle.
+      //
+      // Owner ruling (docs/rs_payload_bestiary.md): a minion feeds the gun
+      // that SPAWNED it, permanently, no matter what is held. Several lanes
+      // running at once is intended -- seed a fight with two guns, switch to
+      // two more, four weapons level together. A card slot and an ammo cost
+      // were paid for that.
+      //
+      // Checked FIRST because it is the most specific case: a minion's damage
+      // is never also an offhand trigger pull, and letting the offhand tests
+      // see it would credit the wrong gun on a coin flip.
+      //
+      // See zscript/systems/weapon/RS_Minion.zs.
+      Weapon minionWeapon = RS_Minion.SourceWeaponFor(evt.inflictor, evt.damagesource);
+      if (minionWeapon) {
+        let minfo = stats.GetOrCreateInfoFor(minionWeapon);
+        if (minfo) {
+          // Weapon type flags, same first-hit inference the offhand path does
+          // below -- a minion's rounds should not leave its gun untyped.
+          if (!minfo.typeflags) {
+            if (evt.inflictor && evt.inflictor.bMISSILE) {
+              minfo.typeflags = evt.inflictor is "FastProjectile" ? 24 : 8;
+            } else {
+              minfo.typeflags = 4;
+            }
+          }
+          // GB's own XP formula, kept identical so a minion kill is worth
+          // exactly what the same kill by hand would be worth. Overkill is
+          // clamped off the same way.
+          int mdmg = evt.damage;
+          if (evt.thing.health < 0) mdmg += evt.thing.health;
+          double mxp = max(0, mdmg) * bonsai_damage_to_xp_factor;
+          if (evt.thing.GetSpawnHealth() > 100)
+            mxp = mxp * (log10(evt.thing.GetSpawnHealth()) - 1.0);
+          if (mxp > 0) minfo.AddXP(mxp);
+          minfo.upgrades.OnDamageDealt(source, evt.inflictor, evt.thing, evt.damage);
+          if (evt.thing.health <= 0)
+            minfo.upgrades.OnKill(source, evt.inflictor, evt.thing);
+        }
+        return;
+      }
+
       // GBOH: Offhand weapon XP attribution.
       // If the bullet's master is the offhand weapon, redirect XP to it
       // instead of ReadyWeapon by nulling infoForCurrentWeapon before

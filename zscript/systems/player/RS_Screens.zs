@@ -90,6 +90,16 @@ class RS_UIHandler : EventHandler
 	Array<string> mRowCmd;
 	Array<int>    mRowArg;
 	Array<string> mRowTip;
+	// Per-row XP-bar payload: frac < 0 = plain row, no bar; frac >= 0
+	// makes RS_Menu_Dynamic draw a real track+fill bar in the value
+	// column, filled to the fraction, in the row's tier colour
+	// (barTier -1 = the tierless gold).
+	Array<double> mRowBarFrac;
+	Array<int>    mRowBarTier;
+
+	// The tier colouring this screen's header plate; -1 = no tier
+	// (player sheet, promotion confirm) and the plate renders gold.
+	int mSheetTier;
 
 	// Sheet cycle position: 0 offhand, 1 mainhand, 2 player.
 	int mCycle;
@@ -129,14 +139,21 @@ class RS_UIHandler : EventHandler
 	void ClearModel()
 	{
 		mCycleNav = false;
+		mSheetTier = -1;
 		mTitle = ""; mSubtitle = "";
 		mTitleColor = Font.CR_GOLD;
 		mSubtitleColor = Font.CR_WHITE;
 		mRowKey.Clear(); mRowVal.Clear(); mRowColor.Clear();
 		mRowCmd.Clear(); mRowArg.Clear(); mRowTip.Clear();
+		mRowBarFrac.Clear(); mRowBarTier.Clear();
 	}
 
-	void AddRow(string k, string v, int color, string cmd = "", int arg = 0, string tip = "")
+	// CONTRACT: barFrac and cmd are mutually exclusive. A bar row renders
+	// as a non-selectable XPRow; if a row carries both, the menu side
+	// (RS_UIMenus.zsc, RS_Menu_Dynamic.Init) keeps the command's
+	// KVOption dispatch and drops the bar.
+	void AddRow(string k, string v, int color, string cmd = "", int arg = 0, string tip = "",
+		double barFrac = -1.0, int barTier = -1)
 	{
 		mRowKey.Push(k);
 		mRowVal.Push(v);
@@ -144,6 +161,8 @@ class RS_UIHandler : EventHandler
 		mRowCmd.Push(cmd);
 		mRowArg.Push(arg);
 		mRowTip.Push(tip);
+		mRowBarFrac.Push(barFrac);
+		mRowBarTier.Push(barTier);
 	}
 
 	void AddRule()
@@ -216,13 +235,18 @@ class RS_UIHandler : EventHandler
 
 		mSubtitle = RS_UIStyle.TierName(rsw.Tier) .. "      " .. RS_UIStyle.Pips(rsw.PromotionCount);
 		mSubtitleColor = RS_UIStyle.TierColor(rsw.Tier);
+		mSheetTier = rsw.Tier;
 
 		// --- GunBonsai level / XP / the LEVEL UP row ---
 		if (info)
 		{
+			// barFrac >= 0 makes the menu render a real tier-coloured
+			// bar in the value column; the text carries the numbers.
 			AddRow(string.format("LEVEL %d", info.level),
-				string.format("XP %s %d/%d", RS_UIStyle.XPBar(info.XP, info.maxXP), int(info.XP), int(info.maxXP)),
-				Font.CR_WHITE);
+				string.format("%d / %d xp", int(info.XP), int(info.maxXP)),
+				Font.CR_WHITE, "", 0, "",
+				info.maxXP > 0 ? clamp(info.XP / info.maxXP, 0.0, 1.0) : 0.0,
+				rsw.Tier);
 			int banked = info.XP >= info.maxXP ? 1 : 0;
 			if (banked > 0)
 				AddRow(">> LEVEL UP! <<", "choose an upgrade card",
@@ -343,8 +367,9 @@ class RS_UIHandler : EventHandler
 		// reads (PerPlayerStats.GetCurrentStats: stats.pmax).
 		double pmax = bonsai_gun_levels_per_player_level;
 		AddRow(string.format("LEVEL %d", stats.level),
-			string.format("GUN LEVELS %s %d/%d", RS_UIStyle.XPBar(stats.XP, pmax), int(stats.XP), int(pmax)),
-			Font.CR_WHITE);
+			string.format("GUN LEVELS  %d / %d", int(stats.XP), int(pmax)),
+			Font.CR_WHITE, "", 0, "",
+			pmax > 0 ? clamp(stats.XP / pmax, 0.0, 1.0) : 0.0, -1);
 
 		// THE MISSING DOOR, added 2026-08-07.
 		//
@@ -364,6 +389,34 @@ class RS_UIHandler : EventHandler
 			AddRow(">> PLAYER LEVEL UP! <<", "choose a player upgrade",
 				Font.CR_ORANGE, "rs-ui-levelup", -1,
 				"A player level is banked. Confirm to open the picker.\nEarned from gun levels, not from kills directly.");
+		AddRule();
+
+		// --- Both hands' GunBonsai levels, at a glance. The hand sheets
+		// carry the detail; this is the "where do my guns stand" summary
+		// the player track feeds from (each gun level = +1 player XP). ---
+		for (int hand = 0; hand <= 1; hand++)
+		{
+			string hn = (hand == 0) ? "OFFHAND" : "MAINHAND";
+			let hwep = HandWeapon(pawn, hand);
+			if (!hwep)
+			{
+				AddRow(hn, "(empty)", Font.CR_DARKGRAY);
+				continue;
+			}
+			let hrsw = RS_Weapon(hwep);
+			let hinfo = stats.GetInfoFor(hwep);
+			int hcol = hrsw ? RS_UIStyle.TierColor(hrsw.Tier) : Font.CR_WHITE;
+			if (hinfo)
+				AddRow(hn .. "  " .. hwep.GetTag(),
+					string.format("LEVEL %d   %d / %d xp%s", hinfo.level,
+						int(hinfo.XP), int(hinfo.maxXP),
+						hinfo.XP >= hinfo.maxXP ? "   >> LEVEL UP!" : ""),
+					hcol, "", 0, "",
+					hinfo.maxXP > 0 ? clamp(hinfo.XP / hinfo.maxXP, 0.0, 1.0) : 0.0,
+					hrsw ? hrsw.Tier : -1);
+			else
+				AddRow(hn .. "  " .. hwep.GetTag(), "(no GunBonsai info yet)", hcol);
+		}
 		AddRule();
 		AddRow("GOLD BITS", string.format("%d", pawn.CountInv("RS_Bit_Gold")), Font.CR_GOLD,
 			"", 0, "Spent on card-picker rerolls. Dropped by kills.");
@@ -419,6 +472,7 @@ class RS_UIHandler : EventHandler
 		mTitleColor = RS_UIStyle.TierColor(rsw.Tier);
 		mSubtitle = RS_UIStyle.TierName(rsw.Tier) .. "      " .. RS_UIStyle.Pips(rsw.PromotionCount);
 		mSubtitleColor = RS_UIStyle.TierColor(rsw.Tier);
+		mSheetTier = rsw.Tier;
 
 		let stats = TFLV_PerPlayerStats.GetStatsFor(pawn);
 		let info = stats ? stats.GetInfoFor(wep) : null;
@@ -432,6 +486,12 @@ class RS_UIHandler : EventHandler
 		int dps = int(rsw.DamagePerShot * max(1, rsw.PelletCount) * max(1, rsw.RateOfFire));
 		int magNow = wep.AmmoType2 ? pawn.CountInv(wep.AmmoType2) : 0;
 
+		if (info)
+			AddRow(string.format("LEVEL %d", info.level),
+				string.format("%d / %d xp", int(info.XP), int(info.maxXP)),
+				Font.CR_WHITE, "", 0, "",
+				info.maxXP > 0 ? clamp(info.XP / info.maxXP, 0.0, 1.0) : 0.0,
+				rsw.Tier);
 		AddRow("DAMAGE", string.format("%d  (ceiling %d)", rsw.DamagePerShot, rsw.GetDamageCeiling()),
 			rsw.LockedDamage ? Font.CR_DARKRED : Font.CR_TAN);
 		AddRow("ROF", string.format("%d/s", rsw.RateOfFire), Font.CR_TAN);
@@ -537,6 +597,7 @@ class RS_UIHandler : EventHandler
 		mTitleColor = RS_UIStyle.TierColor(d.Tier);
 		mSubtitle = RS_UIStyle.TierName(d.Tier) .. "   " .. RS_UIStyle.Pips(d.PromotionCount);
 		mSubtitleColor = RS_UIStyle.TierColor(d.Tier);
+		mSheetTier = d.Tier;
 
 		AddRow("OFFHAND",  hasOff  ? offW.GetTag()  : "(empty)",
 			hasOff  ? RS_UIStyle.TierColor(offW.Tier)  : Font.CR_DARKGRAY);
@@ -669,6 +730,7 @@ class RS_UIHandler : EventHandler
 
 		mTitle = "SERVICE -- " .. rsw.GetTag();
 		mTitleColor = RS_UIStyle.TierColor(rsw.Tier);
+		mSheetTier = rsw.Tier;
 
 		int grey = pawn.CountInv("RS_Bit_Grey");
 		AddRow("CONDITION", string.format("%d%%", int(rsw.Condition)),

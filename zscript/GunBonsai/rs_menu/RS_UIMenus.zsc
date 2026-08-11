@@ -1,4 +1,4 @@
-﻿// =====================================================================
+// =====================================================================
 // RS_UIMenus -- the unified UI's ui-scope half. Spec: docs/rs_10_ui_spec.txt.
 //
 // RS_Menu_Dynamic renders whatever screen model RS_UIHandler (play
@@ -10,8 +10,159 @@
 // giver flow: MENUDEF points "GunBonsaiWeaponLevelUpMenu" at this
 // class, so the vendored giver opens it without knowing anything
 // changed. Rendering is ours; the choose/reject netevents are stock.
+//
+// DRAWING LAW (owner-approved): simple shapes only. Screen.Dim flat
+// rects, the existing fonts, DTA virtual-size scaling. No textures, no
+// sprites. Tier colour comes from RS_TierPalette via RS_UIStyle.
 // =====================================================================
 
+// ---------------------------------------------------------------------
+// Shared flat-shape helpers. Row geometry mirrors OptionMenu's own
+// metrics (mLinespacing * CleanYfac_1), and the plates are drawn by the
+// ITEMS, not by a hand-rolled copy of the engine's Drawer loop -- each
+// item is handed its real on-screen y, so plates stay correct when the
+// engine scrolls a long sheet.
+// ---------------------------------------------------------------------
+class RS_MenuPlates ui
+{
+	// One menu row's backing plate. Alternating rows get a faint wash;
+	// the selected option row gets a brighter one.
+	static void RowPlate(int y, bool odd, bool selected)
+	{
+		int fh = OptionMenuSettings.mLinespacing * CleanYfac_1;
+		if (selected)
+			Screen.Dim(Color(255, 255, 255, 255), 0.10, 0, y, Screen.GetWidth(), fh);
+		else if (odd)
+			Screen.Dim(Color(255, 255, 255, 255), 0.05, 0, y, Screen.GetWidth(), fh);
+	}
+
+	// A real XP bar: dim track rect, tier-coloured fill rect at the
+	// fraction.
+	static void Bar(int x, int y, int w, int h, double frac, Color fill)
+	{
+		Screen.Dim(Color(255, 16, 16, 20), 0.75, x, y, w, h);
+		int fw = int(w * clamp(frac, 0.0, 1.0));
+		if (fw > 0)
+			Screen.Dim(fill, 0.85, x, y, fw, h);
+	}
+
+	// The gold used when a screen has no tier (player sheet, promotion
+	// confirm) and for the picker's spend plates.
+	static Color GoldRGB() { return Color(255, 216, 168, 56); }
+}
+
+// ---------------------------------------------------------------------
+// The sheet's title row: full-width tier-coloured plate, thin accent
+// rule at its foot, title text centred on top. Plates first, text
+// after -- the text always stays on top.
+// ---------------------------------------------------------------------
+class RS_MenuItem_SheetHeader : OptionMenuItem
+{
+	int titleColor;
+	Color plateRGB;
+
+	RS_MenuItem_SheetHeader InitHeader(string title, int titleColor_, Color plateRGB_)
+	{
+		super.Init(title, "");
+		mCentered = true;
+		titleColor = titleColor_;
+		plateRGB = plateRGB_;
+		return self;
+	}
+
+	override bool Selectable() { return false; }
+
+	override int Draw(OptionMenuDescriptor d, int y, int indent, bool selected)
+	{
+		int fh = OptionMenuSettings.mLinespacing * CleanYfac_1;
+		int pad = 3 * CleanYfac_1;
+		int rule = max(1, CleanYfac_1);
+		Screen.Dim(plateRGB, 0.35, 0, y - pad, Screen.GetWidth(), fh + pad - rule);
+		Screen.Dim(plateRGB, 0.85, 0, y + fh - rule, Screen.GetWidth(), rule);
+		drawLabel(indent, y, titleColor);   // mCentered: draws centred
+		return -1;
+	}
+}
+
+// A static key/value row with a backing plate.
+class RS_MenuItem_KVText : TFLV_Menu_KeyValueText
+{
+	bool odd;
+
+	RS_MenuItem_KVText InitPlate(string key_, string value_, uint colour_, bool odd_)
+	{
+		super.Init(key_, value_, colour_);
+		odd = odd_;
+		return self;
+	}
+
+	override int Draw(OptionMenuDescriptor d, int y, int indent, bool selected)
+	{
+		RS_MenuPlates.RowPlate(y, odd, false);
+		return super.Draw(d, y, indent, selected);
+	}
+}
+
+// A selectable key/value row with a backing plate. Enter dispatch is
+// inherited untouched from TFLV_Menu_KeyValueOption -- presentation
+// only.
+class RS_MenuItem_KVOption : TFLV_Menu_KeyValueOption
+{
+	bool odd;
+
+	RS_MenuItem_KVOption InitPlate(string key_, string value_, string command_,
+		int index_, uint idle_, uint hot_, bool odd_)
+	{
+		super.Init(key_, value_, command_, index_, idle_, hot_);
+		odd = odd_;
+		return self;
+	}
+
+	override int Draw(OptionMenuDescriptor d, int y, int indent, bool selected)
+	{
+		RS_MenuPlates.RowPlate(y, odd, selected);
+		return super.Draw(d, y, indent, selected);
+	}
+}
+
+// A key/value row whose value column is a REAL XP bar (track + fill),
+// with the numbers riding to the right of it.
+class RS_MenuItem_XPRow : TFLV_Menu_KeyValueText
+{
+	double frac;
+	Color fill;
+	bool odd;
+
+	RS_MenuItem_XPRow InitBar(string key_, string value_, uint colour_,
+		double frac_, Color fill_, bool odd_)
+	{
+		super.Init(key_, value_, colour_);
+		frac = frac_;
+		fill = fill_;
+		odd = odd_;
+		return self;
+	}
+
+	override int Draw(OptionMenuDescriptor d, int y, int indent, bool selected)
+	{
+		RS_MenuPlates.RowPlate(y, odd, false);
+		drawLabel(indent, y, colour);
+
+		int fh = OptionMenuSettings.mLinespacing * CleanYfac_1;
+		int bw = 120 * CleanXfac_1;
+		int bh = max(2, fh - 6 * CleanYfac_1);
+		int bx = indent + CursorSpace();
+		int by = y + 3 * CleanYfac_1;
+		RS_MenuPlates.Bar(bx, by, bw, bh, frac, fill);
+
+		drawValue(indent + bw + 6 * CleanXfac_1, y, colour, value);
+		return indent;
+	}
+}
+
+// =====================================================================
+// RS_Menu_Dynamic -- renders the RS_UIHandler row model.
+// =====================================================================
 class RS_Menu_Dynamic : TFLV_Menu_GenericMenu
 {
 	override void Init(Menu parent, OptionMenuDescriptor desc)
@@ -27,8 +178,13 @@ class RS_Menu_Dynamic : TFLV_Menu_GenericMenu
 			return;
 		}
 
+		Color plate = h.mSheetTier >= 0
+			? RS_TierPalette.RGB(h.mSheetTier)
+			: RS_MenuPlates.GoldRGB();
+
 		PushText(" ", Font.CR_GOLD);
-		PushText(h.mTitle, h.mTitleColor);
+		mDesc.mItems.Push(new("RS_MenuItem_SheetHeader")
+			.InitHeader(h.mTitle, h.mTitleColor, plate));
 		if (h.mSubtitle != "")
 			PushText(h.mSubtitle, h.mSubtitleColor);
 		PushText(" ", Font.CR_GOLD);
@@ -36,21 +192,46 @@ class RS_Menu_Dynamic : TFLV_Menu_GenericMenu
 		mDesc.mSelectedItem = -1;
 		for (int i = 0; i < h.mRowKey.Size(); i++)
 		{
-			if (h.mRowCmd[i] == "")
+			bool odd = (i & 1) == 1;
+			// A bar row is only a bar row if it carries no command --
+			// XPRow is non-selectable, and a row that asked for both
+			// must keep its KVOption dispatch over its bar.
+			if (h.mRowBarFrac[i] >= 0.0 && h.mRowCmd[i] == "")
 			{
-				PushKeyValueText(h.mRowKey[i], h.mRowVal[i], h.mRowColor[i]);
+				Color fill = h.mRowBarTier[i] >= 0
+					? RS_TierPalette.RGB(h.mRowBarTier[i])
+					: RS_MenuPlates.GoldRGB();
+				mDesc.mItems.Push(new("RS_MenuItem_XPRow").InitBar(
+					h.mRowKey[i], h.mRowVal[i], h.mRowColor[i],
+					h.mRowBarFrac[i], fill, odd));
+			}
+			else if (h.mRowCmd[i] == "")
+			{
+				mDesc.mItems.Push(new("RS_MenuItem_KVText").InitPlate(
+					h.mRowKey[i], h.mRowVal[i], h.mRowColor[i], odd));
 			}
 			else
 			{
-				PushKeyValueOption(h.mRowKey[i], h.mRowVal[i],
+				mDesc.mItems.Push(new("RS_MenuItem_KVOption").InitPlate(
+					h.mRowKey[i], h.mRowVal[i],
 					h.mRowCmd[i], h.mRowArg[i],
-					h.mRowColor[i], Font.CR_RED);
+					h.mRowColor[i], Font.CR_RED, odd));
 				if (mDesc.mSelectedItem < 0)
 					mDesc.mSelectedItem = mDesc.mItems.Size() - 1;
 			}
 			if (h.mRowTip[i] != "")
 				PushTooltip(h.mRowTip[i]);
 		}
+	}
+
+	// Backdrop first, then the rows (each draws its own plate under its
+	// own text), then super's tail draws tooltips last and on top --
+	// super.Drawer() MUST stay the last thing here.
+	override void Drawer()
+	{
+		Screen.Dim(Color(255, 6, 6, 10), 0.45, 0, 0,
+			Screen.GetWidth(), Screen.GetHeight());
+		super.Drawer();
 	}
 
 	// L2: on the sheets, Left/Right are the lateral subject moves --
@@ -72,18 +253,79 @@ class RS_Menu_Dynamic : TFLV_Menu_GenericMenu
 		}
 		return super.MenuEvent(key, fromController);
 	}
+
+	// Pressing I again while a sheet is open keeps cycling. Keybinds do
+	// not fire while a menu is up, so the raw key is caught here: close,
+	// send rs-ui-cycle (ui-legal static form), and the handler rebuilds
+	// and reopens on the next sheet. Same mCycleNav gate as Left/Right,
+	// so confirm/repair screens stay inert. KeyDown only -- the paired
+	// Char event lands after this menu is gone and dies unheard.
+	override bool OnUIEvent(UIEvent ev)
+	{
+		if (ev.Type == UIEvent.Type_KeyDown
+			&& (ev.KeyChar == 73 || ev.KeyChar == 105))   // 'I' / 'i'
+		{
+			let h = RS_UIHandler(EventHandler.Find("RS_UIHandler"));
+			if (h && h.mCycleNav)
+			{
+				Menu.MenuSound("menu/change");
+				EventHandler.SendNetworkEvent("rs-ui-cycle", 1);
+				Menu.GetCurrentMenu().Close();
+				return true;
+			}
+		}
+		return super.OnUIEvent(ev);
+	}
 }
 
+// =====================================================================
+// RS_Menu_CardPicker -- the level-up screen, drawn as a GRID of card
+// plates (up to 8 offers, 4 columns x 2 rows; fewer = one centred row)
+// with the lateral actions (promote / +1 card / reroll) as a bottom
+// strip of smaller plates.
+//
+// THE CONTRACT: the grid is a VIEW. The stock option items are still
+// built and still carry the dispatch -- Enter on a card routes MKey_Enter
+// to the SAME TFLV_Menu_KeyValueOption the old list would have fired
+// ("bonsai-choose-level-up-option", candidate index), Esc keeps the
+// inherited reject (-1), and the strip's spend plates send the exact
+// netevents the old Left/Right sent. If the offer somehow exceeds 8
+// cards, the whole class falls back to the old list presentation.
+// =====================================================================
 class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 {
+	const DESC_SCALE = 0.85;    // description text, relative to card text
+	const SEL_SCALE  = 1.15;    // the selected plate's grow factor
+
+	// --- The grid view model, snapshotted in Init. Parallel arrays; ---
+	// --- entries [0, gCards) are card plates, the rest is the strip. ---
+	bool   gGrid;       // false = old list presentation (fallback)
+	int    gSel;        // selected grid entry
+	int    gCards;      // how many entries are cards
+	string gTitle;      int gTitleFont;
+	string gTierLine;   int gTierFont;
+	string gGoldLine;
+	Array<string> gName;
+	Array<string> gSub;     // cost / level line
+	Array<string> gDesc;
+	Array<int>    gFont;    // Font.CR_ for the name
+	Array<Color>  gRGB;     // border colour
+	Array<int>    gItem;    // backing mDesc.mItems index; -1 = direct dispatch
+	Array<string> gCmd;     // netevent for direct-dispatch entries
+	Array<bool>   gHot;     // affordability -> border brightness only
+
 	override void Init(Menu parent, OptionMenuDescriptor desc)
 	{
 		super.InitDynamic(parent, desc);
 		TooltipGeometry(0.5, 1.0, 0.75, 1.0, 0.5);
 		TooltipAppearance("", "", "tfttbg");
 
+		gGrid = false;
+		gSel = 0;
+		gCards = 0;
+
 		let stats = TFLV_EventHandler.GetConsolePlayerStats();
-		let giver = TFLV_WeaponUpgradeGiver(stats.currentEffectGiver);
+		let giver = stats ? TFLV_WeaponUpgradeGiver(stats.currentEffectGiver) : null;
 		if (!giver)
 		{
 			PushText("No level-up in progress.", Font.CR_RED);
@@ -93,12 +335,17 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 		let wpn = giver.wielded.wpn;
 		let rsw = RS_Weapon(wpn);
 
+		gTitle = string.format("%s -- LEVEL UP  (%d banked)", wpn.GetTag(), giver.nrof);
+		gTitleFont = rsw ? RS_UIStyle.TierColor(rsw.Tier) : Font.CR_GOLD;
+		gTierLine = rsw
+			? RS_UIStyle.TierName(rsw.Tier) .. "      " .. RS_UIStyle.Pips(rsw.PromotionCount)
+			: "";
+		gTierFont = gTitleFont;
+
 		PushText(" ", Font.CR_GOLD);
-		PushText(string.format("%s -- LEVEL UP  (%d banked)", wpn.GetTag(), giver.nrof),
-			rsw ? RS_UIStyle.TierColor(rsw.Tier) : Font.CR_GOLD);
+		PushText(gTitle, gTitleFont);
 		if (rsw)
-			PushText(RS_UIStyle.TierName(rsw.Tier) .. "      " .. RS_UIStyle.Pips(rsw.PromotionCount),
-				RS_UIStyle.TierColor(rsw.Tier));
+			PushText(gTierLine, gTierFont);
 		PushText(" ", Font.CR_GOLD);
 
 		mDesc.mSelectedItem = -1;
@@ -106,7 +353,9 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 		{
 			PushCard(giver.wielded.upgrades, giver.candidates[i], i);
 			if (mDesc.mSelectedItem < 0)
-				mDesc.mSelectedItem = mDesc.mItems.Size() - 2;   // -2: tooltip pushed after
+				mDesc.mSelectedItem = mDesc.mItems.Size() - 1;
+			// ^ the option itself: PushTooltip stores tooltips outside
+			// mItems in the dynamic path, so Size()-1 IS the card row.
 		}
 
 		// The promotion cash-in card -- present in every Prototype offer,
@@ -122,7 +371,17 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 				RS_UIStyle.Pips(rsw.PromotionCount) .. "  ->  " .. RS_UIStyle.Pips(rsw.PromotionCount + 1),
 				"rs-ui-promote-ask", hand,
 				Font.CR_GOLD, Font.CR_ORANGE);
+			int promoteItem = mDesc.mItems.Size() - 1;
 			PushTooltip("Cash this Prototype in: lose its affixes and 20% of\nits stats; gain +1 pellet forever, a higher damage\nceiling, and faster releveling. Your banked level-up\nis kept.");
+
+			gName.Push("PROMOTE");
+			gSub.Push(RS_UIStyle.Pips(rsw.PromotionCount) .. " -> " .. RS_UIStyle.Pips(rsw.PromotionCount + 1));
+			gDesc.Push("");
+			gFont.Push(Font.CR_GOLD);
+			gRGB.Push(RS_MenuPlates.GoldRGB());
+			gItem.Push(promoteItem);
+			gCmd.Push("");
+			gHot.Push(true);
 		}
 
 		// The two Gold spends. Affordability is shown, not hidden: a
@@ -131,9 +390,12 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 		int gold = goldPawn ? goldPawn.CountInv("RS_Bit_Gold") : 0;
 		int rerollCost = 5 << giver.rsRerolls;
 		int expandCost = 12 << giver.rsExtraCards;
+		gGoldLine = string.format("GOLD  %d", gold);
 
+		// The list rows survive for the fallback presentation (and its
+		// unchanged Left/Right shortcuts).
 		PushText(" ", Font.CR_GOLD);
-		PushKeyValueText(string.format("GOLD  %d", gold), "", Font.CR_GOLD);
+		PushKeyValueText(gGoldLine, "", Font.CR_GOLD);
 		PushKeyValueText(
 			string.format("[Left]  ANOTHER CARD   %d gold", expandCost), "",
 			gold >= expandCost ? Font.CR_GOLD : Font.CR_DARKGRAY);
@@ -141,30 +403,67 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 			string.format("[Right] REROLL         %d gold", rerollCost), "",
 			gold >= rerollCost ? Font.CR_GOLD : Font.CR_DARKGRAY);
 		PushText("[Confirm] take     [Esc] keep banked", Font.CR_DARKGRAY);
+
+		// The strip's spend plates: direct dispatch, exactly the netevents
+		// the old menu-level Left/Right sent.
+		gName.Push("+1 CARD");
+		gSub.Push(string.format("%d gold", expandCost));
+		gDesc.Push("");
+		gFont.Push(gold >= expandCost ? Font.CR_GOLD : Font.CR_DARKGRAY);
+		gRGB.Push(gold >= expandCost ? RS_MenuPlates.GoldRGB() : Color(255, 110, 110, 110));
+		gItem.Push(-1);
+		gCmd.Push("rs-ui-expand");
+		gHot.Push(gold >= expandCost);
+
+		gName.Push("REROLL");
+		gSub.Push(string.format("%d gold", rerollCost));
+		gDesc.Push("");
+		gFont.Push(gold >= rerollCost ? Font.CR_GOLD : Font.CR_DARKGRAY);
+		gRGB.Push(gold >= rerollCost ? RS_MenuPlates.GoldRGB() : Color(255, 110, 110, 110));
+		gItem.Push(-1);
+		gCmd.Push("rs-ui-reroll");
+		gHot.Push(gold >= rerollCost);
+
+		// The grid only exists for offers that fit 4x2; anything wider
+		// (should not happen) falls back to the proven list.
+		gGrid = (gCards > 0 && gCards <= 8);
+		if (gGrid)
+		{
+			gSel = 0;
+			mDesc.mSelectedItem = gItem[0];
+		}
 	}
 
 	// Stock PushUpgrade with the card-type color language on top:
 	// stat cards green, combo cards purple, Mastery offers orange,
-	// affixes white.
+	// affixes white. Also mirrors each card into the grid model.
 	void PushCard(TFLV_Upgrade_UpgradeBag upgrades, TFLV_Upgrade_BaseUpgrade upgrade, int index)
 	{
 		let lvl = upgrades.Level(upgrade.GetClassName());
 		int idle = Font.CR_WHITE;
+		Color rgb = Color(255, 225, 225, 230);
 		string label = upgrade.GetName();
+		string sub = lvl > 0 ? string.format("Lv %d -> %d", lvl, lvl + 1) : "NEW";
 
 		if (upgrade is "TFLV_Upgrade_RS_ComboCardBase")
 		{
 			idle = Font.CR_PURPLE;
+			rgb = Color(255, 178, 74, 255);
+			sub = lvl > 0 ? string.format("COMBO   Lv %d -> %d", lvl, lvl + 1) : "COMBO CARD";
 		}
 		else if (upgrade is "TFLV_Upgrade_RS_CardBase")
 		{
 			idle = Font.CR_GREEN;
+			rgb = Color(255, 64, 220, 80);
+			sub = lvl > 0 ? string.format("CARD   Lv %d -> %d", lvl, lvl + 1) : "STAT CARD";
 		}
 		else if (lvl == 5)
 		{
 			// The visible "6th pick is special" moment.
 			idle = Font.CR_ORANGE;
+			rgb = Color(255, 255, 150, 40);
 			label = label .. "  -- MASTERY";
+			sub = "MASTERY -- the 6th pick";
 		}
 		else if (lvl > 0)
 		{
@@ -174,23 +473,320 @@ class RS_Menu_CardPicker : TFLV_Menu_GenericLevelUpMenu
 		PushKeyValueOption(label, upgrade.GetDesc(),
 			"bonsai-choose-level-up-option", index,
 			idle, Font.CR_RED);
+		int itemIdx = mDesc.mItems.Size() - 1;
 		PushTooltip(upgrade.GetTooltipDiff(lvl, lvl + 1));
+
+		gName.Push(upgrade.GetName());
+		gSub.Push(sub);
+		gDesc.Push(upgrade.GetDesc());
+		gFont.Push(idle);
+		gRGB.Push(rgb);
+		gItem.Push(itemIdx);
+		gCmd.Push("");
+		gHot.Push(true);
+		gCards++;
 	}
 
-	// The picker's two lateral actions (rs_10 design law L2: on a
-	// single-subject screen, Left/Right are that screen's lateral
-	// actions). Right shuffles what's on offer, Left buys one more card
-	// on top of it -- both spend Gold, both reopen this menu.
+	// -----------------------------------------------------------------
+	// Input. Grid mode: arrows walk the plates, Enter fires whatever
+	// the plate backs (stock item dispatch for cards/promote, the old
+	// Left/Right netevents for the spends), Esc keeps the inherited
+	// reject. List fallback keeps the old behaviour verbatim.
+	// -----------------------------------------------------------------
 	override bool MenuEvent(int key, bool fromController)
 	{
-		if (key == Menu.MKey_Right || key == Menu.MKey_Left)
+		if (!gGrid)
 		{
-			Menu.MenuSound("menu/change");
-			EventHandler.SendNetworkEvent(
-				key == Menu.MKey_Right ? "rs-ui-reroll" : "rs-ui-expand");
-			Menu.GetCurrentMenu().Close();
-			return true;
+			// The picker's two lateral actions (rs_10 design law L2):
+			// Right shuffles what's on offer, Left buys one more card on
+			// top -- both spend Gold, both reopen this menu.
+			if (key == Menu.MKey_Right || key == Menu.MKey_Left)
+			{
+				Menu.MenuSound("menu/change");
+				EventHandler.SendNetworkEvent(
+					key == Menu.MKey_Right ? "rs-ui-reroll" : "rs-ui-expand");
+				Menu.GetCurrentMenu().Close();
+				return true;
+			}
+			return super.MenuEvent(key, fromController);
 		}
+
+		switch (key)
+		{
+			case Menu.MKey_Left:     GridMove(-1,  0); return true;
+			case Menu.MKey_Right:    GridMove( 1,  0); return true;
+			case Menu.MKey_Up:       GridMove( 0, -1); return true;
+			case Menu.MKey_Down:     GridMove( 0,  1); return true;
+
+			// List-scroll keys would move the invisible list selection
+			// and desync Enter from the plate the player sees -- eat them.
+			case Menu.MKey_PageUp:
+			case Menu.MKey_PageDown:
+				return true;
+
+			case Menu.MKey_Enter:
+				if (gSel >= 0 && gSel < gItem.Size() && gItem[gSel] < 0)
+				{
+					Menu.MenuSound("menu/change");
+					EventHandler.SendNetworkEvent(gCmd[gSel]);
+					Menu.GetCurrentMenu().Close();
+					return true;
+				}
+				// Backed plate: re-glue the list selection to the plate the
+				// player sees BEFORE super dispatches, so nothing that moved
+				// mDesc.mSelectedItem behind the grid's back (e.g. a stray
+				// selection change between Drawer passes) can fire the wrong
+				// card.
+				if (gSel >= 0 && gSel < gItem.Size() && gItem[gSel] >= 0)
+					mDesc.mSelectedItem = gItem[gSel];
+				break;   // backed plates: super routes Enter to the item
+			default:
+				break;
+		}
+		// MKey_Back keeps the inherited reject -> close chain; Enter on
+		// a backed plate reaches the stock KeyValueOption dispatch.
 		return super.MenuEvent(key, fromController);
+	}
+
+	// The grid has no list rows where the engine thinks they are; stock
+	// mouse hit-testing would select and fire an invisible item. Eaten
+	// in grid mode; the fallback list keeps full mouse support.
+	override bool MouseEvent(int type, int x, int y)
+	{
+		if (gGrid) return true;
+		return super.MouseEvent(type, x, y);
+	}
+
+	// OptionMenu's stock first-letter jump lives in OnUIEvent
+	// (Type_KeyDown) and would move mDesc.mSelectedItem to a hidden
+	// list item behind the grid's back -- wrong tooltip until the next
+	// GridMove, and a sub-frame window where Enter fires the wrong
+	// card. In grid mode every KeyDown is eaten; navigation arrives as
+	// MenuEvent keys, which the grid already handles. The fallback
+	// list keeps stock behaviour.
+	override bool OnUIEvent(UIEvent ev)
+	{
+		if (gGrid && ev.Type == UIEvent.Type_KeyDown) return true;
+		return super.OnUIEvent(ev);
+	}
+
+	private int RowLen(int row, int cardRows)
+	{
+		if (row < cardRows)
+			return min(4, gCards - row * 4);
+		return gName.Size() - gCards;
+	}
+
+	private void GridMove(int dx, int dy)
+	{
+		int n = gName.Size();
+		if (n <= 0 || gCards <= 0) return;
+		int cardRows = (gCards + 3) / 4;
+		int stripN = n - gCards;
+		int totalRows = cardRows + (stripN > 0 ? 1 : 0);
+
+		int row, col;
+		if (gSel < gCards) { row = gSel / 4;   col = gSel % 4; }
+		else               { row = cardRows;   col = gSel - gCards; }
+
+		if (dx != 0)
+		{
+			int len = RowLen(row, cardRows);
+			col = (col + dx % len + len) % len;
+		}
+		if (dy != 0)
+		{
+			row = (row + dy % totalRows + totalRows) % totalRows;
+			int len = RowLen(row, cardRows);
+			if (col >= len) col = len - 1;
+		}
+
+		int idx = (row < cardRows) ? row * 4 + col : gCards + col;
+		if (idx == gSel) return;
+		gSel = idx;
+		Menu.MenuSound("menu/cursor");
+		mDesc.mSelectedItem = gItem[gSel] >= 0 ? gItem[gSel] : -1;
+	}
+
+	// -----------------------------------------------------------------
+	// Drawing. Everything lives in a 400-unit-tall virtual space whose
+	// width follows the real aspect, so the layout holds at any
+	// resolution and uiscale (same scheme as the tooltip renderer).
+	// -----------------------------------------------------------------
+	override void Drawer()
+	{
+		if (!gGrid)
+		{
+			super.Drawer();
+			return;
+		}
+
+		// Keep the backing selection glued to the plate the player sees.
+		if (gSel >= 0 && gSel < gItem.Size() && gItem[gSel] >= 0
+			&& mDesc.mSelectedItem != gItem[gSel])
+			mDesc.mSelectedItem = gItem[gSel];
+
+		int sw = Screen.GetWidth();
+		int shr = Screen.GetHeight();
+		Screen.Dim(Color(255, 6, 6, 10), 0.55, 0, 0, sw, shr);
+
+		Font fnt = NewSmallFont;
+		double vh = 400.0;
+		double vw = vh * sw / double(shr);
+		double lh = fnt.GetHeight();
+
+		// --- header: title, tier line, gold in the corner ---
+		GridTextC(fnt, gTitleFont, vw / 2, 8, gTitle, vw, vh, 1.0);
+		if (gTierLine != "")
+			GridTextC(fnt, gTierFont, vw / 2, 8 + lh, gTierLine, vw, vh, 1.0);
+		GridText(fnt, Font.CR_GOLD, vw - fnt.StringWidth(gGoldLine) - 10, 8,
+			gGoldLine, vw, vh, 1.0);
+
+		// --- the card grid: 4 columns, centred short rows ---
+		int cardRows = (gCards + 3) / 4;
+		double pad = 4;
+		double ph = pad * 2 + lh * (3.0 + 3.0 * DESC_SCALE) + 2;
+		double gw = min(vw * 0.92, 720.0);
+		double cw = gw / 4;
+		double gy = 8 + lh * 2 + 10;
+
+		// The selected plate's SEL_SCALE grow spills past its cell by more
+		// than the inter-plate gap, so a later neighbour's opaque body
+		// would overdraw its grown border. Two passes: everyone else
+		// first, the selected plate last and on top.
+		for (int i = 0; i < gCards; i++)
+		{
+			if (i == gSel) continue;
+			DrawCardCell(i, gy, cw, ph, vw, vh, fnt);
+		}
+		if (gSel >= 0 && gSel < gCards)
+			DrawCardCell(gSel, gy, cw, ph, vw, vh, fnt);
+
+		// --- the action strip: smaller plates, gold/grey ---
+		int stripN = gName.Size() - gCards;
+		double sy = gy + cardRows * (ph + 6) + 4;
+		if (stripN > 0)
+		{
+			double sph = lh * 2 + pad * 2;
+			double scw = min(cw, 120.0);
+			double sx0 = (vw - stripN * scw) / 2;
+			for (int i = 0; i < stripN; i++)
+			{
+				if (gCards + i == gSel) continue;
+				DrawStripPlate(gCards + i, sx0 + i * scw + 3, sy,
+					scw - 6, sph, false, vw, vh, fnt);
+			}
+			if (gSel >= gCards && gSel < gCards + stripN)
+				DrawStripPlate(gSel, sx0 + (gSel - gCards) * scw + 3, sy,
+					scw - 6, sph, true, vw, vh, fnt);
+			sy += sph + 8;
+		}
+
+		GridTextC(fnt, Font.CR_DARKGRAY, vw / 2, sy,
+			"[Enter] take     [Esc] keep banked", vw, vh, 1.0);
+
+		// The mixin's tooltip tail, reproduced: the diff tooltip for the
+		// selected card still draws, last and on top.
+		let tt = FindTooltipFor(mDesc.mSelectedItem);
+		if (tt) tt.Draw();
+	}
+
+	// Text in the virtual space. scale > 1 enlarges the glyphs around
+	// the same on-screen anchor (the smaller-virtual-screen trick).
+	private void GridText(Font fnt, int cr, double vx, double vy, string s,
+		double vw, double vh, double scale)
+	{
+		Screen.DrawText(fnt, cr, vx / scale, vy / scale, s,
+			DTA_VirtualWidthF, vw / scale, DTA_VirtualHeightF, vh / scale,
+			DTA_KeepRatio, true);
+	}
+
+	// Same, centred on vcx.
+	private void GridTextC(Font fnt, int cr, double vcx, double vy, string s,
+		double vw, double vh, double scale)
+	{
+		GridText(fnt, cr, vcx - fnt.StringWidth(s) * scale / 2, vy, s, vw, vh, scale);
+	}
+
+	// One plate's two rects: kind-coloured border, darker body.
+	private void PlateRects(double x, double y, double w, double h,
+		Color border, double borderA, double vw, double vh)
+	{
+		double sx = Screen.GetWidth() / vw;
+		double sy = Screen.GetHeight() / vh;
+		int rx = int(x * sx);
+		int ry = int(y * sy);
+		int rw = int(w * sx);
+		int rh = int(h * sy);
+		int bt = max(1, int(1.5 * sx));
+		Screen.Dim(border, borderA, rx, ry, rw, rh);
+		Screen.Dim(Color(255, 12, 12, 16), 0.85, rx + bt, ry + bt,
+			rw - 2 * bt, rh - 2 * bt);
+	}
+
+	// Card i's cell geometry (4 columns, centred short rows) -> plate.
+	// One home for the math so the two-pass Drawer can't drift from it.
+	private void DrawCardCell(int i, double gy, double cw, double ph,
+		double vw, double vh, Font fnt)
+	{
+		int r = i / 4;
+		int c = i % 4;
+		int rowLen = min(4, gCards - r * 4);
+		double x0 = (vw - rowLen * cw) / 2;
+		DrawCardPlate(i, x0 + c * cw + 3, gy + r * (ph + 6),
+			cw - 6, ph, i == gSel, vw, vh, fnt);
+	}
+
+	// A card plate: border, body, name (up to 2 lines), description
+	// (up to 3 wrapped lines, smaller), cost/level line. The selected
+	// plate grows ~15% about its centre and gets a brighter border.
+	private void DrawCardPlate(int i, double x, double y, double w, double h,
+		bool sel, double vw, double vh, Font fnt)
+	{
+		double f = sel ? SEL_SCALE : 1.0;
+		if (sel)
+		{
+			x -= w * (f - 1.0) / 2;
+			y -= h * (f - 1.0) / 2;
+		}
+		PlateRects(x, y, w * f, h * f, gRGB[i], sel ? 0.95 : 0.55, vw, vh);
+
+		double lh = fnt.GetHeight();
+		double pad = 4 * f;
+		double inw = w - 8;              // wrap width, unscaled units
+		double tx = x + pad;
+		double ty = y + pad;
+
+		let nl = fnt.BreakLines(gName[i], int(inw));
+		for (int k = 0; k < min(2, nl.Count()); k++)
+			GridText(fnt, gFont[i], tx, ty + k * lh * f, nl.StringAt(k), vw, vh, f);
+		ty += 2 * lh * f;
+
+		let dl = fnt.BreakLines(gDesc[i], int(inw / DESC_SCALE));
+		for (int k = 0; k < min(3, dl.Count()); k++)
+			GridText(fnt, Font.CR_GRAY, tx, ty + k * lh * DESC_SCALE * f,
+				dl.StringAt(k), vw, vh, DESC_SCALE * f);
+		ty += 3 * lh * DESC_SCALE * f + 2 * f;
+
+		GridText(fnt, Font.CR_GOLD, tx, ty, gSub[i], vw, vh, f);
+	}
+
+	// A strip plate: name and cost, centred, two lines.
+	private void DrawStripPlate(int i, double x, double y, double w, double h,
+		bool sel, double vw, double vh, Font fnt)
+	{
+		double f = sel ? SEL_SCALE : 1.0;
+		if (sel)
+		{
+			x -= w * (f - 1.0) / 2;
+			y -= h * (f - 1.0) / 2;
+		}
+		PlateRects(x, y, w * f, h * f, gRGB[i],
+			sel ? 0.95 : (gHot[i] ? 0.55 : 0.35), vw, vh);
+
+		double lh = fnt.GetHeight();
+		double cx = x + w * f / 2;
+		GridTextC(fnt, gFont[i], cx, y + 3 * f, gName[i], vw, vh, f);
+		GridTextC(fnt, gFont[i], cx, y + (3 + lh) * f, gSub[i], vw, vh, f);
 	}
 }

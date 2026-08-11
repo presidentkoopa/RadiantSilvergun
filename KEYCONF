@@ -1,17 +1,26 @@
 addkeysection "Gun Bonsai" GunBonsai
 
 // bonsai-show-info (upstream's original keybind) is intentionally not
-// bound here -- gboh-unified-info is a strict superset (cycles offhand
-// level-up -> mainhand level-up -> player level-up -> falls through to
-// ShowInfo(), the exact thing bonsai-show-info triggers). Keeping both
-// bound to "I" left one silently shadowing the other in Customize
-// Controls; one clean keybind instead.
+// bound here -- the RS sheet cycle below covers everything it showed.
+// Keeping both bound to "I" left one silently shadowing the other in
+// Customize Controls; one clean keybind instead.
 alias bonsai-show-info "netevent bonsai-show-info"
 alias bonsai-dump "netevent bonsai-debug,info"
 
-addmenukey "Check Levels (Offhand/Mainhand/Player)" gboh-unified-info
+// I drives the RS sheet cycle directly: rs-ui-cycle is handled by
+// RS_UIHandler (zscript/systems/player/RS_Screens.zs), and with no
+// argument it steps one sheet forward (offhand -> mainhand -> player).
+// Pressing I again while a sheet is open keeps cycling -- that press is
+// caught inside RS_Menu_Dynamic, since keybinds don't fire in menus.
+addmenukey "RS Sheets: Cycle (Offhand / Mainhand / Player)" rs_ui_cycle
+alias rs_ui_cycle "netevent rs-ui-cycle"
+defaultbind I rs_ui_cycle
+
+// GunBonsai's own unified-info route stays reachable from Customize
+// Controls (bindable, no default key) so the stock screen chain is not
+// orphaned by the rebind above.
+addmenukey "GunBonsai Unified Info (legacy route)" gboh-unified-info
 alias gboh-unified-info "netevent gboh-unified-info"
-defaultbind I gboh-unified-info
 
 addkeysection "Gun Bonsai/Legendoom Integration" GunBonsaiLegendoom
 
