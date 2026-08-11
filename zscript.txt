@@ -103,9 +103,6 @@ version "4.14"
 // RS_MG monster set -- rebuilt native from MeatGrinder V2C. Gore first:
 // the monsters name these classes by string. NOTHING here uses `replaces`,
 // so the CH coloursets keep their slots; spawn by name to test.
-//#include "zscript/rs_mg/RS_MG_Gore.zs"
-//#include "zscript/rs_mg/RS_MG_Zombieman.zs"
-//#include "zscript/rs_mg/RS_MG_Shotgunner.zs"
 // CH Shotgunner family, rebuilt native 2026-08-05, same rules
 // (Shotgunners.txt read whole, 3102 lines). Depends on the zombieman
 // support classes above (RS_Zom, icons, tokens, bundles, shared FX).
@@ -284,8 +281,6 @@ version "4.14"
 // PlayerPawn.GetVRWheelInfo, which the engine calls for the hovered entry.
 // After RS_Screens because it reuses RS_UIStyle's tier names and pips.
 #include "zscript/systems/ui/RS_TierPalette.zs"
-#include "zscript/systems/ui/RS_CardModel.zs"
-#include "zscript/systems/ui/RS_WheelInfo.zs"
 
 // RS_Showcase.zs DELETED 2026-08-07 at the owner's direction -- a dev
 // prop that proved a point nobody needed proving, and the sole consumer
@@ -320,16 +315,13 @@ version "4.14"
 // comment references but which is not exposed to ZScript. The screens
 // below are built from payloads 0/2/3/4/5 and do not need it; canvas
 // art on a billboard will.
-#include "zscript/systems/ui/RS_Billboard.zs"
 // The level-up card picker and the weapon status sheet, IN THE WORLD.
 // RS_BBUIHandler must ALSO be in MAPINFO.txt's AddEventHandlers.
-#include "zscript/systems/ui/RS_BillboardUI.zs"
 
 // Build a panel out of the engine's billboard payloads instead of painting
 // a canvas. A composed panel costs no canvastexture, which is what lifts the
 // ceiling on how many cards can be on screen at once. After RS_Billboard,
 // whose group type it fills.
-#include "zscript/systems/ui/RS_BBCompose.zs"
 // WHAT AN OFFER CARD SAYS, as plain data -- one list of lines, chosen
 // per weapon, each carrying a coloured delta against the gun in hand.
 // Rows that cannot differ for a given weapon are not emitted at all,
@@ -339,8 +331,6 @@ version "4.14"
 // nothing in particular -- ZScript compiles as one unit, so this order
 // is for the reader. It does need to BE here: a .zs file missing from
 // this list SILENTLY does not exist.
-#include "zscript/systems/ui/RS_CardContent.zs"
-#include "zscript/systems/ui/RS_BBWeaponCard.zs"
 // The IMPRINT offer card. Its own file rather than a branch inside
 // RS_BBWeaponCard because the two show different things for a reason: a
 // class weapon replaces nothing, so that card has no comparison, while an
@@ -349,7 +339,6 @@ version "4.14"
 //
 // A .zs file that is not in this list SILENTLY DOES NOT EXIST -- no error,
 // no warning, the classes are just absent. Forgotten twice in this project.
-#include "zscript/systems/ui/RS_BBImprintCard.zs"
 // The weapon level-up offer (zscript/LevelUpTemplate.txt), composed the
 // same way: one panel per card, two arrangements behind
 // rs_levelupcard_style. Card COUNT is RS_AffixInstall.CardsForWeapon --
@@ -357,7 +346,6 @@ version "4.14"
 // Forward-references RS_AffixInstall (included further down); that is
 // fine and is the same shape as RS_BBWeaponCard reaching
 // RS_GunBonsaiBridge from here.
-#include "zscript/systems/ui/RS_BBLevelUpCard.zs"
 // The GunBonsai STATUS screen, in the world -- what the flat
 // TFLV_Menu_StatusDisplay / TFLV_Menu_UnifiedStatusDisplay pair shows in
 // one scrolling column, dealt as a deck instead: a card per SUBJECT
@@ -376,24 +364,16 @@ version "4.14"
 // Nothing calls it yet. The hookup (RS_UIHandler.CycleSheets, one
 // branch) is written up at the bottom of the file and is the owner's
 // call, not this file's.
-#include "zscript/systems/ui/RS_BBStatusCards.zs"
 
-#include "zscript/systems/ui/RS_Panel.zs"
-#include "zscript/systems/ui/RS_PanelCard.zs"
-#include "zscript/systems/ui/RS_PanelController.zs"
 // The confirm button. No event handler and no MAPINFO line -- it is
 // called from VR_DualClassBase.PlayerThink, because WorldTick is too
 // late to stop a weapon firing on this engine. See its header.
-#include "zscript/systems/ui/RS_PanelInput.zs"
-#include "zscript/systems/ui/RS_DropTriptych.zs"
 // The payout the elite system never had. RS_Elite.zs's own header calls
 // the drop "a later step"; this is it.
 #include "zscript/systems/ui/RS_EliteDrop.zs"
 // Spawns a populated drop on demand. RS_WeaponDrop.Create is otherwise
 // reachable only from the elite death path, so there was no way to look at
 // a card without hunting an elite first.
-#include "zscript/systems/ui/RS_DropTest.zs"
-#include "zscript/systems/ui/RS_ElitePackage.zs"
 
 // RS_Slate -- THE PANEL. One in-world screen class: five regions, six
 // row types, shape says what kind and colour says how good. Ten content
@@ -412,7 +392,6 @@ version "4.14"
 //
 // RS_SlateHandler must ALSO be in MAPINFO.txt's AddEventHandlers. A
 // handler class not named there compiles fine and silently never runs.
-#include "zscript/systems/ui/RS_Slate.zs"
 
 // Twin weapon wheel PROOF OF CONCEPT -- disposable; see file header.
 // RS_WheelHandler must also be in MAPINFO's AddEventHandlers.
@@ -446,7 +425,6 @@ version "4.14"
 // RS_EliteDrop.zs, which is included earlier -- fine, ZScript resolves
 // class references across the whole unit, but the DECLARATION belongs
 // next to the thing it extends.
-#include "zscript/systems/weapon/RS_Imprint.zs"
 
 // The parts bin for AFFIXES (not attacks) plus the generator that
 // assembles them -- picks eligible ingredients, tracks a running power
@@ -675,35 +653,3 @@ version "4.14"
 // with no class is a hard crash at map load), and their V / J / K
 // default binds freed in KEYCONF.
 
-// =====================================================================
-// DAMAGE NUMBERS -- imported whole, 2026-08-10, at the owner's direction.
-// Code, sprites, cvars, menu, language and handler all came in together;
-// importing the actor text and stopping is the failure this project has
-// paid for eight times.
-//
-// Its own zscript.txt declared `version "2.4"`. That line is NOT carried
-// over -- this tree is 4.14 and a second version directive in one
-// compilation unit is a conflict. The includes below are its list verbatim.
-//
-// OVERLAPS RS_DamageNumber.zs. Both spawn a number per hit, so with both
-// enabled a hit produces TWO. dam_enabled and rs_dn_enable are the
-// switches; pick one.
-// =====================================================================
-#include "zscript/damnums/constants.txt"
-#include "zscript/damnums/damnum.txt"
-#include "zscript/damnums/events.txt"
-#include "zscript/damnums/fonts/base.txt"
-#include "zscript/damnums/fonts/doomclassic.txt"
-#include "zscript/damnums/fonts/doomsmall.txt"
-#include "zscript/damnums/fonts/doommodern.txt"
-#include "zscript/damnums/fonts/ravenbig.txt"
-#include "zscript/damnums/fonts/ravensmall.txt"
-#include "zscript/damnums/fonts/raventory.txt"
-#include "zscript/damnums/fonts/strife.txt"
-#include "zscript/damnums/fonts/chex.txt"
-#include "zscript/damnums/fonts/hacx.txt"
-#include "zscript/damnums/fonts/harmony.txt"
-#include "zscript/damnums/fonts/square.txt"
-#include "zscript/damnums/fonts/urbanbrawl.txt"
-#include "zscript/damnums/fonts/borderlands.txt"
-#include "zscript/damnums/fonts/gamedefaults.txt"

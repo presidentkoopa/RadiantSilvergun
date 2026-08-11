@@ -55,15 +55,9 @@ defaultbind U rs_ui_debug
 // VR_DualClassBase.PlayerThink -- no bind, and it does not fire the
 // gun. See RS_PanelInput.zs.
 // ---------------------------------------------------------------------
-addmenukey "In-World Panel: Select Row" rs_panel_use
-alias rs_panel_use "netevent rs-panel-use"
-defaultbind MOUSE3 rs_panel_use
 
 // Dismiss the card without taking anything. Same panel, opposite
 // answer; N is unbound in both engine bind lists.
-addmenukey "In-World Panel: Dismiss Card" rs_panel_dismiss
-alias rs_panel_dismiss "netevent rs-panel-dismiss"
-defaultbind N rs_panel_dismiss
 
 // OffhandRoll so the wheel design can be built against a measured
 
@@ -80,24 +74,10 @@ defaultbind N rs_panel_dismiss
 // more keys a player will hit by accident is the same mistake. Bind
 // them from the Controls menu.
 // ---------------------------------------------------------------------
-addmenukey "Weapon Status (mainhand)" rs_bb_status
-alias rs_bb_status "netevent rs-bb-status"
-defaultbind V rs_bb_status
 
-addmenukey "Weapon Status (offhand)" rs_bb_status_off
-alias rs_bb_status_off "netevent rs-bb-status-off"
-defaultbind B rs_bb_status_off
 
-addmenukey "Level-Up Cards (in world)" rs_bb_cards
-alias rs_bb_cards "netevent rs-bb-cards"
 
-addmenukey "In-World Screen: Confirm" rs_bb_confirm
-alias rs_bb_confirm "netevent rs-bb-confirm"
-defaultbind J rs_bb_confirm
 
-addmenukey "In-World Screen: Close" rs_bb_close
-alias rs_bb_close "netevent rs-bb-close"
-defaultbind K rs_bb_close
 
 // ---------------------------------------------------------------------
 // RS_Grenade -- hold to charge, release to throw.

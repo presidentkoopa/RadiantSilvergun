@@ -206,10 +206,31 @@ class RS_NoMonsterDrops : EventHandler
 		// RS_Bits and are the one thing that is supposed to drop.
 		if (RS_BitUtil.IsBit(inv)) return false;
 
-		// ELITE DROPS SURVIVE. RS_WeaponDrop's payload is marked
-		// non-interactive before the deferred event can fire, and nothing
-		// else on a floor ever is -- the same signature RS_ClassGating
-		// uses to grant it an exemption.
+		// AND SO DOES THE ELITE FOOD. Added 2026-08-11.
+		//
+		// This was a real bug and it is now a fatal one. The 2026-08-08
+		// rewrite swapped a bTossed test for bDropped, and RS_FoodBonus
+		// satisfies every clause above -- no owner, bSpecial (forced true
+		// for every Inventory descendant at class finalisation), bDropped
+		// (set by Inventory::BeginPlay, cleared only for map-placed things),
+		// not a Bit, interactive -- so every piece of food an elite scattered
+		// was destroyed one tic after it landed.
+		//
+		// A stale comment in the drop code claimed food "SURVIVES BY
+		// CONSTRUCTION" because the handler suppressed bTossed items. That
+		// described the version of this function before the rewrite, and it
+		// is why nobody looked here. Bits got an explicit exemption at the
+		// time; food did not.
+		//
+		// It was survivable while food was one payout among several. Food is
+		// now the ONLY thing an elite gives you, so without this line elites
+		// pay nothing at all.
+		if (inv is "RS_FoodBonus") return false;
+
+		// A non-interactive Inventory on the floor was never monster loot.
+		// Nothing in the mod sets this any more -- the elite pedestal that
+		// did went with the card system -- but the test is correct on its
+		// own terms and costs nothing.
 		if (inv.bNoInteraction) return false;
 
 		// Anything still here was put on the floor by a monster dying,

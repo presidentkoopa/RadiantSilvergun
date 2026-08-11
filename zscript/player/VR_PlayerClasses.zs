@@ -187,7 +187,9 @@ class VR_DualClassBase : DoomPlayer abstract
 
 	override void PlayerThink()
 	{
-		RS_PanelInput.Capture(self);
+		// RS_PanelInput.Capture went with the card system, 2026-08-11. It
+		// stole the USE press here, before the weapon or a use-line could
+		// consume it, so a card row could take it. Nothing steals USE now.
 
 		if (!mGrenade) mGrenade = new("RS_GrenadeThrower");
 		mGrenade.Update(self);

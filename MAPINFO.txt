@@ -43,7 +43,7 @@ GameInfo
 	// to go with it. A stale comment asserting the opposite of the file
 	// it sits in is this project's single most expensive recurring
 	// defect.
-	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating", "RS_EliteHandler", "RS_MonsterDebugHandler", "RS_ConditionHandler", "RS_ReserveSquads", "RS_PanelHandler", "RS_PanelDropHandler", "RS_NoMonsterDrops", "RS_SummonMarker", "RS_BBUIHandler", "RS_LivesHandler", "RS_GrenadeHUD", "RS_CurseHandler", "RS_SlateHandler", "RS_FXGalleryHandler", "RS_CardDumpHandler", "RS_DropTestHandler", "RS_HeadshotHandler", "RS_RosterHandler", "RS_CritHandler", "RS_DamageNumberHandler", "DamNumEventHandler"
+	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating", "RS_EliteHandler", "RS_MonsterDebugHandler", "RS_ConditionHandler", "RS_ReserveSquads", "RS_NoMonsterDrops", "RS_SummonMarker", "RS_LivesHandler", "RS_GrenadeHUD", "RS_CurseHandler", "RS_FXGalleryHandler", "RS_HeadshotHandler", "RS_RosterHandler", "RS_CritHandler", "RS_DamageNumberHandler", "RS_EliteFoodHandler"
 }
 
 // C05's creep and poison kill under this type -- without the block the
