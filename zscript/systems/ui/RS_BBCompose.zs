@@ -240,8 +240,38 @@ class RS_BBComposedPanel : Object
 		           + UpOf(mYaw, mTilt) * (localUp * sc);
 	}
 
-	// Move every part to match a new panel transform. Cheap: no
-	// allocation, no handles created or destroyed.
+	// EVERY PART GETS ITS OWN DEPTH. Added 2026-08-11.
+	//
+	// A composed card is ~20-70 quads on ONE plane, and the engine sorts
+	// translucent sprites by the distance from the eye to each quad's centre
+	// with NO tie-break: FBillboard has no layer field, `index` is 0 for
+	// every billboard, and a stable sort only preserves insertion order for
+	// EXACT ties. Coplanar parts are not exact ties -- depth projects onto
+	// the camera's forward axis, so the moment the card sits off-centre on
+	// screen the two halves acquire different depths and the sort flips.
+	//
+	// The symptom is unmistakable and was reported exactly: the card looks
+	// SPLIT. Aim at its left and the full-card ground plate wins over the
+	// right half; aim right and it wins over the left. It is not a layout
+	// bug -- the parts are all correct, the background is being painted on
+	// top of half of them, and which half tracks where you look.
+	//
+	// The fix is to stop them being coplanar. Each part is nudged toward the
+	// viewer by its own draw order, so insertion order becomes real distance
+	// and the sort has something true to sort on. RS_Slate reached the same
+	// answer for the same reason -- see its "why buttons are nudged forward".
+	//
+	// LAYER_NUDGE is deliberately tiny. At 70 parts the last one sits 0.105
+	// units proud of the first, under 2% of a 6-unit card, which is far below
+	// what any viewing angle makes visible and far above float noise at
+	// normal reading range.
+	//
+	// The real fix is engine-side -- a sortBias on FBillboard folded into
+	// `index` before CompareSprites -- which would cost nothing at all and
+	// serve every consumer. This is the mod-side version that needs no
+	// rebuild and no engine contract.
+	const LAYER_NUDGE = 0.0015;
+
 	void Place(Vector3 at, double yaw, double tilt)
 	{
 		if (mPlaced && at == mAt && yaw == mYaw && tilt == mTilt) return;
@@ -249,11 +279,18 @@ class RS_BBComposedPanel : Object
 		Vector3 r = RightOf(yaw);
 		Vector3 u = UpOf(yaw, tilt);
 
+		// Toward the viewer. Derived from the two axes actually in use rather
+		// than rebuilt from yaw, so a tilted card layers along its own normal
+		// instead of along the horizontal one.
+		Vector3 fwd = r cross u;
+
 		for (int i = 0; i < mParts.Size(); i++)
 		{
 			if (!mParts[i]) continue;
 			double sc = mScale > 0 ? mScale : 1.0;
-			mParts[i].MoveTo(at + r * (mLocalRight[i] * sc) + u * (mLocalUp[i] * sc));
+			mParts[i].MoveTo(at + r * (mLocalRight[i] * sc)
+			                    + u * (mLocalUp[i] * sc)
+			                    + fwd * (i * LAYER_NUDGE));
 			mParts[i].Orient(yaw, tilt, LevelLocals.BBF_FIXED);
 		}
 
