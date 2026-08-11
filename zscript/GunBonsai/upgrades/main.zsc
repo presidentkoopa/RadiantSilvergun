@@ -13,6 +13,15 @@
 // SALVAGE -- the card that finally reaches PACK. Must load after
 // RS_Upgrade_Slate.zsc (it extends TFLV_Upgrade_RS_SlateBase).
 #include "zscript/GunBonsai/rs_upgrades/RS_Upgrade_Salvage.zsc"
+// CATALOG AFFIXES -- the ones that look their content up in
+// RS_MinionCatalog / RS_FXRegistry instead of naming it. Also extends
+// TFLV_Upgrade_RS_SlateBase, so likewise after the slate.
+#include "zscript/GunBonsai/rs_upgrades/RS_Upgrade_Catalog.zsc"
+// THE CATALOG CARD SET -- nine parameterized bases, then 105 four-line
+// cards that name a bestiary family, a registry theme or a PACK axis.
+// Bases before cards; both after the slate they extend.
+#include "zscript/GunBonsai/rs_upgrades/RS_Upgrade_CatalogBases.zsc"
+#include "zscript/GunBonsai/rs_upgrades/RS_Upgrade_CatalogCards.zsc"
 #include "zscript/GunBonsai/upgrades/Dot.zsc"
 #include "zscript/GunBonsai/upgrades/ElementalUpgrade.zsc"
 #include "zscript/GunBonsai/upgrades/Registry.zsc"

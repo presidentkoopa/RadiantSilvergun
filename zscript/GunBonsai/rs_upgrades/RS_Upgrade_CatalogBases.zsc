@@ -58,6 +58,48 @@ class RS_CatCard_FamilyBase : TFLV_Upgrade_RS_SlateBase abstract
 		return CanTake(wpn, info, myName)
 			&& info.upgrades.Level(myName) < 6;
 	}
+
+	// -----------------------------------------------------------------
+	// BUDGET, ANCHORED TO THE FAMILY'S OWN FLOOR.
+	//
+	// A flat ladder (6 + 6*level) is wrong here and was wrong on the
+	// first pass: bestiary costs run 1 for a black lost soul to 50 for
+	// an abyss baron, so a flat budget bought a lost soul instantly and
+	// could not afford ANY baron until level 4. Five of the thirteen
+	// Levy cards did nothing at all when first taken. A card that does
+	// nothing when you pick it is the worst thing a card can be.
+	//
+	// So the ladder starts at whatever the family's cheapest member
+	// costs -- every family card works on the level you take it -- and
+	// climbs by a share of that floor, which walks up that family's own
+	// roster at a rate proportional to its own spread.
+	// -----------------------------------------------------------------
+	int FamilyFloor()
+	{
+		string cheap = RS_MinionCatalog.CheapestIn(Family());
+		if (cheap == "") return 0;
+		return RS_MinionCatalog.CostOf(cheap);
+	}
+
+	int BudgetAt(int lvl, int perLevelPct)
+	{
+		int f = FamilyFloor();
+		if (f <= 0) return 0;
+		int step = max(2, f * perLevelPct / 100);
+		return f + (lvl - 1) * step;
+	}
+
+	// The other half of the balance. Anchoring the budget to the floor
+	// means a baron card hands you a baron at level 1, which is only
+	// fair if it fires far less often than the lost soul card does.
+	// Scaled off the floor cost, so it needs no per-family table and a
+	// newly added family is balanced the moment it is costed.
+	int ScaleChanceForFamily(int base)
+	{
+		int f = FamilyFloor();
+		if (f <= 12) return base;                  // cheap families, full rate
+		return max(2, base * 12 / f);              // baron: ~43% of base
+	}
 }
 
 // CONSCRIPT -- one good body of the family, budget climbing with level.
@@ -67,20 +109,20 @@ class RS_CatCard_ConscriptBase : RS_CatCard_FamilyBase abstract
 	{
 		if (!player || !target || level <= 0) return;
 		if (RS_Minion.IsMinion(target)) return;          // no compounding
-		if (random(1, 100) > min(55, 9 * int(level))) return;
+		if (random(1, 100) > ScaleChanceForFamily(min(55, 9 * int(level)))) return;
 
 		let src = Payee(player);
 		if (!src) return;
 
-		int budget = 6 + 6 * int(level);                 // 12..36, mastery 42
+		// Starts at the family's cheapest and climbs ~35% of that per
+		// level, so level 1 always raises SOMETHING and level 6 reaches
+		// the top of most rosters.
+		int budget = BudgetAt(int(level), 35);
+		if (budget <= 0) return;
+
 		string what = RS_MinionCatalog.BestFor(budget, Family());
-		if (what == "")
-		{
-			// Budget does not reach this family yet -- take its floor, so
-			// the card is never dead, just modest.
-			what = RS_MinionCatalog.CheapestIn(Family());
-			if (what == "" || RS_MinionCatalog.CostOf(what) > budget) return;
-		}
+		if (what == "") what = RS_MinionCatalog.CheapestIn(Family());
+		if (what == "") return;
 
 		Class<Actor> cls = what;
 		if (cls) RS_Minion.Summon(player, src, cls, target.pos, target.angle);
@@ -94,23 +136,22 @@ class RS_CatCard_SwarmBase : RS_CatCard_FamilyBase abstract
 	{
 		if (!player || !target || level <= 0) return;
 		if (RS_Minion.IsMinion(target)) return;
-		if (random(1, 100) > min(45, 7 * int(level))) return;
+		if (random(1, 100) > ScaleChanceForFamily(min(45, 7 * int(level)))) return;
 
 		let src = Payee(player);
 		if (!src) return;
 
-		int n      = 2 + (int(level) / 2);               // 2,2,3,3,4, mastery 5
-		int budget = 8 + 5 * int(level);
+		int n = 2 + (int(level) / 2);                    // 2,2,3,3,4, mastery 5
+
+		// Horde buys N bodies, so the budget has to cover N floors, not
+		// one. Same anchoring as Levy -- the count is the level reward
+		// here, and quality climbs more slowly (20% of floor per level).
+		int budget = BudgetAt(int(level), 20) * n;
+		if (budget <= 0) return;
+
 		string what = RS_MinionCatalog.BundleOf(budget, n, Family());
-		if (what == "")
-		{
-			what = RS_MinionCatalog.CheapestIn(Family());
-			if (what == "") return;
-			int c = RS_MinionCatalog.CostOf(what);
-			if (c <= 0) return;
-			n = budget / c;
-			if (n < 1) return;
-		}
+		if (what == "") what = RS_MinionCatalog.CheapestIn(Family());
+		if (what == "") return;
 
 		Class<Actor> cls = what;
 		if (!cls) return;
