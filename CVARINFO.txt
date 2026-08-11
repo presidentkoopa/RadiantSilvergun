@@ -1595,7 +1595,15 @@ server int rs_imprint_mode = 0;
 // the same line (a data package being "family-agnostic" rather than
 // "randomly familied"). Keep-better is what makes the random reading
 // safe -- a mismatched family can lift a stat or do nothing, never cost.
-server bool rs_imprint_randomfamily = true;
+// SETTLED 2026-08-11, owner: OFF. An imprint rolls from the player's own
+// chassis. The random reading was the literal one and it survived because
+// keep-better made it harmless to the NUMBERS -- but the donor is also the
+// actor that gets spawned onto the floor, so a random family put a chaingun
+// in front of a Dual Revolvers player. That is the exact thing ClassGating
+// exists to prevent, and it was the old six-type loop (deleted from the
+// weapon path on 2026-08-06) surviving in the one place the deletion did
+// not reach. Owner: "nothing but family / class weapons on drop".
+server bool rs_imprint_randomfamily = false;
 
 // WHICH IMPRINT OFFER CARD IS DRAWN.
 // (zscript/systems/ui/RS_BBImprintCard.zs)

@@ -213,7 +213,11 @@ class RS_Imprint play
 
 	static bool RandomFamily()
 	{
-		return RS_Curse.CVBool("rs_imprint_randomfamily", true);
+		// Fallback matches CVARINFO's default. It read `true` while the cvar
+		// shipped true; both moved to false on 2026-08-11 and they have to
+		// move together, or a missing cvar silently restores the old
+		// behaviour on the one path nobody tests.
+		return RS_Curse.CVBool("rs_imprint_randomfamily", false);
 	}
 
 	// -----------------------------------------------------------------
