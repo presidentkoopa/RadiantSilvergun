@@ -1824,13 +1824,14 @@ class RS_Weapon : Weapon abstract
 	const ROLL_CURSE_CHANCE = 0.12;
 	const ROLL_CURSE_CHANCE_CURSEDTIER = 0.85;
 
-	// Each held affix at promote-time cuts 3 percentage points off every
-	// roll (floor 2%) -- design settled earlier: PromotionCount drives
-	// the ESCALATION (more rolls, see below), held-affix count drives
-	// the MITIGATION (each roll less likely to land). A gun promoted
-	// loaded is insurance you bought by investing in it, not a bigger
-	// number stacking with a bigger number.
-	const PROMOTION_CURSE_MITIGATION_PER_AFFIX = 0.03;
+	// Each held affix at promote-time takes a FIFTH off every rung of the
+	// curse ladder -- see RollPromotionCurse for why a proportion rather
+	// than a subtraction. Owner, 2026-08-11: 20% per affix.
+	const PROMOTION_CURSE_MITIGATION_PER_AFFIX = 0.20;
+
+	// No longer used: multiplicative mitigation cannot reach zero, so the
+	// ladder needs no floor. Kept named so the old intent is legible if
+	// anyone finds it referenced in an older comment.
 	const PROMOTION_CURSE_CHANCE_FLOOR = 0.02;
 
 	// Escalates with PromotionCount instead of one flat roll forever: your
@@ -1851,12 +1852,45 @@ class RS_Weapon : Weapon abstract
 	// UN-STUBBED 2026-08-07. This opened with `if (true) return;` so
 	// promotion never cursed anything -- promotion was pure upside, and
 	// the whole risk half of the mechanic was inert.
+	// THE LADDER, ONCE PER PROMOTION. Owner, 2026-08-11.
+	//
+	// This was a FLAT 15% per roll. It is now a descending ladder -- 50 for
+	// the first stat, then 30, 15, 10, 5 -- so a promotion usually costs you
+	// something and occasionally costs you a lot, instead of usually costing
+	// nothing. Bare, that is a 75% chance of at least one curse and 1.1
+	// cursed stats expected; the tail where four or five land is rare enough
+	// to be a story rather than a pattern.
+	//
+	// Five rungs because there are five lockable stats. The ladder cannot
+	// ask for a sixth curse, so it needs no cap.
+	//
+	// PROMOTION COUNT STILL ESCALATES -- owner ruled explicitly. The whole
+	// ladder runs once per promotion, so a third promotion walks it three
+	// times. That is the compounding cost of promoting the same gun over and
+	// over, on top of the -20% every stat already takes each time.
+	//
+	// MITIGATION IS MULTIPLICATIVE, not a subtraction. Each affix held at
+	// promote-time takes a FIFTH off every rung: one affix turns 50 into 40,
+	// two into 32, three into 25.6. Percentage points would have punched
+	// through the low rungs to zero and made the 5% rung meaningless after
+	// two affixes, while barely touching the 50. A fifth scales the whole
+	// ladder evenly and can never reach zero, so investment always helps and
+	// never makes you safe.
+	//
+	// The direction is the design: PromotionCount drives the ESCALATION,
+	// held affixes drive the MITIGATION. A gun promoted loaded is insurance
+	// you bought by investing in it.
 	void RollPromotionCurse(int heldAffixes = 0)
 	{
-		double chance = max(PROMOTION_CURSE_CHANCE_FLOOR,
-			PROMOTION_CURSE_CHANCE - heldAffixes * PROMOTION_CURSE_MITIGATION_PER_AFFIX);
+		static const double LADDER[] = { 0.50, 0.30, 0.15, 0.10, 0.05 };
+
+		double mitigation = 1.0;
+		for (int a = 0; a < heldAffixes; a++)
+			mitigation *= (1.0 - PROMOTION_CURSE_MITIGATION_PER_AFFIX);
+
 		for (int i = 0; i < PromotionCount; i++)
-			RollOneCurse(chance);
+			for (int rung = 0; rung < LADDER.Size(); rung++)
+				RollOneCurse(LADDER[rung] * mitigation);
 	}
 
 	// CURSES ON THE INITIAL ROLL. Owner ruling 2026-08-07: "curses have a
