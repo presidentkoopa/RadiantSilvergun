@@ -1024,7 +1024,19 @@ class RS_PanelDropHandler : EventHandler
 
 		Vector3 where = (e.Thing.pos.x, e.Thing.pos.y, e.Thing.pos.z + 8);
 
-		if (gap == "")
+		// TEN PERCENT WEAPON, NINETY PERCENT IMPRINT. Owner, 2026-08-11.
+		//
+		// This used to be a hard switch on `gap` alone: a class weapon EVERY
+		// time until the player owned all six identities, and an imprint only
+		// after. So the imprint half of the drop system -- the whole imprint
+		// card, and the entire imprint roll -- was unreachable for the whole
+		// first stretch of a run, and then became the only thing that ever
+		// dropped. Two phases rather than one economy.
+		//
+		// Now: while the set is incomplete it is a weighted roll, and once it
+		// is complete there is nothing left to hand out but imprints, so the
+		// gap test still short-circuits.
+		if (gap == "" || random[RSDrop](1, 100) > WeaponDropChance())
 		{
 			// The imprint rolls its OWN tier -- the full Trash..Prototype
 			// ladder off the eight rs_elite_dropweight_* sliders plus the
@@ -1658,6 +1670,16 @@ class RS_PanelDropHandler : EventHandler
 		if (r < 0) return "";
 		arg = pan.mComposed.RegionArg(r);
 		return pan.mComposed.RegionCmd(r);
+	}
+
+	// Percent chance an elite that IS dropping hands out a class weapon
+	// rather than an imprint, while the player's six are still incomplete.
+	// Owner: 10 weapon / 90 imprint. Once the set is complete this is not
+	// consulted -- there is no seventh weapon to give.
+	static int WeaponDropChance()
+	{
+		let cv = CVar.FindCVar("rs_elitedrop_weaponchance");
+		return cv ? clamp(cv.GetInt(), 0, 100) : 10;
 	}
 
 	int ResolveRow(int panel, Vector2 uv, out bool live)

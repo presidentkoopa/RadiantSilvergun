@@ -1395,6 +1395,12 @@ server int rs_drop_lightdetail = 2;
 // a design decision, just an unasked question.
 server int rs_elitedrop_chance = 100;
 
+// Of the elites that DO drop, the percent that hand out a class weapon
+// instead of an imprint -- and only while the player's six are still
+// incomplete. Owner, 2026-08-11: 10 weapon / 90 imprint. Once all six are
+// owned this is not consulted, because there is no seventh weapon to give.
+server int rs_elitedrop_weaponchance = 10;
+
 // How readily a revealed elite fires, as a multiplier on its "hold fire"
 // chance. LOWER IS MORE AGGRESSIVE; 1.0 is an ordinary monster.
 //
