@@ -1973,6 +1973,75 @@ class RS_PanelDropHandler : EventHandler
 			return;
 		}
 
+		// -----------------------------------------------------------------
+		// REROLL. The card has drawn this price since the strip was written;
+		// this is the first time pressing it does anything.
+		//
+		// Rerolls the PAYLOAD IN PLACE at its own tier rather than replacing
+		// the drop: the pedestal, the beam, the marker and the tier all stay,
+		// so what you bought is visibly the same offer with different numbers.
+		// RollStats is the same virtual a world spawn uses, so a rerolled gun
+		// can never land outside the bands its tier allows.
+		//
+		// The card is dropped rather than patched. ConsiderDrop raises it
+		// again on the pedestal's next tic, which rebuilds it from the
+		// weapon's real state -- one path that builds a card, not two.
+		// -----------------------------------------------------------------
+		if (evt.name == "rs-panel-reroll")
+		{
+			if (!mCardOwner || !mCardOwner.mPayload) return;
+			let rw = RS_Weapon(mCardOwner.mPayload);
+			if (!rw) return;
+			if (!pawn) return;
+
+			// Same expression the card prints, so the price shown and the
+			// price charged cannot drift.
+			int cost = 20 + int(rw.Tier) * 15;
+			int gold = pawn.CountInv("RS_Bit_Gold");
+			if (gold < cost)
+			{
+				RS_CardTrace.Fail(String.Format(
+					"reroll refused: %d gold, need %d", gold, cost));
+				return;
+			}
+
+			pawn.TakeInventory("RS_Bit_Gold", cost);
+			rw.RollStats(rw.Tier);
+			RS_CardTrace.Say(String.Format(
+				"rerolled at tier %d for %d gold", rw.Tier, cost));
+
+			DropCard();
+			return;
+		}
+
+		// -----------------------------------------------------------------
+		// DENY. The offer is refused and the drop is gone.
+		//
+		// It pays NOTHING, deliberately. Owner, 2026-08-08: "recycle is
+		// broken as a mechanic" -- a third exit that paid out made denying
+		// strictly worse than destroying and turned every offer into an
+		// accounting question. Deny is the walk-away, and the cost of walking
+		// away is the thing itself.
+		//
+		// The payload dies with the pedestal. RS_WeaponDrop.Tick already
+		// self-destructs when its payload is gone, so order does not matter
+		// here, but taking the card down first stops a tic of card pointing
+		// at a corpse.
+		// -----------------------------------------------------------------
+		if (evt.name == "rs-panel-deny")
+		{
+			if (!mCardOwner) return;
+			let d = mCardOwner;
+
+			DropCard();
+
+			if (d.mPayload) d.mPayload.Destroy();
+			d.Destroy();
+
+			RS_CardTrace.Say("drop denied");
+			return;
+		}
+
 		if (evt.name == "rs-panel-take")
 		{
 			if (!mCardOwner || !mCardOwner.mPayload) return;
