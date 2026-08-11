@@ -241,6 +241,46 @@ class RS_CatCard_ThemeBase : TFLV_Upgrade_RS_SlateBase abstract
 		return CanTake(wpn, info, myName)
 			&& info.upgrades.Level(myName) < 6;
 	}
+
+	// -----------------------------------------------------------------
+	// ROLE IS A PREFERENCE, NOT A REQUIREMENT.
+	//
+	// The first pass asked the registry for PAYLOAD entries of a theme
+	// at HEADLINE role and took null for an answer. Measured afterward,
+	// six of the eight Surge cards drew null every single time and two
+	// of the eight Brand cards had no payload entry in their theme at
+	// all -- eight dead cards, picked from a level-up screen, doing
+	// nothing forever.
+	//
+	// A card must not depend on a tag having been applied. This walks
+	// down: exact axis at the wanted role, then that axis at any role,
+	// then the theme's other visual axes in order of how much they read
+	// like an effect. Only a theme with NO entries anywhere returns null,
+	// and there is no such theme.
+	// -----------------------------------------------------------------
+	Class<Actor> DrawThemed(int wantRole)
+	{
+		Class<Actor> c;
+
+		c = RS_FXRegistry.Draw(RS_FXRegistry.RS_FXAXIS_PAYLOAD, Theme(), wantRole);
+		if (c) return c;
+		c = RS_FXRegistry.Draw(RS_FXRegistry.RS_FXAXIS_SPARKS, Theme(), wantRole);
+		if (c) return c;
+
+		// Role dropped. Anything of this theme that can be seen.
+		int axes[5];
+		axes[0] = RS_FXRegistry.RS_FXAXIS_PAYLOAD;
+		axes[1] = RS_FXRegistry.RS_FXAXIS_SPARKS;
+		axes[2] = RS_FXRegistry.RS_FXAXIS_PUFF;
+		axes[3] = RS_FXRegistry.RS_FXAXIS_PROJECTILE;
+		axes[4] = RS_FXRegistry.RS_FXAXIS_TRAIL;
+		for (int i = 0; i < 5; i++)
+		{
+			c = RS_FXRegistry.Draw(axes[i], Theme());
+			if (c) return c;
+		}
+		return null;
+	}
 }
 
 // BRAND -- hits plant this theme's payload at the impact.
@@ -255,13 +295,9 @@ class RS_CatCard_BrandBase : RS_CatCard_ThemeBase abstract
 		// The whole point: what a brand plants is whatever the registry
 		// holds for this theme. Import a fire weapon set, tag its parts
 		// fire, and every fire brand gets deeper with no edit.
-		Class<Actor> cls = RS_FXRegistry.Draw(
-			RS_FXRegistry.RS_FXAXIS_PAYLOAD, Theme(),
-			(level >= 6) ? RS_FXRegistry.RS_FXROLE_HEADLINE
-			             : RS_FXRegistry.RS_FXROLE_BODY,
-			false, false);
-		if (!cls)
-			cls = RS_FXRegistry.Draw(RS_FXRegistry.RS_FXAXIS_PAYLOAD, Theme());
+		Class<Actor> cls = DrawThemed((level >= 6)
+			? RS_FXRegistry.RS_FXROLE_HEADLINE
+			: RS_FXRegistry.RS_FXROLE_BODY);
 		if (!cls) return;
 
 		let mo = Actor.Spawn(cls, target.pos, ALLOW_REPLACE);
@@ -314,13 +350,7 @@ class RS_CatCard_SurgeBase : RS_CatCard_ThemeBase abstract
 		if (RS_Minion.IsMinion(target)) return;
 		if (random(1, 100) > min(60, 10 * int(level))) return;
 
-		Class<Actor> cls = RS_FXRegistry.Draw(
-			RS_FXRegistry.RS_FXAXIS_PAYLOAD, Theme(),
-			RS_FXRegistry.RS_FXROLE_HEADLINE, false, false);
-		if (!cls)
-			cls = RS_FXRegistry.Draw(
-				RS_FXRegistry.RS_FXAXIS_SPARKS, Theme(),
-				RS_FXRegistry.RS_FXROLE_HEADLINE, false, false);
+		Class<Actor> cls = DrawThemed(RS_FXRegistry.RS_FXROLE_HEADLINE);
 		if (!cls) return;
 
 		int n = (level >= 6) ? 3 : 1;
