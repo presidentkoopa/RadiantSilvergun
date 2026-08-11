@@ -237,3 +237,50 @@ The curve is usable: monotone in effective threat, dense from 2-30, thinning cor
 One deliberate wrinkle to keep: RS_BlackLSoul2 at cost 1 is the only -COUNTKILL body, making it the safe "swarm filler" for any leftover budget â€” 20 of them is legal, cheap, and cannot damage kill% even if the generator's ClearCounters discipline slips.
 
 Confidence notes: costs for the seven families I scanned directly (revenant, archvile, PE, fatso, spider, cyberdemon, mastermind, baron rows) are scaled from Health/flags/summon-behavior greps plus targeted reads, not full attack-state reads â€” same methodology and anchor scale as the census chunks. Per-attack damage numbers were not tabulated anywhere; costs are health-and-behavior priced. Unknowns are stated as unknowns (RS_MrBones declip, the SG/CGuy abyss-mark giver, RS_SpecialSoul's missing -COUNTKILL is grep-proven absent, not read-proven intentional).
+
+---
+
+## OWNER RULING, 2026-08-11 — MINION XP ATTRIBUTION
+
+**A summoned minion earns XP for the weapon that spawned it, permanently,
+regardless of what the player is holding when the kill lands. Multiple
+lanes running at once is INTENDED and must not be "fixed".**
+
+The player can seed a fight with two guns, switch to two others, and have
+four weapons levelling simultaneously — two from minions still fighting,
+two from being held. Spawn from more guns and you get more lanes. There is
+no lane cap and none should be added.
+
+The reasoning, so this survives a later reader: it is a BUILD, not an
+exploit. The player paid a card slot and an ammo cost for the summon, and
+it rewards setup play — which also makes a summon affix worth taking on a
+weapon the player has finished levelling. It is the same contract
+projectiles already have (a rocket in the air credits its launcher after a
+weapon switch, deliberately — see the fixed mis-attribution bug documented
+in gunbonsai/EventHandler.zsc around :420-450); minions merely live long
+enough for it to be visible.
+
+WHAT THIS REQUIRES, none of which exists yet:
+
+  1. The minion carries its own weapon pointer, the way every RS projectile
+     sets `proj.master = self` at spawn. `master` is likely taken by the
+     ownership/friendly relationship, so this probably wants a dedicated
+     field on the minion.
+
+  2. One more branch in TFLV_EventHandler.WorldThingDamaged, beside the
+     existing offhand-master check and the RS melee/hitscan graft: if the
+     damage source is a friendly minion and it names a weapon, credit that
+     weapon. Without it, minion kills credit `stats.infoForCurrentWeapon`
+     — whatever is in the player's hands right now.
+
+  3. Friendly minions must be `+FRIENDLY` with `FriendPlayer` set, which is
+     what makes GetPlayerDamageSource (EventHandler.zsc:357) attribute
+     their damage to the player at all. That path already exists upstream.
+
+  4. They must NOT count toward kill%. Note RS_CommonLSoul re-declares
+     Monster and gets +COUNTKILL back (RS_LostSoul.zs:779) — a friendly
+     that dies is not a kill, and getting this wrong breaks 100% runs.
+
+WHAT STILL NEEDS BOUNDING: total live minion count, cleanup on level exit,
+and cleanup on summoner death. The lane count is deliberately unbounded;
+the MINION count is not, and the two are separate concerns.
