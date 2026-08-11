@@ -313,10 +313,20 @@ class RS_CatCard_BrandBase : RS_CatCard_ThemeBase abstract
 // LOCK -- the gun's PACK beat draws only from this theme.
 class RS_CatCard_LockBase : RS_CatCard_ThemeBase abstract
 {
+	// Which input this card's beat lands on. Slot 0 by default; a future
+	// card can say "every 3rd ALT-fire" by overriding this to 1, or claim
+	// a modifier input outright with 2 or 3.
+	virtual int TargetSlot() { return RS_Weapon.RS_SLOT_PRIMARY; }
+
 	void Reinstall(RS_Weapon wpn)
 	{
 		if (!wpn) return;
-		RS_PACKAssembly.UninstallAll(wpn);
+
+		// Own beats only. UninstallAll would strip Salvage's beat and
+		// every other Attune card's too -- which is exactly what it did
+		// before beats had owners, making all nine mutually exclusive
+		// with no message saying so.
+		RS_PACKAssembly.UninstallOwned(wpn, GetClassName());
 
 		// Rotation tightens with level: every 5th shot down to every 2nd.
 		//
@@ -326,7 +336,8 @@ class RS_CatCard_LockBase : RS_CatCard_ThemeBase abstract
 		// N. Doing it manually here padded to N and appended, giving N+1:
 		// the card said every 5th and fired every 6th.
 		int rot = max(2, 6 - int(level));
-		let p = RS_PACKAssembly.Install(wpn, rot, Theme());
+		let p = RS_PACKAssembly.Install(wpn, rot, Theme(), -1,
+			TargetSlot(), GetClassName());
 		if (!p) return;
 
 		// Mastery: a second, independently rolled beat of the same theme
@@ -334,15 +345,23 @@ class RS_CatCard_LockBase : RS_CatCard_ThemeBase abstract
 		if (level >= 6)
 		{
 			let q = RS_PACKAssembly.Build(wpn, Theme());
-			if (q) wpn.AppendProfile(0, q);
+			if (q)
+			{
+				q.OwnerTag = GetClassName();
+				wpn.AppendProfile(TargetSlot(), q);
+			}
 		}
 	}
 
 	override void ExtraActivate(RS_Weapon wpn)   { Reinstall(wpn); }
 
 	// MANDATORY -- an appended profile with no card behind it fires
-	// forever. Salvage learned this the hard way.
-	override void ExtraDeactivate(RS_Weapon wpn) { RS_PACKAssembly.UninstallAll(wpn); }
+	// forever. Salvage learned this the hard way. Scoped to this card's
+	// own beats so turning one Attune off leaves the others standing.
+	override void ExtraDeactivate(RS_Weapon wpn)
+	{
+		RS_PACKAssembly.UninstallOwned(wpn, GetClassName());
+	}
 }
 
 // SURGE -- kills burst this theme's headline FX.

@@ -271,21 +271,61 @@ class RS_PACKAssembly : Object
 	//
 	// Returns the profile installed, or null if nothing was.
 	// -----------------------------------------------------------------
+	// everyNth is the rotation length WITHIN the chosen slot -- which is
+	// why "every 3rd alt-fire" is now sayable: pass slot 1. The slot is
+	// the input, the rotation is the pattern inside that input.
+	//
+	// ownerTag is who to bill it to. Pass the affix's own class name.
+	// Without one, the beat is unowned and only UninstallAll can clear
+	// it, which is the behaviour that had nine cards wiping each other.
 	static play RS_AttackProfile Install(RS_Weapon wpn, int everyNth = 3,
-		int theme = -1, int index = -1)
+		int theme = -1, int index = -1, int slot = 0, string ownerTag = "")
 	{
 		if (!wpn) return null;
 		if (everyNth < 2) everyNth = 2;
+		if (slot < 0 || slot >= RS_Weapon.RS_SLOT_COUNT) slot = 0;
 
 		let p = Build(wpn, theme, index);
 		if (!p) return null;
+		p.OwnerTag = ownerTag;
+
+		// A modifier slot starts empty on every weapon, so there is no
+		// own-beat to pad against and no rotation to preserve -- the
+		// installed beat simply IS that input. Padding an empty slot with
+		// its own first entry would pad with nothing.
+		if (wpn.GetSlotCount(slot) == 0)
+		{
+			wpn.AppendProfile(slot, p);
+			return p;
+		}
 
 		// Grow the gun's own opening beat out to everyNth-1 entries, then
 		// put the PACK beat last. A gun that already rotates keeps its
 		// rotation; this lengthens it rather than replacing it.
-		wpn.PadSlotTo(0, everyNth - 1);
-		wpn.AppendProfile(0, p);
+		wpn.PadSlotTo(slot, everyNth - 1);
+		wpn.AppendProfile(slot, p);
 		return p;
+	}
+
+	// Remove only the beats a given affix installed, across every slot.
+	// This is what an affix's OnDeactivate should call: taking Salvage
+	// off a gun must not also strip the Attune beat sitting next to it.
+	static play void UninstallOwned(RS_Weapon wpn, string ownerTag)
+	{
+		if (!wpn || ownerTag == "") return;
+		for (int s = 0; s < RS_Weapon.RS_SLOT_COUNT; s++)
+		{
+			let slot = wpn.GetSlot(s);
+			if (!slot) continue;
+			for (int i = slot.Profiles.Size() - 1; i >= 0; i--)
+			{
+				let p = slot.Profiles[i];
+				if (p && p.OwnerTag == ownerTag)
+					slot.Profiles.Delete(i);
+			}
+			if (slot.Cursor >= slot.Profiles.Size())
+				slot.Cursor = 0;
+		}
 	}
 
 	// Remove every PACK beat from a weapon's primary slot. Used when an
@@ -300,17 +340,25 @@ class RS_PACKAssembly : Object
 	static play void UninstallAll(RS_Weapon wpn)
 	{
 		if (!wpn) return;
-		let slot = wpn.GetSlot(0);
-		if (!slot) return;
 
-		for (int i = slot.Profiles.Size() - 1; i >= 0; i--)
+		// Every slot, not just slot 0 -- beats can live on the alt-fire
+		// and modifier inputs now, and a promotion strip that only
+		// cleared the primary would leave the others firing with no card
+		// behind them.
+		for (int s = 0; s < RS_Weapon.RS_SLOT_COUNT; s++)
 		{
-			let p = slot.Profiles[i];
-			if (p && p.ProfileName.IndexOf("PACK: ") == 0)
-				slot.Profiles.Delete(i);
+			let slot = wpn.GetSlot(s);
+			if (!slot) continue;
+
+			for (int i = slot.Profiles.Size() - 1; i >= 0; i--)
+			{
+				let p = slot.Profiles[i];
+				if (p && p.ProfileName.IndexOf("PACK: ") == 0)
+					slot.Profiles.Delete(i);
+			}
+			// Cursor could now point past the end.
+			if (slot.Cursor >= slot.Profiles.Size())
+				slot.Cursor = 0;
 		}
-		// Cursor could now point past the end.
-		if (slot.Cursor >= slot.Profiles.Size())
-			slot.Cursor = 0;
 	}
 }

@@ -61,7 +61,11 @@ class TFLV_Upgrade_RS_Salvage : TFLV_Upgrade_RS_SlateBase
 	{
 		if (!wpn) return;
 
-		RS_PACKAssembly.UninstallAll(wpn);
+		// Own beats only. This used to be UninstallAll, which cleared
+		// every PACK beat on the gun -- so Salvage and any Attune card
+		// silently deleted each other on activate. Beats carry an owner
+		// now; this removes exactly Salvage's.
+		RS_PACKAssembly.UninstallOwned(wpn, GetClassName());
 
 		int rot   = RotationForLevel(level);
 		int beats = BeatsForLevel(level);
@@ -75,7 +79,8 @@ class TFLV_Upgrade_RS_Salvage : TFLV_Upgrade_RS_SlateBase
 		{
 			if (i == 0)
 			{
-				let p = RS_PACKAssembly.Install(wpn, rot);
+				let p = RS_PACKAssembly.Install(wpn, rot, -1, -1,
+					RS_Weapon.RS_SLOT_PRIMARY, GetClassName());
 				if (!p) return;    // archetype can draw nothing; nothing to do
 			}
 			else
@@ -83,7 +88,7 @@ class TFLV_Upgrade_RS_Salvage : TFLV_Upgrade_RS_SlateBase
 				// Second beat: build and append without re-padding, so it
 				// joins the existing cycle instead of lengthening it.
 				let p = RS_PACKAssembly.Build(wpn);
-				if (p) wpn.AppendProfile(0, p);
+				if (p) { p.OwnerTag = GetClassName(); wpn.AppendProfile(0, p); }
 			}
 		}
 	}
@@ -97,9 +102,10 @@ class TFLV_Upgrade_RS_Salvage : TFLV_Upgrade_RS_SlateBase
 	{
 		// MANDATORY. GunBonsai can deactivate an upgrade (respec, or the
 		// bag being stripped on promotion via RS_GunBonsaiBridge), and a
-		// profile appended to the weapon's slot has no owner -- it would
-		// just keep firing forever with no card behind it.
-		RS_PACKAssembly.UninstallAll(wpn);
+		// profile appended to the weapon's slot outlives its card and
+		// would keep firing forever. Scoped to Salvage's own beats so a
+		// respec here does not strip a coexisting Attune card.
+		RS_PACKAssembly.UninstallOwned(wpn, GetClassName());
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)

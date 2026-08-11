@@ -271,6 +271,14 @@ class RS_AttackProfile : Object
 	// Display name for menus/upgrade cards. Optional.
 	string ProfileName;
 
+	// WHO PUT THIS BEAT HERE. Empty for a weapon's own authored
+	// profiles; an affix sets it to its own class name when it installs.
+	// Without it the only safe cleanup was "delete every PACK beat on the
+	// gun", which meant Salvage and the eight Attune cards silently wiped
+	// each other -- nine cards that could never coexist, with no message
+	// saying so. An owned beat can be removed by its owner alone.
+	string OwnerTag;
+
 	// Per-BEAT granted keywords -- same shape and format as
 	// RS_Weapon.GrantedKeywords, but scoped to this one profile instead
 	// of the whole weapon. This is what lets rotation entry 2 behave
@@ -325,6 +333,7 @@ class RS_AttackProfile : Object
 	private void InitDefaults()
 	{
 		Mode          = RS_ATK_BULLET;
+		OwnerTag      = "";
 		PelletOverride = 0;
 		SpreadScale   = 0.05;
 		UsesChoke     = false;
@@ -691,6 +700,7 @@ class RS_AttackProfile : Object
 		p.BuffDuration    = BuffDuration;
 		p.BuffNoPain      = BuffNoPain;
 		p.ProfileName     = ProfileName;
+		p.OwnerTag        = OwnerTag;
 		for (int i = 0; i < LocalKeywords.Size(); i++)
 			p.LocalKeywords.Push(LocalKeywords[i]);
 		return p;

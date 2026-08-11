@@ -589,24 +589,74 @@ class RS_Weapon : Weapon abstract
 	// ATTACK SLOTS -- the assembly system. See RS_AttackProfile.zs for
 	// the full rationale; the short version:
 	//
-	//   Primary slot   = main trigger.  Secondary slot = alt-fire.
+	//   FOUR slots, one per input:
+	//     0 primary    = fire
+	//     1 secondary  = alt-fire
+	//     2 tertiary   = modifier + fire
+	//     3 quaternary = modifier + alt-fire
 	//   Each slot is an ordered LIST of RS_AttackProfile plus a cursor.
 	//   Firing a slot fires the profile at the cursor, then advances.
+	//
+	// WHY FOUR AND NOT TWO. Two slots meant every added attack had to
+	// share a trigger with the gun's own shot and arrive on a counter --
+	// "every 3rd shot is a grenade" instead of "alt-fire is a grenade".
+	// Two things were wrong with that. You could never save the big shot
+	// for the big target, because the gun decided when it came out. And
+	// a beat sharing a trigger inherits that trigger's cadence, so a
+	// rocket in a chaingun's primary fires at chaingun speed.
+	//
+	// Rotation is NOT replaced by this -- it lives inside every one of
+	// the four slots exactly as before. An affix can still say "every 3rd
+	// shot", and can now equally say "every 3rd ALT-fire" or "every 2nd
+	// modifier-fire". The slot is the input; the rotation is the pattern
+	// within that input. Both dimensions, instead of one.
 	//
 	// Every weapon in both the main arsenal and the GH set now authors
 	// BuildAttackProfiles() and fires exclusively through A_RS_FireSlot;
 	// the old per-weapon direct-fire path this migration replaced is
 	// gone. A weapon that somehow ships without BuildAttackProfiles()
-	// just has empty slots and A_RS_FireSlot does nothing.
+	// just has empty slots and A_RS_FireSlot does nothing. The same is
+	// true per-slot: a weapon that authors nothing into slot 2 or 3 has
+	// no modifier attacks until an affix installs one, which is the
+	// normal case for every weapon that exists today.
 	// =================================================================
+
+	const RS_SLOT_PRIMARY    = 0;
+	const RS_SLOT_SECONDARY  = 1;
+	const RS_SLOT_TERTIARY   = 2;   // modifier + fire
+	const RS_SLOT_QUATERNARY = 3;   // modifier + alt-fire
+	const RS_SLOT_COUNT      = 4;
 
 	RS_AttackSlot PrimarySlot;
 	RS_AttackSlot SecondarySlot;
+	RS_AttackSlot TertiarySlot;
+	RS_AttackSlot QuaternarySlot;
 
-	// 0 = primary (main trigger), 1 = secondary (alt-fire).
 	RS_AttackSlot GetSlot(int which)
 	{
-		return (which == 0) ? PrimarySlot : SecondarySlot;
+		if (which == RS_SLOT_SECONDARY)  return SecondarySlot;
+		if (which == RS_SLOT_TERTIARY)   return TertiarySlot;
+		if (which == RS_SLOT_QUATERNARY) return QuaternarySlot;
+		return PrimarySlot;
+	}
+
+	// True if this slot has anything to fire. The dispatcher uses it to
+	// fall back: pressing modifier+fire on a gun with an empty slot 2
+	// should fire normally rather than do nothing, so the modifier is
+	// never a dead key.
+	bool SlotHasContent(int which)
+	{
+		let s = GetSlot(which);
+		return s && !s.IsEmpty();
+	}
+
+	// The slot an input should actually fire, after falling back. Base is
+	// 0 or 1; held is whether the modifier is down.
+	int ResolveSlot(int base, bool held)
+	{
+		if (!held) return base;
+		int want = base + 2;                       // 0->2, 1->3
+		return SlotHasContent(want) ? want : base;
 	}
 
 	// Each weapon overrides this to author what it SHIPS with -- the
@@ -673,6 +723,20 @@ class RS_Weapon : Weapon abstract
 	// -----------------------------------------------------------------
 	action bool A_RS_FireSlot(int which = 0)
 	{
+		// MODIFIER RESOLUTION, done here rather than at the call sites.
+		// There are ~60 A_RS_FireSlot calls across 46 weapon files; doing
+		// this in the dispatcher means every weapon gains modifier
+		// attacks the moment an affix installs one, with no weapon file
+		// touched and no chance of one being missed.
+		//
+		// Only bases 0 and 1 resolve. An explicit A_RS_FireSlot(2) means
+		// "fire slot 2", not "resolve from slot 2".
+		if (which <= RS_SLOT_SECONDARY && player)
+		{
+			bool held = (player.original_cmd.buttons & BT_USER2) != 0;
+			which = invoker.ResolveSlot(which, held);
+		}
+
 		let slot = invoker.GetSlot(which);
 		if (!slot || slot.IsEmpty())
 			return false;
@@ -2116,8 +2180,15 @@ class RS_Weapon : Weapon abstract
 		if (bProfilesBuilt)
 			return;
 		bProfilesBuilt = true;
-		PrimarySlot   = RS_AttackSlot(new("RS_AttackSlot"));
-		SecondarySlot = RS_AttackSlot(new("RS_AttackSlot"));
+		PrimarySlot    = RS_AttackSlot(new("RS_AttackSlot"));
+		SecondarySlot  = RS_AttackSlot(new("RS_AttackSlot"));
+		// Slots 2 and 3 are built empty for every weapon. No gun in the
+		// arsenal authors a modifier attack today, so these stay empty
+		// until an affix installs one -- and ResolveSlot falls back to
+		// the base input while they are, so the modifier is never a key
+		// that does nothing.
+		TertiarySlot   = RS_AttackSlot(new("RS_AttackSlot"));
+		QuaternarySlot = RS_AttackSlot(new("RS_AttackSlot"));
 		BuildAttackProfiles();
 		// Immediately after, and never again: the gun's identity is what
 		// it SHIPPED with, not what an affix later made slot 0.

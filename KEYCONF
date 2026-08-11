@@ -79,3 +79,19 @@ defaultbind G +user4
 addmenukey "Curses: List / Spend" rs_curse_list
 alias rs_curse_list "netevent rs_curse_list"
 defaultbind Y rs_curse_list
+
+// ---------------------------------------------------------------------
+// ATTACK MODIFIER -- the fourth and third slots.
+//
+// Every RS weapon has four attack slots: fire, alt-fire, modifier+fire,
+// modifier+alt-fire. Holding this key routes the trigger you pull to the
+// modifier slot instead. If that slot is empty -- which it is on every
+// weapon until an affix installs something there -- the shot falls back
+// to the normal one, so this is never a key that eats a trigger pull.
+//
+// BT_USER2. USER4 is the grenade and USER3 is reserved for the hook, so
+// this is the free one. No default bind: three keys are already claimed
+// by default in this file and a fourth uninvited one is how you end up
+// firing something you did not mean to. Bind it from Controls.
+// ---------------------------------------------------------------------
+addmenukey "Attack Modifier (hold: modifier fire / modifier alt-fire)" +user2
