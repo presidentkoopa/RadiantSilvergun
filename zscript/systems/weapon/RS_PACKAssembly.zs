@@ -176,6 +176,40 @@ class RS_PACKAssembly : Object
 		Class<Actor> puff   = puffs.Size()   > 0 ? puffs[random(0, puffs.Size() - 1)]     : null;
 		string       casing = casings.Size() > 0 ? casings[random(0, casings.Size() - 1)] : "";
 
+		// --- THE THREE AXES THAT WERE NEVER FILLED. Added 2026-08-11. ---
+		//
+		// MakeBullet has taken impactSparks, muzzleSmoke and trail since it
+		// was written, and Build has never passed any of them, so every PACK
+		// beat ever generated left three of the eight axes at null and fell
+		// through to the gun's own. Not a bug exactly -- the gun's own part
+		// is a valid answer -- but it meant a themed beat could only ever
+		// differ from an ordinary shot in its projectile, its casing, its
+		// puff and a layered sound.
+		//
+		// The registry answers these now. Themed, so a fire beat asks for
+		// fire-ish parts and takes the gun's own when nothing matches;
+		// null from Draw is a legitimate "leave this axis alone".
+		//
+		// Both safety rails are ON. An entry tagged HOSTILE damages or buffs
+		// and raises MONSTERS, and one tagged SPAWNER makes more actors --
+		// neither belongs in decoration the player fires, and the whole
+		// reason those flags exist is so a roller cannot hand them over by
+		// accident.
+		//
+		// Role is left unconstrained (-1) deliberately: only the 38 entries
+		// generated from the index carry role bits, and the 37 original ones
+		// are UNCLASSIFIED, which fails every role test. Asking for a role
+		// today would silently exclude half the table. Tighten this to
+		// R_ACCENT for smoke once the originals have been through the
+		// gallery -- that is the curation queue, and this is the line that
+		// starts paying for it.
+		Class<Actor> sparks = RS_FXRegistry.Draw(
+			RS_FXRegistry.RS_FXAXIS_SPARKS, theme, -1, true, true);
+		Class<Actor> smoke  = RS_FXRegistry.Draw(
+			RS_FXRegistry.RS_FXAXIS_SMOKE,  theme, -1, true, true);
+		Class<Actor> trail  = RS_FXRegistry.Draw(
+			RS_FXRegistry.RS_FXAXIS_TRAIL,  theme, -1, true, true);
+
 		// --- ASSEMBLE ---------------------------------------------------
 		// MakeBullet, not MakeHeavy: a PACK beat is a travelling round
 		// on the bullet path, which is the path that carries the
@@ -206,6 +240,9 @@ class RS_PACKAssembly : Object
 			proj,                                  // axis 1, the monster's
 			"PACK: " .. RS_PACKCatalog.ThemeName(theme),
 			puff,                                  // axis 6, the gun's
+			impactSparks: sparks,                  // the registry's, themed
+			muzzleSmoke:  smoke,                   // the registry's, themed
+			trail:        trail,                   // the registry's, themed
 			extraFireSnd: RS_PACKCatalog.DrawFireSound(theme));  // layered, not axis 5
 
 		// AMMO COST IS EXPLICITLY 1 AND MUST STAY NON-ZERO.
