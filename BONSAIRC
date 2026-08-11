@@ -59,6 +59,13 @@ register
   # weapon's firing rotation. The only card that reaches RS_PACKCatalog's
   # 409 projectiles; without it the whole PACK apparatus is unreachable.
   TFLV_Upgrade_RS_Salvage
+  # CATALOG AFFIXES -- content looked up rather than typed. Conscript
+  # draws from RS_MinionCatalog (143 monsters); Smokescreen and Turncoat
+  # from RS_FXRegistry, by axis and by role respectively. Adding parts to
+  # either catalog grows these three with no edit here.
+  TFLV_Upgrade_RS_Conscript
+  TFLV_Upgrade_RS_Smokescreen
+  TFLV_Upgrade_RS_Turncoat
   # Wave D2 general lane (docs/rs_11 candidate pool)
   TFLV_Upgrade_RS_PainTrain
   TFLV_Upgrade_RS_Momentum

@@ -1,0 +1,346 @@
+// =====================================================================
+// CATALOG AFFIXES -- the first upgrades whose content is looked up
+// rather than typed.
+//
+// Every other RS affix names its effect in its own source: Bonecaller
+// hardcodes "RS_AffixBoneTracer", Cryo hardcodes its puff. That is fine
+// for ten designed affixes and useless for a library, because the
+// moment you import a weapon set the new parts sit there unreachable.
+//
+// These three ask the two catalogs instead:
+//
+//   RS_MinionCatalog   143 monsters, costed, family-tagged
+//   RS_FXRegistry       75 FX actors, tagged by axis (9) and role (5)
+//
+// so a part added to either becomes affix content with no edit here.
+// That is the whole reason the catalogs were built, and until this file
+// existed neither had a single consumer.
+//
+// The role tags are what make the registry more than a list. An affix
+// does not ask for "some smoke", it asks for HEADLINE smoke -- the
+// area-effect kind -- and gets only entries big enough to read as an
+// event. Turncoat asks for HOSTILE entries specifically: the things
+// tagged as hurting or raising MONSTERS, which every other query in the
+// mod deliberately excludes.
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// CONSCRIPT -- bestiary. What you kill, you keep.
+//
+// On a kill, a chance to raise a minion from the catalog. It prefers the
+// victim's own family, so killing imps builds an imp squad and the affix
+// reads as "that thing works for me now" rather than "a random monster
+// appeared". Budget climbs with level, which walks you up the catalog's
+// cost ladder from lost souls to revenants on its own -- no per-level
+// monster list to maintain.
+//
+// The summon goes through RS_Minion.Summon, which is what makes the XP
+// land: the minion carries an RS_MinionToken naming this weapon, and
+// GunBonsai's WorldThingDamaged graft pays that weapon for everything
+// the minion does, for the minion's whole life, even after you switch.
+//
+// Mastery: budget doubles and it raises a pair.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Conscript : TFLV_Upgrade_RS_SlateBase
+{
+	override string KeyAxis() { return "behavior"; }
+
+	// No shot keyword -- this affix lives entirely in OnKill. The base
+	// class still gives us the sockets gate and the re-runnable
+	// activate/deactivate contract, which is why we derive from it.
+	override string ValueForLevel(int lvl) { return ""; }
+
+	// Points of catalog budget at a given take. The catalog costs run
+	// 1 (a lost soul) to 50 (the big ones), so this ladder tops out at
+	// a serious body only at mastery.
+	int BudgetFor(int lvl)
+	{
+		int b = 4 + 5 * lvl;              // 9, 14, 19, 24, 29
+		if (lvl >= 6) b *= 2;             // mastery: 68
+		return b;
+	}
+
+	int ChanceFor(int lvl)
+	{
+		return min(60, 10 * lvl);         // 10%..50%, mastery 60%
+	}
+
+	override void OnKill(PlayerPawn player, Actor shot, Actor target)
+	{
+		if (!player || !target || level <= 0) return;
+
+		// Never raise a minion off a minion's kill -- that compounds:
+		// two minions become four, and a saturated fight never stops
+		// growing. Only your own kills conscript.
+		if (RS_Minion.IsMinion(target)) return;
+
+		if (random(1, 100) > ChanceFor(int(level))) return;
+
+		// The weapon that gets paid. OnKill does not carry the
+		// WeaponInfo, and ReadyWeapon is right at the instant of a kill;
+		// once the token is stamped the minion keeps paying this weapon
+		// regardless of what is held later, which is the behaviour we
+		// actually care about.
+		let src = player.player ? player.player.ReadyWeapon : null;
+		if (!src) return;
+
+		int budget = BudgetFor(int(level));
+		int n = (level >= 6) ? 2 : 1;
+
+		// Match the victim's family first. FamilyOf walks ancestry, so a
+		// Colourful Hell variant we never listed still resolves to the
+		// family we did.
+		string fam = RS_MinionCatalog.FamilyOf(target);
+
+		string what = "";
+		if (fam != "")
+		{
+			what = (n > 1) ? RS_MinionCatalog.BundleOf(budget, n, fam)
+			               : RS_MinionCatalog.BestFor(budget, fam);
+			// Family known but nothing in it is affordable yet: take the
+			// cheapest of that family anyway if the budget covers it, so
+			// early levels still read as "the imp got up".
+			if (what == "")
+			{
+				string cheap = RS_MinionCatalog.CheapestIn(fam);
+				if (cheap != "" && RS_MinionCatalog.CostOf(cheap) <= budget)
+				{
+					what = cheap;
+					n = 1;
+				}
+			}
+		}
+		// No family, or the family had nothing: spend the budget freely.
+		if (what == "")
+		{
+			what = (n > 1) ? RS_MinionCatalog.BundleOf(budget, n)
+			               : RS_MinionCatalog.BestFor(budget);
+		}
+		if (what == "") return;
+
+		Class<Actor> cls = what;
+		if (!cls) return;
+
+		for (int i = 0; i < n; i++)
+		{
+			// Fan the pair apart so the second does not spawn inside the
+			// first and get rejected by TestMobjLocation.
+			double off = (n > 1) ? (i * 180.0) : 0.0;
+			Vector3 at = target.pos;
+			if (n > 1)
+				at += (cos(target.angle + off) * 24, sin(target.angle + off) * 24, 0);
+
+			RS_Minion.Summon(player, src, cls, at, target.angle);
+		}
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Conscript")
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Conscript") < 6;
+	}
+}
+
+// ---------------------------------------------------------------------
+// SMOKESCREEN -- registry, SMOKE axis, HEADLINE role.
+//
+// The affix asked for by name: a cloud that makes what is inside it
+// shoot badly. The cloud's LOOK is drawn from the registry rather than
+// authored here, so every smoke actor in RS_FX_Smoke.zs (and anything
+// added to it later) is a possible smokescreen.
+//
+// "Less accurate" has no direct engine lever -- there is no monster
+// accuracy stat to divide. What there is: monsters call A_FaceTarget
+// immediately before firing, so nudging angle inside the cloud sends
+// the shot wide by exactly the offset applied. That is a real spread
+// penalty, not a visual one, and it works on hitscanners and missile
+// users alike.
+//
+// Mastery: the cloud also blinds -- monsters inside briefly lose their
+// target and have to re-acquire.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Smokescreen : TFLV_Upgrade_RS_SlateBase
+{
+	override string KeyAxis() { return "behavior"; }
+	override string ValueForLevel(int lvl) { return ""; }
+
+	override void OnKill(PlayerPawn player, Actor shot, Actor target)
+	{
+		if (!player || !target || level <= 0) return;
+		if (RS_Minion.IsMinion(target)) return;
+
+		// Theme -1 = any: a smokescreen is not elementally themed, and
+		// restricting it would shrink an already small axis.
+		Class<Actor> look = RS_FXRegistry.Draw(
+			RS_FXRegistry.RS_FXAXIS_SMOKE, -1,
+			RS_FXRegistry.RS_FXROLE_HEADLINE, true, true);
+
+		// HEADLINE smoke is the area kind and there may be none tagged
+		// yet; BODY smoke still reads as a cloud, so fall back rather
+		// than drop the affix's whole effect.
+		if (!look)
+			look = RS_FXRegistry.Draw(
+				RS_FXRegistry.RS_FXAXIS_SMOKE, -1,
+				RS_FXRegistry.RS_FXROLE_BODY, true, true);
+
+		let cloud = RS_AffixSmokeCloud(
+			Actor.Spawn("RS_AffixSmokeCloud", target.pos, ALLOW_REPLACE));
+		if (!cloud) return;
+
+		cloud.mLook    = look;
+		cloud.mRadius  = 88 + 16 * int(level);        // 104..168
+		cloud.mSpread  = 4 + 3 * int(level);          // degrees of aim error
+		cloud.mLife    = 35 * (2 + int(level));       // 3s..7s
+		cloud.mBlinds  = (level >= 6);
+		cloud.master   = player;
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Smokescreen")
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Smokescreen") < 6;
+	}
+}
+
+// The cloud itself. Invisible on its own -- it puffs registry-drawn
+// smoke actors for looks and does the aim penalty in Tick.
+class RS_AffixSmokeCloud : Actor
+{
+	Class<Actor> mLook;
+	int  mRadius;
+	int  mSpread;
+	int  mLife;
+	bool mBlinds;
+	private int mAge;
+
+	Default
+	{
+		+NOBLOCKMAP
+		+NOGRAVITY
+		+NOINTERACTION
+		+DONTSPLASH
+		RenderStyle "None";
+		Radius 1;
+		Height 1;
+	}
+
+	// An actor with no Spawn state is a load error, and this one is
+	// deliberately invisible -- everything it shows, it spawns.
+	States
+	{
+	Spawn:
+		TNT1 A -1;
+		Stop;
+	}
+
+	override void Tick()
+	{
+		super.Tick();
+		if (isFrozen()) return;
+
+		mAge++;
+		if (mAge > mLife) { Destroy(); return; }
+
+		// Visual: a puff of the drawn smoke every few tics, scattered
+		// through the volume so it reads as a cloud rather than a column.
+		if (mLook && (mAge % 7) == 0)
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				double a = random(0, 359);
+				double d = random(0, mRadius);
+				Vector3 at = pos + (cos(a) * d, sin(a) * d, random(0, 40));
+				let s = Actor.Spawn(mLook, at, ALLOW_REPLACE);
+				if (s)
+				{
+					s.bNOINTERACTION = true;
+					s.vel = (frandom(-0.4, 0.4), frandom(-0.4, 0.4), frandom(0.1, 0.5));
+				}
+			}
+		}
+
+		// The penalty. Monsters call A_FaceTarget right before they
+		// shoot, so an angle nudge applied here lands as spread on the
+		// shot they are about to take.
+		BlockThingsIterator it = BlockThingsIterator.Create(self, mRadius);
+		while (it.Next())
+		{
+			let mo = it.thing;
+			if (!mo || mo == self) continue;
+			if (!mo.bISMONSTER || mo.health <= 0) continue;
+			if (mo.bFRIENDLY) continue;                 // our own minions see fine
+			if (mo.Distance3D(self) > mRadius) continue;
+
+			mo.angle += frandom(-double(mSpread), double(mSpread));
+			mo.pitch += frandom(-double(mSpread) * 0.5, double(mSpread) * 0.5);
+
+			// Mastery: occasionally they lose the thread entirely.
+			if (mBlinds && mo.target && random(0, 255) < 6)
+				mo.target = null;
+		}
+	}
+}
+
+// ---------------------------------------------------------------------
+// TURNCOAT -- registry, by ROLE rather than axis.
+//
+// The registry tags entries HOSTILE when they damage or raise MONSTERS
+// -- the enemy-side effects. Every other query in the mod passes
+// noHostile:true to keep them out of your gun. This affix is the only
+// thing that asks for them on purpose, and then flips ownership: the
+// effect spawns through RS_Minion.Summon, so it is friendly to you,
+// hostile to them, and pays your weapon for whatever it does.
+//
+// It is the payoff for the role system existing. Tag one new actor
+// HOSTILE in the registry and it becomes Turncoat content for free.
+//
+// Mastery: also draws SPAWNER-role entries, the ones whose states spawn
+// further actors -- which is how one proc becomes a small crowd.
+// ---------------------------------------------------------------------
+class TFLV_Upgrade_RS_Turncoat : TFLV_Upgrade_RS_SlateBase
+{
+	override string KeyAxis() { return "behavior"; }
+	override string ValueForLevel(int lvl) { return ""; }
+
+	override void OnKill(PlayerPawn player, Actor shot, Actor target)
+	{
+		if (!player || !target || level <= 0) return;
+		if (RS_Minion.IsMinion(target)) return;
+
+		if (random(1, 100) > min(50, 8 * int(level))) return;
+
+		let src = player.player ? player.player.ReadyWeapon : null;
+		if (!src) return;
+
+		// Ask for the enemy-side effects across the payload axis, which
+		// is where the registry files the things that do rather than
+		// decorate. noHostile is deliberately FALSE here -- hostile is
+		// exactly what we want.
+		int wantRole = (level >= 6 && random(0, 1) == 1)
+			? RS_FXRegistry.RS_FXROLE_SPAWNER
+			: RS_FXRegistry.RS_FXROLE_HOSTILE;
+
+		Class<Actor> cls = RS_FXRegistry.Draw(
+			RS_FXRegistry.RS_FXAXIS_PAYLOAD, -1, wantRole, false, false);
+
+		// Payload had nothing tagged that way; projectiles are the other
+		// axis where hostile entries live.
+		if (!cls)
+			cls = RS_FXRegistry.Draw(
+				RS_FXRegistry.RS_FXAXIS_PROJECTILE, -1, wantRole, false, false);
+		if (!cls) return;
+
+		// Summon rather than Spawn: this is an enemy effect and it must
+		// come out on our side of the fence, with our weapon named on it.
+		RS_Minion.Summon(player, src, cls, target.pos, target.angle);
+	}
+
+	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
+	{
+		let wpn = RS_Weapon(info.wpn);
+		return CanTake(wpn, info, "TFLV_Upgrade_RS_Turncoat")
+			&& info.upgrades.Level("TFLV_Upgrade_RS_Turncoat") < 6;
+	}
+}

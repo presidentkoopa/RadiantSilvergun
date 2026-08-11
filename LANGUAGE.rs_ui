@@ -148,3 +148,18 @@ OB_RS_GRENADE = "%o was popped by %k's grenade.";
 // --- Elite food scatter ---
 TAG_RS_FOOD = "Rations";
 PICKUP_RS_FOOD = "Rations.";
+
+// --- Catalog affixes. Content is looked up in RS_MinionCatalog /
+// --- RS_FXRegistry rather than hardcoded, so these three grow as the
+// --- catalogs grow. See zscript/GunBonsai/rs_upgrades/RS_Upgrade_Catalog.zsc
+TFLV_Upgrade_RS_Conscript_Name = "Conscript";
+TFLV_Upgrade_RS_Conscript_Desc = "what you kill sometimes gets back up on your side";
+TFLV_Upgrade_RS_Conscript_TT = "Kills have a chance to raise the dead as yours. It prefers the victim's own kind, so a room of imps builds an imp squad rather than a random menagerie. Levels raise both the chance (10/20/30/40/50%) and the budget, and the budget decides what you can afford -- early on that is lost souls and zombies, later revenants and worse. A minion is friendly to you and hostile to everything else, and every point of damage it deals feeds the gun that raised it for as long as it lives, even after you have switched to something else. Mastery: the budget doubles and they come up in pairs.";
+
+TFLV_Upgrade_RS_Smokescreen_Name = "Smokescreen";
+TFLV_Upgrade_RS_Smokescreen_Desc = "kills leave a cloud; what stands in it cannot shoot straight";
+TFLV_Upgrade_RS_Smokescreen_TT = "A killed body vents a cloud of smoke. Monsters inside take a real aim penalty -- their shots go wide by a growing margin, hitscan and missiles alike -- and it does nothing to you or your minions. Levels widen the cloud, lengthen it, and increase the error. The smoke is drawn from the FX registry, so it uses whatever smoke the mod has loaded and picks up new smoke automatically. Mastery: the cloud also blinds, and things inside lose track of you entirely.";
+
+TFLV_Upgrade_RS_Turncoat_Name = "Turncoat";
+TFLV_Upgrade_RS_Turncoat_Desc = "kills turn an enemy effect loose on your behalf";
+TFLV_Upgrade_RS_Turncoat_TT = "The FX registry marks certain effects as enemy-side -- the ones that hurt or raise monsters, which every other system in the mod deliberately keeps out of your gun. Turncoat is the exception: on a kill it pulls one of those and spawns it under your flag, hostile to them, harmless to you, credited to the weapon that made the kill. What can appear depends entirely on what the registry has tagged, so it grows as the mod grows. Mastery: it also draws the effects that spawn further effects, which is how one kill becomes a small riot.";
