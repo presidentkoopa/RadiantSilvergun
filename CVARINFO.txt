@@ -1154,19 +1154,6 @@ server bool rs_monsterdrops = false;
 // THREE-RANGE DROP PRESENCE (owner's design, 2026-08-08).
 //
 // FAR   every drop casts a tapering pillar in its tier colour, with a
-//       marker on top: DIAMOND = class weapon, CIRCLE = imprint. Count,
-//       quality and kind, across a level, with no text at all.
-// MID   the card replaces the marker and begins growing.
-// NEAR  fully grown, readable, touchable.
-//
-// It used to be a hard radius switch with a fixed-size card, so the card
-// appeared at reading size the instant you crossed an invisible circle.
-// These are the dials that turned it into a ramp.
-//
-// COLOURS ARE NOT HERE AND MUST NOT BE. Tier colour is the rarity read
-// and it is locked -- a player who could recolour Prototype has broken
-// the only channel the whole system communicates on.
-// =====================================================================
 
 
 
@@ -1272,11 +1259,6 @@ server int rs_elite_food_mult = 100;
 
 
 
-// +0, +1 or +2 tiers, added AFTER the weighted roll and capped at
-// Prototype. Deliberately post-roll rather than folded into the weights
-// above: this shifts the WHOLE distribution up by a fixed step, which is
-// a different knob from making one tier likelier.
-server int rs_elite_imprint_tierbonus = 0;
 
 // =====================================================================
 // CURSES -- TWO POOLS, TWO ORIGINS, ONE CURE. Owner rulings 2026-08-07.
@@ -1286,23 +1268,6 @@ server int rs_elite_imprint_tierbonus = 0;
 //   WEAPON CURSES are the five stat-locks. They come from a Cursed-tier
 //   find or from Promotion. They live on the RS_Weapon instance. A
 //   cursed stat is HALVED and hidden on the sheet; while any curse is on
-//   the weapon it cannot accept an elite imprint ABOVE its current tier.
-//   Lifting one restores the stat to its pre-curse value, adds a bonus,
-//   raises the damage ceiling by the same amount, and tiers the weapon
-//   up one step.
-//
-//   PLAYER CURSES are the eight flaws. They come from DEATH -- the
-//   moment a life-save spends your last life. They live on the player,
-//   scoped per HAND, so "mainhand-jam-prone" and "offhand-jam-prone" are
-//   two independent curses. Lifting one pays a small permanent bonus.
-//
-//   DIVINE is player-wide and counts BOTH pools. Cure enough curses of
-//   either kind and curses stop applying to you entirely.
-//
-// WHY NOT ONE POOL: the origin is the point. Reading a weapon's curses
-// tells you it was promoted hard; reading your own tells you how many
-// times the run nearly ended.
-// =====================================================================
 
 // Chance a freshly rolled weapon arrives with a stat cursed. The Cursed
 // TIER floors far higher than this in code -- that tier is not a flavour
@@ -1340,11 +1305,6 @@ server bool rs_curse_lift_raises_ceiling = true;
 // One tier per lifted weapon curse, capped at Prototype.
 server bool rs_curse_lift_tiers_up = true;
 
-// While a weapon carries any curse it refuses an elite imprint of a
-// HIGHER tier than it currently is. Lower-tier cards still apply, which
-// is what keeps Promotion (a Basic card onto a Prototype) available to a
-// cursed weapon -- curses stall your climb, they do not trap you.
-server bool rs_curse_blocks_imprint = true;
 
 // --- PLAYER CURSES: the death roll ----------------------------------
 // Fires from RS_LifeForce.AbsorbDamage at the instant a save spends your

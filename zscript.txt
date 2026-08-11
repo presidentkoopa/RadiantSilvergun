@@ -284,9 +284,6 @@ version "4.14"
 
 // RS_Showcase.zs DELETED 2026-08-07 at the owner's direction -- a dev
 // prop that proved a point nobody needed proving, and the sole consumer
-// of the billboard natives that were absent from the engine. That one
-// branch stopped the ENTIRE mod compiling: 17 monster families, every
-// weapon, the lot, taken down by four unresolved names in a demo.
 
 
 

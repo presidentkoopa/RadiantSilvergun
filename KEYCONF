@@ -29,31 +29,6 @@ alias rs_ui_debug "openmenu RS_UIDebug"
 defaultbind U rs_ui_debug
 
 // ---------------------------------------------------------------------
-// In-world panels. Fires whatever row the pointing hand is on -- the
-// panel system's single "confirm", not a per-action bind.
-//
-// THIS BIND IS WHY THE FEATURE IS REACHABLE AT ALL. Aiming resolves a
-// panel and a row, and the row carries a netevent name, but without
-// something to fire it the whole interaction is console-only.
-//
-// *** THE DEFAULT KEY IS NOT A FREE CHOICE. READ BEFORE CHANGING IT. ***
-// This line said MOUSE2 and bound NOTHING. `defaultbind` is not "set
-// this key"; FKeyBindings::DefaultBind (c_bind.cpp:531) refuses on two
-// conditions -- the key is already bound (:539), or the command is
-// already bound somewhere (:543). MOUSE2 is `+altattack` in the
-// engine's own defbinds.txt, and KEYCONF is parsed at d_main.cpp:3462,
-// AFTER key setup at :3338. So the key was always taken by the time
-// this ran, the bind was dropped, and there was no error and no log
-// line -- the same inert-failure shape as an unresolved sound name.
-//
-// MOUSE3 is unbound in both defbinds.txt and commonbinds.txt, so this
-// one actually takes. Any replacement must be checked against those two
-// lists or it will silently do nothing again.
-//
-// This is the FLAT-PLAY route and the universal fallback. In VR the
-// primary confirm is the weapon trigger itself, captured in
-// VR_DualClassBase.PlayerThink -- no bind, and it does not fire the
-// ---------------------------------------------------------------------
 
 // Dismiss the card without taking anything. Same panel, opposite
 // answer; N is unbound in both engine bind lists.

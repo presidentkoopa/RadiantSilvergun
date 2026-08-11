@@ -99,9 +99,6 @@ OptionMenu "RS_DualClassOptions"
 
 // ---------------------------------------------------------------------
 // UI Options -- the container for everything that is about how the mod
-// presents itself rather than how it plays. In-world panels and the UI
-// debug harness both moved off the top level into here.
-// ---------------------------------------------------------------------
 OptionMenu "RS_UIOptions"
 {
 	Title "UI Options"
@@ -109,27 +106,6 @@ OptionMenu "RS_UIOptions"
 }
 
 // ---------------------------------------------------------------------
-// THE PANEL. One in-world screen for the whole mod -- the offer, the
-// weapon status sheet, and everything that follows them.
-//
-// Listed ABOVE the older In-World Panels page on purpose: that page
-// still drives the three-panel drop card, and while both exist a player
-// needs to be able to tell which one they are tuning.
-// ---------------------------------------------------------------------
-// ---------------------------------------------------------------------
-// IN-WORLD PANELS -- layout policy for the diegetic UI.
-//
-// The panel primitive is deliberately dumb: it knows how to be a quad
-// and how to hinge to another quad, and nothing else. Every taste
-// decision lives here, which is why this page exists at all rather than
-//
-// PITCH BIAS IS THE FIRST-BOOT DIAL. If panels come up edge-on
-// (invisible), lying flat on the floor, or upside down, turn that one
-// before assuming anything else is wrong -- see its cvar comment.
-// ---------------------------------------------------------------------
-// The dynamic light on an elite drop. "Soft" is LF_ATTENUATE --
-// inverse-square falloff, which reads as a glow AROUND the object;
-// "Plain" is the linear one, which ends in a visible disc on the floor.
 OptionValue "RS_DropLightDetail"
 {
 	0, "Off"
@@ -137,36 +113,6 @@ OptionValue "RS_DropLightDetail"
 	2, "Soft (attenuated)"
 }
 
-// ---------------------------------------------------------------------
-// IMPRINTS -- the late-game elite payout.
-//
-// THE SLIDERS ARE RELATIVE WEIGHTS, NOT PERCENTAGES. The defaults happen
-// to sum to 100, so at stock settings each one reads as a percent; move
-// one and they all shift, because what is rolled is a position in the
-// total.
-//
-// THERE IS NO "CURSED" ROW AND THERE SHOULD NOT BE ONE. Cursed stopped
-// being a tier -- it is an effect, from Promotion and from death -- and
-// the roll floors at Trash in code. A slider that could never put
-// anything on the floor is worse than no slider.
-// ---------------------------------------------------------------------
-// ---------------------------------------------------------------------
-// Weapon Options -- gameplay behavior of the guns themselves (the FX
-// menu is look/feel; this is rules). Grows as more weapon-behavior
-// knobs land: cadence, condition, reload.
-// ---------------------------------------------------------------------
-// ---------------------------------------------------------------------
-// COMBAT OPTIONS -- the container for how fighting WORKS, as opposed to
-// how a weapon set behaves or how the mod presents itself.
-//
-// Weapon Options lives under here rather than at the top level (owner
-// ruling 2026-08-09). Vanilla+ Options is deliberately NOT in here: that
-// page is settings for one specific weapon set, which is a different
-// concern from combat rules that apply to everything.
-//
-// Headshots and the crit stagger land on this page when their systems
-// are built -- they are combat rules, not weapon-set settings, and this
-// page is why they have somewhere to go.
 // ---------------------------------------------------------------------
 OptionMenu "RS_CombatOptions"
 {
@@ -321,32 +267,6 @@ OptionMenu "RS_WeaponOptions"
 	Option "Flamethrower",         "rs_soundchoice_flamethrower", "RS_SoundChoice_DefaultOnly"
 }
 
-// ---------------------------------------------------------------------
-// UI Debug -- fire the rs-ui-* / showcase netevents without the
-// console. Same pattern as Monster Debug above: every button is a
-// Command running a netevent; the handlers live in RS_Screens.zs
-// (RS_UIHandler, MAPINFO-registered). Bound to U by default (KEYCONF).
-// ---------------------------------------------------------------------
-// ---------------------------------------------------------------------
-// ELITE DROP SIMULATOR
-//
-// Drops a rolled class weapon 96 units in front of you with its marker
-// beam and card armed -- no elite required, no reveal required. This is
-// how you look at a Prototype card while holding a Basic starter, which
-// is the exact moment the triptych is designed for and otherwise takes
-// a lucky kill to reach.
-//
-// The weapon class is random each time; only the TIER is chosen here,
-// because tier is what changes the card.
-// ---------------------------------------------------------------------
-// ---------------------------------------------------------------------
-// Monster Debug -- spawns the CH import lineups in front of the player,
-// one row per family, tier order left to right, spaced so nothing
-// overlaps. Buttons fire net events handled by RS_MonsterDebugHandler
-// (zscript/monsters/RS_MonsterDebug.zs); that handler is registered in
-// MAPINFO.txt's AddEventHandlers -- if these buttons go silent, check
-// that registration first.
-// ---------------------------------------------------------------------
 OptionMenu "RS_MonsterDebug"
 {
 	Title "Monster Debug"
@@ -2439,7 +2359,6 @@ OptionMenu "RS_GrenadeOptions"
 
 	// The bind lives here as well as in Customize Controls. A setting you
 	// cannot reach from the page that explains it is a setting nobody
-	// finds -- same reason the panel page carries its own Control rows.
 	StaticText "Key", "Gold"
 	Control "Throw / charge grenade",  "+user4"
 	StaticText "  HOLD to charge, RELEASE to throw. Your deployed weapon", "DarkGray"
@@ -2516,7 +2435,6 @@ OptionMenu "RS_CurseOptions"
 	StaticText " "
 	StaticText "Weapon Curses -- from Promotion", "Gold"
 	Slider "Curse Chance On Roll (%)", "rs_curse_chance", 0, 100, 1, 0
-	Option "Blocks Higher Imprints",   "rs_curse_blocks_imprint", "OnOff"
 	StaticText "  On: a cursed weapon refuses an elite card ABOVE its own", "DarkGray"
 	StaticText "  tier. Lower cards still apply, so it can still promote.", "DarkGray"
 	Option "Lifting Raises Tier",      "rs_curse_lift_tiers_up", "OnOff"
@@ -2648,9 +2566,6 @@ OptionValue "RS_GrenadeMeterVals"
 // engine's own and is the "cvar already exists" failure this project
 // has already eaten once.
 //
-// Owner's call, relayed from the engine lane 2026-08-07: the billboard
-// options page lives in RS_Main, not in the glow mod.
-// =====================================================================
 AddOptionMenu "OptionsMenu"
 {
 	StaticText " "
