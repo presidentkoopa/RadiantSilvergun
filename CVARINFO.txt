@@ -744,7 +744,7 @@ server float rs_score_revive_dmgmult = 2.0;
 server bool rs_score_revive_bullettime = true;
 
 // =====================================================================
-// MONSTER HEALTH BARS -- zscript/systems/monster/RS_HealthBars.zs
+// MONSTER HEALTH BARS -- zscript/monsters/RS_HealthBars.zs
 //
 // All user scope: these are purely how the bar looks on your own
 // screen, they change no gameplay and need not match between players.
@@ -799,7 +799,7 @@ user int  rs_hpbar_bossframe = 0;
 // 2000 -- so it catches the genuine long fights and nothing else.
 user int  rs_hpbar_boss_hp   = 1000;
 
-// --- No More Hitscans (zscript/systems/monster/RS_NoHitscan.zs) -----
+// --- No More Hitscans (zscript/monsters/RS_NoHitscan.zs) -----
 // Server-scope, not user: whether monster bullets travel is a rule of
 // the match, not a client preference.
 server bool  rs_nohitscan_enabled = true;
@@ -936,7 +936,7 @@ server int rs_ch_colorblind = 0;    // CH: CH_ColorBlind
 server int rs_ch_abyssmark = 0;     // CH: CH_AbyssMark
 
 // =====================================================================
-// RS_Elite -- zscript/systems/monster/RS_Elite.zs + RS_EliteColors.zs.
+// RS_Elite -- zscript/monsters/RS_Elite.zs + RS_EliteColors.zs.
 // Hidden elites: marked at spawn, boosted HP, reveal at 50% with full
 // heal, double aggression, and the rolled colour's powers. Chance is
 // one flat knob for now; skill/playercount scaling is a later decision.
@@ -1495,7 +1495,7 @@ server bool rs_summons_pay = false;
 
 
 // =====================================================================
-// Starting roster -- zscript/systems/roster/RS_Roster.zs
+// Starting roster -- zscript/monsters/RS_Roster.zs
 //
 // Highest colour tier each family may spawn. CH's ladder:
 //   1 Common  2 Green  3 Blue   4 Purple 5 Yellow 6 Red     7 FireBlu

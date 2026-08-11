@@ -656,7 +656,7 @@ class RS_HPBar : RS_HPBarBase
 			// bars instantly, without waiting for anything to respawn.
 			//
 			// EDIT AUTHORISED BY THE OWNER, IN SESSION, 2026-08-07. This
-			// file sits under the protected `/systems/monster/**` path and
+			// file sits under the protected `/monsters/**` path and
 			// is not to be touched otherwise; he was asked and answered
 			// "changfe healthbars.zs ... it isnt an actualt monster monster
 			// it is just a zs file under the folder."

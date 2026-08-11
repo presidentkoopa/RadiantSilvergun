@@ -420,7 +420,7 @@ class RS_ReserveSquads : EventHandler
 	}
 
 	// The walk. Eligibility deliberately matches the elite handler's own
-	// gate (zscript/systems/monster/RS_Elite.zs): ISMONSTER alone is not
+	// gate (zscript/monsters/RS_Elite.zs): ISMONSTER alone is not
 	// enough, because decorative map props carry it -- COUNTKILL and not
 	// SPECIAL is what "a real monster the map placed" means here.
 	private void ScanMap()
