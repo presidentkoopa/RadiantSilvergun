@@ -40,6 +40,26 @@ class RS_FXGalleryPedestal : Actor
 	Class<Actor> mShow;
 	int     mReplayTimer;
 
+	// SIZE, READ LIVE FROM rs_fx_gallery_scale. 0 = as the gun draws it.
+	//
+	// Read every respawn rather than captured at Setup, so changing the
+	// cvar re-sizes a gallery that is already up -- you watch the same
+	// effect grow instead of clearing and re-running. That matters because
+	// the whole premise of the catalog is that one sequence serves several
+	// roles at different sizes: muzzle smoke at 0.4 and a smokescreen at
+	// 3.0 are the same eleven frames. A viewer that can only show one size
+	// cannot show the transformation, so it cannot help you decide those
+	// are one entry with two roles rather than two entries.
+	//
+	// A cvar rather than a fourth argument because ConsoleEvent carries
+	// three ints and all three are taken -- axis, theme, and the sentinel
+	// that lets theme 0 (fire) be distinguished from theme omitted.
+	static double GalleryScale()
+	{
+		let cv = CVar.FindCVar("rs_fx_gallery_scale");
+		return cv ? clamp(cv.GetFloat(), 0.0, 16.0) : 0.0;
+	}
+
 	Default
 	{
 		Radius 4;
@@ -81,7 +101,45 @@ class RS_FXGalleryPedestal : Actor
 				a.Vel = (0, 0, 0);
 				a.bNOGRAVITY = true;
 				a.bNOINTERACTION = true;
-				a.A_SetSize(1, 1);
+
+				// COLLISION ONLY. A_SetSize changes radius and height, and
+				// some FX read their own radius when they draw -- so this
+				// shrank the picture as well as the hitbox. Pass the
+				// existing height through and only pin the radius.
+				a.A_SetSize(1, a.Default.Height);
+
+				// SHOW IT THE WAY THE GUN SHOWS IT. Fixed 2026-08-11.
+				//
+				// This spawned every effect RAW, straight off its Default
+				// block -- and the real spawn path does not. MuzzleEffects
+				// spawns a wisp and then calls SetupVisual(0.35, 0.18),
+				// overriding alpha and scale after the fact. So the gallery
+				// drew RS_SmokeWisp at its Default 0.1/0.3 while the gun
+				// drew it at 0.18/0.35: the one tool built to make the
+				// vocabulary visible was showing a picture no weapon in the
+				// mod produces.
+				//
+				// Tagging from that is how a catalog fills up with entries
+				// nobody can reproduce -- the same failure the header
+				// records for the forty "revolver muzzle flashes" that were
+				// voxels, one step further along.
+				let wisp = RS_SmokeWisp(a);
+				if (wisp)
+				{
+					// The gun's own numbers, from RS_FX_HiFiFX.MuzzleEffects.
+					// Hi-Fi tier, because that is the one worth cataloguing.
+					wisp.SetupVisual(0.35, 0.18, 0.0);
+				}
+
+				// Then the caller's size on top, so the same entry can be
+				// looked at as a muzzle detail and as an area effect in one
+				// session. Applied to the raw actor rather than through
+				// SetupVisual, because SetupVisual's A_SetScale is absolute
+				// and only exists on the wisp hierarchy -- anything else in
+				// the registry would silently ignore it.
+				double s = GalleryScale();
+				if (s > 0)
+					a.A_SetScale(s, s);
 			}
 		}
 	}

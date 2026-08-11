@@ -1552,3 +1552,18 @@ server bool rs_crit_monster_sound = false;
 
 
 
+
+// ---- FX gallery -----------------------------------------------------------
+// Size the gallery draws its effects at. 0 = however the gun would draw it,
+// which is the honest default and the one to tag from.
+//
+// Read live, every respawn cycle, so changing it re-sizes a gallery already
+// on screen -- you watch the same sequence become a different thing rather
+// than clearing and re-running. That is the whole point: the catalog's
+// premise is that one sequence serves several roles at different sizes, and
+// a viewer that can only show one size cannot show you that.
+//
+// A cvar and not a fourth argument to rs_fx_gallery because ConsoleEvent
+// carries three ints and all three are taken -- axis, theme, and the
+// sentinel that distinguishes theme 0 (fire) from theme omitted.
+user float rs_fx_gallery_scale = 0.0;
