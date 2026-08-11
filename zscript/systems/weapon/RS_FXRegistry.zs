@@ -53,18 +53,39 @@ class RS_FXEntry : Object
 	int          Themes;      // bitmask of 1 << MTHEME_*
 	int          Axes;        // bitmask of 1 << RS_FXAXIS_*
 
-	static RS_FXEntry Make(Class<Actor> cls, string id, int themes, int axes)
+	// STABLE NAME, added 2026-08-11. Id is the gallery caption -- it has
+	// spaces and "(default)" suffixes in it and is not addressable. An
+	// affix says "muzzlesmoke3" and means one exact entry, so a handle is
+	// a separate, typeable thing: lowercase, [a-z0-9_], never reused.
+	string       Handle;
+
+	// SIZE AND BEHAVIOUR, added 2026-08-11. Axis says WHERE a thing may go;
+	// this says how LOUD it is and whether it bites. Without it a query for
+	// smoke hands a pistol muzzle a card-sized plume, which is the exact
+	// failure the field exists to stop.
+	int          Roles;       // bitmask of 1 << RS_FXROLE_*
+
+	// Trailing defaults so all 37 pre-existing Add() lines compile untouched.
+	static RS_FXEntry Make(Class<Actor> cls, string id, int themes, int axes,
+		string handle = "", int roles = 0)
 	{
 		let e = RS_FXEntry(new("RS_FXEntry"));
 		e.Cls = cls;
 		e.Id = id;
 		e.Themes = themes;
 		e.Axes = axes;
+		e.Handle = handle;
+		e.Roles = roles;
 		return e;
 	}
 
 	bool FitsAxis(int axis) const  { return (Axes & (1 << axis)) != 0; }
 	bool FitsTheme(int theme) const { return (Themes & (1 << theme)) != 0; }
+
+	// Roles == 0 fails EVERY role test, deliberately. An untagged entry is
+	// UNCLASSIFIED, not "suits anything" -- letting a plume nobody has
+	// sized leak into a constrained query is the whole problem.
+	bool FitsRole(int role) const  { return (Roles & (1 << role)) != 0; }
 }
 
 class RS_FXRegistry : Object
@@ -84,6 +105,31 @@ class RS_FXRegistry : Object
 	const RS_FXAXIS_TRAIL      = 7;
 	const RS_FXAXIS_PAYLOAD    = 8;
 	const RS_FXAXIS_COUNT      = 9;
+
+	// ---- ROLE, added 2026-08-11 --------------------------------------
+	// Decidable from Default Scale plus any A_SetScale a class applies to
+	// itself, so it is objective the same way axis is. A class that ramps
+	// across bands sets several bits.
+	const RS_FXROLE_ACCENT   = 0;   // draws at <= 0.5 -- a detail
+	const RS_FXROLE_BODY     = 1;   // 0.5 < scale <= 1.5 -- the normal case
+	const RS_FXROLE_HEADLINE = 2;   // > 1.5 -- an area effect, the event
+
+	// These two are safety rails, not taste. Both are readable from the
+	// class's own states, and a query that cannot exclude them will
+	// eventually hand the player something that fights back.
+	const RS_FXROLE_HOSTILE  = 3;   // damages, or buffs/raises MONSTERS
+	const RS_FXROLE_SPAWNER  = 4;   // its states spawn further actors
+	const RS_FXROLE_COUNT    = 5;
+
+	static string RoleName(int r)
+	{
+		if (r == RS_FXROLE_ACCENT)   return "ACCENT";
+		if (r == RS_FXROLE_BODY)     return "BODY";
+		if (r == RS_FXROLE_HEADLINE) return "HEADLINE";
+		if (r == RS_FXROLE_HOSTILE)  return "HOSTILE";
+		if (r == RS_FXROLE_SPAWNER)  return "SPAWNER";
+		return "?";
+	}
 
 	static string AxisName(int a)
 	{
@@ -130,6 +176,15 @@ class RS_FXRegistry : Object
 		int A_SMOKE = 1 << RS_FXAXIS_SMOKE;
 		int A_PAY   = 1 << RS_FXAXIS_PAYLOAD;
 		int A_PROJ  = 1 << RS_FXAXIS_PROJECTILE;
+		int A_CASING = 1 << RS_FXAXIS_CASING;
+		int A_MUZZ   = 1 << RS_FXAXIS_MUZZLE;
+
+		// Role shorthand, same spirit as the axis aliases above.
+		int R_ACC = 1 << RS_FXROLE_ACCENT;
+		int R_BOD = 1 << RS_FXROLE_BODY;
+		int R_HED = 1 << RS_FXROLE_HEADLINE;
+		int R_HOS = 1 << RS_FXROLE_HOSTILE;
+		int R_SPW = 1 << RS_FXROLE_SPAWNER;
 
 		// --- monster-side puffs -------------------------------------
 		// Every one of these was unreachable by any system before now:
@@ -177,6 +232,57 @@ class RS_FXRegistry : Object
 		Add(outv, "RS_BallisticType1","ballistic 1 (default)",T_IMP,  A_PROJ);
 		Add(outv, "RS_BallisticType2","ballistic 2",          T_IMP,  A_PROJ);
 		Add(outv, "RS_BallisticType3","ballistic 3",          T_FIRE, A_PROJ);
+
+		// ---- GENERATED 2026-08-11 from the FX index -------------------
+		// 39 entries whose axis and role were decided by a SPAWN SITE --
+		// which function spawns them and with what parameters -- rather
+		// than by a class name. Handles are stable and typeable; an affix
+		// naming one of these means that exact entry.
+		//
+		// Themes are left empty unless the CODE proved one. Guessing theme
+		// from a name is what produced forty 'revolver muzzle flashes' that
+		// turned out to be voxels -- see RS_FXGallery's header.
+		//
+		// Full evidence per entry: docs/rs_fx_catalog.md
+		Add(outv, "RS_CasingSmall",  "casing small",   T_IMP, A_CASING, "casing_small",  R_ACC);
+		Add(outv, "RS_CasingRifle",  "casing rifle",   T_IMP, A_CASING, "casing_rifle",  R_ACC);
+		Add(outv, "RS_CasingShell",  "casing shell",   T_IMP, A_CASING, "casing_shell",  R_BOD);
+		Add(outv, "RS_MagDrop",      "magazine drop",  T_IMP, A_CASING, "magdrop",       R_BOD);
+		Add(outv, "RS_BlastSmokeHeavy", "blast smoke heavy", 0, A_SMOKE, "smoke_heavy", R_BOD);
+		Add(outv, "RS_BlastSmoke",      "blast smoke",       0, A_SMOKE, "smoke_blast", R_BOD);
+		Add(outv, "RS_BlastSmokeColumn","blast smoke column",0, A_SMOKE, "smoke_column",R_HED);
+		Add(outv, "RS_BrownVileGas",    "brown vile gas",    0, A_SMOKE | A_TRAIL | A_PUFF, "gas_brown", R_ACC | R_BOD);
+		Add(outv, "RS_BBaronCmonAndSlam","baron ground slam",0, A_SMOKE | A_TRAIL | A_PUFF, "shockwave_ground", R_BOD | R_HED);
+		Add(outv, "RS_BaronOfDirtCH",   "dirt plume",        0, A_SMOKE | A_TRAIL, "dust_plume", R_HED | R_SPW);
+		Add(outv, "RS_BVileCloud2",     "vile afterimage",   0, A_SMOKE | A_TRAIL, "afterimage_vile", R_HED);
+		Add(outv, "RS_DeepCharge1",     "deep charge",       0, A_SMOKE | A_PUFF | A_SPRK, "charge_collapse", R_ACC | R_BOD | R_HED);
+		Add(outv, "RS_FireHand1",       "hand flare",        T_FIRE, A_SMOKE | A_PUFF | A_SPRK, "flare_hand", R_BOD);
+		Add(outv, "RS_HadeAra",         "hade bullet puff",  0, A_PUFF | A_PAY, "puff_hade", R_HED | R_HOS | R_SPW);
+		Add(outv, "RS_BlueGash2",       "blue gash",         0, A_PUFF | A_SPRK | A_TRAIL, "gash_blue", R_BOD);
+		Add(outv, "RS_FrostWingBaron",  "frost mote",        0, A_PUFF | A_SPRK | A_TRAIL, "mote_frost", R_ACC);
+		Add(outv, "RS_FrostWingBaron2", "frost mote bloom",  0, A_PUFF | A_TRAIL, "mote_frost_bloom", R_ACC | R_BOD);
+		Add(outv, "RS_AbyssBaronHandFire3","hand plume",     0, A_PUFF | A_SPRK | A_SMOKE, "plume_hand", R_BOD | R_SPW);
+		Add(outv, "RS_AbyssBaronHandFire2","ice shard burst",T_ICE, A_PUFF | A_SPRK | A_PAY, "burst_ice", R_ACC | R_HOS);
+		Add(outv, "RS_IceStartVile1",   "ice bloom",         0,     A_PUFF | A_SMOKE | A_SPRK, "bloom_ice", R_BOD);
+		Add(outv, "RS_IceStartVile2",   "ice bloom armed",   T_ICE, A_PUFF | A_PAY, "bloom_ice_armed", R_BOD | R_HOS);
+		Add(outv, "RS_IceStartVile3",   "ice bloom armed2",  T_ICE, A_PUFF | A_PAY, "bloom_ice_armed2", R_BOD | R_HOS);
+		Add(outv, "RS_IceStartVile4",   "ice shard",         T_ICE, A_PUFF | A_SPRK, "shard_ice", R_ACC);
+		Add(outv, "RS_FallenFX",        "fallen spark",      0, A_PUFF | A_SPRK | A_TRAIL, "spark_fallen", R_BOD);
+		Add(outv, "RS_PsychicTangleAbyVile2","shard sliver", 0, A_PUFF | A_SPRK, "sliver_shard", R_ACC | R_SPW);
+		Add(outv, "RS_BrightUpVile2",   "stencil burst",     0, A_PUFF | A_SPRK | A_PAY, "burst_stencil", R_BOD | R_HOS);
+		Add(outv, "RS_BlastEmber",      "blast ember",       0, A_SPRK, "ember_blast",      R_ACC);
+		Add(outv, "RS_BlastEmberFast",  "blast ember fast",  0, A_SPRK, "ember_blast_fast", R_ACC);
+		Add(outv, "RS_BlastShrapnel",   "blast shrapnel",    0, A_SPRK, "shrapnel_blast",   R_ACC);
+		Add(outv, "RS_BlastRedFlare",   "blast red flare",   0, A_SPRK | A_PUFF, "flare_red", R_ACC);
+		Add(outv, "RS_BlastFlare",      "blast flare",       0, A_SPRK | A_PUFF, "flare_blast", R_ACC);
+		Add(outv, "RS_ExplosionParticleSpawner","particle burst", 0, A_SPRK, "burst_particles", R_BOD | R_SPW);
+		Add(outv, "RS_VBtrail4",        "vile bolt trail",   0, A_TRAIL | A_SPRK, "trail_vilebolt", R_ACC);
+		Add(outv, "RS_WhiteBaronSliceTrail","slash trail",   0, A_TRAIL, "trail_slash", R_ACC);
+		Add(outv, "RS_GroundRedCyb",    "burning ground",    T_FIRE, A_TRAIL | A_SMOKE | A_PAY, "ground_fire", R_ACC | R_HOS);
+		Add(outv, "RS_SeekerFlare",     "seeker flare",      0, A_TRAIL | A_SPRK, "flare_seeker", R_ACC);
+		Add(outv, "RS_VBtrail2",        "vile trail wide",   0, A_TRAIL | A_SPRK, "trail_vile_wide", R_ACC);
+		Add(outv, "RS_FallenSP",        "fallen smoke",      0, A_TRAIL | A_PUFF | A_SMOKE, "smoke_fallen", R_BOD);
+		Add(outv, "RS_TentacleBall2",   "tentacle ball 2",   T_PLAS, A_PROJ, "proj_tentacle2", R_BOD);
 	}
 
 	// Skips silently if the class does not resolve. A registry that
@@ -184,11 +290,33 @@ class RS_FXRegistry : Object
 	// that quietly holds the rest -- and the gallery makes an absence
 	// obvious the moment anyone looks.
 	private static void Add(out Array<RS_FXEntry> outv, string cls, string id,
-		int themes, int axes)
+		int themes, int axes, string handle = "", int roles = 0)
 	{
 		Class<Actor> c = cls;
 		if (c)
-			outv.Push(RS_FXEntry.Make(c, id, themes, axes));
+			outv.Push(RS_FXEntry.Make(c, id, themes, axes, handle, roles));
+	}
+
+	// -----------------------------------------------------------------
+	// BY NAME. What a hand-authored affix uses when it wants one exact
+	// thing rather than a roll -- "muzzlesmoke3", not "some smoke".
+	//
+	// Linear scan on purpose: this runs at affix-install time, not per
+	// tic, and a flat scan keeps the table reviewable as one block.
+	//
+	// A typo returns null and is SILENT, which is the one real hazard --
+	// an unresolvable CLASS at least disappears from the gallery where it
+	// can be noticed. Handles are checked for duplicates by the gallery's
+	// own audit for that reason.
+	// -----------------------------------------------------------------
+	static RS_FXEntry ByHandle(string h)
+	{
+		if (!h.Length()) return null;
+		Array<RS_FXEntry> all;
+		All(all);
+		for (int i = 0; i < all.Size(); i++)
+			if (all[i].Handle == h) return all[i];
+		return null;
 	}
 
 	// -----------------------------------------------------------------
@@ -198,7 +326,16 @@ class RS_FXRegistry : Object
 	// theme < 0 means "any theme" -- used by the gallery to show
 	// everything that can fill an axis regardless of element.
 	// -----------------------------------------------------------------
-	static void Query(int axis, int theme, out Array<RS_FXEntry> outv)
+	// role is a trailing default so every existing call site is unchanged.
+	// -1 means "any size", which is the old behaviour; pass a real role and
+	// a pistol muzzle stops being offered a card-sized plume.
+	//
+	// noHostile/noSpawner are the safety rails. A generator building an
+	// attack for the PLAYER wants both on: an entry tagged HOSTILE buffs or
+	// raises monsters, and one tagged SPAWNER makes more actors. Neither is
+	// a thing you hand someone by accident.
+	static void Query(int axis, int theme, out Array<RS_FXEntry> outv,
+		int role = -1, bool noHostile = false, bool noSpawner = false)
 	{
 		outv.Clear();
 		Array<RS_FXEntry> all;
@@ -210,6 +347,12 @@ class RS_FXRegistry : Object
 				continue;
 			if (theme >= 0 && !all[i].FitsTheme(theme))
 				continue;
+			if (role >= 0 && !all[i].FitsRole(role))
+				continue;
+			if (noHostile && all[i].FitsRole(RS_FXROLE_HOSTILE))
+				continue;
+			if (noSpawner && all[i].FitsRole(RS_FXROLE_SPAWNER))
+				continue;
 			outv.Push(all[i]);
 		}
 	}
@@ -219,10 +362,11 @@ class RS_FXRegistry : Object
 	// axis alone" -- the four-rung fallback in RS_Weapon then lands on
 	// the gun's own part or the catalog default, so a shot is still
 	// complete.
-	static Class<Actor> Draw(int axis, int theme)
+	static Class<Actor> Draw(int axis, int theme, int role = -1,
+		bool noHostile = false, bool noSpawner = false)
 	{
 		Array<RS_FXEntry> hits;
-		Query(axis, theme, hits);
+		Query(axis, theme, hits, role, noHostile, noSpawner);
 		if (hits.Size() == 0)
 			return null;
 		return hits[random(0, hits.Size() - 1)].Cls;
