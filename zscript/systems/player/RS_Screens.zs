@@ -18,7 +18,7 @@
 // color is DATA (tier words, card tags), never decoration.
 class RS_UIStyle
 {
-	// Forwards to RS_TierPalette -- see RS_PanelController.TierGlow.
+	// Forwards to RS_TierPalette -- the one tier colour ladder.
 	static int TierColor(int tier)
 	{
 		return RS_TierPalette.FontColor(tier);
@@ -104,8 +104,6 @@ class RS_UIHandler : EventHandler
 	// canvas-painting half went with them: it displayed through
 	// billboard payload 1 (texture), which needs TextureID.GetIndex(),
 	// and that native still does not exist in ZScript. In-world screens
-	// now live in zscript/systems/ui/RS_BillboardUI.zs and are built
-	// from payloads that need no texture handle.)
 
 	// Reroll cost escalation: 5 << rsRerolls (5/10/20/40...), tracked on
 	// the giver itself (fresh giver per offer = automatic reset).
@@ -844,9 +842,6 @@ class RS_UIHandler : EventHandler
 		// had been "verified against the engine tree"; they had not.
 		//
 		// The in-world UI lives in zscript/systems/ui/ now:
-		// RS_Billboard wraps the natives with handle lifetimes, and
-		// RS_BillboardUI puts the level-up card picker and the weapon
-		// status sheet in the world where this was only ever pretending to.
 		else if (evt.name == "rs-ui-repair-menu")
 		{
 			BuildCurseRepair(pawn, evt.args[0]);
