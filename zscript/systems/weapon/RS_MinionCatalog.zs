@@ -267,4 +267,52 @@ class RS_MinionCatalog
 		if (n <= 0) return "";
 		return BestFor(budget / n, family, flyingOnly);
 	}
+
+	// -----------------------------------------------------------------
+	// Reverse lookup: what family is this actor? Asked by affixes that
+	// want to raise the kind of thing you just killed -- kill an imp,
+	// get an imp -- rather than whatever the budget happens to top out
+	// at. Exact class match first; failing that, walk the inheritance
+	// chain, because Colourful Hell's colourset variants are subclasses
+	// of the vanilla monster and the catalog only names the variants.
+	// "" if this actor is nothing the catalog knows.
+	// -----------------------------------------------------------------
+	static string FamilyOf(Actor a)
+	{
+		if (!a) return "";
+
+		Array<string> c; Array<int> co; Array<string> f;
+		Array<int> h; Array<int> w; Array<bool> fl;
+		Build(c, co, f, h, w, fl);
+
+		string mine = a.GetClassName();
+		for (int i = 0; i < c.Size(); i++)
+			if (c[i] ~== mine) return f[i];
+
+		// Not a catalog class by name. Try ancestry -- a CH variant we
+		// never listed still resolves to the family we did list.
+		for (int i = 0; i < c.Size(); i++)
+		{
+			Class<Actor> k = c[i];
+			if (k && a is k) return f[i];
+		}
+		return "";
+	}
+
+	// The cheapest thing in a family, which is what a low-budget affix
+	// wants when it is trying to match the victim rather than max out.
+	static string CheapestIn(string family)
+	{
+		Array<string> c; Array<int> co; Array<string> f;
+		Array<int> h; Array<int> w; Array<bool> fl;
+		Build(c, co, f, h, w, fl);
+
+		string best = ""; int bestCost = 0;
+		for (int i = 0; i < c.Size(); i++)
+		{
+			if (family != "" && f[i] != family) continue;
+			if (best == "" || co[i] < bestCost) { best = c[i]; bestCost = co[i]; }
+		}
+		return best;
+	}
 }
