@@ -1,8 +1,26 @@
 // =====================================================================
-// RS_FXRegistry -- the FX catalog as DATA, not as if-chains.
+// RS_FXRegistry -- THE RUNTIME QUERY INDEX.
 // ---------------------------------------------------------------------
 // Built 2026-08-08 at the owner's direction: "the work needs to be done
 // the hard way, we need a solid foundation."
+//
+// WHERE THIS SITS, because three files in this folder have catalog-ish
+// names and only one of them is this:
+//
+//   RS_Catalog       author-time named constants (PROJ_Ballistic,
+//                    SCALE_Pellet). A weapon calls them BY NAME at
+//                    compile time. Nothing queries it.
+//   RS_PACKCatalog   the 409 monster attacks, damage and speed intact.
+//                    Zero actor overlap with either other file.
+//   RS_FXRegistry    THIS. Every FX tagged by axis, role and theme, so
+//                    a caller can ask for a KIND of thing -- "a
+//                    headline fire trail" -- instead of naming one.
+//
+// This file is a SIBLING of RS_PACKCatalog, not a child. That file's
+// header used to claim it was the single door to all PACK ingredients;
+// the claim was deleted 2026-08-11 because it was false and because it
+// read as permission to stop looking, which is how a 105-card set got
+// built against this index while those 409 attacks went unreached.
 //
 // ---------------------------------------------------------------------
 // WHY THE IF-CHAINS COULD NEVER WORK
@@ -408,6 +426,43 @@ class RS_FXRegistry : Object
 		Add(outv, "RS_ST_Burn",                        "st burn",                   T_FIRE, A_TRAIL, "st_burn", R_BOD);
 		Add(outv, "RS_ST_Push",                        "st push",                   T_IMP, A_TRAIL, "st_push", R_BOD);
 		Add(outv, "RS_ST_StickyProjectile",            "st sticky projectile",      T_IMP, A_TRAIL, "st_sticky_projectile", R_BOD);
+
+		// -------------------------------------------------------------
+		// THE IMPORTED SETS' OWN PARTS (GH and PS).
+		//
+		// RS_Catalog named these 26 and this index did not, which meant a
+		// card asking for a projectile or a casing could never draw
+		// anything belonging to the GH or PS weapon sets -- the two
+		// largest imported arsenals in the mod. Found by diffing the two
+		// files' actor lists: 51 actors were in both, 26 were in Catalog
+		// alone, and every one of those 26 was GH or PS.
+		// -------------------------------------------------------------
+		Add(outv, "RS_GH_BFGShot",          "gh bfg shot",       T_PLAS, A_PROJ, "gh_bfg_shot", R_HED);
+		Add(outv, "RS_GH_FlameJet",         "gh flame jet",      T_FIRE, A_PROJ | A_PAY, "gh_flame_jet", R_BOD | R_HOS);
+		Add(outv, "RS_GH_GrenadeLaunched",  "gh grenade",        T_IMP,  A_PROJ | A_PAY, "gh_grenade_launched", R_BOD | R_SPW);
+		Add(outv, "RS_GH_GrenadeThrown",    "gh grenade thrown", T_IMP,  A_PROJ | A_PAY, "gh_grenade_thrown", R_BOD | R_SPW);
+		Add(outv, "RS_GH_PlasmaShot",       "gh plasma shot",    T_PLAS, A_PROJ, "gh_plasma_shot", R_BOD);
+		Add(outv, "RS_GH_UnmakerShot",      "gh unmaker shot",   T_VOID, A_PROJ, "gh_unmaker_shot", R_BOD);
+		Add(outv, "RS_PS_BFGShot",          "ps bfg shot",       T_PLAS, A_PROJ, "ps_bfg_shot", R_HED);
+		Add(outv, "RS_PS_BFGExtra",         "ps bfg spray",      T_PLAS, A_SPRK | A_PAY, "ps_bfg_spray", R_ACC);
+		Add(outv, "RS_PS_PlasmaShot",       "ps plasma shot",    T_PLAS, A_PROJ, "ps_plasma_shot", R_BOD);
+		Add(outv, "RS_PS_PlasmaParticle",   "ps plasma mote",    T_PLAS, A_SPRK, "ps_plasma_mote", R_ACC);
+		Add(outv, "RS_PS_Rocket",           "ps rocket",         T_IMP,  A_PROJ, "ps_rocket", R_BOD);
+		Add(outv, "RS_PS_RocketTrail",      "ps rocket trail",   T_IMP,  A_TRAIL, "ps_rocket_trail", R_ACC);
+		Add(outv, "RS_PS_FireTrail",        "ps fire trail",     T_FIRE, A_TRAIL, "ps_fire_trail", R_ACC);
+		Add(outv, "RS_PS_Explosion",        "ps explosion",      T_IMP,  A_PAY, "ps_explosion", R_HED);
+		Add(outv, "RS_PS_ExplosionFire",    "ps fire explosion", T_FIRE, A_PAY, "ps_explosion_fire", R_HED);
+		Add(outv, "RS_PS_ExplosionFireSmall","ps fire burst",    T_FIRE, A_PAY | A_SPRK, "ps_explosion_fire_small", R_BOD);
+		Add(outv, "RS_PS_BlastSmoke",       "ps blast smoke",    T_IMP,  A_SMOKE, "ps_blast_smoke", R_BOD);
+		Add(outv, "RS_PS_BlastSmokeSmall",  "ps blast smoke sm", T_IMP,  A_SMOKE, "ps_blast_smoke_small", R_ACC);
+		Add(outv, "RS_PS_BlastSmokeTiny",   "ps blast smoke tn", T_IMP,  A_SMOKE, "ps_blast_smoke_tiny", R_ACC);
+		Add(outv, "RS_PS_SmokePillar",      "ps smoke pillar",   T_IMP,  A_SMOKE, "ps_smoke_pillar", R_HED);
+		Add(outv, "RS_PS_Shrapnel",         "ps shrapnel",       T_IMP,  A_SPRK, "ps_shrapnel", R_BOD);
+		Add(outv, "RS_PS_ShrapnelSmall",    "ps shrapnel small", T_IMP,  A_SPRK, "ps_shrapnel_small", R_ACC);
+		Add(outv, "RS_PS_HitPuff",          "ps hit puff",       T_IMP,  A_PUFF, "ps_hit_puff", R_BOD);
+		Add(outv, "RS_PS_SawPuff",          "ps saw puff",       T_IMP,  A_PUFF | A_SPRK, "ps_saw_puff", R_ACC);
+		Add(outv, "RS_PS_CasingRifle",      "ps rifle brass",    T_IMP,  A_CASING, "ps_casing_rifle", R_ACC);
+		Add(outv, "RS_PS_CasingShell",      "ps shotgun shell",  T_IMP,  A_CASING, "ps_casing_shell", R_ACC);
 	}
 
 	// Skips silently if the class does not resolve. A registry that

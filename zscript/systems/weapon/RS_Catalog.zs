@@ -1,5 +1,22 @@
 // =====================================================================
-// RS_Catalog -- the projectile / sound / effect database.
+// RS_Catalog -- AUTHOR-TIME NAMED CONSTANTS. Not an index.
+// ---------------------------------------------------------------------
+// Read this first, because the name is misleading and cost a day:
+// nothing QUERIES this file. It exposes named accessors -- PROJ_Ballistic(),
+// SND_Revolver_Resolve(), SCALE_Pellet, ScaleForArchetype() -- that a
+// weapon calls BY NAME at compile time inside BuildAttackProfiles. 60+
+// weapon files depend on those exact names.
+//
+// The runtime index is RS_FXRegistry, which tags actors by axis, role
+// and theme so a card can ask for a kind of thing rather than a
+// specific one. 51 of the actors named here also appear there; that is
+// not duplication, it is the same actor with a name here and tags
+// there. The 26 that were here and NOT there -- every GH and PS part --
+// were added to the registry 2026-08-11, because until then no card
+// could draw anything belonging to either imported weapon set.
+//
+// The third file is RS_PACKCatalog, the 409 monster attacks. Zero
+// actor overlap with this file.
 // ---------------------------------------------------------------------
 // See docs/catalog_notes.txt. The rule: an imported weapon does NOT own
 // its attack. Its projectile, sounds, and effects are extracted into

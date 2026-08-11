@@ -1,16 +1,41 @@
 // =====================================================================
-// RS_PACKCatalog -- THE SINGLE SOURCE FOR PACK INGREDIENTS.
+// RS_PACKCatalog -- THE MONSTER ATTACK DATABASE.
 // ---------------------------------------------------------------------
 // PACK = Profile Attack Creation Kit. A profile is EIGHT AXES:
 //
 //   1 Projectile   2 Casing       3 Muzzleflash   4 BarrelSmoke
 //   5 FireSound    6 ImpactPuff   7 ImpactSparks  8 Trail
 //
-// ASK THIS CLASS FOR ANYTHING PACK. That is the point of the file:
-// one door, one owner. Axes 1 and 5 are sourced from the monster tree
-// below. The other six are thin passthroughs to RS_Catalog, whose
-// entries are re-exposed here unchanged, so no caller ever needs to
-// know there are two catalogs and no second copy exists to drift.
+// WHAT THIS FILE OWNS: axes 1 and 5, sourced from the monster tree --
+// the 409 attacks below. The other six are thin passthroughs to
+// RS_Catalog, re-exposed unchanged so no second copy exists to drift.
+//
+// WHAT IT DOES NOT OWN, stated because this header used to claim
+// otherwise. It said "ASK THIS CLASS FOR ANYTHING PACK -- one door, one
+// owner", and that stopped being true the day RS_FXRegistry was written.
+// The registry is a SIBLING, not a child: this file references it zero
+// times, it references this one only to borrow the eight theme
+// constants, and PACKAssembly reads BOTH -- projectile and sound from
+// here, sparks and smoke and trail from there.
+//
+// The claim is deleted rather than repaired because it did real damage:
+// it read as permission to stop looking, so a whole card set was built
+// against the registry without anyone noticing these 409 attacks were
+// sitting one file over, unreached. A header that overstates its reach
+// is worse than no header.
+//
+// THE THREE FILES AND THEIR ACTUAL JOBS -- author-time, attack data,
+// runtime query. Three verbs, not three copies:
+//
+//   RS_Catalog       named constants a WEAPON authors its shot from at
+//                    compile time (PROJ_Ballistic, SCALE_Pellet). 60+
+//                    weapon files depend on those names.
+//   RS_PACKCatalog   this file. The 409 monster attacks, damage and
+//                    speed as written. Zero actor overlap with either
+//                    of the other two.
+//   RS_FXRegistry    the runtime query index. Every FX tagged by axis,
+//                    role and theme so a CARD can ask for "a headline
+//                    fire trail" and get one.
 //
 // AXES A CARD DOES NOT NAME ARE LEFT ALONE, deliberately. Untouched
 // means "keep the gun's own": RS_Weapon resolves every axis as

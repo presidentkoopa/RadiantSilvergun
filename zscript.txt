@@ -55,13 +55,21 @@ version "4.14"
 #include "zscript/systems/weapon/RS_Minion.zs"
 // The costed roster RS_Minion.Summon draws from -- 143 summon-safe classes,
 // generated from the family census. Bosses, pain elementals and archviles are
-// deliberately absent; docs/rs_payload_bestiary.md says why.
+// RS_MinionCatalog -- 143 summon-safe monsters, costed and family-tagged.
 #include "zscript/systems/weapon/RS_MinionCatalog.zs"
+// RS_Catalog -- the named constants a WEAPON authors its shot from at
+// compile time (PROJ_Ballistic, SND_*, SCALE_*). 60+ weapon files
+// reference these names; it is not an index and nothing queries it.
 #include "zscript/systems/weapon/RS_Catalog.zs"
-// RS_PACKCatalog -- THE single source for PACK ingredients, all 8 axes.
-// 409 monster projectiles on axis 1 and the themed fire sounds on axis 5,
-// both generated from zscript/monsters/**; axes 2/4/6/7/8 are passthroughs
-// to RS_Catalog above, so callers only ever touch this one class.
+// RS_PACKCatalog -- the MONSTER ATTACK database. 409 attacks on axis 1
+// and the themed fire sounds on axis 5, both generated from
+// zscript/monsters/**; axes 2/4/6/7/8 are passthroughs to RS_Catalog.
+//
+// This comment used to say "THE single source for PACK ingredients, all
+// 8 axes... callers only ever touch this one class." That was true when
+// written and false the moment RS_FXRegistry existed. Corrected rather
+// than left, because the overstatement is what let a 105-card set get
+// built against the registry while these 409 attacks went unreached.
 // Must load AFTER RS_Catalog (it calls into it) and after RS_AttackProfile
 // (ApplyTheme takes one). Ahead of the monster families is fine -- it names
 // their classes as strings, which resolve at spawn, not at compile.
