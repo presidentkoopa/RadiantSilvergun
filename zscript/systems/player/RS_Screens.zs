@@ -599,7 +599,7 @@ class RS_UIHandler : EventHandler
 
 
 	// -----------------------------------------------------------------
-	// S6 -- THE DROP TRIPTYCH.
+	// S6 -- THE DROP COMPARISON.
 	//
 	// The first screen that answers a QUESTION instead of reporting a
 	// state. The weapon sheet says what a gun is; this says whether to
@@ -618,7 +618,7 @@ class RS_UIHandler : EventHandler
 	// is data, not draw calls.
 	// -----------------------------------------------------------------
 
-	// One triptych cell. An absent hand renders as a dash and never as a
+	// One comparison cell. An absent hand renders as a dash and never as a
 	// zero: an empty hand is not a weapon that scores nothing.
 	static string TriCell(double v, bool present, int decimals = 0)
 	{
@@ -660,7 +660,7 @@ class RS_UIHandler : EventHandler
 			TriVerdict(drop, off, hasOff, main, hasMain));
 	}
 
-	void BuildDropTriptych(PlayerPawn pawn, Weapon drop)
+	void BuildDropCompare(PlayerPawn pawn, Weapon drop)
 	{
 		ClearModel();
 
@@ -957,7 +957,7 @@ class RS_UIHandler : EventHandler
 			if (players[consoleplayer].mo == pawn)
 				Menu.SetMenu("RSDynamicSheet");
 		}
-		else if (evt.name == "rs-ui-triptych")
+		else if (evt.name == "rs-ui-drop-compare")
 		{
 			// Dev harness for the drop comparison until the drop system
 			// has a real dropped weapon to hand it. Judges the named
@@ -968,7 +968,7 @@ class RS_UIHandler : EventHandler
 			let w = HandWeapon(pawn, evt.args[0]);
 			if (w)
 			{
-				BuildDropTriptych(pawn, w);
+				BuildDropCompare(pawn, w);
 				if (players[consoleplayer].mo == pawn)
 					Menu.SetMenu("RSDynamicSheet");
 			}

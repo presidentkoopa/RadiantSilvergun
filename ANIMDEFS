@@ -1,59 +1,22 @@
 // =====================================================================
-// RS canvas textures -- drawable surfaces for in-world UI billboards.
-// ZScript draws on these with the full Font/Screen API
-// (TexMan.GetCanvas in RS_UI.zs), and the engine's billboard renderer
-// displays them in the world as depth-sorted camera-facing quads
-// (payload BB_TEXTURE). One canvas per concurrently-visible panel.
+// RS canvas textures.
+//
+// EMPTY ON PURPOSE. Everything that used to be declared here -- one
+// weapon-card canvas, nine in-world panel faces, and one shared drop
+// beam -- belonged to the card and billboard system, which is gone.
+// Verified before removal: not one of the eleven names was referenced
+// anywhere outside this file.
+//
+// ONE FINDING WORTH KEEPING, because it cost a day to establish and
+// would cost another to re-establish. A canvas texture applied to an
+// actor via picnum + RF_FLATSPRITE RENDERS NOTHING. Confirmed in the
+// running game 2026-08-08 by spawning two identical actors in the same
+// tic at the same spot, one on a canvas texture and one on the wall
+// texture BROWN1: the wall texture drew, the canvas did not, with a
+// valid picnum, alpha 1, bInvisible false, and the correct scaled size
+// all printed at spawn.
+//
+// So if in-world drawable surfaces are ever wanted again, canvases on
+// flat sprites are not the route -- that path was never visible, and
+// nothing built on it ever worked.
 // =====================================================================
-
-// The weapon card -- 2:3 portrait, drawn by RS_UIHandler.RenderOverlay.
-canvastexture "RSCARDA" 256 384
-
-// ---------------------------------------------------------------------
-// In-world panel faces (RS_Panel / RS_DropTriptych). 320x640, 1:2
-// portrait -- taller than RSCARDA because a panel you lean toward and
-// read carries far more than one pinned to your face, and the drop
-// comparison wants every row it can get.
-//
-// NINE, because a stacked triptych is three weapons x three blocks
-// (core stats, affixes, identity). Tall mode uses the first three and
-// leaves the rest unbound, which costs nothing: a canvas is only
-// rendered when something dirties it.
-//
-// One canvas PER PANEL is the simple shape and the right one at this
-// count. It does not scale indefinitely -- binding a canvas as a
-// material re-dirties it, so every visible canvas costs an offscreen
-// render-target switch per frame. If the live panel count ever grows
-// past a few dozen, the answer is one atlas canvas with per-panel UV
-// subrects, not ninety of these.
-// ---------------------------------------------------------------------
-canvastexture "RSPNL01" 320 640
-canvastexture "RSPNL02" 320 640
-canvastexture "RSPNL03" 320 640
-canvastexture "RSPNL04" 320 640
-canvastexture "RSPNL05" 320 640
-canvastexture "RSPNL06" 320 640
-canvastexture "RSPNL07" 320 640
-canvastexture "RSPNL08" 320 640
-canvastexture "RSPNL09" 320 640
-
-// The drop marker beam. ONE canvas shared by every beam in the map --
-// it is painted once, as a white vertical gradient, and each beam
-// panel tints it per weapon tier through fillcolor + AddStencil. So a
-// map full of drops costs one canvas, not one per drop.
-// 32 wide is deliberate: the beam is thin in the world and stretching
-// a narrow texture across it wastes nothing.
-// *** NOTHING DRAWS THIS ANY MORE, AND THAT IS A FINDING, NOT A TIDY-UP.
-// Verified in the running game 2026-08-08: a canvas texture on an
-// RS_Panel (picnum + RF_FLATSPRITE) RENDERS NOTHING. A probe spawned two
-// panels in the same tic at the same spot, one on RSPNLBM and one on the
-// wall texture BROWN1; the wall texture drew and the canvas did not,
-// with a valid picnum, alpha 1, bInvisible false and the right scaled
-// size all printed from the spawn. So the drop pillar has never been
-// visible since it was written, and it is now three ordinary sprites in
-// sprites/rs_dropfx/ instead (see RS_DropGlyph).
-//
-// The declaration stays because the CARD path still uses canvases and
-// this is the evidence for whoever fixes it -- deleting it would delete
-// the repro.
-canvastexture "RSPNLBM" 32 256
