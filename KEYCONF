@@ -53,7 +53,6 @@ defaultbind U rs_ui_debug
 // This is the FLAT-PLAY route and the universal fallback. In VR the
 // primary confirm is the weapon trigger itself, captured in
 // VR_DualClassBase.PlayerThink -- no bind, and it does not fire the
-// gun. See RS_PanelInput.zs.
 // ---------------------------------------------------------------------
 
 // Dismiss the card without taking anything. Same panel, opposite
@@ -63,7 +62,6 @@ defaultbind U rs_ui_debug
 
 
 // ---------------------------------------------------------------------
-// IN-WORLD SCREENS (zscript/systems/ui/RS_BillboardUI.zs)
 //
 // The level-up card picker and the weapon status sheet, rendered as
 // engine billboards in the world instead of as flat menus that pause

@@ -32,7 +32,7 @@ version "4.14"
 // have resurrected a dead system on top of its own replacement. The
 // same block also claimed a dependency on RS_MonsterMaster, a class
 // deleted in the same sweep; RS_SystemsMaster.zs replaced it.)
-#include "zscript/systems/monster/RS_HealthBars.zs"
+#include "zscript/monsters/RS_HealthBars.zs"
 
 // Must load after RS_Weapon.zs and VR_PlayerClasses.zs (needs GetFamily()
 // on both) -- ZScript compiles as one unit so include order doesn't
@@ -77,16 +77,16 @@ version "4.14"
 // RS_NoHitscan: intercepts WorldHitscanPreFired and flies a projectile
 // down the line the hitscan would have taken. Touches none of the 163
 // hitscan call sites in this tree -- see the file header.
-#include "zscript/systems/monster/RS_NoHitscan.zs"
+#include "zscript/monsters/RS_NoHitscan.zs"
 
 // RS_Elite: hidden elite monsters. Marked at spawn with boosted HP,
 // reveal at 50% health -- full heal, double aggression, type powers.
 // The seventeen types (C01-C17) live in RS_EliteColors.zs, their
 // support actors in RS_EliteFX.zs; the token wakes the controller.
 // RS_EliteHandler must ALSO be in MAPINFO.txt's AddEventHandlers.
-#include "zscript/systems/monster/RS_Elite.zs"
-#include "zscript/systems/monster/RS_EliteColors.zs"
-#include "zscript/systems/monster/RS_EliteFX.zs"
+#include "zscript/monsters/RS_Elite.zs"
+#include "zscript/monsters/RS_EliteColors.zs"
+#include "zscript/monsters/RS_EliteFX.zs"
 
 // --- Monsters ---
 // CH Zombieman family, rebuilt native 2026-08-05 from
@@ -99,7 +99,7 @@ version "4.14"
 #include "zscript/monsters/zombieman/RS_Zombieman.zs"
 // Starting roster cap, per family. Reads each dial's own weights at
 // runtime; see the file header for why it carries no table of its own.
-#include "zscript/systems/roster/RS_Roster.zs"
+#include "zscript/monsters/RS_Roster.zs"
 // RS_MG monster set -- rebuilt native from MeatGrinder V2C. Gore first:
 // the monsters name these classes by string. NOTHING here uses `replaces`,
 // so the CH coloursets keep their slots; spawn by name to test.
@@ -288,82 +288,7 @@ version "4.14"
 // branch stopped the ENTIRE mod compiling: 17 monster families, every
 // weapon, the lot, taken down by four unresolved names in a demo.
 
-// --- IN-WORLD PANELS -------------------------------------------------
-// The diegetic UI lane: world-oriented textured quads that can be
-// HINGED to each other at arbitrary angles, so a card can be a folding
-// triptych instead of a single flat billboard.
-//
-// Built entirely on stock engine behaviour -- RF_FLATSPRITE composes
-// its quad from the actor's own yaw/pitch/roll with no view vector, and
-// Actor.picnum takes a canvas TextureID as a direct texture override.
-// No engine call is involved and nothing here requires a custom build.
-// A native primitive replaces the BACKEND later for scale and for the
-// aim ray; the API in these files is the one it keeps.
-//
-// RS_PanelHandler and RS_PanelDropHandler must ALSO be listed in
-// MAPINFO.txt's AddEventHandlers -- a name there with no class is a
-// hard crash at map load, and a class with no name there compiles and
-// silently never runs.
-// RS_Billboard -- the script wrapper over the engine's billboard
-// primitive (AddBillboardPersistent / AttachBillboard / AimBillboard /
-// TouchBillboard, doombase.zs:536-582 in E:\UZDXREMA, THE engine this
-// mod is built for). Handles are not actors and nothing collects them,
-// so every handle lives in an object with a Release().
-//
-// One engine gap remains, and it is not this file's fault: payload 1
-// (texture) needs TextureID.GetIndex(), which the billboard API's own
-// comment references but which is not exposed to ZScript. The screens
-// below are built from payloads 0/2/3/4/5 and do not need it; canvas
-// art on a billboard will.
-// The level-up card picker and the weapon status sheet, IN THE WORLD.
-// RS_BBUIHandler must ALSO be in MAPINFO.txt's AddEventHandlers.
 
-// Build a panel out of the engine's billboard payloads instead of painting
-// a canvas. A composed panel costs no canvastexture, which is what lifts the
-// ceiling on how many cards can be on screen at once. After RS_Billboard,
-// whose group type it fills.
-// WHAT AN OFFER CARD SAYS, as plain data -- one list of lines, chosen
-// per weapon, each carrying a coloured delta against the gun in hand.
-// Rows that cannot differ for a given weapon are not emitted at all,
-// which is the whole difference from the fixed 4x3 grid below.
-//
-// BEFORE RS_BBWeaponCard because it reads StatRGB from it, and after
-// nothing in particular -- ZScript compiles as one unit, so this order
-// is for the reader. It does need to BE here: a .zs file missing from
-// this list SILENTLY does not exist.
-// The IMPRINT offer card. Its own file rather than a branch inside
-// RS_BBWeaponCard because the two show different things for a reason: a
-// class weapon replaces nothing, so that card has no comparison, while an
-// imprint lands on ONE hand and the mainhand-vs-offhand comparison IS the
-// decision. Two layouts inside it, picked by rs_imprintcard_style.
-//
-// A .zs file that is not in this list SILENTLY DOES NOT EXIST -- no error,
-// no warning, the classes are just absent. Forgotten twice in this project.
-// The weapon level-up offer (zscript/LevelUpTemplate.txt), composed the
-// same way: one panel per card, two arrangements behind
-// rs_levelupcard_style. Card COUNT is RS_AffixInstall.CardsForWeapon --
-// 1 to 8, not 3 -- and both layouts are solved across that whole range.
-// Forward-references RS_AffixInstall (included further down); that is
-// fine and is the same shape as RS_BBWeaponCard reaching
-// RS_GunBonsaiBridge from here.
-// The GunBonsai STATUS screen, in the world -- what the flat
-// TFLV_Menu_StatusDisplay / TFLV_Menu_UnifiedStatusDisplay pair shows in
-// one scrolling column, dealt as a deck instead: a card per SUBJECT
-// (player, mainhand, offhand), a card per PAGE of each subject's upgrade
-// bag, and the mainhand's Legendoom effects when it has any.
-//
-// It does NOT carry a third layout engine: RS_BBStatusScreen subclasses
-// RS_BBLevelUpScreen and reuses its fan/grid solver, its per-tic Place
-// and its Close, so both decks arrange the same way and there is one
-// piece of arithmetic to get right rather than two. After
-// RS_BBLevelUpCard for that reason, and it also reaches
-// RS_BBImprintCard's greys and RS_BBLevelUpCard.SegmentSafe -- all
-// forward/backward references that ZScript resolves as one unit, the
-// same shape as RS_BBWeaponCard reaching RS_GunBonsaiBridge from here.
-//
-// Nothing calls it yet. The hookup (RS_UIHandler.CycleSheets, one
-// branch) is written up at the bottom of the file and is the owner's
-// call, not this file's.
 
 // The confirm button. No event handler and no MAPINFO line -- it is
 // called from VR_DualClassBase.PlayerThink, because WorldTick is too
@@ -371,27 +296,7 @@ version "4.14"
 // The payout the elite system never had. RS_Elite.zs's own header calls
 // the drop "a later step"; this is it.
 #include "zscript/systems/ui/RS_EliteDrop.zs"
-// Spawns a populated drop on demand. RS_WeaponDrop.Create is otherwise
-// reachable only from the elite death path, so there was no way to look at
-// a card without hunting an elite first.
 
-// RS_Slate -- THE PANEL. One in-world screen class: five regions, six
-// row types, shape says what kind and colour says how good. Ten content
-// sets become ten functions that fill a list, so no screen ever writes
-// panel code again.
-//
-// It SUPERSEDES RS_PanelCard, RS_BBWeaponCard, RS_DropTriptych,
-// RS_BillboardUI's two screens and RS_Screens' in-world builders --
-// none of which are deleted, because deleting them is the owner's call.
-// The offer's auto-raise refuses to arm while the old drop card is
-// enabled, so the two can never both be up. See the file header.
-//
-// After RS_EliteDrop: it reads RS_WeaponDrop's payload. (ZScript
-// compiles as one unit so the order does not actually matter -- this is
-// for the reader.)
-//
-// RS_SlateHandler must ALSO be in MAPINFO.txt's AddEventHandlers. A
-// handler class not named there compiles fine and silently never runs.
 
 // Twin weapon wheel PROOF OF CONCEPT -- disposable; see file header.
 // RS_WheelHandler must also be in MAPINFO's AddEventHandlers.
@@ -418,13 +323,6 @@ version "4.14"
 // Weapon tempaltes moved here for file organization
 #include "zscript/weapons/RS_Weapon.zs"
 
-// IMPRINTS -- the elite payout after the six-weapon set is complete: a
-// rolled stat package applied to a gun the player already owns. Must
-// load after RS_Weapon.zs (it reads and writes the rolled stat fields
-// and calls CanAcceptImprint / ResetDamageBaseline). Also reached from
-// RS_EliteDrop.zs, which is included earlier -- fine, ZScript resolves
-// class references across the whole unit, but the DECLARATION belongs
-// next to the thing it extends.
 
 // The parts bin for AFFIXES (not attacks) plus the generator that
 // assembles them -- picks eligible ingredients, tracks a running power
@@ -438,37 +336,11 @@ version "4.14"
 #include "zscript/systems/weapon/RS_FXRegistry.zs"
 #include "zscript/systems/weapon/RS_FXGallery.zs"
 
-// Universal hit-location scoring. No monster table -- the head box is
-// measured off the sprite actually being drawn. Paired with
-// RS_HeadshotHandler in MAPINFO.txt's AddEventHandlers.
-#include "zscript/systems/weapon/RS_Headshot.zs"
-
 // Crit VISIBILITY (tints a rolled crit round in flight) plus the
 // monster-crits-on-player half, which ships OFF. The crit ROLL itself
 // lives on RS_Weapon and is not touched. RS_CritHandler must ALSO be in
 // MAPINFO.txt's AddEventHandlers.
 #include "zscript/systems/weapon/RS_Crits.zs"
-
-// DAMAGE NUMBERS. Listed HERE, next to its only two producers, rather
-// than up in the systems/ui block where its path would put it -- the
-// file draws a number but everything that decides what the number SAYS
-// (headshot quality, the crit flag, significance) is resolved in
-// RS_Headshot.zs's ModifyDamage, which is the single emit site. See
-// docs/rs_damage_numbers_spec.md.
-//
-// A .zs FILE THAT IS NOT IN THIS LIST SILENTLY DOES NOT EXIST -- no
-// error, no warning, the classes simply are not there. Forgotten twice
-// in this repo already; this line is the whole reason the feature is
-// reachable at all.
-//
-// IF RS_DamageNumber.zs DECLARES AN EventHandler (the spec's live-count
-// cap keeper is one), ITS NAME MUST ALSO GO IN MAPINFO.txt's
-// AddEventHandlers -- a handler class not named there compiles fine and
-// silently never runs. Nothing is registered for it there yet, on
-// purpose: a name listed with no matching class is a HARD CRASH at map
-// load, and at the time this include was added the file did not exist
-// to read a class name out of.
-#include "zscript/systems/ui/RS_DamageNumber.zs"
 
 // --- RS set (original Dual_Class weapons, basically our main focus for the 'game') ---
 #include "zscript/weapons/rs_weapon/RS_Fist.zs"
@@ -632,24 +504,4 @@ version "4.14"
 #include "zscript/systems/score/RS_ScoreLives.zs"
 #include "zscript/systems/score/RS_ScoreRevival.zs"
 
-// THE THREE DISPOSABLE INSTRUMENTS ARE GONE. 2026-08-07, owner ruling,
-// and the previous commit message had already said they "MUST COME OUT
-// BEFORE SHIP":
-//
-//   RS_WeaponDiag  -- raise/lower diagnostic. Printed 10-25 console
-//                     lines at the start of EVERY map.
-//   RS_RollProbe   -- measured AttackRoll/OffhandRoll for the wheel
-//                     design. Nothing in this mod has ever read those.
-//   RS_WheelPoC    -- the twin weapon wheel proof-of-concept, which
-//                     disproved itself: its header claims WorldTick runs
-//                     before player thinkers so it can eat the input,
-//                     and the engine does the opposite (p_tick.cpp:175
-//                     then :178). The wheel could not stop your guns
-//                     firing while it was open, which is the one thing
-//                     it had to do. If a wheel is built again it belongs
-//                     in PlayerThink like RS_PanelInput and the grenade.
-//
-// Files deleted, MAPINFO names removed in the same change (a name there
-// with no class is a hard crash at map load), and their V / J / K
-// default binds freed in KEYCONF.
 

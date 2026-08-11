@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(Get-Item *)",
+      "PowerShell(Get-ItemProperty *)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(Select-String *)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(Get-FileHash *)",
+      "PowerShell(Resolve-Path *)",
+      "PowerShell(Compare-Object *)",
+      "PowerShell(Measure-Object *)"
+    ]
+  }
+}

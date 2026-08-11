@@ -1117,9 +1117,6 @@ server int rs_reserve_elite_mode = 0;
 server bool rs_reserve_allow_boss = false;
 
 // =====================================================================
-// IN-WORLD PANELS -- the diegetic UI lane (RS_Panel / RS_DropTriptych).
-// Layout policy only; the panel primitive itself holds no opinions.
-// =====================================================================
 
 
 
@@ -1492,47 +1489,10 @@ server bool rs_summons_pay = false;
 
 
 
-// =====================================================================
-// HEADSHOTS -- universal hit-location scoring. See
-// zscript/systems/weapon/RS_Headshot.zs.
-//
-// There is deliberately NO per-monster setting here and never will be:
-// the head box is measured off the sprite being drawn, so it is already
-// correct per monster, per frame and per rotation without being told.
-// =====================================================================
-server bool rs_headshot_enable = true;
 
-// How much of the DRAWN sprite counts as head, from the top down.
-// 0.22 is roughly right for the Doom bestiary's proportions. Raising it
-// makes heads easier on everything at once; there is no monster this
-// has to be tuned per-actor for.
-server float rs_headshot_headfrac = 0.22;
 
-// The pay band. A hit at the very edge of the head pays _graze; one
-// dead through the middle pays _centre; everything between ramps
-// between them on the square of quality, so the top of the range has to
-// be aimed for rather than drifted into.
-//
-// The gradient IS the feature. Flattening these to the same number
-// turns a measured shot back into a coin flip and throws away
-// everything the geometry just worked out.
-server float rs_headshot_mult_graze = 1.5;
-server float rs_headshot_mult_centre = 4.0;
 
-// Floor on how poor a graze still scores, 0..1. This is the difficulty
-// dial -- raising it shrinks the effective head without moving the box,
-// so a near miss simply stops paying instead of paying a little.
-server float rs_headshot_min_quality = 0.0;
 
-// Feedback. Both ride the same quality number the damage did, so the
-// burst size and the sound's pitch report how good the shot was without
-// putting a number on screen -- the only form that survives peripheral
-// vision, and the only one that belongs in a headset.
-server bool rs_headshot_fx = true;
-// OFF until the lump and its SNDINFO line exist -- an unresolved sound
-// name is silent, not an error. See RS_Headshot.zs SpawnFeedback.
-server bool rs_headshot_sound = false;
-server float rs_headshot_vol = 1.0;
 
 // =====================================================================
 // Starting roster -- zscript/systems/roster/RS_Roster.zs
@@ -1580,11 +1540,6 @@ server int rs_roster_archvile = 1;
 server int rs_roster_cyberdemon = 1;
 server int rs_roster_mastermind = 1;
 
-// Debug readout. Prints one line per player hit on a monster, on a MISS
-// as well as a hit -- "nothing happened" is the useless answer, and the
-// numbers behind a miss are what say whether the head box is in the
-// wrong place, the wrong size, or never reached at all.
-server bool rs_headshot_debug = false;
 
 // =====================================================================
 // CRITS. See zscript/systems/weapon/RS_Crits.zs.
@@ -1619,112 +1574,21 @@ server float rs_crit_monster_mult = 2.0;
 // tell which. Add the lump and one SNDINFO line, then flip it.
 server bool rs_crit_monster_sound = false;
 
-// =====================================================================
-// DAMAGE NUMBERS. See docs/rs_damage_numbers_spec.md, the emit site in
-// zscript/systems/weapon/RS_Headshot.zs, and the actor in
-// zscript/systems/ui/RS_DamageNumber.zs.
-//
-// THE SHAPE OF THIS BLOCK IS AN OWNER RULING (2026-08-10) AND IS NOT A
-// TUNING ACCIDENT: "the plain behaviour is ON -- a number pops off and
-// flies away. Every clever extra is a toggle, defaulted OFF", so they
-// can be switched on one at a time and each one judged on its own.
-//
-// So exactly two things ship on: the numbers themselves, and the
-// MOTION, because the flying IS the feature (the spec's own ruling that
-// a shower of numbers beats one tidy accumulating number). Everything
-// below those two is off.
-//
-// All `server`, not `user`, and that is deliberate. A number is a real
-// actor spawned in the play sim, so a per-client cvar deciding whether
-// it exists would desync -- the same reason every other rs_* gameplay
-// switch in this file is server-scoped.
-// =====================================================================
 
-// The master switch. Off means nothing is spawned at all: the emit in
-// ModifyDamage returns before it touches anything.
-server bool rs_dn_enable = true;
 
-// Overall size multiplier on every number, whatever else is on. 1.0 is
-// the authored size; this is the "I want them bigger/smaller" dial and
-// nothing else reads it.
-server float rs_dn_scale = 1.0;
 
-// Hard ceiling on numbers alive at once, oldest recycled first.
-//
-// VR-driven, not performance-driven: a dozen floating numbers in stereo
-// is nauseating in a way it is not on a monitor. The spec's ruling is
-// that the shower is the point, so this must be high enough never to
-// bite in normal play and only exist to stop a BFG into a crowd from
-// putting hundreds of numbers in a headset at once. This number is a
-// first pass and wants replacing with one taken from real play.
-server int rs_dn_max = 96;
 
-// How long one number lives, in tics. 35 is one second, which is the
-// spec's whole life cycle end to end (birth punch, flight, landing
-// squash, shrink-out). Individual numbers jitter around this.
-server int rs_dn_lifetime = 35;
 
 // --- THE TOGGLES. All off; turn them on one at a time. --------------
 
-// SIZE BY SIGNIFICANCE -- scale the number by the damage as a FRACTION
-// of the victim's health before the hit, not by its absolute value. 50
-// to a zombieman is the whole monster; 50 to a Cyberdemon is nothing.
-// Off, the number is sized by rs_dn_scale alone.
-server bool rs_dn_significance = false;
 
-// COLOUR BY HIT TYPE -- bone white ordinary, teal crit (the same teal
-// the round wore in flight), gold headshot saturating with quality,
-// white-hot for a crit headshot, tier colour on the killing blow. Off,
-// every number is one colour.
-server bool rs_dn_colour = false;
 
-// CRIT / HEADSHOT MOTION -- ON, and the one extra that ships on.
-//
-// The number inherits the velocity of the round that caused it, so a
-// shot from below throws it up and away and a shot from behind pushes
-// it through and out. Off, numbers rise straight up like a debug
-// readout.
-server bool rs_dn_motion = true;
 
-// GLOW -- additive render plus a soft halo behind the digits, so the
-// number reads as emitting light. Deliberately NOT a dynamic light:
-// a shower of numbers lighting the geometry reads as a bug.
-server bool rs_dn_glow = false;
 
-// SHOW OVERKILL -- on a killing blow, the wasted damage trailing the
-// real figure, dimmed. Real information for a mod with weapon
-// degradation and an ammo economy.
-server bool rs_dn_overkill = false;
 
-// PER-HAND TINT -- a subtle warm/cool bias saying which hand landed the
-// hit. Dual wield means two guns firing at once and there is otherwise
-// no way to tell them apart; impossible in a flat game with one gun.
-server bool rs_dn_perhand = false;
 
-// DISTANCE SCALING -- scale up slightly with distance so a number stays
-// readable across a room. Without it the numbers you are proudest of --
-// the long shots -- are the ones you cannot read.
-server bool rs_dn_distance = false;
 
-// Damage floor: nothing at or below this draws at all. Poison ticks,
-// fire and chip effects make noise and none of them are decisions.
-// 0 = no floor, which is the default, because the floor is one of the
-// clever extras and those ship off.
-server int rs_dn_minimum = 0;
 
-// Typeface. Thirteen digit sets, all real pixel art rather than anything
-// derived from the SDF atlases -- those are a lossy encoding of a pixel
-// font and could not hold a square corner, which is why they were tried
-// and dropped.
-server int rs_dn_font = 0;
 
-// The big-hit light. This is the ONE dynamic light the feature creates,
-// and it fires only on a killing blow or a crit+headshot. A number is UI
-// floating in the world, not an object in it, so a shower of them
-// lighting the level would read as a bug -- the ordinary "glow" is the
-// additive halo, which costs nothing.
-server bool rs_dn_dynlight = false;
-// Live ceiling. Counted with a plain counter, not a per-spawn scan.
-server int rs_dn_dynlightmax = 8;
 
 

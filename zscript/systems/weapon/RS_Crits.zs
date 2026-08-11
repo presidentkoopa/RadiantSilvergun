@@ -40,8 +40,6 @@
 // play function. An unscoped class is DATA scope and cannot call into
 // play -- that is the "Can't call play function ... from data context"
 // error, and it is exactly what this tree already hit in
-// rs_monster_utils.zs. RS_BitUtil and RS_HeadshotUtil carry the same
-// keyword for the same reason.
 class RS_CritMark play
 {
 	// -----------------------------------------------------------------
@@ -186,7 +184,7 @@ class RS_PlayerCritTaker : Inventory
 		// Never crit a hit that is already ours -- the weapon's own
 		// backfire damage arrives with the player as source, and any
 		// recursion here would compound.
-		if (damageType == 'BackfireDamage' || damageType == 'RS_Headshot')
+		if (damageType == 'BackfireDamage')
 			return;
 
 		double chance = cvChance ? cvChance.GetFloat() : 0.05;

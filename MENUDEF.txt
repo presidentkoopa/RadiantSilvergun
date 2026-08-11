@@ -106,7 +106,6 @@ OptionMenu "RS_UIOptions"
 {
 	Title "UI Options"
 	StaticText " "
-	Submenu "Billboard / In-World Display", "RS_BillboardOptions"
 }
 
 // ---------------------------------------------------------------------
@@ -123,18 +122,11 @@ OptionMenu "RS_UIOptions"
 // The panel primitive is deliberately dumb: it knows how to be a quad
 // and how to hinge to another quad, and nothing else. Every taste
 // decision lives here, which is why this page exists at all rather than
-// the numbers being constants in RS_Panel.zs.
 //
 // PITCH BIAS IS THE FIRST-BOOT DIAL. If panels come up edge-on
 // (invisible), lying flat on the floor, or upside down, turn that one
 // before assuming anything else is wrong -- see its cvar comment.
 // ---------------------------------------------------------------------
-OptionValue "RS_PanelDensity"
-{
-	0, "Tall  -- one panel per weapon"
-	1, "Stacked -- three hinged blocks per weapon"
-}
-
 // The dynamic light on an elite drop. "Soft" is LF_ATTENUATE --
 // inverse-square falloff, which reads as a glow AROUND the object;
 // "Plain" is the linear one, which ends in a visible disc on the floor.
@@ -143,21 +135,6 @@ OptionValue "RS_DropLightDetail"
 	0, "Off"
 	1, "Plain"
 	2, "Soft (attenuated)"
-}
-
-OptionValue "RS_PanelFont"
-{
-	0, "SmallFont"
-	1, "NewSmallFont"
-	2, "BigFont"
-	3, "ConFont"
-}
-
-OptionValue "RS_PanelConfirm"
-{
-	0, "Off -- never touch the trigger"
-	1, "On -- tracked hands only"
-	2, "On -- always (incl. flat play)"
 }
 
 // ---------------------------------------------------------------------
@@ -173,42 +150,6 @@ OptionValue "RS_PanelConfirm"
 // the roll floors at Trash in code. A slider that could never put
 // anything on the floor is worse than no slider.
 // ---------------------------------------------------------------------
-OptionMenu "RS_ImprintOptions"
-{
-	Title "Imprints"
-	StaticText " "
-	StaticText "An imprint is a rolled stat package for a weapon you", "DarkGray"
-	StaticText "already own -- what an elite pays once you have all six", "DarkGray"
-	StaticText "class weapons and there is no gun left to give you.", "DarkGray"
-	StaticText " "
-	StaticText "Keep better: each stat takes whichever value is higher,", "DarkGray"
-	StaticText "so an imprint can never make a weapon worse. Straight", "DarkGray"
-	StaticText "re-roll takes every rolled value, up or down.", "DarkGray"
-	StaticText " "
-	StaticText "Neither setting touches pellet count, promotions,", "DarkGray"
-	StaticText "condition, rate of fire, your curses, or GunBonsai", "DarkGray"
-	StaticText "levels. Those belong to other systems.", "DarkGray"
-	StaticText " "
-	StaticText "On: the package is rolled from a random one of the six", "DarkGray"
-	StaticText "class weapons, so a shotgun's numbers can land on your", "DarkGray"
-	StaticText "revolver. Off: it rolls your own weapon's ranges.", "DarkGray"
-	StaticText " "
-	StaticText "Tier weights", 1
-	StaticText "Relative, not percentages -- the defaults just sum to 100.", "DarkGray"
-	StaticText "All zero falls back to Trash, so the mechanism still", "DarkGray"
-	StaticText "shows itself rather than going silently dead.", "DarkGray"
-	StaticText " "
-	Slider "Tier bonus (+tiers)", "rs_elite_imprint_tierbonus", 0, 2, 1, 0
-	StaticText "Added AFTER the roll and capped at Prototype -- it lifts", "DarkGray"
-	StaticText "the whole table by a step rather than favouring one tier.", "DarkGray"
-}
-
-OptionValue "RS_ImprintMode"
-{
-	0, "Re-roll, keep better"
-	1, "Straight re-roll"
-}
-
 // ---------------------------------------------------------------------
 // Weapon Options -- gameplay behavior of the guns themselves (the FX
 // menu is look/feel; this is rules). Grows as more weapon-behavior
@@ -233,28 +174,18 @@ OptionMenu "RS_CombatOptions"
 	StaticText " "
 	Submenu "Weapon Options", "RS_WeaponOptions"
 	Submenu "Crits", "RS_CritOptions"
-	Submenu "Damage Numbers", "RS_DamageNumberOptions"
 
 	StaticText " "
 	StaticText "Headshots", 1
 	StaticText "The head box is measured off the sprite actually being", "DarkGray"
 	StaticText "drawn, so it follows the pose, the rotation and the size", "DarkGray"
 	StaticText "of every monster automatically. Nothing is per-monster.", "DarkGray"
-	Option "Headshots", "rs_headshot_enable", "OnOff"
-	Slider "Head Size (fraction of sprite)", "rs_headshot_headfrac", 0.05, 0.5, 0.01, 2
 	StaticText " "
 	StaticText "A headshot is scored on how near the centre it landed.", "DarkGray"
-	Slider "Graze Multiplier", "rs_headshot_mult_graze", 1.0, 5.0, 0.25, 2
-	Slider "Centre Multiplier", "rs_headshot_mult_centre", 1.0, 10.0, 0.25, 2
-	Slider "Minimum Quality To Count", "rs_headshot_min_quality", 0.0, 0.9, 0.05, 2
 	StaticText "Raise the minimum to shrink the effective head without", "DarkGray"
 	StaticText "moving the box -- a near miss stops paying entirely.", "DarkGray"
 	StaticText " "
-	Option "Headshot Effect", "rs_headshot_fx", "OnOff"
-	Option "Headshot Sound", "rs_headshot_sound", "OnOff"
-	Slider "Headshot Volume", "rs_headshot_vol", 0.0, 1.0, 0.05, 2
 	StaticText " "
-	Option "Debug Readout (console)", "rs_headshot_debug", "OnOff"
 	StaticText "Prints a line for every hit, including misses, so a", "DarkGray"
 	StaticText "head box in the wrong place can be told from one that", "DarkGray"
 	StaticText "is never reached at all.", "DarkGray"
@@ -320,46 +251,6 @@ OptionValue "RS_DNFontOption"
 	10.0, "Chex"
 	11.0, "Urban"
 	12.0, "Big Bold"
-}
-
-OptionMenu "RS_DamageNumberOptions"
-{
-	Title "Damage Numbers"
-	StaticText " "
-	Option "Damage Numbers", "rs_dn_enable", "OnOff"
-	Option "Digit Set", "rs_dn_font", "RS_DNFontOption"
-	StaticText "Every hit throws its own number, and they scatter. The", "DarkGray"
-	StaticText "shower is the feature, not a fallback.", "DarkGray"
-
-	StaticText " "
-	Option "Size By Significance", "rs_dn_significance", "OnOff"
-	StaticText "Sizes by the damage as a fraction of that monster's", "DarkGray"
-	StaticText "health, not by its raw value -- so chip damage on a", "DarkGray"
-	StaticText "boss stays quiet and a third of a health bar towers.", "DarkGray"
-	Option "Colour By Hit Type", "rs_dn_colour", "OnOff"
-	Option "Crit/Headshot Motion", "rs_dn_motion", "OnOff"
-	StaticText "The number inherits the velocity of the round that", "DarkGray"
-	StaticText "caused it. Force scatters; precision holds still.", "DarkGray"
-	Option "Glow", "rs_dn_glow", "OnOff"
-	StaticText " "
-	Option "Big-Hit Light", "rs_dn_dynlight", "OnOff"
-	Slider "Max Lights At Once", "rs_dn_dynlightmax", 1, 32, 1, 0
-	StaticText "A real light, only on a killing blow or a crit that", "DarkGray"
-	StaticText "was also a headshot. Ordinary hits never make one --", "DarkGray"
-	StaticText "their glow is the halo above, which is free.", "DarkGray"
-	Option "Show Overkill", "rs_dn_overkill", "OnOff"
-	Option "Per-Hand Tint", "rs_dn_perhand", "OnOff"
-	StaticText "Which hand landed it -- only means anything dual wielding.", "DarkGray"
-	Option "Distance Scaling", "rs_dn_distance", "OnOff"
-
-	StaticText " "
-	Slider "Size", "rs_dn_scale", 0.25, 3.0, 0.05, 2
-	Slider "Lifetime (tics)", "rs_dn_lifetime", 10, 105, 5, 0
-	Slider "Damage Floor (0 = show all)", "rs_dn_minimum", 0, 50, 1, 0
-	Slider "Maximum On Screen", "rs_dn_max", 8, 256, 8, 0
-	StaticText "The ceiling exists for the headset, not the framerate --", "DarkGray"
-	StaticText "a wall of numbers in stereo is nauseating in a way it", "DarkGray"
-	StaticText "is not on a monitor.", "DarkGray"
 }
 
 OptionMenu "RS_WeaponOptions"
@@ -2750,7 +2641,6 @@ OptionValue "RS_GrenadeMeterVals"
 }
 
 // =====================================================================
-// RS_BillboardOptions -- the engine's billboard renderer.
 //
 // THESE CVARS ARE DECLARED IN C++, NOT IN CVARINFO.txt. MENUDEF reaches
 // them by name and they are live the moment the engine is running. Do
@@ -2761,34 +2651,9 @@ OptionValue "RS_GrenadeMeterVals"
 // Owner's call, relayed from the engine lane 2026-08-07: the billboard
 // options page lives in RS_Main, not in the glow mod.
 // =====================================================================
-OptionMenu "RS_BillboardOptions"
-{
-	Title "In-World Display"
-	StaticText " "
-
-	StaticText "Comfort -- set these while looking at a card", "Gold"
-	StaticText "  Size of every in-world panel. Comfortable reading size", "DarkGray"
-	StaticText "  is a headset-by-headset thing -- there is no right value.", "DarkGray"
-	StaticText "  Added to every panel's lean. Nudge until a card looks", "DarkGray"
-	StaticText "  upright to YOU rather than upright on paper.", "DarkGray"
-
-	StaticText " "
-	StaticText "Performance", "Gold"
-	StaticText "  0 = unlimited. Over budget the FARTHEST panels drop", "DarkGray"
-	StaticText "  first; a panel locked to your view is never dropped.", "DarkGray"
-	StaticText "  0 = no limit. Panels beyond this are skipped entirely.", "DarkGray"
-
-	StaticText " "
-	StaticText "Repair", "Gold"
-	StaticText "  NOT a preference. Only touch this if card text renders", "DarkGray"
-	StaticText "  BACKWARDS -- it settles a handedness question in the", "DarkGray"
-	StaticText "  renderer, and the fault is invisible until text appears.", "DarkGray"
-}
-
 AddOptionMenu "OptionsMenu"
 {
 	StaticText " "
-	Submenu "DamNums Options", "DamNumsOptions"
 }
 
 OptionValue "DamPhysics"
@@ -2811,21 +2676,6 @@ OptionValue "DamEnabled"
 
 OptionString "DamFonts"
 {
-	"DamNumFontGameDefault", "Game Default"
-	"DamNumFontGameSmall"  , "Game Default (small)"
-	"DamNumFontClassic"    , "Classic Doom"
-	"DamNumFontSmall"      , "Classic Doom (small)"
-	"DamNumFontModern"     , "Modern Doom"
-	"DamNumFontRavenBig"   , "Raven (big)"
-	"DamNumFontRavenSmall" , "Raven (small)"
-	"DamNumFontRaventory"  , "Raven (inventory)"
-	"DamNumFontStrife"     , "Strife"
-	"DamNumFontChex"       , "Chex Quest"
-	"DamNumFontHacx"       , "Hacx"
-	"DamNumFontHarmony"    , "Harmony"
-	"DamNumFontSquare"     , "The Adventures of Square"
-	"DamNumFontUrbanBrawl" , "Urban Brawl"
-	"DamNumFontBorderlands", "Borderlands"
 }
 
 OptionString "DamTranslations"
@@ -2854,15 +2704,3 @@ OptionString "DamTranslations"
 	"DamCyan"     , "$C_CYAN"
 }
 
-OptionMenu "DamNumsOptions"
-{
-	Position -15
-	Title       "DamNums Options"
-	StaticText 	"Global Settings", 1
-	StaticText 	""
-	StaticText 	"User Preferences", 1
-	StaticText 	""
-	StaticText 	"Settings marked with an asterisk (*)", "Brown"
-	StaticText 	"will only take effect after changing", "Brown"
-	StaticText 	"maps or starting a new game.", "Brown"
-}
