@@ -515,7 +515,23 @@ class RS_DropTriptych play
 			Weapon mainW = pawn.player ? pawn.player.ReadyWeapon   : null;
 
 			// Order matches construction above: root, then the two wings.
-			t.SetComposed(0, drop,  "THE DROP");
+			//
+			// THE CORE PANEL PICKS ITS CARD BY WHAT THE DROP ACTUALLY IS.
+			// Added 2026-08-11. An imprint drop used to hand its payload
+			// weapon to the weapon card, so half of all elite drops -- every
+			// one after the player completes their six identities -- drew the
+			// wrong layout. The wings stay weapon cards either way: they show
+			// what you are holding, which is a weapon in both cases.
+			let wd = RS_WeaponDrop(dropActor);
+			if (wd && wd.IsImprint())
+			{
+				t.SetImprintComposed(0, wd.mImprint,
+					RS_Weapon(mainW), RS_Weapon(offW), "THE IMPRINT");
+			}
+			else
+			{
+				t.SetComposed(0, drop, "THE DROP");
+			}
 			t.SetComposed(1, offW,  "OFFHAND");
 			t.SetComposed(2, mainW, "MAINHAND");
 		}
@@ -568,6 +584,19 @@ class RS_DropTriptych play
 		let p = mAsm.Get(index);
 		if (!p) return;
 		p.SetContent(wep, heading);
+		p.SetBackend(RSPB_Composed);
+	}
+
+	// The imprint form of the above. Same two steps in the same order --
+	// content first, then backend -- because SetBackend triggers the layout
+	// and content set afterwards would lay out an empty card.
+	void SetImprintComposed(int index, RS_Imprint ip,
+		RS_Weapon mainW, RS_Weapon offW, string heading)
+	{
+		if (!mAsm) return;
+		let p = mAsm.Get(index);
+		if (!p) return;
+		p.SetImprintContent(ip, mainW, offW, heading);
 		p.SetBackend(RSPB_Composed);
 	}
 

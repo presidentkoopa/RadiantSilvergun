@@ -125,6 +125,16 @@ class RS_Panel : Actor
 	RS_BBComposedPanel mComposed;
 	Weapon             mContentWeapon;
 	string             mContentHeading;
+
+	// AN IMPRINT IS A DIFFERENT CARD, NOT A WEAPON WITH ODD FIELDS. Added
+	// 2026-08-11. SyncBackend hardcoded RS_BBWeaponCard.Build, so an imprint
+	// drop drew the weapon card -- the wrong layout for it, and the 1139-line
+	// RS_BBImprintCard written for exactly this job had no way to be selected.
+	// Non-null here is the switch; the two hands are what the imprint card
+	// compares the offer against.
+	RS_Imprint         mContentImprint;
+	RS_Weapon          mContentMainW;
+	RS_Weapon          mContentOffW;
 	bool               mContentDirty;
 	Color        mTint;      // last SetTint, replayed onto the billboard
 
@@ -473,6 +483,21 @@ class RS_Panel : Actor
 	{
 		mContentWeapon  = wep;
 		mContentHeading = heading;
+		mContentImprint = null;      // a weapon offer is not an imprint offer
+		mContentDirty   = true;
+	}
+
+	// The imprint form. Same held-until-SyncBackend contract as above.
+	// mainW/offW are what the player is currently holding, so the card can
+	// show the offer against what it would actually replace.
+	void SetImprintContent(RS_Imprint ip, RS_Weapon mainW, RS_Weapon offW,
+		string heading)
+	{
+		mContentImprint = ip;
+		mContentMainW   = mainW;
+		mContentOffW    = offW;
+		mContentWeapon  = null;
+		mContentHeading = heading;
 		mContentDirty   = true;
 	}
 
@@ -505,8 +530,21 @@ class RS_Panel : Actor
 				// bug, because 2% of a six-unit card is smaller than a
 				// pixel at any range you could read it from.
 				mComposed.ReleaseAll();
-				RS_BBWeaponCard.Build(mComposed, mBaseW, mBaseH,
-					mContentWeapon, mContentHeading);
+				// WHICH CARD. An imprint is not a weapon and does not fit the
+				// weapon layout -- it has no ammo, no sockets of its own, and
+				// its whole job is a comparison against the two guns you are
+				// already holding. RS_BBImprintCard exists for that and until
+				// 2026-08-11 nothing could reach it.
+				if (mContentImprint)
+				{
+					RS_BBImprintCard.Build(mComposed, mBaseW, mBaseH,
+						mContentImprint, mContentMainW, mContentOffW);
+				}
+				else
+				{
+					RS_BBWeaponCard.Build(mComposed, mBaseW, mBaseH,
+						mContentWeapon, mContentHeading);
+				}
 				mContentDirty = false;
 
 				RS_CardTrace.Say(String.Format(

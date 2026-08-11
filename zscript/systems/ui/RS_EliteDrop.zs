@@ -1559,14 +1559,6 @@ class RS_PanelDropHandler : EventHandler
 		mCardBaseW.Clear();
 		mCardBaseH.Clear();
 
-		// The model is not in the panel assembly, so DropAssembly above
-		// does not take it. Left alone it would hang in the air after the
-		// card was gone, still turning.
-		if (mCardModel)
-		{
-			mCardModel.Destroy();
-			mCardModel = null;
-		}
 		if (mCard.mAsm)
 		{
 			for (int i = 0; i < mCard.mAsm.Size(); i++)
@@ -1614,6 +1606,15 @@ class RS_PanelDropHandler : EventHandler
 			mCard.Dismiss();
 		}
 		mCard = null;
+
+		// The model is not in the panel assembly, so DropAssembly above
+		// does not take it. Left alone it would hang in the air after the
+		// card was gone, still turning.
+		if (mCardModel)
+		{
+			mCardModel.Destroy();
+			mCardModel = null;
+		}
 		if (mCardOwner) mCardOwner.mCardUp = false;
 		mCardOwner = null;
 

@@ -457,9 +457,24 @@ class RS_BBWeaponCard play
 		// honest, a button that silently does nothing is not.
 		double btnY = BTN_Y(h);
 		double btnH = h * 0.11;
-		double btnW = gw * 0.29;
+
+		// WIDTH IS SOLVED, NOT CHOSEN. Fixed 2026-08-11.
+		//
+		// btnW was gw * 0.29, and three of those plus two gw * 0.045 gaps is
+		// 0.96 of gw. The strip starts at gw * 0.06 and the card's right edge
+		// is at gw * 1.00, so only 0.94 was available -- DENY overhung the
+		// ground plate AND the tier frame by gw * 0.02 and drew in open air.
+		// Small enough (1.4% of card width) to read as a rendering artifact
+		// rather than a layout error, which is how it survived.
+		//
+		// Deriving the width from the span it has to fit means the two margins
+		// and the gap are the only numbers anyone tunes, and the strip cannot
+		// overhang again whatever they are set to.
+		double btnMargin = 0.06;
 		double btnGap = gw * 0.045;
-		double btnX0 = gx0 + gw * 0.06;
+		double btnSpan = gw * (1.0 - btnMargin * 2.0);
+		double btnW = (btnSpan - btnGap * 2.0) / 3.0;
+		double btnX0 = gx0 + gw * btnMargin;
 
 		Color goldC = Color(255, 255, 205, 40);
 		Color denyC = Color(255, 200, 120, 108);

@@ -254,8 +254,16 @@ OptionMenu "RS_PanelOptions"
 	Option "Panel sounds", "rs_panel_sound", "OnOff"
 	StaticText " "
 	StaticText "Geometry", 1
-	Slider "Panel width (map units)",  "rs_panel_width",  16, 128, 4, 0
-	Slider "Panel height (map units)", "rs_panel_height", 24, 200, 4, 0
+	// RANGES REBUILT 2026-08-11. These were 16-128 and 24-200, from when a
+	// panel was tens of map units. The card is 6.0 x 2.7 now -- BELOW the old
+	// minimum -- so the sliders could not represent the shipped value, and
+	// touching either one snapped the card to at least 16 wide with no way
+	// back from the menu. A slider that cannot express the current setting is
+	// worse than no slider.
+	Slider "Panel width (map units)",  "rs_panel_width",  2, 40, 0.5, 1
+	Slider "Panel height (map units)", "rs_panel_height", 1, 20, 0.25, 2
+	StaticText "Shipped 6.0 x 2.7 -- reading size at arm's length in VR.", "DarkGray"
+	StaticText "Raise both together to read the card from further away.", "DarkGray"
 	Slider "Wing fold angle",          "rs_panel_hinge",   0,  75, 5, 0
 	Slider "Stack tilt",               "rs_panel_stacktilt", 0, 45, 1, 0
 	Slider "Height from eye line",     "rs_panel_heightofs", -48, 48, 2, 0
@@ -304,11 +312,14 @@ OptionMenu "RS_PanelOptions"
 	StaticText " "
 	StaticText "  The card's approach", 1
 	Slider "Card appears at",   "rs_panel_radius",       64, 1024, 32, 0
-	Slider "Card full size at", "rs_drop_cardnear",      16,  512, 8,  0
-	Slider "Card size when far", "rs_drop_cardminscale", 0.05, 1.0, 0.05, 2
-	StaticText "Between the two distances the card grows continuously and", "DarkGray"
-	StaticText "walks in from the pillar to your reading distance. Set the", "DarkGray"
-	StaticText "far size near 1.00 to get the old instant, fixed-size card.", "DarkGray"
+	// 16 and 0.05 were both ABOVE the shipped values (10 and 0.02), so these
+	// two could not express the current setting either. Rebuilt 2026-08-11.
+	Slider "Card full size at", "rs_drop_cardnear",      4,  256, 2,  0
+	Slider "Card size when far", "rs_drop_cardminscale", 0.0, 1.0, 0.02, 2
+	StaticText "34 map units is one metre. Shipped: full size at 10 (0.3m),", "DarkGray"
+	StaticText "growth starting around 34 (1.0m). Raise 'full size at' to", "DarkGray"
+	StaticText "read the card from further back. Set the far size to 1.00", "DarkGray"
+	StaticText "for a card that never grows -- always full size, no bloom.", "DarkGray"
 	StaticText " "
 	StaticText "  On the drop itself", 1
 	Slider "Weapon size on the floor", "rs_drop_spritescale", 0.05, 2.0, 0.02, 2
