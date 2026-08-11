@@ -319,11 +319,15 @@ class RS_CatCard_LockBase : RS_CatCard_ThemeBase abstract
 		RS_PACKAssembly.UninstallAll(wpn);
 
 		// Rotation tightens with level: every 5th shot down to every 2nd.
+		//
+		// Install() rather than pad-then-append by hand. The rotation
+		// length is the slot array's length, so "every Nth" means the
+		// array is N long -- Install pads to N-1 and appends, landing on
+		// N. Doing it manually here padded to N and appended, giving N+1:
+		// the card said every 5th and fired every 6th.
 		int rot = max(2, 6 - int(level));
-		let p = RS_PACKAssembly.Build(wpn, Theme());
+		let p = RS_PACKAssembly.Install(wpn, rot, Theme());
 		if (!p) return;
-		wpn.PadSlotTo(0, rot);
-		wpn.AppendProfile(0, p);
 
 		// Mastery: a second, independently rolled beat of the same theme
 		// joins the cycle rather than lengthening it.
