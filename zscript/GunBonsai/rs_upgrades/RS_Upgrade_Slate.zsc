@@ -71,6 +71,91 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 		return DistinctAffixCount(info) < wpn.GunBonaiSockets;
 	}
 
+	// =================================================================
+	// AXIS CLAIMS -- how a card changes what the gun FIRES.
+	//
+	// RS_Weapon carries an Affix* override per axis, and the shot
+	// resolver reads them first: affix -> the shot's own -> the gun's ->
+	// catalog default. So a card that claims only a trail still fires
+	// with the gun's own bang, brass and flash. That four-rung fallback
+	// is what makes a partial card work, and it is why a card should
+	// claim TWO OR THREE axes rather than all eight -- an eight-axis
+	// card is a different gun, a three-axis card is a modification.
+	//
+	// Bonecaller and Cacospit already did this by hand, hardcoding one
+	// class each. These helpers do the same thing from a registry draw,
+	// and remember what was written so deactivate only clears its own --
+	// two cards claiming the same axis must not delete each other's.
+	// =================================================================
+
+	Class<Actor> mClaimProj, mClaimPuff, mClaimSparks, mClaimSmoke, mClaimTrail;
+	string       mClaimCasing;
+	sound        mClaimSound;
+
+	void ClaimProj(RS_Weapon wpn, Class<Actor> c)
+	{
+		if (!wpn || !c) return;
+		wpn.AffixProjectile = c; mClaimProj = c;
+	}
+	void ClaimPuff(RS_Weapon wpn, Class<Actor> c)
+	{
+		if (!wpn || !c) return;
+		wpn.AffixImpactPuff = c; mClaimPuff = c;
+	}
+	void ClaimSparks(RS_Weapon wpn, Class<Actor> c)
+	{
+		if (!wpn || !c) return;
+		wpn.AffixImpactSparks = c; mClaimSparks = c;
+	}
+	void ClaimSmoke(RS_Weapon wpn, Class<Actor> c)
+	{
+		if (!wpn || !c) return;
+		wpn.AffixMuzzleSmoke = c; mClaimSmoke = c;
+	}
+	void ClaimTrail(RS_Weapon wpn, Class<Actor> c)
+	{
+		if (!wpn || !c) return;
+		wpn.AffixTrail = c; mClaimTrail = c;
+	}
+	void ClaimSound(RS_Weapon wpn, sound s)
+	{
+		if (!wpn || s == "") return;
+		wpn.AffixExtraFireSound = s; mClaimSound = s;
+	}
+
+	// Release every axis this card claimed, and ONLY if the weapon is
+	// still showing what we wrote. If another card has since overwritten
+	// the field, that card owns it now and clearing would strip a live
+	// effect -- the same test Bonecaller's own deactivate makes.
+	void ReleaseAxes(RS_Weapon wpn)
+	{
+		if (!wpn) return;
+		if (mClaimProj   && wpn.AffixProjectile   == mClaimProj)   wpn.AffixProjectile   = null;
+		if (mClaimPuff   && wpn.AffixImpactPuff   == mClaimPuff)   wpn.AffixImpactPuff   = null;
+		if (mClaimSparks && wpn.AffixImpactSparks == mClaimSparks) wpn.AffixImpactSparks = null;
+		if (mClaimSmoke  && wpn.AffixMuzzleSmoke  == mClaimSmoke)  wpn.AffixMuzzleSmoke  = null;
+		if (mClaimTrail  && wpn.AffixTrail        == mClaimTrail)  wpn.AffixTrail        = null;
+		if (mClaimSound != "" && wpn.AffixExtraFireSound == mClaimSound)
+			wpn.AffixExtraFireSound = "";
+
+		mClaimProj = null; mClaimPuff = null; mClaimSparks = null;
+		mClaimSmoke = null; mClaimTrail = null; mClaimSound = "";
+	}
+
+	// Write a registry draw to an axis by axis id. One switch instead of
+	// a call-site if-chain in every card that wants to be axis-driven.
+	void ClaimByAxis(RS_Weapon wpn, int axis, Class<Actor> c)
+	{
+		if (!c) return;
+		if (axis == RS_FXRegistry.RS_FXAXIS_PROJECTILE) ClaimProj(wpn, c);
+		else if (axis == RS_FXRegistry.RS_FXAXIS_PUFF)   ClaimPuff(wpn, c);
+		else if (axis == RS_FXRegistry.RS_FXAXIS_SPARKS) ClaimSparks(wpn, c);
+		else if (axis == RS_FXRegistry.RS_FXAXIS_SMOKE)  ClaimSmoke(wpn, c);
+		else if (axis == RS_FXRegistry.RS_FXAXIS_TRAIL)  ClaimTrail(wpn, c);
+		// CASING and MUZZLE take different field types and PAYLOAD has no
+		// profile field; those axes are claimed by their own cards.
+	}
+
 	// PROJECTILE IDENTITY EXCLUSION GROUP. A gun's rounds are ONE thing:
 	// caco bile, bone tracers, pain orbs, arach plasma, a bee swarm, or
 	// a nova shell -- never two at once. Returns true only if no OTHER

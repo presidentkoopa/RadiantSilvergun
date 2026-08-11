@@ -286,28 +286,39 @@ class RS_CatCard_ThemeBase : TFLV_Upgrade_RS_SlateBase abstract
 // BRAND -- hits plant this theme's payload at the impact.
 class RS_CatCard_BrandBase : RS_CatCard_ThemeBase abstract
 {
-	override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage)
+	// A brand is a THREE-AXIS claim: the round itself, what it leaves
+	// behind it, and what it does where it lands -- all from one theme.
+	// That is the "firebullet" shape. Three axes and not eight, so the
+	// gun still sounds and ejects like itself.
+	override void ExtraActivate(RS_Weapon wpn)
 	{
-		if (!target || level <= 0 || damage <= 0) return;
-		if (target.bFRIENDLY) return;
-		if (random(1, 100) > min(50, 8 * int(level))) return;
+		if (!wpn) return;
+		ReleaseAxes(wpn);
 
-		// The whole point: what a brand plants is whatever the registry
-		// holds for this theme. Import a fire weapon set, tag its parts
-		// fire, and every fire brand gets deeper with no edit.
-		Class<Actor> cls = DrawThemed((level >= 6)
-			? RS_FXRegistry.RS_FXROLE_HEADLINE
-			: RS_FXRegistry.RS_FXROLE_BODY);
-		if (!cls) return;
+		int want = (level >= 4) ? RS_FXRegistry.RS_FXROLE_HEADLINE
+		                        : RS_FXRegistry.RS_FXROLE_BODY;
 
-		let mo = Actor.Spawn(cls, target.pos, ALLOW_REPLACE);
-		if (mo)
-		{
-			mo.target = pawn;                 // never turns on the player
-			mo.master = pawn;
-			if (mo.bMISSILE) mo.vel = (0, 0, 0);
-		}
+		// PROJECTILE arrives first, and only from level 2 -- level 1 is
+		// the impact alone, so the card grows from "it burns what it
+		// hits" into "it fires burning rounds".
+		if (level >= 2)
+			ClaimProj(wpn, RS_FXRegistry.Draw(
+				RS_FXRegistry.RS_FXAXIS_PROJECTILE, Theme(), -1, false, false));
+
+		ClaimPuff(wpn, RS_FXRegistry.Draw(
+			RS_FXRegistry.RS_FXAXIS_PUFF, Theme(), want, false, false));
+
+		if (level >= 3)
+			ClaimTrail(wpn, RS_FXRegistry.Draw(
+				RS_FXRegistry.RS_FXAXIS_TRAIL, Theme(), -1, false, false));
+
+		// Nothing in this theme on any of those axes: fall back to the
+		// walker so the card is never a dead pick.
+		if (!mClaimProj && !mClaimPuff && !mClaimTrail)
+			ClaimPuff(wpn, DrawThemed(want));
 	}
+
+	override void ExtraDeactivate(RS_Weapon wpn) { ReleaseAxes(wpn); }
 }
 
 // LOCK -- the gun's PACK beat draws only from this theme.
@@ -367,6 +378,30 @@ class RS_CatCard_LockBase : RS_CatCard_ThemeBase abstract
 // SURGE -- kills burst this theme's headline FX.
 class RS_CatCard_SurgeBase : RS_CatCard_ThemeBase abstract
 {
+	// Surge claims the LOUD axes -- what comes off the muzzle and what
+	// flies off the impact -- while Brand claims the round and its
+	// trail. Two theme cards on one gun therefore compose into a
+	// complete themed shot instead of fighting over the same fields.
+	override void ExtraActivate(RS_Weapon wpn)
+	{
+		if (!wpn) return;
+		ReleaseAxes(wpn);
+
+		ClaimSparks(wpn, RS_FXRegistry.Draw(
+			RS_FXRegistry.RS_FXAXIS_SPARKS, Theme(), -1, false, false));
+
+		if (level >= 2)
+			ClaimSmoke(wpn, RS_FXRegistry.Draw(
+				RS_FXRegistry.RS_FXAXIS_SMOKE, Theme(), -1, false, false));
+
+		if (!mClaimSparks && !mClaimSmoke)
+			ClaimSparks(wpn, DrawThemed(-1));
+	}
+
+	override void ExtraDeactivate(RS_Weapon wpn) { ReleaseAxes(wpn); }
+
+	// The on-kill burst stays -- it is the card's signature, and it is
+	// on death so it never competes with the shot the axes above changed.
 	override void OnKill(PlayerPawn player, Actor shot, Actor target)
 	{
 		if (!player || !target || level <= 0) return;
@@ -405,33 +440,58 @@ class RS_CatCard_AxisBase : TFLV_Upgrade_RS_SlateBase abstract
 	}
 }
 
-// FLOURISH -- this axis draws its biggest entries on impact.
+// FLOURISH -- this axis is REPLACED on the gun, permanently, with the
+// biggest thing the registry holds for it.
+//
+// This is the card that changes what your gun fires. It claims exactly
+// one of the eight axes and leaves the other seven alone, so the gun
+// keeps its own bang and brass and only the claimed axis changes --
+// Flourish: Trail gives you a new trail on every shot and nothing else.
 class RS_CatCard_FlourishBase : RS_CatCard_AxisBase abstract
 {
-	override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage)
+	override void ExtraActivate(RS_Weapon wpn)
 	{
-		if (!target || level <= 0 || damage <= 0) return;
-		if (random(1, 100) > min(70, 12 * int(level))) return;
+		if (!wpn) return;
+		ReleaseAxes(wpn);        // re-activation at a new level: rewrite, never stack
 
 		// HEADLINE first -- the whole card is "show me the big version of
-		// this axis". BODY is the honest fallback for axes that have no
-		// headline entry tagged yet.
+		// this axis". BODY is the honest fallback for axes with nothing
+		// tagged headline yet, so the card is never inert.
 		Class<Actor> cls = RS_FXRegistry.Draw(
 			Axis(), -1, RS_FXRegistry.RS_FXROLE_HEADLINE, true, level < 6);
 		if (!cls)
 			cls = RS_FXRegistry.Draw(
-				Axis(), -1, RS_FXRegistry.RS_FXROLE_BODY, true, true);
-		if (!cls) return;
-
-		let mo = Actor.Spawn(cls, target.pos + (0, 0, target.height * 0.5),
-			ALLOW_REPLACE);
-		if (mo) { mo.target = pawn; mo.master = pawn; }
+				Axis(), -1, RS_FXRegistry.RS_FXROLE_BODY, true, level < 6);
+		if (!cls)
+			cls = RS_FXRegistry.Draw(Axis(), -1);
+		ClaimByAxis(wpn, Axis(), cls);
 	}
+
+	override void ExtraDeactivate(RS_Weapon wpn) { ReleaseAxes(wpn); }
 }
 
 // ECHO -- the axis fires again, off the kill.
 class RS_CatCard_EchoBase : RS_CatCard_AxisBase abstract
 {
+	// Echo claims the same axis Flourish does, but asks for an ACCENT --
+	// the small detail entries rather than the headline ones. So on a
+	// gun holding both, whichever was taken later owns the axis and the
+	// other's ReleaseAxes correctly declines to clear it.
+	override void ExtraActivate(RS_Weapon wpn)
+	{
+		if (!wpn) return;
+		ReleaseAxes(wpn);
+
+		Class<Actor> cls = RS_FXRegistry.Draw(
+			Axis(), -1, RS_FXRegistry.RS_FXROLE_ACCENT, true, level < 6);
+		if (!cls)
+			cls = RS_FXRegistry.Draw(Axis(), -1, -1, true, level < 6);
+		ClaimByAxis(wpn, Axis(), cls);
+	}
+
+	override void ExtraDeactivate(RS_Weapon wpn) { ReleaseAxes(wpn); }
+
+	// And the scatter on death stays, which is what "echo" means.
 	override void OnKill(PlayerPawn player, Actor shot, Actor target)
 	{
 		if (!player || !target || level <= 0) return;
