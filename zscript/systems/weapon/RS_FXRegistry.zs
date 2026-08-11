@@ -283,6 +283,131 @@ class RS_FXRegistry : Object
 		Add(outv, "RS_VBtrail2",        "vile trail wide",   0, A_TRAIL | A_SPRK, "trail_vile_wide", R_ACC);
 		Add(outv, "RS_FallenSP",        "fallen smoke",      0, A_TRAIL | A_PUFF | A_SMOKE, "smoke_fallen", R_BOD);
 		Add(outv, "RS_TentacleBall2",   "tentacle ball 2",   T_PLAS, A_PROJ, "proj_tentacle2", R_BOD);
+
+		// -------------------------------------------------------------
+		// THE REST OF weaponfx. Everything above this line was typed by
+		// hand, 75 entries, and it covered 27 of the 137 actor classes
+		// in zscript/weapons/weaponfx -- which meant ten whole sprite
+		// categories (acid, ice, poison, lightning, explosions, fire,
+		// plasma, bullets, hitflash, magdrops) were sorted, drawn, and
+		// unreachable. Anything asking the registry for them got null.
+		//
+		// These are the other 102. Axis comes from the file the class
+		// lives in (RS_FX_Smoke.zs is smoke, RS_FX_Casings.zs is brass
+		// -- the files were already sorted by axis, which is the whole
+		// reason this could be filled in at all). Role comes from the
+		// declared Scale: <= 0.5 is an ACCENT, up to 1.5 is BODY, above
+		// that is a HEADLINE. Anything whose states spawn further actors
+		// also carries SPAWNER. Theme is read off the class name.
+		//
+		// Abstract bases and the state-ladder utilities are deliberately
+		// absent -- they are not drawable.
+		//
+		// A wrong line here is fixed by editing that line. That is the
+		// entire argument for the registry existing.
+		// -------------------------------------------------------------
+		Add(outv, "RS_AffixPartActor",                 "affix part actor",          T_IMP, A_PAY | A_PROJ, "affix_part_actor", R_BOD);
+		Add(outv, "RS_AffixFireWisp",                  "affix fire wisp",           T_FIRE, A_PAY | A_PROJ, "affix_fire_wisp", R_ACC);
+		Add(outv, "RS_AffixFireEmber",                 "affix fire ember",          T_FIRE, A_PAY | A_PROJ, "affix_fire_ember", R_ACC);
+		Add(outv, "RS_AffixGroundFire",                "affix ground fire",         T_FIRE, A_PAY | A_PROJ, "affix_ground_fire", R_BOD);
+		Add(outv, "RS_AffixBoneTracer",                "affix bone tracer",         T_VOID, A_PAY | A_PROJ, "affix_bone_tracer", R_ACC);
+		Add(outv, "RS_AffixIceShard",                  "affix ice shard",           T_ICE, A_PAY | A_PROJ, "affix_ice_shard", R_BOD);
+		Add(outv, "RS_AffixIceOrb",                    "affix ice orb",             T_ICE, A_PAY | A_PROJ, "affix_ice_orb", R_BOD);
+		Add(outv, "RS_AffixCacoBall",                  "affix caco ball",           T_IMP, A_PAY | A_PROJ, "affix_caco_ball", R_BOD);
+		Add(outv, "RS_AffixIceShardSpray",             "affix ice shard spray",     T_ICE, A_PAY | A_PROJ, "affix_ice_shard_spray", R_BOD);
+		Add(outv, "RS_AffixPainOrbMaster",             "affix pain orb master",     T_IMP, A_PAY | A_PROJ, "affix_pain_orb_master", R_HED);
+		Add(outv, "RS_AffixArachPlasma",               "affix arach plasma",        T_PLAS, A_PAY | A_PROJ, "affix_arach_plasma", R_BOD);
+		Add(outv, "RS_AffixSwarmMote",                 "affix swarm mote",          T_IMP, A_PAY | A_PROJ, "affix_swarm_mote", R_BOD);
+		Add(outv, "RS_AffixSwarmCarrier",              "affix swarm carrier",       T_IMP, A_PAY | A_PROJ, "affix_swarm_carrier", R_BOD);
+		Add(outv, "RS_AffixNovaBead",                  "affix nova bead",           T_PSY, A_PAY | A_PROJ, "affix_nova_bead", R_BOD);
+		Add(outv, "RS_AffixNovaShell",                 "affix nova shell",          T_PSY, A_PAY | A_PROJ, "affix_nova_shell", R_BOD);
+		Add(outv, "RS_BFGTrail",                       "bfgtrail",                  T_PLAS, A_PROJ | A_PAY, "bfgtrail", R_ACC);
+		Add(outv, "RS_BFGBallRayFlare",                "bfgball ray flare",         T_PLAS, A_PROJ | A_PAY, "bfgball_ray_flare", R_ACC);
+		Add(outv, "RS_BFGBallRay",                     "bfgball ray",               T_PLAS, A_PROJ | A_PAY, "bfgball_ray", R_BOD | R_SPW);
+		Add(outv, "RS_BFGBallRayPuff",                 "bfgball ray puff",          T_PLAS, A_PROJ | A_PAY, "bfgball_ray_puff", R_BOD);
+		Add(outv, "RS_BFGGreenPlasmaPiece",            "bfggreen plasma piece",     T_PLAS, A_PROJ | A_PAY, "bfggreen_plasma_piece", R_ACC);
+		Add(outv, "RS_BFGGreenPlasmaShred",            "bfggreen plasma shred",     T_PLAS, A_PROJ | A_PAY, "bfggreen_plasma_shred", R_BOD | R_SPW);
+		Add(outv, "RS_EnhancedBFGExtra",               "enhanced bfgextra",         T_PLAS, A_PROJ | A_PAY, "enhanced_bfgextra", R_ACC | R_SPW);
+		Add(outv, "RS_BFGRailPuff",                    "bfgrail puff",              T_PLAS, A_PROJ | A_PAY, "bfgrail_puff", R_ACC | R_SPW);
+		Add(outv, "RS_BallisticFired",                 "ballistic fired",           T_FIRE, A_PROJ, "ballistic_fired", R_BOD);
+		Add(outv, "RS_BallisticTrail",                 "ballistic trail",           T_IMP, A_PROJ, "ballistic_trail", R_ACC);
+		Add(outv, "RS_BlastFlareBase",                 "blast flare base",          T_IMP, A_PAY | A_SPRK, "blast_flare_base", R_ACC);
+		Add(outv, "RS_BlastFlareSpawner",              "blast flare spawner",       T_IMP, A_PAY | A_SPRK, "blast_flare_spawner", R_BOD | R_SPW);
+		Add(outv, "RS_BlastFlames",                    "blast flames",              T_FIRE, A_PAY | A_SPRK, "blast_flames", R_HED | R_SPW);
+		Add(outv, "RS_BlastFlamesMedium",              "blast flames medium",       T_FIRE, A_PAY | A_SPRK, "blast_flames_medium", R_BOD | R_SPW);
+		Add(outv, "RS_Blast",                          "blast",                     T_IMP, A_PAY | A_SPRK, "blast", R_BOD | R_SPW);
+		Add(outv, "RS_BlastKaboom",                    "blast kaboom",              T_IMP, A_PAY | A_SPRK, "blast_kaboom", R_BOD | R_SPW);
+		Add(outv, "RS_ExplosionFireball",              "explosion fireball",        T_FIRE, A_PAY, "explosion_fireball", R_ACC);
+		Add(outv, "RS_ExplosionFireballAlt",           "explosion fireball alt",    T_FIRE, A_PAY, "explosion_fireball_alt", R_BOD);
+		Add(outv, "RS_ExplosionSmall",                 "explosion small",           T_IMP, A_PAY, "explosion_small", R_ACC);
+		Add(outv, "RS_ExplosionTiny",                  "explosion tiny",            T_IMP, A_PAY, "explosion_tiny", R_ACC);
+		Add(outv, "RS_ExplosionFlash",                 "explosion flash",           T_IMP, A_PAY, "explosion_flash", R_ACC);
+		Add(outv, "RS_FireLoop",                       "fire loop",                 T_FIRE, A_PAY | A_TRAIL, "fire_loop", R_ACC);
+		Add(outv, "RS_FireLoopAlt",                    "fire loop alt",             T_FIRE, A_PAY | A_TRAIL, "fire_loop_alt", R_BOD);
+		Add(outv, "RS_LensFlare",                      "lens flare",                T_IMP, A_MUZZ | A_SPRK, "lens_flare", R_ACC);
+		Add(outv, "RS_LensFlareAlt1",                  "lens flare alt1",           T_IMP, A_MUZZ | A_SPRK, "lens_flare_alt1", R_BOD);
+		Add(outv, "RS_LensFlareAlt2",                  "lens flare alt2",           T_IMP, A_MUZZ | A_SPRK, "lens_flare_alt2", R_BOD);
+		Add(outv, "RS_LensFlareAlt3",                  "lens flare alt3",           T_IMP, A_MUZZ | A_SPRK, "lens_flare_alt3", R_BOD);
+		Add(outv, "RS_EnhancedRocket",                 "enhanced rocket",           T_IMP, A_PROJ, "enhanced_rocket", R_BOD | R_SPW);
+		Add(outv, "RS_EnhancedPlasmaBall",             "enhanced plasma ball",      T_PLAS, A_PROJ, "enhanced_plasma_ball", R_BOD | R_SPW);
+		Add(outv, "RS_EnhancedBFGBall",                "enhanced bfgball",          T_PLAS, A_PROJ, "enhanced_bfgball", R_BOD | R_SPW);
+		Add(outv, "RS_HiFiFX",                         "hi fi fx",                  T_IMP, A_SPRK, "hi_fi_fx", R_BOD | R_SPW);
+		Add(outv, "RS_MuzzleLight",                    "muzzle light",              T_LTNG, A_MUZZ, "muzzle_light", R_BOD);
+		Add(outv, "RS_ExplosionParticle",              "explosion particle",        T_IMP, A_SPRK | A_SMOKE, "explosion_particle", R_BOD);
+		Add(outv, "RS_ExplosionParticle2",             "explosion particle2",       T_IMP, A_SPRK | A_SMOKE, "explosion_particle2", R_ACC);
+		Add(outv, "RS_ExplosionParticleHeavy",         "explosion particle heavy",  T_IMP, A_SPRK | A_SMOKE, "explosion_particle_heavy", R_ACC);
+		Add(outv, "RS_BlueFlarePlasma",                "blue flare plasma",         T_PLAS, A_PROJ | A_PAY, "blue_flare_plasma", R_ACC);
+		Add(outv, "RS_BlueFlarePlasmaTrail",           "blue flare plasma trail",   T_PLAS, A_PROJ | A_PAY, "blue_flare_plasma_trail", R_ACC);
+		Add(outv, "RS_BluePlasmaPiece",                "blue plasma piece",         T_PLAS, A_PROJ | A_PAY, "blue_plasma_piece", R_ACC);
+		Add(outv, "RS_PlasmaRailBall",                 "plasma rail ball",          T_PLAS, A_PROJ | A_PAY, "plasma_rail_ball", R_ACC | R_SPW);
+		Add(outv, "RS_BluePlasmaShred",                "blue plasma shred",         T_PLAS, A_PROJ | A_PAY, "blue_plasma_shred", R_ACC | R_SPW);
+		Add(outv, "RS_BluePlasmaShredTrail",           "blue plasma shred trail",   T_PLAS, A_PROJ | A_PAY, "blue_plasma_shred_trail", R_BOD);
+		Add(outv, "RS_PlasmaRailFlareCounter",         "plasma rail flare counter", T_PLAS, A_PROJ | A_PAY, "plasma_rail_flare_counter", R_BOD);
+		Add(outv, "RS_PlasmaRailFlare",                "plasma rail flare",         T_PLAS, A_PROJ | A_PAY, "plasma_rail_flare", R_ACC);
+		Add(outv, "RS_PlasmaSplash",                   "plasma splash",             T_PLAS, A_PROJ | A_PAY, "plasma_splash", R_ACC);
+		Add(outv, "RS_PlasmaSplashAlt",                "plasma splash alt",         T_PLAS, A_PROJ | A_PAY, "plasma_splash_alt", R_BOD);
+		Add(outv, "RS_WallPart",                       "wall part",                 T_IMP, A_PUFF, "wall_part", R_ACC);
+		Add(outv, "RS_WallPartMetal",                  "wall part metal",           T_IMP, A_PUFF, "wall_part_metal", R_ACC);
+		Add(outv, "RS_WallPartWood",                   "wall part wood",            T_IMP, A_PUFF, "wall_part_wood", R_ACC);
+		Add(outv, "RS_WallPartDirt",                   "wall part dirt",            T_IMP, A_PUFF, "wall_part_dirt", R_ACC);
+		Add(outv, "RS_WallPartGlass",                  "wall part glass",           T_IMP, A_PUFF, "wall_part_glass", R_ACC);
+		Add(outv, "RS_EnhancedBulletPuff",             "enhanced bullet puff",      T_IMP, A_PUFF, "enhanced_bullet_puff", R_ACC | R_SPW);
+		Add(outv, "RS_ChainsawPuff",                   "chainsaw puff",             T_IMP, A_PUFF, "chainsaw_puff", R_ACC | R_SPW);
+		Add(outv, "RS_RailCoilSeg",                    "rail coil seg",             T_IMP, A_PROJ | A_TRAIL, "rail_coil_seg", R_ACC);
+		Add(outv, "RS_RailSeg",                        "rail seg",                  T_IMP, A_PROJ | A_TRAIL, "rail_seg", R_ACC);
+		Add(outv, "RS_RailImpactSpark",                "rail impact spark",         T_IMP, A_PROJ | A_TRAIL, "rail_impact_spark", R_ACC);
+		Add(outv, "RS_RailBolt",                       "rail bolt",                 T_IMP, A_PROJ | A_TRAIL, "rail_bolt", R_ACC);
+		Add(outv, "RS_RailBoltStraight",               "rail bolt straight",        T_IMP, A_PROJ | A_TRAIL, "rail_bolt_straight", R_ACC);
+		Add(outv, "RS_RicochetBullet",                 "ricochet bullet",           T_IMP, A_SPRK | A_PUFF, "ricochet_bullet", R_BOD | R_SPW);
+		Add(outv, "RS_RicochetShell",                  "ricochet shell",            T_IMP, A_SPRK | A_PUFF, "ricochet_shell", R_BOD | R_SPW);
+		Add(outv, "RS_ShotgunParticles",               "shotgun particles",         T_IMP, A_SPRK | A_PUFF, "shotgun_particles", R_ACC);
+		Add(outv, "RS_ShotgunParticles2",              "shotgun particles2",        T_IMP, A_SPRK | A_PUFF, "shotgun_particles2", R_ACC);
+		Add(outv, "RS_ShotgunParticlesHeavy",          "shotgun particles heavy",   T_IMP, A_SPRK | A_PUFF, "shotgun_particles_heavy", R_ACC);
+		Add(outv, "RS_RocketFlare",                    "rocket flare",              T_IMP, A_PROJ | A_PAY, "rocket_flare", R_ACC);
+		Add(outv, "RS_HomingRocketFlare",              "homing rocket flare",       T_IMP, A_PROJ | A_PAY, "homing_rocket_flare", R_ACC);
+		Add(outv, "RS_GunBarrelSmoke",                 "gun barrel smoke",          T_IMP, A_SMOKE, "gun_barrel_smoke", R_BOD);
+		Add(outv, "RS_SmokingPiece",                   "smoking piece",             T_IMP, A_SMOKE, "smoking_piece", R_BOD);
+		Add(outv, "RS_ST_FlameJet",                    "st flame jet",              T_FIRE, A_TRAIL, "st_flame_jet", R_ACC);
+		Add(outv, "RS_ST_Flame",                       "st flame",                  T_FIRE, A_TRAIL, "st_flame", R_ACC);
+		Add(outv, "RS_ST_FireCloud",                   "st fire cloud",             T_FIRE, A_TRAIL, "st_fire_cloud", R_BOD);
+		Add(outv, "RS_ST_EnergyShot",                  "st energy shot",            T_IMP, A_TRAIL, "st_energy_shot", R_BOD);
+		Add(outv, "RS_ST_EnergySpray",                 "st energy spray",           T_IMP, A_TRAIL, "st_energy_spray", R_BOD);
+		Add(outv, "RS_ST_ArcImpact",                   "st arc impact",             T_LTNG, A_TRAIL, "st_arc_impact", R_BOD);
+		Add(outv, "RS_ST_Grenade",                     "st grenade",                T_IMP, A_TRAIL, "st_grenade", R_BOD);
+		Add(outv, "RS_ST_Explosion",                   "st explosion",              T_IMP, A_TRAIL, "st_explosion", R_BOD | R_SPW);
+		Add(outv, "RS_ST_RingParticle",                "st ring particle",          T_IMP, A_TRAIL, "st_ring_particle", R_ACC);
+		Add(outv, "RS_ST_BlastSpark",                  "st blast spark",            T_IMP, A_TRAIL, "st_blast_spark", R_ACC | R_SPW);
+		Add(outv, "RS_ST_BlastSmoke",                  "st blast smoke",            T_IMP, A_TRAIL, "st_blast_smoke", R_ACC);
+		Add(outv, "RS_ST_Beam",                        "st beam",                   T_IMP, A_TRAIL, "st_beam", R_BOD);
+		Add(outv, "RS_ST_ArcTrail",                    "st arc trail",              T_LTNG, A_TRAIL, "st_arc_trail", R_ACC);
+		Add(outv, "RS_ST_ScrapShard",                  "st scrap shard",            T_IMP, A_TRAIL, "st_scrap_shard", R_ACC);
+		Add(outv, "RS_ST_ScrapShardAlt",               "st scrap shard alt",        T_IMP, A_TRAIL, "st_scrap_shard_alt", R_BOD);
+		Add(outv, "RS_ST_Glow",                        "st glow",                   T_IMP, A_TRAIL, "st_glow", R_ACC);
+		Add(outv, "RS_ST_LanceHit",                    "st lance hit",              T_IMP, A_TRAIL, "st_lance_hit", R_BOD);
+		Add(outv, "RS_ST_BurnToken",                   "st burn token",             T_FIRE, A_TRAIL, "st_burn_token", R_BOD | R_SPW);
+		Add(outv, "RS_ST_Burn",                        "st burn",                   T_FIRE, A_TRAIL, "st_burn", R_BOD);
+		Add(outv, "RS_ST_Push",                        "st push",                   T_IMP, A_TRAIL, "st_push", R_BOD);
+		Add(outv, "RS_ST_StickyProjectile",            "st sticky projectile",      T_IMP, A_TRAIL, "st_sticky_projectile", R_BOD);
 	}
 
 	// Skips silently if the class does not resolve. A registry that
