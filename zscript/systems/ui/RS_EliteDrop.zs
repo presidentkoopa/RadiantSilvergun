@@ -1643,6 +1643,23 @@ class RS_PanelDropHandler : EventHandler
 	// weapon trigger reads. Taking a panel index and a uv rather than
 	// reading ph.mHot* directly is what lets it serve both without
 	// becoming two copies of the same rule about what a row is.
+	// A composed panel answers from its REGION map, not the row list. See
+	// RS_BBCompose.AddHitRegion: RowAtUV is y-only and cannot express three
+	// buttons side by side, which is what a composed card draws. Returns the
+	// command to dispatch, or "" if this UV is not over anything.
+	string ResolveRegion(int panel, Vector2 uv, out int arg)
+	{
+		arg = 0;
+		if (!mCard || !mCard.mAsm || panel < 0) return "";
+		let pan = mCard.mAsm.Get(panel);
+		if (!pan || pan.mBackend != RSPB_Composed || !pan.mComposed) return "";
+
+		int r = pan.mComposed.RegionAt(uv);
+		if (r < 0) return "";
+		arg = pan.mComposed.RegionArg(r);
+		return pan.mComposed.RegionCmd(r);
+	}
+
 	int ResolveRow(int panel, Vector2 uv, out bool live)
 	{
 		live = false;
@@ -1855,6 +1872,28 @@ class RS_PanelDropHandler : EventHandler
 			// which hand acted sends hand+1 -- see RS_PanelInput.Fire --
 			// and this decodes it back to -1/0/1.
 			int hint = evt.args[0] - 1;
+
+			// A COMPOSED CARD ANSWERS FIRST. Added 2026-08-11.
+			//
+			// Its buttons are billboard plates, not rows, so they resolve
+			// through the region map instead of RowAtUV -- which is y-only and
+			// cannot tell three side-by-side buttons apart. Checked before the
+			// row path because a composed panel has no rows to find, and
+			// before the hand-hint fallback because a deliberate press ON a
+			// button must not be reinterpreted as "take to whichever hand
+			// moved". Same dispatch shape as a row: re-send the region's own
+			// command, so pointing, VR touch and the console are one path.
+			{
+				int rgnArg;
+				string rgnCmd = ResolveRegion(ph.mHotPanel, ph.mHotUV, rgnArg);
+				if (rgnCmd != "")
+				{
+					RS_CardTrace.Say(String.Format(
+						"region hit -> %s %d", rgnCmd, rgnArg));
+					EventHandler.SendNetworkEvent(rgnCmd, rgnArg);
+					return;
+				}
+			}
 
 			bool live;
 			int row = ResolveHotRow(ph, live);

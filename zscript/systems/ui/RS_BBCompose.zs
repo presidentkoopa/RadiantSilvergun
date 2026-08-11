@@ -51,6 +51,63 @@ class RS_BBComposedPanel : Object
 	// different situations that look identical from outside.
 	int  PartCount() const { return mParts.Size(); }
 
+	// -----------------------------------------------------------------
+	// HIT REGIONS. Added 2026-08-11.
+	//
+	// RS_PanelCard.RowAtUV is the canvas painter's model: a vertical list,
+	// `idx = (uv.y * 640 - 84) / Pitch()`, y only. It cannot express three
+	// buttons sitting side by side at the same height, which is exactly
+	// what a composed card draws -- so the TAKE/REROLL/DENY plates were
+	// drawn correctly, hit-tested correctly, and then resolved to nothing,
+	// because the row list they were being looked up in had no entry there.
+	//
+	// This is the "UV-to-region map rather than new machinery" the card's
+	// own comment called for. A region is a rectangle in the same 0..1 UV
+	// the engine hands back from AimBillboard and TracePoke, so pointing,
+	// VR touch and the console all resolve through one lookup.
+	//
+	// Regions are content, not geometry: they are cleared with the parts
+	// and rebuilt by whoever draws the card.
+	// -----------------------------------------------------------------
+	private Array<double> mRgnU0, mRgnV0, mRgnU1, mRgnV1;
+	private Array<string> mRgnCmd;
+	private Array<int>    mRgnArg;
+
+	void AddHitRegion(double u0, double v0, double u1, double v1,
+		string cmd, int arg)
+	{
+		if (cmd == "") return;
+		mRgnU0.Push(min(u0, u1)); mRgnU1.Push(max(u0, u1));
+		mRgnV0.Push(min(v0, v1)); mRgnV1.Push(max(v0, v1));
+		mRgnCmd.Push(cmd);
+		mRgnArg.Push(arg);
+	}
+
+	// Index of the region under this UV, or -1. Last match wins, so a
+	// region added later sits on top of one added earlier -- the same rule
+	// the draw order already follows.
+	int RegionAt(Vector2 uv) const
+	{
+		int found = -1;
+		for (int i = 0; i < mRgnCmd.Size(); i++)
+		{
+			if (uv.x < mRgnU0[i] || uv.x > mRgnU1[i]) continue;
+			if (uv.y < mRgnV0[i] || uv.y > mRgnV1[i]) continue;
+			found = i;
+		}
+		return found;
+	}
+
+	int      RegionCount() const     { return mRgnCmd.Size(); }
+	string   RegionCmd(int i) const  { return (i >= 0 && i < mRgnCmd.Size()) ? mRgnCmd[i] : ""; }
+	int      RegionArg(int i) const  { return (i >= 0 && i < mRgnArg.Size()) ? mRgnArg[i] : 0; }
+
+	void ClearRegions()
+	{
+		mRgnU0.Clear(); mRgnV0.Clear(); mRgnU1.Clear(); mRgnV1.Clear();
+		mRgnCmd.Clear(); mRgnArg.Clear();
+	}
+
 	// CORRECTED 2026-08-08 -- THIS RETURNED (sin yaw, -cos yaw, 0) AND THAT
 	// IS THE VIEWER'S *LEFT*, NOT THE VIEWER'S RIGHT.
 	//
@@ -220,6 +277,11 @@ class RS_BBComposedPanel : Object
 		mParts.Clear();
 		mLocalRight.Clear();
 		mLocalUp.Clear();
+
+		// Regions belong to the content that drew them. A card rebuilt with
+		// a different weapon has different buttons, and a stale region would
+		// keep answering for a plate that is no longer there.
+		ClearRegions();
 
 		// THE BASE SIZES AND THE SCALE GO TOO. Fixed 2026-08-10.
 		//

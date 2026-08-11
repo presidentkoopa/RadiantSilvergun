@@ -479,10 +479,29 @@ class RS_BBWeaponCard play
 		Color goldC = Color(255, 255, 205, 40);
 		Color denyC = Color(255, 200, 120, 108);
 
+		// PRESSABLE, NOT JUST DRAWN. Added 2026-08-11.
+		//
+		// These three were plates and text and nothing else, so the hit test
+		// found the card, handed back a correct UV, and RS_PanelCard.RowAtUV
+		// looked it up in a vertical row list that had no entry there. The
+		// press landed in dead space with no error.
+		//
+		// Panel-local to UV: x runs -w/2..+w/2 left to right, y runs +h/2..-h/2
+		// top to bottom, and UV is 0..1 with v increasing DOWNWARD -- matching
+		// RowAtUV's `uv.y * CARD_H` and the engine's own UV convention.
+		double bU0 = (btnY + btnH * 0.5);   // top edge in panel-local y
+		double bU1 = (btnY - btnH * 0.5);   // bottom edge
+		double v0  = (h * 0.5 - bU0) / h;
+		double v1  = (h * 0.5 - bU1) / h;
+
 		RS_BBCompose.Plate(p, btnX0 + btnW * 0.5, btnY, btnW, btnH,
 			Color(210, 26, 30, 26));
 		RS_BBCompose.Text(p, btnX0 + btnW * 0.5, btnY, "TAKE", line * 0.66,
 			tier, 0, btnW * 0.9);
+		// arg 1 = mainhand, matching what the wings used before solo mode
+		// stopped building them (RS_DropTriptych: "rs-panel-take", 1).
+		p.AddHitRegion((btnX0 + w * 0.5) / w, v0,
+			(btnX0 + btnW + w * 0.5) / w, v1, "rs-panel-take", 1);
 
 		double bx2 = btnX0 + btnW + btnGap;
 		RS_BBCompose.Plate(p, bx2 + btnW * 0.5, btnY, btnW, btnH,
@@ -490,12 +509,16 @@ class RS_BBWeaponCard play
 		RS_BBCompose.Text(p, bx2 + btnW * 0.5, btnY,
 			"REROLL " .. (20 + int(rsw.Tier) * 15) .. "g", line * 0.62,
 			goldC, 0, btnW * 0.92);
+		p.AddHitRegion((bx2 + w * 0.5) / w, v0,
+			(bx2 + btnW + w * 0.5) / w, v1, "rs-panel-reroll", 0);
 
 		double bx3 = bx2 + btnW + btnGap;
 		RS_BBCompose.Plate(p, bx3 + btnW * 0.5, btnY, btnW, btnH,
 			Color(210, 34, 20, 20));
 		RS_BBCompose.Text(p, bx3 + btnW * 0.5, btnY, "DENY", line * 0.66,
 			denyC, 0, btnW * 0.9);
+		p.AddHitRegion((bx3 + w * 0.5) / w, v0,
+			(bx3 + btnW + w * 0.5) / w, v1, "rs-panel-deny", 0);
 
 		// --- condition, the one stat with a live warning colour --------
 		RS_BBCompose.Text(p, gx0 + gw * 0.94, h * 0.46,
