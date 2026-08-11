@@ -126,7 +126,14 @@ class DamNumKeeper : Thinker
 		// instantly due to being in a wall. Was amusing, but unintentional. :P
 		if (!thing || thing.health < 1)
 		{
-			return self.Destroy();
+			// SPLIT 2026-08-11. This was `return self.Destroy();`, which
+			// ZScript rejects: PostBeginPlay returns void, and returning an
+			// expression from a void function is an error even when that
+			// expression is itself void. Imported verbatim with the damage
+			// number mod and never caught, because a fatal error earlier in
+			// the load order stopped compilation before reaching this file.
+			self.Destroy();
+			return;
 		}
 
 		self.curHealth = thing.health;
