@@ -60,13 +60,24 @@ class RS_MenuItem_SheetHeader : OptionMenuItem
 {
 	int titleColor;
 	Color plateRGB;
+	int hand;            // 0 offhand, 1 mainhand, -1 not a weapon sheet
 
-	RS_MenuItem_SheetHeader InitHeader(string title, int titleColor_, Color plateRGB_)
+	// THE HAND TELL. Two colours that belong to nothing else in the mod,
+	// so they can never be confused with a tier: mainhand warm, offhand
+	// cool. Tier keeps the whole RS_TierPalette to itself, because tier
+	// is data and the hand is chrome -- if they shared a palette you
+	// would have to read the words to tell which was which.
+	static Color MainRGB() { return Color(255, 255, 122,  51); }
+	static Color OffRGB()  { return Color(255,  51, 200, 255); }
+
+	RS_MenuItem_SheetHeader InitHeader(string title, int titleColor_, Color plateRGB_,
+		int hand_ = -1)
 	{
 		super.Init(title, "");
 		mCentered = true;
 		titleColor = titleColor_;
 		plateRGB = plateRGB_;
+		hand = hand_;
 		return self;
 	}
 
@@ -74,11 +85,43 @@ class RS_MenuItem_SheetHeader : OptionMenuItem
 
 	override int Draw(OptionMenuDescriptor d, int y, int indent, bool selected)
 	{
-		int fh = OptionMenuSettings.mLinespacing * CleanYfac_1;
-		int pad = 3 * CleanYfac_1;
+		int fh   = OptionMenuSettings.mLinespacing * CleanYfac_1;
+		int pad  = 3 * CleanYfac_1;
 		int rule = max(1, CleanYfac_1);
-		Screen.Dim(plateRGB, 0.35, 0, y - pad, Screen.GetWidth(), fh + pad - rule);
-		Screen.Dim(plateRGB, 0.85, 0, y + fh - rule, Screen.GetWidth(), rule);
+		int w    = Screen.GetWidth();
+
+		Screen.Dim(plateRGB, 0.35, 0, y - pad, w, fh + pad - rule);
+		Screen.Dim(plateRGB, 0.85, 0, y + fh - rule, w, rule);
+
+		// A vertical rail hard against the edge on the side the hand is
+		// on, plus a wash falling away from it. Visible in the corner of
+		// the eye, which is the point -- in a headset you should not have
+		// to read the title to know which gun you are looking at.
+		if (hand >= 0)
+		{
+			Color hc  = (hand == 1) ? MainRGB() : OffRGB();
+			int rail  = max(2, 3 * CleanXfac_1);
+			int top   = y - pad;
+			int hgt   = fh + pad;
+			int steps = 7;
+			int span  = w / 3;
+
+			if (hand == 1)
+			{
+				Screen.Dim(hc, 0.95, 0, top, rail, hgt);
+				for (int i = 0; i < steps; i++)
+					Screen.Dim(hc, 0.16 * (1.0 - double(i) / steps),
+						rail + (span / steps) * i, top, span / steps, hgt);
+			}
+			else
+			{
+				Screen.Dim(hc, 0.95, w - rail, top, rail, hgt);
+				for (int i = 0; i < steps; i++)
+					Screen.Dim(hc, 0.16 * (1.0 - double(i) / steps),
+						w - rail - (span / steps) * (i + 1), top, span / steps, hgt);
+			}
+		}
+
 		drawLabel(indent, y, titleColor);   // mCentered: draws centred
 		return -1;
 	}
@@ -184,7 +227,7 @@ class RS_Menu_Dynamic : TFLV_Menu_GenericMenu
 
 		PushText(" ", Font.CR_GOLD);
 		mDesc.mItems.Push(new("RS_MenuItem_SheetHeader")
-			.InitHeader(h.mTitle, h.mTitleColor, plate));
+			.InitHeader(h.mTitle, h.mTitleColor, plate, h.mHand));
 		if (h.mSubtitle != "")
 			PushText(h.mSubtitle, h.mSubtitleColor);
 		PushText(" ", Font.CR_GOLD);

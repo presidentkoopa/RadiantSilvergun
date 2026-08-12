@@ -101,6 +101,16 @@ class RS_UIHandler : EventHandler
 	// (player sheet, promotion confirm) and the plate renders gold.
 	int mSheetTier;
 
+	// WHICH HAND THIS SHEET IS. -1 = not a weapon sheet.
+	//
+	// Read by RS_MenuItem_SheetHeader, which hangs an accent rail on the
+	// side the hand is on -- mainhand warm on the LEFT, offhand cool on
+	// the RIGHT -- so the two are distinguishable from peripheral vision
+	// without reading the title. Deliberately separate from mSheetTier:
+	// tier is DATA and keeps the palette, the hand is CHROME and gets its
+	// own two colours, so they never compete for the same signal.
+	int mHand;
+
 	// Sheet cycle position: 0 offhand, 1 mainhand, 2 player.
 	int mCycle;
 
@@ -140,6 +150,7 @@ class RS_UIHandler : EventHandler
 	{
 		mCycleNav = false;
 		mSheetTier = -1;
+		mHand = -1;
 		mTitle = ""; mSubtitle = "";
 		mTitleColor = Font.CR_GOLD;
 		mSubtitleColor = Font.CR_WHITE;
@@ -233,6 +244,7 @@ class RS_UIHandler : EventHandler
 			return;
 		}
 
+		mHand = hand;
 		mSubtitle = RS_UIStyle.TierName(rsw.Tier) .. "      " .. RS_UIStyle.Pips(rsw.PromotionCount);
 		mSubtitleColor = RS_UIStyle.TierColor(rsw.Tier);
 		mSheetTier = rsw.Tier;
