@@ -88,7 +88,14 @@ class RS_Minion
 	//
 	// Returns the minion, or null if it could not be placed.
 	// -----------------------------------------------------------------
-	static Actor Summon(PlayerPawn owner, Weapon source, Class<Actor> what,
+	// MUST be `play`. RS_Minion is a plain class, which is data scope, and
+	// Actor.Spawn / GiveInventoryType are play functions -- calling them
+	// from data scope is a load error ("Can't call play function Spawn
+	// from data context"), and every later reference to the local then
+	// cascades as "Unknown identifier". Same marking RS_PACKAssembly.Build
+	// and .Install already carry. Every caller (GunBonsai's OnKill and
+	// OnDamageDealt, on Object play upgrades) is already play context.
+	static play Actor Summon(PlayerPawn owner, Weapon source, Class<Actor> what,
 		Vector3 where, double angle = 0)
 	{
 		if (!owner || !what) return null;
