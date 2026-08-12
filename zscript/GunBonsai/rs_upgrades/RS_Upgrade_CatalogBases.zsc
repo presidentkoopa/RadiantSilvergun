@@ -108,7 +108,7 @@ class RS_CatCard_ConscriptBase : RS_CatCard_FamilyBase abstract
 	override void OnKill(PlayerPawn player, Actor shot, Actor target)
 	{
 		if (!player || !target || level <= 0) return;
-		if (RS_Minion.IsMinion(target)) return;          // no compounding
+		if (RS_Minion.KilledByMinion(shot, player)) return;   // no compounding
 		if (random(1, 100) > ScaleChanceForFamily(min(55, 9 * int(level)))) return;
 
 		let src = Payee(player);
@@ -135,7 +135,7 @@ class RS_CatCard_SwarmBase : RS_CatCard_FamilyBase abstract
 	override void OnKill(PlayerPawn player, Actor shot, Actor target)
 	{
 		if (!player || !target || level <= 0) return;
-		if (RS_Minion.IsMinion(target)) return;
+		if (RS_Minion.KilledByMinion(shot, player)) return;   // no compounding
 		if (random(1, 100) > ScaleChanceForFamily(min(45, 7 * int(level)))) return;
 
 		let src = Payee(player);
@@ -156,10 +156,34 @@ class RS_CatCard_SwarmBase : RS_CatCard_FamilyBase abstract
 		Class<Actor> cls = what;
 		if (!cls) return;
 
+		// RING RADIUS, SIZED TO THE BODY AND THE COUNT.
+		//
+		// This was a flat 28 units, which is smaller than the collision
+		// distance for a lot of the roster and got worse as n grew.
+		// Placing n bodies of radius r around a ring of radius R leaves
+		// adjacent neighbours 2*R*sin(180/n) apart, and they need 2*r:
+		//
+		//   flat 28, n=2  ->  56 apart. A pinky needs 60, a mancubus 96,
+		//                     an arachnotron 128. All overlap.
+		//   flat 28, n=5  ->  33 apart. Even a baron (48) overlaps.
+		//
+		// RS_Minion.Summon calls TestMobjLocation and destroys anything
+		// that will not fit, so the card silently placed ONE body and
+		// binned the rest -- a Horde card that hordes nothing.
+		//
+		// R = r / sin(180/n) is the exact solve, plus a little slack.
+		double bodyR = 20.0;
+		let def = GetDefaultByType(cls);
+		if (def && def.radius > 0) bodyR = def.radius;
+
+		double ring = 28.0;
+		if (n > 1)
+			ring = max(ring, (bodyR * 1.15) / sin(180.0 / n));
+
 		for (int i = 0; i < n; i++)
 		{
 			double a = 360.0 * i / n;
-			Vector3 at = target.pos + (cos(a) * 28, sin(a) * 28, 0);
+			Vector3 at = target.pos + (cos(a) * ring, sin(a) * ring, 0);
 			RS_Minion.Summon(player, src, cls, at, a);
 		}
 	}
@@ -168,8 +192,23 @@ class RS_CatCard_SwarmBase : RS_CatCard_FamilyBase abstract
 // HUNTER -- this family dies faster to you.
 class RS_CatCard_HunterBase : RS_CatCard_FamilyBase abstract
 {
+	// RE-ENTRANCY GUARD. Not optional.
+	//
+	// DamageMobj below fires GunBonsai's damage event, which calls this
+	// same OnDamageDealt again, which deals another bonus, which fires
+	// it again. It terminates only when the target dies, and every level
+	// of that recursion is a live stack frame. On a high-health target
+	// with a high-level Bane that is a deep recursion per hit and a
+	// damage total nothing intended.
+	//
+	// A plain bool is enough: the recursive call is synchronous and on
+	// the same instance, so it is always back out before the next real
+	// hit arrives.
+	private bool mInBonus;
+
 	override void OnDamageDealt(Actor pawn, Actor shot, Actor target, int damage)
 	{
+		if (mInBonus) return;
 		if (!target || level <= 0 || damage <= 0) return;
 		if (target.bFRIENDLY) return;
 		if (RS_MinionCatalog.FamilyOf(target) != Family()) return;
@@ -178,7 +217,10 @@ class RS_CatCard_HunterBase : RS_CatCard_FamilyBase abstract
 		// on the damage feed and cannot be swallowed by the first hit's
 		// resistances.
 		int bonus = max(1, damage * (8 * int(level)) / 100);
+
+		mInBonus = true;
 		target.DamageMobj(shot, pawn, bonus, "Normal", DMG_THRUSTLESS);
+		mInBonus = false;
 	}
 }
 
@@ -414,7 +456,7 @@ class RS_CatCard_SurgeBase : RS_CatCard_ThemeBase abstract
 	override void OnKill(PlayerPawn player, Actor shot, Actor target)
 	{
 		if (!player || !target || level <= 0) return;
-		if (RS_Minion.IsMinion(target)) return;
+		if (RS_Minion.KilledByMinion(shot, player)) return;   // no compounding
 		if (random(1, 100) > min(60, 10 * int(level))) return;
 
 		Class<Actor> cls = DrawThemed(RS_FXRegistry.RS_FXROLE_HEADLINE);
@@ -504,7 +546,7 @@ class RS_CatCard_EchoBase : RS_CatCard_AxisBase abstract
 	override void OnKill(PlayerPawn player, Actor shot, Actor target)
 	{
 		if (!player || !target || level <= 0) return;
-		if (RS_Minion.IsMinion(target)) return;
+		if (RS_Minion.KilledByMinion(shot, player)) return;   // no compounding
 
 		int n = min(4, 1 + int(level) / 2);
 		for (int i = 0; i < n; i++)

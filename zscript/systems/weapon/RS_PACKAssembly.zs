@@ -302,7 +302,17 @@ class RS_PACKAssembly : Object
 		// Grow the gun's own opening beat out to everyNth-1 entries, then
 		// put the PACK beat last. A gun that already rotates keeps its
 		// rotation; this lengthens it rather than replacing it.
-		wpn.PadSlotTo(slot, everyNth - 1);
+		//
+		// PadSlotToOwned, not PadSlotTo: the padding is billed to the
+		// installer so UninstallOwned can take it back. With unowned
+		// padding the slot could only ever grow, which froze every PACK
+		// card's rotation at whatever its first install produced -- see
+		// RS_AttackSlot.PadToOwned. An installer with no owner tag gets
+		// the old unowned behaviour, which is at least no worse.
+		if (ownerTag != "")
+			wpn.PadSlotToOwned(slot, everyNth - 1, ownerTag);
+		else
+			wpn.PadSlotTo(slot, everyNth - 1);
 		wpn.AppendProfile(slot, p);
 		return p;
 	}

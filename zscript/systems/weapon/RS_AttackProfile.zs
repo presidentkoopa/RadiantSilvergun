@@ -346,6 +346,7 @@ class RS_AttackProfile : Object
 	{
 		Mode          = RS_ATK_BULLET;
 		OwnerTag      = "";
+		ExtraFireSound = "";
 		MuzzleFlash   = null;
 		PelletOverride = 0;
 		SpreadScale   = 0.05;
@@ -679,6 +680,12 @@ class RS_AttackProfile : Object
 		p.AmmoClass       = AmmoClass;
 		p.AmmoCost        = AmmoCost;
 		p.FireSound       = FireSound;
+		// Was MISSING. PACK is its only producer (RS_PACKAssembly.Build
+		// passes extraFireSnd) and it is the field the 2026-08-08 fix moved
+		// the theme voice onto so a caco beat would stop silencing the
+		// shotgun. A cloned beat kept every part and lost its voice --
+		// exactly the regression that fix was written to prevent.
+		p.ExtraFireSound  = ExtraFireSound;
 		p.CasingClass     = CasingClass;
 		p.BigMuzzle       = BigMuzzle;
 		p.SpawnHeight     = SpawnHeight;
@@ -829,5 +836,68 @@ class RS_AttackSlot : Object
 		if (!filler) return;
 		while (Profiles.Size() < length)
 			Profiles.Push(filler.Clone());
+	}
+
+	// -----------------------------------------------------------------
+	// PAD, AND BILL THE PADDING TO WHOEVER ASKED FOR IT.
+	//
+	// THE BUG THIS EXISTS TO FIX. PadTo above clones PeekAt(0) -- the
+	// gun's OWN authored beat, whose OwnerTag is "". So padding clones
+	// belonged to nobody, and nothing could ever remove them:
+	// UninstallOwned matches on OwnerTag, UninstallAll matches on the
+	// "PACK: " name prefix, and a pad clone has neither.
+	//
+	// Combined with `while (Size() < length)` -- which grows a slot and
+	// can never shrink one -- a rotation could only ratchet upward.
+	// Walk Salvage, whose card text promises every 4th, then 3rd, then
+	// 2nd:
+	//
+	//   L1  [own] -> pad to 3 -> [own,own,own] + PACK = 4.  Every 4th.
+	//   L2  UninstallOwned drops the PACK beat, leaving the 3 unowned
+	//       clones. rot=3, so PadSlotTo(0,2) is a no-op. Append = 4.
+	//       Card says every 3rd. Player still gets every 4th.
+	//   L4  rot=2, pad to 1 is a no-op, append = 4. Still every 4th.
+	//
+	// Salvage never delivered anything past level 1, and neither did any
+	// of the eight Attune cards. Worse, it outlived the card: deactivate
+	// is also UninstallOwned, so a gun that once held Salvage kept a
+	// 3-long slot forever and set the floor for the next card installed.
+	//
+	// Stamping the clones makes the whole cycle reversible -- uninstall
+	// takes the slot back to the gun's authored beats, and the next
+	// install re-pads to the new, possibly SHORTER, length.
+	// -----------------------------------------------------------------
+	// Remove every profile carrying this owner tag, leaving everyone
+	// else's alone. The slot-level counterpart to
+	// RS_PACKAssembly.UninstallOwned, for cards that rebuild a rotation
+	// in place rather than installing a single beat.
+	//
+	// Written because TFLV_Upgrade_RS_Echo called Clear() -- wiping the
+	// WHOLE slot, PACK beats and all. Its suitability check only guards
+	// the FIRST take (it requires Count() == 1), so taking Echo, then
+	// Salvage, then levelling Echo destroyed Salvage's beat with nothing
+	// reporting it.
+	void RemoveOwnedBy(string ownerTag)
+	{
+		if (ownerTag == "") return;
+		for (int i = Profiles.Size() - 1; i >= 0; i--)
+		{
+			let p = Profiles[i];
+			if (p && p.OwnerTag == ownerTag)
+				Profiles.Delete(i);
+		}
+		if (Cursor >= Profiles.Size())
+			Cursor = 0;
+	}
+
+	void PadToOwned(int length, RS_AttackProfile filler, string ownerTag)
+	{
+		if (!filler) return;
+		while (Profiles.Size() < length)
+		{
+			let c = filler.Clone();
+			c.OwnerTag = ownerTag;
+			Profiles.Push(c);
+		}
 	}
 }

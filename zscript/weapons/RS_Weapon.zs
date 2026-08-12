@@ -182,15 +182,22 @@ class RS_Weapon : Weapon abstract
 	// SHOULD override an earlier roll. What the ledger prevents is the
 	// reverse: something clearing a field it does not own.
 	// =================================================================
-	private string mAxisOwner[9];   // RS_FXAXIS_COUNT
+	private string mAxisOwner[9];   // == RS_FXRegistry.RS_FXAXIS_COUNT.
+	                                // Literal because ZScript needs a
+	                                // compile-time constant for an array
+	                                // bound and a cross-class const does
+	                                // not reliably resolve there on this
+	                                // engine build. AXIS_SLOTS below is
+	                                // what every loop uses.
+	const AXIS_SLOTS = 9;
 
 	void SetAxisOwner(int axis, string owner)
 	{
-		if (axis >= 0 && axis < 9) mAxisOwner[axis] = owner;
+		if (axis >= 0 && axis < AXIS_SLOTS) mAxisOwner[axis] = owner;
 	}
 	string GetAxisOwner(int axis) const
 	{
-		return (axis >= 0 && axis < 9) ? mAxisOwner[axis] : "";
+		return (axis >= 0 && axis < AXIS_SLOTS) ? mAxisOwner[axis] : "";
 	}
 	// True when nobody holds it, or the asker already does. An unowned
 	// field is fair game -- that keeps the hand-rolled affixes that
@@ -258,7 +265,7 @@ class RS_Weapon : Weapon abstract
 	// should call -- never ClearAffixParts.
 	void ReleaseAxesBy(string owner)
 	{
-		for (int a = 0; a < 9; a++)
+		for (int a = 0; a < AXIS_SLOTS; a++)
 			ReleaseAxis(a, owner);
 	}
 
@@ -288,7 +295,7 @@ class RS_Weapon : Weapon abstract
 		AffixTrail           = null;
 		AffixExplosionVisual = null;
 		AffixCasing          = "";
-		for (int a = 0; a < 9; a++) mAxisOwner[a] = "";
+		for (int a = 0; a < AXIS_SLOTS; a++) mAxisOwner[a] = "";
 	}
 
 	// -----------------------------------------------------------------
@@ -466,12 +473,19 @@ class RS_Weapon : Weapon abstract
 			ATTN_NORM, pitch);
 	}
 
-	// Does any beat on either slot run in the given RS_ATK_* mode?
+	// Does any beat on ANY slot run in the given RS_ATK_* mode?
 	// Suitability gate for designed affixes -- Splitter wants a bullet
 	// or hitscan beat, Ghost a bullet beat, etc.
+	//
+	// Was `s < 2` and is now RS_SLOT_COUNT. Left at 2 it could not see
+	// the modifier slots, so a gun whose ONLY bullet beat lived on
+	// modifier-fire would be judged to have none and every affix gating
+	// on HasBeatMode would refuse to offer -- silently, since a card
+	// that declines to appear looks identical to a card you were simply
+	// unlucky not to roll.
 	bool HasBeatMode(int mode)
 	{
-		for (int s = 0; s < 2; s++)
+		for (int s = 0; s < RS_SLOT_COUNT; s++)
 		{
 			let slot = GetSlot(s);
 			if (!slot) continue;
@@ -852,6 +866,19 @@ class RS_Weapon : Weapon abstract
 		if (!s) return;
 		let filler = s.PeekAt(0);
 		if (filler) s.PadTo(length, filler);
+	}
+
+	// Same, but the padding carries an owner so the installer can take it
+	// back. Anything installing a rotation beat wants THIS -- unowned
+	// padding is permanent, and permanent padding means a card's "every
+	// Nth shot" is frozen at whatever its first install produced. See
+	// RS_AttackSlot.PadToOwned for the full walk-through.
+	void PadSlotToOwned(int which, int length, string ownerTag)
+	{
+		let s = GetSlot(which);
+		if (!s) return;
+		let filler = s.PeekAt(0);
+		if (filler) s.PadToOwned(length, filler, ownerTag);
 	}
 
 	int GetSlotCount(int which)

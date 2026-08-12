@@ -369,7 +369,6 @@ class RS_FXRegistry : Object
 		Add(outv, "RS_EnhancedRocket",                 "enhanced rocket",           T_IMP, A_PROJ, "enhanced_rocket", R_BOD | R_SPW);
 		Add(outv, "RS_EnhancedPlasmaBall",             "enhanced plasma ball",      T_PLAS, A_PROJ, "enhanced_plasma_ball", R_BOD | R_SPW);
 		Add(outv, "RS_EnhancedBFGBall",                "enhanced bfgball",          T_PLAS, A_PROJ, "enhanced_bfgball", R_BOD | R_SPW);
-		Add(outv, "RS_HiFiFX",                         "hi fi fx",                  T_IMP, A_SPRK, "hi_fi_fx", R_BOD | R_SPW);
 		Add(outv, "RS_MuzzleLight",                    "muzzle light",              T_LTNG, A_MUZZ, "muzzle_light", R_BOD);
 		Add(outv, "RS_ExplosionParticle",              "explosion particle",        T_IMP, A_SPRK | A_SMOKE, "explosion_particle", R_HED);
 		Add(outv, "RS_ExplosionParticle2",             "explosion particle2",       T_IMP, A_SPRK | A_SMOKE, "explosion_particle2", R_HED);
@@ -421,10 +420,7 @@ class RS_FXRegistry : Object
 		Add(outv, "RS_ST_ScrapShard",                  "st scrap shard",            T_IMP, A_TRAIL, "st_scrap_shard", R_ACC);
 		Add(outv, "RS_ST_ScrapShardAlt",               "st scrap shard alt",        T_IMP, A_TRAIL, "st_scrap_shard_alt", R_BOD);
 		Add(outv, "RS_ST_Glow",                        "st glow",                   T_IMP, A_TRAIL, "st_glow", R_ACC);
-		Add(outv, "RS_ST_LanceHit",                    "st lance hit",              T_IMP, A_TRAIL, "st_lance_hit", R_BOD);
 		Add(outv, "RS_ST_BurnToken",                   "st burn token",             T_FIRE, A_TRAIL, "st_burn_token", R_BOD | R_SPW);
-		Add(outv, "RS_ST_Burn",                        "st burn",                   T_FIRE, A_TRAIL, "st_burn", R_BOD);
-		Add(outv, "RS_ST_Push",                        "st push",                   T_IMP, A_TRAIL, "st_push", R_BOD);
 		Add(outv, "RS_ST_StickyProjectile",            "st sticky projectile",      T_IMP, A_TRAIL, "st_sticky_projectile", R_BOD);
 
 		// -------------------------------------------------------------

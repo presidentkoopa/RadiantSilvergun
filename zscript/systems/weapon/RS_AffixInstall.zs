@@ -298,9 +298,9 @@ class RS_AffixInstall : Object play
 	// nine cards deleting each other for want of a name on the work.
 	// Same cure.
 	//
-	// ClearAffixParts() still exists and is still right for exactly one
-	// caller: the promotion strip, which is meant to take the whole gun
-	// back to bare.
+	// ClearAffixParts() still exists but has NO callers, and RS_Weapon
+	// documents why that is correct: the promotion strip runs each
+	// affix's OnDeactivate instead, so every owner releases its own.
 	// -----------------------------------------------------------------
 	static play void UninstallParts(RS_Weapon wpn)
 	{

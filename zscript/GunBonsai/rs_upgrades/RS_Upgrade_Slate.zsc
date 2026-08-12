@@ -133,6 +133,14 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 	{
 		if (wpn) wpn.SetAxisCasing(c, GetClassName());
 	}
+	// PAYLOAD, via the explosion visual -- the only Affix* field that
+	// corresponds to "what the payload looks like when it goes off".
+	// Filed under the PAYLOAD axis id in the ledger so a payload card
+	// releases it correctly.
+	void SetPayloadVisual(RS_Weapon wpn, Class<Actor> c)
+	{
+		if (wpn) wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_PAYLOAD, c, GetClassName());
+	}
 	// MUZZLE. The one axis with no gun floor behind it: RS_Main emits no
 	// muzzle light of its own and defers to GlowInTheDark, so a card
 	// claiming this adds a second light rather than overriding one.
@@ -159,8 +167,19 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 		else if (axis == RS_FXRegistry.RS_FXAXIS_SMOKE)  ClaimSmoke(wpn, c);
 		else if (axis == RS_FXRegistry.RS_FXAXIS_TRAIL)  ClaimTrail(wpn, c);
 		else if (axis == RS_FXRegistry.RS_FXAXIS_MUZZLE) ClaimMuzzle(wpn, c);
-		// CASING takes a string rather than a class, and PAYLOAD has no
-		// profile field at all; those two are claimed by their own cards.
+		// CASING is a string field, not a class one -- but a card handing
+		// us a class still means "eject this", so convert rather than
+		// drop. Silently discarding it made FlourishCasing and EchoCasing
+		// complete no-ops: they drew a valid entry from the registry's
+		// 7 casing entries every time and then threw it away.
+		else if (axis == RS_FXRegistry.RS_FXAXIS_CASING)
+			ClaimCasing(wpn, c.GetClassName());
+		// PAYLOAD has no Affix* field of its own; the nearest real one is
+		// the explosion visual, which is what a payload card is actually
+		// asking to change. Same story as casing -- FlourishPayload and
+		// EchoPayload drew from 66 payload entries and discarded them.
+		else if (axis == RS_FXRegistry.RS_FXAXIS_PAYLOAD)
+			SetPayloadVisual(wpn, c);
 	}
 
 	// PROJECTILE IDENTITY EXCLUSION GROUP. A gun's rounds are ONE thing:
@@ -670,16 +689,30 @@ class TFLV_Upgrade_RS_Echo : TFLV_Upgrade_RS_SlateBase
 		// matter MORE with Echo, not less; an SSG's echo and an SMG's
 		// echo are now entirely different beasts because the roll is.
 		int n = (level >= 6) ? 2 : max(3, 8 - int(level));
-		slot.Clear();
-		slot.Append(SavedOriginal);
-		slot.PadTo(n, SavedOriginal);
+
+		// OWN ENTRIES ONLY. This was slot.Clear() followed by rebuilding
+		// from SavedOriginal, which wiped the entire slot -- every PACK
+		// beat Salvage or an Attune card had installed went with it. The
+		// suitability check below only guards the FIRST take (it demands
+		// Count() == 1), so Echo -> Salvage -> level Echo silently
+		// destroyed Salvage's work.
+		//
+		// Removing only what Echo owns leaves the slot holding the gun's
+		// authored beat plus anyone else's, and Echo rebuilds its own
+		// padding and its echo beat on top. Two rotation cards on one gun
+		// now compose instead of the later one erasing the earlier.
+		string me = GetClassName();
+		slot.RemoveOwnedBy(me);
+
+		slot.PadToOwned(n, SavedOriginal, me);
 
 		let echo = SavedOriginal.Clone();
 		echo.AmmoCost = SavedOriginal.AmmoCost * 2;
 		echo.DamageMult *= 2.0;
 		echo.GrantLocal("payload", "multi");
 		echo.ProfileName = "Echo";
-		slot.Replace(n - 1, echo);
+		echo.OwnerTag = me;
+		slot.Append(echo);
 		slot.ResetCursor();
 	}
 
@@ -688,8 +721,9 @@ class TFLV_Upgrade_RS_Echo : TFLV_Upgrade_RS_SlateBase
 		if (!SavedOriginal) return;
 		let slot = wpn.GetSlot(0);
 		if (!slot) return;
-		slot.Clear();
-		slot.Append(SavedOriginal);
+		// Likewise: take back Echo's padding and its echo beat, and leave
+		// the gun's own opener and every other card's beats standing.
+		slot.RemoveOwnedBy(GetClassName());
 		slot.ResetCursor();
 	}
 

@@ -72,7 +72,7 @@ class TFLV_Upgrade_RS_Conscript : TFLV_Upgrade_RS_SlateBase
 		// Never raise a minion off a minion's kill -- that compounds:
 		// two minions become four, and a saturated fight never stops
 		// growing. Only your own kills conscript.
-		if (RS_Minion.IsMinion(target)) return;
+		if (RS_Minion.KilledByMinion(shot, player)) return;   // no compounding
 
 		if (random(1, 100) > ChanceFor(int(level))) return;
 
@@ -168,7 +168,7 @@ class TFLV_Upgrade_RS_Smokescreen : TFLV_Upgrade_RS_SlateBase
 	override void OnKill(PlayerPawn player, Actor shot, Actor target)
 	{
 		if (!player || !target || level <= 0) return;
-		if (RS_Minion.IsMinion(target)) return;
+		if (RS_Minion.KilledByMinion(shot, player)) return;   // no compounding
 
 		// Theme -1 = any: a smokescreen is not elementally themed, and
 		// restricting it would shrink an already small axis.
@@ -307,7 +307,7 @@ class TFLV_Upgrade_RS_Turncoat : TFLV_Upgrade_RS_SlateBase
 	override void OnKill(PlayerPawn player, Actor shot, Actor target)
 	{
 		if (!player || !target || level <= 0) return;
-		if (RS_Minion.IsMinion(target)) return;
+		if (RS_Minion.KilledByMinion(shot, player)) return;   // no compounding
 
 		if (random(1, 100) > min(50, 8 * int(level))) return;
 

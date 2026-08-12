@@ -118,19 +118,24 @@ class RS_Minion
 
 		mo.angle = angle;
 
+		// ORDER IS LOAD-BEARING AND WAS WRONG. ClearCounters() only
+		// decrements level.total_monsters when CountsAsKill() is true,
+		// and CountsAsKill() is (bCOUNTKILL && !bFRIENDLY). Setting
+		// bFRIENDLY first therefore made ClearCounters a silent no-op:
+		// every summoned minion stayed counted in the map total forever,
+		// and a map with any minion raised could never reach 100% kills.
+		//
+		// So: decrement FIRST, while the monster still looks like a
+		// monster to the engine, and only then change what it is.
+		mo.ClearCounters();
+		mo.bCOUNTKILL = false;
+
 		// FRIENDLY, AND WHOSE. FriendPlayer is 1-INDEXED -- 0 means "no
 		// player", so a 0-indexed value here would silently mean nobody
 		// and the whole attribution path would go quiet.
 		mo.bFRIENDLY = true;
 		mo.FriendPlayer = owner.PlayerNumber() + 1;
 		mo.master = owner;
-
-		// A friendly kill is not a kill. ClearCounters BEFORE dropping the
-		// flag: it decrements the level total this monster was counted
-		// into at spawn, and doing it in the other order leaves the map
-		// unable to reach 100%.
-		mo.ClearCounters();
-		mo.bCOUNTKILL = false;
 
 		// It should already be looking for something to fight rather than
 		// standing still waiting to be shot at.
@@ -195,5 +200,28 @@ class RS_Minion
 	static bool IsMinion(Actor a)
 	{
 		return a && a.FindInventory("RS_MinionToken") != null;
+	}
+
+	// -----------------------------------------------------------------
+	// DID A MINION LAND THIS, rather than the player?
+	//
+	// The compounding guard on every summon card was written as
+	// IsMinion(target) -- and in OnKill, `target` is the VICTIM. That
+	// asks "did I just kill a minion", which is not the question and is
+	// nearly never true. The question is "did a MINION get this kill",
+	// because a minion's kill crediting a weapon that then raises
+	// another minion is how two become four and a saturated fight never
+	// stops growing.
+	//
+	// Same resolution SourceWeaponFor already does: the killer is either
+	// the inflictor itself, or -- for a projectile -- whatever fired it.
+	// -----------------------------------------------------------------
+	static bool KilledByMinion(Actor inflictor, Actor damagesource)
+	{
+		if (IsMinion(damagesource)) return true;
+		if (inflictor && IsMinion(inflictor)) return true;
+		// A round in flight carries its shooter as `target`.
+		if (inflictor && inflictor.target && IsMinion(inflictor.target)) return true;
+		return false;
 	}
 }
