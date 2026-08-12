@@ -428,6 +428,61 @@ class VR_Dual_Chaingun : VR_DualClassBase
 }
 
 // ---------------------------------------------------------------------
+// VR_Dual_Laser -- twin Lances, mainhand + offhand.
+// ---------------------------------------------------------------------
+// NO GetFamily() OVERRIDE, and that is not an oversight -- read RS_Roll.zs's
+// EVR_Family enum before "fixing" it. The seven families above it
+// (Pistol..Chaingun) are marked "identity AND class gating"; Energy is
+// listed separately as "identity only, never class-gated". RS_ClassGating
+// only activates when GetFamily() != EVR_Family_None (RS_ClassGating.zs:305),
+// and its own fill logic and AmmoForFamily() only know the seven gated
+// families -- handing it EVR_Family_Energy would turn on whole-map pickup
+// replacement for a family the system was never built to carry, with no
+// ammo fallback once all six identities were owned. RS_GH_Weaponset and
+// RS_PS_Weaponset already establish the pattern this follows: inherit
+// EVR_Family_None from the base and stay ungated.
+//
+// 1 AND 4, the SAME PAIRING every other Dual_X class uses (identity 1
+// mainhand, 4 offhand) -- the Lance goes all the way to 6, so unlike the
+// Fist's 1/2 split (VR_Fist.zs's header explains why that one differs)
+// nothing here needs a fallback pairing.
+//
+// NO "Loaded" GRANT. RS_LaserGun.RollStats sets Capacity 0 at every tier --
+// the beam has no magazine and draws straight from the Cell pool, unlike
+// every gun above it in this file.
+// ---------------------------------------------------------------------
+class VR_Dual_Laser : VR_DualClassBase
+{
+	Default
+	{
+		Player.DisplayName "Dual Lances";
+		Player.StartItem "VR_Fist";
+		Player.StartItem "VR_Fist2";
+		Player.StartItem "RS_LaserGun";
+		Player.StartItem "RS_LaserGun4";
+		Player.StartItem "Cell", 200;
+		// GRENADES. Added to every class 2026-08-07 at the owner's order:
+		// three, from the start, for everyone.
+		//
+		// LAST IN THE BLOCK ON PURPOSE. Player.StartItem grants in REVERSE
+		// declaration order, and GiveDefaultInventory sets ReadyWeapon for
+		// every granted weapon that has ammo -- so the LAST grant wins the
+		// main hand. Being last here means being granted FIRST, so the
+		// grenade cannot end up in your hand at spawn. See the ordering
+		// note at the top of this file.
+		//
+		// It also carries Weapon.SlotNumber 0 and +WEAPON.NO_AUTO_SWITCH,
+		// so nothing selects it by number and nothing auto-switches to it.
+		// It is thrown from a bind, never wielded.
+		Player.StartItem "RS_Grenade";
+		Player.StartItem "RS_GrenadeAmmo", 3;
+	}
+
+	override string GetMainhandClass() { return "RS_LaserGun"; }
+	// No GetFamily() override -- see the header. Deliberately ungated.
+}
+
+// ---------------------------------------------------------------------
 // RS_GH_Weaponset -- displayed as "Vanilla+". Ungated (no family gating,
 // same as leaving GetFamily() at its EVR_Family_None default -- see
 // RS_ClassGating.zs's own comment, which already anticipated exactly

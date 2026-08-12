@@ -173,12 +173,71 @@ class RS_LaserGun : RS_Weapon
 		// TRF_THRUACTORS on purpose: the beam should be drawn to the WALL
 		// behind whatever it is burning through, not stop short at the first
 		// monster. The slot's own attack decides what it actually hits.
-		FLineTraceData d;
-		LineTrace(angle, BEAM_RANGE, pitch, TRF_THRUACTORS,
-			player.viewheight, data: d);
+		//
+		// TRF_USEWEAPON, ADDED 2026-08-12 -- this was the actual cause of
+		// the screen-flooding-white report, not the intensity numbers above.
+		// Without it, P_LineTrace ignores the VR hand entirely and traces
+		// from `angle`/`pitch` (BODY yaw/pitch) starting at eye height
+		// (p_map.cpp:5300-ish, the branch that only checks
+		// OverrideAttackPosDir when TRF_USEWEAPON is set). The drawn beam
+		// was therefore aimed wherever the HEAD was looking while the gun
+		// model on screen was aimed wherever the tracked HAND was -- two
+		// different rays -- and a wide-halo segment running close past the
+		// camera at the wrong angle is exactly what saturates the screen.
+		// RS_Grenade.zs's HandPose() hit the identical fork in the road for
+		// its throw origin and resolved it the same way: gate on
+		// OverrideAttackPosDir, prefer the hand.
+		//
+		// With TRF_USEWEAPON set, P_LineTrace's own VR branch takes over:
+		// fromPos becomes AttackPos/OffhandPos (the real tracked hand), and
+		// direction becomes AttackDir(self, angle, pitch) -- which internally
+		// subtracts the actor's OWN body angle/pitch from what is passed in
+		// before applying the hand's matrix. Passing `angle`/`pitch`
+		// UNCHANGED (self's own current values, as below) makes that
+		// subtraction net to zero, so what comes out is the hand's true aim
+		// with no deviation added -- which is correct, since the profile
+		// above already declares `spreadScale: 0.0`. TRF_ISOFFHAND only
+		// when this copy is the offhand Lance, or an offhand shot would
+		// trace from the mainhand controller.
+		int trf = TRF_THRUACTORS | TRF_USEWEAPON;
+		if (w.BeamSlot() == 1) trf |= TRF_ISOFFHAND;
 
-		Vector3 from = (pos.x, pos.y, pos.z + player.viewheight);
-		Vector3 to = d.HitLocation;
+		// player.viewheight IS STILL NEEDED, even though the VR branch above
+		// ignores it. P_LineTrace only reaches for AttackPos/OffhandPos when
+		// OverrideAttackPosDir is actually set (a real headset, or
+		// vr_override_weap_pos); flat/desktop testing falls through to
+		// P_LineTrace's own OTHER branch, `fromPos = t1->PosAtZ(startz)`,
+		// where startz is built from THIS offset. Drop it and that branch
+		// starts the trace at the FLOOR instead of the eye -- which would
+		// have left `from` below (read from AttackPos, eye height in both
+		// modes per VRMode::SetUp's flat-play branch too) pointing one
+		// place while the ray itself left from another, and the beam would
+		// have appeared to end at the player's own feet on a desktop test.
+		FLineTraceData d;
+		bool hit = LineTrace(angle, BEAM_RANGE, pitch, trf, player.viewheight, data: d);
+
+		// The draw origin has to be the SAME point the trace left from, not
+		// a second, independently-reconstructed guess at where the hand is
+		// -- two formulas for "where the hand is" is how this broke the
+		// first time. AttackPos/OffhandPos are exactly what P_LineTrace just
+		// used, on the flat-play fallback and in a headset alike.
+		bool offhand = w.BeamSlot() == 1;
+		Vector3 from = offhand ? OffhandPos : AttackPos;
+
+		// ON A MISS, d.HitLocation IS THE MAP ORIGIN (0,0,0), NOT "NO
+		// ANSWER". P_LineTrace zeroes its result struct before tracing and
+		// only fills HitLocation if something was actually found
+		// (p_trace.cpp's Trace() memsets on entry, p_map.cpp writes
+		// HitPos only through the successful branch). A held-open sky, or
+		// simply firing off the edge of an unusually open map, would have
+		// silently pointed the beam at world (0,0,0) instead of "did not
+		// hit anything" -- for a player standing any real distance from
+		// the map's coordinate origin that is a wildly wrong endpoint, and
+		// exactly the kind of stray segment that can graze past the camera
+		// and wash the screen the same way the missing TRF_USEWEAPON did.
+		// Fall back to the beam's own aim direction at full range instead.
+		Vector3 to = hit ? d.HitLocation
+			: from + (offhand ? OffhandDir(self, angle, pitch) : AttackDir(self, angle, pitch)) * BEAM_RANGE;
 
 		// SHAPE, AND IT IS ALL DRIVEN BY HOW LONG YOU HAVE HELD IT.
 		//
@@ -188,9 +247,20 @@ class RS_LaserGun : RS_Weapon
 		double heat = clamp(double(w.beamHeld - BEAM_LOCK)
 			/ double(BEAM_OVERHEAT - BEAM_LOCK), 0.0, 1.0);
 
-		double thick = 1.5 + 2.5 * t + 4.0 * heat;
-		double soft  = 2.0 + 3.0 * t + 4.0 * heat;
-		double inten = 0.5 + 0.9 * t + 0.8 * heat;
+		// TONED DOWN 2026-08-12. `inten` reached 2.2 at full heat and the
+		// fork's own beam doc says why that is wrong: "it feeds bloom
+		// without being told to, since a core burning past white is
+		// exactly what the bloom pass thresholds for." At LOCK -- the
+		// weapon's ordinary working state, not even the heat phase -- the
+		// old inten (1.4) was already past that threshold, so every shot
+		// bloomed the whole screen white before a single second of
+		// sustained fire. Rescaled so lock sits comfortably under 1.0 and
+		// only the overheat approach earns real bloom, which is the
+		// warning it was supposed to be. Same shape, same "soft grows
+		// faster than thick" ordering, smaller numbers throughout.
+		double thick = 1.1 + 1.4 * t + 2.0 * heat;
+		double soft  = 1.3 + 1.6 * t + 2.4 * heat;
+		double inten = 0.30 + 0.40 * t + 0.35 * heat;
 
 		// Cold blue-white, to hard white, to amber, to orange. The colour is
 		// the heat gauge; there is deliberately no meter for it.
@@ -202,7 +272,12 @@ class RS_LaserGun : RS_Weapon
 		else
 			col = RS_LaserGun.LerpCol(0xFFD070, 0xFF6020, (heat - 0.5) * 2.0);
 
-		level.SetBeamCount(2, 0.45, 1.0);
+		// 0.45 -> 0.28. This is FRAME-GLOBAL (SetBeamCount's glow term
+		// covers every beam in the scene, not just this one), and this
+		// weapon is currently the only thing calling it -- if a second
+		// beam user comes online later, re-check this against theirs
+		// rather than assuming it is still weapon-scoped.
+		level.SetBeamCount(2, 0.28, 1.0);
 
 		// HOW THE BEAM LOOKS, AND ALL OF IT RIDES THE HEAT.
 		//
@@ -210,6 +285,13 @@ class RS_LaserGun : RS_Weapon
 		// beam is visible hanging in the air, not just as a bright patch
 		// where it lands. It is also what feeds bloom, so the core burning
 		// past white blooms on its own with no light and no sprite.
+		//
+		// AIR GLOW NOW RIDES HEAT TOO, same 2026-08-12 pass. It was a flat
+		// 1.0 regardless of state, which meant the beam was already
+		// contributing full bloom during ordinary LOCK fire -- the phase
+		// meant to be the calm, sustainable one. 0.5 at lock, climbing to
+		// 1.0 only as it nears overheat, so the air itself gets more
+		// dangerous-looking exactly when the weapon is.
 		//
 		// SCROLL SPEEDS UP AS IT HEATS. A held beam with nothing travelling
 		// along it goes static within a second and the eye stops believing it
@@ -219,7 +301,7 @@ class RS_LaserGun : RS_Weapon
 		// TAPER SLACKENS as it heats -- a cold beam is tight at the aperture,
 		// a hot one has lost its discipline and is nearly parallel-sided.
 		level.SetBeamLook(
-			1.0,                          // air glow: it is an object in space
+			0.5 + 0.5 * heat,             // air glow: rides heat, not flat
 			5.0 + 9.0 * heat,             // scroll speed
 			0.18 + 0.22 * heat,           // scroll depth
 			0.45 - 0.30 * heat,           // taper, slackening

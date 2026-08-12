@@ -4,7 +4,7 @@ GameInfo
 	// to the engine default, which cannot see OffhandWeapon at all. See
 	// RS_StatusBar.zs.
 	statusbarclass = "RS_StatusBar"
-	PlayerClasses = "RS_GH_Weaponset", "RS_PS_Weaponset", "VR_Dual_Pistol", "VR_Dual_Revolver", "VR_Dual_Rifle", "VR_Dual_SMG", "VR_Dual_Shotgun", "VR_Dual_SSG", "VR_Dual_Chaingun"
+	PlayerClasses = "RS_GH_Weaponset", "RS_PS_Weaponset", "VR_Dual_Pistol", "VR_Dual_Revolver", "VR_Dual_Rifle", "VR_Dual_SMG", "VR_Dual_Shotgun", "VR_Dual_SSG", "VR_Dual_Chaingun", "VR_Dual_Laser"
 	// EVERY EventHandler IN THIS MOD MUST BE NAMED HERE, AND EVERY NAME
 	// HERE MUST HAVE A LIVE CLASS. The two directions fail differently
 	// and both are expensive:

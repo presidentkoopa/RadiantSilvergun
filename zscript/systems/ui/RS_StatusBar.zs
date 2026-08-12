@@ -203,8 +203,11 @@ class RS_StatusBar : BaseStatusBar
 		//
 		// Either can be null -- mid-switch, or before the class hands out
 		// its pair -- and DrawHand copes, so there is no guard here.
-		DrawHand(Weapon(CPlayer.ReadyWeapon),   -1, "MAINHAND", HAND_MAIN);
-		DrawHand(Weapon(CPlayer.OffhandWeapon), +1, "OFFHAND",  HAND_OFF);
+		// Swapped 2026-08-12 at the owner's request -- mainhand right,
+		// offhand left. Only the SIDE argument moved; label and colour
+		// still travel with the hand they name.
+		DrawHand(Weapon(CPlayer.ReadyWeapon),   +1, "MAINHAND", HAND_MAIN);
+		DrawHand(Weapon(CPlayer.OffhandWeapon), -1, "OFFHAND",  HAND_OFF);
 
 		// --- vitals, centred ----------------------------------------
 		//
