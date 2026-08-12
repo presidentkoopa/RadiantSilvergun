@@ -171,6 +171,16 @@ server bool rs_bits_enable = true;
 server int rs_bits_mode = 0;					// 0: Fixed Range, 1: Scale by Monster Health
 server int rs_bits_dropchance = 100;			// per-bit chance after count is calculated
 server int rs_bits_boss_mult = 3;
+// Revealed elites pay this many times the ordinary rate. Multiplies
+// WITH boss_mult, so a revealed elite Cyberdemon pays both. Elites are
+// the gate on the affix system now (RS_RarityToken) -- they are the
+// thing you go out of your way to fight, and the payout should say so.
+server int rs_bits_elite_mult = 8;
+// ONE knob for the whole economy, percent, applied after whichever
+// mode ran. 100 = unchanged. The two modes each had their own dials and
+// no shared one, so turning bits up meant retuning whichever mode you
+// were on and getting a different curve from each.
+server int rs_bits_global_scale = 100;
 
 server int rs_bits_life_ticks = 0;				// bit lifetime = ticks * mult; either 0 = never expires
 server int rs_bits_life_mult = 0;

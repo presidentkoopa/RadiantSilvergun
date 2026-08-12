@@ -147,6 +147,30 @@ class RS_KillRewardsHandler : EventHandler
 		int bossMult = CVar.GetCVar("rs_bits_boss_mult", null).GetInt();
 		int mode = CVar.GetCVar("rs_bits_mode", null).GetInt();
 		int mult = a.bBoss ? bossMult : 1;
+
+		// -------------------------------------------------------------
+		// ELITES PAY PROPERLY.
+		//
+		// Until now only bBoss got a multiplier, so an elite zombieman
+		// dropped the same 1-3 bits as an ordinary one. The elite layer
+		// is the hardest content in the mod and it was paying the same
+		// currency rate as its own trash -- and now that Rarity Tokens
+		// make elites the gate on the whole affix system, they are the
+		// thing you go out of your way to fight. The payout should say
+		// so.
+		//
+		// REVEALED, not merely elite. Same contract the food scatter and
+		// the token drop use: an elite carried from above its half-health
+		// line to dead in one hit never revealed and pays the ordinary
+		// rate. You are paid for the fight, not for the label.
+		//
+		// Multiplies WITH bBoss rather than replacing it -- a revealed
+		// elite Cyberdemon is both, and should pay like both.
+		// -------------------------------------------------------------
+		let etok = RS_EliteToken(a.FindInventory("RS_EliteToken"));
+		if (etok && etok.revealed)
+			mult *= max(1, CVar.GetCVar("rs_bits_elite_mult", null).GetInt());
+
 		int num = 0;
 
 		switch (mode)
@@ -176,6 +200,22 @@ class RS_KillRewardsHandler : EventHandler
 				break;
 			}
 		}
+
+		// -------------------------------------------------------------
+		// GLOBAL SCALE, applied last so it lands on whichever mode ran.
+		//
+		// The two modes each had their own dials -- min/max for Fixed
+		// Range, a health ratio for Scale by Health -- and no single
+		// knob that meant "more bits, everywhere". Turning the economy up
+		// or down meant retuning whichever mode you happened to be on and
+		// getting a different curve out of each.
+		//
+		// Percent, so 100 is exactly today's behaviour and the default
+		// changes nothing.
+		// -------------------------------------------------------------
+		int scalePct = CVar.GetCVar("rs_bits_global_scale", null).GetInt();
+		if (scalePct != 100 && num > 0)
+			num = max(1, num * clamp(scalePct, 0, 1000) / 100);
 
 		int dropChance = CVar.GetCVar("rs_bits_dropchance", null).GetInt();
 		int ratioHealth = CVar.GetCVar("rs_bits_ratio_health", null).GetInt();

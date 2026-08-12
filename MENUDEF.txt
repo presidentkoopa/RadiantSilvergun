@@ -385,6 +385,8 @@ OptionMenu "RS_BitsSettings"
 	Option "Drop Mode", "rs_bits_mode", "RS_BitsDropMode"
 	Slider "Chance Per Bit (%)", "rs_bits_dropchance", 0, 100, 1, 0
 	Slider "Boss Multiplier", "rs_bits_boss_mult", 0, 25, 1, 0
+	Slider "Elite Multiplier", "rs_bits_elite_mult", 1, 40, 1, 0
+	Slider "Overall Bits (percent)", "rs_bits_global_scale", 0, 1000, 25, 0
 	// Same row as the one on the Arcade Score page -- one cvar, one
 	// gate (RS_SummonMarker.PaysRewards), asked by both RS_Bits and
 	// RS_Score. Repeated so neither system's page hides it.
