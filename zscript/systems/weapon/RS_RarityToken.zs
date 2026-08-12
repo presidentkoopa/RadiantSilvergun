@@ -276,10 +276,32 @@ class RS_RarityToken : Inventory
 		Scale 0.6;
 	}
 
-	// ONE AT A TIME, deliberately. The whole point of a token is that
-	// you stop and decide which weapon it goes on; a stack of them turns
-	// that decision into inventory management. MaxAmount 1 refuses the
-	// second, and the world copy stays put to be come back for.
+	// ONE AT A TIME, AND A NEW ONE OVERWRITES THE OLD.
+	//
+	// You carry a single token. Walking over another does not get
+	// refused and does not stack -- it REPLACES what you were holding.
+	//
+	// The refusal was my own call and it was the wrong one: a token left
+	// on the floor because your hands are full is a reward the game took
+	// back, and it turns every elite kill into a trip to go dump the old
+	// one first. Overwriting keeps the decision where it belongs -- on
+	// which weapon to spend it on, not on inventory management.
+	//
+	// The cost of overwriting is real and deliberate: pick up a Designer
+	// token while holding an unspent Advanced and the Advanced is gone.
+	// That is a reason to spend one when you find it rather than hoard.
+	override bool HandlePickup(Inventory item)
+	{
+		let other = RS_RarityToken(item);
+		if (!other) return Super.HandlePickup(item);
+
+		// Take the new payload over the old, keep the count at one.
+		bool hadOne = (mPayload != null);
+		mPayload = other.mPayload;
+		item.bPickupGood = true;
+		AnnouncePickup(Owner, hadOne);
+		return true;
+	}
 
 	// Inventory hands ownership to a NEW actor on pickup, so without
 	// this override the rolled numbers are lost the instant it is walked
@@ -294,10 +316,22 @@ class RS_RarityToken : Inventory
 	override bool TryPickup(in out Actor toucher)
 	{
 		if (!Super.TryPickup(toucher)) return false;
-		if (mPayload && toucher && toucher.player == players[consoleplayer])
-			Console.Printf("\c[Gold]%s %s Token.\c- Press I and cycle to a weapon to spend it.",
-				mPayload.mWeaponTag, RS_Rarity.TierWord(mPayload.mTier));
+		AnnouncePickup(toucher, false);
 		return true;
+	}
+
+	// Said on BOTH paths. TryPickup only runs when nothing is held; a
+	// REPLACE goes through HandlePickup instead, and a token that
+	// silently overwrote the one you were carrying would be the worst
+	// version of this.
+	void AnnouncePickup(Actor who, bool replaced)
+	{
+		if (!mPayload || !who || who.player != players[consoleplayer]) return;
+		string lost = replaced
+			? " \c[Red]Replaced the one you were carrying.\c-"
+			: "";
+		Console.Printf("\c[Gold]%s %s Token.\c-%s Press I and cycle to a weapon to spend it.",
+			mPayload.mWeaponTag, RS_Rarity.TierWord(mPayload.mTier), lost);
 	}
 
 	// What the sheet asks for. Static so RS_Screens can find the held

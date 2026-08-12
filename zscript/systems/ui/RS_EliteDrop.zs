@@ -122,9 +122,23 @@ class RS_EliteFoodHandler : EventHandler
 		else if (RS_Rarity.CanClimb(offW))  pick = offW;
 		if (!pick) return;              // both at Prototype; food only
 
-		// Size of the elite buys the rung count.
-		int rungs = (FoodTierFor(victim.SpawnHealth()) >= 5) ? 2 : 1;
-		int tier  = min(int(pick.Tier) + rungs, int(VRT_Prototype));
+		// THE TOKEN'S TIER IS ITS OWN, NOT "ONE ABOVE YOU".
+		//
+		// An Advanced token is Advanced. Spend it on a Basic weapon and
+		// that weapon becomes Advanced -- Common and Uncommon are skipped
+		// entirely. That is what makes a big elite worth hunting rather
+		// than just being the next step on a staircase, and it is why the
+		// six weapons diverge: your SMG can be Advanced while everything
+		// else is still Basic.
+		//
+		// Rolled from the elite's own size, floored one above the target
+		// weapon so a token is never useless, and capped at Prototype.
+		// FoodTierFor already grades the corpse 0-5 and is reused rather
+		// than a second ladder invented.
+		int grade = FoodTierFor(victim.SpawnHealth());     // 0..5
+		int tier  = int(VRT_Basic) + grade;                // Basic..Prototype
+		if (grade >= 3 && random(0, 2) == 0) tier++;       // big ones can spike
+		tier = clamp(tier, int(pick.Tier) + 1, int(VRT_Prototype));
 
 		let payload = RS_RarityPayload.Roll(pick.GetClass(), tier);
 		if (!payload) return;
