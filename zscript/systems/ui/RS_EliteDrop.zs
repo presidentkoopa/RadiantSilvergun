@@ -135,9 +135,30 @@ class RS_EliteFoodHandler : EventHandler
 		// weapon so a token is never useless, and capped at Prototype.
 		// FoodTierFor already grades the corpse 0-5 and is reused rather
 		// than a second ladder invented.
-		int grade = FoodTierFor(victim.SpawnHealth());     // 0..5
-		int tier  = int(VRT_Basic) + grade;                // Basic..Prototype
-		if (grade >= 3 && random(0, 2) == 0) tier++;       // big ones can spike
+		// ITS OWN BANDS, NOT FoodTierFor's.
+		//
+		// FoodTierFor steps at 150/300/500/1000/2000, which is right for
+		// deciding how much fruit to scatter and badly wrong as a rarity
+		// ladder. Measured against the actual roster: 295 Health
+		// declarations, of which 29% are 2000+ -- because CH's colourset
+		// variants run 12000 to 21000 by design. Reusing those steps made
+		// almost a third of elites drop a PROTOTYPE token, which maxes a
+		// weapon from Basic in one kill.
+		//
+		// These thresholds are the 40th/65th/85th/95th percentiles of the
+		// 228 monsters at 150+ HP, so the curve lands near
+		// 40/25/20/10/5 across Common..Prototype. Prototype stays what it
+		// should be: the top of a long climb, off the biggest things in
+		// the game, not a coin flip on your third elite.
+		int hp = victim.SpawnHealth();
+		int tier;
+		if      (hp >= 12000) tier = int(VRT_Prototype);
+		else if (hp >=  7777) tier = int(VRT_Designer);
+		else if (hp >=  2150) tier = int(VRT_Advanced);
+		else if (hp >=   800) tier = int(VRT_Uncommon);
+		else                  tier = int(VRT_Common);
+
+		// Never dead on arrival, never past the ceiling.
 		tier = clamp(tier, int(pick.Tier) + 1, int(VRT_Prototype));
 
 		let payload = RS_RarityPayload.Roll(pick.GetClass(), tier);
