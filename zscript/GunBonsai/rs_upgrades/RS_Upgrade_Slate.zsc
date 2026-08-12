@@ -72,6 +72,66 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 	}
 
 	// =================================================================
+	// WHICH FIRING LANE THIS CARD LANDS ON.
+	//
+	// A weapon has four inputs -- fire, alt-fire, modifier+fire,
+	// modifier+alt -- and with a gun in each hand that is the eight
+	// firing lanes the owner named. The hand is already decided: a
+	// level-up belongs to one WEAPON, and a weapon knows its own hand
+	// (bOffhandWeapon). What was undecided is which of that weapon's
+	// four inputs a card writes to.
+	//
+	// Rolled at offer time, in PLAY scope. Not lazily in an accessor:
+	// GetName() runs in UI scope and rolling random() there desyncs
+	// multiplayer. Not at activation either, because the label has to be
+	// readable BEFORE you pick.
+	//
+	// WHY RANDOM RATHER THAN CHOSEN: a free choice makes every card a
+	// four-way submenu and turns a level-up into paperwork. Random costs
+	// nothing, keeps the offer surprising, and the gold reassign below
+	// is there for when you actually care.
+	//
+	// -1 means "this card has no lane". True for the 65 family cards --
+	// they fire on kills and never touch a profile, so a lane label on
+	// them would be noise.
+	// =================================================================
+	int mLane;
+	private bool mLaneRolled;
+
+	// Cards that write axes override this. Default false keeps every
+	// on-kill card, stat card and combo card out of the lane system
+	// without any of them needing to know it exists.
+	virtual bool UsesLane() { return false; }
+
+	int Lane()
+	{
+		return mLaneRolled ? mLane : -1;
+	}
+
+	// Called from the giver once per offer, play scope.
+	void RS_RollLane(RS_Weapon wpn)
+	{
+		if (mLaneRolled || !UsesLane()) return;
+		mLaneRolled = true;
+
+		// Slot 0 always exists; 1-3 may be empty on a fresh gun. Landing
+		// on an empty one is GOOD and deliberate -- the card CREATES that
+		// input. Most guns author only slot 0, so the modifier key does
+		// nothing until a card lands there, and a gun grows extra
+		// triggers as it levels.
+		mLane = random(0, RS_Weapon.RS_SLOT_COUNT - 1);
+	}
+
+	static string LaneName(int lane)
+	{
+		if (lane == RS_Weapon.RS_SLOT_PRIMARY)    return "FIRE";
+		if (lane == RS_Weapon.RS_SLOT_SECONDARY)  return "ALT-FIRE";
+		if (lane == RS_Weapon.RS_SLOT_TERTIARY)   return "MOD+FIRE";
+		if (lane == RS_Weapon.RS_SLOT_QUATERNARY) return "MOD+ALT";
+		return "";
+	}
+
+	// =================================================================
 	// AXIS CLAIMS -- how a card changes what the gun FIRES.
 	//
 	// RS_Weapon carries an Affix* override per axis, and the shot
