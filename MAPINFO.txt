@@ -23,7 +23,7 @@ GameInfo
 	// diagnostic that was printing to the console at the start of every
 	// map. Its include went in the same change.
 	//
-	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating", "RS_EliteHandler", "RS_MonsterDebugHandler", "RS_ConditionHandler", "RS_ReserveSquads", "RS_NoMonsterDrops", "RS_SummonMarker", "RS_LivesHandler", "RS_GrenadeHUD", "RS_CurseHandler", "RS_FXGalleryHandler", "RS_RosterHandler", "RS_CritHandler", "RS_EliteFoodHandler"
+	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating", "RS_EliteHandler", "RS_MonsterDebugHandler", "RS_ConditionHandler", "RS_ReserveSquads", "RS_NoMonsterDrops", "RS_SummonMarker", "RS_LivesHandler", "RS_GrenadeHUD", "RS_CurseHandler", "RS_FXGalleryHandler", "RS_RosterHandler", "RS_CritHandler", "RS_EliteFoodHandler", "RS_MonsterFireSignal"
 }
 
 // C05's creep and poison kill under this type -- without the block the

@@ -1567,3 +1567,10 @@ server bool rs_crit_monster_sound = false;
 // carries three ints and all three are taken -- axis, theme, and the
 // sentinel that distinguishes theme 0 (fire) from theme omitted.
 user float rs_fx_gallery_scale = 0.0;
+
+// Cross-mod signal: spawn an RS_MonsterFiredMarker at the muzzle on the
+// tic any monster's attack goes off (zscript/systems/weapon/RS_MonsterFire.zs).
+// GlowInTheDark drives its monster muzzle flash from this instead of
+// guessing sprite frames. Harmless with nothing consuming it -- the
+// marker is inert and lives one tic.
+server bool rs_monster_fire_signal = true;
