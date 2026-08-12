@@ -178,6 +178,28 @@ class RS_LaserGun : RS_Weapon
 			col = RS_LaserGun.LerpCol(0xFFD070, 0xFF6020, (heat - 0.5) * 2.0);
 
 		level.SetBeamCount(2, 0.45, 1.0);
+
+		// HOW THE BEAM LOOKS, AND ALL OF IT RIDES THE HEAT.
+		//
+		// Air glow is what makes it a laser rather than a spotlight -- the
+		// beam is visible hanging in the air, not just as a bright patch
+		// where it lands. It is also what feeds bloom, so the core burning
+		// past white blooms on its own with no light and no sprite.
+		//
+		// SCROLL SPEEDS UP AS IT HEATS. A held beam with nothing travelling
+		// along it goes static within a second and the eye stops believing it
+		// is carrying anything; tying the scroll to heat means the beam
+		// visibly works harder the longer you hold it.
+		//
+		// TAPER SLACKENS as it heats -- a cold beam is tight at the aperture,
+		// a hot one has lost its discipline and is nearly parallel-sided.
+		level.SetBeamLook(
+			1.0,                          // air glow: it is an object in space
+			5.0 + 9.0 * heat,             // scroll speed
+			0.18 + 0.22 * heat,           // scroll depth
+			0.45 - 0.30 * heat,           // taper, slackening
+			1.2 + 1.1 * heat);            // impact flare
+
 		level.SetBeam(w.BeamSlot(), from, to, thick, soft, col, inten);
 
 		// THE SOUND RISES WITH THE HEAT. Started once on the trigger edge and

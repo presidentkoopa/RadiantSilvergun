@@ -72,6 +72,66 @@ class RS_Weapon : Weapon abstract
 	double PreCurseAccuracy, PreCurseVelocity, PreCurseCritChance;
 	int    PreCurseDamage, PreCurseCapacity;
 
+	// =================================================================
+	// ROLL BASELINE -- what each stat was AT THE MOMENT IT WAS ROLLED,
+	// before any level-up card touched it.
+	//
+	// NOT the PreCurse* fields above. Those are curse-restore snapshots,
+	// taken only when a curse lands and zero on a weapon that was never
+	// cursed. These are taken on every roll, always.
+	//
+	// WHY THEY EXIST: a Rarity Token is a tier plus stats rolled in that
+	// tier's band, and the owner's rule is that applying one gives you
+	// the NEW BAND PLUS THE BONUSES YOU EARNED -- not the higher of the
+	// two, and certainly not a re-roll that deletes your level history.
+	//
+	//     new = the token's roll + (current - baseline)
+	//
+	// That subtraction is the whole reason for these fields. Without a
+	// record of where a stat started, "what levelling added" is
+	// unknowable and an Uncommon token could land you below a
+	// well-levelled Basic.
+	//
+	// Damage alone already had an equivalent in PromotionDamageBaseline,
+	// but that one is re-taken on Promote() and is the anchor
+	// GetDamageCeiling() scales off -- a different job, on a different
+	// clock. Keeping them separate rather than overloading one field.
+	//
+	// They also ARE the per-weapon upgrade history the token preview
+	// needs: everything above the baseline is what the player chose.
+	// =================================================================
+	int    RollBaseDamage, RollBaseCapacity;
+	double RollBaseAccuracy, RollBaseVelocity, RollBaseCritChance;
+	double RollBaseCritMult, RollBaseReloadSpeed, RollBaseChoke;
+	bool   bRollBaseTaken;
+
+	// Snapshot the current values as the baseline. Called right after
+	// every RollStats(), in the base rather than in 46 overrides.
+	void CaptureRollBaseline()
+	{
+		RollBaseDamage      = DamagePerShot;
+		RollBaseAccuracy    = Accuracy;
+		RollBaseVelocity    = Velocity;
+		RollBaseCritChance  = CritChance;
+		RollBaseCritMult    = CritMult;
+		RollBaseCapacity    = Capacity;
+		RollBaseReloadSpeed = ReloadSpeed;
+		RollBaseChoke       = Choke;
+		bRollBaseTaken      = true;
+	}
+
+	// What levelling has added since the last roll. Never negative: a
+	// stat currently BELOW its baseline is cursed, and a curse is not a
+	// negative bonus to be carried across into a new tier.
+	int    EarnedDamage()      const { return bRollBaseTaken ? max(0, DamagePerShot - RollBaseDamage)   : 0; }
+	int    EarnedCapacity()    const { return bRollBaseTaken ? max(0, Capacity      - RollBaseCapacity) : 0; }
+	double EarnedAccuracy()    const { return bRollBaseTaken ? max(0.0, Accuracy    - RollBaseAccuracy) : 0.0; }
+	double EarnedVelocity()    const { return bRollBaseTaken ? max(0.0, Velocity    - RollBaseVelocity) : 0.0; }
+	double EarnedCritChance()  const { return bRollBaseTaken ? max(0.0, CritChance  - RollBaseCritChance) : 0.0; }
+	double EarnedCritMult()    const { return bRollBaseTaken ? max(0.0, CritMult    - RollBaseCritMult) : 0.0; }
+	double EarnedReloadSpeed() const { return bRollBaseTaken ? max(0.0, ReloadSpeed - RollBaseReloadSpeed) : 0.0; }
+	double EarnedChoke()       const { return bRollBaseTaken ? max(0.0, Choke       - RollBaseChoke) : 0.0; }
+
 	// How many curses are stacked on each stat. Owner ruling 2026-08-07:
 	// "double curses on a stat or more is fine with me if penalties and
 	// rewards are legit." Each stack halves again; each LIFT restores and
@@ -1821,23 +1881,34 @@ class RS_Weapon : Weapon abstract
 				int(PromotionDamageBaseline * (1.0 + bonusPct / 100.0)));
 
 		// -------------------------------------------------------------
-		// TIER UP. Owner ruling 2026-08-07: lifting a curse "causes the
-		// weapon to tier-up as a reward".
+		// TIER UP ON CURSE LIFT -- REMOVED 2026-08-11, owner's call.
 		//
-		// Capped at Prototype. Fires per lift, so a stat cursed three
-		// times pays three tiers as it is cleaned.
+		// This block raised Tier by one on every curse lifted, gated by
+		// rs_curse_lift_tiers_up (default true), citing a ruling of
+		// 2026-08-07. The owner does not recognise that ruling, and more
+		// to the point it had quietly become load-bearing: it was the
+		// ONLY path in the entire tree that could raise a weapon's tier.
+		// Every other write to Tier is either the initial roll (43 of
+		// them, one per weapon file) or Promote() taking a Prototype back
+		// down to Basic.
+		//
+		// So a clean weapon -- one that never happened to roll a curse --
+		// could never tier up at all, and a cursed one climbed by
+		// accident as a side effect of being repaired. Tier progression
+		// was riding on the curse system by attrition, not by design.
+		//
+		// WHERE IT WAS ALWAYS MEANT TO COME FROM: elite drops. An elite
+		// was supposed to drop a package of rolled stats AND a tier.
+		// RS_Weapon still has the whole receiving half -- CanAcceptImprint
+		// with its curse gate, ApplyUpgradeCard, and the "The curse
+		// refuses it" message. Only RS_Imprint itself was deleted, in
+		// 90aaf2c6, and it is recoverable from there.
+		//
+		// UNTIL THAT IS RESTORED, NOTHING RAISES A TIER. Promotion still
+		// lowers one. That is a deliberate gap, not an oversight -- said
+		// plainly here so the next reader does not "fix" it by putting
+		// this block back.
 		// -------------------------------------------------------------
-		if (RS_Curse.CVBool("rs_curse_lift_tiers_up", true) && Tier < VRT_Prototype)
-		{
-			// int, then plain assignment. EVR_Tier(x) is NOT a cast --
-			// ZScript has no enum-constructor syntax, so it parses as a
-			// call to an undefined function ("Call to unknown function
-			// 'EVR_Tier'"). An int converts to the enum on its own.
-			// Same trap, same fix, as RS_EliteDrop.zs:131.
-			int nextTier = int(Tier) + 1;
-			Tier = nextTier;
-			GunBonaiSockets = RS_Roll.SocketsForTier(Tier);
-		}
 
 		// -------------------------------------------------------------
 		// DIVINE. Both pools report into ONE player-wide counter.
@@ -1966,6 +2037,7 @@ class RS_Weapon : Weapon abstract
 			Promote();
 		else
 			RollStats(newTier);
+			CaptureRollBaseline();
 	}
 
 	// The value DamagePerShot was cut to at the moment of the most recent
@@ -2328,6 +2400,7 @@ class RS_Weapon : Weapon abstract
 		// uses, safe to run either order.
 		if (!bStatsRolled)
 			RollStats(VRT_Basic);
+			CaptureRollBaseline();
 		CaptureInitialDamageBaseline();
 		EnsureAttackProfiles();
 
@@ -2384,6 +2457,7 @@ class RS_Weapon : Weapon abstract
 		Super.PostBeginPlay();
 		if (!bStatsRolled)
 			RollStats(VRT_Basic);
+			CaptureRollBaseline();
 		CaptureInitialDamageBaseline();
 		if (!ProjectileClass)
 			ProjectileClass = "RS_BallisticType1";

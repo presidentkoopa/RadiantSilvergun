@@ -377,6 +377,7 @@ class RS_ClassGating : EventHandler
 			{
 				rsw.ResetDamageBaseline();
 				rsw.RollStats(mapTier);
+				rsw.CaptureRollBaseline();
 				rsw.CaptureInitialDamageBaseline();
 			}
 			// Only consume the pedestal if we actually produced something
