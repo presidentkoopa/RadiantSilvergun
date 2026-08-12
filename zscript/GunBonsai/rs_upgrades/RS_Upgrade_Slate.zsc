@@ -89,6 +89,7 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 	// =================================================================
 
 	Class<Actor> mClaimProj, mClaimPuff, mClaimSparks, mClaimSmoke, mClaimTrail;
+	Class<Actor> mClaimMuzzle;
 	string       mClaimCasing;
 	sound        mClaimSound;
 
@@ -122,6 +123,15 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 		if (!wpn || s == "") return;
 		wpn.AffixExtraFireSound = s; mClaimSound = s;
 	}
+	// MUZZLE. This is the one axis the gun does NOT provide a floor for:
+	// RS_Main emits no muzzle light of its own and defers to
+	// GlowInTheDark. So a card claiming this is not overriding anything,
+	// it is adding a second light that layers with GITD's.
+	void ClaimMuzzle(RS_Weapon wpn, Class<Actor> c)
+	{
+		if (!wpn || !c) return;
+		wpn.AffixMuzzleFlash = c; mClaimMuzzle = c;
+	}
 
 	// Release every axis this card claimed, and ONLY if the weapon is
 	// still showing what we wrote. If another card has since overwritten
@@ -135,11 +145,13 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 		if (mClaimSparks && wpn.AffixImpactSparks == mClaimSparks) wpn.AffixImpactSparks = null;
 		if (mClaimSmoke  && wpn.AffixMuzzleSmoke  == mClaimSmoke)  wpn.AffixMuzzleSmoke  = null;
 		if (mClaimTrail  && wpn.AffixTrail        == mClaimTrail)  wpn.AffixTrail        = null;
+		if (mClaimMuzzle && wpn.AffixMuzzleFlash  == mClaimMuzzle) wpn.AffixMuzzleFlash  = null;
 		if (mClaimSound != "" && wpn.AffixExtraFireSound == mClaimSound)
 			wpn.AffixExtraFireSound = "";
 
 		mClaimProj = null; mClaimPuff = null; mClaimSparks = null;
 		mClaimSmoke = null; mClaimTrail = null; mClaimSound = "";
+		mClaimMuzzle = null;
 	}
 
 	// Write a registry draw to an axis by axis id. One switch instead of
@@ -152,8 +164,9 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 		else if (axis == RS_FXRegistry.RS_FXAXIS_SPARKS) ClaimSparks(wpn, c);
 		else if (axis == RS_FXRegistry.RS_FXAXIS_SMOKE)  ClaimSmoke(wpn, c);
 		else if (axis == RS_FXRegistry.RS_FXAXIS_TRAIL)  ClaimTrail(wpn, c);
-		// CASING and MUZZLE take different field types and PAYLOAD has no
-		// profile field; those axes are claimed by their own cards.
+		else if (axis == RS_FXRegistry.RS_FXAXIS_MUZZLE) ClaimMuzzle(wpn, c);
+		// CASING takes a string rather than a class, and PAYLOAD has no
+		// profile field at all; those two are claimed by their own cards.
 	}
 
 	// PROJECTILE IDENTITY EXCLUSION GROUP. A gun's rounds are ONE thing:

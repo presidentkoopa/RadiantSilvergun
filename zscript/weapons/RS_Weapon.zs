@@ -147,6 +147,7 @@ class RS_Weapon : Weapon abstract
 	Class<Actor> AffixImpactPuff;
 	Class<Actor> AffixImpactSparks;
 	Class<Actor> AffixMuzzleSmoke;
+	Class<Actor> AffixMuzzleFlash;  // MUZZLE axis, light half -- null = defer to GITD
 	Class<Actor> AffixTrail;
 	Class<Actor> AffixExplosionVisual;
 	string       AffixCasing;          // "" = no override, "none" = suppress casing entirely
@@ -159,6 +160,7 @@ class RS_Weapon : Weapon abstract
 		AffixImpactPuff      = null;
 		AffixImpactSparks    = null;
 		AffixMuzzleSmoke     = null;
+		AffixMuzzleFlash     = null;
 		AffixTrail           = null;
 		AffixExplosionVisual = null;
 		AffixCasing          = "";
@@ -577,12 +579,33 @@ class RS_Weapon : Weapon abstract
 		}
 	}
 
-	// Called from each weapon's Flash: state. Only ever does anything at
-	// Hi-Fi tier -- RS_HiFiFX itself decides that, this call site never
-	// needs to know or check the tier.
+	// Called from each weapon's Flash: state, in 43 places. DELIBERATELY
+	// DOES NOTHING NOW -- owner ruling 2026-08-11: RS_Main never emits a
+	// muzzle light of its own; that is GlowInTheDark's job, always.
+	//
+	// What it used to do, and why it had to stop:
+	//
+	//   RS_HiFiFX.SpawnMuzzleLight(self)
+	//     -> shooter.A_SpawnItemEx("RS_MuzzleLight", 0,0,0, ...)
+	//
+	// `self` in a weapon action function is the PLAYER PAWN, and an
+	// actor's origin is at its FEET. So every shot spawned an
+	// unattenuated 72-116 unit PointLight at the player's feet, which in
+	// play reads as the floor lighting up around you rather than a flash
+	// on what you are shooting. Worst on the pistol, purely because of
+	// fire rate. The smoke in the same file spawns at Height * 0.5 and
+	// was always correct; the light took the wrong convention and the
+	// file's own header admits it was "a first-pass guess, meant to be
+	// tuned once actually seen in a headset". It never was.
+	//
+	// Kept as an empty function rather than removed because 43 weapon
+	// Flash: states call it. Emptying it here turns all 43 off at once
+	// and leaves the hook available if a per-weapon flash is ever wanted.
+	//
+	// A beat that explicitly names a MuzzleFlash still gets one -- see
+	// the shot path, which has the profile in hand and this does not.
 	action void A_RS_MuzzleFlash()
 	{
-		RS_HiFiFX.SpawnMuzzleLight(self);
 	}
 
 	// =================================================================
@@ -972,6 +995,15 @@ class RS_Weapon : Weapon abstract
 		// is OR'd rather than used as a fallback on purpose: the gun's
 		// flash is a FLOOR, so a beat that says nothing still flashes.
 		RS_HiFiFX.MuzzleEffects(self, p.BigMuzzle || invoker.GunBigMuzzle || invoker.Condition < 50.0, fxSmoke);
+
+		// MUZZLE AXIS, light half. Affix first, then the beat -- and NO
+		// gun fallback, deliberately. The gun defers to GlowInTheDark;
+		// only a card or a beat that explicitly names a flash gets one,
+		// and when it does it LAYERS with GITD rather than replacing it.
+		Class<Actor> fxFlash = invoker.AffixMuzzleFlash;
+		if (!fxFlash) fxFlash = p.MuzzleFlash;
+		if (fxFlash)
+			RS_HiFiFX.BeatMuzzleFlash(self, fxFlash);
 
 		// Casing sentinel: AffixCasing "" = no override, "none" = suppress
 		// entirely. "none" stays the one deliberate way to eject nothing --

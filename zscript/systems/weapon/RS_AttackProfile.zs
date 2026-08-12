@@ -271,6 +271,18 @@ class RS_AttackProfile : Object
 	// Display name for menus/upgrade cards. Optional.
 	string ProfileName;
 
+	// MUZZLE AXIS, the light half. BigMuzzle above is a bool and only
+	// ever meant "heavy fire" for the smoke gate; it cannot say WHICH
+	// flash, so a fire beat and a plasma beat flashed identically.
+	//
+	// Null is the normal case and means "say nothing" -- RS_Main does
+	// not emit a muzzle light of its own any more, it defers to
+	// GlowInTheDark's. A beat that names one is the exception, and it
+	// LAYERS with GITD rather than replacing it: A_AttachLight is keyed
+	// by name, GITD attaches "gitd_muzzle", this attaches
+	// "rs_beat_muzzle", so both sit on the same pawn and add.
+	Class<Actor> MuzzleFlash;
+
 	// WHO PUT THIS BEAT HERE. Empty for a weapon's own authored
 	// profiles; an affix sets it to its own class name when it installs.
 	// Without it the only safe cleanup was "delete every PACK beat on the
@@ -334,6 +346,7 @@ class RS_AttackProfile : Object
 	{
 		Mode          = RS_ATK_BULLET;
 		OwnerTag      = "";
+		MuzzleFlash   = null;
 		PelletOverride = 0;
 		SpreadScale   = 0.05;
 		UsesChoke     = false;
@@ -701,6 +714,7 @@ class RS_AttackProfile : Object
 		p.BuffNoPain      = BuffNoPain;
 		p.ProfileName     = ProfileName;
 		p.OwnerTag        = OwnerTag;
+		p.MuzzleFlash     = MuzzleFlash;
 		for (int i = 0; i < LocalKeywords.Size(); i++)
 			p.LocalKeywords.Push(LocalKeywords[i]);
 		return p;

@@ -102,12 +102,28 @@ class RS_HiFiFX
 		return cv ? cv.GetInt() : 12;
 	}
 
-	// Dynamic muzzle light -- Hi-Fi tier only; this is the expensive one.
-	static play void SpawnMuzzleLight(Actor shooter)
+	// BEAT muzzle light -- fires ONLY when an attack profile or an affix
+	// explicitly named a MuzzleFlash. RS_Main emits no muzzle light of
+	// its own otherwise; GlowInTheDark owns the general muzzle flash for
+	// every gun (owner ruling 2026-08-11). This layers on top of GITD's
+	// via a distinct A_AttachLight name, it does not replace it.
+	//
+	// Replaces SpawnMuzzleLight(), which fired unconditionally from 43
+	// weapon Flash: states and spawned at the shooter's ORIGIN -- the
+	// player's feet -- producing a ring of floor light on every shot.
+	//
+	// flashClass is drawn from the registry's MUZZLE axis, so it grows
+	// with the catalog. It is spawned rather than named directly so a
+	// beat can supply any light-bearing actor, not just RS_MuzzleLight.
+	static play void BeatMuzzleFlash(Actor shooter, Class<Actor> flashClass)
 	{
-		if (Tier() != RSFX_HIFI)
+		if (!shooter || !flashClass)
+			return;
+		if (Tier() == RSFX_OFF)
 			return;
 
+		// The cap still applies -- a rotation that lands a beat every
+		// second shot on a fast weapon can otherwise stack these.
 		int cap = MaxMuzzleLights();
 		int count = 0;
 		let it = ThinkerIterator.Create("RS_MuzzleLight");
@@ -115,9 +131,24 @@ class RS_HiFiFX
 		{
 			count++;
 			if (count >= cap)
-				return; // at cap -- skip this one rather than add to the pile
+				return;
 		}
 
-		shooter.A_SpawnItemEx("RS_MuzzleLight", 0, 0, 0, 0, 0, 0, 0, 0, 128);
+		// Anchored at the same height GITD uses so the two overlay
+		// exactly rather than sitting at different heights on the pawn.
+		let mo = Actor.Spawn(flashClass,
+			shooter.Pos + (0, 0, shooter.Height * 0.6), ALLOW_REPLACE);
+		if (!mo) return;
+
+		mo.target = shooter;
+		mo.master = shooter;
+
+		// If it is our carrier, arm it so it rides and fades. Anything
+		// else a beat names is left to run its own states untouched --
+		// the MUZZLE axis also holds lens flares, which are ordinary
+		// sprite actors and want no light handling at all.
+		let ml = RS_MuzzleLight(mo);
+		if (ml)
+			ml.Arm(shooter, Color(255, 255, 190, 90), 96, 4);
 	}
 }
