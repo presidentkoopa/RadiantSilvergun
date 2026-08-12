@@ -324,72 +324,10 @@ class RS_RarityToken : Actor
 		return null;
 	}
 
-	// One line per stat: what it is now, what it would become, and
-	// whether that is up, down or a wash. This is the whole interface.
-	void ShowReadout(PlayerPawn pawn)
-	{
-		if (!mPayload || !pawn || pawn.player != players[consoleplayer]) return;
-
-		string hand = "";
-		let w = TargetWeapon(pawn);
-		if (w) hand = w.bOffhandWeapon ? "\c[SkyBlue]OFFHAND\c-" : "\c[Orange]MAINHAND\c-";
-
-		Console.Printf("\c[Gold]--- %s %s Token ---\c-",
-			mPayload.mWeaponTag, RS_Rarity.TierWord(mPayload.mTier));
-
-		if (!w)
-		{
-			Console.Printf("\c[DarkGray]Hold your %s to see what it would do.\c-",
-				mPayload.mWeaponTag);
-			return;
-		}
-		if (w.Tier >= mPayload.mTier)
-		{
-			Console.Printf("%s %s is already %s.", hand, w.GetTag(),
-				RS_Rarity.TierWord(w.Tier));
-			return;
-		}
-		if (!w.CanAcceptImprint(mPayload.mTier))
-		{
-			Console.Printf("%s \c[Red]The curse refuses it.\c- Lift a lock first.", hand);
-			return;
-		}
-
-		Console.Printf("%s %s   \c[DarkGray]%s -> \c-%s",
-			hand, w.GetTag(),
-			RS_Rarity.TierWord(w.Tier), RS_Rarity.TierWord(mPayload.mTier));
-		Line(w, "damage",   w.DamagePerShot, mPayload.mDamagePerShot + w.EarnedDamage());
-		Line(w, "accuracy", int(w.Accuracy), int(mPayload.mAccuracy + w.EarnedAccuracy()));
-		Line(w, "velocity", int(w.Velocity), int(mPayload.mVelocity + w.EarnedVelocity()));
-		Line(w, "sockets",  w.GunBonaiSockets, RS_Roll.SocketsForTier(mPayload.mTier));
-		Console.Printf("\c[Gold][USE] to apply.\c-");
-	}
-
-	// Green up, red down, grey unchanged -- the verdict per row, so you
-	// can read improvement / lateral / trade at a glance.
-	private void Line(RS_Weapon w, string name, int now, int after)
-	{
-		string col = (after > now) ? "\c[Green]" : (after < now ? "\c[Red]" : "\c[DarkGray]");
-		Console.Printf("   %-9s %s%d -> %d\c-", name, col, now, after);
-	}
-
-	override void Tick()
-	{
-		Super.Tick();
-		if (isFrozen() || !mPayload) return;
-
-		// Cheap proximity check. Reprints when you switch weapons over
-		// it, which is the entire "cycle to compare" interaction.
-		let pawn = players[consoleplayer].mo;
-		if (!pawn || Distance3D(pawn) > 96) { mLastShown = null; return; }
-
-		let w = TargetWeapon(pawn);
-		Class<Actor> now = w ? w.GetClass() : null;
-		if (now == mLastShown && level.maptime < mNextShowTic) return;
-		mLastShown   = now;
-		mNextShowTic = level.maptime + 105;   // 3s re-nag if you loiter
-		ShowReadout(pawn);
-	}
+	// The readout is DRAWN, not printed -- see RS_TokenHUD below. A
+	// six-line console dump in the top corner, re-nagging every three
+	// seconds, is unreadable in a headset and was the weak half of the
+	// first version of this.
 
 	override bool Used(Actor user)
 	{
@@ -410,5 +348,261 @@ class RS_RarityToken : Actor
 		A_StartSound("misc/i_pkup", CHAN_AUTO);
 		Destroy();
 		return true;
+	}
+}
+
+// =====================================================================
+// RS_TokenPanel -- the readout, as a view-locked in-world panel.
+//
+// NOT a HUD draw. The first attempt was Screen.DrawText into the corner
+// of the screen, which in a headset is a thing you look AWAY to read.
+// This is real world geometry parked at eye level: it has depth, it has
+// parallax, it occupies the room.
+//
+// BBFL_VIEWLOCKED does the parking -- position becomes an offset from
+// the viewer (X ahead, Y right, Z up), resolved AT RENDER RATE, so it
+// stays welded to your view instead of lagging a tic and snapping. A
+// script-moved panel is what makes people ill; this is not one.
+//
+// ---------------------------------------------------------------------
+// THE DESIGN
+//
+// Three planes, not one flat card. X is distance, so drawing the shell
+// further out than the content gives real parallax when you move your
+// head -- the panel has a back and a front, and in a headset that is
+// the difference between a sign and an object.
+//
+//   +1.2   shell      near-black, the full rect
+//   +0.6   face       the token's tier colour at low alpha, inset
+//    0.0   content    every glyph, number, rule and badge
+//
+// HIERARCHY. The socket count is the HEADLINE, not a row. It is the only
+// number on the panel that gates anything -- rarity is where sockets
+// come from, and sockets are what lets a weapon hold affixes at all, so
+// a Basic gun reading "0 -> 2" is being told it can finally take cards.
+// It gets BB_WG13, the lozenge with the figure punched out of it, at
+// twice the size of anything else. The stat rows are detail beneath it.
+//
+// PAYLOADS, and why each:
+//   BB_WG13     the socket badge. Progress opens it from a slit into a
+//               full lozenge, the digit appearing past 0.55, so the
+//               headline number ASSEMBLES rather than appears.
+//   BB_SEGMENT  every other number. Shader-built 16-segment, no font
+//               atlas, so it cannot break on a missing lump and stays
+//               exactly sharp at any size.
+//   BB_TEXT     every label. "DAMAGE" in segments reads like a fault
+//               code; words want a real typeface.
+//   BB_PANEL    shell, face and the hairline rules -- a rule is a panel
+//               0.35 tall, which is one shape instead of a second
+//               graphic to keep in sync.
+//
+// THE REVEAL. Everything carrying a progress term ramps 0 -> 1 over ten
+// tics on appearance, eased, so the panel builds itself in front of you.
+// One float per frame while it runs and nothing afterwards.
+//
+// Every element is BBFL_NOHIT. The panel is pure readout and must never
+// answer an aim or touch query -- you USE the token, not the sign
+// hanging over it, and without this the sign is permanently in the way.
+// =====================================================================
+class RS_TokenPanel : EventHandler
+{
+	// Eye-level parking, map units. AHEAD is reading distance: far
+	// enough not to cross your eyes, near enough to fill a comfortable
+	// arc. UP sits it a touch under the horizon so it is not on top of
+	// whatever you are aiming at.
+	const AHEAD  = 46.0;
+	const UP     = -1.0;
+	const REACH  = 128.0;
+
+	const HALF_W = 31.0;
+	const HALF_H = 22.0;
+	const ROW_H  =  4.4;
+
+	// Plane offsets. Bigger X is further away.
+	const Z_SHELL = 1.2;
+	const Z_FACE  = 0.6;
+
+	const REVEAL_TICS = 10;
+
+	private Array<int> mIds;
+	private Array<int> mProgressIds;    // the subset that animates in
+	private RS_RarityToken mShownFor;
+	private string mSig;
+	private int mBornTic;
+
+	private void Clear()
+	{
+		for (int i = 0; i < mIds.Size(); i++)
+			level.RemoveBillboard(mIds[i]);
+		mIds.Clear();
+		mProgressIds.Clear();
+		mShownFor = null;
+		mSig = "";
+	}
+
+	// One door for every element, so parking and flags cannot drift.
+	private int Put(double right, double up, double w, double h,
+		int payload, int data, color col, string text = "", double depth = 0)
+	{
+		int id = level.AddBillboardPersistent(
+			(AHEAD + depth, right, UP + up), w, h,
+			0, 0, BBF_FIXED,
+			payload, data, col,
+			BBFL_PERSISTENT | BBFL_VIEWLOCKED | BBFL_NOHIT, 0, text);
+		if (id) mIds.Push(id);
+		return id;
+	}
+
+	override void WorldTick()
+	{
+		let pawn = players[consoleplayer].mo;
+		if (!pawn || pawn.health <= 0) { Clear(); return; }
+
+		RS_RarityToken best = null;
+		double bestD = REACH;
+		let it = ThinkerIterator.Create("RS_RarityToken");
+		Thinker th;
+		while (th = it.Next())
+		{
+			let t = RS_RarityToken(th);
+			if (!t || !t.mPayload) continue;
+			double d = t.Distance3D(pawn);
+			if (d < bestD) { bestD = d; best = t; }
+		}
+		if (!best) { Clear(); return; }
+
+		// Rebuild only when the READING changes -- a different token, or
+		// you switched weapons over this one. Twenty billboards a frame
+		// for a thing that is static most of the time is waste.
+		let w = best.TargetWeapon(PlayerPawn(pawn));
+		string sig = best.mPayload.mWeaponTag .. "|" .. best.mPayload.mTier
+			.. "|" .. (w ? w.GetClassName() : "none")
+			.. "|" .. (w ? w.Tier : -1) .. "|" .. (w ? w.DamagePerShot : -1);
+
+		if (best != mShownFor || sig != mSig)
+		{
+			Clear();
+			mShownFor = best;
+			mSig      = sig;
+			mBornTic  = level.maptime;
+			Build(best, PlayerPawn(pawn));
+		}
+
+		// Drive the reveal, then stop touching it.
+		int age = level.maptime - mBornTic;
+		if (age <= REVEAL_TICS && mProgressIds.Size() > 0)
+		{
+			double t = clamp(double(age) / double(REVEAL_TICS), 0.0, 1.0);
+			t = 1.0 - (1.0 - t) * (1.0 - t);          // ease out
+			for (int i = 0; i < mProgressIds.Size(); i++)
+				level.SetBillboardProgress(mProgressIds[i], t);
+		}
+	}
+
+	private void Build(RS_RarityToken tok, PlayerPawn pawn)
+	{
+		let p = tok.mPayload;
+		let w = tok.TargetWeapon(pawn);
+		Color tierCol = RS_TierPalette.RGB(p.mTier);
+
+		// --- three planes -------------------------------------------
+		Put(0, 0, HALF_W, HALF_H, BB_PANEL, 0, Color(232, 9, 10, 14), "", Z_SHELL);
+		Put(0, 0, HALF_W - 1.6, HALF_H - 1.4, BB_PANEL, 0,
+			Color(46, tierCol.r, tierCol.g, tierCol.b), "", Z_FACE);
+
+		double y = HALF_H - 5.4;
+
+		// --- header: the token, as segments, lit ---------------------
+		int hid = Put(0, y, HALF_W - 5.0, 3.2, BB_SEGMENT, 0, tierCol,
+			(p.mWeaponTag .. " " .. RS_Rarity.TierWord(p.mTier)).MakeUpper());
+		if (hid)
+		{
+			level.SetBillboardGlow(hid, 0.6, 0.75);
+			mProgressIds.Push(hid);
+		}
+		y -= 4.6;
+
+		if (!w)
+		{
+			Put(0, y, HALF_W - 6, 2.3, BB_TEXT, 0, Color(255, 132, 130, 140),
+				"hold your " .. p.mWeaponTag);
+			return;
+		}
+
+		// --- which hand, in the sheet rails' own two colours ---------
+		bool off = w.bOffhandWeapon;
+		Put(0, y, 13.0, 2.0, BB_TEXT, 0,
+			off ? Color(255, 51, 200, 255) : Color(255, 255, 122, 51),
+			off ? "OFFHAND" : "MAINHAND");
+		y -= 3.4;
+
+		Rule(y, tierCol); y -= 3.6;
+
+		if (w.Tier >= p.mTier)
+		{
+			Put(0, y - 3, HALF_W - 6, 2.6, BB_TEXT, 0, Color(255, 132, 130, 140),
+				"already " .. RS_Rarity.TierWord(w.Tier));
+			return;
+		}
+		if (!w.CanAcceptImprint(p.mTier))
+		{
+			Put(0, y - 3, HALF_W - 6, 2.6, BB_TEXT, 0, Color(255, 210, 45, 65),
+				"THE CURSE REFUSES IT");
+			return;
+		}
+
+		// --- THE HEADLINE: sockets, as a lozenge --------------------
+		// Rarity gates affixes and sockets ARE that gate, so this is the
+		// number the panel is actually about. Sized off the engine's own
+		// WG13 ratio: halfW = halfH * (0.60 + digits * 0.42).
+		int sockNext = RS_Roll.SocketsForTier(p.mTier);
+		double bh = 5.2;
+		double bw = bh * (0.60 + 0.42);
+		int bid = Put(-HALF_W + 11.0, y - 4.4, bw, bh, BB_WG13, sockNext,
+			Color(255, 40, 255, 60));
+		if (bid) mProgressIds.Push(bid);
+
+		Put(-HALF_W + 24.0, y - 2.4, 8.0, 1.9, BB_TEXT, 0,
+			Color(255, 150, 148, 142), "SOCKETS");
+		Put(-HALF_W + 24.5, y - 6.2, 7.0, 2.1, BB_TEXT, 0,
+			Color(255, 110, 110, 120),
+			string.format("%d now", w.GunBonaiSockets));
+
+		// --- supporting rows ----------------------------------------
+		double ry = y - 1.0;
+		Row(ry, "DAMAGE",   w.DamagePerShot, p.mDamagePerShot + w.EarnedDamage());   ry -= ROW_H;
+		Row(ry, "ACCURACY", int(w.Accuracy), int(p.mAccuracy + w.EarnedAccuracy())); ry -= ROW_H;
+		Row(ry, "VELOCITY", int(w.Velocity), int(p.mVelocity + w.EarnedVelocity()));
+
+		double fy = -HALF_H + 6.4;
+		Rule(fy + 3.4, tierCol);
+		Put(0, fy, 9.5, 2.7, BB_TEXT, 0, Color(255, 216, 168, 56), "[ USE ]");
+	}
+
+	// A hairline. Just a panel 0.35 tall -- one shape rather than a
+	// second graphic to keep in sync.
+	private void Rule(double y, color c)
+	{
+		Put(0, y, HALF_W - 6.0, 0.35, BB_PANEL, 0,
+			Color(120, c.r, c.g, c.b));
+	}
+
+	// Label left, the two numbers right, the arrow carrying the verdict:
+	// green a gain, red a loss, grey a wash. Improvement, lateral move,
+	// or calculated tradeoff -- one row at a time, which is the owner's
+	// own framing and the reason the panel exists at all.
+	private void Row(double y, string label, int now, int after)
+	{
+		Color c = (after > now) ? Color(255, 74, 222, 128)
+		        : (after < now) ? Color(255, 240,  80, 110)
+		                        : Color(255, 118, 118, 128);
+
+		Put(HALF_W - 25.0, y, 8.5, 1.85, BB_TEXT, 0,
+			Color(255, 148, 146, 140), label);
+		Put(HALF_W - 13.5, y, 3.6, 2.2, BB_SEGMENT, now,
+			Color(255, 116, 116, 126));
+		Put(HALF_W -  8.4, y, 1.5, 1.7, BB_TEXT, 0, c, ">");
+		int aid = Put(HALF_W - 3.6, y, 3.6, 2.2, BB_SEGMENT, after, c);
+		if (aid) mProgressIds.Push(aid);
 	}
 }
