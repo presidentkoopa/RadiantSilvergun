@@ -1,4 +1,6 @@
-// RS_LaserGun -- MeatGrinder set, the Lance. A REAL beam.
+// RS_LaserGun -- the Lance. A REAL beam.
+// zscript/weapons/lasergun/ -- its own folder, because a beam weapon shares
+// almost nothing with the projectile sets besides the model it borrows.
 // ---------------------------------------------------------------------
 // Wears the Bolter model (bound by class name in MODELDEF, exactly as
 // RS_PS_Plasma's header says it can be) and does the opposite thing with it:

@@ -7509,3 +7509,91 @@ Model RS_Grenade
 // (PISG, SMGR, SHTG) under Models/Weapons/hud/, which is a different
 // binding to the same .md3 files.
 // =====================================================================
+
+// The Lance -- a beam weapon wearing the Bolter. Six blocks rather than one,
+// because MODELDEF binds by class name and each tier variant is its own class.
+// Same model, same skin, same offsets as RS_PS_Plasma: it is the same gun in
+// the player's hands, doing something else entirely when the trigger is held.
+Model RS_LaserGun
+{
+	Path "models/meatgrinder/Bolter"
+	Model 0 "Bolter.md3"
+	Skin 0 "bolter.png"
+	Scale -1.1 1.1 1.1
+	ZOffset -6
+	FrameIndex PLSC A 0 0
+	FrameIndex PLSC B 0 1
+	FrameIndex PLSC C 0 2
+	FrameIndex PLSF A 0 3
+	FrameIndex PLSF B 0 4
+}
+
+Model RS_LaserGun2
+{
+	Path "models/meatgrinder/Bolter"
+	Model 0 "Bolter.md3"
+	Skin 0 "bolter.png"
+	Scale -1.1 1.1 1.1
+	ZOffset -6
+	FrameIndex PLSC A 0 0
+	FrameIndex PLSC B 0 1
+	FrameIndex PLSC C 0 2
+	FrameIndex PLSF A 0 3
+	FrameIndex PLSF B 0 4
+}
+
+Model RS_LaserGun3
+{
+	Path "models/meatgrinder/Bolter"
+	Model 0 "Bolter.md3"
+	Skin 0 "bolter.png"
+	Scale -1.1 1.1 1.1
+	ZOffset -6
+	FrameIndex PLSC A 0 0
+	FrameIndex PLSC B 0 1
+	FrameIndex PLSC C 0 2
+	FrameIndex PLSF A 0 3
+	FrameIndex PLSF B 0 4
+}
+
+Model RS_LaserGun4
+{
+	Path "models/meatgrinder/Bolter"
+	Model 0 "Bolter.md3"
+	Skin 0 "bolter.png"
+	Scale -1.1 1.1 1.1
+	ZOffset -6
+	FrameIndex PLSC A 0 0
+	FrameIndex PLSC B 0 1
+	FrameIndex PLSC C 0 2
+	FrameIndex PLSF A 0 3
+	FrameIndex PLSF B 0 4
+}
+
+Model RS_LaserGun5
+{
+	Path "models/meatgrinder/Bolter"
+	Model 0 "Bolter.md3"
+	Skin 0 "bolter.png"
+	Scale -1.1 1.1 1.1
+	ZOffset -6
+	FrameIndex PLSC A 0 0
+	FrameIndex PLSC B 0 1
+	FrameIndex PLSC C 0 2
+	FrameIndex PLSF A 0 3
+	FrameIndex PLSF B 0 4
+}
+
+Model RS_LaserGun6
+{
+	Path "models/meatgrinder/Bolter"
+	Model 0 "Bolter.md3"
+	Skin 0 "bolter.png"
+	Scale -1.1 1.1 1.1
+	ZOffset -6
+	FrameIndex PLSC A 0 0
+	FrameIndex PLSC B 0 1
+	FrameIndex PLSC C 0 2
+	FrameIndex PLSF A 0 3
+	FrameIndex PLSF B 0 4
+}
