@@ -1589,3 +1589,43 @@ server bool rs_monster_fire_signal = true;
 // only source of tier progression -- turning this off means weapons
 // never climb past the tier they spawned at.
 server bool rs_elite_tokens = true;
+
+// =====================================================================
+// RARITY TOKENS -- the elite drop, the card, and the seal economy.
+//
+// The card's geometry is here rather than baked in because getting a
+// panel readable in a headset is a dozen small adjustments and every one
+// of them used to cost a rebuild. Degrees are what matter, not units:
+// at rs_token_ahead 46, a half-width of 18 subtends about 43 degrees.
+// Comfortable reading in a headset is 30-40.
+// =====================================================================
+
+// --- the drop in the world -------------------------------------------
+server int  rs_token_prop_lift   = 20;   // how far the weapon floats off the floor
+server bool rs_token_beam        = true;
+server int  rs_token_beam_alpha  = 100;  // percent of the tier-scaled default
+server bool rs_token_light       = true;
+server int  rs_token_light_scale = 100;  // percent
+
+// --- the card ---------------------------------------------------------
+server int rs_token_near      = 88;   // panel appears inside this
+server int rs_token_far       = 116;  // and does not leave until past this
+server int rs_token_ahead     = 46;   // reading distance
+server int rs_token_up        = -1;   // eye-height offset
+server int rs_token_halfw     = 18;   // half-extents; 18 x 13 is 43 x 32 degrees
+server int rs_token_halfh     = 13;
+server int rs_token_rowh      = 32;   // stat row pitch, tenths of a unit
+server int rs_token_border    = 7;    // tier border thickness, tenths of a unit
+server int rs_token_grow_tics = 10;   // how long the card takes to build itself
+
+// --- seals, and walking away ------------------------------------------
+// Per-stat chance a drop hides that stat. Three stats are sealable, so
+// at 22 a little over half of all drops carry at least one.
+server int rs_token_seal_chance = 22;
+// Odds the sealed roll is the BAD one. The rest take the good roll.
+server int rs_token_seal_bad    = 60;
+server int rs_token_seal_low    = 33;   // bad multiplier, percent
+server int rs_token_seal_high   = 167;  // good multiplier, percent
+server int rs_token_seal_cost   = 4;    // cursebits at Common, +2 per rung
+server int rs_token_deny_base   = 6;    // gold for denying a Common, doubling per rung
+server int rs_token_hold_tics   = 32;   // how long a hold must be held

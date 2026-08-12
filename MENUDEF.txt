@@ -1548,6 +1548,8 @@ OptionMenu "RS_MonsterControl"
 	StaticText "behave, and what they leave behind.", "DarkGray"
 	Submenu "Elites...", "RS_EliteOptions"
 	StaticText "Hidden champions that reveal at half health.", "DarkGray"
+	Submenu "Rarity Tokens...", "RS_TokenOptions"
+	StaticText "What elites drop, and the card you read it on.", "DarkGray"
 	Submenu "Reserve Squads...", "RS_ReserveOptions"
 	StaticText "Reinforcements that walk in from elsewhere on the map.", "DarkGray"
 	Submenu "Health Bar Detail...", "RS_HPBarOptions"
@@ -2621,3 +2623,76 @@ OptionString "DamTranslations"
 	"DamCyan"     , "$C_CYAN"
 }
 
+
+//=====================================================================
+// RARITY TOKENS -- the elite drop, the card, and the seal economy.
+//
+// The card geometry is on sliders because getting a panel readable in a
+// headset is a dozen small adjustments, and every one of them used to
+// cost a rebuild and a relaunch. It shipped at 68x51 degrees once, and
+// at half the size it thought it was once. Degrees are what matter:
+// at Reading Distance 46, a Half Width of 18 subtends about 43 degrees,
+// and comfortable reading in a headset is 30-40.
+//=====================================================================
+OptionMenu "RS_TokenOptions"
+{
+	Title "Rarity Tokens"
+
+	StaticText "Testing", "Cyan"
+	Command "Drop A Token (random tier)", "netevent rs_token"
+	StaticText "For the weapon in your hand, as a real drop would be.", "DarkGray"
+	Command "Drop A Common", "netevent rs_token 3"
+	Command "Drop An Uncommon", "netevent rs_token 4"
+	Command "Drop An Advanced", "netevent rs_token 5"
+	Command "Drop A Designer", "netevent rs_token 6"
+	Command "Drop A Prototype", "netevent rs_token 7"
+	Command "Clear Every Token On The Map", "netevent rs_token_wipe"
+	StaticText " "
+
+	StaticText "The Drop In The World", "Gold"
+	Slider "Weapon Floats This High", "rs_token_prop_lift", 0, 64, 2, 0
+	StaticText "The pickup is a model centred on its origin -- too low", "DarkGray"
+	StaticText "and half of it is under the floor.", "DarkGray"
+	Option "Light", "rs_token_light", "OnOff"
+	Slider "Light Radius (percent)", "rs_token_light_scale", 0, 300, 10, 0
+	Option "Beam", "rs_token_beam", "OnOff"
+	Slider "Beam Brightness (percent)", "rs_token_beam_alpha", 0, 300, 10, 0
+	StaticText " "
+
+	StaticText "The Card", "Gold"
+	Slider "Appears Within", "rs_token_near", 16, 400, 4, 0
+	Slider "Leaves Past", "rs_token_far", 24, 500, 4, 0
+	StaticText "Two distances so it cannot strobe on stick drift.", "DarkGray"
+	Slider "Reading Distance", "rs_token_ahead", 16, 140, 2, 0
+	Slider "Eye-Height Offset", "rs_token_up", -30, 30, 1, 0
+	Slider "Half Width", "rs_token_halfw", 6, 48, 1, 0
+	Slider "Half Height", "rs_token_halfh", 4, 40, 1, 0
+	Slider "Stat Row Pitch (tenths)", "rs_token_rowh", 12, 80, 2, 0
+	Slider "Border Thickness (tenths)", "rs_token_border", 0, 40, 1, 0
+	Slider "Grow Time (tics)", "rs_token_grow_tics", 1, 60, 1, 0
+	StaticText " "
+
+	StaticText "Seals", "Gold"
+	StaticText "A seal hides one of the drop's numbers. Break it with", "DarkGray"
+	StaticText "curse bits, or walk away and never know.", "DarkGray"
+	Slider "Chance Per Stat (%)", "rs_token_seal_chance", 0, 100, 1, 0
+	Slider "Odds The Roll Is Bad (%)", "rs_token_seal_bad", 0, 100, 5, 0
+	Slider "Bad Roll (percent of normal)", "rs_token_seal_low", 5, 100, 5, 0
+	Slider "Good Roll (percent of normal)", "rs_token_seal_high", 100, 400, 5, 0
+	Slider "Break Cost At Common (bits)", "rs_token_seal_cost", 0, 40, 1, 0
+	StaticText "Costs 2 more bits per rung above Common.", "DarkGray"
+	StaticText " "
+
+	StaticText "Breaking A Drop Down", "Gold"
+	Slider "Gold For A Common", "rs_token_deny_base", 0, 100, 1, 0
+	StaticText "Doubles per rung, so a Prototype pays sixteen times this.", "DarkGray"
+	Slider "Hold Time (tics)", "rs_token_hold_tics", 6, 120, 2, 0
+	StaticText "Open even one seal and breaking it down pays nothing.", "DarkGray"
+	StaticText " "
+
+	StaticText "Notes", "Cyan"
+	StaticText "Card changes show up next time you step away from a", "DarkGray"
+	StaticText "token and back -- it is rebuilt, not redrawn every tic.", "DarkGray"
+	StaticText "Seal odds are rolled when the token DROPS, so they only", "DarkGray"
+	StaticText "affect tokens that do not exist yet.", "DarkGray"
+}

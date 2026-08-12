@@ -167,7 +167,18 @@ class RS_EliteFoodHandler : EventHandler
 		let drop = RS_RarityToken(victim.Spawn("RS_RarityToken",
 			victim.pos + (0, 0, 12), ALLOW_REPLACE));
 		if (!drop) return;
-		drop.mPayload = payload;
+
+		// Setup(), not `drop.mPayload = payload`. Everything the token
+		// looks like is derived from the payload -- the weapon double, the
+		// tier wash, the light, the beam -- and none of it can happen in
+		// PostBeginPlay, because Spawn() has to return before there is a
+		// payload to derive it from.
+		drop.Setup(payload);
+
+		// A short arc, and it LANDS. The token used to carry +NOGRAVITY
+		// with this same upward kick, which meant nothing ever pulled it
+		// back: it rose until it hit the ceiling and stayed there, above
+		// the reach of a use trace.
 		drop.vel = (frandom(-1.5, 1.5), frandom(-1.5, 1.5), frandom(3.0, 5.0));
 	}
 

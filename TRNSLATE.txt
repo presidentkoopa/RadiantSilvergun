@@ -318,14 +318,55 @@ BRCybGren06 = "32:47=112:127", "168:191=112:127"
 //      blown-out white -- which compiles clean and looks like a bug in
 //      something else entirely. Values below are the intended 0-255
 //      ramp divided by 255; the original byte value is in the comment.
-rs_wpn_cursed    = "0:255=%[0.06,0.00,0.00]:[0.66,0.09,0.09]"  // 16,0,0    -> 168,24,24
-rs_wpn_trash     = "0:255=%[0.06,0.04,0.02]:[0.59,0.41,0.22]"  // 16,10,4   -> 150,104,56
-rs_wpn_basic     = "0:255=%[0.05,0.05,0.05]:[0.72,0.72,0.72]"  // 12,12,12  -> 184,184,184
-rs_wpn_common    = "0:255=%[0.06,0.06,0.06]:[1.00,1.00,1.00]"  // 16,16,16  -> 255,255,255
-rs_wpn_uncommon  = "0:255=%[0.00,0.06,0.02]:[0.25,0.88,0.35]"  // 0,16,4    -> 64,224,88
-rs_wpn_advanced  = "0:255=%[0.00,0.03,0.09]:[0.38,0.66,1.00]"  // 0,8,24    -> 96,168,255
-rs_wpn_designer  = "0:255=%[0.05,0.00,0.08]:[0.72,0.38,1.00]"  // 12,0,20   -> 184,96,255
-rs_wpn_prototype = "0:255=%[0.09,0.06,0.00]:[1.00,0.82,0.25]"  // 24,16,0   -> 255,208,64
+//   3. THESE WERE A FIFTH LADDER, and it was one rung out. Fixed
+//      2026-08-12, when the rarity token drop became the first thing to
+//      actually call them.
+//
+//      RS_TierPalette.zs exists because four separate tier ladders had
+//      drifted apart; its header says all four now forward to it. This
+//      block was the one nobody found, because nothing called it -- so
+//      nothing ever drew the wrong colour and nothing ever complained.
+//      It read Common WHITE, Uncommon GREEN, Advanced BLUE, Designer
+//      PURPLE, Prototype GOLD: the whole set shifted one rung down the
+//      palette's Common GREEN, Uncommon BLUE, Advanced PURPLE, Designer
+//      YELLOW, Prototype CYAN.
+//
+//      Values below are now derived from RS_TierPalette.RGB() and
+//      nowhere else. The bright end IS the palette colour over 255; the
+//      dark end is that colour at roughly 7%, which keeps the shadows
+//      tinted rather than crushing them to black. If the palette moves,
+//      MOVE THESE -- a translation cannot ask a ZScript class for a
+//      number, so this is the one place the single source of truth has
+//      to be copied by hand, and it is the reason it drifted before.
+//   4. A WASH IS NOT A FILL. Corrected 2026-08-12 the first time one was
+//      seen in play: the shotgun came out a flat neon-green silhouette
+//      with no barrel, no stock and no shading.
+//
+//      The straight palette colour over 255 crushes the off-hue channels
+//      -- Common (40,255,60) becomes [0.16,1.00,0.24], so red and blue
+//      can never exceed a sixth of full and every pixel of the sprite
+//      differs only in how much GREEN it has. Hue arrives, contrast
+//      leaves, and the thing stops reading as a weapon.
+//
+//      So the bright end is lifted off the floor:
+//
+//          bright = 0.30 + 0.70 * (channel / 255)
+//          dark   = 0.03 + 0.10 * (channel / 255)
+//
+//      The 0.30 pedestal is what keeps the other two channels alive, so
+//      highlights stay near-white and the silhouette keeps its detail
+//      while the midtones carry the tier. Identifying the WEAPON matters
+//      as much as identifying the rarity -- the whole reason the drop
+//      wears its own pickup is so you can tell an SMG from an SSG across
+//      a room.
+rs_wpn_cursed    = "0:255=%[0.11,0.04,0.05]:[0.85,0.38,0.45]"  // palette 200,30,55
+rs_wpn_trash     = "0:255=%[0.07,0.07,0.05]:[0.61,0.59,0.44]"  // palette 112,106,50
+rs_wpn_basic     = "0:255=%[0.12,0.12,0.12]:[0.95,0.95,0.96]"  // palette 235,235,240
+rs_wpn_common    = "0:255=%[0.05,0.13,0.05]:[0.41,1.00,0.46]"  // palette 40,255,60
+rs_wpn_uncommon  = "0:255=%[0.05,0.08,0.13]:[0.46,0.63,1.00]"  // palette 60,120,255
+rs_wpn_advanced  = "0:255=%[0.10,0.05,0.13]:[0.79,0.38,1.00]"  // palette 180,40,255
+rs_wpn_designer  = "0:255=%[0.13,0.12,0.05]:[1.00,0.92,0.45]"  // palette 255,225,55
+rs_wpn_prototype = "0:255=%[0.05,0.13,0.13]:[0.41,1.00,1.00]"  // palette 40,255,255
 
 // --- Crit marking ----------------------------------------------------
 // A round that rolled a crit wears this in flight, so a crit is

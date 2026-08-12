@@ -306,6 +306,7 @@ version "4.14"
 // PlayerPawn.GetVRWheelInfo, which the engine calls for the hovered entry.
 // After RS_Screens because it reuses RS_UIStyle's tier names and pips.
 #include "zscript/systems/ui/RS_TierPalette.zs"
+#include "zscript/systems/ui/RS_StatusBar.zs"
 
 // RS_Showcase.zs DELETED 2026-08-07 at the owner's direction -- a dev
 // prop that proved a point nobody needed proving, and the sole consumer
