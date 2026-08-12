@@ -74,11 +74,21 @@ class RS_CatCard_FamilyBase : TFLV_Upgrade_RS_SlateBase abstract
 	// climbs by a share of that floor, which walks up that family's own
 	// roster at a rate proportional to its own spread.
 	// -----------------------------------------------------------------
+	// Memoized for the same reason TargetIsFamily is: CheapestIn and
+	// CostOf each rebuild the whole 143-row table, and Conscript's
+	// OnKill reaches this TWICE per kill (once through
+	// ScaleChanceForFamily, once through BudgetAt) -- four table builds
+	// per kill, for a number that is fixed for the life of the card.
+	private int  mFloor;
+	private bool mFloorResolved;
+
 	int FamilyFloor()
 	{
+		if (mFloorResolved) return mFloor;
+		mFloorResolved = true;
 		string cheap = RS_MinionCatalog.CheapestIn(Family());
-		if (cheap == "") return 0;
-		return RS_MinionCatalog.CostOf(cheap);
+		mFloor = (cheap == "") ? 0 : RS_MinionCatalog.CostOf(cheap);
+		return mFloor;
 	}
 
 	int BudgetAt(int lvl, int perLevelPct)
@@ -99,6 +109,37 @@ class RS_CatCard_FamilyBase : TFLV_Upgrade_RS_SlateBase abstract
 		int f = FamilyFloor();
 		if (f <= 12) return base;                  // cheap families, full rate
 		return max(2, base * 12 / f);              // baron: ~43% of base
+	}
+
+	// -----------------------------------------------------------------
+	// "IS THIS ONE OF MINE", WITHOUT REBUILDING THE BESTIARY.
+	//
+	// Bane and Cull ask this from OnDamageDealt -- every hit, per held
+	// card. Routed through RS_MinionCatalog.FamilyOf that meant
+	// rebuilding six parallel arrays and 143 rows on each one: a
+	// chaingun landing eight hits a second with three family cards held
+	// rebuilt the table twenty-four times a second, to answer a question
+	// whose answer cannot change during a level.
+	//
+	// The class list is resolved once, lazily, on first use, and every
+	// test after that is a handful of `is` checks with no allocation.
+	// `is` is also strictly more correct than the old exact-name-then-
+	// ancestry walk, because it catches subclass variants directly.
+	// -----------------------------------------------------------------
+	private Array<Class<Actor> > mFamilyClasses;
+	private bool mFamilyResolved;
+
+	bool TargetIsFamily(Actor a)
+	{
+		if (!a) return false;
+		if (!mFamilyResolved)
+		{
+			mFamilyResolved = true;
+			RS_MinionCatalog.ClassesIn(Family(), mFamilyClasses);
+		}
+		for (int i = 0; i < mFamilyClasses.Size(); i++)
+			if (a is mFamilyClasses[i]) return true;
+		return false;
 	}
 }
 
@@ -211,7 +252,7 @@ class RS_CatCard_HunterBase : RS_CatCard_FamilyBase abstract
 		if (mInBonus) return;
 		if (!target || level <= 0 || damage <= 0) return;
 		if (target.bFRIENDLY) return;
-		if (RS_MinionCatalog.FamilyOf(target) != Family()) return;
+		if (!TargetIsFamily(target)) return;
 
 		// Percentage bonus applied as a second, separate hit so it reads
 		// on the damage feed and cannot be swallowed by the first hit's
@@ -230,7 +271,7 @@ class RS_CatCard_TrophyBase : RS_CatCard_FamilyBase abstract
 	override void OnKill(PlayerPawn player, Actor shot, Actor target)
 	{
 		if (!player || !target || level <= 0) return;
-		if (RS_MinionCatalog.FamilyOf(target) != Family()) return;
+		if (!TargetIsFamily(target)) return;
 
 		// Scales with how dangerous the family is, so a baron trophy is
 		// worth more than a zombieman one without a per-family table.
@@ -252,7 +293,7 @@ class RS_CatCard_CullBase : RS_CatCard_FamilyBase abstract
 	{
 		if (!target || level <= 0 || target.health <= 0) return;
 		if (target.bFRIENDLY) return;
-		if (RS_MinionCatalog.FamilyOf(target) != Family()) return;
+		if (!TargetIsFamily(target)) return;
 
 		// Threshold is a share of the thing's OWN max health, so this is
 		// as meaningful against a baron as against a zombie rather than

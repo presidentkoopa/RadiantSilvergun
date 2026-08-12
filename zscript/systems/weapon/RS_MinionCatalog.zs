@@ -299,6 +299,38 @@ class RS_MinionCatalog
 		return "";
 	}
 
+	// -----------------------------------------------------------------
+	// EVERY CLASS IN A FAMILY, resolved ONCE.
+	//
+	// FamilyOf(Actor) rebuilds all six parallel arrays -- 143 rows, 858
+	// pushes -- on every call, and the Bane and Cull cards call it from
+	// OnDamageDealt. That is per HIT, per held card: a chaingun landing
+	// eight hits a second with three family cards held rebuilds this
+	// table twenty-four times a second, for a question whose answer
+	// cannot change during a level.
+	//
+	// This hands back the family's class list so a caller can resolve it
+	// once at activation and then test targets with plain `is` checks --
+	// no allocation on the hot path, and `is` catches subclass variants
+	// that an exact-name match would miss anyway.
+	// -----------------------------------------------------------------
+	static void ClassesIn(string family, out Array<Class<Actor> > outv)
+	{
+		outv.Clear();
+		if (family == "") return;
+
+		Array<string> c; Array<int> co; Array<string> f;
+		Array<int> h; Array<int> w; Array<bool> fl;
+		Build(c, co, f, h, w, fl);
+
+		for (int i = 0; i < c.Size(); i++)
+		{
+			if (f[i] != family) continue;
+			Class<Actor> k = c[i];
+			if (k) outv.Push(k);
+		}
+	}
+
 	// The cheapest thing in a family, which is what a low-budget affix
 	// wants when it is trying to match the victim rather than max out.
 	static string CheapestIn(string family)

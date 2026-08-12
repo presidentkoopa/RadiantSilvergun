@@ -223,41 +223,77 @@ class RS_AffixInstall : Object play
 		if (!wpn)
 			return;
 
-		if (key != "element")
-			return;
-
-		// The value carries its level as a suffix (fire3, icemaster).
-		// Strip it -- the part identity is the same at every level, only
-		// the math scales, and that scaling is RS_KeywordEffects' job.
-		string elem = StripLevel(value);
+		// THIS FUNCTION WAS UNREACHABLE. It keyed on "element", and the
+		// ingredients bin has never produced one -- RS_AffixIngredients
+		// deals exactly four keys, and they are:
+		//
+		//     behavior | homing, piercing
+		//     payload  | multi, cluster, slug
+		//     drawback | sluggish, wild
+		//
+		// So the "parts half" that this whole file exists to ignite
+		// installed nothing, on any roll, ever. The behaviour half
+		// worked the whole time, which is why nobody noticed: the
+		// keywords reached RS_ShotKeywordMods and the shot maths changed,
+		// while the visible identity of the round never did.
+		//
+		// Keyed on what the generator actually deals now. Values carry a
+		// level suffix (homing3, slugmaster) which StripLevel removes --
+		// the part identity is the same at every level, only the maths
+		// scales, and that scaling is RS_KeywordEffects' job.
+		string v = StripLevel(value);
 
 		// Written through RS_Weapon's AXIS LEDGER, under this file's own
 		// owner key, rather than assigned directly. Direct assignment was
 		// safe when this was the only writer; it is not any more. Cards
-		// (TFLV_Upgrade_RS_SlateBase.Claim*) write the same eight fields,
-		// and without an owner recorded neither side can tell whose work
-		// it is looking at when the time comes to undo it.
-		if (elem == "fire")
+		// (TFLV_Upgrade_RS_SlateBase.Claim*) write the same fields, and
+		// without an owner recorded neither side can tell whose work it
+		// is looking at when the time comes to undo it.
+		if (key == "payload")
 		{
-			wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_PUFF,   RS_Catalog.PUFF_Bullet(),     OWNER);
-			wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_SPARKS, RS_Catalog.SPARK_XHeavy(),    OWNER);
-			wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_TRAIL,  RS_Catalog.TRAIL_ST_Ember(),  OWNER);
-			// LAYERED, NOT AXIS 5. The gun keeps its own report; this
-			// rides underneath it. Overriding FireSound here would erase
-			// exactly the identity anchor this file exists to protect.
+			// A round that breaks up wants impact debris that reads as
+			// fragments, not a single clean puff.
+			if (v == "cluster" || v == "multi")
+			{
+				wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_SPARKS, RS_Catalog.SPARK_XHeavy(), OWNER);
+				wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_PUFF,   RS_Catalog.PUFF_Bullet(),  OWNER);
+				return;
+			}
+			// One heavy round instead of a volley -- a visible trail is
+			// what sells the mass.
+			if (v == "slug")
+			{
+				wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_TRAIL, RS_Catalog.TRAIL_ST_Ember(), OWNER);
+				return;
+			}
 			return;
 		}
 
-		if (elem == "ice")
+		if (key == "behavior")
 		{
-			wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_SPARKS, RS_Catalog.SPARK_XNoModel(), OWNER);
+			// A round that hunts should be visible in flight, or the
+			// player cannot tell it is hunting.
+			if (v == "homing")
+			{
+				wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_TRAIL, RS_Catalog.TRAIL_ST_Ember(), OWNER);
+				return;
+			}
+			if (v == "piercing")
+			{
+				wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_SPARKS, RS_Catalog.SPARK_XNoModel(), OWNER);
+				return;
+			}
 			return;
 		}
 
-		// Every other element resolves to nothing here rather than to a
-		// guess. A null axis is not a hole -- the four-rung chain falls
-		// through to the gun's own, then the catalog default, so an
-		// unhandled element still fires a complete, correct shot.
+		// "drawback" is deliberately unhandled: a penalty should not
+		// announce itself with a part swap. It is pure maths, and the
+		// keyword half already carries it.
+		//
+		// Anything else resolves to nothing rather than to a guess. A
+		// null axis is not a hole -- the four-rung chain falls through to
+		// the gun's own, then the catalog default, so an unhandled
+		// ingredient still fires a complete, correct shot.
 	}
 
 	// -----------------------------------------------------------------
