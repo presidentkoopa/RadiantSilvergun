@@ -77,11 +77,26 @@ class RS_LaserGun : RS_Weapon
 		return "archetype:energy trigger:beam delivery:sustained payload:single feed:pool reserve:cell element:kinetic promotion:pellet set:meatgrinder";
 	}
 
+	// HITSCAN, NOT HEAVY, and it is fired for real.
+	//
+	// The first version authored a heavy (projectile) profile and then never
+	// fired it, tracing and damaging by hand instead. That was wrong twice
+	// over. A beam is not a projectile, so the profile described something the
+	// gun does not do -- and an authored-but-unfired slot still makes
+	// HasBeatMode() answer true, so every affix gating on it passed its
+	// suitability check and then did nothing. Cards offered, taken, shown as
+	// held, silently inert.
+	//
+	// It fires through A_RS_FireSlot now like every other weapon in the set,
+	// which is what GunBonsai's tracking, the shot-keyword resolver, the affix
+	// axes and the spend path all hang off. The beam gets its far end from a
+	// SEPARATE trace that does no damage -- see A_LaserBeam. Geometry and
+	// damage are two questions and only one of them needed answering by hand.
 	override void BuildAttackProfiles()
 	{
-		PrimarySlot.Append(RS_AttackProfile.MakeHeavy(
-			proj: RS_Catalog.PROJ_PS_PlasmaShot(),
-			fireSnd: RS_Catalog.SND_PS_Plasma(),
+		PrimarySlot.Append(RS_AttackProfile.MakeHitscan(
+			fireSnd: "",              // the loop below is the weapon's voice
+			spreadScale: 0.0,         // a beam does not scatter
 			ammoCost: 1,
 			ammo: "Cell",
 			bigMuzzle: false,
@@ -147,9 +162,17 @@ class RS_LaserGun : RS_Weapon
 			return;
 		}
 
-		// WHERE IT ENDS. LineTrace rather than a fixed length, so the segment
-		// stops at the wall instead of running through it -- a beam that
-		// carries on past what it hit is the thing that gives fakes away.
+		// WHERE IT ENDS -- and this trace does NO damage.
+		//
+		// It exists only to answer "what is the beam's far end", which is a
+		// geometry question A_RS_FireSlot cannot answer because it does not
+		// hand a hit position back. The damage, the ammo, the affixes, the
+		// shot keywords and GunBonsai's tracking all go through the slot
+		// below, exactly as they do on every other weapon in the set.
+		//
+		// TRF_THRUACTORS on purpose: the beam should be drawn to the WALL
+		// behind whatever it is burning through, not stop short at the first
+		// monster. The slot's own attack decides what it actually hits.
 		FLineTraceData d;
 		LineTrace(angle, BEAM_RANGE, pitch, TRF_THRUACTORS,
 			player.viewheight, data: d);
@@ -208,21 +231,40 @@ class RS_LaserGun : RS_Weapon
 		// pitched every tic after, so the overheat is audible before it is
 		// visible -- which matters, because you are usually looking at what
 		// you are shooting rather than at the beam.
+		// CHAN_5, NOT CHAN_7. A_RS_FireSlot plays AffixExtraFireSound on
+		// CHAN_7 -- the layered themed voice a Brand or Attune card installs.
+		// A looping heat tone parked there would fight the first such card
+		// that lands on this gun, and since the loop never stops on its own
+		// the card would simply not be heard.
 		if (!w.beamFiring)
 		{
 			A_StartSound("rs_vp_plasma_chrg", CHAN_WEAPON, 0, 0.7);
-			A_StartSound("rs_vp_plasma_altfire", CHAN_7, CHANF_LOOPING, 0.8, ATTN_NORM);
+			A_StartSound("rs_vp_plasma_altfire", CHAN_5, CHANF_LOOPING, 0.8, ATTN_NORM);
 			w.beamFiring = true;
 		}
-		A_SoundPitch(CHAN_7, 0.85 + 0.5 * heat);
+		A_SoundPitch(CHAN_5, 0.85 + 0.5 * heat);
 
-		// Damage is per tic and small. Sustained it is brutal; a tap is
-		// nothing, which is the trade for a weapon that lights you up.
-		int dmg = max(1, w.DamagePerShot);
-		if (w.beamHeld <= BEAM_SPINUP) dmg = max(1, dmg / 2);
-
-		LineAttack(angle, BEAM_RANGE, pitch, dmg, 'Beam',
-			"BulletPuff", LAF_NORANDOMPUFFZ, offsetz: player.viewheight);
+		// AND NOW THE ACTUAL SHOT, THROUGH THE SLOT LIKE EVERY OTHER WEAPON.
+		//
+		// This is the whole reason the profile above is real and fired rather
+		// than authored and ignored. A_RS_FireSlot is where the mod resolves
+		// the affix axes, the granted shot keywords, the crit and spread
+		// mods, the ammo spend, RS_LastShotTic -- and GunBonsai's per-weapon
+		// tracking. Tracing and damaging by hand skips all of it, and the
+		// symptom is the worst kind: cards that are offered, taken, displayed
+		// as held, and silently do nothing.
+		//
+		// Not every tic. A hitscan profile is one SHOT, and firing one per
+		// tic would spend a cell every tic and hand GunBonsai thirty-five
+		// hits a second. Every third tic is roughly ten a second, which reads
+		// as continuous, spends at a sane rate, and gives the tracking a
+		// believable cadence for a sustained weapon.
+		// AND NOTHING AT ALL DURING SPIN-UP. The first four tenths of a second
+		// are a targeting laser: visible, aimable, and harmless. That is the
+		// commitment cost, and it is what stops the beam being strictly
+		// better than the bolt version -- you pay for the lock before you get
+		// the damage, so a flinch tap costs a cell and achieves nothing.
+		if (w.beamHeld > BEAM_SPINUP && (w.beamHeld % 3) == 1) A_RS_FireSlot(0);
 	}
 
 	// Trigger released, or the state machine left Fire. Put the beam away.

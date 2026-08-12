@@ -2284,7 +2284,32 @@ class RS_Weapon : Weapon abstract
 		if (FRandom(0, 1) >= chance)
 			return;
 
-		switch (Random(0, 4))
+		// -------------------------------------------------------------
+		// FOUR STATS, NOT FIVE. Capacity was dropped from the pool
+		// 2026-08-11, owner's call, and the reason is worth keeping:
+		//
+		// A curse hides a stat behind "???" on the sheet. That is only
+		// meaningful if the number could have been something else.
+		// Capacity is not rolled -- every weapon assigns it as a flat
+		// constant in its RollStats, and on 37 of the 43 weapons it is
+		// the SAME constant at every tier. A Super Shotgun holds 2
+		// shells, always, forever.
+		//
+		// So a capacity curse showed the player "???" over a number that
+		// could only ever be 2. It reads as "something might be hidden
+		// here" and nothing is. That is the UI lying, and it made the
+		// other four curses less trustworthy by association.
+		//
+		// The remaining four all genuinely roll a different value every
+		// time, on every weapon, so every "???" is now a real unknown.
+		//
+		// case 4 below is left in place and unreachable rather than
+		// deleted: CurseStackCapacity, PreCurseCapacity, LockedCapacity
+		// and the lift path all still exist and are still read by the
+		// sheet, so a save from before this change keeps displaying and
+		// can still be cured. Nothing new can acquire one.
+		// -------------------------------------------------------------
+		switch (Random(0, 3))
 		{
 			case 0:
 				if (CurseStackDamage == 0) PreCurseDamage = DamagePerShot;
