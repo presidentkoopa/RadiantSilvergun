@@ -255,106 +255,160 @@ class RS_RarityPayload play
 	}
 }
 
-// ---------------------------------------------------------------------
-// THE PICKUP. Carries a rolled payload from the elite that dropped it
-// to the sheet where it gets spent.
-// ---------------------------------------------------------------------
-class RS_RarityToken : Inventory
+// =====================================================================
+// THE DROP. A world object you walk up to, read, and USE.
+//
+// NOT an Inventory pickup, deliberately, and this is the third shape
+// this took before it was right.
+//
+// Auto-apply is wrong because a token is not always an upgrade. The
+// owner's rule: "sometimes it's an improvement, sometimes a lateral
+// move, sometimes a calculated tradeoff." Tier and sockets always climb,
+// but the stats are judged against the roll your gun ORIGINALLY got and
+// the tier bands overlap -- an SMG that rolled 11 damage at Basic beats
+// a 7 rolled at Uncommon. A thing that can make your gun worse cannot
+// apply itself the moment you brush past it.
+//
+// Carrying it in inventory and spending it from a menu was wrong too --
+// that was mine, invented, and it added a screen nobody asked for.
+//
+// WHAT IT ACTUALLY IS: it lies on the floor. Stand near it and it tells
+// you which hand it is for and exactly what it would do to the weapon
+// you are holding RIGHT NOW -- improvement, lateral, or trade, per stat.
+// Switch weapons and the numbers change with you, because the weapon in
+// your hand IS the selection. There is no cursor and no list. Press USE
+// to commit it to that weapon.
+//
+// +USESPECIAL and Used() are stock engine, so this needs nothing from
+// the fork and nothing from the VR interaction layer that never worked.
+// =====================================================================
+
+class RS_RarityToken : Actor
 {
-	// Set by whoever spawned it, BEFORE the player can touch it. A token
-	// with no payload is inert rather than silently doing nothing.
 	RS_RarityPayload mPayload;
+
+	// So the readout is printed once on approach rather than every tic,
+	// and again if you switch weapons while standing over it.
+	private Class<Actor> mLastShown;
+	private int mNextShowTic;
 
 	Default
 	{
-		Inventory.MaxAmount 1;
-		+INVENTORY.INVBAR
-		+INVENTORY.UNDROPPABLE
-		-COUNTITEM
-		Radius 16;
-		Height 20;
-		Scale 0.6;
-	}
-
-	// ONE AT A TIME, AND A NEW ONE OVERWRITES THE OLD.
-	//
-	// You carry a single token. Walking over another does not get
-	// refused and does not stack -- it REPLACES what you were holding.
-	//
-	// The refusal was my own call and it was the wrong one: a token left
-	// on the floor because your hands are full is a reward the game took
-	// back, and it turns every elite kill into a trip to go dump the old
-	// one first. Overwriting keeps the decision where it belongs -- on
-	// which weapon to spend it on, not on inventory management.
-	//
-	// The cost of overwriting is real and deliberate: pick up a Designer
-	// token while holding an unspent Advanced and the Advanced is gone.
-	// That is a reason to spend one when you find it rather than hoard.
-	override bool HandlePickup(Inventory item)
-	{
-		let other = RS_RarityToken(item);
-		if (!other) return Super.HandlePickup(item);
-
-		// Take the new payload over the old, keep the count at one.
-		bool hadOne = (mPayload != null);
-		mPayload = other.mPayload;
-		item.bPickupGood = true;
-		AnnouncePickup(Owner, hadOne);
-		return true;
-	}
-
-	// Inventory hands ownership to a NEW actor on pickup, so without
-	// this override the rolled numbers are lost the instant it is walked
-	// over -- the carried copy would be a blank token.
-	override Inventory CreateCopy(Actor other)
-	{
-		let cp = RS_RarityToken(Super.CreateCopy(other));
-		if (cp) cp.mPayload = mPayload;
-		return cp;
-	}
-
-	override bool TryPickup(in out Actor toucher)
-	{
-		if (!Super.TryPickup(toucher)) return false;
-		AnnouncePickup(toucher, false);
-		return true;
-	}
-
-	// Said on BOTH paths. TryPickup only runs when nothing is held; a
-	// REPLACE goes through HandlePickup instead, and a token that
-	// silently overwrote the one you were carrying would be the worst
-	// version of this.
-	void AnnouncePickup(Actor who, bool replaced)
-	{
-		if (!mPayload || !who || who.player != players[consoleplayer]) return;
-		string lost = replaced
-			? " \c[Red]Replaced the one you were carrying.\c-"
-			: "";
-		Console.Printf("\c[Gold]%s %s Token.\c-%s Press I and cycle to a weapon to spend it.",
-			mPayload.mWeaponTag, RS_Rarity.TierWord(mPayload.mTier), lost);
-	}
-
-	// What the sheet asks for. Static so RS_Screens can find the held
-	// token without knowing how it is stored.
-	static RS_RarityPayload HeldBy(Actor pawn)
-	{
-		if (!pawn) return null;
-		let t = RS_RarityToken(pawn.FindInventory("RS_RarityToken"));
-		return t ? t.mPayload : null;
-	}
-
-	static void ConsumeFrom(Actor pawn)
-	{
-		if (pawn) pawn.TakeInventory("RS_RarityToken", 1);
+		+USESPECIAL          // Used() fires on the use key
+		+NOGRAVITY
+		+NOBLOCKMAP
+		+DONTSPLASH
+		+NOTELEPORT
+		Radius 20;
+		Height 24;
+		Scale 0.7;
 	}
 
 	States
 	{
 	Spawn:
-		// A live lump, not a resurrected one -- the card system's own
-		// drop sprites went to _unused_sprite_dupes this morning and
-		// pulling one back would undo that sort.
 		BON1 ABCDCB 6 Bright;
 		Loop;
+	}
+
+	// The weapon this token would land on: the one in the matching hand.
+	// Mainhand and offhand are separate weapon CLASSES, so the token's
+	// own class already decides the hand -- there is nothing to ask.
+	RS_Weapon TargetWeapon(PlayerPawn pawn)
+	{
+		if (!pawn || !pawn.player || !mPayload) return null;
+		let mainW = RS_Weapon(pawn.player.ReadyWeapon);
+		let offW  = RS_Weapon(pawn.player.OffhandWeapon);
+		if (mPayload.Matches(mainW)) return mainW;
+		if (mPayload.Matches(offW))  return offW;
+		return null;
+	}
+
+	// One line per stat: what it is now, what it would become, and
+	// whether that is up, down or a wash. This is the whole interface.
+	void ShowReadout(PlayerPawn pawn)
+	{
+		if (!mPayload || !pawn || pawn.player != players[consoleplayer]) return;
+
+		string hand = "";
+		let w = TargetWeapon(pawn);
+		if (w) hand = w.bOffhandWeapon ? "\c[SkyBlue]OFFHAND\c-" : "\c[Orange]MAINHAND\c-";
+
+		Console.Printf("\c[Gold]--- %s %s Token ---\c-",
+			mPayload.mWeaponTag, RS_Rarity.TierWord(mPayload.mTier));
+
+		if (!w)
+		{
+			Console.Printf("\c[DarkGray]Hold your %s to see what it would do.\c-",
+				mPayload.mWeaponTag);
+			return;
+		}
+		if (w.Tier >= mPayload.mTier)
+		{
+			Console.Printf("%s %s is already %s.", hand, w.GetTag(),
+				RS_Rarity.TierWord(w.Tier));
+			return;
+		}
+		if (!w.CanAcceptImprint(mPayload.mTier))
+		{
+			Console.Printf("%s \c[Red]The curse refuses it.\c- Lift a lock first.", hand);
+			return;
+		}
+
+		Console.Printf("%s %s   \c[DarkGray]%s -> \c-%s",
+			hand, w.GetTag(),
+			RS_Rarity.TierWord(w.Tier), RS_Rarity.TierWord(mPayload.mTier));
+		Line(w, "damage",   w.DamagePerShot, mPayload.mDamagePerShot + w.EarnedDamage());
+		Line(w, "accuracy", int(w.Accuracy), int(mPayload.mAccuracy + w.EarnedAccuracy()));
+		Line(w, "velocity", int(w.Velocity), int(mPayload.mVelocity + w.EarnedVelocity()));
+		Line(w, "sockets",  w.GunBonaiSockets, RS_Roll.SocketsForTier(mPayload.mTier));
+		Console.Printf("\c[Gold][USE] to apply.\c-");
+	}
+
+	// Green up, red down, grey unchanged -- the verdict per row, so you
+	// can read improvement / lateral / trade at a glance.
+	private void Line(RS_Weapon w, string name, int now, int after)
+	{
+		string col = (after > now) ? "\c[Green]" : (after < now ? "\c[Red]" : "\c[DarkGray]");
+		Console.Printf("   %-9s %s%d -> %d\c-", name, col, now, after);
+	}
+
+	override void Tick()
+	{
+		Super.Tick();
+		if (isFrozen() || !mPayload) return;
+
+		// Cheap proximity check. Reprints when you switch weapons over
+		// it, which is the entire "cycle to compare" interaction.
+		let pawn = players[consoleplayer].mo;
+		if (!pawn || Distance3D(pawn) > 96) { mLastShown = null; return; }
+
+		let w = TargetWeapon(pawn);
+		Class<Actor> now = w ? w.GetClass() : null;
+		if (now == mLastShown && level.maptime < mNextShowTic) return;
+		mLastShown   = now;
+		mNextShowTic = level.maptime + 105;   // 3s re-nag if you loiter
+		ShowReadout(pawn);
+	}
+
+	override bool Used(Actor user)
+	{
+		let pawn = PlayerPawn(user);
+		if (!pawn || !mPayload) return false;
+
+		let w = TargetWeapon(pawn);
+		if (!w)
+		{
+			if (pawn.player == players[consoleplayer])
+				Console.Printf("\c[Red]Hold your %s to apply this.\c-", mPayload.mWeaponTag);
+			return false;
+		}
+
+		// ApplyTo says its own no, with its own reason.
+		if (!mPayload.ApplyTo(w)) return false;
+
+		A_StartSound("misc/i_pkup", CHAN_AUTO);
+		Destroy();
+		return true;
 	}
 }
