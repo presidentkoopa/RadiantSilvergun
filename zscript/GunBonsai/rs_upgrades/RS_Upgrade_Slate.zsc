@@ -82,76 +82,70 @@ class TFLV_Upgrade_RS_SlateBase : TFLV_Upgrade_BaseUpgrade abstract
 	// claim TWO OR THREE axes rather than all eight -- an eight-axis
 	// card is a different gun, a three-axis card is a modification.
 	//
-	// Bonecaller and Cacospit already did this by hand, hardcoding one
-	// class each. These helpers do the same thing from a registry draw,
-	// and remember what was written so deactivate only clears its own --
-	// two cards claiming the same axis must not delete each other's.
+	// Bonecaller, Cacospit, Cryo, ArachPlasma, Swarm and Nova each used
+	// to do this by hand -- assign the field, then in deactivate compare
+	// the current value back against the literal they wrote and null it
+	// on a match. Correct, but it only held while nothing cleared the
+	// fields wholesale, and RS_AffixInstall.UninstallParts did exactly
+	// that. All six now route through the same ledger as everything
+	// else, and their deactivates collapse to one ReleaseAxes call.
 	// =================================================================
 
-	Class<Actor> mClaimProj, mClaimPuff, mClaimSparks, mClaimSmoke, mClaimTrail;
-	Class<Actor> mClaimMuzzle;
-	string       mClaimCasing;
-	sound        mClaimSound;
+	// Every claim routes through RS_Weapon's axis ledger, which records
+	// the owner alongside the value. The card's own class name is the
+	// owner key -- valid because a card levels rather than stacking, so
+	// there is never a second live instance of the same class on one gun.
+	//
+	// These used to keep private mClaim* copies and compare them back
+	// against the weapon. That worked, but only as long as nothing else
+	// cleared the fields wholesale -- and RS_AffixInstall did exactly
+	// that. The ledger moves the bookkeeping to the one place every
+	// writer can see it.
 
 	void ClaimProj(RS_Weapon wpn, Class<Actor> c)
 	{
-		if (!wpn || !c) return;
-		wpn.AffixProjectile = c; mClaimProj = c;
+		if (wpn) wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_PROJECTILE, c, GetClassName());
 	}
 	void ClaimPuff(RS_Weapon wpn, Class<Actor> c)
 	{
-		if (!wpn || !c) return;
-		wpn.AffixImpactPuff = c; mClaimPuff = c;
+		if (wpn) wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_PUFF, c, GetClassName());
 	}
 	void ClaimSparks(RS_Weapon wpn, Class<Actor> c)
 	{
-		if (!wpn || !c) return;
-		wpn.AffixImpactSparks = c; mClaimSparks = c;
+		if (wpn) wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_SPARKS, c, GetClassName());
 	}
 	void ClaimSmoke(RS_Weapon wpn, Class<Actor> c)
 	{
-		if (!wpn || !c) return;
-		wpn.AffixMuzzleSmoke = c; mClaimSmoke = c;
+		if (wpn) wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_SMOKE, c, GetClassName());
 	}
 	void ClaimTrail(RS_Weapon wpn, Class<Actor> c)
 	{
-		if (!wpn || !c) return;
-		wpn.AffixTrail = c; mClaimTrail = c;
+		if (wpn) wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_TRAIL, c, GetClassName());
 	}
 	void ClaimSound(RS_Weapon wpn, sound s)
 	{
-		if (!wpn || s == "") return;
-		wpn.AffixExtraFireSound = s; mClaimSound = s;
+		// Layered channel, never the gun's own report -- the report is an
+		// identity anchor. SetAxisSound defaults to that for the same
+		// reason, so this passes nothing extra.
+		if (wpn) wpn.SetAxisSound(s, GetClassName());
 	}
-	// MUZZLE. This is the one axis the gun does NOT provide a floor for:
-	// RS_Main emits no muzzle light of its own and defers to
-	// GlowInTheDark. So a card claiming this is not overriding anything,
-	// it is adding a second light that layers with GITD's.
+	void ClaimCasing(RS_Weapon wpn, string c)
+	{
+		if (wpn) wpn.SetAxisCasing(c, GetClassName());
+	}
+	// MUZZLE. The one axis with no gun floor behind it: RS_Main emits no
+	// muzzle light of its own and defers to GlowInTheDark, so a card
+	// claiming this adds a second light rather than overriding one.
 	void ClaimMuzzle(RS_Weapon wpn, Class<Actor> c)
 	{
-		if (!wpn || !c) return;
-		wpn.AffixMuzzleFlash = c; mClaimMuzzle = c;
+		if (wpn) wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_MUZZLE, c, GetClassName());
 	}
 
-	// Release every axis this card claimed, and ONLY if the weapon is
-	// still showing what we wrote. If another card has since overwritten
-	// the field, that card owns it now and clearing would strip a live
-	// effect -- the same test Bonecaller's own deactivate makes.
+	// Release every axis this card owns, and only those. One call now --
+	// the ledger knows which ones they are.
 	void ReleaseAxes(RS_Weapon wpn)
 	{
-		if (!wpn) return;
-		if (mClaimProj   && wpn.AffixProjectile   == mClaimProj)   wpn.AffixProjectile   = null;
-		if (mClaimPuff   && wpn.AffixImpactPuff   == mClaimPuff)   wpn.AffixImpactPuff   = null;
-		if (mClaimSparks && wpn.AffixImpactSparks == mClaimSparks) wpn.AffixImpactSparks = null;
-		if (mClaimSmoke  && wpn.AffixMuzzleSmoke  == mClaimSmoke)  wpn.AffixMuzzleSmoke  = null;
-		if (mClaimTrail  && wpn.AffixTrail        == mClaimTrail)  wpn.AffixTrail        = null;
-		if (mClaimMuzzle && wpn.AffixMuzzleFlash  == mClaimMuzzle) wpn.AffixMuzzleFlash  = null;
-		if (mClaimSound != "" && wpn.AffixExtraFireSound == mClaimSound)
-			wpn.AffixExtraFireSound = "";
-
-		mClaimProj = null; mClaimPuff = null; mClaimSparks = null;
-		mClaimSmoke = null; mClaimTrail = null; mClaimSound = "";
-		mClaimMuzzle = null;
+		if (wpn) wpn.ReleaseAxesBy(GetClassName());
 	}
 
 	// Write a registry draw to an axis by axis id. One switch instead of
@@ -474,9 +468,9 @@ class TFLV_Upgrade_RS_Cacospit : TFLV_Upgrade_RS_SlateBase
 			WardrobeRoll = Random(0, 1);
 			WardrobeRolled = true;
 		}
-		wpn.AffixProjectile = (WardrobeRoll == 0)
+		ClaimProj(wpn, (WardrobeRoll == 0)
 			? (Class<Actor>)("RS_AffixCacoBall")
-			: (Class<Actor>)("RS_AffixFireWisp");
+			: (Class<Actor>)("RS_AffixFireWisp"));
 		// AffixExtraFireSound, NOT AffixFireSound. Converted 2026-08-08:
 		// axis 5 is an OVERRIDE, so setting it here silenced the weapon's
 		// own report and a caco-round shotgun sounded like ONLY a caco.
@@ -484,7 +478,7 @@ class TFLV_Upgrade_RS_Cacospit : TFLV_Upgrade_RS_SlateBase
 		// -- it should sound like a shotgun firing something strange, not
 		// like the strange thing alone. This field layers on its own
 		// channel instead. Same applies to every themed voice below.
-		wpn.AffixExtraFireSound = "caco/attack";
+		ClaimSound(wpn, "caco/attack");
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
@@ -494,11 +488,8 @@ class TFLV_Upgrade_RS_Cacospit : TFLV_Upgrade_RS_SlateBase
 		// impossible, but deactivation stays polite anyway. Explicit
 		// class-lookup casts: Class<Actor> == string is not a reliable
 		// comparison in this engine.
-		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixCacoBall")
-			|| wpn.AffixProjectile == (Class<Actor>)("RS_AffixFireWisp"))
-			wpn.AffixProjectile = null;
-		if (wpn.AffixExtraFireSound == "caco/attack")
-			wpn.AffixExtraFireSound = "";
+		// One call: the ledger knows which axes carry this card's name.
+		ReleaseAxes(wpn);
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -552,16 +543,14 @@ class TFLV_Upgrade_RS_Bonecaller : TFLV_Upgrade_RS_SlateBase
 
 	override void ExtraActivate(RS_Weapon wpn)
 	{
-		wpn.AffixProjectile = "RS_AffixBoneTracer";
-		wpn.AffixExtraFireSound = "skeleton/attack";
+		ClaimProj(wpn, "RS_AffixBoneTracer");
+		ClaimSound(wpn, "skeleton/attack");
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
 	{
-		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixBoneTracer"))
-			wpn.AffixProjectile = null;
-		if (wpn.AffixExtraFireSound == "skeleton/attack")
-			wpn.AffixExtraFireSound = "";
+		// One call: the ledger knows which axes carry this card's name.
+		ReleaseAxes(wpn);
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -608,10 +597,10 @@ class TFLV_Upgrade_RS_PainOrb : TFLV_Upgrade_RS_SlateBase
 
 	override void ExtraActivate(RS_Weapon wpn)
 	{
-		wpn.AffixProjectile = (level >= 6)
+		ClaimProj(wpn, (level >= 6)
 			? (Class<Actor>)("RS_AffixPainOrbMaster")
-			: (Class<Actor>)("RS_AffixIceOrb");
-		wpn.AffixExtraFireSound = "rs_fx_ice_cast";
+			: (Class<Actor>)("RS_AffixIceOrb"));
+		ClaimSound(wpn, "rs_fx_ice_cast");
 
 		// The price: heavier rounds, fewer chambered. Restore-then-apply
 		// keeps this exact across re-activations and level-ups.
@@ -623,11 +612,8 @@ class TFLV_Upgrade_RS_PainOrb : TFLV_Upgrade_RS_SlateBase
 
 	override void ExtraDeactivate(RS_Weapon wpn)
 	{
-		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixIceOrb")
-			|| wpn.AffixProjectile == (Class<Actor>)("RS_AffixPainOrbMaster"))
-			wpn.AffixProjectile = null;
-		if (wpn.AffixExtraFireSound == "rs_fx_ice_cast")
-			wpn.AffixExtraFireSound = "";
+		// One call: the ledger knows which axes carry this card's name.
+		ReleaseAxes(wpn);
 		wpn.Capacity += AppliedCapCut;
 		AppliedCapCut = 0;
 	}
@@ -761,16 +747,14 @@ class TFLV_Upgrade_RS_ArachPlasma : TFLV_Upgrade_RS_SignatureBase
 
 	override void ExtraActivate(RS_Weapon wpn)
 	{
-		wpn.AffixProjectile = "RS_AffixArachPlasma";
-		wpn.AffixExtraFireSound = "baby/attack";
+		ClaimProj(wpn, "RS_AffixArachPlasma");
+		ClaimSound(wpn, "baby/attack");
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
 	{
-		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixArachPlasma"))
-			wpn.AffixProjectile = null;
-		if (wpn.AffixExtraFireSound == "baby/attack")
-			wpn.AffixExtraFireSound = "";
+		// One call: the ledger knows which axes carry this card's name.
+		ReleaseAxes(wpn);
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -805,16 +789,14 @@ class TFLV_Upgrade_RS_Swarm : TFLV_Upgrade_RS_SignatureBase
 
 	override void ExtraActivate(RS_Weapon wpn)
 	{
-		wpn.AffixProjectile = "RS_AffixSwarmCarrier";
-		wpn.AffixExtraFireSound = "rs_fx_impact_bullet";
+		ClaimProj(wpn, "RS_AffixSwarmCarrier");
+		ClaimSound(wpn, "rs_fx_impact_bullet");
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
 	{
-		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixSwarmCarrier"))
-			wpn.AffixProjectile = null;
-		if (wpn.AffixExtraFireSound == "rs_fx_impact_bullet")
-			wpn.AffixExtraFireSound = "";
+		// One call: the ledger knows which axes carry this card's name.
+		ReleaseAxes(wpn);
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)
@@ -853,16 +835,14 @@ class TFLV_Upgrade_RS_Nova : TFLV_Upgrade_RS_SignatureBase
 
 	override void ExtraActivate(RS_Weapon wpn)
 	{
-		wpn.AffixProjectile = "RS_AffixNovaShell";
-		wpn.AffixExtraFireSound = "weapons/bfgf";
+		ClaimProj(wpn, "RS_AffixNovaShell");
+		ClaimSound(wpn, "weapons/bfgf");
 	}
 
 	override void ExtraDeactivate(RS_Weapon wpn)
 	{
-		if (wpn.AffixProjectile == (Class<Actor>)("RS_AffixNovaShell"))
-			wpn.AffixProjectile = null;
-		if (wpn.AffixExtraFireSound == "weapons/bfgf")
-			wpn.AffixExtraFireSound = "";
+		// One call: the ledger knows which axes carry this card's name.
+		ReleaseAxes(wpn);
 	}
 
 	override bool IsSuitableForWeapon(TFLV_WeaponInfo info)

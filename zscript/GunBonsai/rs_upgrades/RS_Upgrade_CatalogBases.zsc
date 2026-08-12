@@ -314,7 +314,14 @@ class RS_CatCard_BrandBase : RS_CatCard_ThemeBase abstract
 
 		// Nothing in this theme on any of those axes: fall back to the
 		// walker so the card is never a dead pick.
-		if (!mClaimProj && !mClaimPuff && !mClaimTrail)
+		// Nothing in this theme landed on any of the three: fall back to
+		// the walker so the card is never a dead pick. Asked of the
+		// weapon's ledger rather than local copies -- the ledger is the
+		// one place that knows what this card actually owns.
+		string me = GetClassName();
+		if (   wpn.GetAxisOwner(RS_FXRegistry.RS_FXAXIS_PROJECTILE) != me
+			&& wpn.GetAxisOwner(RS_FXRegistry.RS_FXAXIS_PUFF)       != me
+			&& wpn.GetAxisOwner(RS_FXRegistry.RS_FXAXIS_TRAIL)      != me)
 			ClaimPuff(wpn, DrawThemed(want));
 	}
 
@@ -394,7 +401,9 @@ class RS_CatCard_SurgeBase : RS_CatCard_ThemeBase abstract
 			ClaimSmoke(wpn, RS_FXRegistry.Draw(
 				RS_FXRegistry.RS_FXAXIS_SMOKE, Theme(), -1, false, false));
 
-		if (!mClaimSparks && !mClaimSmoke)
+		string me = GetClassName();
+		if (   wpn.GetAxisOwner(RS_FXRegistry.RS_FXAXIS_SPARKS) != me
+			&& wpn.GetAxisOwner(RS_FXRegistry.RS_FXAXIS_SMOKE)  != me)
 			ClaimSparks(wpn, DrawThemed(-1));
 	}
 

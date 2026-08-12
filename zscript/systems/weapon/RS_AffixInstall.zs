@@ -42,6 +42,11 @@
 
 class RS_AffixInstall : Object play
 {
+	// The name this file signs its axis writes with. Anything else
+	// writing the same eight fields uses its own key, and neither can
+	// clear the other's work.
+	const OWNER = "RS_AffixInstall";
+
 	// -----------------------------------------------------------------
 	// INSTALL A ROLLED BUNDLE ONTO A WEAPON.
 	//
@@ -226,11 +231,17 @@ class RS_AffixInstall : Object play
 		// the math scales, and that scaling is RS_KeywordEffects' job.
 		string elem = StripLevel(value);
 
+		// Written through RS_Weapon's AXIS LEDGER, under this file's own
+		// owner key, rather than assigned directly. Direct assignment was
+		// safe when this was the only writer; it is not any more. Cards
+		// (TFLV_Upgrade_RS_SlateBase.Claim*) write the same eight fields,
+		// and without an owner recorded neither side can tell whose work
+		// it is looking at when the time comes to undo it.
 		if (elem == "fire")
 		{
-			wpn.AffixImpactPuff   = RS_Catalog.PUFF_Bullet();
-			wpn.AffixImpactSparks = RS_Catalog.SPARK_XHeavy();
-			wpn.AffixTrail        = RS_Catalog.TRAIL_ST_Ember();
+			wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_PUFF,   RS_Catalog.PUFF_Bullet(),     OWNER);
+			wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_SPARKS, RS_Catalog.SPARK_XHeavy(),    OWNER);
+			wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_TRAIL,  RS_Catalog.TRAIL_ST_Ember(),  OWNER);
 			// LAYERED, NOT AXIS 5. The gun keeps its own report; this
 			// rides underneath it. Overriding FireSound here would erase
 			// exactly the identity anchor this file exists to protect.
@@ -239,7 +250,7 @@ class RS_AffixInstall : Object play
 
 		if (elem == "ice")
 		{
-			wpn.AffixImpactSparks = RS_Catalog.SPARK_XNoModel();
+			wpn.SetAxisClass(RS_FXRegistry.RS_FXAXIS_SPARKS, RS_Catalog.SPARK_XNoModel(), OWNER);
 			return;
 		}
 
@@ -275,16 +286,25 @@ class RS_AffixInstall : Object play
 	}
 
 	// -----------------------------------------------------------------
-	// TAKE IT ALL BACK.
+	// TAKE BACK WHAT THIS FILE PUT ON, AND NOTHING ELSE.
 	//
-	// ClearAffixParts() already exists on RS_Weapon and nulls all eight.
-	// Wrapped here so callers have one obvious symmetric pair -- an
-	// install site that has to remember which of two files owns the
-	// uninstall is a site that will eventually forget.
+	// This used to call wpn.ClearAffixParts(), which nulls all eight
+	// axes regardless of who set them. That was correct while this was
+	// the only thing writing them and became a bug the moment cards
+	// could: a single roll-reset here would silently strip every axis a
+	// level-up card had claimed, with nothing reporting it.
+	//
+	// Same failure the PACK beats had before they carried an OwnerTag --
+	// nine cards deleting each other for want of a name on the work.
+	// Same cure.
+	//
+	// ClearAffixParts() still exists and is still right for exactly one
+	// caller: the promotion strip, which is meant to take the whole gun
+	// back to bare.
 	// -----------------------------------------------------------------
 	static play void UninstallParts(RS_Weapon wpn)
 	{
 		if (wpn)
-			wpn.ClearAffixParts();
+			wpn.ReleaseAxesBy(OWNER);
 	}
 }

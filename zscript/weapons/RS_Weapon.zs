@@ -152,6 +152,130 @@ class RS_Weapon : Weapon abstract
 	Class<Actor> AffixExplosionVisual;
 	string       AffixCasing;          // "" = no override, "none" = suppress casing entirely
 
+	// =================================================================
+	// THE AXIS LEDGER -- who owns each of the eight overrides.
+	//
+	// THE PROBLEM THIS SOLVES. Four separate things write these fields
+	// and they had three different disciplines between them:
+	//
+	//   SlateBase.ClaimX (cards)   remembered what it wrote and cleared
+	//                              only if the weapon still showed it
+	//   Bonecaller / Cacospit      same, hand-rolled per affix
+	//   RS_AffixInstall            wrote, then cleared with
+	//                              ClearAffixParts() -- ALL EIGHT,
+	//                              including other systems' work
+	//   ClearAffixParts()          the deliberate nuke
+	//
+	// So three writers were careful and one was not, and the careful
+	// ones' correctness depended on the careless one never running. That
+	// is the same shape as the PACK beat collision fixed earlier today
+	// (nine cards silently deleting each other for want of an owner
+	// tag), in a second system, and it is why these parts felt like they
+	// were "80% working together": each one is right on its own and
+	// nothing arbitrated between them.
+	//
+	// One ledger, indexed by RS_FXRegistry's axis numbering so there is
+	// a single set of axis IDs in the mod rather than one per system.
+	// EXPLOSIONVISUAL has no axis of its own and files under PAYLOAD.
+	//
+	// Last writer wins -- deliberately, because a card taken later
+	// SHOULD override an earlier roll. What the ledger prevents is the
+	// reverse: something clearing a field it does not own.
+	// =================================================================
+	private string mAxisOwner[9];   // RS_FXAXIS_COUNT
+
+	void SetAxisOwner(int axis, string owner)
+	{
+		if (axis >= 0 && axis < 9) mAxisOwner[axis] = owner;
+	}
+	string GetAxisOwner(int axis) const
+	{
+		return (axis >= 0 && axis < 9) ? mAxisOwner[axis] : "";
+	}
+	// True when nobody holds it, or the asker already does. An unowned
+	// field is fair game -- that keeps the hand-rolled affixes that
+	// predate this ledger working untouched.
+	bool CanWriteAxis(int axis, string owner) const
+	{
+		string cur = GetAxisOwner(axis);
+		return cur == "" || cur == owner;
+	}
+
+	// Typed setters. Three types across the eight axes, so they cannot
+	// collapse into one function -- but they share the one ledger.
+	void SetAxisClass(int axis, Class<Actor> c, string owner)
+	{
+		if (!c) return;
+		if (axis == RS_FXRegistry.RS_FXAXIS_PROJECTILE) AffixProjectile      = c;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_PUFF)  AffixImpactPuff      = c;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_SPARKS)AffixImpactSparks    = c;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_SMOKE) AffixMuzzleSmoke     = c;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_MUZZLE)AffixMuzzleFlash     = c;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_TRAIL) AffixTrail           = c;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_PAYLOAD) AffixExplosionVisual = c;
+		else return;
+		SetAxisOwner(axis, owner);
+	}
+	void SetAxisSound(sound s, string owner, bool replaceGunReport = false)
+	{
+		if (s == "") return;
+		// Default to the LAYERED channel. AffixFireSound is an override
+		// that silences the gun's own report, and the owner's rule is
+		// that the report is an identity anchor -- so replacing it has
+		// to be asked for explicitly.
+		if (replaceGunReport) AffixFireSound = s;
+		else                  AffixExtraFireSound = s;
+		SetAxisOwner(RS_FXRegistry.RS_FXAXIS_SOUND, owner);
+	}
+	void SetAxisCasing(string c, string owner)
+	{
+		if (c == "") return;
+		AffixCasing = c;
+		SetAxisOwner(RS_FXRegistry.RS_FXAXIS_CASING, owner);
+	}
+
+	// Clear one axis, but ONLY if this owner holds it.
+	void ReleaseAxis(int axis, string owner)
+	{
+		if (GetAxisOwner(axis) != owner) return;
+		if (axis == RS_FXRegistry.RS_FXAXIS_PROJECTILE) AffixProjectile      = null;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_PUFF)  AffixImpactPuff      = null;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_SPARKS)AffixImpactSparks    = null;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_SMOKE) AffixMuzzleSmoke     = null;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_MUZZLE)AffixMuzzleFlash     = null;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_TRAIL) AffixTrail           = null;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_PAYLOAD) AffixExplosionVisual = null;
+		else if (axis == RS_FXRegistry.RS_FXAXIS_CASING) AffixCasing         = "";
+		else if (axis == RS_FXRegistry.RS_FXAXIS_SOUND)
+		{
+			AffixFireSound      = "";
+			AffixExtraFireSound = "";
+		}
+		SetAxisOwner(axis, "");
+	}
+
+	// Everything one owner holds. This is what a system's uninstall
+	// should call -- never ClearAffixParts.
+	void ReleaseAxesBy(string owner)
+	{
+		for (int a = 0; a < 9; a++)
+			ReleaseAxis(a, owner);
+	}
+
+	// THE NUKE. Every axis regardless of owner, ledger included.
+	//
+	// ZERO CALLERS, and that is the correct state -- checked, not
+	// assumed. The one path that plausibly wants it is the promotion
+	// strip, and RS_GunBonsaiBridge does not use it: it calls
+	// info.upgrades.OnDeactivate() and then clears the bag, so every
+	// affix releases its own axes on the way out and the gun ends bare
+	// without anything having to reach past an owner.
+	//
+	// Kept as a backstop for a future caller that genuinely wants the
+	// whole gun reset in one move -- a debug command, a respec-all. Any
+	// system undoing its OWN work wants ReleaseAxesBy instead, and
+	// reaching for this by mistake is precisely the bug that made the
+	// ledger necessary.
 	void ClearAffixParts()
 	{
 		AffixProjectile      = null;
@@ -164,6 +288,7 @@ class RS_Weapon : Weapon abstract
 		AffixTrail           = null;
 		AffixExplosionVisual = null;
 		AffixCasing          = "";
+		for (int a = 0; a < 9; a++) mAxisOwner[a] = "";
 	}
 
 	// -----------------------------------------------------------------
