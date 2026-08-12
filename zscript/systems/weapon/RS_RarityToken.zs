@@ -28,7 +28,7 @@
 // the way into it.
 //
 // ---------------------------------------------------------------------
-// KEEP-BETTER, AND WHY IT IS NOT OPTIONAL HERE
+// ADDITIVE, AND WHY NEITHER ALTERNATIVE WORKS
 //
 // The obvious implementation -- hand the tier to RS_Weapon.ApplyUpgradeCard
 // -- is wrong, and quietly so. That path calls RollStats(newTier), and
@@ -43,10 +43,20 @@
 // elite would sometimes be a worse gun, with nothing on screen
 // explaining why.
 //
-// So stats are applied KEEP-BETTER, field by field: a token can only
-// raise a number, never lower one. Tier and sockets are set outright,
-// because those are the token's whole point. Levels and affixes are
-// untouched -- they live in GunBonsai's bag, not in the weapon's stats.
+// Keep-better is the other wrong answer: it silently discards the
+// token's roll whenever your current number is higher, which on
+// overlapping bands is most of the time.
+//
+// So: ADDITIVE. new = tokenRoll + (current - RollBase). You keep every
+// point levelling gave you and the token supplies a fresh base under
+// it. Tier and sockets are set outright, because those are the token's
+// whole point. Levels and affixes are untouched -- they live in
+// GunBonsai's bag, not in the weapon's stats.
+//
+// The earned part appears on both sides, so new - current reduces to
+// tokenRoll - RollBase: a token is judged against the roll THIS GUN
+// ORIGINALLY GOT, and a stat can go DOWN. Deliberate. It makes a token
+// a trade rather than a guaranteed upgrade.
 //
 // ---------------------------------------------------------------------
 // HOW IT GETS IN-RANGE NUMBERS
@@ -63,8 +73,7 @@
 // WHAT THIS REPLACED
 //
 // RS_Imprint, 784 lines, removed in 90aaf2c6 having never worked in
-// play. This keeps its two good ideas -- the donor and keep-better --
-// and drops the rest: the second weighted ladder, the eight drop-weight
+// play. This keeps its one good idea -- the donor -- and drops the rest: the second weighted ladder, the eight drop-weight
 // sliders, the separate tier bonus, the preview screen.
 //
 // And on the other side: until 2026-08-11 the ONLY thing in the tree
@@ -199,20 +208,32 @@ class RS_RarityPayload play
 			return false;
 		}
 
-		// KEEP-BETTER. A token raises a number or leaves it alone; it
-		// never lowers one. Without this an Uncommon roll could land
-		// under a well-levelled Basic and the elite kill would be a
-		// downgrade.
+		// ADDITIVE: the token's roll PLUS what levelling earned.
+		//
+		//     new = tokenRoll + (current - RollBase)
+		//
+		// The owner's rule, and the reason RollBase* exists. Not a
+		// re-roll (that deletes your level history) and not keep-better
+		// (that quietly discards the token's roll whenever your current
+		// number is higher, which on overlapping bands is often).
+		//
+		// Note what this means: since the earned part is on both sides,
+		// new - current reduces to tokenRoll - RollBase. So the token is
+		// judged purely against the roll THIS GUN ORIGINALLY GOT, and a
+		// stat CAN go down -- an SMG that rolled 11 damage at Basic beats
+		// a 7 rolled at Uncommon. That is deliberate: it makes a token a
+		// trade rather than a guaranteed upgrade, and it is why the
+		// preview screen shows red as well as green.
 		if (mFilled)
 		{
-			if (mDamagePerShot > w.DamagePerShot) w.DamagePerShot = mDamagePerShot;
-			if (mAccuracy      > w.Accuracy)      w.Accuracy      = mAccuracy;
-			if (mVelocity      > w.Velocity)      w.Velocity      = mVelocity;
-			if (mCritChance    > w.CritChance)    w.CritChance    = mCritChance;
-			if (mCritMult      > w.CritMult)      w.CritMult      = mCritMult;
-			if (mCapacity      > w.Capacity)      w.Capacity      = mCapacity;
-			if (mReloadSpeed   > w.ReloadSpeed)   w.ReloadSpeed   = mReloadSpeed;
-			if (mChoke         > w.Choke)         w.Choke         = mChoke;
+			w.DamagePerShot = mDamagePerShot + w.EarnedDamage();
+			w.Accuracy = mAccuracy + w.EarnedAccuracy();
+			w.Velocity = mVelocity + w.EarnedVelocity();
+			w.CritChance = mCritChance + w.EarnedCritChance();
+			w.CritMult = mCritMult + w.EarnedCritMult();
+			w.Capacity = mCapacity + w.EarnedCapacity();
+			w.ReloadSpeed = mReloadSpeed + w.EarnedReloadSpeed();
+			w.Choke = mChoke + w.EarnedChoke();
 		}
 
 		// TIER, then sockets FROM it -- read through RS_Roll rather than
@@ -231,5 +252,75 @@ class RS_RarityPayload play
 	{
 		if (w && w.owner && w.owner.player == players[consoleplayer])
 			Console.Printf("%s", msg);
+	}
+}
+
+// ---------------------------------------------------------------------
+// THE PICKUP. Carries a rolled payload from the elite that dropped it
+// to the sheet where it gets spent.
+// ---------------------------------------------------------------------
+class RS_RarityToken : Inventory
+{
+	// Set by whoever spawned it, BEFORE the player can touch it. A token
+	// with no payload is inert rather than silently doing nothing.
+	RS_RarityPayload mPayload;
+
+	Default
+	{
+		Inventory.MaxAmount 1;
+		+INVENTORY.INVBAR
+		+INVENTORY.UNDROPPABLE
+		-COUNTITEM
+		Radius 16;
+		Height 20;
+		Scale 0.6;
+	}
+
+	// ONE AT A TIME, deliberately. The whole point of a token is that
+	// you stop and decide which weapon it goes on; a stack of them turns
+	// that decision into inventory management. MaxAmount 1 refuses the
+	// second, and the world copy stays put to be come back for.
+
+	// Inventory hands ownership to a NEW actor on pickup, so without
+	// this override the rolled numbers are lost the instant it is walked
+	// over -- the carried copy would be a blank token.
+	override Inventory CreateCopy(Actor other)
+	{
+		let cp = RS_RarityToken(Super.CreateCopy(other));
+		if (cp) cp.mPayload = mPayload;
+		return cp;
+	}
+
+	override bool TryPickup(in out Actor toucher)
+	{
+		if (!Super.TryPickup(toucher)) return false;
+		if (mPayload && toucher && toucher.player == players[consoleplayer])
+			Console.Printf("\c[Gold]%s %s Token.\c- Press I and cycle to a weapon to spend it.",
+				mPayload.mWeaponTag, RS_Rarity.TierWord(mPayload.mTier));
+		return true;
+	}
+
+	// What the sheet asks for. Static so RS_Screens can find the held
+	// token without knowing how it is stored.
+	static RS_RarityPayload HeldBy(Actor pawn)
+	{
+		if (!pawn) return null;
+		let t = RS_RarityToken(pawn.FindInventory("RS_RarityToken"));
+		return t ? t.mPayload : null;
+	}
+
+	static void ConsumeFrom(Actor pawn)
+	{
+		if (pawn) pawn.TakeInventory("RS_RarityToken", 1);
+	}
+
+	States
+	{
+	Spawn:
+		// A live lump, not a resurrected one -- the card system's own
+		// drop sprites went to _unused_sprite_dupes this morning and
+		// pulling one back would undo that sort.
+		BON1 ABCDCB 6 Bright;
+		Loop;
 	}
 }

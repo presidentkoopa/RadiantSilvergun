@@ -1574,3 +1574,8 @@ user float rs_fx_gallery_scale = 0.0;
 // guessing sprite frames. Harmless with nothing consuming it -- the
 // marker is inert and lives one tic.
 server bool rs_monster_fire_signal = true;
+
+// Elite Rarity Tokens (zscript/systems/weapon/RS_RarityToken.zs). The
+// only source of tier progression -- turning this off means weapons
+// never climb past the tier they spawned at.
+server bool rs_elite_tokens = true;

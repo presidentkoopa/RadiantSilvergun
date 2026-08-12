@@ -57,6 +57,10 @@ version "4.14"
 // Must load after RS_NoHitscan conceptually (it relies on hitscans
 // already being projectiles) but has no compile-time dependency on it.
 #include "zscript/systems/weapon/RS_MonsterFire.zs"
+// RS_RarityToken -- the elite payout. A weapon family, a tier, and
+// stats rolled in that family's band. The ONLY thing that raises a
+// weapon's Tier, and therefore the gate on the whole affix system.
+#include "zscript/systems/weapon/RS_RarityToken.zs"
 // The costed roster RS_Minion.Summon draws from -- 143 summon-safe classes,
 // generated from the family census. Bosses, pain elementals and archviles are
 // RS_MinionCatalog -- 143 summon-safe monsters, costed and family-tagged.

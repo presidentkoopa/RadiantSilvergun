@@ -72,6 +72,70 @@ class RS_EliteFoodHandler : EventHandler
 		}
 	}
 
+	// -----------------------------------------------------------------
+	// THE RARITY TOKEN DROP.
+	//
+	// This is what an elite was always supposed to pay. Tier progression
+	// has no other source: every other write to a weapon's Tier is the
+	// initial roll or Promote() taking a Prototype back down to Basic.
+	// Until 2026-08-11 it was riding on a side effect of lifting a
+	// curse, which meant a weapon that never rolled a curse could never
+	// climb at all. That block is gone; this replaces it.
+	//
+	// WHICH WEAPON. A token names one -- an "SMG Uncommon" is for the
+	// SMG and nothing else. Drawn from the weapons the player is
+	// actually holding, because a token for a gun you do not own is a
+	// drop that reads as a reward and is not one. Mainhand and offhand
+	// are separate weapon classes, so naming the class names the hand;
+	// nothing is rolled for that and nothing has to be asked.
+	//
+	// WHICH TIER. One rung above what that weapon currently sits at,
+	// with the elite's own size buying more. FoodTierFor already grades
+	// the corpse and is reused rather than a second ladder invented --
+	// a 2000-HP elite is worth +2 rungs, everything smaller is +1.
+	//
+	// A weapon already at Prototype cannot climb, so it is skipped and
+	// the other hand is tried. If both are capped, no token drops: the
+	// food is still there, and a token nobody can spend is litter.
+	// -----------------------------------------------------------------
+	static bool TokensEnabled()
+	{
+		let cv = CVar.FindCVar("rs_elite_tokens");
+		return cv ? cv.GetBool() : true;
+	}
+
+	void DropRarityToken(Actor victim, PlayerPawn pawn)
+	{
+		if (!victim || !pawn || !pawn.player) return;
+		if (!TokensEnabled()) return;
+
+		// Prefer the hand that is climbing from further back -- the
+		// lower-tier weapon gets the offer, so a neglected offhand
+		// catches up rather than the leader running away with it.
+		let mainW = RS_Weapon(pawn.player.ReadyWeapon);
+		let offW  = RS_Weapon(pawn.player.OffhandWeapon);
+
+		RS_Weapon pick = null;
+		if (RS_Rarity.CanClimb(mainW) && RS_Rarity.CanClimb(offW))
+			pick = (offW.Tier <= mainW.Tier) ? offW : mainW;
+		else if (RS_Rarity.CanClimb(mainW)) pick = mainW;
+		else if (RS_Rarity.CanClimb(offW))  pick = offW;
+		if (!pick) return;              // both at Prototype; food only
+
+		// Size of the elite buys the rung count.
+		int rungs = (FoodTierFor(victim.SpawnHealth()) >= 5) ? 2 : 1;
+		int tier  = min(int(pick.Tier) + rungs, int(VRT_Prototype));
+
+		let payload = RS_RarityPayload.Roll(pick.GetClass(), tier);
+		if (!payload) return;
+
+		let drop = RS_RarityToken(victim.Spawn("RS_RarityToken",
+			victim.pos + (0, 0, 12), ALLOW_REPLACE));
+		if (!drop) return;
+		drop.mPayload = payload;
+		drop.vel = (frandom(-1.5, 1.5), frandom(-1.5, 1.5), frandom(3.0, 5.0));
+	}
+
 	override void WorldThingDied(WorldEvent e)
 	{
 		if (!e.Thing || !e.Thing.bIsMonster) return;
@@ -83,6 +147,12 @@ class RS_EliteFoodHandler : EventHandler
 		if (!tok || !tok.revealed) return;
 
 		ScatterFood(e.Thing);
+
+		// The kill has to be attributable to a player for a token to know
+		// which weapons to consider. A minion's kill still pays food.
+		let pawn = PlayerPawn(e.Thing.target);
+		if (!pawn) pawn = players[0].mo;
+		DropRarityToken(e.Thing, pawn);
 	}
 }
 
