@@ -8,7 +8,7 @@ version "4.14"
 // had. Damage hits + hazard floors, radsuit dial. RS_ConditionHandler must
 // ALSO be in MAPINFO.txt's AddEventHandlers.
 #include "zscript/systems/weapon/RS_Condition.zs"
-#include "zscript/systems/player/RS_Bits.zs"
+#include "zscript/systems/ui/RS_Bits.zs"
 
 // RS_Curses -- the PLAYER half of the curse system (the eight flaws,
 // hand-scoped) plus the run-wide Divine ledger that BOTH pools report
@@ -296,7 +296,7 @@ version "4.14"
 // The unified UI's play-scope half: screen models + rs-ui-* netevents.
 // Also MAPINFO-registered. UI-scope half lives in the GunBonsai tree
 // (rs_menu/RS_UIMenus.zsc). Spec: docs/rs_10_ui_spec.txt.
-#include "zscript/systems/player/RS_Screens.zs"
+#include "zscript/systems/ui/RS_Screens.zs"
 
 // What the engine's VR weapon wheel writes in its info panel. Answers
 // PlayerPawn.GetVRWheelInfo, which the engine calls for the hovered entry.

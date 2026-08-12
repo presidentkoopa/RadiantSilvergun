@@ -8,7 +8,7 @@ alias bonsai-show-info "netevent bonsai-show-info"
 alias bonsai-dump "netevent bonsai-debug,info"
 
 // I drives the RS sheet cycle directly: rs-ui-cycle is handled by
-// RS_UIHandler (zscript/systems/player/RS_Screens.zs), and with no
+// RS_UIHandler (zscript/systems/ui/RS_Screens.zs), and with no
 // argument it steps one sheet forward (offhand -> mainhand -> player).
 // Pressing I again while a sheet is open keeps cycling -- that press is
 // caught inside RS_Menu_Dynamic, since keybinds don't fire in menus.

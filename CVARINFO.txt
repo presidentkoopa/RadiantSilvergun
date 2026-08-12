@@ -163,7 +163,7 @@ server bool bonsai_ignore_gun_rarity = false;
 server bool rs_gb_legacy_affixes = false;
 
 // =====================================================================
-// Kill Rewards (Bits) -- zscript/systems/player/RS_Bits.zs. Ported from
+// Kill Rewards (Bits) -- zscript/systems/ui/RS_Bits.zs. Ported from
 // "SoM Universal(ish?) Kill Rewards". Health/Armor/Ammo pickups dropped
 // by monsters on death. See MENUDEF.txt's "Kill Rewards" branch.
 // =====================================================================

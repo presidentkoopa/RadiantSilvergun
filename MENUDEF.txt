@@ -369,7 +369,7 @@ OptionMenu "RS_VanillaPlusOptions"
 }
 
 // ---------------------------------------------------------------------
-// Kill Rewards (Bits) -- zscript/systems/player/RS_Bits.zs. Labels rewritten
+// Kill Rewards (Bits) -- zscript/systems/ui/RS_Bits.zs. Labels rewritten
 // from the source mod's own wording ("HP Ratio Mode", "Base Drop
 // Chance") to plain language.
 // ---------------------------------------------------------------------

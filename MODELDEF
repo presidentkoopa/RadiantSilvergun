@@ -7489,119 +7489,23 @@ Model RS_Grenade
 }
 
 // =====================================================================
-// CARD WEAPON MODELS -- the weapon as a turning 3D model on an offer card.
-// Added 2026-08-09.
+// CARD WEAPON MODELS -- REMOVED 2026-08-11.
 //
-// Every OTHER binding in this file attaches a model to a HUD FRAME
-// (PISG, SMGR, SHTG...) under Models/Weapons/hud/. Those are first-person
-// view frames: a thing standing in the world never enters one, so it can
-// never resolve them. The .md3 and skin are shared; the BINDING cannot
-// be, which is why these blocks exist at all.
+// Eleven Model blocks (RS_CardModel_Pistol .. _BFG) bound a turning 3D
+// weapon model to an offer card. The card system is gone and those actor
+// classes went with it, so MODELDEF was left referencing eleven classes
+// that no longer exist -- which is a hard load error, not a warning:
 //
-// All eleven share the sprite RSPL A -- a 1x1 transparent lump that
-// exists only to be bound to, since TNT1 is special-cased invisible and
-// will not carry a model. MODELDEF keys on ACTOR CLASS, so one class per
-// weapon is the only way to vary the model.
+//   MODELDEF line 7510: Unknown actor type 'RS_CardModel_Pistol'
 //
-// Paths, model files and skins below were read out of the blocks above
-// rather than typed from memory.
+// Why cards needed MODELDEF at all: the card floated the actual weapon
+// as a model, and MODELDEF keys on ACTOR CLASS, so varying the model per
+// weapon meant one dummy class per weapon. All eleven bound to sprite
+// RSPL A -- a 1x1 transparent lump that exists only to be bound to,
+// because TNT1 is special-cased invisible and will not carry a model.
+// That sprite was parked as an unused duplicate the same day.
+//
+// The real weapon models above are untouched. They bind to HUD frames
+// (PISG, SMGR, SHTG) under Models/Weapons/hud/, which is a different
+// binding to the same .md3 files.
 // =====================================================================
-
-Model RS_CardModel_Pistol
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_Pistol"
-	Model 0 "pistolet.md3"
-	Skin 0 "WPN-9mm.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}
-
-Model RS_CardModel_Revolver
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_Revolver"
-	Model 0 "rev.md3"
-	Skin 0 "WPN-REV.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}
-
-Model RS_CardModel_Rifle
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_Rifle"
-	Model 0 "m16.md3"
-	Skin 0 "WPN-M16.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}
-
-Model RS_CardModel_SMG
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_SMG"
-	Model 0 "SMG.md3"
-	Skin 0 "SMG.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}
-
-Model RS_CardModel_Shotgun
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_Shotgun"
-	Model 0 "shotgun.md3"
-	Skin 0 "WPN-SHTGUN.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}
-
-Model RS_CardModel_SuperShotgun
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_SuperShotgun"
-	Model 0 "ssg.md3"
-	Skin 0 "WPN-SSHTGUN.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}
-
-Model RS_CardModel_Chaingun
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_Chaingun"
-	Model 0 "chaingun.md3"
-	Skin 0 "chaingun.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}
-
-Model RS_CardModel_PlasmaRifle
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_PlasmaRifle"
-	Model 0 "PlasmaRifle.md3"
-	Skin 0 "PlasmaRifle.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}
-
-Model RS_CardModel_RocketLauncher
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_RocketLauncher"
-	Model 0 "RPG.md3"
-	Skin 0 "RPG.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}
-
-Model RS_CardModel_BFG
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_BFG9000"
-	Model 0 "BFG.md3"
-	Skin 0 "BFG.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}
-
-Model RS_CardModel_Chainsaw
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_Chainsaw"
-	Model 0 "chainsaw.md3"
-	Skin 0 "chainsaw.png"
-	Scale 1.0 1.0 1.0
-	FrameIndex RSPL A 0 0
-}

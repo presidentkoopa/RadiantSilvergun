@@ -20,7 +20,7 @@
 // NO BOONS. THIS SYSTEM SPAWNS MONSTERS AND NOTHING ELSE.
 //   Every event it produces is a threat. It never spawns an item, a pickup,
 //   ammo or a powerup -- item generation belongs to Kill Rewards
-//   (zscript/systems/player/RS_Bits.zs) and is not duplicated here. The only
+//   (zscript/systems/ui/RS_Bits.zs) and is not duplicated here. The only
 //   non-monster actors this file spawns are its own telegraph beacon and the
 //   engine's TeleportFog.
 //
