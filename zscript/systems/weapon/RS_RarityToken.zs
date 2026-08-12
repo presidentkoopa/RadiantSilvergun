@@ -81,11 +81,23 @@
 // weapon could never climb at all. That block is gone; this is what was
 // always supposed to be there.
 //
-// THE CURSE RULE STILL HOLDS, and matters more now: a cursed weapon
-// cannot take a token. RS_Weapon.CanAcceptImprint is the gate, and it
-// survived the purge intact along with its "The curse refuses it"
-// message. Lifting a curse no longer hands out a free tier -- it
-// unblocks one you have to go and earn.
+// THE LOCK RULE STILL HOLDS, and matters more now: a cursed weapon
+// cannot take a token. RS_Weapon.CanAcceptImprint is the gate and it
+// survived the purge intact; only its wording changed, from a curse
+// that "refuses" to a count of locked stats, because a number the
+// player can act on beats a personality they cannot. Lifting a lock no
+// longer hands out a free tier -- it unblocks one you go and earn.
+//
+// ---------------------------------------------------------------------
+// A LOWER TOKEN IS STILL WORTH READING
+//
+// Tier is a BAND. Bands overlap. A Common that rolled high can beat an
+// Advanced that rolled low on any given stat, the same way Trash tier
+// still gets its treasure roll -- so the panel does not refuse a token
+// beneath your rarity, it shows you the eight numbers and lets you
+// decide. Tier is taken with max(), so spending one can never demote
+// you or take a socket back: the only thing at risk is the roll under
+// your feet, and every stat that would move is on screen first.
 // =====================================================================
 
 class RS_Rarity
@@ -175,7 +187,12 @@ class RS_RarityPayload play
 		return w && mWeaponClass && w.GetClass() == mWeaponClass;
 	}
 
-	bool IsUpgradeFor(RS_Weapon w) const
+	// Deliberately NOT an IsUpgradeFor(). There was one -- Matches() &&
+	// w.Tier < mTier -- and every use of it was a refusal the player did
+	// not agree with. Whether a token is worth taking is a question about
+	// eight rolled numbers, not about which of two tier words is higher,
+	// and the panel is where that gets answered.
+	bool RaisesTier(RS_Weapon w) const
 	{
 		return Matches(w) && w.Tier < mTier;
 	}
@@ -194,17 +211,33 @@ class RS_RarityPayload play
 			Announce(w, "\c[Red]Wrong weapon.\c- That token is for a " .. mWeaponTag .. ".");
 			return false;
 		}
-		if (w.Tier >= mTier)
-		{
-			Announce(w, string.format("\c[Gold]Already %s.\c- That token is only %s.",
-				RS_Rarity.TierWord(w.Tier), RS_Rarity.TierWord(mTier)));
-			return false;
-		}
+		// A LOWER TOKEN IS NOT A REFUSAL. It used to be -- "Already
+		// Advanced, that token is only Common" -- and that was the
+		// engine deciding for you on tier alone.
+		//
+		// Tier is a BAND, not a number. Bands overlap, and a Common can
+		// roll high in its band while your Advanced rolled low in its.
+		// Nothing here knows which until the eight numbers are on the
+		// panel, so the panel shows them and you decide. Same shape as
+		// the treasure roll on Trash: the floor tier still gets to
+		// surprise you.
+		//
+		// What a lower token CANNOT do is demote you -- see the max()
+		// on Tier below. So spending one is a pure re-base of the stat
+		// floor: your rarity and your sockets are never at risk, only
+		// the roll underneath them, and every stat that would move is
+		// on screen in green or red before you press USE.
 		// The one interesting restriction, and the reason curses still
 		// bite now that lifting one no longer hands out a free tier.
+		//
+		// Say WHAT is in the way and HOW MANY, not that some unseen
+		// force disapproves. A locked stat is a mechanic the player can
+		// count and act on; a curse with opinions is scenery.
 		if (!w.CanAcceptImprint(mTier))
 		{
-			Announce(w, "\c[Red]The curse refuses it.\c- Lift a curse before this weapon can take a higher rarity.");
+			int n = w.CurseCount();
+			Announce(w, string.format("\c[Red]%d stat%s locked.\c- Lift one before this weapon can take a higher rarity.",
+				n, n == 1 ? "" : "s"));
 			return false;
 		}
 
@@ -239,12 +272,23 @@ class RS_RarityPayload play
 		// TIER, then sockets FROM it -- read through RS_Roll rather than
 		// hardcoded, so the socket table has one owner and cannot drift.
 		// Same argument Promote() makes for itself.
-		w.Tier            = mTier;
+		//
+		// max(), not assignment: a token can re-base your numbers but it
+		// can never take rarity away. Without this, spending a Common on
+		// an Advanced gun would silently drop you from 3 sockets to 1 and
+		// orphan two affixes you already own.
+		int wasTier      = w.Tier;
+		w.Tier            = max(w.Tier, mTier);
 		w.GunBonaiSockets = RS_Roll.SocketsForTier(w.Tier);
 
-		Announce(w, string.format("\c[Gold]%s is now %s.\c- %d socket%s.",
-			w.GetTag(), RS_Rarity.TierWord(w.Tier),
-			w.GunBonaiSockets, w.GunBonaiSockets == 1 ? "" : "s"));
+		if (w.Tier > wasTier)
+			Announce(w, string.format("\c[Gold]%s is now %s.\c- %d socket%s.",
+				w.GetTag(), RS_Rarity.TierWord(w.Tier),
+				w.GunBonaiSockets, w.GunBonaiSockets == 1 ? "" : "s"));
+		else
+			Announce(w, string.format("\c[Gold]%s re-rolled.\c- Still %s, %d socket%s.",
+				w.GetTag(), RS_Rarity.TierWord(w.Tier),
+				w.GunBonaiSockets, w.GunBonaiSockets == 1 ? "" : "s"));
 		return true;
 	}
 
@@ -414,13 +458,18 @@ class RS_TokenPanel : EventHandler
 	const UP     = -1.0;
 	const REACH  = 128.0;
 
-	const HALF_W = 31.0;
-	const HALF_H = 22.0;
-	const ROW_H  =  4.4;
+	// SIZED IN DEGREES, NOT UNITS. At AHEAD 46 these subtend 43 x 32
+	// degrees of view. The first pass was 31 x 22, which is 68 x 51 --
+	// a cinema screen strapped to your face. Comfortable reading in a
+	// headset is 30-40 degrees, so anything changed here should be
+	// checked back against that arc rather than eyeballed in units.
+	const HALF_W = 18.0;
+	const HALF_H = 13.0;
+	const ROW_H  =  2.6;
 
 	// Plane offsets. Bigger X is further away.
-	const Z_SHELL = 1.2;
-	const Z_FACE  = 0.6;
+	const Z_SHELL = 0.9;
+	const Z_FACE  = 0.45;
 
 	const REVEAL_TICS = 10;
 
@@ -507,83 +556,113 @@ class RS_TokenPanel : EventHandler
 
 		// --- three planes -------------------------------------------
 		Put(0, 0, HALF_W, HALF_H, BB_PANEL, 0, Color(232, 9, 10, 14), "", Z_SHELL);
-		Put(0, 0, HALF_W - 1.6, HALF_H - 1.4, BB_PANEL, 0,
+		Put(0, 0, HALF_W - 0.95, HALF_H - 0.8, BB_PANEL, 0,
 			Color(46, tierCol.r, tierCol.g, tierCol.b), "", Z_FACE);
 
-		double y = HALF_H - 5.4;
+		double y = HALF_H - 2.9;
 
-		// --- header: the token, as segments, lit ---------------------
-		int hid = Put(0, y, HALF_W - 5.0, 3.2, BB_SEGMENT, 0, tierCol,
-			(p.mWeaponTag .. " " .. RS_Rarity.TierWord(p.mTier)).MakeUpper());
+		// --- header: the RARITY is the headline, the weapon names it ---
+		//
+		// "DESIGNER" over "Super Shotgun", not "SSG DESIGNER". The token
+		// IS a rarity -- that is the whole of what it is -- and the tag
+		// only says which weapon it fits. Two practical reasons beyond
+		// the hierarchy: a compound string on a segment display shrinks
+		// to fit the panel width and stops being legible, and a NAME
+		// wants a real typeface, which is the same reason the stat
+		// labels below are BB_TEXT rather than segments.
+		int hid = Put(0, y, HALF_W - 4.5, 2.4, BB_SEGMENT, 0, tierCol,
+			RS_Rarity.TierWord(p.mTier).MakeUpper());
 		if (hid)
 		{
-			level.SetBillboardGlow(hid, 0.6, 0.75);
+			level.SetBillboardGlow(hid, 0.6, 0.8);
 			mProgressIds.Push(hid);
 		}
-		y -= 4.6;
+		y -= 2.9;
 
+		Put(0, y, HALF_W - 5.0, 1.5, BB_TEXT, 0, Color(255, 176, 174, 168),
+			p.mWeaponTag);
+		y -= 2.2;
+
+		// The tag two rows up already names the weapon, so this does not
+		// repeat it -- it just says what to do about it.
 		if (!w)
 		{
-			Put(0, y, HALF_W - 6, 2.3, BB_TEXT, 0, Color(255, 132, 130, 140),
-				"hold your " .. p.mWeaponTag);
+			Put(0, y, HALF_W - 3.5, 1.35, BB_TEXT, 0, Color(255, 132, 130, 140),
+				"SWITCH TO IT");
 			return;
 		}
 
 		// --- which hand, in the sheet rails' own two colours ---------
 		bool off = w.bOffhandWeapon;
-		Put(0, y, 13.0, 2.0, BB_TEXT, 0,
+		Put(0, y, 7.6, 1.2, BB_TEXT, 0,
 			off ? Color(255, 51, 200, 255) : Color(255, 255, 122, 51),
 			off ? "OFFHAND" : "MAINHAND");
-		y -= 3.4;
+		y -= 2.0;
 
-		Rule(y, tierCol); y -= 3.6;
+		Rule(y, tierCol); y -= 2.1;
 
-		if (w.Tier >= p.mTier)
-		{
-			Put(0, y - 3, HALF_W - 6, 2.6, BB_TEXT, 0, Color(255, 132, 130, 140),
-				"already " .. RS_Rarity.TierWord(w.Tier));
-			return;
-		}
+		// A LOCK IS THE ONLY THING THAT STOPS THE PANEL EARLY. Say how
+		// many and what to do; the player can count locks and lift them.
 		if (!w.CanAcceptImprint(p.mTier))
 		{
-			Put(0, y - 3, HALF_W - 6, 2.6, BB_TEXT, 0, Color(255, 210, 45, 65),
-				"THE CURSE REFUSES IT");
+			int nc = w.CurseCount();
+			Put(0, y - 1.8, HALF_W - 3.5, 1.5, BB_TEXT, 0, Color(255, 210, 45, 65),
+				string.format("%d STAT%s LOCKED", nc, nc == 1 ? "" : "S"));
+			Put(0, y - 3.6, HALF_W - 3.5, 1.15, BB_TEXT, 0, Color(255, 126, 100, 100),
+				"lift one to raise this weapon");
 			return;
+		}
+
+		// A token at or below your rarity keeps going. It cannot demote
+		// you, so the only question is whether its roll beats the roll
+		// this gun originally got -- which is exactly what the rows
+		// below answer, in green and red. Chip says so and gets out of
+		// the way.
+		if (w.Tier >= p.mTier)
+		{
+			Put(0, y, 6.4, 1.15, BB_TEXT, 0, Color(255, 150, 148, 142),
+				"SIDEGRADE");
+			y -= 1.9;
 		}
 
 		// --- THE HEADLINE: sockets, as a lozenge --------------------
 		// Rarity gates affixes and sockets ARE that gate, so this is the
 		// number the panel is actually about. Sized off the engine's own
 		// WG13 ratio: halfW = halfH * (0.60 + digits * 0.42).
-		int sockNext = RS_Roll.SocketsForTier(p.mTier);
-		double bh = 5.2;
+		//
+		// max() mirrors ApplyTo: a sidegrade leaves sockets alone, so the
+		// badge must read your CURRENT count, not the token's, or the
+		// headline promises a socket the apply will not hand over.
+		int sockNext = RS_Roll.SocketsForTier(max(w.Tier, p.mTier));
+		double bh = 3.1;
 		double bw = bh * (0.60 + 0.42);
-		int bid = Put(-HALF_W + 11.0, y - 4.4, bw, bh, BB_WG13, sockNext,
-			Color(255, 40, 255, 60));
+		int bid = Put(-HALF_W + 6.4, y - 2.6, bw, bh, BB_WG13, sockNext,
+			sockNext > w.GunBonaiSockets ? Color(255, 40, 255, 60)
+			                             : Color(255, 130, 130, 140));
 		if (bid) mProgressIds.Push(bid);
 
-		Put(-HALF_W + 24.0, y - 2.4, 8.0, 1.9, BB_TEXT, 0,
+		Put(-HALF_W + 14.0, y - 1.4, 4.7, 1.15, BB_TEXT, 0,
 			Color(255, 150, 148, 142), "SOCKETS");
-		Put(-HALF_W + 24.5, y - 6.2, 7.0, 2.1, BB_TEXT, 0,
+		Put(-HALF_W + 14.3, y - 3.6, 4.1, 1.25, BB_TEXT, 0,
 			Color(255, 110, 110, 120),
 			string.format("%d now", w.GunBonaiSockets));
 
 		// --- supporting rows ----------------------------------------
-		double ry = y - 1.0;
+		double ry = y - 0.6;
 		Row(ry, "DAMAGE",   w.DamagePerShot, p.mDamagePerShot + w.EarnedDamage());   ry -= ROW_H;
 		Row(ry, "ACCURACY", int(w.Accuracy), int(p.mAccuracy + w.EarnedAccuracy())); ry -= ROW_H;
 		Row(ry, "VELOCITY", int(w.Velocity), int(p.mVelocity + w.EarnedVelocity()));
 
-		double fy = -HALF_H + 6.4;
-		Rule(fy + 3.4, tierCol);
-		Put(0, fy, 9.5, 2.7, BB_TEXT, 0, Color(255, 216, 168, 56), "[ USE ]");
+		double fy = -HALF_H + 3.8;
+		Rule(fy + 2.0, tierCol);
+		Put(0, fy, 5.6, 1.6, BB_TEXT, 0, Color(255, 216, 168, 56), "[ USE ]");
 	}
 
 	// A hairline. Just a panel 0.35 tall -- one shape rather than a
 	// second graphic to keep in sync.
 	private void Rule(double y, color c)
 	{
-		Put(0, y, HALF_W - 6.0, 0.35, BB_PANEL, 0,
+		Put(0, y, HALF_W - 3.5, 0.2, BB_PANEL, 0,
 			Color(120, c.r, c.g, c.b));
 	}
 
@@ -597,12 +676,12 @@ class RS_TokenPanel : EventHandler
 		        : (after < now) ? Color(255, 240,  80, 110)
 		                        : Color(255, 118, 118, 128);
 
-		Put(HALF_W - 25.0, y, 8.5, 1.85, BB_TEXT, 0,
+		Put(HALF_W - 14.6, y, 5.0, 1.1, BB_TEXT, 0,
 			Color(255, 148, 146, 140), label);
-		Put(HALF_W - 13.5, y, 3.6, 2.2, BB_SEGMENT, now,
+		Put(HALF_W - 7.9, y, 2.1, 1.3, BB_SEGMENT, now,
 			Color(255, 116, 116, 126));
-		Put(HALF_W -  8.4, y, 1.5, 1.7, BB_TEXT, 0, c, ">");
-		int aid = Put(HALF_W - 3.6, y, 3.6, 2.2, BB_SEGMENT, after, c);
+		Put(HALF_W - 4.9, y, 0.9, 1.0, BB_TEXT, 0, c, ">");
+		int aid = Put(HALF_W - 2.1, y, 2.1, 1.3, BB_SEGMENT, after, c);
 		if (aid) mProgressIds.Push(aid);
 	}
 }

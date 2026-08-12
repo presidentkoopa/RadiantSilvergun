@@ -1897,17 +1897,13 @@ class RS_Weapon : Weapon abstract
 		// accident as a side effect of being repaired. Tier progression
 		// was riding on the curse system by attrition, not by design.
 		//
-		// WHERE IT WAS ALWAYS MEANT TO COME FROM: elite drops. An elite
-		// was supposed to drop a package of rolled stats AND a tier.
-		// RS_Weapon still has the whole receiving half -- CanAcceptImprint
-		// with its curse gate, ApplyUpgradeCard, and the "The curse
-		// refuses it" message. Only RS_Imprint itself was deleted, in
-		// 90aaf2c6, and it is recoverable from there.
+		// WHERE IT ALWAYS BELONGED: elite drops. RS_Weapon kept the whole
+		// receiving half through the purge -- CanAcceptImprint with its
+		// lock gate, ApplyUpgradeCard, the stat fields -- and only
+		// RS_Imprint, the giving half, was deleted in 90aaf2c6.
 		//
-		// UNTIL THAT IS RESTORED, NOTHING RAISES A TIER. Promotion still
-		// lowers one. That is a deliberate gap, not an oversight -- said
-		// plainly here so the next reader does not "fix" it by putting
-		// this block back.
+		// THAT HALF IS BACK, as RS_RarityToken. Tokens are now the way a
+		// tier rises, lifting a lock is not, and this block stays gone.
 		// -------------------------------------------------------------
 
 		// -------------------------------------------------------------
@@ -1933,6 +1929,21 @@ class RS_Weapon : Weapon abstract
 	{
 		return LockedDamage || LockedAccuracy || LockedVelocity
 		    || LockedCritChance || LockedCapacity;
+	}
+
+	// How many stat locks are on this weapon right now. The sheet and the
+	// token panel both want the NUMBER rather than a yes/no, because "2
+	// STATS LOCKED" tells you how much digging you have to do and "cursed"
+	// does not.
+	int CurseCount() const
+	{
+		int n = 0;
+		if (LockedDamage)     n++;
+		if (LockedAccuracy)   n++;
+		if (LockedVelocity)   n++;
+		if (LockedCritChance) n++;
+		if (LockedCapacity)   n++;
+		return n;
 	}
 
 	int TotalCurseStacks() const
@@ -2029,7 +2040,8 @@ class RS_Weapon : Weapon abstract
 		if (!CanAcceptImprint(newTier))
 		{
 			if (owner && owner.player == players[consoleplayer])
-				Console.Printf("\c[Red]The curse refuses it.\c- Lift a curse before this weapon can take a higher imprint.");
+				Console.Printf("\c[Red]%d stat%s locked.\c- Lift one before this weapon can take a higher rarity.",
+					CurseCount(), CurseCount() == 1 ? "" : "s");
 			return;
 		}
 
