@@ -1,7 +1,7 @@
 # Radiant Silvergun
 
 A VR Doom II mod built around one idea: a small, fixed set of class weapons —
-one per hand, dual-wielded and tracked independently — that you spec in an
+three per hand, dual-wielded and tracked independently — that you spec in an
 effectively unlimited number of directions rather than swap out for a bigger
 gun. The arsenal doesn't grow. What a given gun *is* does.
 
