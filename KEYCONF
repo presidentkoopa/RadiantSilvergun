@@ -57,8 +57,9 @@ defaultbind U rs_ui_debug
 // them from the Controls menu.
 // ---------------------------------------------------------------------
 
-
-
+// The weapon stat card -- REMOVED from here. It is wr_DataCard now,
+// part of RS_WeaponWheel's own rig, shown automatically beside the
+// wheel rather than opened by its own bind. N and B are free again.
 
 
 // ---------------------------------------------------------------------

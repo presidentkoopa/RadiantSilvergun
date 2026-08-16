@@ -551,16 +551,45 @@ class RS_UIHandler : EventHandler
 	// consume once the billboard surface lands -- same rows, second
 	// renderer. `netevent rs-ui-card <hand>` shows it in the 2D menu.
 	// -----------------------------------------------------------------
+	// A thin wrapper now -- HandWeapon(pawn, hand) is the only thing this
+	// used `hand` for. Split out so the in-world card can build the SAME
+	// row model off an arbitrary weapon (the one the weapon wheel is
+	// currently pointed at, say) rather than only ever "whatever this
+	// hand is holding".
 	void BuildWeaponCard(PlayerPawn pawn, int hand)
 	{
+		BuildWeaponCardForWeapon(pawn, HandWeapon(pawn, hand));
+	}
+
+	void BuildWeaponCardForWeapon(PlayerPawn pawn, Weapon wep)
+	{
 		ClearModel();
-		let wep = HandWeapon(pawn, hand);
-		if (!wep) { mTitle = "NO WEAPON"; return; }
+
+		// BOTH EARLY RETURNS MUST SET COLOUR, NOT JUST TITLE.
+		//
+		// mTitleColor/mSubtitleColor/mSheetTier are FIELDS on this
+		// singleton, not locals -- a return with no assignment leaves
+		// whatever the PREVIOUS build happened to leave there, and on
+		// the very first build ever (or after a level change resets the
+		// handler) that is the zero-default, Font.CR_UNTRANSLATED. Every
+		// renderer's CR->RGB table (RS_CardPanel.CRToRGB included) has no
+		// case for CR_UNTRANSLATED and falls through to its "readable
+		// text" default -- (216,222,233), near-white -- which is fine
+		// for TEXT and wrong for a SHELL: a card colouring its whole
+		// border from this is a solid near-white plate with no visible
+		// contrast against anything drawn on top of it. Confirmed via a
+		// screenshot of wr_DataCard showing exactly that for a non-RS
+		// weapon. Font.CR_DARKGRAY here is the row's own colour already
+		// used two lines below -- reusing it for the title keeps both
+		// legible and both honest about "there is nothing to show".
+		if (!wep) { mTitle = "NO WEAPON"; mTitleColor = Font.CR_DARKGRAY; mSheetTier = -1; return; }
 
 		mTitle = wep.GetTag();
 		let rsw = RS_Weapon(wep);
 		if (!rsw)
 		{
+			mTitleColor = Font.CR_DARKGRAY;
+			mSheetTier = -1;
 			AddRow("(not an RS weapon)", "", Font.CR_DARKGRAY);
 			return;
 		}
@@ -588,23 +617,41 @@ class RS_UIHandler : EventHandler
 				Font.CR_WHITE, "", 0, "",
 				info.maxXP > 0 ? clamp(info.XP / info.maxXP, 0.0, 1.0) : 0.0,
 				rsw.Tier);
+		// TWO FAMILIES, so the sheet stops reading as one flat tan. Offense
+		// (what the gun does to a target) runs warm; handling (how well
+		// you land it) runs cool. Sockets, level and condition keep their
+		// own colours -- they were never the problem, only the eight
+		// stats sharing one hue between them were. Locked still wins over
+		// both: red is red regardless of family, because a curse is not
+		// a category, it is a state.
+		// FIRE for offense, SAPPHIRE for handling -- not ORANGE/CYAN, and
+		// not ICE either any more. Those first two are already spoken
+		// for: RS_StatusBar's HAND_MAIN/HAND_OFF are exactly Font.CR_
+		// ORANGE and Font.CR_CYAN, and the token card's own MAINHAND/
+		// OFFHAND chip uses the same pair in RGB. ICE was the first pick
+		// for handling and it was wrong for a different reason: at
+		// (190,215,255) it sits close enough to plain white that next to
+		// FIRE's saturated orange it read as barely-there, not as a
+		// second family -- confirmed against a screenshot where DAMAGE/
+		// CRIT/PELLETS clearly popped and ACCURACY/VELOCITY did not.
+		// SAPPHIRE (80,170,255) is a real, saturated blue instead.
 		AddRow("DAMAGE", string.format("%d  (ceiling %d)", rsw.DamagePerShot, rsw.GetDamageCeiling()),
-			rsw.LockedDamage ? Font.CR_DARKRED : Font.CR_TAN);
-		AddRow("ROF", string.format("%d/s", rsw.RateOfFire), Font.CR_TAN);
-		AddRow("DPS", string.format("%d", dps), Font.CR_TAN);
+			rsw.LockedDamage ? Font.CR_DARKRED : Font.CR_FIRE);
+		AddRow("ROF", string.format("%d/s", rsw.RateOfFire), Font.CR_SAPPHIRE);
+		AddRow("DPS", string.format("%d", dps), Font.CR_FIRE);
 		AddRow("ACCURACY", string.format("%d%s", int(rsw.Accuracy), rsw.LockedAccuracy ? "  [LOCKED]" : ""),
-			rsw.LockedAccuracy ? Font.CR_DARKRED : Font.CR_TAN);
+			rsw.LockedAccuracy ? Font.CR_DARKRED : Font.CR_SAPPHIRE);
 		AddRow("CAPACITY", string.format("%d / %d", magNow, rsw.Capacity),
 			rsw.LockedCapacity ? Font.CR_DARKRED : Font.CR_TAN);
 		AddRow("CRIT", string.format("%.1f%%%s", rsw.CritChance * 100.0, rsw.LockedCritChance ? "  [LOCKED]" : ""),
-			rsw.LockedCritChance ? Font.CR_DARKRED : Font.CR_TAN);
-		AddRow("PELLETS", string.format("%d", rsw.PelletCount), Font.CR_TAN);
+			rsw.LockedCritChance ? Font.CR_DARKRED : Font.CR_FIRE);
+		AddRow("PELLETS", string.format("%d", rsw.PelletCount), Font.CR_FIRE);
 		AddRow("VELOCITY", string.format("%d", int(rsw.Velocity)),
-			rsw.LockedVelocity ? Font.CR_DARKRED : Font.CR_TAN);
+			rsw.LockedVelocity ? Font.CR_DARKRED : Font.CR_SAPPHIRE);
 		AddRow("BONSOC", string.format("%d / %d", held, rsw.GunBonaiSockets), Font.CR_LIGHTBLUE);
 		// CRIT MULT took TIME BTWN's sheet slot (owner ruling 2026-08-05):
 		// TBS was always derived from ROF, already shown one row up.
-		AddRow("CRIT MULT", string.format("x%.1f", rsw.CritMult > 0 ? rsw.CritMult : 2.0), Font.CR_TAN);
+		AddRow("CRIT MULT", string.format("x%.1f", rsw.CritMult > 0 ? rsw.CritMult : 2.0), Font.CR_FIRE);
 		AddRow("CONDITION", string.format("%d%%", int(rsw.Condition)),
 			RS_UIStyle.ConditionColor(rsw.Condition));
 	}
@@ -1117,5 +1164,234 @@ class RS_UIHandler : EventHandler
 			stats.currentEffectGiver = null;
 			giver.SetStateLabel("ChooseUpgrade");
 		}
+	}
+}
+
+// =====================================================================
+// RS_WeaponInfoService -- the row model, reachable from a mod that has
+// never heard of RS_UIHandler, RS_Weapon, or the row model's own shape.
+//
+// THE WHEEL NOW OWNS THE CARD. Owner's ruling: "the wheel and those
+// cards should be a uniform system... the 'wheel' needs to be the wheel
+// + data card... if a mod we load this with doesn't have a compat
+// patch, then the data card is disabled and it is just the wheel." That
+// flips the dependency this session had been building the other way --
+// RS_Main no longer hosts the card and reaches out to the wheel for a
+// position; the WHEEL hosts the card (wr_DataCard, RS_WeaponWheel/
+// zscript.zs) and reaches out to whichever weapon mod is loaded, for
+// CONTENT ONLY. Position is now a same-object field read on the wheel's
+// own side -- no Service round trip for it at all, which is what
+// removes the exact class of timing bug this session kept chasing.
+//
+// Every request answers in PLAIN STRINGS, INTS AND DOUBLES -- no Object
+// carrying RS_UIHandler across, which would just move the hard-
+// dependency problem into a downcast the wheel cannot make. Rows are
+// addressed by INDEX (intArg), the weapon by OBJECT (objectArg); nothing
+// else about the row model's own class needs to exist on the far side.
+//
+//   GetInt   ("RowCount",      objectArg: Weapon)            -> N
+//   GetInt   ("TitleColor",    objectArg: Weapon)             -> packed 0xRRGGBB
+//   GetInt   ("SubtitleColor", objectArg: Weapon)             -> packed 0xRRGGBB
+//   GetInt   ("SheetTier",     objectArg: Weapon)             -> tier, or -1
+//   GetInt   ("RowColor",      objectArg: Weapon, intArg: i)  -> packed 0xRRGGBB
+//   GetInt   ("RowBarTier",    objectArg: Weapon, intArg: i)  -> tier, or -1
+//   GetInt   ("TierRGB",       intArg: tier)                  -> packed 0xRRGGBB,
+//                                                                 no weapon needed
+//   GetDouble("RowBarFrac",    objectArg: Weapon, intArg: i)  -> 0..1, or -1
+//   GetString("Title",         objectArg: Weapon)             -> weapon name
+//   GetString("Subtitle",      objectArg: Weapon)             -> tier + pips
+//   GetString("RowKey",        objectArg: Weapon, intArg: i)  -> label
+//   GetString("RowVal",        objectArg: Weapon, intArg: i)  -> value text
+//
+//   GetInt   ("AffixHeld",     objectArg: Weapon)             -> N held
+//   GetInt   ("AffixSockets",  objectArg: Weapon)             -> total sockets
+//   GetInt   ("AffixLevel",    objectArg: Weapon, intArg: i)  -> 1..6+
+//   GetString("AffixName",     objectArg: Weapon, intArg: i)  -> upgrade name
+//   AffixName/AffixLevel are indexed 0..AffixHeld-1 across every HELD
+//   upgrade (level > 0), uncapped -- how many a caller shows is its own
+//   space decision, so it is not capped here the way the old RS_Main
+//   card's own AFFIX_MAX once was.
+//
+// A weapon this mod cannot read (not an RS_Weapon, or null) answers
+// RowCount 0 and everything else its own type's empty default -- the
+// wheel's own card treats that as "nothing to show", never as an error.
+// =====================================================================
+class RS_WeaponInfoService : Service
+{
+	// The shared row model is rebuilt for the REQUESTED weapon once per
+	// TIC, not once ever -- a caller asks one field at a time (GetInt/
+	// GetString/GetDouble are separate overrides, and a card has a dozen
+	// fields), so caching by weapon identity alone stops the rebuild
+	// stampede within a single tic. Caching PAST that tic is a different
+	// bug: the old RS_Main-only card called BuildWeaponCardForWeapon
+	// unconditionally every WorldTick with no cache at all, so XP,
+	// condition, and every other live stat were always current and only
+	// the billboard REBUILD was gated on a signature change. Keying on
+	// identity alone here would have frozen the row model the instant a
+	// weapon was first read and never refreshed it again for as long as
+	// the same weapon stayed equipped -- condition regenerating, XP
+	// filling, an affix levelling, all invisible. mCachedTic is what
+	// keeps this an equivalent-strength cache rather than a stronger,
+	// wrong one.
+	private Weapon mCachedFor;
+	private int    mCachedTic;
+
+	// NOT "ui" -- that is a reserved scope keyword (as in "class Foo ui"),
+	// not an ordinary identifier, and using it as one is a parse error at
+	// every line that reads it back. "hud" is what the old RS_Main-only
+	// card called this exact value.
+	//
+	// "play" IS REQUIRED HERE, explicitly, even though the override
+	// methods below already carry it. Service (engine/service.zs) has no
+	// class-level scope tag of its own -- only its individual `virtual
+	// play` methods do -- so a plain helper method with no scope keyword
+	// defaults to DATA scope regardless of what its callers are. Calling
+	// hud.BuildWeaponCardForWeapon (a play function) from a data-scope
+	// Ensure() is "Can't call play function ... from data context", a
+	// real compile error this shipped with once already.
+	private play RS_UIHandler Ensure(Weapon w)
+	{
+		if (!w) return null;
+		let hud = RS_UIHandler(EventHandler.Find("RS_UIHandler"));
+		if (!hud) return null;
+
+		if (mCachedFor != w || mCachedTic != level.maptime)
+		{
+			let pawn = PlayerPawn(w.Owner);
+			hud.BuildWeaponCardForWeapon(pawn, w);
+			mCachedFor = w;
+			mCachedTic = level.maptime;
+		}
+		return hud;
+	}
+
+	// -----------------------------------------------------------------
+	// THE AFFIX FOOTER. A genuinely separate cache from Ensure()'s row
+	// model above -- it reads TFLV_PerPlayerStats directly rather than
+	// going through RS_UIHandler, because the footer was never part of
+	// the row model to begin with (the old RS_Main-only card built it
+	// straight from GunBonsai's own upgrade list). Same tic-keyed
+	// invalidation as Ensure(), same reason: an affix levelling up while
+	// the same weapon stays hovered has to show up without waiting for
+	// the weapon reference itself to change.
+	//
+	// Indexed 0..AffixHeld-1 across every HELD upgrade (level > 0) in
+	// GunBonsai's own list order -- uncapped. How many of those a caller
+	// actually shows is a rendering-space decision, not a data one, so
+	// it is not decided here the way the old card's own AFFIX_MAX once
+	// was.
+	private Weapon mAffixCachedFor;
+	private int    mAffixCachedTic;
+	private Array<string> mAffixNames;
+	private Array<int>    mAffixLevels;
+	private int    mAffixHeld;
+	private int    mAffixSockets;
+
+	// "play" explicitly, same reason as Ensure() above -- this calls
+	// TFLV_PerPlayerStats.GetStatsFor, a play function, and would
+	// otherwise default to data scope with no class-level tag to inherit
+	// from.
+	private play void EnsureAffixes(Weapon w)
+	{
+		if (!w || (mAffixCachedFor == w && mAffixCachedTic == level.maptime))
+			return;
+
+		mAffixCachedFor = w;
+		mAffixCachedTic = level.maptime;
+		mAffixNames.Clear();
+		mAffixLevels.Clear();
+		mAffixHeld = 0;
+		mAffixSockets = 0;
+		if (!w) return;
+
+		let rsw = RS_Weapon(w);
+		if (!rsw) return;
+		mAffixSockets = rsw.GunBonaiSockets;
+
+		let pawn = PlayerPawn(w.Owner);
+		let stats = pawn ? TFLV_PerPlayerStats.GetStatsFor(pawn) : null;
+		let info = stats ? stats.GetInfoFor(w) : null;
+		if (!info) return;
+
+		for (int i = 0; i < info.upgrades.upgrades.Size(); i++)
+		{
+			let upg = info.upgrades.upgrades[i];
+			if (upg.level <= 0) continue;
+			mAffixHeld++;
+			mAffixNames.Push(upg.GetName());
+			mAffixLevels.Push(upg.level);
+		}
+	}
+
+	override int GetInt(String request, string stringArg, int intArg, double doubleArg, Object objectArg, Name nameArg)
+	{
+		// TierRGB needs no weapon at all -- RowBarTier answers a tier
+		// INDEX (a promotion bar naming the tier it promotes toward, not
+		// necessarily the weapon's own), and the caller has no other way
+		// to turn that index into a colour without duplicating
+		// RS_TierPalette's table a second time.
+		if (request == "TierRGB") return Pack(RS_TierPalette.RGB(intArg));
+
+		if (request == "AffixHeld")    { EnsureAffixes(Weapon(objectArg)); return mAffixHeld; }
+		if (request == "AffixSockets") { EnsureAffixes(Weapon(objectArg)); return mAffixSockets; }
+		if (request == "AffixLevel")
+		{
+			EnsureAffixes(Weapon(objectArg));
+			return (intArg >= 0 && intArg < mAffixLevels.Size()) ? mAffixLevels[intArg] : 0;
+		}
+
+		let hud = Ensure(Weapon(objectArg));
+		if (!hud) return (request == "SheetTier" || request == "RowBarTier") ? -1 : 0;
+
+		if (request == "RowCount")      return hud.mRowKey.Size();
+		if (request == "TitleColor")    return Pack(RS_CardPanel.CRToRGB(hud.mTitleColor));
+		if (request == "SubtitleColor") return Pack(RS_CardPanel.CRToRGB(hud.mSubtitleColor));
+		if (request == "SheetTier")     return hud.mSheetTier;
+
+		if (request == "RowColor" && intArg >= 0 && intArg < hud.mRowColor.Size())
+			return Pack(RS_CardPanel.CRToRGB(hud.mRowColor[intArg]));
+
+		if (request == "RowBarTier" && intArg >= 0 && intArg < hud.mRowBarTier.Size())
+			return hud.mRowBarTier[intArg];
+
+		return 0;
+	}
+
+	private static int Pack(Color c)
+	{
+		return (int(c.r) << 16) | (int(c.g) << 8) | int(c.b);
+	}
+
+	override double GetDouble(String request, string stringArg, int intArg, double doubleArg, Object objectArg, Name nameArg)
+	{
+		let hud = Ensure(Weapon(objectArg));
+		if (!hud) return -1.0;
+
+		if (request == "RowBarFrac" && intArg >= 0 && intArg < hud.mRowBarFrac.Size())
+			return hud.mRowBarFrac[intArg];
+
+		return -1.0;
+	}
+
+	override String GetString(String request, string stringArg, int intArg, double doubleArg, Object objectArg, Name nameArg)
+	{
+		if (request == "AffixName")
+		{
+			EnsureAffixes(Weapon(objectArg));
+			return (intArg >= 0 && intArg < mAffixNames.Size()) ? mAffixNames[intArg] : "";
+		}
+
+		let hud = Ensure(Weapon(objectArg));
+		if (!hud) return "";
+
+		if (request == "Title")    return hud.mTitle;
+		if (request == "Subtitle") return hud.mSubtitle;
+
+		if (request == "RowKey" && intArg >= 0 && intArg < hud.mRowKey.Size())
+			return hud.mRowKey[intArg];
+		if (request == "RowVal" && intArg >= 0 && intArg < hud.mRowVal.Size())
+			return hud.mRowVal[intArg];
+
+		return "";
 	}
 }

@@ -836,11 +836,103 @@ class RS_RarityToken : Actor
 			return;
 		}
 
+		// A LOCK: lift the next one, same step the tap already takes for
+		// a seal. Owner's read, and it holds up: "I can't take a gun
+		// unless I reveal all the curses anyway, so USE may as well be
+		// the same button." It already is for seals; curses were the one
+		// case still routed off the card, to a menu named nowhere on it.
+		//
+		// One lift per tap, not all of them -- same shape as seals, and
+		// for the same reason: a multi-stat lift would spend bits the
+		// player has not been shown the total for, silently, on a single
+		// press.
+		if (!w.CanAcceptImprint(mPayload.mTier))
+		{
+			string stat = w.NextLockedStatKey();
+			if (stat != "")
+			{
+				int cost = RS_Curse.StatCost(stat);
+				if (pawn.CountInv("RS_Bit_Curse") >= cost)
+				{
+					pawn.TakeInventory("RS_Bit_Curse", cost);
+					w.UnlockStat(stat);
+					// Only when the LAST stack on that stat is gone --
+					// mirrors RS_Screens.zs's own rs-ui-uncurse handler,
+					// which this replaces as a second entry point to the
+					// same mutation rather than a second mutation.
+					if (!w.IsStatCursed(stat))
+						w.UngrantKeyword("curse", stat);
+
+					A_StartSound("rs_bit_repair", CHAN_AUTO, CHANF_DEFAULT, 0.7);
+					if (mine)
+					{
+						if (w.CanAcceptImprint(mPayload.mTier))
+							Console.Printf("\c[Gold]Curse lifted: %s.\c- Press again to take it.", stat);
+						else
+							Console.Printf("\c[Gold]Curse lifted: %s.\c- %d more locked.",
+								stat, w.CurseCount());
+					}
+				}
+				else if (mine)
+				{
+					Console.Printf("\c[Red]Need %d curse bits to lift %s.\c- Have %d.",
+						cost, stat, pawn.CountInv("RS_Bit_Curse"));
+				}
+				return;
+			}
+		}
+
 		// ApplyTo says its own no, with its own reason.
 		if (!mPayload.ApplyTo(w)) return;
 
 		A_StartSound("misc/i_pkup", CHAN_AUTO);
+		CommitSparks();
 		Destroy();
+	}
+
+	// -----------------------------------------------------------------
+	// THE WEAPON WHEEL'S COMMIT BURST, carried over rather than built
+	// again. A card selected on the wheel breaks apart into its own
+	// slot colour; a token taken here does the same in its own tier
+	// colour, so accepting an upgrade LOOKS like the same class of event
+	// on both surfaces instead of two mods with two ideas of "confirmed".
+	//
+	// Thrown outward along a golden-angle spiral rather than sprayed
+	// evenly -- the wheel's reasoning holds unchanged: it reads as the
+	// object breaking apart rather than as a firework going off next to
+	// it. No Math.Random: this runs in the playsim and a client-side
+	// visual touching the shared RNG is how two machines disagree about
+	// game state over a spark.
+	// -----------------------------------------------------------------
+	private void CommitSparks()
+	{
+		int count = clamp(int(RS_TokenDial.Int("rs_token_sparks", 22)), 0, 200);
+		if (count <= 0) return;
+
+		Color tint = RS_TierPalette.RGB(mPayload.mTier);
+		Vector3 at = Pos + (0, 0, RS_TokenDial.Int("rs_token_prop_lift", 20) + 8);
+
+		for (int i = 0; i < count; ++i)
+		{
+			FSpawnParticleParams sp;
+			sp.color1   = tint;
+			sp.style    = STYLE_Add;
+			sp.lifetime = 18 + (i * 7) % 22;
+			sp.size     = 1.6 + (i % 5) * 0.5;
+			sp.sizestep = -0.06;
+			sp.pos      = at;
+
+			double a = i * 137.508;             // golden angle, so no clumps
+			double r = 0.35 + (i % 7) * 0.14;
+
+			sp.vel   = (cos(a) * r, sin(a) * r, 0.55 + (i % 4) * 0.22) * 1.4;
+			sp.accel = (0, 0, -0.06);
+
+			sp.startalpha = 1.0;
+			sp.fadestep   = -1.0;
+
+			level.SpawnParticle(sp);
+		}
 	}
 
 	// A hold: break the drop for gold and remove it from the world.
@@ -918,19 +1010,64 @@ class RS_RarityToken : Actor
 // answer an aim or touch query -- you USE the token, not the sign
 // hanging over it, and without this the sign is permanently in the way.
 // =====================================================================
-class RS_TokenPanel : EventHandler
+// The plate, the type ladder, the flow layout and the BB_TEXT sizing rule
+// all live in RS_CardPanel now, because the weapon card needs the identical
+// machinery and two copies of one layout engine stop being identical the
+// first time either is touched. What is left in here is what is genuinely
+// this card's own: the two reach distances, the hold ring, and the
+// comparison rows.
+// One candidate row on the token card.
+//
+// A class rather than six parallel arrays because a row is six facts that
+// must stay together while the list is filtered and ranked, and parallel
+// arrays that get sorted are how a label ends up over the wrong number.
+class RS_TokenRow play
 {
-	// Eye-level parking, map units. AHEAD is reading distance: far
-	// enough not to cross your eyes, near enough to fill a comfortable
-	// arc. UP sits it a touch under the horizon so it is not on top of
-	// whatever you are aiming at.
+	string label;
+	string suffix;      // "" or "%" -- crit and reload read as percentages
+	string curseKey;    // "" when this stat cannot be cursed
+	int    now, after;
+	int    seal;        // -1 when this stat has no seal
+	double weight;      // how hard the token moves it, relatively
 
-	// SIZED IN DEGREES, NOT UNITS. At AHEAD 46 these subtend 43 x 32
-	// degrees of view. The first pass was 31 x 22, which is 68 x 51 --
-	// a cinema screen strapped to your face. Comfortable reading in a
-	// headset is 30-40 degrees, so anything changed here should be
-	// checked back against that arc rather than eyeballed in units.
-	// FIELDS, NOT CONSTANTS, and read from cvars every rebuild.
+	static RS_TokenRow Make(string label, double now, double after, double scale,
+		string suffix, string curseKey, int seal)
+	{
+		let r = new("RS_TokenRow");
+		r.label = label; r.suffix = suffix; r.curseKey = curseKey; r.seal = seal;
+
+		// Everything is carried as an integer in DISPLAY units, so a
+		// fraction like crit chance becomes the 0-100 the row prints and
+		// the bar maths never has to know which stat it is drawing.
+		r.now   = int(round(now   * scale));
+		r.after = int(round(after * scale));
+
+		// RELATIVE, not absolute. Velocity moving 65 to 70 and crit
+		// moving 5% to 10% are five points each, and only one of them is
+		// worth a row -- ranking on the raw difference would put every
+		// large-numbered stat above every small one forever.
+		r.weight = abs(double(r.after - r.now)) / max(abs(double(r.now)), 1.0);
+		return r;
+	}
+}
+
+class RS_TokenPanel : RS_CardPanel
+{
+	// ANCHORED TO THE DROP, NOT THE VIEWER. AHEAD/UP used to be an offset
+	// from the player's own head (BBFL_VIEWLOCKED) -- a HUD panel that
+	// followed you around the room, which the owner's own read was
+	// exact: "locked to my hud and follow my view." mOrigin is now the
+	// token's own glow shaft (see WorldTick), and AHEAD/UP are the
+	// card's offset from THAT, still toward wherever the player is
+	// currently standing so it reads face-on.
+	//
+	// The old "43 x 32 degrees of view" framing does not carry over
+	// cleanly -- the card no longer sits a fixed angle off your own
+	// gaze, it sits a fixed DISTANCE off the drop -- but the same
+	// distance that used to read comfortably at reading range still
+	// does, since the panel only ever shows up standing close to the
+	// token in the first place. FIELDS, NOT CONSTANTS, and read from
+	// cvars every rebuild.
 	//
 	// Getting a panel readable in a headset is a dozen small adjustments
 	// and every one of them used to cost a full rebuild-and-relaunch.
@@ -940,65 +1077,11 @@ class RS_TokenPanel : EventHandler
 	//
 	// The literals here are the defaults and the cvars carry the same
 	// values, so a fresh install draws exactly this.
-	private double AHEAD, UP, HALF_W, HALF_H, ROW_H, BORDER;
+	// AHEAD, UP, HALF_W, HALF_H and BORDER are the base's -- filled by
+	// ReadDials below from this card's own cvars.
+	private double ROW_H;
 	private double REACH_NEAR, REACH_FAR;
 	private int    REVEAL_TICS;
-
-	// Plane offsets. Bigger X is further away. Not exposed -- these set
-	// the parallax between the three planes and are a design decision
-	// rather than a comfort dial.
-	const Z_SHELL = 0.9;
-	const Z_FACE  = 0.45;
-
-	// -----------------------------------------------------------------
-	// THE FLOW. Two cursors and a unit, and that is the whole layout
-	// engine -- see the long note in Build() for why there are no
-	// coordinates in this file any more.
-	//
-	// LINE is the type scale: one line of body text, as a share of the
-	// card's half-height. Everything sizes in multiples of it, so the
-	// card's proportions survive any Half Height the slider is set to
-	// and the type never grows out of step with the box holding it.
-	// -----------------------------------------------------------------
-	private double mFlowTop, mFlowBot;
-
-	private double LINE() const { return HALF_H * 0.075; }
-	private double PAD()  const { return BORDER + LINE() * 0.6; }
-
-	private void FlowReset()
-	{
-		mFlowTop =  HALF_H - PAD();
-		mFlowBot = -HALF_H + PAD();
-	}
-
-	// Take a band of half-height hh off the top and return its centre.
-	// gap is the air left under it, in lines.
-	private double FlowDown(double hh, double gapLines = 0.5)
-	{
-		double c = mFlowTop - hh;
-		mFlowTop = c - hh - LINE() * gapLines;
-		return c;
-	}
-
-	// The same, walking up from the bottom edge.
-	private double FlowUp(double hh, double gapLines = 0.5)
-	{
-		double c = mFlowBot + hh;
-		mFlowBot = c + hh + LINE() * gapLines;
-		return c;
-	}
-
-	// What is left between the two cursors, and where its centre is.
-	// The stat rows divide this rather than assuming a size, which is
-	// what makes the card impossible to overflow.
-	private double FlowLeft() const   { return max(0.0, mFlowTop - mFlowBot); }
-	private double FlowMiddle() const { return (mFlowTop + mFlowBot) * 0.5; }
-
-	private int CvInt(string nm, int def)
-	{
-		let cv = CVar.FindCVar(nm);
-		return cv ? cv.GetInt() : def;
-	}
 
 	// The distance gate is read at the TOP of WorldTick, before any
 	// rebuild can have run, so the dials cannot wait for the first Build
@@ -1014,8 +1097,26 @@ class RS_TokenPanel : EventHandler
 	{
 		AHEAD       = CvInt("rs_token_ahead",  46);
 		UP          = CvInt("rs_token_up",     -1);
-		HALF_W      = max(4, CvInt("rs_token_halfw", 18));
-		HALF_H      = max(3, CvInt("rs_token_halfh", 13));
+		HALF_W      = max(4, CvInt("rs_token_halfw", 20));
+		// 20, not 11. LINE is solved from this now, so half-height is the
+		// dial that decides how big the type comes out -- a taller card
+		// spends the extra on letters rather than on air.
+		HALF_H      = max(3, CvInt("rs_token_halfh", 20));
+
+		// A CARD IS LANDSCAPE, AND THAT IS ENFORCED RATHER THAN DEFAULTED.
+		//
+		// Every line on this panel is a label on the left and numbers on
+		// the right, which is a WIDE shape; the portrait card it had been
+		// drawing squeezed all of that into half the run it needed and is
+		// the reason the rows read as cramped.
+		//
+		// Raising the default alone would not have reached anyone who has
+		// already run the mod: rs_token_halfw is a `server int` in
+		// CVARINFO, so it is ARCHIVED, and an existing config keeps
+		// whatever value it was written with. The default is for fresh
+		// installs; this line is what actually fixes the card in front of
+		// someone who already has one.
+		HALF_W = max(HALF_W, HALF_H * 1.5);
 		ROW_H       = max(1.0, CvInt("rs_token_rowh",   32) / 10.0);
 		BORDER      = clamp(CvInt("rs_token_border", 7) / 10.0, 0.0, HALF_H - 0.5);
 		REACH_NEAR  = max(8,  CvInt("rs_token_near", 88));
@@ -1037,61 +1138,24 @@ class RS_TokenPanel : EventHandler
 	// geometry and is simply visible.
 	// -----------------------------------------------------------------
 
-	private Array<int> mIds;
-	private Array<int> mProgressIds;    // the subset that animates in
+	// mIds, mProgressIds, mGroup and mBornTic are the base's.
 	private RS_RarityToken mShownFor;
+	// The last tic either attack button was down. Compared against
+	// level.maptime for the combat-suppression gate in WorldTick --
+	// starts at 0, which reads as "ages ago" the moment the game begins,
+	// so a fresh spawn is never treated as mid-fight by default.
+	private int mLastFireTic;
 	private string mSig;
-	private int mBornTic;
-	private int mGroup;                 // the shared transform; 0 when none
 	private int mHoldRingId;          // driven per tic, never rebuilt
 
 	private void Clear()
 	{
-		for (int i = 0; i < mIds.Size(); i++)
-			level.RemoveBillboard(mIds[i]);
-		mIds.Clear();
+		ClearCard();
 		mHoldRingId = 0;
-		mProgressIds.Clear();
-		// Release the members first, then drop the group. Order matters
-		// only in that a group outliving its members is a leak the engine
-		// will not report -- ids are never recycled, so it would sit there
-		// scaling nothing until the level ended.
-		if (mGroup) level.RemoveBillboardGroup(mGroup);
-		mGroup = 0;
 		mShownFor = null;
 		mSig = "";
 	}
 
-	// One door for every element, so parking and flags cannot drift.
-	//
-	// TAKES HALF-EXTENTS, PASSES FULL ONES. The engine's width and height
-	// are full extents -- BillboardBasis does `halfw = bb.width * 0.5` --
-	// but every number in this file is a half-extent measured from the
-	// panel's centre, which is what HALF_W and HALF_H have said all along.
-	// Handing half-extents straight to the engine drew every element at
-	// HALF its size while leaving every POSITION correct, so the shell
-	// shrank away from a layout that stayed put: tiny text, a tiny socket
-	// badge, and the VELOCITY row sitting outside the box it belongs in.
-	// One conversion, in the one place everything goes through.
-	private int Put(double right, double up, double w, double h,
-		int payload, int data, color col, string text = "", double depth = 0)
-	{
-		int id = level.AddBillboardPersistent(
-			(AHEAD + depth, right, UP + up), w * 2.0, h * 2.0,
-			0, 0, LevelLocals.BBF_FIXED,
-			payload, data, col,
-			LevelLocals.BBFL_PERSISTENT | LevelLocals.BBFL_VIEWLOCKED | LevelLocals.BBFL_NOHIT, 0, text);
-		if (id)
-		{
-			mIds.Push(id);
-			// Every element joins the group, so the grow scales the panel
-			// as an object -- sizes AND the gaps between them. Elements
-			// added but not joined would stay full-size inside a
-			// collapsing panel, which looks like a rendering fault.
-			if (mGroup) level.SetBillboardGroup(id, mGroup);
-		}
-		return id;
-	}
 
 	// -----------------------------------------------------------------
 	// TESTING. Elites are a 5% roll that then has to be fought to half
@@ -1154,6 +1218,27 @@ class RS_TokenPanel : EventHandler
 		let pawn = players[consoleplayer].mo;
 		if (!pawn || pawn.health <= 0) { Clear(); return; }
 
+		// COMBAT SUPPRESSION. Owner's ask: "if im in combat i don't want
+		// that popping up... give me a 2 second check to see if i fired a
+		// weapon before popping up the card." Checked before anything
+		// else, so a fired shot both dismisses an already-open card AND
+		// blocks a new one from appearing until a full 2 seconds have
+		// passed with no shot -- not just a one-time gate on the initial
+		// open. BT_ATTACK/BT_ALTATTACK/BT_OFFHANDATTACK is the same
+		// triple RS_Score.zs already reads off pi.cmd.buttons for its own
+		// fire-tracking; this is that idiom, not a new one.
+		if (pawn.player)
+		{
+			int buttons = pawn.player.cmd.buttons;
+			if (buttons & (BT_ATTACK | BT_ALTATTACK | BT_OFFHANDATTACK))
+				mLastFireTic = level.maptime;
+		}
+		if (level.maptime - mLastFireTic < 70)   // 2 seconds at 35 tics/sec
+		{
+			Clear();
+			return;
+		}
+
 		// Hysteresis: come in at REACH_NEAR, leave at REACH_FAR. Standing
 		// exactly on a single threshold makes the panel strobe on every
 		// breath of stick drift, and a panel that builds and collapses
@@ -1173,6 +1258,22 @@ class RS_TokenPanel : EventHandler
 			if (d < bestD) { bestD = d; best = t; }
 		}
 		if (!best) { Clear(); return; }
+
+		// LOCKED TO THE DROP'S OWN GLOW SHAFT, not the viewer. mOrigin is
+		// the same height BuildBeam starts its shaft from
+		// (rs_token_prop_lift + 4), so the card floats right where the
+		// light already rises from. Refreshed every tic, independent of
+		// a rebuild, via SyncOrigin() below -- the token itself does not
+		// move, but the FACING has to track wherever the player currently
+		// is standing, which changes continuously as they walk.
+		mOrigin = best.Pos + (0, 0, RS_TokenDial.Int("rs_token_prop_lift", 20) + 4);
+
+		// mFacingYaw is the direction FROM the card TOWARD the viewer --
+		// see the note on Put() in RS_CardPanel for why that is the angle
+		// and not its opposite.
+		Vector3 toPlayer = pawn.Pos - mOrigin;
+		mFacingYaw = atan2(toPlayer.Y, toPlayer.X);
+		SyncOrigin();
 
 		// Rebuild only when the READING changes -- a different token, or
 		// you switched weapons over this one. Twenty billboards a frame
@@ -1209,17 +1310,16 @@ class RS_TokenPanel : EventHandler
 
 			// THE GROW, declared once and then left alone.
 			//
-			// The origin is the panel's centre in view-offset space, which
-			// is the same space Put() places every element in -- so scale
-			// 0 collapses the whole assembly to a single point at reading
-			// distance and scale 1 is the built layout, with every
-			// intermediate value a real smaller panel rather than small
-			// elements in a full-size arrangement.
+			// The origin is mOrigin -- the card's own world anchor, on the
+			// drop's glow shaft -- so scale 0 collapses the whole assembly
+			// to a single point there and scale 1 is the built layout,
+			// with every intermediate value a real smaller panel rather
+			// than small elements in a full-size arrangement.
 			//
 			// The engine resolves this per FRAME. Driving it from here
 			// would step at 35Hz and would cost two setter calls per
 			// element per step, each an O(n) scan of the billboard array.
-			mGroup = level.AddBillboardGroup((AHEAD, 0, UP));
+			mGroup = level.AddBillboardGroup(mOrigin);
 
 			Build(best, PlayerPawn(pawn));
 
@@ -1244,6 +1344,9 @@ class RS_TokenPanel : EventHandler
 			for (int i = 0; i < mProgressIds.Size(); i++)
 				level.SetBillboardProgress(mProgressIds[i], t);
 		}
+
+		// The wheel's move, borrowed whole: see the note above Breathe().
+		Breathe(mBornTic, clamp(CvInt("rs_card_breathe", 12), 0, 60) / 1000.0);
 	}
 
 	private void Build(RS_RarityToken tok, PlayerPawn pawn)
@@ -1252,34 +1355,10 @@ class RS_TokenPanel : EventHandler
 		let w = tok.TargetWeapon(pawn);
 		Color tierCol = RS_TierPalette.RGB(p.mTier);
 
-		// --- two planes: A BLACK FIELD IN A TIER-COLOURED BORDER -----
-		//
-		// The first version tinted the whole FIELD with the tier colour at
-		// low alpha. That fails twice over. A wash behind text eats the
-		// contrast the text needs -- red "worse" numbers on a red-tinted
-		// Cursed card, green "better" numbers on a green Common one, and
-		// the one thing the card exists to say goes quiet. And it makes
-		// the tier a MOOD rather than a fact: a 16% tint is hard to name
-		// from across a room, where a hard border is unmistakable.
-		//
-		// So the rarity moves to the EDGE and the field goes black. Both
-		// planes are the same two quads as before, just swapped: the tier
-		// plate sits further out at full size, the black plate is inset in
-		// front of it, and the strip of tier colour left showing around
-		// the black IS the border. Two quads, no frame graphic, nothing to
-		// keep in sync.
-		//
-		// ALPHA GOES THROUGH SetBillboardAlpha, NOT THROUGH THE COLOUR --
-		// ProcessBillboard does `ThingColor.a = 255` and throws the
-		// colour's alpha away.
-
-		int borderId = Put(0, 0, HALF_W, HALF_H, LevelLocals.BB_PANEL, 0,
-			tierCol, "", Z_SHELL);
-		if (borderId) level.SetBillboardAlpha(borderId, 0.95);
-
-		int faceId = Put(0, 0, HALF_W - BORDER, HALF_H - BORDER,
-			LevelLocals.BB_PANEL, 0, Color(255, 6, 7, 10), "", Z_FACE);
-		if (faceId) level.SetBillboardAlpha(faceId, 0.94);
+		// The shell -- a field in a tier-coloured border, with the wheel's
+		// plate and gradient. Lives in RS_CardPanel now; the reasoning that
+		// used to sit here in full is in the note above Shell().
+		Shell(tierCol);
 
 		// =============================================================
 		// NOTHING BELOW IS PLACED. IT FLOWS.
@@ -1310,6 +1389,33 @@ class RS_TokenPanel : EventHandler
 		// NOT `W`. ZScript identifiers are CASE-INSENSITIVE, so `W` is the
 		// same name as the `w` three lines up -- the weapon -- and every
 		// `cardW * 0.74` below became "RS_Weapon times a double".
+		// WHICH STATS THIS PARTICULAR TOKEN IS TALKING ABOUT.
+		//
+		// Chosen before the layout, because how many rows there are is
+		// what decides how much room everything else gets.
+		Array<RS_TokenRow> show;
+		if (w) SelectRows(p, w, show);
+
+		// Every line this card draws, counted, so LINE can be solved to
+		// fit them instead of assumed. The fixed furniture -- headline,
+		// name, hand chip, socket line, two rules and the footer -- is
+		// about twenty-two LINE once gaps are counted, and each two-line
+		// stat row wants about another 2.7.
+		//
+		// Over is safe: the middle band absorbs the slack. Under is safe
+		// too. The only thing this has to get right is that the FIXED
+		// furniture fits, which is exactly what stopped being true and
+		// collapsed every row onto the footer.
+		//
+		// 3.0 per row is close to the algebraic equilibrium for this
+		// layout (worked back from Row()'s own 0.44 pitch fraction and
+		// 0.85 text fraction: about 2.8), with a touch of slack rather
+		// than shaving it exact. It was NOT the number that was wrong --
+		// two ladder bumps landed here and both were quietly eaten by
+		// Row()'s OWN clamp, which is the fix that actually mattered; see
+		// the note at lineHH below.
+		FitLadder(23.0 + show.Size() * 3.0);
+
 		double cardW = HALF_W;
 		FlowReset();
 
@@ -1322,7 +1428,7 @@ class RS_TokenPanel : EventHandler
 		// to fit the panel width and stops being legible, and a NAME
 		// wants a real typeface, which is the same reason the stat
 		// labels below are BB_TEXT rather than segments.
-		int hid = Put(0, FlowDown(LINE() * 2.2, 0.45), cardW * 0.74, LINE() * 2.2,
+		int hid = Put(0, FlowDown(T_TITLE(), 0.45), cardW * 0.62, T_TITLE(),
 			LevelLocals.BB_SEGMENT, 0, tierCol,
 			RS_Rarity.TierWord(p.mTier).MakeUpper());
 		if (hid)
@@ -1331,23 +1437,15 @@ class RS_TokenPanel : EventHandler
 			mProgressIds.Push(hid);
 		}
 
-		// The tag wears the rarity too. Rarity and weapon are ONE fact --
-		// "an Uncommon SMG" -- and splitting them across a lit headline
-		// and a grey subtitle read as two unrelated lines. Now the border,
-		// the headline and the name all carry the same hue, and the only
-		// things on the card that are NOT tier-coloured are the ones
-		// saying something else: the hand, and better/worse.
-		Put(0, FlowDown(LINE() * 1.3, 0.55), cardW * 0.78, LINE() * 1.3,
-			LevelLocals.BB_TEXT, 0, tierCol, p.mWeaponTag);
-
-		// The tag one row up already names the weapon, so this does not
-		// repeat it -- it just says what to do about it. Centred in the
-		// whole remaining space rather than flowed, because it is the
-		// only thing left on the card.
+		// NO WEAPON: name it and say what to do, then stop. Written here
+		// rather than after the chips because the chips describe a weapon
+		// that does not exist in this branch.
 		if (!w)
 		{
-			Put(0, FlowMiddle(), cardW * 0.7, LINE() * 1.4, LevelLocals.BB_TEXT, 0,
-				Color(255, 150, 148, 158), "SWITCH TO IT");
+			TextMid(0, FlowDown(T_HEAD(), 0.55), T_HEAD(), p.mWeaponTag,
+				tierCol, INNER() * 0.92);
+			TextMid(0, FlowMiddle(), T_HEAD(), "SWITCH TO IT",
+				TH_MUTED, INNER() * 0.9);
 			return;
 		}
 
@@ -1356,27 +1454,73 @@ class RS_TokenPanel : EventHandler
 		bool side = (w.Tier >= p.mTier);
 		int  locks = w.CurseCount();
 
+		// THE HAND SITS ABOVE THE WEAPON NAME. Owner's call, and the two
+		// were the other way round until now.
+		//
+		// It reads better than it looks written down: the rarity word is
+		// the headline, the hand says which of your two guns is being
+		// talked about, and the name confirms it. Hand before name is the
+		// order you ask the question in -- "what does this do to my main
+		// hand? ...the Chatterbox?" -- and the name is the wider string,
+		// so it also stops a short chip sitting alone under a long name.
+		//
 		// Off-centre only when SIDEGRADE needs the other half. Two chips
 		// stacked would cost a whole row out of a budget that has none;
 		// side by side they read as one line of status.
 		bool pair  = side || locks > 0;
-		double chipY = FlowDown(LINE() * 1.0, 0.5);
+		double chipY = FlowDown(T_FINE(), 0.5);
 
-		Put(pair ? -cardW * 0.28 : 0.0, chipY, cardW * 0.24, LINE() * 1.0,
-			LevelLocals.BB_TEXT, 0,
+		TextMid(pair ? -cardW * 0.30 : 0.0, chipY, T_FINE(),
+			off ? "OFFHAND" : "MAINHAND",
 			off ? Color(255, 51, 200, 255) : Color(255, 255, 122, 51),
-			off ? "OFFHAND" : "MAINHAND");
+			cardW * 0.34);
 
 		// A token at or below your rarity keeps going -- it cannot demote
 		// you, so the only question is whether its roll beats the roll this
 		// gun originally got, and the rows below answer that in green and
 		// red. The chip says so and gets out of the way.
 		if (side)
-			Put(cardW * 0.28, chipY, cardW * 0.24, LINE() * 1.0, LevelLocals.BB_TEXT, 0,
-				Color(255, 150, 148, 142), "SIDEGRADE");
+			TextMid(cardW * 0.30, chipY, T_FINE(), "SIDEGRADE",
+				TH_MUTED, cardW * 0.34);
 		else if (locks > 0)
-			Put(cardW * 0.28, chipY, cardW * 0.24, LINE() * 1.0, LevelLocals.BB_TEXT, 0,
-				Color(255, 235, 60, 80), string.format("%d LOCKED", locks));
+			TextMid(cardW * 0.30, chipY, T_FINE(), string.format("%d LOCKED", locks),
+				Color(255, 235, 60, 80), cardW * 0.34);
+
+		// The weapon, under the hand that holds it. It wears the rarity
+		// too: rarity and weapon are ONE fact -- "an Uncommon SMG" -- and
+		// splitting them across a lit headline and a grey subtitle read as
+		// two unrelated lines. The border, the headline and the name all
+		// carry the same hue, and the only things on this card that are
+		// NOT tier-coloured are the ones saying something else: the hand,
+		// and better/worse.
+		TextMid(0, FlowDown(T_HEAD(), 0.55), T_HEAD(), p.mWeaponTag, tierCol,
+			INNER() * 0.92);
+
+		// The socket count, on its own line under the header. Sized off the
+		// engine's own WG13 ratio: halfW = halfH * 0.60, plus 0.42 per
+		// digit.
+		//
+		// max() mirrors ApplyTo: a sidegrade leaves sockets alone, so the
+		// badge must read your CURRENT count, not the token's, or the
+		// headline promises a socket the apply will not hand over.
+		int sockNext = RS_Roll.SocketsForTier(max(w.Tier, p.mTier));
+		bool sockGain = sockNext > w.GunBonaiSockets;
+
+		double sockHH = T_HEAD();
+		double sockY  = FlowDown(sockHH, 0.55);
+		double sockBW = sockHH * (0.60 + 0.42);
+		double sockX  = -INNER() * 0.30;
+
+		int bid = Put(sockX, sockY, sockBW, sockHH,
+			LevelLocals.BB_WG13, sockNext,
+			sockGain ? Color(255, 40, 255, 60) : TH_MUTED);
+		if (bid) mProgressIds.Push(bid);
+
+		// Reads as one phrase next to the badge instead of a label stacked
+		// over a value in a column that no longer exists.
+		TextLeft(sockX + sockBW + LINE() * 0.6, sockY, T_FINE(),
+			string.format("SOCKETS - %d NOW", w.GunBonaiSockets),
+			sockGain ? TH_TEXT : TH_MUTED, INNER() * 0.85);
 
 		Rule(FlowDown(LINE() * 0.1, 0.7), tierCol);
 
@@ -1392,41 +1536,87 @@ class RS_TokenPanel : EventHandler
 
 		// The hold, and what it is worth. Under the tap line at half the
 		// weight, because it is the option you take when the one above it
-		// is not worth taking. Zero is stated rather than hidden -- "0
+		// is not worth taking. Zero is stated rather than hidden -- "+0
 		// GOLD" is exactly what a player who already spent bits needs.
-		Put(0, FlowUp(LINE() * 0.6, 0.4), cardW * 0.82, LINE() * 0.6,
-			LevelLocals.BB_TEXT, 0,
-			gold > 0 ? Color(255, 128, 122, 104) : Color(255, 112, 96, 96),
-			string.format("HOLD - BREAK FOR %d GOLD", gold));
+		//
+		// "HOLD - BREAK FOR N GOLD" named the reward but not the ACTION --
+		// same shape as "LIFT 1 TO TAKE THIS" naming no object. Spelled
+		// out as a full sentence so both press types read the same way:
+		// button, verb, object.
+		TextMid(0, FlowUp(T_FINE(), 0.4), T_FINE(),
+			string.format("HOLD USE TO DENY CARD (+%d GOLD)", gold),
+			gold > 0 ? TH_MUTED : TH_FAINT, INNER() * 0.92);
+
+		// WHAT THE ??? MEANS, said once, only when there is one to explain.
+		//
+		// The card used to print "SEALED" on a row and nothing anywhere
+		// defining it, so the mechanic was legible only to someone who
+		// already knew it. The rows show "???" now and this names it.
+		if (seals > 0)
+			TextMid(0, FlowUp(T_FINE(), 0.45), T_FINE(),
+				"???  =  THIS TOKEN'S ROLL IS SEALED",
+				Color(255, 176, 140, 236), INNER() * 0.92);
 
 		// --- THE FOOTER SAYS WHAT THE NEXT PRESS DOES ---------------
 		//
 		// This is what makes overloading USE safe. One button does three
 		// jobs, and the player never has to remember which -- the line
 		// they are already reading names the next one.
-		double fy = FlowUp(LINE() * 1.25, 0.6);
+		double fy = FlowUp(T_HEAD(), 0.6);
+		double footMax = INNER() * 0.80;   // the hold ring owns the left margin
 
+		// "LIFT 1 TO TAKE THIS" named neither the stat nor the action --
+		// owner's read, verbatim: "lift it how? lift what?" Then a
+		// correction on top of that fix: naming the Curse Ledger was
+		// ALSO wrong. That screen (Y key) is a different mechanic
+		// entirely -- player-level curse slots, RS_CurseLedger.LiftCurse
+		// -- and has nothing to do with a weapon's five locked stats,
+		// which are lifted from the weapon SHEET (I key), never from
+		// there.
+		//
+		// Then the owner asked the better question: "I can't take a gun
+		// unless I reveal all the curses anyway, so USE may as well be
+		// the same button." It already is for seals -- Tap() reveals one
+		// per press before it will apply -- and curses now take the
+		// identical step, in Tap() above. So this line no longer sends
+		// anyone to a screen at all; it names the SAME action pressing
+		// USE is about to take, the same way the seal branch two lines
+		// below names breaking a seal.
 		if (!w.CanAcceptImprint(p.mTier))
-			Put(0, fy, cardW * 0.72, LINE() * 1.25, LevelLocals.BB_TEXT, 0,
-				Color(255, 235, 60, 80),
-				string.format("LIFT %d TO TAKE THIS", locks));
+		{
+			string stat = w.NextLockedStatKey();
+			int lcost = RS_Curse.StatCost(stat);
+			if (bits >= lcost)
+				TextMid(0, fy, T_HEAD(),
+					string.format("[ LIFT %s - %d BITS ]", stat.MakeUpper(), lcost),
+					Color(255, 236, 188, 70), footMax);
+			else
+				TextMid(0, fy, T_HEAD(),
+					string.format("NEED %d BITS FOR %s - HAVE %d", lcost, stat.MakeUpper(), bits),
+					Color(255, 176, 104, 92), footMax);
+		}
 		else if (seals > 0 && bits >= p.mSealCost)
-			Put(0, fy, cardW * 0.78, LINE() * 1.25, LevelLocals.BB_TEXT, 0,
-				Color(255, 236, 188, 70),
-				string.format("[ BREAK SEAL - %d BITS ]", p.mSealCost));
+			TextMid(0, fy, T_HEAD(), string.format("[ BREAK SEAL - %d BITS ]", p.mSealCost),
+				Color(255, 236, 188, 70), footMax);
 		else if (seals > 0)
-			Put(0, fy, cardW * 0.78, LINE() * 1.15, LevelLocals.BB_TEXT, 0,
-				Color(255, 176, 104, 92),
-				string.format("NEED %d BITS - HAVE %d", p.mSealCost, bits));
+			TextMid(0, fy, T_HEAD(), string.format("NEED %d BITS - HAVE %d", p.mSealCost, bits),
+				Color(255, 176, 104, 92), footMax);
 		else
-			Put(0, fy, cardW * 0.34, LINE() * 1.25, LevelLocals.BB_TEXT, 0,
-				Color(255, 236, 188, 70), "[ USE ]");
+			// "[ USE ]" said press this, not what pressing it does. Paired
+			// with the hold line above it now: button, verb, object, both
+			// lines the same shape -- "lift it how, lift what" was the
+			// standing rule this file keeps re-learning.
+			TextMid(0, fy, T_HEAD(), "TAP USE TO TAKE CARD",
+				Color(255, 236, 188, 70), footMax);
 
 		// The hold ring sits ON the footer line, in the left margin the
 		// centred text does not use, so it costs no vertical space at
 		// all. Progress is driven per tic from the token rather than
 		// rebuilt, so this is the only chance to keep its handle.
-		mHoldRingId = Put(-cardW * 0.80, fy, LINE() * 1.1, LINE() * 1.1,
+		// Anchored to INNER rather than to HALF_W, so it cannot drift under
+		// the border, and just outside the footer's own clamp above so the
+		// two can never touch at any card width.
+		mHoldRingId = Put(-INNER() * 0.88, fy, LINE() * 1.1, LINE() * 1.1,
 			LevelLocals.BB_RING, 0, Color(255, 236, 188, 70));
 		if (mHoldRingId) level.SetBillboardProgress(mHoldRingId, 0.0);
 
@@ -1439,33 +1629,31 @@ class RS_TokenPanel : EventHandler
 		// cannot overflow: the only thing that grows is this, and it
 		// grows into space nothing else claimed.
 		double band  = FlowLeft();
+
+		// FitLadder is meant to make this impossible. If it ever is not,
+		// draw the rows cramped rather than at zero height: tight rows
+		// beat invisible ones stacked on top of the footer, and a cramped
+		// card SHOWS that something is wrong where a collapsed one just
+		// looks like the rows were never written.
+		double floor = LINE() * max(1, show.Size());
+		if (band < floor) band = floor;
+
 		double mid   = FlowMiddle();
-		double pitch = band / 3.0;
-		double rowHH = pitch * 0.38;
+		double pitch = band / max(1, show.Size());
+		// 0.44, not 0.38. A row is two lines now -- the reading and its
+		// bar -- so it needs most of its slot rather than three quarters
+		// of it, and the space it takes was empty anyway.
+		double rowHH = pitch * 0.44;
 
-		// The socket badge shares the band rather than sitting above the
-		// rows -- it owns the left third, they own the right half. Sized
-		// off the engine's own WG13 ratio: halfW = halfH * 0.60, plus 0.42
-		// per digit.
+		// THE SOCKET BADGE NO LONGER SHARES THIS BAND.
 		//
-		// max() mirrors ApplyTo: a sidegrade leaves sockets alone, so the
-		// badge must read your CURRENT count, not the token's, or the
-		// headline promises a socket the apply will not hand over.
-		int sockNext = RS_Roll.SocketsForTier(max(w.Tier, p.mTier));
-		double bh = min(band * 0.30, LINE() * 3.0);
-		double bw = bh * (0.60 + 0.42);
-		int bid = Put(-cardW * 0.70, mid + pitch * 0.30, bw, bh,
-			LevelLocals.BB_WG13, sockNext,
-			sockNext > w.GunBonaiSockets ? Color(255, 40, 255, 60)
-			                             : Color(255, 130, 130, 140));
-		if (bid) mProgressIds.Push(bid);
-
-		Put(-cardW * 0.28, mid + pitch * 0.30, cardW * 0.22, LINE() * 0.85,
-			LevelLocals.BB_TEXT, 0, Color(255, 168, 166, 158), "SOCKETS");
-		Put(-cardW * 0.28, mid - pitch * 0.55, cardW * 0.22, LINE() * 0.75,
-			LevelLocals.BB_TEXT, 0, Color(255, 124, 124, 134),
-			string.format("%d now", w.GunBonaiSockets));
-
+		// It used to own the left third of the same space the stat rows
+		// used, which worked only because the rows were crowded into the
+		// right half -- and that crowding is the fault being fixed. Now
+		// that a row spans the card, anything else in the band would sit
+		// underneath it. It is flowed as its own line above the rules
+		// instead, which is also better hierarchy: a socket is a headline
+		// fact about the offer, not a fourth stat.
 		// A LOCKED STAT IS MASKED, NOT MISSING, and the card is no longer
 		// refused outright.
 		//
@@ -1482,23 +1670,91 @@ class RS_TokenPanel : EventHandler
 		// know it is behind a lock, and you do not know which way it
 		// moves until you pay. Owner's read, and it is the better
 		// mechanic -- the curse is fog, not a fence.
-		double ry = mid + pitch;
-		Row(ry, rowHH, "DAMAGE",   w.DamagePerShot, p.mDamagePerShot + w.EarnedDamage(),
-			w.IsStatCursed("damage"),   p.IsHidden(RS_RarityPayload.SEAL_DAMAGE));   ry -= pitch;
-		Row(ry, rowHH, "ACCURACY", int(w.Accuracy), int(p.mAccuracy + w.EarnedAccuracy()),
-			w.IsStatCursed("accuracy"), p.IsHidden(RS_RarityPayload.SEAL_ACCURACY)); ry -= pitch;
-		Row(ry, rowHH, "VELOCITY", int(w.Velocity), int(p.mVelocity + w.EarnedVelocity()),
-			w.IsStatCursed("velocity"), p.IsHidden(RS_RarityPayload.SEAL_VELOCITY));
+		double ry = mid + pitch * (show.Size() - 1) * 0.5;
+		for (int i = 0; i < show.Size(); i++)
+		{
+			let r = show[i];
+			Row(ry, rowHH, r.label, r.now, r.after,
+				r.curseKey != "" && w.IsStatCursed(r.curseKey),
+				r.seal >= 0 && p.IsHidden(r.seal),
+				r.suffix);
+			ry -= pitch;
+		}
 	}
 
-	// A hairline. Just a panel 0.35 tall -- one shape rather than a
-	// second graphic to keep in sync.
-	private void Rule(double y, color c)
+	// -----------------------------------------------------------------
+	// EIGHT STATS, NOT THREE.
+	//
+	// ApplyTo re-bases DamagePerShot, Accuracy, Velocity, CritChance,
+	// CritMult, Capacity, ReloadSpeed and Choke -- all eight, every time.
+	// This card showed the first three and changed the other five in
+	// silence, which meant a token could double your crit or halve your
+	// magazine and the screen you consulted to decide said nothing.
+	//
+	// All eight are higher-is-better, including ReloadSpeed (a multiplier
+	// on how fast the sequence completes) and Choke (spread control), so
+	// the green/red verdict needs no per-stat direction flag.
+	//
+	// Choke is offered only on a weapon that throws a volley -- RS_Weapon
+	// calls it "dormant until PelletCount > 1", and a row that always
+	// reads 0 to 0 is a row spent saying nothing.
+	// -----------------------------------------------------------------
+	private void SelectRows(RS_RarityPayload p, RS_Weapon w, out Array<RS_TokenRow> show)
 	{
-		// Same alpha rule as the planes: the colour's alpha is discarded,
-		// so a "half-strength" rule drew at full strength.
-		int id = Put(0, y, HALF_W * 0.84, LINE() * 0.1, LevelLocals.BB_PANEL, 0, c);
-		if (id) level.SetBillboardAlpha(id, 0.47);
+		Array<RS_TokenRow> cand;
+
+		cand.Push(RS_TokenRow.Make("DAMAGE", w.DamagePerShot,
+			p.mDamagePerShot + w.EarnedDamage(), 1, "", "damage",
+			RS_RarityPayload.SEAL_DAMAGE));
+		cand.Push(RS_TokenRow.Make("ACCURACY", w.Accuracy,
+			p.mAccuracy + w.EarnedAccuracy(), 1, "", "accuracy",
+			RS_RarityPayload.SEAL_ACCURACY));
+		cand.Push(RS_TokenRow.Make("VELOCITY", w.Velocity,
+			p.mVelocity + w.EarnedVelocity(), 1, "", "velocity",
+			RS_RarityPayload.SEAL_VELOCITY));
+		cand.Push(RS_TokenRow.Make("CAPACITY", w.Capacity,
+			p.mCapacity + w.EarnedCapacity(), 1, "", "", -1));
+		cand.Push(RS_TokenRow.Make("CRIT", w.CritChance,
+			p.mCritChance + w.EarnedCritChance(), 100, "%", "", -1));
+		cand.Push(RS_TokenRow.Make("CRIT MULT", w.CritMult,
+			p.mCritMult + w.EarnedCritMult(), 100, "%", "", -1));
+		cand.Push(RS_TokenRow.Make("RELOAD", w.ReloadSpeed,
+			p.mReloadSpeed + w.EarnedReloadSpeed(), 100, "%", "", -1));
+		if (w.PelletCount > 1)
+			cand.Push(RS_TokenRow.Make("CHOKE", w.Choke,
+				p.mChoke + w.EarnedChoke(), 100, "%", "", -1));
+
+		int want = clamp(CvInt("rs_token_rows", 5), 3, 8);
+
+		// A SEALED OR CURSED STAT IS ALWAYS SHOWN, whatever it scores.
+		//
+		// Ranking would bury exactly the wrong ones: a sealed stat has an
+		// unknown change, so it weighs nothing and would sort last, and a
+		// cursed stat is the reason the token might be unusable at all.
+		// Those two are the decisions on this card -- everything else is
+		// just how big a number moved.
+		for (int i = 0; i < cand.Size(); i++)
+		{
+			let r = cand[i];
+			bool forced = (r.seal >= 0 && p.IsHidden(r.seal))
+			           || (r.curseKey != "" && w.IsStatCursed(r.curseKey));
+			if (forced) { show.Push(r); cand[i] = null; }
+		}
+
+		// Then the biggest movers, by selection -- ZScript has no sort and
+		// eight items do not need one.
+		while (show.Size() < want)
+		{
+			int best = -1;
+			for (int i = 0; i < cand.Size(); i++)
+			{
+				if (!cand[i]) continue;
+				if (best < 0 || cand[i].weight > cand[best].weight) best = i;
+			}
+			if (best < 0) break;
+			show.Push(cand[best]);
+			cand[best] = null;
+		}
 	}
 
 	// Label left, the two numbers right, the arrow carrying the verdict:
@@ -1509,7 +1765,7 @@ class RS_TokenPanel : EventHandler
 	// band survived the two cursors, so their size is a result of the
 	// layout instead of an input to it.
 	private void Row(double y, double hh, string label, int now, int after,
-		bool locked = false, bool hidden = false)
+		bool locked = false, bool hidden = false, string suffix = "")
 	{
 		// TWO WAYS A ROW GOES DARK, and they are not the same thing.
 		//
@@ -1526,38 +1782,151 @@ class RS_TokenPanel : EventHandler
 		// Locked wins when both apply: if you cannot see your own number
 		// there is nothing to compare an opened seal against, so paying
 		// to open one would buy you half a sentence.
+		// A ROW SPANS THE CARD. It used to start at the CENTRE and run to
+		// 0.99 * HALF_W -- label at +0.24, numbers at +0.60 and +0.88, all
+		// of them positive -- so every row lived in the right half while
+		// the left half held nothing, and the last segment sat underneath
+		// the border. Anchored to INNER() and measured from both edges,
+		// the row uses the width the card actually has, which is also why
+		// the card is now the landscape shape it should always have been.
+		// TWO LINES PER ROW: the reading on top, the comparison bar under
+		// it. The card had a whole empty middle because a row was one
+		// short line of numbers in a band sized for three of them -- and
+		// because BB_SEGMENT drew nothing at this size, so even that line
+		// was only a label and an arrow.
+		//
+		// NUMBERS ARE BB_TEXT NOW, NOT BB_SEGMENT. Every segment on this
+		// card was invisible in play while every BB_TEXT element on the
+		// same card drew correctly, at the same sizes, on the same plate.
+		// The arcade readout is the nicer look and it is not worth a card
+		// with no numbers on it.
+		// THIS WAS WHY RAISING THE LADDER TWICE CHANGED NOTHING VISIBLE.
+		//
+		// FitLadder solves LINE from the card's real budget so the type
+		// is "as big as the card can afford" -- but this line ALSO capped
+		// itself at hh * 0.62, a second, independent size limit that had
+		// no relationship to the ladder at all. Worked through the actual
+		// numbers this card draws at: T_BODY() (the ladder's answer) came
+		// out to roughly 0.62 * 1.15, meaning the 0.62 factor was
+		// throwing away about a fifth of what the ladder had just granted
+		// -- every time, silently, however far T_TITLE()/T_HEAD()/
+		// T_BODY() were pushed.
+		//
+		// 0.85 is close to the geometric ceiling this row's own layout
+		// actually allows (worked back from its 0.44 pitch fraction), so
+		// the ladder wins outright in the normal case and this only ever
+		// engages as a genuine backstop -- a safety net, not the everyday
+		// size.
+		double edge   = INNER();
+		double lineHH = min(T_BODY(), hh * 0.85);
+		double readY  = y + hh * 0.30;
+
+		// A LOCKED ROW GETS NO BAR, which is the same ruling the weapon
+		// sheet makes: a bar IS the number drawn sideways, so drawing one
+		// would leak exactly what the curse is charging you to lift.
 		if (locked)
 		{
-			Put(HALF_W * 0.24, y, HALF_W * 0.22, hh * 0.9, LevelLocals.BB_TEXT, 0,
-				Color(255, 120, 100, 104), label);
-			Put(HALF_W * 0.74, y, HALF_W * 0.24, hh, LevelLocals.BB_TEXT, 0,
-				Color(255, 190, 62, 78), "-- LOCKED --");
+			TextLeft(-edge, readY, lineHH, label, TH_FAINT, edge * 0.62);
+			TextRight(edge, readY, lineHH, "LOCKED",
+				Color(255, 190, 62, 78), edge * 0.5);
 			return;
 		}
 
-		if (hidden)
-		{
-			Put(HALF_W * 0.24, y, HALF_W * 0.22, hh * 0.9, LevelLocals.BB_TEXT, 0,
-				Color(255, 168, 166, 158), label);
-			Put(HALF_W * 0.60, y, HALF_W * 0.11, hh, LevelLocals.BB_SEGMENT, now,
-				Color(255, 128, 128, 138));
-			Put(HALF_W * 0.74, y, HALF_W * 0.045, hh * 0.8, LevelLocals.BB_TEXT, 0,
-				Color(255, 150, 130, 190), ">");
-			Put(HALF_W * 0.88, y, HALF_W * 0.11, hh * 0.9, LevelLocals.BB_TEXT, 0,
-				Color(255, 176, 140, 236), "SEALED");
-			return;
-		}
-
-		Color c = (after > now) ? Color(255, 74, 222, 128)
+		// Better, worse, or a wash -- the verdict IS the colour, which is
+		// the one thing on the row you can read without reading. All
+		// branches spelled as Color() so a ternary is never asked to
+		// reconcile an int constant with a colour.
+		Color c = (after > now) ? Color(255,  74, 222, 128)
 		        : (after < now) ? Color(255, 240,  80, 110)
-		                        : Color(255, 118, 118, 128);
+		                        : Color(255, 122, 132, 148);
 
-		Put(HALF_W * 0.24, y, HALF_W * 0.22, hh * 0.9, LevelLocals.BB_TEXT, 0,
-			Color(255, 168, 166, 158), label);
-		Put(HALF_W * 0.60, y, HALF_W * 0.11, hh, LevelLocals.BB_SEGMENT, now,
-			Color(255, 128, 128, 138));
-		Put(HALF_W * 0.74, y, HALF_W * 0.045, hh * 0.8, LevelLocals.BB_TEXT, 0, c, ">");
-		int aid = Put(HALF_W * 0.88, y, HALF_W * 0.11, hh, LevelLocals.BB_SEGMENT, after, c);
-		if (aid) mProgressIds.Push(aid);
+		// THE READING: what it is, and what it becomes. One string, so the
+		// two numbers cannot drift into separate columns that each need
+		// their own alignment -- which is how the old row ended up with
+		// "SEALED" overlapping the arrow before it.
+		// "SEALED" told you a mechanic's name, not what it meant. The row
+		// now says the only thing it actually knows -- your number, and
+		// that the token's is unknown -- and the footer says what it costs
+		// to find out. Owner asked "wtf does SEALED mean" of a card that
+		// used the word three times and defined it nowhere.
+		string reading = hidden
+			? string.format("%d%s   >   ???", now, suffix)
+			: string.format("%d%s   >   %d%s", now, suffix, after, suffix);
+
+		// The label carries which FAMILY this stat is -- fire for
+		// offense, sapphire for handling, the same split RS_Screens.zs uses
+		// for the weapon grid (StatFamilyColor, RS_CardPanel.zs). The
+		// reading itself stays the verdict colour regardless: whether
+		// this token is good for you is a different question from what
+		// kind of stat it is, and the two must not fight for the same
+		// colour on the same row.
+		TextLeft(-edge, readY, lineHH, label, StatFamilyColor(label), edge * 0.56);
+		TextRight(edge, readY, lineHH, reading,
+			hidden ? Color(255, 176, 140, 236) : c, edge * 0.64);
+
+		// -------------------------------------------------------------
+		// THE COMPARISON BAR, SCALED AGAINST THE PAIR rather than against
+		// any ceiling.
+		//
+		// There is no honest maximum to normalise a token roll against --
+		// damage has a per-weapon ceiling, accuracy runs to 100, velocity
+		// to whatever that family throws at -- so one invented scale
+		// would be three different lies on three rows.
+		//
+		// Against the pair it is exact and needs no scale at all: the
+		// LONGER of the two fills the bar, the shorter is the muted base,
+		// and the strip between them is the change. Green means that
+		// strip is what you GAIN, red means it is what you LOSE, and its
+		// length is how much. A wash draws no strip, because there is
+		// nothing between the two numbers to draw.
+		// -------------------------------------------------------------
+		double lo = min(now, after), hi = max(now, after);
+		if (hidden) { lo = now; hi = now; }      // nothing to compare yet
+
+		double span  = max(hi, 1.0);
+		double barHH = max(hh * 0.11, LINE() * 0.05);
+		double barY  = y - hh * 0.44;
+
+		// A value v occupies x from -edge to -edge + 2*edge*(v/span), so a
+		// strip from a to b is centred at -edge + edge*(a+b)/span and is
+		// edge*(b-a)/span half-wide. Both segments below are exactly that,
+		// which is why neither needs arithmetic of its own.
+		// THE WHOLE BAR CARRIES THE VERDICT, not just the strip on its end.
+		//
+		// Tinting only the change meant a row that guts your accuracy and
+		// a row that leaves it alone drew the same grey bar with a
+		// differently-coloured cap, and the cap is the smallest thing on
+		// the row. The bar is the biggest mark on the card, so it is the
+		// one that should be answering "is this token good for me" from
+		// across the room. Base in the verdict colour held back, change in
+		// it at full strength.
+		// THE BASE IS NEUTRAL. ONLY THE CHANGE IS COLOURED.
+		//
+		// Tinting the whole bar was wrong and it was wrong in an
+		// expensive way: it made the stat you ALREADY HAVE look like part
+		// of the offer. A green bar for a stat the token barely moves
+		// read as "this is good", when the only thing the token did was
+		// add two points on the end. What you own is neutral; red and
+		// green are reserved for what changes, because that is the only
+		// part of the row the token is responsible for.
+		int trough = Put(0, barY, edge, barHH, LevelLocals.BB_PANEL, 0, TH_MUTED);
+		if (trough) level.SetBillboardAlpha(trough, 0.14);
+
+		if (lo > 0)
+		{
+			double baseHW = edge * (lo / span);
+			int baseId = Put(-edge + baseHW, barY, baseHW, barHH,
+				LevelLocals.BB_PANEL, 0, TH_MUTED);
+			if (baseId) level.SetBillboardAlpha(baseId, 0.75);
+		}
+
+		if (!hidden && hi > lo)
+		{
+			double dHW = edge * (hi - lo) / span;
+			int deltaId = Put(-edge + edge * (lo + hi) / span, barY, dHW, barHH,
+				LevelLocals.BB_PANEL, 0, c);
+			// The change is the one thing on the row worth revealing.
+			if (deltaId) mProgressIds.Push(deltaId);
+		}
 	}
 }

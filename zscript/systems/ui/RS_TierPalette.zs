@@ -93,3 +93,39 @@ class RS_TierPalette
 		return "\c[White]";
 	}
 }
+
+// =====================================================================
+// RS_TierColorService -- the SAME table, reachable from a mod that has
+// never heard of RS_Weapon or RS_TierPalette.
+//
+// The weapon wheel (RS_WeaponWheel, a separate pk3) colours its ring by
+// the classic Doom weapon-select slot number, which is fine for the nine
+// stock guns and blank for anything that never set one -- most RS
+// weapons among them. Referencing RS_TierPalette or RS_Weapon directly
+// from that mod would do the exact thing wr_RigService exists to avoid
+// on the OTHER side of this same bridge: a compile-time cast needs the
+// class to exist, so RS_WeaponWheel would fail to build the moment
+// RS_Main was not loaded, and it is deliberately built to stand alone.
+//
+// One request, answered generically:
+//   GetInt("TierColorOf", objectArg: Weapon) -- packed 0xRRGGBB, or -1
+//   if the weapon is not an RS_Weapon (nothing to colour by tier).
+// =====================================================================
+class RS_TierColorService : Service
+{
+	// An override takes neither the scope keyword nor the parameter
+	// defaults from the virtual it overrides -- both are inherited from
+	// Service's own declaration; restating either is a compile error
+	// ("Default values ... not allowed", "Attempt to change scope"), not
+	// a redundant-but-harmless repeat of it.
+	override int GetInt(String request, string stringArg, int intArg, double doubleArg, Object objectArg, Name nameArg)
+	{
+		if (request != "TierColorOf") return -1;
+
+		let w = RS_Weapon(objectArg);
+		if (!w) return -1;
+
+		Color c = RS_TierPalette.RGB(w.Tier);
+		return (int(c.r) << 16) | (int(c.g) << 8) | int(c.b);
+	}
+}

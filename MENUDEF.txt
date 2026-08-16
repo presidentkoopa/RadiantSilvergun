@@ -2657,6 +2657,9 @@ OptionMenu "RS_TokenOptions"
 	Slider "Light Radius (percent)", "rs_token_light_scale", 0, 300, 10, 0
 	Option "Beam", "rs_token_beam", "OnOff"
 	Slider "Beam Brightness (percent)", "rs_token_beam_alpha", 0, 300, 10, 0
+	Slider "Commit Sparks", "rs_token_sparks", 0, 60, 4, 0
+	StaticText "The wheel's own burst, thrown in the token's tier colour", "DarkGray"
+	StaticText "when you accept it. 0 turns it off.", "DarkGray"
 	StaticText " "
 
 	StaticText "The Card", "Gold"
@@ -2668,8 +2671,22 @@ OptionMenu "RS_TokenOptions"
 	Slider "Half Width", "rs_token_halfw", 6, 48, 1, 0
 	Slider "Half Height", "rs_token_halfh", 4, 40, 1, 0
 	Slider "Stat Row Pitch (tenths)", "rs_token_rowh", 12, 80, 2, 0
+	Slider "Stats Shown", "rs_token_rows", 3, 8, 1, 0
+	StaticText "A sealed or cursed stat always gets a row on top of this;", "DarkGray"
+	StaticText "the rest are whichever stats this token moves the most.", "DarkGray"
 	Slider "Border Thickness (tenths)", "rs_token_border", 0, 40, 1, 0
 	Slider "Grow Time (tics)", "rs_token_grow_tics", 1, 60, 1, 0
+	Slider "Content Fit (%)", "rs_card_fit", 40, 100, 2, 0
+	StaticText "Shared with the weapon card. Lower it if anything prints", "DarkGray"
+	StaticText "off the plate; raise it to reclaim wasted card.", "DarkGray"
+	Slider "Corner Radius", "rs_card_round", 0, 15, 1, 0
+	Option "Shader Plate", "rs_card_sdf", "OnOff"
+	StaticText "Off returns to the old plate, whose corners cannot be", "DarkGray"
+	StaticText "dialled -- and which also cannot glow or gloss, so this", "DarkGray"
+	StaticText "is the switch for both, not just the corners.", "DarkGray"
+	Slider "Idle Breathe", "rs_card_breathe", 0, 60, 2, 0
+	StaticText "The wheel's own move: a slow pulse so the card is never", "DarkGray"
+	StaticText "completely still. 0 turns it off.", "DarkGray"
 	StaticText " "
 
 	StaticText "Seals", "Gold"
@@ -2696,3 +2713,10 @@ OptionMenu "RS_TokenOptions"
 	StaticText "Seal odds are rolled when the token DROPS, so they only", "DarkGray"
 	StaticText "affect tokens that do not exist yet.", "DarkGray"
 }
+
+// The weapon stat card's own options page -- REMOVED. It is wr_DataCard
+// now, part of RS_WeaponWheel's own rig; its options live on that mod's
+// Wrist Rig page (menudef.txt there, "Data card" section) alongside the
+// ring's own sliders, not here. rs_card_fit/round/sdf/breathe stay --
+// the token card (below) still reads them.
+

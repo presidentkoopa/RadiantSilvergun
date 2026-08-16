@@ -1946,6 +1946,21 @@ class RS_Weapon : Weapon abstract
 		return n;
 	}
 
+	// The key UnlockStat/IsStatCursed/RS_Curse.StatCost all take, for
+	// whichever locked stat comes first. Field order (damage, accuracy,
+	// velocity, critchance, capacity) throughout, so which stat lifts
+	// first is at least consistent even though it is otherwise arbitrary.
+	// "" when nothing is locked.
+	string NextLockedStatKey() const
+	{
+		if (LockedDamage)     return "damage";
+		if (LockedAccuracy)   return "accuracy";
+		if (LockedVelocity)   return "velocity";
+		if (LockedCritChance) return "critchance";
+		if (LockedCapacity)   return "capacity";
+		return "";
+	}
+
 	int TotalCurseStacks() const
 	{
 		return CurseStackDamage + CurseStackAccuracy + CurseStackVelocity

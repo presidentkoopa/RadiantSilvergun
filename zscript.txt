@@ -8,6 +8,9 @@ version "4.14"
 // had. Damage hits + hazard floors, radsuit dial. RS_ConditionHandler must
 // ALSO be in MAPINFO.txt's AddEventHandlers.
 #include "zscript/systems/weapon/RS_Condition.zs"
+// Skill-driven gameplay effects (currently: Black Metal's speed boost).
+// RS_SkillFXHandler must ALSO be in MAPINFO.txt's AddEventHandlers.
+#include "zscript/systems/player/RS_SkillFX.zs"
 #include "zscript/systems/ui/RS_Bits.zs"
 
 // RS_Curses -- the PLAYER half of the curse system (the eight flaws,
@@ -57,6 +60,21 @@ version "4.14"
 // Must load after RS_NoHitscan conceptually (it relies on hitscans
 // already being projectiles) but has no compile-time dependency on it.
 #include "zscript/systems/weapon/RS_MonsterFire.zs"
+// The shared in-world card: the plate, the type ladder, the flow layout,
+// and the one rule about how BB_TEXT is sized. RS_TokenPanel (below, in
+// RS_RarityToken.zs) extends it. Its other subclass, the weapon stat
+// card, no longer lives here -- see the note by RS_WeaponInfoService in
+// RS_Screens.zs: the card moved into RS_WeaponWheel's own repo as
+// wr_DataCard, a straight port of this same engine, so this file is
+// still the layout engine's canonical copy even though it now has one
+// reader instead of two.
+//
+// AHEAD OF ITS SUBCLASS ON PURPOSE. GZDoom parses every include before
+// it resolves the class tree, so a parent declared later normally still
+// works -- but "normally" is not worth spending a failed load to
+// confirm, and a base class costs nothing sitting up here.
+#include "zscript/systems/ui/RS_CardPanel.zs"
+
 // RS_RarityToken -- the elite payout. A weapon family, a tier, and
 // stats rolled in that family's band. The ONLY thing that raises a
 // weapon's Tier, and therefore the gate on the whole affix system.
@@ -307,6 +325,18 @@ version "4.14"
 // After RS_Screens because it reuses RS_UIStyle's tier names and pips.
 #include "zscript/systems/ui/RS_TierPalette.zs"
 #include "zscript/systems/ui/RS_StatusBar.zs"
+
+// RS_CardPanel, the base RS_TokenPanel extends, is included much earlier
+// -- ahead of RS_RarityToken.
+//
+// RS_WeaponCard.zs, the weapon stat card, DELETED as of the wheel +
+// data card merge -- owner's ruling: "the wheel and those cards should
+// be a uniform system... the 'wheel' needs to be the wheel + data
+// card." The card is wr_DataCard now, in RS_WeaponWheel's own repo,
+// reading RS_WeaponInfoService (RS_Screens.zs) for content and the
+// wheel's own mAnchor directly for position -- no Service round trip
+// for WHERE it sits, which was the actual source of the position bugs
+// chased under the old cross-mod design.
 
 // RS_Showcase.zs DELETED 2026-08-07 at the owner's direction -- a dev
 // prop that proved a point nobody needed proving, and the sole consumer

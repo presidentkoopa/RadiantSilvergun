@@ -27,7 +27,7 @@ GameInfo
 	// diagnostic that was printing to the console at the start of every
 	// map. Its include went in the same change.
 	//
-	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating", "RS_EliteHandler", "RS_MonsterDebugHandler", "RS_ConditionHandler", "RS_ReserveSquads", "RS_NoMonsterDrops", "RS_SummonMarker", "RS_LivesHandler", "RS_GrenadeHUD", "RS_CurseHandler", "RS_FXGalleryHandler", "RS_RosterHandler", "RS_CritHandler", "RS_EliteFoodHandler", "RS_MonsterFireSignal", "RS_TokenPanel"
+	AddEventHandlers = "TFLV_EventHandler", "RS_KillRewardsHandler", "RS_UIHandler", "RS_ScoreHandler", "RS_HealthBarHandler", "RS_HitscanHandler", "RS_ClassGating", "RS_EliteHandler", "RS_MonsterDebugHandler", "RS_ConditionHandler", "RS_ReserveSquads", "RS_NoMonsterDrops", "RS_SummonMarker", "RS_LivesHandler", "RS_GrenadeHUD", "RS_CurseHandler", "RS_FXGalleryHandler", "RS_RosterHandler", "RS_CritHandler", "RS_EliteFoodHandler", "RS_MonsterFireSignal", "RS_TokenPanel", "RS_SkillFXHandler"
 }
 
 // C05's creep and poison kill under this type -- without the block the
@@ -35,4 +35,88 @@ GameInfo
 DamageType RSEliteToxic
 {
 	Obituary = "%o was poisoned"
+}
+
+// ---------------------------------------------------------------------
+// Skills -- rebuilt from scratch, not ported. The source rotation this
+// was pulled from carried 15 skills, most of them near-duplicates of
+// each other (three pairs differing only by a flat -33% monster damage,
+// six "Realism" tiers differing only by RespawnTime/FastMonsters), and
+// the hard tiers leaned on ReplaceActor swaps into Brutal-Doom-only
+// classes (Tank/ArtilleryTank/AttackHelicopter/Mech, the Kickattack/
+// MeleeStrike family) that do not exist here. None of that is present
+// below -- one clean ladder, nothing that references an actor this mod
+// does not define.
+//
+// ACSReturn on Black Metal is not for ACS -- nothing in this mod runs
+// ACS. It is read from ZScript (G_SkillPropertyInt(SKILLP_ACSRETURN))
+// purely as a stable small integer ID for "which skill effects profile
+// is active," resolved by RS_SkillFXHandler (zscript/systems/player/
+// RS_SkillFX.zs) against its own effects table. Skills with nothing
+// extra to apply just omit the property (reads back 0, "no profile").
+// ---------------------------------------------------------------------
+clearskills
+
+skill PowerFantasy
+{
+	AutoUseHealth
+	AmmoFactor = 1
+	DamageFactor = 0.25
+	EasyBossBrain
+	SpawnFilter = hard
+	name = "Power Fantasy"
+	mustconfirm = "You take 75% less damage from everything. Full monster count still spawns -- you're not fighting less, you're just much harder to kill. Press Enter to Confirm"
+}
+
+skill Easy
+{
+	AmmoFactor = 1
+	DamageFactor = 1.0
+	SpawnFilter = easy
+	name = "I'm Too Young To Die"
+}
+
+skill Normal
+{
+	AmmoFactor = 1
+	DamageFactor = 1.0
+	SpawnFilter = normal
+	name = "Hurt Me Plenty!"
+	defaultskill
+}
+
+skill Hard
+{
+	AmmoFactor = 1
+	DamageFactor = 1.0
+	SpawnFilter = Hard
+	name = "Ultra Violence"
+	mustconfirm = "If this is a custom level and/or it's your first time playing it, you should definitely choose an easier difficulty. Press Enter to Confirm"
+}
+
+skill Nightmare
+{
+	AmmoFactor = 1
+	FastMonsters
+	DisableCheats
+	RespawnTime = 20
+	SpawnFilter = Nightmare
+	name = "Nightmare!"
+	mustconfirm = "Enemies are much more aggressive, and respawn after 20 seconds. Press Enter to Confirm"
+}
+
+// The signature hard tier. No monster respawning -- SpawnFilter controls
+// initial density, not respawn, and RespawnTime is deliberately absent
+// from this block. Kill it, it stays dead.
+skill BlackMetal
+{
+	AmmoFactor = 1
+	DamageFactor = 1.5
+	MonsterHealth = 0.80
+	FastMonsters
+	SpawnFilter = Nightmare
+	name = "Black Metal"
+	TextColor = "Black"
+	ACSReturn = 1
+	mustconfirm = "You take 50% more damage. Enemies are much more aggressive but have 20% less hit points. You move 25% faster. Press Enter to Confirm"
 }

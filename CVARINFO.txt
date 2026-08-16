@@ -1612,9 +1612,39 @@ server int rs_token_near      = 88;   // panel appears inside this
 server int rs_token_far       = 116;  // and does not leave until past this
 server int rs_token_ahead     = 46;   // reading distance
 server int rs_token_up        = -1;   // eye-height offset
-server int rs_token_halfw     = 18;   // half-extents; 18 x 13 is 43 x 32 degrees
-server int rs_token_halfh     = 13;
+// Half-extents. A card is LANDSCAPE: every line on it is a label on the
+// left and numbers on the right, which is a wide shape, and the portrait
+// card this used to draw squeezed that into half the run it needed.
+// RS_TokenPanel.ReadDials also enforces halfw >= halfh * 1.5 at runtime,
+// because this cvar is archived -- a raised default here only reaches a
+// fresh install, never a config that already exists.
+// Widened by TRIMMING HEIGHT, not by growing width. Growing it was the
+// obvious move and it breaks the rule three lines of comment above this
+// one already established: 26 x 13 would subtend 59 degrees, and the
+// note on AHEAD says a headset reads comfortably at 30-40 and calls 68
+// "a cinema screen strapped to your face". 20 x 11 is 47 x 27 degrees --
+// landscape, and no wider an arc than the 43 it already had.
+// 28 x 26, not 20 x 20. Owner's call after seeing the three-row card:
+// "either make the card bigger or introduce rolling a smaller number of
+// stats -- personally i'd want a bigger card." Both happened -- the row
+// count below is also a dial -- but the SIZE moved rather than leaving
+// it to the row picker alone.
+server int rs_token_halfw     = 28;
+server int rs_token_halfh     = 26;   // LINE is solved from this: a taller card spends it on letters
 server int rs_token_rowh      = 32;   // stat row pitch, tenths of a unit
+
+// The weapon wheel's commit burst, thrown when a token is accepted, in
+// the token's own tier colour -- same idiom as the wheel breaking a
+// card apart in its slot colour on take.
+server int rs_token_sparks    = 22;
+
+// How many of the token's eight re-based stats get a row. A sealed or
+// cursed stat is ALWAYS shown regardless of this count -- those are the
+// two facts this card exists to surface -- and the rest fill in as the
+// biggest movers, ranked by how far each stat moves RELATIVE to its own
+// size rather than by raw difference, so a crit-chance token is not
+// permanently invisible next to a velocity token.
+server int rs_token_rows      = 5;
 server int rs_token_border    = 7;    // tier border thickness, tenths of a unit
 server int rs_token_grow_tics = 10;   // how long the card takes to build itself
 
@@ -1629,3 +1659,47 @@ server int rs_token_seal_high   = 167;  // good multiplier, percent
 server int rs_token_seal_cost   = 4;    // cursebits at Common, +2 per rung
 server int rs_token_deny_base   = 6;    // gold for denying a Common, doubling per rung
 server int rs_token_hold_tics   = 32;   // how long a hold must be held
+
+// ---------------------------------------------------------------------
+// THE TOKEN CARD'S SHARED LAYOUT DIALS.
+//
+// Used to read "shared by both in-world cards" -- the weapon stat card
+// was the other reader, until the wheel + data card merge moved it into
+// RS_WeaponWheel's own repo as wr_DataCard, which reads the WHEEL's own
+// wr_sdf/wr_plate_radius/wr_pulse instead of these. RS_TokenPanel is the
+// only reader left here, but the engine underneath (RS_CardPanel.zs) is
+// still the same file wr_DataCard was ported from, so these three stay
+// named for what they configure, not for who currently reads them.
+// ---------------------------------------------------------------------
+// How much of the card's half-height the layout is allowed to write
+// into, as a percent. Not a taste setting: a card specified at 1.82
+// wide-for-tall renders nearer 1.30, so content placed out to the full
+// half-height lands past the plate -- which is exactly how the header
+// and both footer lines ended up outside it. Lower this if anything
+// prints off the card; raise it to reclaim space.
+server int rs_card_fit        = 80;
+
+// Corner radius, 0 (square) to 15 (a lozenge). A real dial only because
+// the plate is a BB_SDFPANEL: BB_PANEL is a stretched texture whose
+// corners stretch with it, which is why a card that got wider also got
+// rounder.
+server int rs_card_round      = 3;
+// 0 falls back to BB_PANEL. Kept because BB_SEGMENT drew nothing at row
+// size on this same card, and an unverified payload holding the entire
+// plate is worth a way back that does not need a repack.
+server int rs_card_sdf        = 1;
+
+// The weapon wheel's own move, borrowed for the token card. Per-mille
+// (0.001) so the slider can offer fine control near zero, where the
+// difference between "alive" and "distracting" lives.
+//
+// A slow uniform scale pulse on the whole card, sine-driven at the
+// wheel's own PULSE_SPEED so it never stops or snaps. The wheel only
+// breathes its HOVERED card, because on a ring of eight the breathing
+// IS the "this one" signal -- a stat card has nothing for that to pick
+// out FROM, so the whole card takes it instead. Small by design: the
+// wheel's hover amplitude (0.10) is meant to catch the eye across a
+// ring; a card sitting still at reading distance wants a fraction of
+// that or it reads as jitter rather than as alive.
+server int rs_card_breathe    = 12;
+
