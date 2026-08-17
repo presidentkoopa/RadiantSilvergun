@@ -396,7 +396,9 @@ version "4.14"
 #include "zscript/systems/weapon/RS_Crits.zs"
 
 // --- RS set (original Dual_Class weapons, basically our main focus for the 'game') ---
-#include "zscript/weapons/rs_weapon/RS_Fist.zs"
+// RS_Fist.zs REMOVED 2026-08-17: the VR_Fist ladder was one of three
+// parallel fist ladders. RS_GH_Fist is now the one universal fist every
+// class grants -- see zscript/weapons/rs_gh_weapon/RS_GH_Fist.zs.
 #include "zscript/weapons/rs_weapon/RS_Chainsaw.zs"
 #include "zscript/weapons/rs_weapon/RS_Revolver.zs"
 #include "zscript/weapons/rs_weapon/RS_Pistol.zs"
@@ -435,7 +437,9 @@ version "4.14"
 // MeatGrinder set -- imported projectile / effect database. Must load
 // before any RS_PS_ weapon file that references these classes.
 #include "zscript/weapons/rs_ps_weapon/RS_PS_FX.zs"
-#include "zscript/weapons/rs_ps_weapon/RS_PS_Fist.zs"
+// RS_PS_Fist.zs REMOVED 2026-08-17, same consolidation as RS_Fist.zs
+// above -- MeatGrinder now grants RS_GH_Fist/RS_GH_Fist4 like everyone
+// else.
 #include "zscript/weapons/rs_ps_weapon/RS_PS_Chainsaw.zs"
 #include "zscript/weapons/rs_ps_weapon/RS_PS_Machinegun.zs"
 #include "zscript/weapons/rs_ps_weapon/RS_PS_AutoShotgun.zs"

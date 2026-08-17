@@ -203,8 +203,8 @@ class VR_Dual_Pistol : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Pistols";
-		Player.StartItem "VR_Fist";
-		Player.StartItem "VR_Fist2";
+		Player.StartItem "RS_GH_Fist";
+		Player.StartItem "RS_GH_Fist4";
 		Player.StartItem "VR_Pistol";
 		Player.StartItem "VR_Pistol4";
 		Player.StartItem "Clip", 72;
@@ -236,8 +236,8 @@ class VR_Dual_Revolver : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Revolvers";
-		Player.StartItem "VR_Fist";
-		Player.StartItem "VR_Fist2";
+		Player.StartItem "RS_GH_Fist";
+		Player.StartItem "RS_GH_Fist4";
 		Player.StartItem "VR_Revolver";
 		Player.StartItem "VR_Revolver4";
 		Player.StartItem "Clip", 36;
@@ -269,8 +269,8 @@ class VR_Dual_Rifle : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Rifles";
-		Player.StartItem "VR_Fist";
-		Player.StartItem "VR_Fist2";
+		Player.StartItem "RS_GH_Fist";
+		Player.StartItem "RS_GH_Fist4";
 		Player.StartItem "VR_Rifle";
 		Player.StartItem "VR_Rifle4";
 		Player.StartItem "Clip", 60;
@@ -302,8 +302,8 @@ class VR_Dual_SMG : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual SMGs";
-		Player.StartItem "VR_Fist";
-		Player.StartItem "VR_Fist2";
+		Player.StartItem "RS_GH_Fist";
+		Player.StartItem "RS_GH_Fist4";
 		Player.StartItem "VR_SMG";
 		Player.StartItem "VR_SMG4";
 		Player.StartItem "Clip", 90;
@@ -335,8 +335,8 @@ class VR_Dual_Shotgun : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Shotguns";
-		Player.StartItem "VR_Fist";
-		Player.StartItem "VR_Fist2";
+		Player.StartItem "RS_GH_Fist";
+		Player.StartItem "RS_GH_Fist4";
 		Player.StartItem "VR_Shotgun";
 		Player.StartItem "VR_Shotgun4";
 		Player.StartItem "VR_Shell", 24;
@@ -368,8 +368,8 @@ class VR_Dual_SSG : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Super Shotguns";
-		Player.StartItem "VR_Fist";
-		Player.StartItem "VR_Fist2";
+		Player.StartItem "RS_GH_Fist";
+		Player.StartItem "RS_GH_Fist4";
 		Player.StartItem "VR_SuperShotgun";
 		Player.StartItem "VR_SuperShotgun4";
 		Player.StartItem "VR_Shell", 12;
@@ -401,8 +401,8 @@ class VR_Dual_Chaingun : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "Dual Chainguns";
-		Player.StartItem "VR_Fist";
-		Player.StartItem "VR_Fist2";
+		Player.StartItem "RS_GH_Fist";
+		Player.StartItem "RS_GH_Fist4";
 		Player.StartItem "VR_Chaingun";
 		Player.StartItem "VR_Chaingun4";
 		Player.StartItem "VR_ChaingunAmmo", 60;
@@ -447,8 +447,8 @@ class RS_GH_Weaponset : VR_DualClassBase
 	{
 		Player.DisplayName "Vanilla+";
 
-		Player.StartItem "VR_Fist";
-		Player.StartItem "VR_Fist2";
+		Player.StartItem "RS_GH_Fist";
+		Player.StartItem "RS_GH_Fist4";
 
 		// Reserve ammo -- covers the starting pistols (or rifles, if the
 		// swap option is on) and anything picked up later.
@@ -523,8 +523,8 @@ class RS_PS_Weaponset : VR_DualClassBase
 	Default
 	{
 		Player.DisplayName "MeatGrinder";
-		Player.StartItem "RS_PS_Fist";
-		Player.StartItem "RS_PS_Fist4";
+		Player.StartItem "RS_GH_Fist";
+		Player.StartItem "RS_GH_Fist4";
 		Player.StartItem "RS_PS_Machinegun";
 		Player.StartItem "RS_PS_Machinegun4";
 

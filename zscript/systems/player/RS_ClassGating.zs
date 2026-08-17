@@ -217,8 +217,9 @@ class RS_ClassGating : EventHandler
 		// that catches everything a pedestal can hold.
 		//
 		// Melee is exempt: there is no per-class melee identity ladder,
-		// only Fist and its shared variants (RS_Fist.zs), which are the
-		// same for every class and have nothing to fill.
+		// only Fist and its shared variants (RS_GH_Fist.zs, the one
+		// universal ladder since 2026-08-17), which are the same for
+		// every class and have nothing to fill.
 		let wep = Weapon(e.Thing);
 		if (!wep || wep.owner || wep.bMeleeWeapon)
 			return;

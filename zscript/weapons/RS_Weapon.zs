@@ -1720,11 +1720,13 @@ class RS_Weapon : Weapon abstract
 	// this to break that tie.
 	//
 	// A VIRTUAL, not a bMeleeWeapon test and not a class-name comparison.
-	// bMeleeWeapon is unreliable here -- only VR_Fist and VR_Chainsaw
-	// declare +WEAPON.MELEEWEAPON in the entire arsenal, so MeatGrinder's
-	// and Vanilla+'s own fists read as guns. And a name check would break
-	// the rule that a new weapon inherits correct behaviour from its flags
-	// alone. Each filler class answers for itself.
+	// bMeleeWeapon is unreliable here -- RS_GH_Fist (the universal filler,
+	// every class's own) and VR_Chainsaw (a real weapon someone actually
+	// chose) both declare +WEAPON.MELEEWEAPON, so the flag alone can't
+	// tell "disposable filler" from "weapon the player picked." And a
+	// name check would break the rule that a new weapon inherits correct
+	// behaviour from its flags alone. Each filler class answers for
+	// itself.
 	virtual bool IsHandFiller()
 	{
 		return false;
@@ -2419,25 +2421,36 @@ class RS_Weapon : Weapon abstract
 
 	// Seats this weapon into the off-hand the instant it actually enters
 	// the player's inventory, unless the off-hand already holds a REAL
-	// weapon. VR_Fist2 (the off-hand's melee fallback, see
-	// RS_Fist.zs) are explicitly exempt from "already holds something" --
-	// every class's Player.StartItem list grants the fist filler BEFORE
-	// the real starting weapon specifically so it gets bumped immediately,
-	// and that ordering must keep working. What changes is what happens
-	// AFTER that: once a real weapon is seated (by this, or by a
-	// deliberate choice from RS_WeaponSelect.zs), a later pickup of
-	// another offhand-flagged weapon no longer silently steals the slot
-	// -- it just joins inventory, selectable from that menu like any
-	// other owned weapon. Main-hand placement isn't handled here; the
-	// engine's own default ReadyWeapon assignment already does that
-	// correctly.
+	// weapon. The off-hand's melee filler (RS_GH_Fist4 today, whatever
+	// IsHandFiller() class fills that role tomorrow) is explicitly exempt
+	// from "already holds something" -- every class's Player.StartItem
+	// list grants the fist filler BEFORE the real starting weapon
+	// specifically so it gets bumped immediately, and that ordering must
+	// keep working. What changes is what happens AFTER that: once a real
+	// weapon is seated (by this, or by a deliberate choice from
+	// RS_WeaponSelect.zs), a later pickup of another offhand-flagged
+	// weapon no longer silently steals the slot -- it just joins
+	// inventory, selectable from that menu like any other owned weapon.
+	// Main-hand placement isn't handled here; the engine's own default
+	// ReadyWeapon assignment already does that correctly.
+	//
+	// CHECKS IsHandFiller(), NOT A CLASS NAME. Used to be `current is
+	// "VR_Fist2"` -- a hardcoded string that only ever matched one
+	// ladder's offhand identity, so this path silently never recognised
+	// MeatGrinder's own offhand fist as bumpable filler (SeatHands got it
+	// right via the same virtual; this didn't). Consolidating every class
+	// onto one universal fist (2026-08-17) made that gap obvious rather
+	// than academic, so this now reads the same flag SeatHands already
+	// trusts, and stays correct for any future filler class with no
+	// further edits here.
 	override void AttachToOwner(Actor newOwner)
 	{
 		Super.AttachToOwner(newOwner);
 		if (bOffhandWeapon && newOwner.player)
 		{
 			let current = newOwner.player.OffhandWeapon;
-			bool slotIsFillerOrEmpty = !current || current is "VR_Fist2";
+			let currentRS = RS_Weapon(current);
+			bool slotIsFillerOrEmpty = !current || (currentRS && currentRS.IsHandFiller());
 			if (slotIsFillerOrEmpty)
 				newOwner.player.OffhandWeapon = self;
 		}

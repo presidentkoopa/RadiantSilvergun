@@ -3308,41 +3308,9 @@ Model VR_SuperShotgun6
 
 
 
-// Every other weapon in this project uses Scale -1.0 1.0 1.0 (the
-// established mirroring convention for this VR hand-attachment
-// pipeline). Fist had no Scale line at all -- defaulting to un-mirrored
-// -- and both mainhand and off-hand used the identical transform. That's
-// almost certainly the reported "backwards fist" bug: both hands were
-// rendering the same handedness instead of being mirror images.
-Model Fist
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_Fist"
-	Model 0 "fist.md3"
-	Skin 0 "fist.png"
-	Scale -1.0 1.0 1.0
-
-	USEACTORPITCH
-	USEACTORROLL
-	FrameIndex PUNG A 0 0
-	FrameIndex PUNG B 0 1
-	FrameIndex PUNG C 0 2
-	FrameIndex PUNG D 0 3
-}
-
-Model VR_Fist2
-{
-	Path "Models/Weapons/hud/RS_Weapon/VR_Fist"
-	Model 0 "fist.md3"
-	Skin 0 "fist.png"
-	Scale -1.0 1.0 1.0
-
-	USEACTORPITCH
-	USEACTORROLL
-	FrameIndex PUNG A 0 0
-	FrameIndex PUNG B 0 1
-	FrameIndex PUNG C 0 2
-	FrameIndex PUNG D 0 3
-}
+// VR_Fist / VR_Fist2 MODELDEF REMOVED 2026-08-17 with the rest of the
+// VR_Fist ladder (see zscript.txt) -- RS_GH_Fist is the one universal
+// fist now; its own model blocks are below.
 
 // =====================================================================
 // GunstarHeroes set (RS_GH_) -- MODELDEF
@@ -6823,125 +6791,9 @@ Model RS_HitscanReplacer
 // states must use the sprites listed in its block.
 // ======================================================================
 
-Model RS_PS_Fist
-{
-	Path "models/meatgrinder/Knife"
-	Model 0 "knife.md3"
-	Skin 0 "Knife.png"
-	Scale -1.0 1.0 1.0
-	ZOffset -6
-	USEACTORPITCH
-	USEACTORROLL
-	FrameIndex FSTZ A 0 0
-	FrameIndex FSTZ B 0 1
-	FrameIndex FSTZ C 0 2
-	FrameIndex FSTZ D 0 3
-	FrameIndex FSTZ E 0 4
-	FrameIndex FSTZ F 0 5
-	FrameIndex FSTZ G 0 6
-	FrameIndex FSTZ H 0 7
-	FrameIndex FSTZ I 0 8
-}
-
-Model RS_PS_Fist2
-{
-	Path "models/meatgrinder/Knife"
-	Model 0 "knife.md3"
-	Skin 0 "Knife.png"
-	Scale -1.0 1.0 1.0
-	ZOffset -6
-	USEACTORPITCH
-	USEACTORROLL
-	FrameIndex FSTZ A 0 0
-	FrameIndex FSTZ B 0 1
-	FrameIndex FSTZ C 0 2
-	FrameIndex FSTZ D 0 3
-	FrameIndex FSTZ E 0 4
-	FrameIndex FSTZ F 0 5
-	FrameIndex FSTZ G 0 6
-	FrameIndex FSTZ H 0 7
-	FrameIndex FSTZ I 0 8
-}
-
-Model RS_PS_Fist3
-{
-	Path "models/meatgrinder/Knife"
-	Model 0 "knife.md3"
-	Skin 0 "Knife.png"
-	Scale -1.0 1.0 1.0
-	ZOffset -6
-	USEACTORPITCH
-	USEACTORROLL
-	FrameIndex FSTZ A 0 0
-	FrameIndex FSTZ B 0 1
-	FrameIndex FSTZ C 0 2
-	FrameIndex FSTZ D 0 3
-	FrameIndex FSTZ E 0 4
-	FrameIndex FSTZ F 0 5
-	FrameIndex FSTZ G 0 6
-	FrameIndex FSTZ H 0 7
-	FrameIndex FSTZ I 0 8
-}
-
-Model RS_PS_Fist4
-{
-	Path "models/meatgrinder/Knife"
-	Model 0 "knife.md3"
-	Skin 0 "Knife.png"
-	Scale 1.0 1.0 1.0
-	ZOffset -6
-	USEACTORPITCH
-	USEACTORROLL
-	FrameIndex FSTZ A 0 0
-	FrameIndex FSTZ B 0 1
-	FrameIndex FSTZ C 0 2
-	FrameIndex FSTZ D 0 3
-	FrameIndex FSTZ E 0 4
-	FrameIndex FSTZ F 0 5
-	FrameIndex FSTZ G 0 6
-	FrameIndex FSTZ H 0 7
-	FrameIndex FSTZ I 0 8
-}
-
-Model RS_PS_Fist5
-{
-	Path "models/meatgrinder/Knife"
-	Model 0 "knife.md3"
-	Skin 0 "Knife.png"
-	Scale 1.0 1.0 1.0
-	ZOffset -6
-	USEACTORPITCH
-	USEACTORROLL
-	FrameIndex FSTZ A 0 0
-	FrameIndex FSTZ B 0 1
-	FrameIndex FSTZ C 0 2
-	FrameIndex FSTZ D 0 3
-	FrameIndex FSTZ E 0 4
-	FrameIndex FSTZ F 0 5
-	FrameIndex FSTZ G 0 6
-	FrameIndex FSTZ H 0 7
-	FrameIndex FSTZ I 0 8
-}
-
-Model RS_PS_Fist6
-{
-	Path "models/meatgrinder/Knife"
-	Model 0 "knife.md3"
-	Skin 0 "Knife.png"
-	Scale 1.0 1.0 1.0
-	ZOffset -6
-	USEACTORPITCH
-	USEACTORROLL
-	FrameIndex FSTZ A 0 0
-	FrameIndex FSTZ B 0 1
-	FrameIndex FSTZ C 0 2
-	FrameIndex FSTZ D 0 3
-	FrameIndex FSTZ E 0 4
-	FrameIndex FSTZ F 0 5
-	FrameIndex FSTZ G 0 6
-	FrameIndex FSTZ H 0 7
-	FrameIndex FSTZ I 0 8
-}
+// RS_PS_Fist / RS_PS_Fist2..6 MODELDEF REMOVED 2026-08-17 with the rest
+// of the RS_PS_Fist ladder (see zscript.txt) -- MeatGrinder now grants
+// RS_GH_Fist/RS_GH_Fist4 like every other class.
 
 Model RS_PS_Chainsaw
 {

@@ -13,6 +13,24 @@
 // The attack is a CATALOG REFERENCE, not hardcoded here. See
 // RS_Catalog and docs/catalog_notes.txt.
 // =====================================================================
+// UNIVERSAL FIST, 2026-08-17. Owner: too many fists across three weapon
+// sets for one fallback melee slot -- "I only need one to show up for
+// all classes and all sets... use the GH one." RS_Fist.zs (VR_Fist/
+// VR_Fist2..6, rs_weapon) and RS_PS_Fist.zs (RS_PS_Fist/RS_PS_Fist2..6,
+// rs_ps_weapon) are deleted; every one of the 9 player classes now
+// grants RS_GH_Fist + RS_GH_Fist4 (mainhand/offhand -- this ladder's own
+// 1-3 mainhand / 4-6 offhand convention, unchanged). 2 and 3 stay unused
+// rack slots for the still-unbuilt "Slappers Only!" melee class, the
+// same plan VR_Fist's now-deleted header originally set out.
+//
+// +WEAPON.MELEEWEAPON ADDED with this pass. This class never carried it
+// -- RS_Weapon.IsHandFiller()'s own comment used to call that out
+// ("only VR_Fist and VR_Chainsaw declare +WEAPON.MELEEWEAPON in the
+// entire arsenal, so MeatGrinder's and Vanilla+'s own fists read as
+// guns"). Harmless while this was a minor, mostly-unused ladder; wrong
+// now that it's the one fist every class carries -- RS_ClassGating's
+// melee exemption for the pedestal-fill logic reads this flag.
+// =====================================================================
 class RS_GH_Fist : RS_Weapon
 {
 	// Melee fallback -- loses the hand to a real gun at spawn.
@@ -28,6 +46,7 @@ class RS_GH_Fist : RS_Weapon
 		Weapon.AmmoGive1 0;
 		Inventory.Icon "HBFSA0";
 		+WEAPON.NOHANDSWITCH;
+		+WEAPON.MELEEWEAPON;
 	}
 
 	override EVR_Family GetFamily() { return EVR_Family_None; }
