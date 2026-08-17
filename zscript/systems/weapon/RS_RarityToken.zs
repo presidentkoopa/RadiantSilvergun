@@ -1287,7 +1287,14 @@ class RS_TokenPanel : RS_CardPanel
 		// not just be marginally closer, to actually take over. Nothing
 		// else in this class reads STICKY_MARGIN, so it is local rather
 		// than a field.
-		const STICKY_MARGIN = 12.0;
+		//
+		// A plain double, not `const` -- ZScript's const is a class/file
+		// level declaration only. Written as one inside this function
+		// body, it does not just fail to be constant, it fails to parse
+		// at all: "Unexpected 'const'" is what actually surfaced this,
+		// after the file lock hid it through several rounds of broken
+		// compile-checks.
+		double stickyMargin = 12.0;
 
 		RS_RarityToken best = null;
 		double bestD = gate;
@@ -1298,7 +1305,7 @@ class RS_TokenPanel : RS_CardPanel
 			let t = RS_RarityToken(th);
 			if (!t || !t.mPayload) continue;
 			double d = t.Distance3D(pawn);
-			if (t == mShownFor) d -= STICKY_MARGIN;   // the incumbent gets a head start
+			if (t == mShownFor) d -= stickyMargin;   // the incumbent gets a head start
 			if (d < bestD) { bestD = d; best = t; }
 		}
 		if (!best) { Clear(); return; }
