@@ -42,8 +42,24 @@ class RS_CardPanel : EventHandler
 	// the FARTHEST of the three. The border, drawn full-card-size, then
 	// covered the face and every line of text behind it. Both constants
 	// are negative now, which is what "further away" actually requires.
-	const Z_SHELL = -0.9;
-	const Z_FACE  = -0.45;
+	//
+	// MAGNITUDE CUT BY 15x ON TOP OF THAT FIX -- -0.9/-0.45 were sized for
+	// a card read from ~90 units out (the old AHEAD). Translucent billboards
+	// are not depth-tested against each other the way they are against
+	// opaque world geometry, so their draw order is resolved by distance
+	// sorting, and a depth SEPARATION that reads as negligible from ninety
+	// units away becomes a real angular displacement once the card sits a
+	// few units off the drop instead -- from an oblique angle, the shell
+	// (closer to camera by this whole offset) visibly parallax-shifts
+	// against the text sitting at depth 0, and the two no longer overlap
+	// where the layout intended them to. Owner's own diagnosis, exactly:
+	// "i think this has to do with layers and their cutting through the
+	// back panel... rarely if i stand in the right place the card draws
+	// correctly." Still enough separation to keep the draw order correct
+	// -- the SIGN, which is what settles who is in front, is unchanged --
+	// just not enough to visibly swim at close range.
+	const Z_SHELL = -0.06;
+	const Z_FACE  = -0.03;
 
 	// -----------------------------------------------------------------
 	// THE WEAPON WHEEL'S PALETTE, because all of these are the same

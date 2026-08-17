@@ -1373,7 +1373,19 @@ class RS_TokenPanel : RS_CardPanel
 		// mOrigin. This is the whole fix: mViewYaw only ever answers "how
 		// should the card that is ALREADY SITTING at mCardCentre turn to
 		// keep facing the player," never "where should the card be."
-		Vector3 toPlayerNow = pawn.Pos - mCardCentre;
+		//
+		// pawn.HmdPos, NOT pawn.Pos. The card used to be read from ~90
+		// units out, where the gap between "the player's feet" and "the
+		// player's actual eyes" was a rounding error. Now that it sits a
+		// few units off the drop, that same gap -- a metre or more,
+		// leaning down toward a floor item, which is exactly the posture
+		// reading a dropped token invites -- is a large fraction of the
+		// whole viewing distance, and mFacingYaw pointed at the wrong
+		// spot by an angle nobody would call small. HmdPos exists
+		// specifically for this: "real headset position... for body-
+		// relative UI that needs to reason about the player's physical
+		// pose" (RS_CardPanel's own note on mOrigin, above).
+		Vector3 toPlayerNow = pawn.HmdPos - mCardCentre;
 		mViewYaw = atan2(toPlayerNow.Y, toPlayerNow.X);
 		Reface();
 
