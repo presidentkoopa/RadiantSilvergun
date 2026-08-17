@@ -630,9 +630,21 @@ class RS_CardPanel : EventHandler
 	// once and held for as long as it stays open -- so this mostly costs
 	// nothing and buys safety against a future anchor that does move.
 	// Safe to call before the group exists; it is simply a no-op that tic.
+	// mCardCentre, NOT mOrigin. The group's origin is the SCALE PIVOT --
+	// what Breathe() (below) scales every element's position AROUND,
+	// continuously, every tic for as long as the card is shown, not just
+	// during the one-shot grow-in. Breathe() never settles at exactly
+	// 1.0 (it oscillates 1.0 +/- amp forever), so this was never a
+	// one-time error: every tic, every element's position was pulled
+	// slightly toward or away from mOrigin (the DROP) instead of toward
+	// or away from mCardCentre (the CARD's own middle) -- pivoting a
+	// rigid object's breathing around a point that is not its own centre
+	// reads as a continuous, small skew rather than a clean pulse, and
+	// compounds with whatever else is already unstable about a card this
+	// close to what it pivots around.
 	protected void SyncOrigin()
 	{
-		if (mGroup) level.SetBillboardGroupOrigin(mGroup, mOrigin);
+		if (mGroup) level.SetBillboardGroupOrigin(mGroup, mCardCentre);
 	}
 
 	// -----------------------------------------------------------------

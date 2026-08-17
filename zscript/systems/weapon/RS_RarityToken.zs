@@ -1341,26 +1341,48 @@ class RS_TokenPanel : RS_CardPanel
 			// up the next time you step away from a token and back.
 			ReadDials();
 
+			// FreezeCentre() BEFORE the group exists, not after -- the
+			// group's own origin has to BE mCardCentre from its very first
+			// frame, not mOrigin corrected one tic later. It only needs
+			// mFacingYaw (already set above) and AHEAD/SIDE/UP (set by
+			// ReadDials, just above this), none of which depend on Build()
+			// having run yet -- FreezeCentre() is called AGAIN after Build()
+			// below for its documented reason (agreeing with what Put() just
+			// measured elements against), and both calls compute the
+			// identical point, since nothing between them touches
+			// mFacingYaw.
+			FreezeCentre();
+
 			// THE GROW, declared once and then left alone.
 			//
-			// The origin is mOrigin -- the card's own world anchor, on the
-			// drop's glow shaft -- so scale 0 collapses the whole assembly
-			// to a single point there and scale 1 is the built layout,
-			// with every intermediate value a real smaller panel rather
-			// than small elements in a full-size arrangement.
+			// The origin is mCardCentre -- the CARD's own centre, not the
+			// drop -- so scale 0 collapses the whole assembly to a single
+			// point there and scale 1 is the built layout, with every
+			// intermediate value a real smaller panel rather than small
+			// elements in a full-size arrangement. This used to be mOrigin
+			// (the drop), which is a few units away now that the card sits
+			// close to it rather than AHEAD units toward the player -- and
+			// Breathe() (RS_CardPanel) never actually settles at scale 1.0,
+			// it oscillates around it forever, so pivoting around the wrong
+			// point was not a one-tic startup error, it ran continuously
+			// for as long as the card was shown.
 			//
 			// The engine resolves this per FRAME. Driving it from here
 			// would step at 35Hz and would cost two setter calls per
 			// element per step, each an O(n) scan of the billboard array.
-			mGroup = level.AddBillboardGroup(mOrigin);
+			mGroup = level.AddBillboardGroup(mCardCentre);
 
 			Build(best, PlayerPawn(pawn));
 
-			// AFTER Build, using the SAME mFacingYaw every Put() call
-			// inside it just placed elements with -- FreezeCentre() has
-			// to agree with them on which yaw defines "centre" or the
-			// pivot Reface() rotates around every tic afterward would not
-			// be the point mDepth/mRight/mUp were actually measured from.
+			// AGAIN, after Build -- using the SAME mFacingYaw every Put()
+			// call inside it just placed elements with, so mDepth/mRight/
+			// mUp and mCardCentre agree on the identical pivot Reface()
+			// will rotate around every tic afterward. Redundant with the
+			// call above only in the sense that both compute the same
+			// point; kept as its own call, at its own site, because its
+			// OWN reason for existing -- staying in lockstep with what
+			// Build() just measured against -- is a real constraint even
+			// though nothing happens to change the answer between them.
 			FreezeCentre();
 
 			// After Build, so the members exist to be scaled. A group with
@@ -1920,9 +1942,15 @@ class RS_TokenPanel : RS_CardPanel
 		// this token is good for you is a different question from what
 		// kind of stat it is, and the two must not fight for the same
 		// colour on the same row.
-		TextLeft(-edge, readY, lineHH, label, StatFamilyColor(label), edge * 0.56);
-		TextRight(edge, readY, lineHH, reading,
+		int labelId = TextLeft(-edge, readY, lineHH, label, StatFamilyColor(label), edge * 0.56);
+		int readId  = TextRight(edge, readY, lineHH, reading,
 			hidden ? Color(255, 176, 140, 236) : c, edge * 0.64);
+
+		// TEMPORARY -- chasing the left/right visibility bug. Row() only
+		// runs on a rebuild, not every tic, so this is naturally rare
+		// rather than needing its own throttle.
+		Console.Printf("\c[Cyan]RS_TOKEN row:\c- '%s' edge=%.2f lineHH=%.2f labelId=%d readId=%d centre=(%.1f,%.1f,%.1f)",
+			label, edge, lineHH, labelId, readId, mCardCentre.X, mCardCentre.Y, mCardCentre.Z);
 
 		// -------------------------------------------------------------
 		// THE COMPARISON BAR, SCALED AGAINST THE PAIR rather than against
