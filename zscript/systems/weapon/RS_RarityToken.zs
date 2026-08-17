@@ -1117,6 +1117,19 @@ class RS_TokenPanel : RS_CardPanel
 		// installs; this line is what actually fixes the card in front of
 		// someone who already has one.
 		HALF_W = max(HALF_W, HALF_H * 1.5);
+
+		// SAME PROBLEM, SAME FIX, FOR READING DISTANCE.
+		//
+		// rs_token_ahead is ALSO `server int` -- archived, so raising its
+		// CVARINFO default from 46 to 97 only reaches a fresh install.
+		// The landscape rule two lines up forces an effective half-width
+		// of 39 at the current rs_token_halfh 26, and 39 units wide at
+		// the OLD ahead of 46 subtends 80.6 degrees of view -- nearly a
+		// full comfortable VR field of view from one floating card.
+		// Reported directly: "rs_token is huuuuuuuge." A floor, not a
+		// default, is what actually reaches someone who already has a
+		// config with the old value written into it.
+		AHEAD = max(AHEAD, 90);
 		ROW_H       = max(1.0, CvInt("rs_token_rowh",   32) / 10.0);
 		BORDER      = clamp(CvInt("rs_token_border", 7) / 10.0, 0.0, HALF_H - 0.5);
 		REACH_NEAR  = max(8,  CvInt("rs_token_near", 88));
@@ -1274,6 +1287,7 @@ class RS_TokenPanel : RS_CardPanel
 		Vector3 toPlayer = pawn.Pos - mOrigin;
 		mFacingYaw = atan2(toPlayer.Y, toPlayer.X);
 		SyncOrigin();
+		Reface();
 
 		// Rebuild only when the READING changes -- a different token, or
 		// you switched weapons over this one. Twenty billboards a frame

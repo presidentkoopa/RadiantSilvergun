@@ -28,11 +28,22 @@ class RS_CardPanel : EventHandler
 	// a rebuild.
 	protected double AHEAD, UP, SIDE, HALF_W, HALF_H, BORDER;
 
-	// Plane offsets. Bigger X is further away. These set the parallax
-	// between the planes and are a design decision rather than a comfort
-	// dial, so they are not exposed.
-	const Z_SHELL = 0.9;
-	const Z_FACE  = 0.45;
+	// Plane offsets, in the direction Put()'s own depth parameter moves a
+	// point -- which is TOWARD THE VIEWER, not away. mFacingYaw is built at
+	// RS_RarityToken.zs:1275 as atan2(toPlayer.Y, toPlayer.X), the angle
+	// FROM the card TO the player, and aheadDir there is that same angle --
+	// so a BIGGER depth moves a point further along "toward the player",
+	// i.e. CLOSER to the camera, and draws IN FRONT of a smaller one. This
+	// comment used to say the opposite ("Bigger X is further away"), which
+	// was backwards from what the code actually does, not a change in the
+	// code: Z_SHELL and Z_FACE were both positive, which pulled the shell
+	// and the inset face IN FRONT of every text element in the card --
+	// text never sets its own depth and sits at the Put() default of 0,
+	// the FARTHEST of the three. The border, drawn full-card-size, then
+	// covered the face and every line of text behind it. Both constants
+	// are negative now, which is what "further away" actually requires.
+	const Z_SHELL = -0.9;
+	const Z_FACE  = -0.45;
 
 	// -----------------------------------------------------------------
 	// THE WEAPON WHEEL'S PALETTE, because all of these are the same
@@ -57,6 +68,20 @@ class RS_CardPanel : EventHandler
 	protected Array<int> mProgressIds;   // the subset that animates in
 	protected int mGroup;                // the shared transform; 0 when none
 	protected int mBornTic;
+
+	// EVERY ELEMENT'S OWN LOCAL OFFSET, parallel to mIds -- what Put() was
+	// called with, kept around so Reface() can rebuild a position from it
+	// under a NEW mFacingYaw. Without this, re-orienting alone desyncs the
+	// card from itself: an element's WORLD position already depends on
+	// yaw (Put()'s aheadDir/rightDir are both built from mFacingYaw), so
+	// turning the plate to face the player while leaving every element's
+	// position pinned to the OLD yaw rotates the face out from under its
+	// own contents. Reported exactly that way: "it only shows one half of
+	// the card text depending on where im pointing my gun" -- the plate
+	// was tracking, the rows were not, and which half of a now-rotated
+	// plate still overlapped which now-stationary row was a function of
+	// viewing angle.
+	protected Array<double> mRight, mUp, mDepth;
 
 	// -----------------------------------------------------------------
 	// WHERE THE CARD ACTUALLY LIVES, and which way it faces -- set by the
@@ -312,6 +337,15 @@ class RS_CardPanel : EventHandler
 		if (id)
 		{
 			mIds.Push(id);
+			// Parallel to mIds by construction -- pushed in the same
+			// branch, in the same order, so index i in one is always
+			// index i in the other. Reface() rebuilds localPos from
+			// these under whatever mFacingYaw is current, the identical
+			// formula this function just used under the yaw of the tic
+			// the element was born on.
+			mRight.Push(right);
+			mUp.Push(up);
+			mDepth.Push(depth);
 			// Every element joins the group, so a grow scales the card as
 			// an object -- sizes AND the gaps between them. An element
 			// left out would stay full size inside a collapsing card,
@@ -495,6 +529,9 @@ class RS_CardPanel : EventHandler
 			level.RemoveBillboard(mIds[i]);
 		mIds.Clear();
 		mProgressIds.Clear();
+		mRight.Clear();
+		mUp.Clear();
+		mDepth.Clear();
 
 		if (mGroup) level.RemoveBillboardGroup(mGroup);
 		mGroup = 0;
@@ -532,6 +569,54 @@ class RS_CardPanel : EventHandler
 	protected void SyncOrigin()
 	{
 		if (mGroup) level.SetBillboardGroupOrigin(mGroup, mOrigin);
+	}
+
+	// -----------------------------------------------------------------
+	// TURN TO FACE, EVERY TIC -- POSITION AND ORIENTATION TOGETHER.
+	//
+	// mFacingYaw itself already updates every tic (the token sets it fresh
+	// in WorldTick, before calling this), but updating the FIELD was never
+	// the same thing as updating the BILLBOARDS. Put() bakes mFacingYaw
+	// into BOTH the yaw it hands AddBillboardPersistent AND the position
+	// it computes (aheadDir/rightDir are both built from mFacingYaw) --
+	// at CREATION time, and nothing touched either again after that. A
+	// card built while you stood north of it kept facing north forever,
+	// correct only from the one angle it happened to be born at. Owner's
+	// report: "needs to face me at all times."
+	//
+	// THE FIRST CUT OF THIS ONLY RE-ORIENTED, and that was a worse bug
+	// than the one it fixed: the plate turned to track the player, but
+	// every element's WORLD POSITION stayed pinned to the OLD yaw's
+	// aheadDir/rightDir -- so the face rotated out from under its own
+	// contents instead of carrying them. Reported exactly that way: "it
+	// only shows one half of the card text depending on where im pointing
+	// my gun" -- which half of a now-misaligned plate still overlapped
+	// which now-stationary element was purely a function of viewing
+	// angle. Recomputing localPos here, from the SAME formula Put() used,
+	// under the CURRENT mFacingYaw, is what keeps the two in lockstep.
+	//
+	// Cheap and safe to call unconditionally every tic even though nothing
+	// about most cards' facing changes tic to tic in the way their origin
+	// can: moving/orienting a billboard to where it already is is a
+	// no-op cost, not a correctness risk, and the alternative -- tracking
+	// whether mFacingYaw actually changed since last tic -- is a second
+	// piece of state to keep in sync with the first for a comparison this
+	// cheap to just always do instead.
+	protected void Reface()
+	{
+		Vector3 aheadDir = (cos(mFacingYaw), sin(mFacingYaw), 0);
+		Vector3 rightDir = (-sin(mFacingYaw), cos(mFacingYaw), 0);
+
+		for (int i = 0; i < mIds.Size(); i++)
+		{
+			Vector3 pos = mOrigin
+				+ aheadDir * (AHEAD + mDepth[i])
+				+ rightDir * (SIDE + mRight[i])
+				+ (0, 0, UP + mUp[i]);
+
+			level.MoveBillboard(mIds[i], pos);
+			level.OrientBillboard(mIds[i], mFacingYaw, 0, LevelLocals.BBF_FIXED);
+		}
 	}
 
 	// And start it growing, which is a SEPARATE call because it has to
@@ -622,45 +707,4 @@ class RS_CardPanel : EventHandler
 		return Color(255, 122, 132, 148);         // TH_MUTED -- neutral
 	}
 
-	// Plain static, not protected -- RS_WeaponInfoService (RS_Screens.zs)
-	// needs this too, to convert the row model's Font.CR_ indices into
-	// packed RGB before they cross the Service boundary to the wheel,
-	// which has no idea what a Font.CR_ constant means. One conversion
-	// table stays the rule; this just widens who may call it.
-	static color CRToRGB(int cr)
-	{
-		switch (cr)
-		{
-			case Font.CR_BRICK:     return Color(255, 190,  85,  70);
-			case Font.CR_TAN:       return Color(255, 215, 195, 155);
-			case Font.CR_GRAY:      return Color(255, 175, 175, 175);
-			case Font.CR_GREEN:     return Color(255,  90, 220,  90);
-			case Font.CR_BROWN:     return Color(255, 160, 120,  75);
-			case Font.CR_GOLD:      return Color(255, 255, 205,  70);
-			case Font.CR_RED:       return Color(255, 235,  60,  60);
-			case Font.CR_BLUE:      return Color(255,  90, 130, 255);
-			case Font.CR_ORANGE:    return Color(255, 255, 155,  55);
-			case Font.CR_WHITE:     return Color(255, 240, 240, 245);
-			case Font.CR_YELLOW:    return Color(255, 255, 240,  90);
-			case Font.CR_DARKGRAY:  return Color(255, 120, 120, 128);
-			case Font.CR_CYAN:      return Color(255,  70, 235, 235);
-			case Font.CR_ICE:       return Color(255, 190, 215, 255);
-			case Font.CR_FIRE:      return Color(255, 255, 130,  40);
-			case Font.CR_SAPPHIRE:  return Color(255,  80, 170, 255);
-			case Font.CR_TEAL:      return Color(255,  60, 190, 180);
-			case Font.CR_LIGHTBLUE: return Color(255, 120, 200, 255);
-			// The locked marker. Deliberately dim: a locked stat is still
-			// a number you are allowed to read, it is just one you cannot
-			// change.
-			case Font.CR_DARKRED:   return Color(255, 150,  40,  40);
-			case Font.CR_DARKBROWN: return Color(255, 120,  90,  55);
-			case Font.CR_PURPLE:    return Color(255, 180,  90, 255);
-			case Font.CR_DARKGREEN: return Color(255,  60, 150,  60);
-			// Spelled out rather than returning the TH_TEXT constant: the
-			// int-to-colour conversion is fine as a call ARGUMENT, which
-			// is how the weapon wheel uses its identical palette, but a
-			// return value is the one place worth not finding out.
-			default:                return Color(255, 216, 222, 233);
-		}
-	}
 }

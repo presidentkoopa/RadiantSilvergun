@@ -295,7 +295,11 @@ server int rs_ui_offer_override = 0;
 server int rs_bits_ratio_gold = 8;
 // AllClear: per-archetype ready-to-fire beep (rs_11). Audio-only by
 // design -- VR 3D models, nothing drawn on weapons.
-user bool rs_allclear_enable = true;
+// Defaulted OFF 2026-08-16 at the owner's request -- the same sound
+// (rs_allclear_ready) is now offered as a holster confirm option instead
+// (RS_Holsters CVARINFO.txt, rs_holster_sound_style). Still here and still
+// toggleable for anyone who wants the weapon-cadence tell back.
+user bool rs_allclear_enable = false;
 
 // =====================================================================
 // RS_Score -- arcade scoring (zscript/systems/score/RS_Score.zs, RS_ScoreHUD.zs,
@@ -1595,9 +1599,27 @@ server bool rs_elite_tokens = true;
 //
 // The card's geometry is here rather than baked in because getting a
 // panel readable in a headset is a dozen small adjustments and every one
-// of them used to cost a rebuild. Degrees are what matter, not units:
-// at rs_token_ahead 46, a half-width of 18 subtends about 43 degrees.
-// Comfortable reading in a headset is 30-40.
+// of them used to cost a rebuild. Degrees are what matter, not units.
+//
+// THIS COMMENT WENT STALE ONCE ALREADY, and the drift is worth naming:
+// it used to say "a half-width of 18 subtends about 43 degrees" at
+// rs_token_ahead 46, from before the text-legibility pass raised
+// rs_token_halfw/halfh (owner's call: "everything on the card read too
+// small in a headset"). Nobody re-checked the angle that raise implied.
+// The card's own landscape rule (RS_TokenPanel.ReadDials: HALF_W =
+// max(HALF_W, HALF_H * 1.5)) forces an EFFECTIVE half-width of 39 at the
+// current rs_token_halfh 26, not the 28 the cvar itself states -- and at
+// the OLD rs_token_ahead 46, 39 subtends 80.6 degrees total. Not a typo:
+// one floating card was very nearly as wide as a comfortable VR field of
+// view. Reported directly: "rs_token is huuuuuuuge."
+//
+// Fixed by moving the card FARTHER from the drop rather than shrinking
+// it -- HALF_W/HALF_H drive LINE (RS_CardPanel.FitLadder), so shrinking
+// them undoes the exact legibility fix that grew them in the first
+// place. rs_token_ahead 97 puts the same 39-unit half-width back to
+// about 44 degrees, this comment's own original target. Comfortable
+// reading in a headset is 30-40; 44 leaves a little air rather than
+// landing exactly on the edge of it.
 // =====================================================================
 
 // --- the drop in the world -------------------------------------------
@@ -1610,7 +1632,7 @@ server int  rs_token_light_scale = 100;  // percent
 // --- the card ---------------------------------------------------------
 server int rs_token_near      = 88;   // panel appears inside this
 server int rs_token_far       = 116;  // and does not leave until past this
-server int rs_token_ahead     = 46;   // reading distance
+server int rs_token_ahead     = 97;   // reading distance
 server int rs_token_up        = -1;   // eye-height offset
 // Half-extents. A card is LANDSCAPE: every line on it is a label on the
 // left and numbers on the right, which is a wide shape, and the portrait
