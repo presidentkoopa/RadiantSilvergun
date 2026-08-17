@@ -1421,25 +1421,26 @@ class RS_TokenPanel : RS_CardPanel
 				level.AnimateBillboardGroup(mGroup, 0.0, 1.0, REVEAL_TICS);
 		}
 
-		// SPIN IN PLACE, EVERY TIC -- from the FROZEN centre, not from
-		// mOrigin. This is the whole fix: mViewYaw only ever answers "how
-		// should the card that is ALREADY SITTING at mCardCentre turn to
-		// keep facing the player," never "where should the card be."
+		// LOCKED. Used to re-spin every tic to keep facing the player --
+		// "SPIN IN PLACE, EVERY TIC" -- which was the right call at
+		// reading distance and the wrong one at arm's length. A face-
+		// tracking billboard's required yaw rate scales with 1/distance
+		// to the viewer; at a few units out, an ordinary head turn or
+		// even just leaning drove the card through a fast, continuous
+		// reorientation. Owner's own words, after actually living with
+		// it in a headset: "why is it constantly turning n shit... lets
+		// just fuckin lock it down."
 		//
-		// pawn.HmdPos, NOT pawn.Pos. The card used to be read from ~90
-		// units out, where the gap between "the player's feet" and "the
-		// player's actual eyes" was a rounding error. Now that it sits a
-		// few units off the drop, that same gap -- a metre or more,
-		// leaning down toward a floor item, which is exactly the posture
-		// reading a dropped token invites -- is a large fraction of the
-		// whole viewing distance, and mFacingYaw pointed at the wrong
-		// spot by an angle nobody would call small. HmdPos exists
-		// specifically for this: "real headset position... for body-
-		// relative UI that needs to reason about the player's physical
-		// pose" (RS_CardPanel's own note on mOrigin, above).
-		Vector3 toPlayerNow = pawn.HmdPos - mCardCentre;
-		mViewYaw = atan2(toPlayerNow.Y, toPlayerNow.X);
-		Reface();
+		// So it is not re-faced at all after Build(). It keeps whatever
+		// yaw Put() baked into it -- mFacingYaw, toward wherever the
+		// player was actually standing at the moment it appeared -- and
+		// holds that until the panel is torn down and rebuilt: leaving
+		// REACH_FAR (Clear(), above) and coming back, or a different
+		// token becoming mShownFor. "Until the player backs away from
+		// it," in the owner's words. mViewYaw and Reface() (RS_CardPanel)
+		// are dead code with this call gone; left in place rather than
+		// deleted, in case panning-with-you is ever wanted again for a
+		// card shown from real reading distance instead of point-blank.
 
 		// The hold ring, every tic. One float, and only while a press is
 		// actually being held -- the rest of the time this writes 0 once
@@ -1999,52 +2000,47 @@ class RS_TokenPanel : RS_CardPanel
 		// nothing between the two numbers to draw.
 		// -------------------------------------------------------------
 		double lo = min(now, after), hi = max(now, after);
-		if (hidden) { lo = now; hi = now; }      // nothing to compare yet
 
-		double span  = max(hi, 1.0);
 		double barHH = max(hh * 0.11, LINE() * 0.05);
 		double barY  = y - hh * 0.44;
 
-		// A value v occupies x from -edge to -edge + 2*edge*(v/span), so a
-		// strip from a to b is centred at -edge + edge*(a+b)/span and is
-		// edge*(b-a)/span half-wide. Both segments below are exactly that,
-		// which is why neither needs arithmetic of its own.
-		// THE WHOLE BAR CARRIES THE VERDICT, not just the strip on its end.
+		// ONE NATIVE BAR, not three stacked panels. The old version was a
+		// faint trough, a muted "current value" segment and a coloured
+		// "change" segment -- three independent billboards at the same
+		// spot, each with its own slot in the engine's global sort. That
+		// is the same shape of problem as the shell/face depth-fight this
+		// session already fixed once: elements meant to read as one
+		// object, but sorted individually, can visually separate at the
+		// wrong angle. Owner's ruling after watching it happen again on
+		// the bars: "this needs to be one unified thing and not several
+		// layers."
 		//
-		// Tinting only the change meant a row that guts your accuracy and
-		// a row that leaves it alone drew the same grey bar with a
-		// differently-coloured cap, and the cap is the smallest thing on
-		// the row. The bar is the biggest mark on the card, so it is the
-		// one that should be answering "is this token good for me" from
-		// across the room. Base in the verdict colour held back, change in
-		// it at full strength.
-		// THE BASE IS NEUTRAL. ONLY THE CHANGE IS COLOURED.
-		//
-		// Tinting the whole bar was wrong and it was wrong in an
-		// expensive way: it made the stat you ALREADY HAVE look like part
-		// of the offer. A green bar for a stat the token barely moves
-		// read as "this is good", when the only thing the token did was
-		// add two points on the end. What you own is neutral; red and
-		// green are reserved for what changes, because that is the only
-		// part of the row the token is responsible for.
-		int trough = Put(0, barY, edge, barHH, LevelLocals.BB_PANEL, 0, TH_MUTED);
-		if (trough) level.SetBillboardAlpha(trough, 0.14);
-
-		if (lo > 0)
+		// BB_BAR (doombase.zs) is built for exactly this -- track and
+		// fill emitted together in a single native pass (hw_sprites.cpp,
+		// case BB_BAR), one billboard ID, nothing for it to separate
+		// FROM. The trade: it holds one fill value, not two, so the old
+		// "here is what you have, here is what you would gain" two-
+		// segment shape is gone. The exact numbers are already on the
+		// row as text immediately above (`41 > 45`); the bar's job
+		// becomes how big a move this is (fill) and which way (colour) --
+		// the smaller of the pair as a fraction of the larger, so a big
+		// swing empties the bar and a small one leaves it nearly full.
+		int fillPct;
+		color barCol;
+		if (hidden)
 		{
-			double baseHW = edge * (lo / span);
-			int baseId = Put(-edge + baseHW, barY, baseHW, barHH,
-				LevelLocals.BB_PANEL, 0, TH_MUTED);
-			if (baseId) level.SetBillboardAlpha(baseId, 0.75);
+			// Nothing to compare yet -- a full, neutral bar says exactly
+			// that, and gives up neither the direction nor the size of
+			// what the seal is withholding.
+			fillPct = 100;
+			barCol  = TH_MUTED;
 		}
-
-		if (!hidden && hi > lo)
+		else
 		{
-			double dHW = edge * (hi - lo) / span;
-			int deltaId = Put(-edge + edge * (lo + hi) / span, barY, dHW, barHH,
-				LevelLocals.BB_PANEL, 0, c);
-			// The change is the one thing on the row worth revealing.
-			if (deltaId) mProgressIds.Push(deltaId);
+			double hiSafe = max(hi, 1.0);
+			fillPct = clamp(int(round(100.0 * lo / hiSafe)), 0, 100);
+			barCol  = c;
 		}
+		Put(0, barY, edge, barHH, LevelLocals.BB_BAR, fillPct, barCol);
 	}
 }
