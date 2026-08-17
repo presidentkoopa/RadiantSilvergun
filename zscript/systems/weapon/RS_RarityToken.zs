@@ -1266,6 +1266,29 @@ class RS_TokenPanel : RS_CardPanel
 		// thing in this file.
 		double gate = mShownFor ? REACH_FAR : REACH_NEAR;
 
+		// SECOND HYSTERESIS, for WHICH token, not just whether one shows.
+		//
+		// The distance gate above only ever asked "is the nearest token
+		// still in range" -- it never asked whether "nearest" was the SAME
+		// token tic to tic. Two drops sitting near each other (or several
+		// stacked test tokens from repeated netevent rs_token calls with
+		// no wipe between them) end up within a few units of tied
+		// distance, and ordinary movement -- or nothing moving at all,
+		// just floating-point noise in Distance3D -- flips which one is
+		// LITERALLY nearest from one tic to the next. Every flip is a
+		// different mPayload, a different world position, a different
+		// SelectRows() result: a wholly different card, rebuilt in full,
+		// every time the "winner" changes. That is what centre jumping
+		// between two fixed points in the debug log actually was -- not
+		// drift, not a rotation bug, two different tokens trading places
+		// as "best" continuously.
+		//
+		// A candidate has to beat the current mShownFor by a REAL margin,
+		// not just be marginally closer, to actually take over. Nothing
+		// else in this class reads STICKY_MARGIN, so it is local rather
+		// than a field.
+		const STICKY_MARGIN = 12.0;
+
 		RS_RarityToken best = null;
 		double bestD = gate;
 		let it = ThinkerIterator.Create("RS_RarityToken");
@@ -1275,6 +1298,7 @@ class RS_TokenPanel : RS_CardPanel
 			let t = RS_RarityToken(th);
 			if (!t || !t.mPayload) continue;
 			double d = t.Distance3D(pawn);
+			if (t == mShownFor) d -= STICKY_MARGIN;   // the incumbent gets a head start
 			if (d < bestD) { bestD = d; best = t; }
 		}
 		if (!best) { Clear(); return; }
