@@ -1613,13 +1613,21 @@ server bool rs_elite_tokens = true;
 // one floating card was very nearly as wide as a comfortable VR field of
 // view. Reported directly: "rs_token is huuuuuuuge."
 //
-// Fixed by moving the card FARTHER from the drop rather than shrinking
-// it -- HALF_W/HALF_H drive LINE (RS_CardPanel.FitLadder), so shrinking
-// them undoes the exact legibility fix that grew them in the first
-// place. rs_token_ahead 97 puts the same 39-unit half-width back to
-// about 44 degrees, this comment's own original target. Comfortable
-// reading in a headset is 30-40; 44 leaves a little air rather than
-// landing exactly on the edge of it.
+// SUPERSEDED, PARTIALLY -- see rs_token_ahead's own comment below. The
+// "move it farther out" fix worked for angle, but only after the
+// tracking bugs were actually fixed (two rounds past this one) did the
+// owner see the result clearly enough to ask for something different:
+// the card sitting ON the drop, not floating toward wherever the
+// player happens to be standing. AHEAD's job changed from "reading
+// distance" to "how far off the drop, so it does not z-fight the glow
+// shaft" -- a few units, not ninety. HALF_W/HALF_H are UNCHANGED by
+// that ask on purpose: the owner separately asked for a bigger card
+// once already ("personally i'd want a bigger card"), and whether
+// sitting the card AT the drop instead of ninety units toward the
+// player also resolves "too large" -- since how big it reads now
+// depends on how far the PLAYER stands back to look at it, not on
+// this cvar -- is exactly the next thing to find out before touching
+// size again.
 // =====================================================================
 
 // --- the drop in the world -------------------------------------------
@@ -1632,7 +1640,12 @@ server int  rs_token_light_scale = 100;  // percent
 // --- the card ---------------------------------------------------------
 server int rs_token_near      = 88;   // panel appears inside this
 server int rs_token_far       = 116;  // and does not leave until past this
-server int rs_token_ahead     = 97;   // reading distance
+// NOT "reading distance" any more -- the card sits ON the drop.
+// Owner's ask, after the tracking fix actually worked: "needs to spawn
+// ON TOP OF the elite drop." A few units of lift, only enough to clear
+// the drop's own glow shaft without z-fighting it -- not a distance
+// tuned for the card's own width the way the old 97 was.
+server int rs_token_ahead     = 6;
 server int rs_token_up        = -1;   // eye-height offset
 // Half-extents. A card is LANDSCAPE: every line on it is a label on the
 // left and numbers on the right, which is a wide shape, and the portrait

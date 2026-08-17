@@ -1118,18 +1118,25 @@ class RS_TokenPanel : RS_CardPanel
 		// someone who already has one.
 		HALF_W = max(HALF_W, HALF_H * 1.5);
 
-		// SAME PROBLEM, SAME FIX, FOR READING DISTANCE.
+		// NO LONGER "READING DISTANCE" -- the card sits ON the drop now.
 		//
-		// rs_token_ahead is ALSO `server int` -- archived, so raising its
-		// CVARINFO default from 46 to 97 only reaches a fresh install.
-		// The landscape rule two lines up forces an effective half-width
-		// of 39 at the current rs_token_halfh 26, and 39 units wide at
-		// the OLD ahead of 46 subtends 80.6 degrees of view -- nearly a
-		// full comfortable VR field of view from one floating card.
-		// Reported directly: "rs_token is huuuuuuuge." A floor, not a
-		// default, is what actually reaches someone who already has a
-		// config with the old value written into it.
-		AHEAD = max(AHEAD, 90);
+		// Owner's ask, after seeing the tracking fix actually work: "card
+		// is too large, needs to spawn ON TOP OF the elite drop." AHEAD
+		// used to push the card out toward the player, at a distance
+		// tuned for its own half-width -- effectively 90 units, chosen
+		// for a card sized 39 units across. Sitting the card AT the drop
+		// instead makes AHEAD nearly 0, a few units of lift so it does
+		// not z-fight the drop's own glow shaft.
+		//
+		// HALF_W/HALF_H are DELIBERATELY UNTOUCHED here, even though a
+		// card this size read at close range will likely still feel
+		// large. Two live variables changing in the same test is how the
+		// last few rounds of feedback got hard to disentangle, and the
+		// owner separately asked for a BIGGER card once already
+		// ("personally i'd want a bigger card") -- so this pass only
+		// moves the card TO the drop and leaves size for its own round,
+		// once it is clear how much of "too large" that alone fixes.
+		AHEAD = clamp(CvInt("rs_token_ahead", 6), 0, 20);
 		ROW_H       = max(1.0, CvInt("rs_token_rowh",   32) / 10.0);
 		BORDER      = clamp(CvInt("rs_token_border", 7) / 10.0, 0.0, HALF_H - 0.5);
 		REACH_NEAR  = max(8,  CvInt("rs_token_near", 88));
