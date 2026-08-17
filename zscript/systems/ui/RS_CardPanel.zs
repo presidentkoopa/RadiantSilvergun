@@ -43,23 +43,30 @@ class RS_CardPanel : EventHandler
 	// covered the face and every line of text behind it. Both constants
 	// are negative now, which is what "further away" actually requires.
 	//
-	// MAGNITUDE CUT BY 15x ON TOP OF THAT FIX -- -0.9/-0.45 were sized for
-	// a card read from ~90 units out (the old AHEAD). Translucent billboards
-	// are not depth-tested against each other the way they are against
-	// opaque world geometry, so their draw order is resolved by distance
-	// sorting, and a depth SEPARATION that reads as negligible from ninety
-	// units away becomes a real angular displacement once the card sits a
-	// few units off the drop instead -- from an oblique angle, the shell
-	// (closer to camera by this whole offset) visibly parallax-shifts
-	// against the text sitting at depth 0, and the two no longer overlap
-	// where the layout intended them to. Owner's own diagnosis, exactly:
-	// "i think this has to do with layers and their cutting through the
-	// back panel... rarely if i stand in the right place the card draws
-	// correctly." Still enough separation to keep the draw order correct
-	// -- the SIGN, which is what settles who is in front, is unchanged --
-	// just not enough to visibly swim at close range.
-	const Z_SHELL = -0.06;
-	const Z_FACE  = -0.03;
+	// CUT TO ZERO, having already been cut 15x once and still reported
+	// broken from the exact same angles on the actually-tested build.
+	// ANY nonzero depth offset moves a billboard's distance from the
+	// camera by a real, if small, amount, and DispatchBillboards
+	// (hw_drawinfo.cpp) sorts EVERY billboard as an ordinary translucent
+	// sprite by that distance -- there is no special-cased "layer"
+	// concept at the engine level at all, only "nearer draws over
+	// farther." A SMALL offset does not make that sort safer, it makes
+	// the two distances close enough to be sensitive to floating-point
+	// noise and viewing angle instead of reliably ordered -- which is
+	// exactly a sort that is sometimes right and sometimes not: "rarely
+	// if i stand in the right place the card draws correctly."
+	//
+	// Zero removes the ambiguity a different way. EVERY element in a
+	// build -- Shell()'s border and face, then every Put() call after it
+	// -- is submitted at the IDENTICAL distance, and Shell() runs FIRST,
+	// before Build() draws a single line of content. A stable sort ties
+	// on equal keys by resolving them in submission order, so text and
+	// bars created after the plate keep landing on top of it for the
+	// same reason they always did -- they were created after it -- with
+	// no depth-based tie-break needed, and nothing left for a viewing
+	// angle to destabilise.
+	const Z_SHELL = 0.0;
+	const Z_FACE  = 0.0;
 
 	// -----------------------------------------------------------------
 	// THE WEAPON WHEEL'S PALETTE, because all of these are the same
