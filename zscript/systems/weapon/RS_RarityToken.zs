@@ -1284,10 +1284,22 @@ class RS_TokenPanel : RS_CardPanel
 		// mFacingYaw is the direction FROM the card TOWARD the viewer --
 		// see the note on Put() in RS_CardPanel for why that is the angle
 		// and not its opposite.
+		//
+		// BUILD-TIME ONLY, now. This still decides which way a freshly
+		// spawned card faces and where its centre lands (FreezeCentre(),
+		// right after Build() below) -- but it is no longer what Reface()
+		// rotates by every tic. That used to be the same field doing two
+		// jobs, and the second job was wrong: re-deriving position from
+		// (mOrigin, THIS tic's yaw) every tic does not rotate the card in
+		// place, it re-anchors its whole centre AHEAD units out along
+		// whichever direction the player currently is -- an orbit, not a
+		// spin. Owner's own words: "it needs to stay exactly in place
+		// where it spawns, not moving at all apart from rotating to face
+		// me." mViewYaw, set below from the card's own FROZEN centre, is
+		// the field that now does that second job, alone.
 		Vector3 toPlayer = pawn.Pos - mOrigin;
 		mFacingYaw = atan2(toPlayer.Y, toPlayer.X);
 		SyncOrigin();
-		Reface();
 
 		// Rebuild only when the READING changes -- a different token, or
 		// you switched weapons over this one. Twenty billboards a frame
@@ -1337,11 +1349,26 @@ class RS_TokenPanel : RS_CardPanel
 
 			Build(best, PlayerPawn(pawn));
 
+			// AFTER Build, using the SAME mFacingYaw every Put() call
+			// inside it just placed elements with -- FreezeCentre() has
+			// to agree with them on which yaw defines "centre" or the
+			// pivot Reface() rotates around every tic afterward would not
+			// be the point mDepth/mRight/mUp were actually measured from.
+			FreezeCentre();
+
 			// After Build, so the members exist to be scaled. A group with
 			// no members animates nothing and is not an error.
 			if (mGroup)
 				level.AnimateBillboardGroup(mGroup, 0.0, 1.0, REVEAL_TICS);
 		}
+
+		// SPIN IN PLACE, EVERY TIC -- from the FROZEN centre, not from
+		// mOrigin. This is the whole fix: mViewYaw only ever answers "how
+		// should the card that is ALREADY SITTING at mCardCentre turn to
+		// keep facing the player," never "where should the card be."
+		Vector3 toPlayerNow = pawn.Pos - mCardCentre;
+		mViewYaw = atan2(toPlayerNow.Y, toPlayerNow.X);
+		Reface();
 
 		// The hold ring, every tic. One float, and only while a press is
 		// actually being held -- the rest of the time this writes 0 once

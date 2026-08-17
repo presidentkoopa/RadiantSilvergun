@@ -99,6 +99,47 @@ class RS_CardPanel : EventHandler
 	protected Vector3 mOrigin;
 	protected double  mFacingYaw;
 
+	// THE SPIN, separate from mFacingYaw on purpose. mFacingYaw only ever
+	// matters at BUILD time now (Put()'s own placement math, and
+	// FreezeCentre() right after) -- mViewYaw is what Reface() actually
+	// rotates by every tic, computed fresh each time from the card's own
+	// FROZEN mCardCentre rather than from the drop. Two fields because
+	// they answer two different questions: mFacingYaw decided where the
+	// card's centre landed, once; mViewYaw decides which way the card
+	// already sitting there should turn, continuously.
+	protected double  mViewYaw;
+
+	// THE CARD'S OWN PIVOT, frozen the tic it is built, never touched
+	// again after that.
+	//
+	// mOrigin is the DROP's position, not the card's -- the card sits
+	// AHEAD units displaced from it. The first cut of Reface() rebuilt
+	// every element from mOrigin using the CURRENT mFacingYaw every tic,
+	// which does not just rotate the card in place: aheadDir is itself a
+	// function of yaw, so re-deriving position from (mOrigin, live yaw)
+	// swings the card's whole CENTRE around mOrigin like an orbit, always
+	// AHEAD units out along whichever direction the player currently is.
+	// Reported plainly: "it needs to stay exactly in place where it
+	// spawns, not moving at all apart from rotating to face me."
+	//
+	// FreezeCentre(), called once right after Build(), captures where
+	// that orbit math placed the card on the ONE tic it is allowed to:
+	// build time. Every tic after that, Reface() rotates every element's
+	// OWN offset around THIS fixed point instead of re-deriving the
+	// point itself -- the difference between a card spinning in place
+	// and a card orbiting the token while spinning.
+	protected Vector3 mCardCentre;
+
+	// Call once, right after Build() -- BEFORE the first Reface() -- so
+	// mDepth/mRight/mUp (which Put() recorded relative to mOrigin under
+	// THIS SAME mFacingYaw) and mCardCentre agree on the same pivot.
+	protected void FreezeCentre()
+	{
+		Vector3 aheadDir = (cos(mFacingYaw), sin(mFacingYaw), 0);
+		Vector3 rightDir = (-sin(mFacingYaw), cos(mFacingYaw), 0);
+		mCardCentre = mOrigin + aheadDir * AHEAD + rightDir * SIDE + (0, 0, UP);
+	}
+
 	// -----------------------------------------------------------------
 	// THE FLOW. Two cursors and a unit, and that is the whole layout
 	// engine.
@@ -572,50 +613,63 @@ class RS_CardPanel : EventHandler
 	}
 
 	// -----------------------------------------------------------------
-	// TURN TO FACE, EVERY TIC -- POSITION AND ORIENTATION TOGETHER.
+	// SPIN IN PLACE, EVERY TIC -- around the card's own FROZEN centre,
+	// never re-deriving where that centre is.
 	//
-	// mFacingYaw itself already updates every tic (the token sets it fresh
-	// in WorldTick, before calling this), but updating the FIELD was never
-	// the same thing as updating the BILLBOARDS. Put() bakes mFacingYaw
-	// into BOTH the yaw it hands AddBillboardPersistent AND the position
-	// it computes (aheadDir/rightDir are both built from mFacingYaw) --
-	// at CREATION time, and nothing touched either again after that. A
-	// card built while you stood north of it kept facing north forever,
-	// correct only from the one angle it happened to be born at. Owner's
-	// report: "needs to face me at all times."
+	// mViewYaw updates every tic (the token sets it fresh in WorldTick,
+	// from mCardCentre, before calling this) -- but updating the FIELD
+	// was never the same thing as updating the BILLBOARDS. Put() bakes
+	// yaw into BOTH the orientation it hands AddBillboardPersistent AND
+	// the position it computes, at CREATION time, and nothing touched
+	// either again after that: a card built while you stood north of it
+	// kept facing north forever, correct only from the one angle it
+	// happened to be born at. Owner's report: "needs to face me at all
+	// times."
 	//
 	// THE FIRST CUT OF THIS ONLY RE-ORIENTED, and that was a worse bug
 	// than the one it fixed: the plate turned to track the player, but
 	// every element's WORLD POSITION stayed pinned to the OLD yaw's
 	// aheadDir/rightDir -- so the face rotated out from under its own
-	// contents instead of carrying them. Reported exactly that way: "it
-	// only shows one half of the card text depending on where im pointing
-	// my gun" -- which half of a now-misaligned plate still overlapped
-	// which now-stationary element was purely a function of viewing
-	// angle. Recomputing localPos here, from the SAME formula Put() used,
-	// under the CURRENT mFacingYaw, is what keeps the two in lockstep.
+	// contents. "it only shows one half of the card text depending on
+	// where im pointing my gun" -- fixed by recomputing position too,
+	// but from mOrigin, which was the SECOND bug: aheadDir is itself a
+	// function of yaw, so re-deriving position from (mOrigin, live yaw)
+	// every tic does not spin the card in place, it re-anchors the whole
+	// card's CENTRE, always AHEAD units out along wherever the player
+	// currently is -- an orbit around the drop, not a card spinning on
+	// its own axis. "it needs to stay exactly in place where it spawns,
+	// not moving at all apart from rotating to face me."
+	//
+	// The actual fix: mCardCentre is a POINT, frozen once at build time
+	// (FreezeCentre(), called right after Build() -- see RS_RarityToken's
+	// own note on why the ordering there matters). Every element's
+	// (mRight, mUp, mDepth) is that element's own offset from THAT point,
+	// measured under the SAME yaw Put() built it with. Rotating those
+	// offsets by a NEW yaw and re-adding them to the SAME frozen centre
+	// is what actually spins a rigid card around its own middle instead
+	// of sliding its middle around the token.
 	//
 	// Cheap and safe to call unconditionally every tic even though nothing
 	// about most cards' facing changes tic to tic in the way their origin
 	// can: moving/orienting a billboard to where it already is is a
 	// no-op cost, not a correctness risk, and the alternative -- tracking
-	// whether mFacingYaw actually changed since last tic -- is a second
+	// whether mViewYaw actually changed since last tic -- is a second
 	// piece of state to keep in sync with the first for a comparison this
 	// cheap to just always do instead.
 	protected void Reface()
 	{
-		Vector3 aheadDir = (cos(mFacingYaw), sin(mFacingYaw), 0);
-		Vector3 rightDir = (-sin(mFacingYaw), cos(mFacingYaw), 0);
+		Vector3 aheadDir = (cos(mViewYaw), sin(mViewYaw), 0);
+		Vector3 rightDir = (-sin(mViewYaw), cos(mViewYaw), 0);
 
 		for (int i = 0; i < mIds.Size(); i++)
 		{
-			Vector3 pos = mOrigin
-				+ aheadDir * (AHEAD + mDepth[i])
-				+ rightDir * (SIDE + mRight[i])
-				+ (0, 0, UP + mUp[i]);
+			Vector3 pos = mCardCentre
+				+ aheadDir * mDepth[i]
+				+ rightDir * mRight[i]
+				+ (0, 0, mUp[i]);
 
 			level.MoveBillboard(mIds[i], pos);
-			level.OrientBillboard(mIds[i], mFacingYaw, 0, LevelLocals.BBF_FIXED);
+			level.OrientBillboard(mIds[i], mViewYaw, 0, LevelLocals.BBF_FIXED);
 		}
 	}
 
