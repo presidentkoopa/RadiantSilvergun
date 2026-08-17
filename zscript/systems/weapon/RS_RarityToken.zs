@@ -1097,11 +1097,10 @@ class RS_TokenPanel : RS_CardPanel
 	{
 		AHEAD       = CvInt("rs_token_ahead",  46);
 		UP          = CvInt("rs_token_up",     -1);
-		HALF_W      = max(4, CvInt("rs_token_halfw", 20));
-		// 20, not 11. LINE is solved from this now, so half-height is the
-		// dial that decides how big the type comes out -- a taller card
-		// spends the extra on letters rather than on air.
-		HALF_H      = max(3, CvInt("rs_token_halfh", 20));
+		HALF_W      = max(4, CvInt("rs_token_halfw", 10));
+		// Sized for reading the card AT the drop (AHEAD ~6), not from
+		// across the room -- see CVARINFO.txt's rs_token_halfw comment.
+		HALF_H      = max(3, CvInt("rs_token_halfh", 7));
 
 		// A CARD IS LANDSCAPE, AND THAT IS ENFORCED RATHER THAN DEFAULTED.
 		//

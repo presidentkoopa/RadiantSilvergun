@@ -1620,14 +1620,29 @@ server bool rs_elite_tokens = true;
 // the card sitting ON the drop, not floating toward wherever the
 // player happens to be standing. AHEAD's job changed from "reading
 // distance" to "how far off the drop, so it does not z-fight the glow
-// shaft" -- a few units, not ninety. HALF_W/HALF_H are UNCHANGED by
-// that ask on purpose: the owner separately asked for a bigger card
-// once already ("personally i'd want a bigger card"), and whether
-// sitting the card AT the drop instead of ninety units toward the
-// player also resolves "too large" -- since how big it reads now
-// depends on how far the PLAYER stands back to look at it, not on
-// this cvar -- is exactly the next thing to find out before touching
-// size again.
+// shaft" -- a few units, not ninety.
+//
+// ANSWERED: it did NOT resolve "too large" -- it made the angle
+// problem far worse. A 39-wide card already subtended 80.6 degrees at
+// the OLD ahead of 46 (a "cinema screen strapped to your face", see
+// above). Moving AHEAD to 6 while leaving HALF_W/HALF_H untouched did
+// not shrink the card, it just moved a cinema-screen-sized card to
+// point-blank range. At any distance under ~40 units from the drop --
+// which is where a player stands to actually read a card sitting ON
+// the floor -- the old half-width of 39 subtends well over 90 degrees,
+// wider than a headset's field of view. That is why content appeared
+// to "vanish": one column (labels, the card's left half) or the other
+// (readings, the right half) was landing outside the FOV depending on
+// which way the player's head happened to be turned, and centring on
+// the card mid-turn is what made it briefly readable in full.
+//
+// FIXED by shrinking HALF_W/HALF_H to match the new, much shorter
+// AHEAD -- sized so a card sitting on the drop subtends about 38
+// degrees (comfortably inside the 30-40 the owner's own past note
+// calls comfortable) from roughly 30 units out, a realistic
+// stand-over-the-drop reading distance. This is the "next thing to
+// find out before touching size again" that the previous version of
+// this comment deferred.
 // =====================================================================
 
 // --- the drop in the world -------------------------------------------
@@ -1653,19 +1668,18 @@ server int rs_token_up        = -1;   // eye-height offset
 // RS_TokenPanel.ReadDials also enforces halfw >= halfh * 1.5 at runtime,
 // because this cvar is archived -- a raised default here only reaches a
 // fresh install, never a config that already exists.
-// Widened by TRIMMING HEIGHT, not by growing width. Growing it was the
-// obvious move and it breaks the rule three lines of comment above this
-// one already established: 26 x 13 would subtend 59 degrees, and the
-// note on AHEAD says a headset reads comfortably at 30-40 and calls 68
-// "a cinema screen strapped to your face". 20 x 11 is 47 x 27 degrees --
-// landscape, and no wider an arc than the 43 it already had.
-// 28 x 26, not 20 x 20. Owner's call after seeing the three-row card:
-// "either make the card bigger or introduce rolling a smaller number of
-// stats -- personally i'd want a bigger card." Both happened -- the row
-// count below is also a dial -- but the SIZE moved rather than leaving
-// it to the row picker alone.
-server int rs_token_halfw     = 28;
-server int rs_token_halfh     = 26;   // LINE is solved from this: a taller card spends it on letters
+// 28 x 26 was sized for reading from ~90 units away (the OLD
+// rs_token_ahead). Now that the card sits ON the drop (rs_token_ahead
+// 6) that size is wrong by roughly the same ratio ahead shrank by --
+// at any realistic stand-over-the-drop distance it is wider than a
+// headset's FOV, which read as content randomly vanishing depending on
+// which way the player was looking (see the block comment above).
+// 10.5 x 7 (post landscape-floor) subtends about 38 degrees from 30
+// units out -- the "comfortable" band the old rs_token_ahead comment
+// itself names, at a distance that matches how close the card now
+// actually sits.
+server int rs_token_halfw     = 10;
+server int rs_token_halfh     = 7;    // LINE is solved from this: a taller card spends it on letters
 server int rs_token_rowh      = 32;   // stat row pitch, tenths of a unit
 
 // The weapon wheel's commit burst, thrown when a token is accepted, in
